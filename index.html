@@ -1536,6 +1536,13 @@ const G={
   back(){
     SFX.btn();S.busy=false;AST.clear();
     if(Cfg.data.confirm&&!S.over&&S.hist.length>0&&!confirm('تريد الخروج من اللعبة؟'))return;
+    /* إصلاح #1: لو في لعبة أونلاين وما خلصتش → أرسل استسلام للخصم وأنت تخسر */
+    if(S.mode==='online'&&!S.over){
+      S.over=true;
+      OL.sendResign();
+      G.showOver('✕','خسرت','انسحبت من اللعبة','#f87171');
+      return; /* الزر "القائمة" في شاشة game over يعمل dc */
+    }
     if(S.mode==='online')OL.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
@@ -1687,15 +1694,23 @@ const OL=(()=>{
     conn=c;
     c.on('data',d=>{try{handleGame(d);}catch(e){}});
     c.on('close',()=>{
-      if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');}
+      /* إصلاح #1: لو الاتصال انقطع وفي لعبة جارية → الخصم انسحب فنحن نفوز
+         لكن لو أنا اللي أغلقت الاتصال (S.over=true مسبقاً) لا نعرض شيء */
+      if(!S.over&&S.mode==='online'){
+        S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');
+      }
     });
     c.on('error',()=>{});
   }
 
   function handleGame(d){
-    if(d.type==='start')      _go(d.yourColor);
-    else if(d.type==='move')  {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
-    else if(d.type==='assist'){S.oppUsingAssist=d.on;R.astLbls();}
+    if(d.type==='start')        _go(d.yourColor);
+    else if(d.type==='move')    {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
+    else if(d.type==='assist')  {S.oppUsingAssist=d.on;R.astLbls();}
+    else if(d.type==='resign')  {
+      /* إصلاح #1: الخصم أعلن استسلامه صراحةً → نعرض الفوز فقط لنا */
+      if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','استسلم الخصم','#e8d080');}
+    }
   }
 
   /* ── الإصلاح الجوهري للأسماء ──
@@ -1704,13 +1719,16 @@ const OL=(()=>{
   ── */
   function _go(mc){
     const oc=E.opp(mc);
-    G.start('online',0);
+    /* إصلاح #4: نعمل _reset مباشرةً ثم نعيّن myCol قبل أي render */
+    G._reset('online',0);
     S.mode='online'; S.levelId=-1; S.myCol=mc;
     document.getElementById('bwrap').classList.remove('flipped');
     document.getElementById('gmode').textContent='⊕ أونلاين';
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent='أنت';
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent='الخصم';
+    /* إصلاح #2: fixBars بعد تحديد myCol */
     fixBars(mc);
+    Nav.game();
     R.all();
   }
 
@@ -1830,6 +1848,17 @@ const OL=(()=>{
       if(conn&&conn.open) conn.send({type:'assist',on});
     },
 
+    /* إصلاح #1: إرسال رسالة استسلام للخصم قبل قطع الاتصال */
+    sendResign(){
+      if(conn&&conn.open){
+        try{conn.send({type:'resign'});}catch(e){}
+        /* نأخر الإغلاق قليلاً عشان الرسالة توصل */
+        setTimeout(()=>destroy(),400);
+      }else{
+        destroy();
+      }
+    },
+
     dc(){ destroy(); }
   };
 })();
@@ -1838,6 +1867,19 @@ const OL=(()=>{
    BOOT
 ══════════════════════════════════════ */
 Cfg.load();
+
+/* إصلاح #3: تحذير عند إغلاق/تحديث الصفحة أثناء لعبة أونلاين */
+window.addEventListener('beforeunload', e => {
+  if(S.mode==='online' && !S.over && S.hist.length > 0){
+    /* أرسل استسلام بسرعة قبل الإغلاق */
+    try{
+      if(typeof OL !== 'undefined') OL.sendResign();
+    }catch(ex){}
+    e.preventDefault();
+    e.returnValue = 'اللعبة لا تزال جارية — هل تريد المغادرة؟';
+    return e.returnValue;
+  }
+});
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
