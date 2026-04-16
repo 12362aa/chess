@@ -801,6 +801,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <!-- كونفيتي للفوز -->
 <div class="confetti-wrap" id="confetti-wrap"></div>
 
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 'use strict';
 
@@ -1558,175 +1559,132 @@ const Nav={
 };
 
 /* ══════════════════════════════════════
-   ONLINE — Pure WebRTC + WebSocket Signaling
+   ONLINE — PeerJS مع 3 Servers بالتسلسل
    ════════════════════════════════════
-   Signaling عبر WebSocket مجاني (socketsbay / piesocket)
-   ثم اتصال WebRTC مباشر P2P
-   يعمل مع كل المتصفحات بما فيها Brave + Firefox
+   Server 1: 0.peerjs.com (الرسمي الأسرع)
+   Server 2: peer-server-yw4n.onrender.com (backup مجاني)
+   Server 3: peerjs.com (fallback أخير)
+   + TURN servers قوية
+   ✓ يعمل مع Chrome / Firefox / Safari / Brave
 ══════════════════════════════════════ */
 const OL=(()=>{
-  /* TURN servers متعددة وموثوقة */
-  const ICE_SERVERS=[
+
+  /* ── قائمة Signaling Servers بالترتيب ── */
+  const PEER_CFGS=[
+    /* Server 1: PeerJS الرسمي الجديد */
+    {host:'0.peerjs.com', port:443, path:'/', secure:true, ping:3000},
+    /* Server 2: instance مجاني على Render */
+    {host:'peer-server-yw4n.onrender.com', port:443, path:'/', secure:true, ping:5000},
+    /* Server 3: PeerJS الكلاسيك */
+    {host:'peerjs.com', port:443, path:'/myapp', secure:true, ping:3000},
+  ];
+
+  const ICE=[
     {urls:'stun:stun.l.google.com:19302'},
     {urls:'stun:stun1.l.google.com:19302'},
     {urls:'stun:stun2.l.google.com:19302'},
     {urls:'stun:stun.cloudflare.com:3478'},
     {urls:'stun:stun.relay.metered.ca:80'},
-    /* Metered TURN — حساب مجاني موثوق */
-    {urls:'turn:a.relay.metered.ca:80',      username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:a.relay.metered.ca:80?transport=tcp',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:a.relay.metered.ca:443',     username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turns:a.relay.metered.ca:443',    username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:openrelay.metered.ca:80',    username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443',   username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:a.relay.metered.ca:80',                  username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turn:a.relay.metered.ca:80?transport=tcp',     username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turn:a.relay.metered.ca:443',                 username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turns:a.relay.metered.ca:443',                username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turn:openrelay.metered.ca:80',                username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:openrelay.metered.ca:443',               username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject',credential:'openrelayproject'},
   ];
 
-  /* حوّل الكود لـ channel رقمي مقبول */
-  function roomToNum(room){
-    let n=5381;for(const ch of room)n=((n<<5)+n)+ch.charCodeAt(0)&0x7fffffff;
-    return(n%90000)+10000; /* 10000-99999 */
-  }
+  let peer=null, conn=null;
+  let _myCol='w', _srvIdx=0;
+  let _retryTimer=null;
 
-  /* ── Signaling WebSocket URLs (fallback chain) ── */
-  const SIG_SERVERS=[
-    code=>`wss://socketsbay.com/wss/v2/1/${code}/`,
-    code=>`wss://ws.piesocket.com/v3/${code}?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self=1`,
-  ];
-
-  let ws=null, wsIdx=0;
-  let pc=null, _dc=null;
-  let _myCol='w', _isHost=false;
-  let _roomCode='', _pendingIce=[];
-  let _connected=false;
-  let _sigTimeout=null;
-
-  function setSt(tab,msg,type=''){
+  /* ── helpers ── */
+  function setSt(tab,msg,tp=''){
     const el=document.getElementById('st-'+tab);
-    if(el){el.className='ost'+(type?' '+type:'');el.textContent=msg;}
+    if(el){el.className='ost'+(tp?' '+tp:'');el.textContent=msg;}
   }
 
-  function mkCode(){
-    const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];
-    return s;
+  /* ── تنظيف ── */
+  function destroy(){
+    clearTimeout(_retryTimer);
+    if(conn){try{conn.close();}catch(e){}conn=null;}
+    if(peer){try{peer.destroy();}catch(e){}peer=null;}
   }
 
-  /* ── إنشاء WebSocket مع fallback ── */
-  function connectWS(onOpen){
-    if(ws){try{ws.close();}catch(e){}}
-    const ch=roomToNum(_roomCode);
-    const urlFn=SIG_SERVERS[wsIdx%SIG_SERVERS.length];
-    ws=new WebSocket(urlFn(ch));
-    ws.onopen=()=>{clearTimeout(_sigTimeout);onOpen();};
-    ws.onmessage=e=>{try{handleSig(JSON.parse(e.data));}catch(ex){}};
-    ws.onerror=()=>{
-      wsIdx++;
-      if(wsIdx<SIG_SERVERS.length*2){
-        setTimeout(()=>connectWS(onOpen),900);
+  /* ── إنشاء Peer مع fallback تلقائي ──
+     يجرب كل server بالترتيب حتى ينجح
+  ── */
+  function mkPeer(id, onReady, onFail){
+    destroy();
+    const cfg=PEER_CFGS[_srvIdx%PEER_CFGS.length];
+    const opts={
+      config:{iceServers:ICE,iceCandidatePoolSize:10},
+      pingInterval:cfg.ping,
+      ...cfg,
+    };
+    peer = id ? new Peer(id, opts) : new Peer(opts);
+
+    /* timeout إذا فشل الاتصال بالـ server */
+    const t=setTimeout(()=>{
+      if(peer&&peer.open)return;
+      _srvIdx++;
+      if(_srvIdx<PEER_CFGS.length*2){
+        setSt('c','◌ جاري المحاولة على خادم آخر... ('+(_srvIdx+1)+')','conn');
+        setSt('j','◌ جاري المحاولة على خادم آخر... ('+(_srvIdx+1)+')','conn');
+        mkPeer(id,onReady,onFail);
       }else{
-        setSt('c','✕ فشل الاتصال — تحقق من الإنترنت','err');
-        setSt('j','✕ فشل الاتصال — تحقق من الإنترنت','err');
-        document.getElementById('btn-create').disabled=false;
+        onFail('تعذر الاتصال بأي خادم — تأكد من الإنترنت');
       }
-    };
-    ws.onclose=()=>{};
-    _sigTimeout=setTimeout(()=>{
-      if(ws&&ws.readyState!==1){ws.close();if(ws.onerror)ws.onerror();}
-    },9000);
-  }
+    },10000);
 
-  function sigSend(obj){
-    if(ws&&ws.readyState===1)ws.send(JSON.stringify({room:_roomCode,...obj}));
-  }
-
-  /* ── معالجة رسائل الـ Signaling ── */
-  async function handleSig(d){
-    if(d.room&&d.room!==_roomCode)return; /* تجاهل غرف أخرى */
-    /* المضيف: لو جاء join_req أعد إرسال offer */
-    if(d.type==='join_req'&&_isHost){
-      if(pc&&pc.localDescription)
-        sigSend({type:'offer',sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}});
-      return;
-    }
-    if(d.type==='offer'&&!_isHost){
-      await pc.setRemoteDescription(new RTCSessionDescription(d.sdp));
-      const ans=await pc.createAnswer();
-      await pc.setLocalDescription(ans);
-      sigSend({type:'answer',sdp:{type:ans.type,sdp:ans.sdp}});
-      /* أضف ICE المعلق */
-      for(const c of _pendingIce){try{await pc.addIceCandidate(new RTCIceCandidate(c));}catch(e){}}
-      _pendingIce=[];
-    }else if(d.type==='answer'&&_isHost){
-      if(pc.signalingState==='have-local-offer')
-        await pc.setRemoteDescription(new RTCSessionDescription(d.sdp));
-    }else if(d.type==='ice'){
-      if(pc&&pc.remoteDescription){
-        try{await pc.addIceCandidate(new RTCIceCandidate(d.candidate));}catch(e){}
-      }else{_pendingIce.push(d.candidate);}
-    }
-  }
-
-  /* ── إنشاء RTCPeerConnection ── */
-  function mkPC(){
-    if(pc){try{pc.close();}catch(e){}}
-    _pendingIce=[];_connected=false;
-    pc=new RTCPeerConnection({iceServers:ICE_SERVERS,iceCandidatePoolSize:10,
-      bundlePolicy:'max-bundle',rtcpMuxPolicy:'require'});
-    pc.onicecandidate=e=>{
-      if(e.candidate)sigSend({type:'ice',candidate:e.candidate.toJSON()});
-    };
-    pc.onconnectionstatechange=()=>{
-      if(pc.connectionState==='failed'||pc.connectionState==='disconnected'){
-        if(!S.over&&_connected){
-          S.over=true;SFX.win();
-          G.showOver('✦','انقطع الاتصال','انقطع اتصال الخصم','#f87171');
-        }
+    peer.on('open',id2=>{clearTimeout(t);onReady(id2);});
+    peer.on('error',err=>{
+      clearTimeout(t);
+      const m=err.type==='peer-unavailable'?'الكود غير صحيح أو المضيف غادر':
+              err.type==='network'?'مشكلة في الشبكة — حاول مجدداً':
+              err.message||'خطأ في الاتصال';
+      /* لو unavailable جرب مع نفس الـ server مرة أخرى */
+      if(err.type==='peer-unavailable'){onFail(m);return;}
+      _srvIdx++;
+      if(_srvIdx<PEER_CFGS.length){
+        setSt('c','◌ جاري المحاولة... ('+(_srvIdx+1)+')','conn');
+        setSt('j','◌ جاري المحاولة... ('+(_srvIdx+1)+')','conn');
+        _retryTimer=setTimeout(()=>mkPeer(id,onReady,onFail),800);
+      }else{
+        onFail(m);
       }
-    };
-    return pc;
+    });
+    peer.on('disconnected',()=>{
+      if(peer&&!peer.destroyed)peer.reconnect();
+    });
   }
 
-  /* ── إعداد DataChannel ── */
-  function setupDC(chan){
-    _dc=chan;
-    _dc.bufferedAmountLowThreshold=65536;
-    _dc.onopen=()=>{
-      _connected=true;
-      setSt('c','◉ متصل! بدء اللعبة...','ok');
-      setSt('j','◉ متصل! بدء اللعبة...','ok');
-    };
-    _dc.onmessage=e=>{
-      try{const d=JSON.parse(e.data);_handleGame(d);}catch(ex){}
-    };
-    _dc.onclose=()=>{
-      if(!S.over&&_connected){
-        S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');
-      }
-    };
-    _dc.onerror=()=>{};
+  /* ── إعداد اتصال بيانات ── */
+  function setupConn(c){
+    conn=c;
+    c.on('data',d=>{try{handleGame(d);}catch(e){}});
+    c.on('close',()=>{
+      if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');}
+    });
+    c.on('error',()=>{});
   }
 
-  function _handleGame(d){
-    if(d.type==='start')     _go(d.yourColor);
-    else if(d.type==='move') {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
+  function handleGame(d){
+    if(d.type==='start')      _go(d.yourColor);
+    else if(d.type==='move')  {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
     else if(d.type==='assist'){S.oppUsingAssist=d.on;R.astLbls();}
   }
 
-  /* ── الإصلاح النهائي لمشكلة الأسماء ──
-     mc = لوني أنا على هذا الجهاز
-     'w' → شريط الأبيض = "أنت" / شريط الأسود = "الخصم"
-     'b' → شريط الأسود  = "أنت" / شريط الأبيض = "الخصم"
+  /* ── الإصلاح الجوهري للأسماء ──
+     mc='w' → nm-w = "أنت"    / nm-b = "الخصم"
+     mc='b' → nm-b = "أنت"    / nm-w = "الخصم"
   ── */
   function _go(mc){
     const oc=E.opp(mc);
-    /* _reset ثم ضبط الحالة */
     G.start('online',0);
-    S.mode='online';
-    S.levelId=-1;
-    S.myCol=mc;
+    S.mode='online'; S.levelId=-1; S.myCol=mc;
     document.getElementById('bwrap').classList.remove('flipped');
     document.getElementById('gmode').textContent='⊕ أونلاين';
-    /* الاسم الصح لكل شريط */
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent='أنت';
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent='الخصم';
     R.all();
@@ -1737,12 +1695,13 @@ const OL=(()=>{
     pc:'w',
 
     init(){
-      setSt('c','');setSt('j','');
+      setSt('c',''); setSt('j','');
       document.getElementById('rbox').style.display='none';
       const bc=document.getElementById('btn-create');
-      bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
+      bc.disabled=false; bc.textContent='♟ إنشاء غرفة';
       document.getElementById('jinp').value='';
       this.dc();
+      _srvIdx=0;
     },
 
     tab(n){
@@ -1754,76 +1713,70 @@ const OL=(()=>{
     },
 
     col(c){
-      SFX.btn();this.pc=c;
+      SFX.btn(); this.pc=c;
       ['w','b','r'].forEach(x=>document.getElementById('co-'+x).classList.toggle('on',x===c));
     },
 
     /* ── إنشاء غرفة ── */
-    async create(){
+    create(){
       SFX.btn();
       let col=this.pc;
-      if(col==='r')col=Math.random()<.5?'w':'b';
-      _myCol=col;_isHost=true;
-      _roomCode=mkCode();
-      wsIdx=0;
-
+      if(col==='r') col=Math.random()<.5?'w':'b';
+      _myCol=col; _srvIdx=0;
       document.getElementById('btn-create').disabled=true;
       setSt('c','◌ جاري الاتصال بالخادم...','conn');
 
-      connectWS(async()=>{
-        /* عرض الكود */
-        document.getElementById('rcode').textContent=_roomCode;
-        document.getElementById('rbox').style.display='block';
-        setSt('c','◎ في انتظار الخصم — شارك الكود: '+_roomCode,'wait');
+      mkPeer(null,
+        /* نجح — لدينا ID */
+        peerId=>{
+          document.getElementById('rcode').textContent=peerId;
+          document.getElementById('rbox').style.display='block';
+          setSt('c','◎ في انتظار الخصم…','wait');
 
-        const localPC=mkPC();
-        const chan=localPC.createDataChannel('chess',{ordered:true});
-        setupDC(chan);
-        chan.onopen=()=>{
-          _connected=true;
-          setSt('c','◉ متصل!','ok');
-          const opp=_myCol==='w'?'b':'w';
-          chan.send(JSON.stringify({type:'start',yourColor:opp}));
-          _go(_myCol);
-          if(ws){try{ws.close();}catch(e){}}
-        };
-
-        const offer=await localPC.createOffer();
-        await localPC.setLocalDescription(offer);
-        /* أرسل offer للغرفة — ينتظر الضيف يلتقطه */
-        sigSend({type:'offer',sdp:{type:offer.type,sdp:offer.sdp}});
-      });
+          peer.on('connection',c=>{
+            setupConn(c);
+            c.on('open',()=>{
+              setSt('c','◉ متصل! بدء اللعبة…','ok');
+              const opp=_myCol==='w'?'b':'w';
+              c.send({type:'start',yourColor:opp});
+              _go(_myCol);
+            });
+          });
+        },
+        /* فشل */
+        msg=>{
+          setSt('c','✕ '+msg,'err');
+          document.getElementById('btn-create').disabled=false;
+        }
+      );
     },
 
     /* ── الانضمام ── */
-    async join(){
+    join(){
       SFX.btn();
-      const code=document.getElementById('jinp').value.trim().toUpperCase();
-      if(!code||code.length<4){setSt('j','أدخل الكود أولاً','err');return;}
-      _roomCode=code;_isHost=false;wsIdx=0;
-
+      const pid=document.getElementById('jinp').value.trim();
+      if(!pid){setSt('j','أدخل الكود أولاً','err');return;}
+      _srvIdx=0;
       setSt('j','◌ جاري الاتصال...','conn');
 
-      /* timeout 35 ثانية */
-      const tout=setTimeout(()=>{
-        if(!_connected)setSt('j','✕ انتهت المهلة — تأكد من الكود وأن المضيف ينتظر','err');
-      },35000);
-
-      connectWS(()=>{
-        setSt('j','◌ جاري البحث عن الغرفة...','wait');
-        const localPC=mkPC();
-        localPC.ondatachannel=e=>{
-          setupDC(e.channel);
-          e.channel.onopen=()=>{
-            clearTimeout(tout);
-            _connected=true;
-            if(ws){try{ws.close();}catch(e){}}
-          };
-        };
-        /* أرسل ping للمضيف ليُعيد إرسال offer */
-        sigSend({type:'join_req'});
-        /* المضيف سيُعيد إرسال offer تلقائياً عند استقبال join_req */
-      });
+      mkPeer(null,
+        /* لدينا peer جاهز — اتصل بالمضيف */
+        ()=>{
+          setSt('j','◌ جاري الانضمام للغرفة...','wait');
+          conn=peer.connect(pid,{reliable:true,serialization:'json'});
+          setupConn(conn);
+          conn.on('open',()=>{
+            setSt('j','◉ متصل!','ok');
+          });
+          /* timeout 30s لو ما انفتحش */
+          const t=setTimeout(()=>{
+            if(conn&&conn.open)return;
+            setSt('j','✕ انتهت المهلة — تأكد من الكود وأن المضيف ينتظر','err');
+          },30000);
+          conn.on('open',()=>clearTimeout(t));
+        },
+        msg=>{setSt('j','✕ '+msg,'err');}
+      );
     },
 
     copy(){
@@ -1846,22 +1799,14 @@ const OL=(()=>{
     },
 
     sendMove(mv){
-      if(_dc&&_dc.readyState==='open')
-        _dc.send(JSON.stringify({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo}));
+      if(conn&&conn.open) conn.send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});
     },
 
     sendAssist(on){
-      if(_dc&&_dc.readyState==='open')
-        _dc.send(JSON.stringify({type:'assist',on}));
+      if(conn&&conn.open) conn.send({type:'assist',on});
     },
 
-    dc(){
-      clearTimeout(_sigTimeout);
-      if(_dc){try{_dc.close();}catch(e){}_dc=null;}
-      if(pc){try{pc.close();}catch(e){}pc=null;}
-      if(ws){try{ws.close();}catch(e){}ws=null;}
-      _connected=false;_pendingIce=[];wsIdx=0;
-    }
+    dc(){ destroy(); }
   };
 })();
 
