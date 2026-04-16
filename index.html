@@ -801,7 +801,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <!-- كونفيتي للفوز -->
 <div class="confetti-wrap" id="confetti-wrap"></div>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 'use strict';
 
@@ -1559,128 +1558,312 @@ const Nav={
 };
 
 /* ══════════════════════════════════════
-   ONLINE — PeerJS P2P + TURN Servers
+   ONLINE — Pure WebRTC + WebSocket Signaling
    ════════════════════════════════════
-   الإصلاح: _go() تضبط S.myCol بشكل صحيح
-   ثم R.board() تبني الرقعة مقلوبة للأسود تلقائياً
-   بدون CSS rotate — لا مشاكل في الأحداث
+   Signaling عبر WebSocket مجاني (socketsbay / piesocket)
+   ثم اتصال WebRTC مباشر P2P
+   يعمل مع كل المتصفحات بما فيها Brave + Firefox
 ══════════════════════════════════════ */
-const OL={
-  peer:null,conn:null,pc:'w',_myCol:'w',
-  ICE:[
+const OL=(()=>{
+  /* TURN servers متعددة وموثوقة */
+  const ICE_SERVERS=[
     {urls:'stun:stun.l.google.com:19302'},
     {urls:'stun:stun1.l.google.com:19302'},
     {urls:'stun:stun2.l.google.com:19302'},
     {urls:'stun:stun.cloudflare.com:3478'},
-    {urls:'turn:openrelay.metered.ca:80',      username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443',     username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turns:openrelay.metered.ca:443',    username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:numb.viagenie.ca',credential:'muazkh',username:'webrtc@live.com'},
-    {urls:'turn:global.turn.twilio.com:3478?transport=tcp',username:'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be9c27212d',credential:'w1uxM55V9yVoqyVFjt+yMgzHPh6BkO6L5W8bDf9+MHI='},
-  ],
-  init(){
-    this.setSt('c','');this.setSt('j','');
-    document.getElementById('rbox').style.display='none';
-    const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
-    document.getElementById('jinp').value='';
-    this.dc();
-  },
-  tab(n){SFX.btn();['c','j'].forEach(t=>{
-    document.getElementById('tb-'+t).classList.toggle('on',t===n);
-    document.getElementById('tc-'+t).classList.toggle('on',t===n);});},
-  col(c){SFX.btn();this.pc=c;['w','b','r'].forEach(x=>document.getElementById('co-'+x).classList.toggle('on',x===c));},
-  setSt(tab,msg,type=''){const el=document.getElementById('st-'+tab);el.className='ost'+(type?' '+type:'');el.textContent=msg;},
-  connect(cb){
-    if(this.peer){try{this.peer.destroy();}catch(e){}}
-    try{
-      this.peer=new Peer({config:{iceServers:this.ICE},pingInterval:3000});
-      this.peer.on('open',()=>{if(cb)cb();});
-      this.peer.on('error',(err)=>{
-        const m=err.type==='peer-unavailable'?'الكود غير صحيح أو انتهت الغرفة':err.message||'خطأ في الاتصال';
-        this.setSt('c','✕ '+m,'err');this.setSt('j','✕ '+m,'err');
+    {urls:'stun:stun.relay.metered.ca:80'},
+    /* Metered TURN — حساب مجاني موثوق */
+    {urls:'turn:a.relay.metered.ca:80',      username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turn:a.relay.metered.ca:80?transport=tcp',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turn:a.relay.metered.ca:443',     username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turns:a.relay.metered.ca:443',    username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turn:openrelay.metered.ca:80',    username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:openrelay.metered.ca:443',   username:'openrelayproject',credential:'openrelayproject'},
+  ];
+
+  /* حوّل الكود لـ channel رقمي مقبول */
+  function roomToNum(room){
+    let n=5381;for(const ch of room)n=((n<<5)+n)+ch.charCodeAt(0)&0x7fffffff;
+    return(n%90000)+10000; /* 10000-99999 */
+  }
+
+  /* ── Signaling WebSocket URLs (fallback chain) ── */
+  const SIG_SERVERS=[
+    code=>`wss://socketsbay.com/wss/v2/1/${code}/`,
+    code=>`wss://ws.piesocket.com/v3/${code}?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self=1`,
+  ];
+
+  let ws=null, wsIdx=0;
+  let pc=null, _dc=null;
+  let _myCol='w', _isHost=false;
+  let _roomCode='', _pendingIce=[];
+  let _connected=false;
+  let _sigTimeout=null;
+
+  function setSt(tab,msg,type=''){
+    const el=document.getElementById('st-'+tab);
+    if(el){el.className='ost'+(type?' '+type:'');el.textContent=msg;}
+  }
+
+  function mkCode(){
+    const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];
+    return s;
+  }
+
+  /* ── إنشاء WebSocket مع fallback ── */
+  function connectWS(onOpen){
+    if(ws){try{ws.close();}catch(e){}}
+    const ch=roomToNum(_roomCode);
+    const urlFn=SIG_SERVERS[wsIdx%SIG_SERVERS.length];
+    ws=new WebSocket(urlFn(ch));
+    ws.onopen=()=>{clearTimeout(_sigTimeout);onOpen();};
+    ws.onmessage=e=>{try{handleSig(JSON.parse(e.data));}catch(ex){}};
+    ws.onerror=()=>{
+      wsIdx++;
+      if(wsIdx<SIG_SERVERS.length*2){
+        setTimeout(()=>connectWS(onOpen),900);
+      }else{
+        setSt('c','✕ فشل الاتصال — تحقق من الإنترنت','err');
+        setSt('j','✕ فشل الاتصال — تحقق من الإنترنت','err');
         document.getElementById('btn-create').disabled=false;
-      });
-      this.peer.on('disconnected',()=>{try{this.peer.reconnect();}catch(e){}});
-    }catch(e){this.setSt('c','✕ تأكد من اتصالك بالإنترنت','err');}
-  },
-  create(){
-    SFX.btn();
-    let col=this.pc;if(col==='r')col=Math.random()<.5?'w':'b';
-    this._myCol=col;
-    document.getElementById('btn-create').disabled=true;
-    this.setSt('c','◌ جاري التهيئة...','conn');
-    this.connect(()=>{
-      this.peer.on('connection',(conn)=>{
-        this.conn=conn;this._setup(conn);
-        const opp=this._myCol==='w'?'b':'w';
-        conn.on('open',()=>{conn.send({type:'start',yourColor:opp});this._go(this._myCol);});
-      });
-      document.getElementById('rcode').textContent=this.peer.id;
-      document.getElementById('rbox').style.display='block';
-      this.setSt('c','◎ في انتظار الخصم...','wait');
-    });
-  },
-  join(){
-    SFX.btn();
-    const pid=document.getElementById('jinp').value.trim();
-    if(!pid){this.setSt('j','أدخل الكود أولاً','err');return;}
-    this.setSt('j','◌ جاري الاتصال...','conn');
-    this.connect(()=>{
-      const conn=this.peer.connect(pid,{reliable:true,serialization:'json'});
-      this.conn=conn;this._setup(conn);
-      conn.on('open',()=>this.setSt('j','◉ تم الاتصال، جاري التحميل...','ok'));
-    });
-  },
-  _setup(conn){
-    conn.on('data',d=>{try{this._msg(d);}catch(e){}});
-    conn.on('close',()=>{if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');}});
-    conn.on('error',()=>{});
-  },
-  _msg(d){
-    if(d.type==='start')this._go(d.yourColor);
-    else if(d.type==='move'){S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
+      }
+    };
+    ws.onclose=()=>{};
+    _sigTimeout=setTimeout(()=>{
+      if(ws&&ws.readyState!==1){ws.close();if(ws.onerror)ws.onerror();}
+    },9000);
+  }
+
+  function sigSend(obj){
+    if(ws&&ws.readyState===1)ws.send(JSON.stringify({room:_roomCode,...obj}));
+  }
+
+  /* ── معالجة رسائل الـ Signaling ── */
+  async function handleSig(d){
+    if(d.room&&d.room!==_roomCode)return; /* تجاهل غرف أخرى */
+    /* المضيف: لو جاء join_req أعد إرسال offer */
+    if(d.type==='join_req'&&_isHost){
+      if(pc&&pc.localDescription)
+        sigSend({type:'offer',sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}});
+      return;
+    }
+    if(d.type==='offer'&&!_isHost){
+      await pc.setRemoteDescription(new RTCSessionDescription(d.sdp));
+      const ans=await pc.createAnswer();
+      await pc.setLocalDescription(ans);
+      sigSend({type:'answer',sdp:{type:ans.type,sdp:ans.sdp}});
+      /* أضف ICE المعلق */
+      for(const c of _pendingIce){try{await pc.addIceCandidate(new RTCIceCandidate(c));}catch(e){}}
+      _pendingIce=[];
+    }else if(d.type==='answer'&&_isHost){
+      if(pc.signalingState==='have-local-offer')
+        await pc.setRemoteDescription(new RTCSessionDescription(d.sdp));
+    }else if(d.type==='ice'){
+      if(pc&&pc.remoteDescription){
+        try{await pc.addIceCandidate(new RTCIceCandidate(d.candidate));}catch(e){}
+      }else{_pendingIce.push(d.candidate);}
+    }
+  }
+
+  /* ── إنشاء RTCPeerConnection ── */
+  function mkPC(){
+    if(pc){try{pc.close();}catch(e){}}
+    _pendingIce=[];_connected=false;
+    pc=new RTCPeerConnection({iceServers:ICE_SERVERS,iceCandidatePoolSize:10,
+      bundlePolicy:'max-bundle',rtcpMuxPolicy:'require'});
+    pc.onicecandidate=e=>{
+      if(e.candidate)sigSend({type:'ice',candidate:e.candidate.toJSON()});
+    };
+    pc.onconnectionstatechange=()=>{
+      if(pc.connectionState==='failed'||pc.connectionState==='disconnected'){
+        if(!S.over&&_connected){
+          S.over=true;SFX.win();
+          G.showOver('✦','انقطع الاتصال','انقطع اتصال الخصم','#f87171');
+        }
+      }
+    };
+    return pc;
+  }
+
+  /* ── إعداد DataChannel ── */
+  function setupDC(chan){
+    _dc=chan;
+    _dc.bufferedAmountLowThreshold=65536;
+    _dc.onopen=()=>{
+      _connected=true;
+      setSt('c','◉ متصل! بدء اللعبة...','ok');
+      setSt('j','◉ متصل! بدء اللعبة...','ok');
+    };
+    _dc.onmessage=e=>{
+      try{const d=JSON.parse(e.data);_handleGame(d);}catch(ex){}
+    };
+    _dc.onclose=()=>{
+      if(!S.over&&_connected){
+        S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');
+      }
+    };
+    _dc.onerror=()=>{};
+  }
+
+  function _handleGame(d){
+    if(d.type==='start')     _go(d.yourColor);
+    else if(d.type==='move') {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
     else if(d.type==='assist'){S.oppUsingAssist=d.on;R.astLbls();}
-  },
-  /*
-   * _go: تبدأ اللعبة الأونلاين
-   * mc = لون اللاعب الحالي ('w' أو 'b')
-   *
-   * الإصلاح الجوهري:
-   * - S.myCol = mc (يُحدد من منظور من تُبنى الرقعة)
-   * - R.board() ستبني الرقعة مقلوبة تلقائياً إذا mc==='b'
-   * - لا نستخدم CSS .flipped إطلاقاً
-   */
-  _go(mc){
+  }
+
+  /* ── الإصلاح النهائي لمشكلة الأسماء ──
+     mc = لوني أنا على هذا الجهاز
+     'w' → شريط الأبيض = "أنت" / شريط الأسود = "الخصم"
+     'b' → شريط الأسود  = "أنت" / شريط الأبيض = "الخصم"
+  ── */
+  function _go(mc){
     const oc=E.opp(mc);
-    G.start('online',0);         /* يعمل _reset → S.myCol='both' مؤقتاً */
+    /* _reset ثم ضبط الحالة */
+    G.start('online',0);
     S.mode='online';
     S.levelId=-1;
-    S.myCol=mc;                  /* ← الإصلاح: ضبط اللون قبل R.all() */
-
-    /* لا نحتاج CSS flipped — R.board() يتولى الأمر */
+    S.myCol=mc;
     document.getElementById('bwrap').classList.remove('flipped');
-
     document.getElementById('gmode').textContent='⊕ أونلاين';
+    /* الاسم الصح لكل شريط */
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent='أنت';
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent='الخصم';
-    R.all();   /* الآن R.board() يرى S.myCol=mc ويبني الرقعة صح */
-  },
-  copy(){
-    SFX.btn();
-    const code=document.getElementById('rcode').textContent;
-    if(!code||code==='—')return;
-    navigator.clipboard.writeText(code)
-      .then(()=>{const b=document.querySelector('.rb-cp');b.textContent='◉ تم النسخ!';setTimeout(()=>b.textContent='⧉ نسخ الكود',2000);})
-      .catch(()=>{const el=document.getElementById('rcode');const rng=document.createRange();rng.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(rng);});
-  },
-  sendMove(mv){if(this.conn&&this.conn.open)this.conn.send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
-  sendAssist(on){if(this.conn&&this.conn.open)this.conn.send({type:'assist',on});},
-  dc(){
-    if(this.conn){try{this.conn.close();}catch(e){}this.conn=null;}
-    if(this.peer){try{this.peer.destroy();}catch(e){}this.peer=null;}
+    R.all();
   }
-};
+
+  /* ══ PUBLIC API ══ */
+  return{
+    pc:'w',
+
+    init(){
+      setSt('c','');setSt('j','');
+      document.getElementById('rbox').style.display='none';
+      const bc=document.getElementById('btn-create');
+      bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
+      document.getElementById('jinp').value='';
+      this.dc();
+    },
+
+    tab(n){
+      SFX.btn();
+      ['c','j'].forEach(t=>{
+        document.getElementById('tb-'+t).classList.toggle('on',t===n);
+        document.getElementById('tc-'+t).classList.toggle('on',t===n);
+      });
+    },
+
+    col(c){
+      SFX.btn();this.pc=c;
+      ['w','b','r'].forEach(x=>document.getElementById('co-'+x).classList.toggle('on',x===c));
+    },
+
+    /* ── إنشاء غرفة ── */
+    async create(){
+      SFX.btn();
+      let col=this.pc;
+      if(col==='r')col=Math.random()<.5?'w':'b';
+      _myCol=col;_isHost=true;
+      _roomCode=mkCode();
+      wsIdx=0;
+
+      document.getElementById('btn-create').disabled=true;
+      setSt('c','◌ جاري الاتصال بالخادم...','conn');
+
+      connectWS(async()=>{
+        /* عرض الكود */
+        document.getElementById('rcode').textContent=_roomCode;
+        document.getElementById('rbox').style.display='block';
+        setSt('c','◎ في انتظار الخصم — شارك الكود: '+_roomCode,'wait');
+
+        const localPC=mkPC();
+        const chan=localPC.createDataChannel('chess',{ordered:true});
+        setupDC(chan);
+        chan.onopen=()=>{
+          _connected=true;
+          setSt('c','◉ متصل!','ok');
+          const opp=_myCol==='w'?'b':'w';
+          chan.send(JSON.stringify({type:'start',yourColor:opp}));
+          _go(_myCol);
+          if(ws){try{ws.close();}catch(e){}}
+        };
+
+        const offer=await localPC.createOffer();
+        await localPC.setLocalDescription(offer);
+        /* أرسل offer للغرفة — ينتظر الضيف يلتقطه */
+        sigSend({type:'offer',sdp:{type:offer.type,sdp:offer.sdp}});
+      });
+    },
+
+    /* ── الانضمام ── */
+    async join(){
+      SFX.btn();
+      const code=document.getElementById('jinp').value.trim().toUpperCase();
+      if(!code||code.length<4){setSt('j','أدخل الكود أولاً','err');return;}
+      _roomCode=code;_isHost=false;wsIdx=0;
+
+      setSt('j','◌ جاري الاتصال...','conn');
+
+      /* timeout 35 ثانية */
+      const tout=setTimeout(()=>{
+        if(!_connected)setSt('j','✕ انتهت المهلة — تأكد من الكود وأن المضيف ينتظر','err');
+      },35000);
+
+      connectWS(()=>{
+        setSt('j','◌ جاري البحث عن الغرفة...','wait');
+        const localPC=mkPC();
+        localPC.ondatachannel=e=>{
+          setupDC(e.channel);
+          e.channel.onopen=()=>{
+            clearTimeout(tout);
+            _connected=true;
+            if(ws){try{ws.close();}catch(e){}}
+          };
+        };
+        /* أرسل ping للمضيف ليُعيد إرسال offer */
+        sigSend({type:'join_req'});
+        /* المضيف سيُعيد إرسال offer تلقائياً عند استقبال join_req */
+      });
+    },
+
+    copy(){
+      SFX.btn();
+      const code=document.getElementById('rcode').textContent;
+      if(!code||code==='—')return;
+      navigator.clipboard.writeText(code)
+        .then(()=>{
+          const b=document.querySelector('.rb-cp');
+          b.textContent='◉ تم النسخ!';
+          setTimeout(()=>b.textContent='⧉ نسخ الكود',2000);
+        })
+        .catch(()=>{
+          const el=document.getElementById('rcode');
+          const rng=document.createRange();
+          rng.selectNode(el);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(rng);
+        });
+    },
+
+    sendMove(mv){
+      if(_dc&&_dc.readyState==='open')
+        _dc.send(JSON.stringify({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo}));
+    },
+
+    sendAssist(on){
+      if(_dc&&_dc.readyState==='open')
+        _dc.send(JSON.stringify({type:'assist',on}));
+    },
+
+    dc(){
+      clearTimeout(_sigTimeout);
+      if(_dc){try{_dc.close();}catch(e){}_dc=null;}
+      if(pc){try{pc.close();}catch(e){}pc=null;}
+      if(ws){try{ws.close();}catch(e){}ws=null;}
+      _connected=false;_pendingIce=[];wsIdx=0;
+    }
+  };
+})();
 
 /* ══════════════════════════════════════
    BOOT
