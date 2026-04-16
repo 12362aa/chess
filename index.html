@@ -1395,7 +1395,8 @@ const G={
     if(mode==='local'){
       document.getElementById('nm-w').textContent='اللاعب الأبيض';
       document.getElementById('nm-b').textContent='اللاعب الأسود';
-      document.getElementById('gmode').textContent='⚔ لاعبَان';}
+      document.getElementById('gmode').textContent='⚔ لاعبَان';
+      fixBars('w');}
     Nav.game();R.all();
   },
   startLevel(id){
@@ -1405,6 +1406,7 @@ const G={
     document.getElementById('nm-w').textContent='أنت';
     document.getElementById('nm-b').textContent=`نور — ${lv.name}`;
     document.getElementById('gmode').textContent=`◈ المرحلة ${id+1}: ${lv.name}`;
+    fixBars('w');
     Nav.game();R.all();
   },
   click(r,c){
@@ -1559,6 +1561,27 @@ const Nav={
 };
 
 /* ══════════════════════════════════════
+   FIX BARS — يعكس ترتيب bar-b و bar-w حول اللوح
+   الأبيض (افتراضي): bar-b فوق اللوح، bar-w تحته
+   الأسود           : bar-w فوق اللوح، bar-b تحته
+══════════════════════════════════════ */
+function fixBars(myCol){
+  const bwrap=document.getElementById('bwrap');
+  const barB=document.getElementById('bar-b');
+  const barW=document.getElementById('bar-w');
+  const parent=bwrap.parentNode;
+  if(myCol==='b'){
+    /* الأسود يلعب من الأسفل: خصمه (الأبيض) فوق، هو تحت */
+    parent.insertBefore(barW,bwrap);
+    parent.insertBefore(bwrap,barB);
+  }else{
+    /* الأبيض (أو local/bot): خصمه (الأسود) فوق، هو تحت */
+    parent.insertBefore(barB,bwrap);
+    parent.insertBefore(bwrap,barW);
+  }
+}
+
+/* ══════════════════════════════════════
    ONLINE — PeerJS مع 3 Servers بالتسلسل
    ════════════════════════════════════
    Server 1: 0.peerjs.com (الرسمي الأسرع)
@@ -1687,6 +1710,7 @@ const OL=(()=>{
     document.getElementById('gmode').textContent='⊕ أونلاين';
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent='أنت';
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent='الخصم';
+    fixBars(mc);
     R.all();
   }
 
