@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="screen-orientation" content="portrait">
 <meta name="theme-color" content="#0a0a14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -253,10 +254,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* ══════════ BOARD ══════════ */
 .bwrap{border-radius:4px;position:relative;
   box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.26),0 26px 60px rgba(0,0,0,.65),0 0 40px rgba(201,168,76,.06);
-  display:inline-block;line-height:0;transition:box-shadow .3s;}
-.bwrap:hover{box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.35),0 30px 70px rgba(0,0,0,.7),0 0 50px rgba(201,168,76,.1);}
-#board{display:grid;grid-template-columns:repeat(8,var(--sq));grid-template-rows:repeat(8,var(--sq));width:var(--board);height:var(--board);}
-.sq{width:var(--sq);height:var(--sq);position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;flex-grow:0;transition:background-color .15s;}
+  display:inline-block;line-height:0;will-change:auto;}
+#board{display:grid;grid-template-columns:repeat(8,var(--sq));grid-template-rows:repeat(8,var(--sq));width:var(--board);height:var(--board);transform:translateZ(0);}
+.sq{width:var(--sq);height:var(--sq);position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;flex-grow:0;}
 .sq.L{background:var(--sq-l);}.sq.D{background:var(--sq-d);}
 .sq.SL{background:var(--sq-sl);}.sq.SD{background:var(--sq-sd);}
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
@@ -371,6 +371,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 #s-lan{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 14px 24px;gap:11px;}
 .lan-info{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.18);border-radius:10px;padding:11px 14px;font-size:12px;color:var(--red);line-height:1.7;max-width:430px;width:100%;}
 .lan-info strong{color:var(--gold2);}
+.lan-step-title{font-family:'Amiri',serif;font-size:16px;color:var(--gold2);margin-bottom:4px;text-align:center;}
+.lan-step-hint{font-size:11px;color:var(--text2);text-align:center;margin-bottom:10px;}
+.lan-ta{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid rgba(201,168,76,.18);border-radius:9px;color:var(--text);font-family:monospace;font-size:11px;outline:none;resize:none;direction:ltr;margin-bottom:7px;line-height:1.5;word-break:break-all;}
+.lan-ta:focus{border-color:var(--gold);}
+.lan-ta::placeholder{color:var(--text3);font-family:'Cairo',sans-serif;direction:rtl;font-size:12px;}
+.lan-qr-wrap{display:flex;justify-content:center;margin-bottom:10px;background:#fff;border-radius:10px;padding:8px;width:fit-content;margin-left:auto;margin-right:auto;}
+.lan-qr-wrap canvas{display:block;}
 
 /* ══════════ LANDSCAPE ══════════ */
 @media (orientation:landscape) and (max-height:520px){
@@ -424,7 +431,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <span class="mc-b bt">اتصال مباشر P2P</span>
     </div>
     <div class="mc" onclick="Nav.lan()">
-      <span class="mc-ic" style="color:#f87171">📶</span>
+      <span class="mc-ic" style="color:#f87171">◈</span>
       <div class="mc-t">شبكة محلية</div>
       <div class="mc-d">العب مع صديق على نفس الواي فاي أو هوت سبوت</div>
       <span class="mc-b bp2">بدون إنترنت ✓</span>
@@ -518,6 +525,26 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="sr-l"><div class="sr-n">تأكيد الخروج</div><div class="sr-d">سؤال قبل الخروج من اللعبة</div></div>
         <label class="toggle"><input type="checkbox" id="set-confirm" checked onchange="Cfg.save()"><span class="tsl"></span></label>
       </div>
+      <div class="sr">
+        <div class="sr-l"><div class="sr-n">صوت الشات</div><div class="sr-d">تنبيه صوتي عند وصول رسالة</div></div>
+        <label class="toggle"><input type="checkbox" id="set-chatsound" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+      </div>
+    </div>
+    <div class="sc">
+      <h2><span class="ic-teal">⊕</span> اللاعب</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:7px;">
+        <div class="sr-n">اسمك في اللعبة</div>
+        <div class="sr-d">يظهر هذا الاسم في اللاعبَان والشبكة المحلية</div>
+        <input id="set-playername" class="finp" style="margin-bottom:0;font-size:13px;letter-spacing:0;text-align:right" maxlength="20" placeholder="اسمك…" oninput="Cfg.save()">
+      </div>
+      <div class="sr">
+        <div class="sr-l"><div class="sr-n">إظهار تلميح المساعد</div><div class="sr-d">تظليل أفضل حركة ممكنة</div></div>
+        <label class="toggle"><input type="checkbox" id="set-asthint" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+      </div>
+      <div class="sr">
+        <div class="sr-l"><div class="sr-n">تأثير الحركة (ripple)</div><div class="sr-d">موجة خفيفة عند وضع القطعة</div></div>
+        <label class="toggle"><input type="checkbox" id="set-ripple" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+      </div>
     </div>
     <button class="back-btn" onclick="Nav.menu()">← العودة للقائمة</button>
   </div>
@@ -561,43 +588,61 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <!-- LAN SCREEN -->
 <div id="s-lan" class="screen">
-  <div class="oc">
-    <h2><span style="color:#f87171">📶</span> شبكة محلية</h2>
-    <p class="oc-sub">العب مع صديق بدون إنترنت</p>
-    <div class="lan-info">
-      <strong>كيف تشتغل؟</strong><br>
-      ١- الاتنين لازم يكونوا على نفس الشبكة<br>
-      ٢- واحد يعمل هوت سبوت، والتاني يتصل بيه<br>
-      ٣- أو الاتنين على نفس الواي فاي<br>
-      ٤- مش محتاجين إنترنت خالص ✓
-    </div>
-    <div class="tabs" style="margin-top:14px">
-      <button class="tbb on" id="tb-lc" onclick="LAN.tab('c')">إنشاء غرفة</button>
-      <button class="tbb"    id="tb-lj" onclick="LAN.tab('j')">الانضمام</button>
-    </div>
-    <div id="tlc-c" class="tc on">
-      <p class="flbl">لون قطعك</p>
-      <div class="copts">
-        <div class="copt on" id="lco-w" onclick="LAN.col('w')"><span>♔</span>أبيض</div>
-        <div class="copt"    id="lco-b" onclick="LAN.col('b')"><span>♚</span>أسود</div>
-        <div class="copt"    id="lco-r" onclick="LAN.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
+  <div class="oc" style="max-width:460px">
+    <h2><span style="color:#f87171">◈</span> شبكة محلية</h2>
+    <p class="oc-sub">بدون إنترنت — اتصال مباشر بين جهازين ◉</p>
+
+    <!-- STEP 0: اختيار الدور -->
+    <div id="lan-s0">
+      <div class="tabs">
+        <button class="tbb on" id="tb-lc" onclick="LAN.tab('c')">أنا المضيف</button>
+        <button class="tbb"    id="tb-lj" onclick="LAN.tab('j')">أنا الضيف</button>
       </div>
+
+      <!-- HOST flow -->
+      <div id="tlc-c" class="tc on">
+        <p class="flbl">لون قطعك</p>
+        <div class="copts">
+          <div class="copt on" id="lco-w" onclick="LAN.col('w')"><span>♔</span>أبيض</div>
+          <div class="copt"    id="lco-b" onclick="LAN.col('b')"><span>♚</span>أسود</div>
+          <div class="copt"    id="lco-r" onclick="LAN.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
+        </div>
+        <button class="btnp" id="lbtn-create" onclick="LAN.hostStart()">♟ إنشاء الاتصال</button>
+      </div>
+
+      <!-- GUEST flow -->
+      <div id="tlc-j" class="tc">
+        <p class="flbl">الخطوة ١ — الصق كود المضيف</p>
+        <textarea class="lan-ta" id="lan-guest-offer" placeholder="الصق كود المضيف هنا…" rows="3"></textarea>
+        <div id="lst-j" class="ost"></div>
+        <button class="btnp" onclick="LAN.guestStep1()">◈ توليد الرد</button>
+      </div>
+    </div>
+
+    <!-- STEP 1 HOST: أرسل الـ offer للضيف -->
+    <div id="lan-s1" style="display:none">
+      <div class="lan-step-title">الخطوة ١ — أرسل هذا الكود للضيف</div>
+      <div class="lan-step-hint">اعرض الـ QR للضيف أو انسخ النص</div>
+      <div id="lan-qr1" class="lan-qr-wrap"></div>
+      <textarea class="lan-ta" id="lan-offer-txt" readonly rows="3" onclick="this.select()"></textarea>
+      <button class="rb-cp" style="width:100%;margin-bottom:8px" onclick="LAN.copyOffer()">⧉ نسخ الكود</button>
+      <p class="flbl" style="margin-top:10px">الخطوة ٢ — الصق رد الضيف</p>
+      <textarea class="lan-ta" id="lan-host-answer" placeholder="الصق كود الرد من الضيف هنا…" rows="3"></textarea>
       <div id="lst-c" class="ost"></div>
-      <div id="lrbox" class="rbox">
-        <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
-        <div class="rb-c" id="lrcode">—</div>
-        <div class="rb-h">انتظر حتى ينضم صديقك…</div>
-        <button class="rb-cp" onclick="LAN.copy()">⧉ نسخ الكود</button>
-      </div>
-      <button class="btnp" id="lbtn-create" onclick="LAN.create()">♟ إنشاء غرفة</button>
+      <button class="btnp" onclick="LAN.hostStep2()">◉ اتصال</button>
     </div>
-    <div id="tlc-j" class="tc">
-      <p class="flbl">أدخل كود الغرفة</p>
-      <input class="finp" id="ljinp" placeholder="الصق الكود هنا" maxlength="36" oninput="this.value=this.value.trim()">
-      <div id="lst-j" class="ost"></div>
-      <button class="btnp" onclick="LAN.join()">◈ الانضمام</button>
+
+    <!-- STEP 2 GUEST: أرسل الـ answer للمضيف -->
+    <div id="lan-s2" style="display:none">
+      <div class="lan-step-title">الخطوة ٢ — أرسل هذا الرد للمضيف</div>
+      <div class="lan-step-hint">اعرض الـ QR للمضيف أو انسخ النص</div>
+      <div id="lan-qr2" class="lan-qr-wrap"></div>
+      <textarea class="lan-ta" id="lan-answer-txt" readonly rows="3" onclick="this.select()"></textarea>
+      <button class="rb-cp" style="width:100%;margin-bottom:8px" onclick="LAN.copyAnswer()">⧉ نسخ الرد</button>
+      <div id="lst-j2" class="ost wait" style="display:block">◌ في انتظار المضيف للاتصال…</div>
     </div>
-    <button class="btnb" onclick="Nav.menu()">← العودة</button>
+
+    <button class="btnb" style="margin-top:10px" onclick="LAN.reset();Nav.menu()">← العودة</button>
   </div>
 </div>
 
@@ -648,7 +693,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <span>◆</span><span id="hint-lbl">النقاط: تشغيل</span>
     </button>
     <button class="tbb2" id="btn-chat" onclick="CHAT.toggle()" style="display:none">
-      <span>💬</span><span>شات</span>
+      <span>◎</span><span>شات</span>
       <span class="chat-badge" id="chat-badge"></span>
     </button>
   </div>
@@ -697,7 +742,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <div id="review-ov">
   <div class="rv-box">
     <div class="rv-title">◈ تقييم المباراة</div>
-    <div class="rv-sub" id="rv-sub">تحليل بالذكاء الاصطناعي</div>
+    <div class="rv-sub" id="rv-sub">تحليل محلي بالمحرك المدمج ◈</div>
     <div id="rv-content">
       <div class="rv-loading">
         <div class="rv-spinner"></div>
@@ -710,6 +755,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <div class="confetti-wrap" id="confetti-wrap"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 'use strict';
@@ -1134,68 +1180,98 @@ function _getActiveConn(){
 }
 
 /* ══════════════════════════════════════
-   REVIEW — تقييم المباراة بـ AI
+   REVIEW — تقييم المباراة بمحرك محلي مدمج (بدون إنترنت)
 ══════════════════════════════════════ */
 const REV={
   open(){
     if(S.hist.length<4){alert('المباراة قصيرة جداً للتقييم');return;}
     document.getElementById('review-ov').classList.add('open');
-    document.getElementById('rv-content').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري تحليل المباراة بالذكاء الاصطناعي…<br><small style="color:var(--text3)">قد يستغرق 20-30 ثانية</small></div></div>`;
-    this._analyze();
+    document.getElementById('rv-content').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري تحليل المباراة…<br><small style="color:var(--text3)">تحليل بالمحرك المحلي</small></div></div>`;
+    setTimeout(()=>this._analyze(),60);
   },
   close(){document.getElementById('review-ov').classList.remove('open');},
-  async _analyze(){
-    const moves=S.hist.join(' ');
-    const total=S.hist.length;
-    const prompt=`أنت محلل شطرنج خبير. قيّم هذه المباراة بالعربية.
-الحركات (بالتدوين الجبري): ${moves}
-عدد الحركات: ${total}
-
-قم بتحليل كل حركة من حركات الأبيض والأسود وصنّفها:
-- best (أفضل حركة ممكنة)
-- good (حركة جيدة)
-- inaccuracy (دقة منخفضة)
-- mistake (خطأ)
-- blunder (خطأ فادح)
-
-أجب فقط بـ JSON بهذا الشكل بدون أي نص خارج الـ JSON:
-{
-  "summary": {
-    "white_accuracy": رقم من 0 إلى 100,
-    "black_accuracy": رقم من 0 إلى 100,
-    "white_blunders": عدد,
-    "black_blunders": عدد,
-    "white_mistakes": عدد,
-    "black_mistakes": عدد,
-    "best_move": "أفضل حركة في المباراة",
-    "highlight": "جملة واحدة تلخص المباراة"
-  },
-  "moves": [
-    {"move": "نص الحركة", "color": "w أو b", "rating": "best/good/inaccuracy/mistake/blunder", "note": "تعليق قصير بالعربية (جملة واحدة)"},
-    ...
-  ]
-}`;
+  _analyze(){
     try{
-      const res=await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          model:'claude-sonnet-4-20250514',
-          max_tokens:1000,
-          messages:[{role:'user',content:prompt}]
-        })
-      });
-      const data=await res.json();
-      let txt=(data.content||[]).map(b=>b.text||'').join('');
-      txt=txt.replace(/```json|```/g,'').trim();
-      let parsed;
-      try{parsed=JSON.parse(txt);}catch(e){
-        document.getElementById('rv-content').innerHTML=`<div style="color:var(--red);padding:20px;text-align:center">تعذر التحليل — حاول مرة أخرى</div>`;
-        return;
+      const snaps=S.snapshots;
+      const total=snaps.length;
+      let wBlunders=0,wMistakes=0,wInaccuracies=0,wGood=0,wBest=0;
+      let bBlunders=0,bMistakes=0,bInaccuracies=0,bGood=0,bBest=0;
+      let bestMoveTxt='—',bestMoveDelta=-Infinity;
+      const ratingAr={best:'الأفضل',good:'جيد',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح'};
+      const badgeCls={best:'badge-best',good:'badge-good',inaccuracy:'badge-inaccuracy',mistake:'badge-mistake',blunder:'badge-blunder'};
+      const moveCls={best:'best',good:'good',inaccuracy:'inaccuracy',mistake:'mistake',blunder:'blunder'};
+      const moves=[];
+      for(let i=0;i<snaps.length;i++){
+        const snap=snaps[i];
+        const isW=snap.turn==='w';
+        /* تقييم الحالة قبل وبعد الحركة */
+        const scoreBefore=E.eval(snap.bd);
+        /* إيجاد أفضل حركة متاحة */
+        const allMvs=E.allLegal(snap.bd,snap.turn,S.cas,null);
+        let bestVal=isW?-Infinity:Infinity;
+        for(const mv of allMvs){
+          const r2=E.apply(snap.bd,mv.from,mv.to,{w:{K:true,Q:true},b:{K:true,Q:true}},null,'Q');
+          const v=E.eval(r2.bd);
+          if(isW?v>bestVal:v<bestVal)bestVal=v;
+        }
+        /* الحركة الفعلية */
+        let actualIdx=i+1<snaps.length?i+1:null;
+        let scoreAfter=actualIdx?E.eval(snaps[actualIdx].bd):E.eval(S.bd);
+        const delta=isW?(scoreAfter-scoreBefore):(scoreBefore-scoreAfter);
+        const bestDelta=isW?(bestVal-scoreBefore):(scoreBefore-bestVal);
+        const loss=bestDelta-delta;
+        /* تصنيف الحركة */
+        let rating;
+        if(loss<5)rating='best';
+        else if(loss<20)rating='good';
+        else if(loss<60)rating='inaccuracy';
+        else if(loss<150)rating='mistake';
+        else rating='blunder';
+        /* حساب الإحصائيات */
+        if(isW){
+          if(rating==='best')wBest++;
+          else if(rating==='good')wGood++;
+          else if(rating==='inaccuracy')wInaccuracies++;
+          else if(rating==='mistake')wMistakes++;
+          else wBlunders++;
+        }else{
+          if(rating==='best')bBest++;
+          else if(rating==='good')bGood++;
+          else if(rating==='inaccuracy')bInaccuracies++;
+          else if(rating==='mistake')bMistakes++;
+          else bBlunders++;
+        }
+        /* أفضل حركة في المباراة */
+        if(loss>bestMoveDelta){bestMoveDelta=loss;bestMoveTxt=snap.move||'—';}
+        /* ملاحظة */
+        let note='';
+        if(rating==='blunder')note='خطأ فادح أضر بالموقف بشكل كبير';
+        else if(rating==='mistake')note='خطأ أعطى الخصم ميزة';
+        else if(rating==='inaccuracy')note='حركة دون المستوى الأمثل';
+        else if(rating==='best')note='الحركة المثلى في هذا الموقف';
+        else note='حركة جيدة';
+        moves.push({move:snap.move,color:snap.turn,rating,note});
       }
+      /* حساب الدقة */
+      const wTotal=wBest+wGood+wInaccuracies+wMistakes+wBlunders||1;
+      const bTotal=bBest+bGood+bInaccuracies+bMistakes+bBlunders||1;
+      const wAcc=Math.round(((wBest*100+wGood*85+wInaccuracies*60+wMistakes*30+wBlunders*0)/wTotal));
+      const bAcc=Math.round(((bBest*100+bGood*85+bInaccuracies*60+bMistakes*30+bBlunders*0)/bTotal));
+      /* ملخص */
+      const matFinal=E.material(S.bd);
+      let highlight='مباراة متوازنة ومثيرة';
+      if(wBlunders+wMistakes>3)highlight='الأبيض ارتكب أخطاء متعددة أثّرت على مساره';
+      else if(bBlunders+bMistakes>3)highlight='الأسود ارتكب أخطاء متعددة أضرّت بموقفه';
+      else if(wAcc>85&&bAcc>85)highlight='مباراة عالية المستوى من الطرفين';
+      else if(Math.abs(matFinal)>400)highlight=matFinal>0?'الأبيض سيطر مادياً على المباراة':'الأسود حصل على تفوق مادي واضح';
+      const parsed={
+        summary:{white_accuracy:wAcc,black_accuracy:bAcc,white_blunders:wBlunders,black_blunders:bBlunders,
+          white_mistakes:wMistakes,black_mistakes:bMistakes,best_move:bestMoveTxt,highlight},
+        moves
+      };
       this._render(parsed);
     }catch(e){
-      document.getElementById('rv-content').innerHTML=`<div style="color:var(--red);padding:20px;text-align:center">خطأ في الاتصال — تأكد من الإنترنت وحاول مجدداً</div>`;
+      document.getElementById('rv-content').innerHTML=`<div style="color:var(--red);padding:20px;text-align:center">تعذر التحليل — حاول مرة أخرى</div>`;
     }
   },
   _render(data){
@@ -1872,103 +1948,157 @@ const OL=(()=>{
 
 /* ══════════════════════════════════════
    LAN — شبكة محلية بدون إنترنت
-   ════════════════════════════════════
-   يستخدم PeerJS مع TURN servers محلية وعامة.
-   الاتنين لازم يكونوا على نفس الشبكة (هوت سبوت أو واي فاي).
-   بالنسبة للـ signaling server: نستخدم نفس الـ PeerJS cloud servers
-   لكن بمجرد ما الاتصال يتعمل، كل البيانات بتمشي مباشرة على الشبكة المحلية
-   عبر WebRTC data channel — مش محتاجين إنترنت للبيانات.
-   
-   لو مفيش إنترنت خالص: نحتاج signaling محلي.
-   الحل: نستخدم WebSocket signaling بسيط على الـ LAN.
-   لكن بما أن الـ app hosted on GitHub Pages، نستخدم PeerJS cloud لمرحلة الـ signaling فقط
-   (بيستهلك بيانات صغير جداً < 1KB) ثم اللعبة كلها محلية.
+   تبادل يدوي للـ SDP عبر نص / QR
+   WebRTC مباشر — لا سيرفر — لا إنترنت
 ══════════════════════════════════════ */
 const LAN=(()=>{
-  /* نفس ICE بس نضيف iceTransportPolicy: 'all' لتفضيل الاتصال المحلي */
-  const ICE=[
-    {urls:'stun:stun.l.google.com:19302'},
-    {urls:'stun:stun1.l.google.com:19302'},
-    {urls:'turn:a.relay.metered.ca:80',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turns:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-  ];
-  const PEER_CFGS=[
-    {host:'0.peerjs.com',port:443,path:'/',secure:true,ping:3000},
-    {host:'peerjs.com',port:443,path:'/myapp',secure:true,ping:3000},
-  ];
-  let peer=null,conn=null,_myCol='w',_srvIdx=0,_retryTimer=null;
+  let _pc=null,_dc=null,_myCol='w',_isHost=false;
 
-  function setSt(tab,msg,tp=''){
-    const el=document.getElementById('lst-'+tab);
-    if(el){el.className='ost'+(tp?' '+tp:'');el.textContent=msg;}
+  function encode(obj){return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));}
+  function decode(str){try{return JSON.parse(decodeURIComponent(escape(atob(str.trim()))));}catch(e){return null;}}
+
+  function setSt(id,msg,tp=''){
+    const el=document.getElementById(id);
+    if(el){el.className='ost'+(tp?' '+tp:'');el.textContent=msg;el.style.display=msg?'block':'none';}
   }
-  function destroy(){
-    clearTimeout(_retryTimer);
-    if(conn){try{conn.close();}catch(e){}conn=null;}
-    if(peer){try{peer.destroy();}catch(e){}peer=null;}
+
+  function cleanUp(){
+    if(_dc){try{_dc.close();}catch(e){}}_dc=null;
+    if(_pc){try{_pc.close();}catch(e){}}_pc=null;
   }
-  function mkPeer(id,onReady,onFail){
-    destroy();
-    const cfg=PEER_CFGS[_srvIdx%PEER_CFGS.length];
-    const opts={config:{iceServers:ICE,iceCandidatePoolSize:10},pingInterval:cfg.ping,...cfg};
-    peer=id?new Peer(id,opts):new Peer(opts);
-    const t=setTimeout(()=>{
-      if(peer&&peer.open)return;
-      _srvIdx++;
-      if(_srvIdx<4){mkPeer(id,onReady,onFail);}
-      else{onFail('تعذر الاتصال — تأكد من الإنترنت (مطلوب لمرحلة الاتصال الأولي فقط)');}
-    },10000);
-    peer.on('open',id2=>{clearTimeout(t);onReady(id2);});
-    peer.on('error',err=>{
-      clearTimeout(t);
-      const m=err.type==='peer-unavailable'?'الكود غير صحيح أو الجهاز الآخر غير متاح':err.message||'خطأ';
-      if(err.type==='peer-unavailable'){onFail(m);return;}
-      _srvIdx++;
-      if(_srvIdx<2){_retryTimer=setTimeout(()=>mkPeer(id,onReady,onFail),800);}
-      else{onFail(m);}
-    });
-    peer.on('disconnected',()=>{if(peer&&!peer.destroyed)peer.reconnect();});
+
+  function makePeer(){
+    cleanUp();
+    _pc=new RTCPeerConnection({iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'}
+    ]});
+    return _pc;
   }
-  function setupConn(c){
-    conn=c;
-    c.on('data',d=>{try{handleGame(d);}catch(e){}});
-    c.on('close',()=>{
+
+  function setupDC(channel){
+    _dc=channel;
+    _dc.onopen=()=>{
+      setSt('lst-c','◉ متصل! جاري بدء اللعبة…','ok');
+      setSt('lst-j2','◉ متصل!','ok');
+    };
+    _dc.onmessage=e=>{try{handleGame(JSON.parse(e.data));}catch(ex){}};
+    _dc.onclose=()=>{
       if(!S.over&&S.mode==='lan'){
-        S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');
+        S.over=true;SFX.win();
+        G.showOver('✦','فوز!','انسحب الخصم','#e8d080');
         document.getElementById('go-review').style.display='inline-flex';
       }
-    });
-    c.on('error',()=>{});
+    };
   }
+
   function handleGame(d){
-    if(d.type==='start')        _go(d.yourColor);
-    else if(d.type==='move')    {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
-    else if(d.type==='assist')  {S.oppUsingAssist=d.on;R.astLbls();}
-    else if(d.type==='resign')  {if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','استسلم الخصم','#e8d080');document.getElementById('go-review').style.display='inline-flex';}}
-    else if(d.type==='chat')    {CHAT.recv(d.text);}
+    if(d.type==='start')       _go(d.yourColor);
+    else if(d.type==='move')   {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
+    else if(d.type==='assist') {S.oppUsingAssist=d.on;R.astLbls();}
+    else if(d.type==='resign') {if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','استسلم الخصم','#e8d080');document.getElementById('go-review').style.display='inline-flex';}}
+    else if(d.type==='chat')   {CHAT.recv(d.text);}
   }
+
   function _go(mc){
     const oc=E.opp(mc);
     G._reset('lan',0);
     S.mode='lan';S.levelId=-1;S.myCol=mc;
-    document.getElementById('gmode').textContent='📶 شبكة محلية';
+    document.getElementById('gmode').textContent='◈ شبكة محلية';
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent='أنت';
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent='الخصم';
-    fixBars(mc);
-    CHAT.show();
-    Nav.game();R.all();
+    fixBars(mc);CHAT.show();Nav.game();R.all();
   }
+
+  function showStep(n){
+    ['lan-s0','lan-s1','lan-s2'].forEach((id,i)=>{
+      const el=document.getElementById(id);
+      if(el)el.style.display=i===n?'block':'none';
+    });
+  }
+
+  function makeQR(elId,text){
+    const wrap=document.getElementById(elId);
+    if(!wrap)return;
+    wrap.innerHTML='';
+    try{
+      new QRCode(wrap,{text,width:160,height:160,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+    }catch(e){wrap.style.display='none';}
+  }
+
+  async function hostStart(col){
+    _myCol=col;_isHost=true;
+    const pc=makePeer();
+    _dc=pc.createDataChannel('chess',{ordered:true});
+    setupDC(_dc);
+    const candidates=[];
+    pc.onicecandidate=e=>{if(e.candidate)candidates.push(e.candidate.toJSON());};
+    pc.onicegatheringstatechange=()=>{
+      if(pc.iceGatheringState==='complete'){
+        const payload=encode({sdp:pc.localDescription.sdp,type:pc.localDescription.type,ice:candidates});
+        document.getElementById('lan-offer-txt').value=payload;
+        makeQR('lan-qr1',payload);
+        showStep(1);
+        setSt('lst-c','◎ أرسل الكود للضيف وانتظر رده…','wait');
+      }
+    };
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+  }
+
+  async function hostStep2(){
+    const raw=document.getElementById('lan-host-answer').value.trim();
+    const data=decode(raw);
+    if(!data||!data.sdp){setSt('lst-c','✕ كود الرد غير صحيح — تأكد من النسخ الكامل','err');return;}
+    setSt('lst-c','◌ جاري الاتصال…','conn');
+    try{
+      await _pc.setRemoteDescription(new RTCSessionDescription({type:data.type,sdp:data.sdp}));
+      (data.ice||[]).forEach(c=>{try{_pc.addIceCandidate(new RTCIceCandidate(c));}catch(ex){}});
+      let tries=0;
+      const chk=setInterval(()=>{
+        tries++;
+        if(_dc&&_dc.readyState==='open'){
+          clearInterval(chk);
+          const opp=_myCol==='w'?'b':'w';
+          _dc.send(JSON.stringify({type:'start',yourColor:opp}));
+          _go(_myCol);
+        }
+        if(tries>60){clearInterval(chk);setSt('lst-c','✕ انتهت المهلة — أعد المحاولة','err');}
+      },500);
+    }catch(e){setSt('lst-c','✕ خطأ: '+e.message,'err');}
+  }
+
+  async function guestStep1(){
+    const raw=document.getElementById('lan-guest-offer').value.trim();
+    const data=decode(raw);
+    if(!data||!data.sdp){setSt('lst-j','✕ الكود غير صحيح — تأكد من النسخ الكامل','err');return;}
+    setSt('lst-j','◌ جاري المعالجة…','conn');
+    const pc=makePeer();
+    pc.ondatachannel=e=>setupDC(e.channel);
+    const candidates=[];
+    pc.onicecandidate=e=>{if(e.candidate)candidates.push(e.candidate.toJSON());};
+    pc.onicegatheringstatechange=async()=>{
+      if(pc.iceGatheringState==='complete'){
+        const payload=encode({sdp:pc.localDescription.sdp,type:pc.localDescription.type,ice:candidates});
+        document.getElementById('lan-answer-txt').value=payload;
+        makeQR('lan-qr2',payload);
+        showStep(2);
+        setSt('lst-j2','◌ في انتظار المضيف…','wait');
+      }
+    };
+    try{
+      await pc.setRemoteDescription(new RTCSessionDescription({type:data.type,sdp:data.sdp}));
+      (data.ice||[]).forEach(c=>{try{pc.addIceCandidate(new RTCIceCandidate(c));}catch(ex){}});
+      const answer=await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+    }catch(e){setSt('lst-j','✕ خطأ: '+e.message,'err');}
+  }
+
   return{
     pc:'w',
-    _conn(){return conn;},
-    init(){
-      setSt('c','');setSt('j','');
-      document.getElementById('lrbox').style.display='none';
-      const bc=document.getElementById('lbtn-create');bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
-      document.getElementById('ljinp').value='';
-      this.dc();_srvIdx=0;
-    },
+    _conn(){return{open:_dc&&_dc.readyState==='open',send:(d)=>{if(_dc&&_dc.readyState==='open')_dc.send(JSON.stringify(d));}};},
+    reset(){cleanUp();showStep(0);['lst-c','lst-j','lst-j2'].forEach(id=>setSt(id,''));},
+    init(){this.reset();},
     tab(n){
       SFX.btn();
       ['c','j'].forEach(t=>{
@@ -1980,60 +2110,37 @@ const LAN=(()=>{
       SFX.btn();this.pc=c;
       ['w','b','r'].forEach(x=>document.getElementById('lco-'+x).classList.toggle('on',x===c));
     },
-    create(){
+    async hostStart(){
       SFX.btn();
       let col=this.pc;if(col==='r')col=Math.random()<.5?'w':'b';
-      _myCol=col;_srvIdx=0;
       document.getElementById('lbtn-create').disabled=true;
-      setSt('c','◌ جاري الاتصال... (نحتاج إنترنت للاتصال الأولي فقط)','conn');
-      mkPeer(null,peerId=>{
-        document.getElementById('lrcode').textContent=peerId;
-        document.getElementById('lrbox').style.display='block';
-        setSt('c','◎ في انتظار الخصم على نفس الشبكة…','wait');
-        peer.on('connection',c=>{
-          setupConn(c);
-          c.on('open',()=>{
-            setSt('c','◉ متصل! بدء اللعبة…','ok');
-            const opp=_myCol==='w'?'b':'w';
-            c.send({type:'start',yourColor:opp});
-            _go(_myCol);
-          });
-        });
-      },msg=>{setSt('c','✕ '+msg,'err');document.getElementById('lbtn-create').disabled=false;});
+      await hostStart(col);
+      document.getElementById('lbtn-create').disabled=false;
     },
-    join(){
+    async guestStep1(){SFX.btn();await guestStep1();},
+    async hostStep2(){SFX.btn();await hostStep2();},
+    copyOffer(){
       SFX.btn();
-      const pid=document.getElementById('ljinp').value.trim();
-      if(!pid){setSt('j','أدخل الكود أولاً','err');return;}
-      _srvIdx=0;setSt('j','◌ جاري الاتصال...','conn');
-      mkPeer(null,()=>{
-        setSt('j','◌ جاري الانضمام…','wait');
-        conn=peer.connect(pid,{reliable:true,serialization:'json'});
-        setupConn(conn);
-        const t=setTimeout(()=>{if(conn&&conn.open)return;setSt('j','✕ انتهت المهلة','err');},30000);
-        conn.on('open',()=>clearTimeout(t));
-      },msg=>{setSt('j','✕ '+msg,'err');});
+      const t=document.getElementById('lan-offer-txt');t.select();
+      navigator.clipboard.writeText(t.value).catch(()=>{});
+      const b=document.querySelector('[onclick="LAN.copyOffer()"]');
+      if(b){b.textContent='◉ تم النسخ!';setTimeout(()=>b.textContent='⧉ نسخ الكود',2000);}
     },
-    copy(){
+    copyAnswer(){
       SFX.btn();
-      const code=document.getElementById('lrcode').textContent;
-      if(!code||code==='—')return;
-      navigator.clipboard.writeText(code).then(()=>{
-        const b=document.querySelectorAll('.rb-cp')[1]||document.querySelector('.rb-cp');
-        if(b){b.textContent='◉ تم النسخ!';setTimeout(()=>b.textContent='⧉ نسخ الكود',2000);}
-      }).catch(()=>{
-        const el=document.getElementById('lrcode');
-        const rng=document.createRange();rng.selectNode(el);
-        window.getSelection().removeAllRanges();window.getSelection().addRange(rng);
-      });
+      const t=document.getElementById('lan-answer-txt');t.select();
+      navigator.clipboard.writeText(t.value).catch(()=>{});
+      const b=document.querySelector('[onclick="LAN.copyAnswer()"]');
+      if(b){b.textContent='◉ تم النسخ!';setTimeout(()=>b.textContent='⧉ نسخ الرد',2000);}
     },
-    sendMove(mv){if(conn&&conn.open)conn.send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
-    sendAssist(on){if(conn&&conn.open)conn.send({type:'assist',on});},
+    sendMove(mv){const c=this._conn();if(c.open)c.send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
+    sendAssist(on){const c=this._conn();if(c.open)c.send({type:'assist',on});},
     sendResign(){
-      if(conn&&conn.open){try{conn.send({type:'resign'});}catch(e){}setTimeout(()=>destroy(),400);}
-      else{destroy();}
+      const c=this._conn();
+      if(c.open){try{c.send({type:'resign'});}catch(e){}setTimeout(()=>cleanUp(),400);}
+      else cleanUp();
     },
-    dc(){destroy();}
+    dc(){cleanUp();}
   };
 })();
 
@@ -2041,6 +2148,18 @@ const LAN=(()=>{
    BOOT
 ══════════════════════════════════════ */
 Cfg.load();
+
+/* قفل الاتجاه — يمنع التدوير التلقائي غير المرغوب */
+(function(){
+  try{
+    if(screen.orientation&&screen.orientation.lock){
+      /* نقفل portrait فقط إذا كان الجهاز حالياً portrait */
+      if(window.innerHeight>=window.innerWidth){
+        screen.orientation.lock('portrait').catch(()=>{});
+      }
+    }
+  }catch(e){}
+})();
 
 window.addEventListener('beforeunload',e=>{
   if((S.mode==='online'||S.mode==='lan')&&!S.over&&S.hist.length>0){
