@@ -1,20 +1,42 @@
 {
   "name": "شطرنج — Am-Kh",
   "short_name": "شطرنج",
-  "description": "لعبة شطرنج كاملة — أونلاين ومراحل وأوفلاين",
+  "description": "لعبة شطرنج عربية كاملة — أونلاين، ضد البوت، ولاعبَان",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#0a0a14",
   "theme_color": "#0a0a14",
   "lang": "ar",
   "dir": "rtl",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ],
   "categories": ["games", "entertainment"],
-  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "العب مع نور",
+      "url": "./index.html",
+      "description": "ابدأ مباراة ضد البوت"
+    }
+  ],
   "prefer_related_applications": false
 }
