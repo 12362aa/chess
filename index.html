@@ -256,7 +256,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.26),0 26px 60px rgba(0,0,0,.65),0 0 40px rgba(201,168,76,.06);
   display:inline-block;line-height:0;transition:box-shadow .3s;}
 .bwrap:hover{box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.35),0 30px 70px rgba(0,0,0,.7),0 0 50px rgba(201,168,76,.1);}
-#board{display:grid;grid-template-columns:repeat(8,var(--sq));grid-template-rows:repeat(8,var(--sq));width:var(--board);height:var(--board);}
+#board{display:grid;grid-template-columns:repeat(8,var(--sq));grid-template-rows:repeat(8,var(--sq));width:var(--board);height:var(--board);direction:ltr;}
 .sq{width:var(--sq);height:var(--sq);position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;flex-grow:0;transition:background-color .15s;}
 .sq.L{background:var(--sq-l);}.sq.D{background:var(--sq-d);}
 .sq.SL{background:var(--sq-sl);}.sq.SD{background:var(--sq-sd);}
@@ -269,11 +269,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .crd-r{bottom:2px;left:3px;}.crd-f{top:2px;right:3px;}
 .sq.D .crd-r,.sq.D .crd-f,.sq.SD .crd-r,.sq.SD .crd-f,.sq.MD .crd-r,.sq.MD .crd-f{color:var(--sq-l);}
 .sq.L .crd-r,.sq.L .crd-f,.sq.SL .crd-r,.sq.SL .crd-f,.sq.ML .crd-r,.sq.ML .crd-f{color:var(--sq-d);}
-.piece{position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));transition:transform .15s cubic-bezier(.34,1.56,.64,1);}
-.piece:hover{transform:scale(1.06);}
-.piece:active{cursor:grabbing;}
+.piece{position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+.piece:active{cursor:pointer;}
 .sq.SL .piece,.sq.SD .piece{transform:scale(1.1);}
-.sq.SL .piece:hover,.sq.SD .piece:hover{transform:scale(1.16);}
+.sq:hover .piece{transform:scale(1.06);}
+.sq.SL:hover .piece,.sq.SD:hover .piece{transform:scale(1.16);}
 .ast-star{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:calc(var(--sq)*.38);color:rgba(96,165,250,.9);text-shadow:0 0 10px rgba(96,165,250,.7);pointer-events:none;z-index:5;animation:starPulse 1s ease-in-out infinite;}
 @keyframes starPulse{0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
 @keyframes pieceMove{0%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
@@ -368,11 +368,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .confetti-p{position:absolute;top:-20px;width:8px;height:8px;border-radius:2px;animation:confettiFall linear forwards;}
 @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(110vh) rotate(720deg);opacity:.3;}}
 
-/* ══════════ LAN SCREEN ══════════ */
-#s-lan{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 14px 24px;gap:11px;}
-.lan-info{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.18);border-radius:10px;padding:11px 14px;font-size:12px;color:var(--red);line-height:1.7;max-width:430px;width:100%;}
-.lan-info strong{color:var(--gold2);}
-
 /* ══════════ LANDSCAPE ══════════ */
 @media (orientation:landscape) and (max-height:520px){
   :root{--board:min(82vh,400px);}
@@ -424,12 +419,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mc-d">العب مع صديق في أي مكان بالعالم</div>
       <span class="mc-b bt">اتصال مباشر P2P</span>
     </div>
-    <div class="mc" onclick="Nav.lan()">
-      <span class="mc-ic" style="color:#f87171">📶</span>
-      <div class="mc-t">شبكة محلية</div>
-      <div class="mc-d">العب مع صديق على نفس الواي فاي أو هوت سبوت</div>
-      <span class="mc-b bp2">بدون إنترنت ✓</span>
-    </div>
+
     <div class="mc" onclick="Nav.levels()">
       <span class="mc-ic ic-gold">◈</span>
       <div class="mc-t">مراحل نور</div>
@@ -468,6 +458,19 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <!-- SETTINGS -->
 <div id="s-settings" class="screen">
   <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
+    <div class="sc">
+      <h2><span class="ic-teal">◈</span> هويتك</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div class="sr-n">اسم اللاعب</div>
+        <div class="sr-d">سيظهر اسمك في اللعبة وللخصم في الأونلاين</div>
+        <div style="display:flex;gap:8px;width:100%;margin-top:4px;">
+          <input class="finp" id="set-name" placeholder="أدخل اسمك هنا…" maxlength="20"
+                 style="margin-bottom:0;flex:1;letter-spacing:0;text-align:right"
+                 oninput="Cfg.saveName(this.value)">
+          <div id="set-name-av" style="width:38px;height:38px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:var(--gold2);font-weight:700"></div>
+        </div>
+      </div>
+    </div>
     <div class="sc">
       <h2><span class="ic-gold">◆</span> الصوت</h2>
       <div class="sr">
@@ -564,48 +567,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   </div>
 </div>
 
-<!-- LAN SCREEN -->
-<div id="s-lan" class="screen">
-  <div class="oc">
-    <h2><span style="color:#f87171">◈</span> شبكة محلية</h2>
-    <p class="oc-sub">العب مع صديق — بدون إنترنت 100%</p>
-    <div class="lan-info">
-      <strong>كيف تشتغل؟</strong><br>
-      ١- الاتنين على نفس الشبكة (هوت سبوت أو واي فاي)<br>
-      ٢- المضيف ينشئ غرفة وينسخ الكود<br>
-      ٣- الضيف يلصق الكود ويرسل كود الإجابة<br>
-      ٤- المضيف يلصق كود الإجابة → تبدأ اللعبة ✓<br>
-      <span style="color:var(--green);font-size:11px">◆ لا يحتاج إنترنت إطلاقاً</span>
-    </div>
-    <div class="tabs" style="margin-top:14px">
-      <button class="tbb on" id="tb-lc" onclick="LAN.tab('c')">إنشاء غرفة</button>
-      <button class="tbb"    id="tb-lj" onclick="LAN.tab('j')">الانضمام</button>
-    </div>
-    <div id="tlc-c" class="tc on">
-      <p class="flbl">لون قطعك</p>
-      <div class="copts">
-        <div class="copt on" id="lco-w" onclick="LAN.col('w')"><span>♔</span>أبيض</div>
-        <div class="copt"    id="lco-b" onclick="LAN.col('b')"><span>♚</span>أسود</div>
-        <div class="copt"    id="lco-r" onclick="LAN.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
-      </div>
-      <div id="lst-c" class="ost"></div>
-      <div id="lrbox" class="rbox">
-        <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
-        <div class="rb-c" id="lrcode">—</div>
-        <div class="rb-h">انتظر حتى ينضم صديقك…</div>
-        <button class="rb-cp" onclick="LAN.copy()">⧉ نسخ الكود</button>
-      </div>
-      <button class="btnp" id="lbtn-create" onclick="LAN.create()">♟ إنشاء غرفة</button>
-    </div>
-    <div id="tlc-j" class="tc">
-      <p class="flbl">أدخل كود الغرفة</p>
-      <input class="finp" id="ljinp" placeholder="الصق الكود هنا" maxlength="36" oninput="this.value=this.value.trim()">
-      <div id="lst-j" class="ost"></div>
-      <button class="btnp" onclick="LAN.join()">◈ الانضمام</button>
-    </div>
-    <button class="btnb" onclick="Nav.menu()">← العودة</button>
-  </div>
-</div>
+
 
 <!-- GAME -->
 <div id="s-game" class="screen">
@@ -798,7 +760,7 @@ const THEMES={
    CONFIG
 ══════════════════════════════════════ */
 const Cfg={
-  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',allowRotation:false},
+  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',allowRotation:false,playerName:''},
   load(){
     try{const s=localStorage.getItem('chess-cfg-v6');if(s)this.data={...this.data,...JSON.parse(s)};}catch(e){}
     this.apply();
@@ -824,7 +786,19 @@ const Cfg={
     document.getElementById('set-score').checked   =this.data.score;
     document.getElementById('set-confirm').checked =this.data.confirm;
     const rotEl=document.getElementById('set-rotation');if(rotEl)rotEl.checked=!!this.data.allowRotation;
+    const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
+    this._updateAvatar(this.data.playerName||'');
     this.theme(this.data.boardTheme,false);
+  },
+  saveName(val){
+    this.data.playerName=(val||'').trim().slice(0,20);
+    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+    this._updateAvatar(this.data.playerName);
+  },
+  _updateAvatar(name){
+    const av=document.getElementById('set-name-av');
+    if(!av)return;
+    av.textContent=name?name[0].toUpperCase():'◈';
   },
   theme(name,save=true){
     this.data.boardTheme=name;
@@ -840,19 +814,8 @@ const Cfg={
   toggleRotation(on){
     this.data.allowRotation=on;
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
-    if(!on){
-      /* قفل الاتجاه الحالي */
-      try{
-        if(screen.orientation&&screen.orientation.lock){
-          const t=screen.orientation.type;
-          const target=t.includes('landscape')?'landscape':'portrait';
-          screen.orientation.lock(target).catch(()=>{});
-        }
-      }catch(e){}
-    }else{
-      /* السماح بالتدوير الحر */
-      try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}
-    }
+    if(!on){try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(()=>{});}catch(e){}}
+    else{try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}}
   }
 };
 
@@ -1154,7 +1117,6 @@ const CHAT={
 /* helper لإيجاد الـ conn الحالي (online أو lan) */
 function _getActiveConn(){
   if(S.mode==='online')return OL._conn();
-  if(S.mode==='lan')return LAN._conn();
   return null;
 }
 
@@ -1165,106 +1127,104 @@ const REV={
   open(){
     if(S.hist.length<4){alert('المباراة قصيرة جداً للتقييم');return;}
     document.getElementById('review-ov').classList.add('open');
-    document.getElementById('rv-content').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري تحليل المباراة…</div></div>`;
-    setTimeout(()=>this._analyze(),80);
+    document.getElementById('rv-content').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>`;
+    /* نشغّل التحليل في requestAnimationFrame لإظهار الـ spinner أولاً */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      try{this._render(this._analyze());}
+      catch(e){document.getElementById('rv-content').innerHTML=`<div style="color:var(--red);padding:20px;text-align:center">تعذر التحليل</div>`;}
+    }));
   },
   close(){document.getElementById('review-ov').classList.remove('open');},
   _analyze(){
-    try{
-      const result=this._localAnalyze();
-      this._render(result);
-    }catch(e){
-      document.getElementById('rv-content').innerHTML=`<div style="color:var(--red);padding:20px;text-align:center">تعذر التحليل — حاول مرة أخرى</div>`;
-    }
-  },
-  _localAnalyze(){
-    /* نعيد تشغيل المباراة خطوة بخطوة ونقيّم كل حركة */
     const snaps=S.snapshots;
     if(!snaps||!snaps.length)return{summary:{white_accuracy:50,black_accuracy:50,white_blunders:0,black_blunders:0,white_mistakes:0,black_mistakes:0,highlight:'لا توجد بيانات كافية',best_move:'—'},moves:[]};
-    const ratingAr={best:'الأفضل',good:'جيد',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح'};
+    /* تقييم سريع: نُشغّل المباراة ونقيس الفرق المادي قبل وبعد كل حركة
+       مقارنةً بأفضل حركة متاحة (depth=1 فقط للسرعة) */
     let bd=INIT_BD.map(r=>[...r]);
     let cas={w:{K:true,Q:true},b:{K:true,Q:true}};
     let ep=null;
     const moves=[];
     let wTotal=0,bTotal=0,wCount=0,bCount=0;
     let wBlunders=0,bBlunders=0,wMistakes=0,bMistakes=0;
-    let bestMoveStr='—',bestScore=0;
+    let overallBestVal=-Infinity,overallBestStr='—';
+
+    /* دالة تقييم سريعة depth=1 */
+    const quickBest=(board,cas2,ep2,color)=>{
+      const mvs=E.allLegal(board,color,cas2,ep2);
+      if(!mvs.length)return{val:color==='w'?-99999:99999,mv:null};
+      const isMax=color==='w';
+      let bv=isMax?-Infinity:Infinity,bm=mvs[0];
+      for(const mv of mvs){
+        const r2=E.apply(board,mv.from,mv.to,cas2,ep2,'Q');
+        const v=E.eval(r2.bd);
+        if(isMax?v>bv:v<bv){bv=v;bm=mv;}
+      }
+      return{val:bv,mv:bm};
+    };
+
     for(let i=0;i<snaps.length;i++){
       const snap=snaps[i];
       const color=snap.turn;
-      /* نقيّم الحالة قبل الحركة */
-      const evalBefore=E.eval(bd);
-      /* نحسب أفضل حركة متاحة */
-      const allMvs=E.allLegal(bd,color,cas,ep);
-      if(!allMvs.length)break;
-      /* نحسب قيمة أفضل حركة بعمق 2 */
       const isMax=color==='w';
-      let bestVal=isMax?-Infinity:Infinity;
-      let bestMv=null;
-      for(const mv of allMvs){
-        const r2=E.apply(bd,mv.from,mv.to,cas,ep,'Q');
-        const v=E.mm(r2.bd,2,-Infinity,Infinity,!isMax,r2.cas,r2.ep);
-        if(isMax?v>bestVal:v<bestVal){bestVal=v;bestMv=mv;}
-      }
-      /* نطبق الحركة الفعلية */
+      /* أفضل حركة بـ depth=1 */
+      const {val:bestVal,mv:bestMv}=quickBest(bd,cas,ep,color);
+      /* الحركة الفعلية من الـ notation */
       const actualMoveStr=snap.move;
-      /* نجد الحركة الفعلية في القائمة */
-      let actualFrom=null,actualTo=null;
-      /* نعيد تطبيق الحركة من الـ notation */
       const f='abcdefgh';
+      let actualFrom=null,actualTo=null,promo=null;
       if(actualMoveStr&&actualMoveStr.length>=4){
-        const fc=f.indexOf(actualMoveStr[0]),fr2=8-parseInt(actualMoveStr[1]);
-        const tc=f.indexOf(actualMoveStr[actualMoveStr.length-1]==='='?actualMoveStr[actualMoveStr.length-3]:actualMoveStr[actualMoveStr.length-1]);
-        const tr2=8-parseInt(actualMoveStr[actualMoveStr.length-1]==='='?actualMoveStr[actualMoveStr.length-4]:actualMoveStr[actualMoveStr.length-2]);
-        actualFrom=[fr2,fc];actualTo=[tr2,tc];
+        try{
+          const fc=f.indexOf(actualMoveStr[0]),fr2=8-parseInt(actualMoveStr[1]);
+          const hasPromo=actualMoveStr.includes('=');
+          const toStr=hasPromo?actualMoveStr.slice(actualMoveStr.indexOf('=')-2,actualMoveStr.indexOf('=')):actualMoveStr.slice(-2);
+          const tc=f.indexOf(toStr[0]),tr2=8-parseInt(toStr[1]);
+          if(fc>=0&&tc>=0&&fr2>=0&&fr2<8&&tr2>=0&&tr2<8){
+            actualFrom=[fr2,fc];actualTo=[tr2,tc];
+            if(hasPromo)promo=actualMoveStr[actualMoveStr.length-1];
+          }
+        }catch(ex){}
       }
-      let actualVal=bestVal;/* افتراضي */
+      let actualVal=bestVal;
+      let appliedOk=false;
       if(actualFrom&&actualTo){
-        const promo=actualMoveStr.includes('=')?actualMoveStr[actualMoveStr.length-1]:null;
         try{
           const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
-          actualVal=E.mm(r2.bd,2,-Infinity,Infinity,!isMax,r2.cas,r2.ep);
-          /* تطبيق الحركة للخطوة التالية */
-          const applied=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
-          bd=applied.bd;cas=applied.cas;ep=applied.ep;
-        }catch(ex){
-          if(i<snaps.length-1&&snaps[i+1]){bd=snaps[i+1].bd?snaps[i+1].bd.map(r=>[...r]):bd;}
-        }
+          actualVal=E.eval(r2.bd);
+          bd=r2.bd;cas=r2.cas;ep=r2.ep;
+          appliedOk=true;
+        }catch(ex){}
       }
-      /* الفرق بين أفضل حركة والحركة الفعلية */
+      if(!appliedOk)continue;
+      /* الفرق: للأبيض نريد bestVal أعلى من actualVal، للأسود العكس */
       const diff=isMax?(bestVal-actualVal):(actualVal-bestVal);
       let rating,score;
-      if(diff<30){rating='best';score=100;}
-      else if(diff<80){rating='good';score=85;}
-      else if(diff<200){rating='inaccuracy';score=65;}
-      else if(diff<500){rating='mistake';score=40;if(color==='w')wMistakes++;else bMistakes++;}
-      else{rating='blunder';score=10;if(color==='w')wBlunders++;else bBlunders++;}
+      if(diff<=0){rating='best';score=100;}
+      else if(diff<50){rating='good';score=88;}
+      else if(diff<150){rating='inaccuracy';score=65;}
+      else if(diff<400){rating='mistake';score=38;if(color==='w')wMistakes++;else bMistakes++;}
+      else{rating='blunder';score=5;if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}
       else{bTotal+=score;bCount++;}
-      /* أفضل حركة في المباراة */
+      /* أفضل حركة عامة */
       if(rating==='best'&&bestMv){
         const mv=E.notation(bd,bestMv.from,bestMv.to,null);
-        if(!bestScore||score>bestScore){bestScore=score;bestMoveStr=mv;}
+        if(Math.abs(bestVal)>Math.abs(overallBestVal)){overallBestVal=bestVal;overallBestStr=mv;}
       }
-      /* تعليق */
-      let note='';
-      if(rating==='blunder')note='خطأ فادح أضاع ميزة كبيرة';
-      else if(rating==='mistake')note='خطأ أضعف الموقف';
-      else if(rating==='inaccuracy')note='يمكن تحسين هذه الحركة';
-      else if(rating==='good')note='حركة جيدة تحافظ على التوازن';
-      else note='أفضل حركة في الموقف';
-      moves.push({move:actualMoveStr||'—',color,rating,note});
+      const notes={blunder:'خطأ فادح — ضاعت ميزة كبيرة',mistake:'خطأ أضعف الموقف',inaccuracy:'يمكن تحسين هذه الحركة',good:'حركة جيدة',best:'أفضل حركة في الموقف'};
+      moves.push({move:actualMoveStr||'—',color,rating,note:notes[rating]});
     }
     const wAcc=wCount?Math.round(wTotal/wCount):50;
     const bAcc=bCount?Math.round(bTotal/bCount):50;
+    const wName=document.getElementById('nm-w')?.textContent||'الأبيض';
+    const bName=document.getElementById('nm-b')?.textContent||'الأسود';
     let highlight='مباراة متوازنة';
-    if(wAcc>80&&bAcc>80)highlight='مباراة ممتازة من الطرفين';
-    else if(wAcc>bAcc+20)highlight='الأبيض لعب بشكل أفضل بوضوح';
-    else if(bAcc>wAcc+20)highlight='الأسود لعب بشكل أفضل بوضوح';
-    else if(wBlunders+bBlunders>3)highlight='مباراة مليئة بالأخطاء الكبيرة';
-    else if(wMistakes+bMistakes===0)highlight='مباراة دقيقة بدون أخطاء';
+    if(wAcc>=90&&bAcc>=90)highlight='مباراة ممتازة من الطرفين';
+    else if(wAcc>bAcc+20)highlight=`${wName} تفوّق بوضوح`;
+    else if(bAcc>wAcc+20)highlight=`${bName} تفوّق بوضوح`;
+    else if(wBlunders+bBlunders>=4)highlight='مباراة مليئة بالأخطاء الكبيرة';
+    else if(wMistakes+bMistakes===0&&wBlunders+bBlunders===0)highlight='مباراة دقيقة — بدون أخطاء!';
     return{
-      summary:{white_accuracy:wAcc,black_accuracy:bAcc,white_blunders:wBlunders,black_blunders:bBlunders,white_mistakes:wMistakes,black_mistakes:bMistakes,best_move:bestMoveStr,highlight},
+      summary:{white_accuracy:wAcc,black_accuracy:bAcc,white_blunders:wBlunders,black_blunders:bBlunders,white_mistakes:wMistakes,black_mistakes:bMistakes,best_move:overallBestStr,highlight,wName,bName},
       moves
     };
   },
@@ -1273,9 +1233,11 @@ const REV={
     const ratingAr={best:'الأفضل',good:'جيد',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح'};
     const badgeCls={best:'badge-best',good:'badge-good',inaccuracy:'badge-inaccuracy',mistake:'badge-mistake',blunder:'badge-blunder'};
     const moveCls={best:'best',good:'good',inaccuracy:'inaccuracy',mistake:'mistake',blunder:'blunder'};
+    const wLabel=s.wName||'الأبيض';
+    const bLabel=s.bName||'الأسود';
     let html=`<div class="rv-summary">
       <div class="rv-sum-col">
-        <div class="rv-sum-lbl">دقة الأبيض</div>
+        <div class="rv-sum-lbl">♙ ${wLabel}</div>
         <div class="rv-sum-val" style="color:var(--gold2)">${s.white_accuracy||'—'}%</div>
         <div style="font-size:10px;color:var(--text3);margin-top:3px">${s.white_blunders||0} فادح · ${s.white_mistakes||0} خطأ</div>
       </div>
@@ -1284,7 +1246,7 @@ const REV={
         <div style="font-size:11px;color:var(--text2);line-height:1.5;padding:0 4px">${s.highlight||'—'}</div>
       </div>
       <div class="rv-sum-col">
-        <div class="rv-sum-lbl">دقة الأسود</div>
+        <div class="rv-sum-lbl">♟ ${bLabel}</div>
         <div class="rv-sum-val" style="color:var(--text)">${s.black_accuracy||'—'}%</div>
         <div style="font-size:10px;color:var(--text3);margin-top:3px">${s.black_blunders||0} فادح · ${s.black_mistakes||0} خطأ</div>
       </div>
@@ -1470,7 +1432,7 @@ const R={
     const opEl=S.myCol==='b'?document.getElementById('ast-w'):document.getElementById('ast-b');
     if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
     else{myEl.className='pb-ast';myEl.textContent='';}
-    if((S.mode==='online'||S.mode==='lan')&&S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
+    if(S.mode==='online'&&S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
     else{opEl.className='pb-ast';opEl.textContent='';}
   },
   toolbar(){
@@ -1514,8 +1476,9 @@ const G={
   start(mode,diff){
     this._reset(mode,diff);
     if(mode==='local'){
-      document.getElementById('nm-w').textContent='اللاعب الأبيض';
-      document.getElementById('nm-b').textContent='اللاعب الأسود';
+      const pn=Cfg.data.playerName||'';
+      document.getElementById('nm-w').textContent=pn?pn+' (أبيض)':'اللاعب الأبيض';
+      document.getElementById('nm-b').textContent=pn?pn+' (أسود)':'اللاعب الأسود';
       document.getElementById('gmode').textContent='⚔ لاعبَان';
       fixBars('both');}
     Nav.game();R.all();
@@ -1524,7 +1487,8 @@ const G={
     const lv=LEVELS_DEF[id];
     this._reset('bot',lv.depth);
     S.levelId=id;S.myCol='w';
-    document.getElementById('nm-w').textContent='أنت';
+    const pn=Cfg.data.playerName||'أنت';
+    document.getElementById('nm-w').textContent=pn;
     document.getElementById('nm-b').textContent=`نور — ${lv.name}`;
     document.getElementById('gmode').textContent=`◈ المرحلة ${id+1}: ${lv.name}`;
     fixBars('w');
@@ -1533,7 +1497,7 @@ const G={
   click(r,c){
     if(S.over||S.pending||S.busy)return;
     if(S.mode==='bot'&&S.turn==='b')return;
-    if((S.mode==='online'||S.mode==='lan')&&S.turn!==S.myCol)return;
+    if(S.mode==='online'&&S.turn!==S.myCol)return;
     const isLeg=S.legal.some(([lr,lc])=>lr===r&&lc===c);
     if(isLeg){this.exec(S.sel,[r,c]);return;}
     if(S.bd[r][c]&&E.col(S.bd[r][c])===S.turn){
@@ -1548,7 +1512,6 @@ const G={
   },
   finish(fr,to,promo){
     if(S.mode==='online')OL.sendMove({fr,to,promo});
-    if(S.mode==='lan')LAN.sendMove({fr,to,promo});
     this.applyMove(fr,to,promo);
   },
   applyMove(fr,to,promo){
@@ -1651,34 +1614,29 @@ const G={
   restart(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online'){OL.dc();Nav.menu();}
-    else if(S.mode==='lan'){LAN.dc();Nav.menu();}
     else if(S.levelId>=0)this.startLevel(S.levelId);
     else this.start(S.mode,S.diff);
   },
   goMenu(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online')OL.dc();
-    if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   back(){
     SFX.btn();S.busy=false;AST.clear();
     if(Cfg.data.confirm&&!S.over&&S.hist.length>0&&!confirm('تريد الخروج من اللعبة؟'))return;
-    if((S.mode==='online'||S.mode==='lan')&&!S.over){
+    if(S.mode==='online'&&!S.over){
       S.over=true;
       if(S.mode==='online')OL.sendResign();
-      if(S.mode==='lan')LAN.sendResign();
       G.showOver('✕','خسرت','انسحبت من اللعبة','#f87171');
       return;
     }
     if(S.mode==='online')OL.dc();
-    if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   toggleAst(){
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
     if(S.mode==='online')OL.sendAssist(S.assistOn);
-    if(S.mode==='lan')LAN.sendAssist(S.assistOn);
     if(S.assistOn){SFX.hint();AST.compute();}
     R.all();
   },
@@ -1693,7 +1651,6 @@ const Nav={
   menu(){this.show('s-menu');},
   game(){this.show('s-game');},
   online(){SFX.btn();this.show('s-online');OL.init();},
-  lan(){SFX.btn();this.show('s-lan');LAN.init();},
   levels(){SFX.btn();this.show('s-levels');LVL.buildUI();},
   settings(){SFX.btn();this.show('s-settings');},
 };
@@ -1749,29 +1706,50 @@ function fixBars(myCol){
 const OL=(()=>{
   const PEER_CFGS=[
     {host:'0.peerjs.com',port:443,path:'/',secure:true,ping:3000},
-    {host:'peer-server-yw4n.onrender.com',port:443,path:'/',secure:true,ping:5000},
     {host:'peerjs.com',port:443,path:'/myapp',secure:true,ping:3000},
+    {host:'peer-server-yw4n.onrender.com',port:443,path:'/',secure:true,ping:5000},
   ];
-  /* TURN servers تعمل مع داتا الهاتف (port 443 TCP/TLS يعبر الـ NAT) */
-  const ICE=[
+
+  /* TURN Worker URL — غيّره لو نشرت الـ Worker على عنوان مختلف */
+  const TURN_WORKER='https://chess-turn.ahmed-chess.workers.dev/turn';
+
+  /* ICE ثابت كـ fallback */
+  const ICE_STATIC=[
     {urls:'stun:stun.l.google.com:19302'},
     {urls:'stun:stun1.l.google.com:19302'},
     {urls:'stun:stun.cloudflare.com:3478'},
-    /* metered TURN — يدعم TCP و TLS على 443 */
     {urls:'turn:a.relay.metered.ca:80',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:a.relay.metered.ca:80?transport=tcp',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
     {urls:'turn:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
     {urls:'turns:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    /* openrelay — backup */
-    {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
     {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'},
-    /* Cloudflare TURN (مجاني جديد) */
-    {urls:'stun:stun.relay.metered.ca:80'},
-    /* freestun — backup إضافي */
     {urls:'turn:freestun.net:3478',username:'free',credential:'free'},
     {urls:'turns:freestun.net:5349',username:'free',credential:'free'},
   ];
+
+  let _iceCache=null,_iceFetchTime=0;
+  /* نجيب Cloudflare TURN credentials — مخزّنة 4 دقائق */
+  async function getIce(){
+    const now=Date.now();
+    if(_iceCache&&now-_iceFetchTime<240000)return _iceCache;
+    try{
+      const r=await fetch(TURN_WORKER,{signal:AbortSignal.timeout(4000)});
+      if(!r.ok)throw new Error('bad status');
+      const data=await r.json();
+      if(data&&data.iceServers&&data.iceServers.length){
+        _iceCache=[
+          {urls:'stun:stun.l.google.com:19302'},
+          {urls:'stun:stun.cloudflare.com:3478'},
+          ...data.iceServers,
+          /* fallback مع Cloudflare */
+          ...ICE_STATIC.slice(3),
+        ];
+        _iceFetchTime=now;
+        return _iceCache;
+      }
+    }catch(e){}
+    /* Fallback للـ static ICE */
+    return ICE_STATIC;
+  }
 
   let peer=null,conn=null;
   let _myCol='w',_srvIdx=0,_retryTimer=null;
@@ -1785,10 +1763,11 @@ const OL=(()=>{
     if(conn){try{conn.close();}catch(e){}conn=null;}
     if(peer){try{peer.destroy();}catch(e){}peer=null;}
   }
-  function mkPeer(id,onReady,onFail){
+  async function mkPeer(id,onReady,onFail){
     destroy();
+    const ice=await getIce();
     const cfg=PEER_CFGS[_srvIdx%PEER_CFGS.length];
-    const opts={config:{iceServers:ICE,iceCandidatePoolSize:10,iceTransportPolicy:'all'},pingInterval:cfg.ping,...cfg};
+    const opts={config:{iceServers:ice,iceCandidatePoolSize:10,iceTransportPolicy:'all'},pingInterval:cfg.ping,...cfg};
     peer=id?new Peer(id,opts):new Peer(opts);
     const t=setTimeout(()=>{
       if(peer&&peer.open)return;
@@ -1826,21 +1805,30 @@ const OL=(()=>{
     c.on('error',()=>{});
   }
   function handleGame(d){
-    if(d.type==='start')        _go(d.yourColor);
+    if(d.type==='start')        _go(d.yourColor,d.name||'');
     else if(d.type==='move')    {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
     else if(d.type==='assist')  {S.oppUsingAssist=d.on;R.astLbls();}
     else if(d.type==='resign')  {if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','استسلم الخصم','#e8d080');document.getElementById('go-review').style.display='inline-flex';}}
     else if(d.type==='chat')    {CHAT.recv(d.text);}
+    else if(d.type==='name')    {/* اسم الخصم بعد الاتصال */
+      const myC=S.myCol;const oc=E.opp(myC);
+      const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
+      if(d.name&&oppEl)oppEl.textContent=d.name;
+    }
   }
-  function _go(mc){
+  function _go(mc,oppName){
     const oc=E.opp(mc);
     G._reset('online',0);
     S.mode='online';S.levelId=-1;S.myCol=mc;
     document.getElementById('gmode').textContent='⊕ أونلاين';
-    document.getElementById(mc==='w'?'nm-w':'nm-b').textContent='أنت';
-    document.getElementById(oc==='w'?'nm-w':'nm-b').textContent='الخصم';
+    const myName=Cfg.data.playerName||'أنت';
+    const oppLabel=oppName||'الخصم';
+    document.getElementById(mc==='w'?'nm-w':'nm-b').textContent=myName;
+    document.getElementById(oc==='w'?'nm-w':'nm-b').textContent=oppLabel;
     fixBars(mc);
     CHAT.show();
+    /* نرسل اسمنا للخصم */
+    setTimeout(()=>{if(conn&&conn.open)try{conn.send({type:'name',name:myName});}catch(e){}},500);
     Nav.game();R.all();
   }
   return{
@@ -1875,12 +1863,16 @@ const OL=(()=>{
         document.getElementById('rbox').style.display='block';
         setSt('c','◎ في انتظار الخصم…','wait');
         peer.on('connection',c=>{
+          /* iOS يحتاج نتأكد من serialization */
           setupConn(c);
           c.on('open',()=>{
             setSt('c','◉ متصل! بدء اللعبة…','ok');
             const opp=_myCol==='w'?'b':'w';
-            c.send({type:'start',yourColor:opp});
-            _go(_myCol);
+            /* تأخير صغير لضمان استقرار الاتصال على iOS */
+            setTimeout(()=>{
+              try{c.send({type:'start',yourColor:opp,name:Cfg.data.playerName||''});}catch(ex){}
+              _go(_myCol);
+            },200);
           });
         });
       },msg=>{setSt('c','✕ '+msg,'err');document.getElementById('btn-create').disabled=false;});
@@ -1895,7 +1887,7 @@ const OL=(()=>{
         conn=peer.connect(pid,{reliable:true,serialization:'json'});
         setupConn(conn);
         const t=setTimeout(()=>{if(conn&&conn.open)return;setSt('j','✕ انتهت المهلة — تأكد من الكود وأن المضيف ينتظر','err');},30000);
-        conn.on('open',()=>clearTimeout(t));
+        conn.on('open',()=>{clearTimeout(t);});
       },msg=>{setSt('j','✕ '+msg,'err');});
     },
     copy(){
@@ -1921,238 +1913,36 @@ const OL=(()=>{
   };
 })();
 
-/* ══════════════════════════════════════
-/* ══════════════════════════════════════
-   LAN — شبكة محلية بـ WebRTC بدون إنترنت
-   ════════════════════════════════════
-   يستخدم WebRTC مباشرة مع manual signaling عبر نسخ/لصق.
-   لا يحتاج أي خادم خارجي — يعمل بدون إنترنت 100%.
-   الآلية:
-   1. المضيف ينشئ "Offer" (نصّ طويل) وينسخه
-   2. الضيف يلصق الـ Offer ويولد "Answer"
-   3. المضيف يلصق الـ Answer → الاتصال يتم
-   كل البيانات مباشرة بين الجهازين عبر الشبكة المحلية.
-══════════════════════════════════════ */
-const LAN=(()=>{
-  let pc=null,dc=null,_myCol='w',_role='';
-  const ICE_LOCAL=[
-    {urls:'stun:stun.l.google.com:19302'},
-    {urls:'stun:stun1.l.google.com:19302'},
-  ];
-
-  function setSt(tab,msg,tp=''){
-    const el=document.getElementById('lst-'+tab);
-    if(el){el.className='ost'+(tp?' '+tp:'');el.textContent=msg;}
-  }
-  function destroy(){
-    if(dc){try{dc.close();}catch(e){}dc=null;}
-    if(pc){try{pc.close();}catch(e){}pc=null;}
-  }
-  function createPC(){
-    destroy();
-    pc=new RTCPeerConnection({iceServers:ICE_LOCAL,iceCandidatePoolSize:5});
-    return pc;
-  }
-  function openDC(channel){
-    dc=channel;
-    dc.onmessage=e=>{try{handleGame(JSON.parse(e.data));}catch(ex){}};
-    dc.onopen=()=>{
-      setSt('c','◉ متصل! بدء اللعبة…','ok');
-      setSt('j','◉ متصل! بدء اللعبة…','ok');
-      if(_role==='host'){
-        const opp=_myCol==='w'?'b':'w';
-        send({type:'start',yourColor:opp});
-        _go(_myCol);
-      }
-    };
-    dc.onclose=()=>{
-      if(!S.over&&S.mode==='lan'){
-        S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');
-        document.getElementById('go-review').style.display='inline-flex';
-      }
-    };
-  }
-  function send(obj){if(dc&&dc.readyState==='open')dc.send(JSON.stringify(obj));}
-  function handleGame(d){
-    if(d.type==='start')        _go(d.yourColor);
-    else if(d.type==='move')    {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
-    else if(d.type==='assist')  {S.oppUsingAssist=d.on;R.astLbls();}
-    else if(d.type==='resign')  {if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','استسلم الخصم','#e8d080');document.getElementById('go-review').style.display='inline-flex';}}
-    else if(d.type==='chat')    {CHAT.recv(d.text);}
-  }
-  function _go(mc){
-    const oc=E.opp(mc);
-    G._reset('lan',0);
-    S.mode='lan';S.levelId=-1;S.myCol=mc;
-    document.getElementById('gmode').textContent='◈ شبكة محلية';
-    document.getElementById(mc==='w'?'nm-w':'nm-b').textContent='أنت';
-    document.getElementById(oc==='w'?'nm-w':'nm-b').textContent='الخصم';
-    fixBars(mc);
-    CHAT.show();
-    /* إخفاء شاشة LAN والانتقال للعبة */
-    setTimeout(()=>{Nav.game();R.all();},300);
-  }
-  function compress(str){return btoa(encodeURIComponent(str));}
-  function decompress(str){try{return decodeURIComponent(atob(str));}catch(e){return str;}}
-
-  return{
-    pc:'w',
-    _conn(){return{open:dc&&dc.readyState==='open',send:d=>send(d)};},
-    init(){
-      setSt('c','');setSt('j','');
-      document.getElementById('lrbox').style.display='none';
-      const bc=document.getElementById('lbtn-create');if(bc){bc.disabled=false;bc.textContent='♟ إنشاء غرفة';}
-      const ji=document.getElementById('ljinp');if(ji)ji.value='';
-      /* إخفاء حقل الـ answer إذا وجد */
-      const ab=document.getElementById('l-answer-box');if(ab)ab.style.display='none';
-      this.dc2();
-    },
-    tab(n){
-      SFX.btn();
-      ['c','j'].forEach(t=>{
-        document.getElementById('tb-l'+t).classList.toggle('on',t===n);
-        document.getElementById('tlc-'+t).classList.toggle('on',t===n);
-      });
-    },
-    col(c){
-      SFX.btn();this.pc=c;
-      ['w','b','r'].forEach(x=>document.getElementById('lco-'+x).classList.toggle('on',x===c));
-    },
-    async create(){
-      SFX.btn();
-      let col=this.pc;if(col==='r')col=Math.random()<.5?'w':'b';
-      _myCol=col;_role='host';
-      const bc=document.getElementById('lbtn-create');if(bc)bc.disabled=true;
-      setSt('c','◌ جاري إنشاء الاتصال…','conn');
-      createPC();
-      /* نفتح data channel */
-      const channel=pc.createDataChannel('chess',{ordered:true});
-      openDC(channel);
-      pc.onicecandidate=()=>{};/* نجمع كل الـ candidates أولاً */
-      /* نولد الـ offer */
-      const offer=await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      /* ننتظر اكتمال الـ ICE gathering */
-      await new Promise(res=>{
-        if(pc.iceGatheringState==='complete'){res();return;}
-        pc.onicegatheringstatechange=()=>{if(pc.iceGatheringState==='complete')res();};
-        setTimeout(res,4000);/* timeout بعد 4 ثواني */
-      });
-      const offerCode=compress(JSON.stringify(pc.localDescription));
-      document.getElementById('lrcode').textContent=offerCode;
-      document.getElementById('lrbox').style.display='block';
-      setSt('c','◎ انسخ الكود وأعطه لصديقك — ثم الصق الكود الذي يرسله إليك','wait');
-      /* إظهار حقل لصق الـ answer */
-      let ab=document.getElementById('l-answer-box');
-      if(!ab){
-        ab=document.createElement('div');ab.id='l-answer-box';
-        ab.innerHTML=`<p class="flbl" style="margin-top:10px">الصق كود الإجابة من صديقك:</p>
-          <input class="finp" id="l-ans-inp" placeholder="الصق كود الإجابة هنا" maxlength="9999">
-          <button class="btnp" id="l-ans-btn" onclick="LAN.applyAnswer()" style="margin-top:6px">◈ اتصال</button>`;
-        document.getElementById('tlc-c').appendChild(ab);
-      }
-      ab.style.display='block';
-    },
-    async applyAnswer(){
-      const inp=document.getElementById('l-ans-inp');
-      if(!inp||!inp.value.trim()){setSt('c','الصق الكود أولاً','err');return;}
-      try{
-        const answer=JSON.parse(decompress(inp.value.trim()));
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
-        setSt('c','◎ جاري الاتصال…','wait');
-      }catch(e){setSt('c','✕ كود خاطئ — تأكد من الكود','err');}
-    },
-    async join(){
-      SFX.btn();
-      const raw=document.getElementById('ljinp').value.trim();
-      if(!raw){setSt('j','أدخل الكود أولاً','err');return;}
-      _role='guest';
-      setSt('j','◌ جاري معالجة الكود…','conn');
-      try{
-        const offer=JSON.parse(decompress(raw));
-        createPC();
-        pc.ondatachannel=e=>openDC(e.channel);
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer=await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        /* ننتظر اكتمال الـ ICE */
-        await new Promise(res=>{
-          if(pc.iceGatheringState==='complete'){res();return;}
-          pc.onicegatheringstatechange=()=>{if(pc.iceGatheringState==='complete')res();};
-          setTimeout(res,4000);
-        });
-        const answerCode=compress(JSON.stringify(pc.localDescription));
-        /* نعرض الـ answer للمستخدم ليرسله للمضيف */
-        setSt('j','◉ انسخ الكود التالي وأرسله للمضيف:','ok');
-        let outBox=document.getElementById('l-out-box');
-        if(!outBox){
-          outBox=document.createElement('div');outBox.id='l-out-box';
-          outBox.innerHTML=`<div class="rbox" style="display:block;margin-top:10px">
-            <div class="rb-l">كود الإجابة — أرسله للمضيف</div>
-            <div class="rb-c" id="l-out-code" style="font-size:10px;word-break:break-all;line-height:1.4"></div>
-            <button class="rb-cp" onclick="LAN.copyAnswer()">⧉ نسخ الكود</button>
-          </div>`;
-          document.getElementById('tlc-j').appendChild(outBox);
-        }
-        document.getElementById('l-out-code').textContent=answerCode;
-        outBox.style.display='block';
-        setSt('j','◎ أرسل الكود للمضيف وانتظر الاتصال…','wait');
-      }catch(e){setSt('j','✕ كود خاطئ — تأكد من الكود','err');}
-    },
-    copyAnswer(){
-      SFX.btn();
-      const code=document.getElementById('l-out-code')?.textContent||document.getElementById('lrcode').textContent;
-      if(!code||code==='—')return;
-      navigator.clipboard.writeText(code).then(()=>{
-        const bs=document.querySelectorAll('.rb-cp');
-        bs.forEach(b=>{if(b.closest('#l-out-box')||b.closest('#lrbox')){b.textContent='◉ تم النسخ!';setTimeout(()=>b.textContent='⧉ نسخ الكود',2000);}});
-      }).catch(()=>{
-        const el=document.getElementById('l-out-code')||document.getElementById('lrcode');
-        const rng=document.createRange();rng.selectNode(el);
-        window.getSelection().removeAllRanges();window.getSelection().addRange(rng);
-      });
-    },
-    copy(){this.copyAnswer();},
-    sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
-    sendAssist(on){send({type:'assist',on});},
-    sendResign(){
-      send({type:'resign'});
-      setTimeout(()=>destroy(),400);
-    },
-    dc2(){destroy();},
-    dc(){destroy();}
-  };
-})();
 
 /* ══════════════════════════════════════
    BOOT
 ══════════════════════════════════════ */
 Cfg.load();
 
-/* منع التدوير التلقائي — لا يدور إلا بإرادة اللاعب */
+/* منع التدوير التلقائي — يعمل في وضع PWA فقط */
 (function(){
-  try{
-    if(screen.orientation&&screen.orientation.lock){
-      /* نحاول قفل الاتجاه الحالي */
-      const lockCurrent=()=>{
-        const t=screen.orientation.type;
-        const target=t.includes('landscape')?'landscape':'portrait';
-        screen.orientation.lock(target).catch(()=>{});
-      };
-      /* نقفل عند أول تفاعل (مطلوب من المتصفح) */
-      document.addEventListener('click',function onFirst(){
-        lockCurrent();
-        document.removeEventListener('click',onFirst);
-      },{once:true});
-    }
-  }catch(e){}
+  function tryLockPortrait(){
+    try{
+      if(screen.orientation&&screen.orientation.lock){
+        screen.orientation.lock('portrait').catch(()=>{
+          /* في المتصفح العادي يرفض — طبيعي */
+        });
+      }
+    }catch(e){}
+  }
+  /* نحاول القفل مباشرة — سينجح فقط في PWA/fullscreen */
+  if(document.readyState==='complete')tryLockPortrait();
+  else window.addEventListener('load',tryLockPortrait,{once:true});
+  /* كذلك عند تغيير الاتجاه لو مش مفعّل السماح */
+  screen.orientation&&screen.orientation.addEventListener&&screen.orientation.addEventListener('change',()=>{
+    if(!Cfg.data.allowRotation)tryLockPortrait();
+  });
 })();
 
 window.addEventListener('beforeunload',e=>{
-  if((S.mode==='online'||S.mode==='lan')&&!S.over&&S.hist.length>0){
+  if(S.mode==='online'&&!S.over&&S.hist.length>0){
     try{
       if(S.mode==='online')OL.sendResign();
-      if(S.mode==='lan')LAN.sendResign();
     }catch(ex){}
     e.preventDefault();
     e.returnValue='اللعبة لا تزال جارية — هل تريد المغادرة؟';
