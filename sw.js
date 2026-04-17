@@ -1,95 +1,113 @@
-/* ══════════════════════════════════════════════
-   sw.js — Service Worker للعمل أوفلاين
-   شطرنج Am-Kh
-══════════════════════════════════════════════ */
-const CACHE_NAME = 'chess-amkh-v1';
-
-/* الملفات الأساسية التي تُخزَّن فور التثبيت */
-const CORE_FILES = [
+/* ══════════════════════════════════════
+   Service Worker — شطرنج Am-Kh
+   استراتيجية: Cache First للأصول الثابتة
+   Network First للصفحة الرئيسية
+══════════════════════════════════════ */
+const CACHE_NAME = 'chess-amkh-v4';
+const STATIC_ASSETS = [
   './',
   './index.html',
-  './icon.svg',
   './manifest.json',
+  './icon.svg',
+  'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap',
 ];
 
-/* مصادر CDN تُخزَّن عند أول طلب */
-const CDN_PATTERNS = [
-  'fonts.googleapis.com',
-  'fonts.gstatic.com',
-  'unpkg.com/peerjs',
-];
-
-/* ── تثبيت: خزّن الملفات الأساسية ── */
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(CORE_FILES).catch(() => {}))
-      .then(() => self.skipWaiting())
+/* ══ Install ══ */
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      /* نكش الأصول الأساسية فقط — الفونتات الخارجية اختيارية */
+      const local = STATIC_ASSETS.filter(u => !u.startsWith('http'));
+      return cache.addAll(local).catch(() => {});
+    })
   );
+  self.skipWaiting();
 });
 
-/* ── تفعيل: احذف الكاش القديم ── */
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      ))
-      .then(() => self.clients.claim())
+/* ══ Activate ══ */
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(k => k !== CACHE_NAME)
+          .map(k => caches.delete(k))
+      )
+    )
   );
+  self.clients.claim();
 });
 
-/* ── اعتراض الطلبات ── */
-self.addEventListener('fetch', event => {
-  const url = event.request.url;
+/* ══ Fetch ══ */
+self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
 
-  /* تجاهل طلبات غير GET */
-  if (event.request.method !== 'GET') return;
-
-  /* تجاهل WebSocket و PeerJS signaling */
-  if (url.includes('peerjs.com') || url.startsWith('ws')) return;
-
-  /* الصفحة الرئيسية: شبكة أولاً ثم كاش */
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-          return res;
-        })
-        .catch(() => caches.match('./index.html'))
-    );
-    return;
+  /* PeerJS و TURN servers — دايماً من الشبكة */
+  if (
+    url.hostname.includes('peerjs') ||
+    url.hostname.includes('metered') ||
+    url.hostname.includes('freestun') ||
+    url.hostname.includes('openrelay') ||
+    url.hostname.includes('xirsys') ||
+    url.pathname.endsWith('.js') && url.hostname !== location.hostname
+  ) {
+    return; /* نترك المتصفح يتعامل معها */
   }
 
-  /* CDN (فونتات، PeerJS): كاش أولاً ثم شبكة */
-  const isCDN = CDN_PATTERNS.some(p => url.includes(p));
-  if (isCDN) {
-    event.respondWith(
-      caches.match(event.request).then(cached => {
+  /* الفونتات من Google — Cache First */
+  if (url.hostname.includes('fonts.g')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => {
         if (cached) return cached;
-        return fetch(event.request)
-          .then(res => {
+        return fetch(e.request).then(res => {
+          if (res && res.status === 200) {
             const clone = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-            return res;
-          })
-          .catch(() => cached);
+            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+          }
+          return res;
+        }).catch(() => cached || new Response('', { status: 503 }));
       })
     );
     return;
   }
 
-  /* بقية الطلبات: كاش أولاً */
-  event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request)
+  /* الصفحة الرئيسية — Network First مع Fallback */
+  if (
+    e.request.mode === 'navigate' ||
+    url.pathname === '/' ||
+    url.pathname.endsWith('/index.html') ||
+    url.pathname.endsWith('.html')
+  ) {
+    e.respondWith(
+      fetch(e.request)
         .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+          }
           return res;
         })
-      )
+        .catch(() => caches.match(e.request).then(c => c || caches.match('./')))
+    );
+    return;
+  }
+
+  /* باقي الأصول — Cache First */
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(res => {
+        if (res && res.status === 200 && e.request.method === 'GET') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => cached || new Response('', { status: 503 }));
+    })
   );
+});
+
+/* ══ Message: force update ══ */
+self.addEventListener('message', e => {
+  if (e.data === 'skipWaiting') self.skipWaiting();
 });
