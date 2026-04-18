@@ -1317,45 +1317,133 @@ const REV={
 /* ══════════════════════════════════════
    ASSISTANT
 ══════════════════════════════════════ */
-const AST={
-  _tid:null,
-  compute(){
-    if(this._tid){cancelAnimationFrame(this._tid);this._tid=null;}
-    if(!S.assistOn||S.over||S.busy){S.astMove=null;S.astBusy=false;return;}
-    const isMyTurn=S.myCol==='both'?(S.mode==='bot'?S.turn==='w':true):S.turn===S.myCol;
-    if(!isMyTurn){S.astMove=null;S.astBusy=false;return;}
-    const snap=S.turn+JSON.stringify(S.bd);
-    if(S._astSnap===snap&&S.astMove!==null)return;
-    S.astMove=null;S.astBusy=true;S._astSnap=snap;
-    R.toolbar();
-    const bd=S.bd.map(r=>[...r]);
-    const cas=JSON.parse(JSON.stringify(S.cas));
-    const ep=S.ep?[...S.ep]:null;
-    const col=S.myCol==='both'?S.turn:S.myCol;
-    /* نستخدم setTimeout صغير حتى لا يحجب الـ UI ثم نرسم في الـ animation frame */
-    const t=setTimeout(()=>{
-      if(!S.assistOn||S.over||S._astSnap!==snap){S.astBusy=false;this._tid=null;return;}
-      const mv=E.bestMove(bd,cas,ep,col);
-      if(S._astSnap!==snap){S.astBusy=false;this._tid=null;return;}
-      S.astMove=mv;S.astBusy=false;
-      /* نرسم النجمة في نفس frame الرسم — بدون render إضافي */
-      this._tid=requestAnimationFrame(()=>{
-        this._tid=null;
-        if(S._astSnap===snap)R.updateStar();
-        R.toolbar();
-      });
-    },0);
-    this._tid=t;
-  },
-  clear(){
-    if(this._tid){
-      clearTimeout(this._tid);
-      cancelAnimationFrame(this._tid);
-      this._tid=null;
-    }
-    S.astMove=null;S.astBusy=false;S._astSnap=null;
+const AST=(()=>{
+  /* ══ Web Worker للمساعد — يشتغل خارج الـ main thread تماماً ══ */
+  const WORKER_SRC=`
+    /* نسخة مبسطة من المحرك داخل الـ worker */
+    const PV={P:100,N:320,B:330,R:500,Q:900,K:0};
+    const PST={
+      P:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
+      N:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],
+      B:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],
+      R:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],
+      Q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],
+      K:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]],
+    };
+    const W={
+      col:p=>p?p[0]:null,tp:p=>p?p[1]:null,opp:c=>c==='w'?'b':'w',
+      inb:(r,c)=>r>=0&&r<8&&c>=0&&c<8,clone:b=>b.map(r=>[...r]),
+      raw(bd,r,c,cas,ep){
+        const p=bd[r][c];if(!p)return[];
+        const cl=this.col(p),tp=this.tp(p),mv=[];
+        const sl=(dr,dc)=>{let nr=r+dr,nc=c+dc;while(this.inb(nr,nc)){if(bd[nr][nc]){if(this.col(bd[nr][nc])!==cl)mv.push([nr,nc]);break;}mv.push([nr,nc]);nr+=dr;nc+=dc;}};
+        if(tp==='P'){const d=cl==='w'?-1:1,sr=cl==='w'?6:1;
+          if(this.inb(r+d,c)&&!bd[r+d][c]){mv.push([r+d,c]);if(r===sr&&!bd[r+2*d][c])mv.push([r+2*d,c]);}
+          for(const dc of[-1,1]){if(!this.inb(r+d,c+dc))continue;
+            if(bd[r+d][c+dc]&&this.col(bd[r+d][c+dc])!==cl)mv.push([r+d,c+dc]);
+            if(ep&&ep[0]===r+d&&ep[1]===c+dc)mv.push([r+d,c+dc]);}}
+        else if(tp==='N'){for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(this.inb(nr,nc)&&this.col(bd[nr][nc])!==cl)mv.push([nr,nc]);}}
+        else if(tp==='B'){[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([a,b])=>sl(a,b));}
+        else if(tp==='R'){[[-1,0],[1,0],[0,-1],[0,1]].forEach(([a,b])=>sl(a,b));}
+        else if(tp==='Q'){[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]].forEach(([a,b])=>sl(a,b));}
+        else if(tp==='K'){
+          for(const[dr,dc]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){const nr=r+dr,nc=c+dc;if(this.inb(nr,nc)&&this.col(bd[nr][nc])!==cl)mv.push([nr,nc]);}
+          if(cas){const row=cl==='w'?7:0,op=this.opp(cl);
+            if(r===row&&c===4){
+              if(cas[cl].K&&!bd[row][5]&&!bd[row][6]&&bd[row][7]===cl+'R'&&!this.atk(bd,row,4,op)&&!this.atk(bd,row,5,op)&&!this.atk(bd,row,6,op))mv.push([row,6]);
+              if(cas[cl].Q&&!bd[row][3]&&!bd[row][2]&&!bd[row][1]&&bd[row][0]===cl+'R'&&!this.atk(bd,row,4,op)&&!this.atk(bd,row,3,op)&&!this.atk(bd,row,2,op))mv.push([row,2]);}}}
+        return mv;},
+      atk(bd,r,c,by){for(let tr=0;tr<8;tr++)for(let tc=0;tc<8;tc++)if(this.col(bd[tr][tc])===by&&this.raw(bd,tr,tc,null,null).some(([mr,mc])=>mr===r&&mc===c))return true;return false;},
+      king(bd,cl){for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(bd[r][c]===cl+'K')return[r,c];return null;},
+      inChk(bd,cl){const k=this.king(bd,cl);return k?this.atk(bd,k[0],k[1],this.opp(cl)):false;},
+      legal(bd,r,c,cas,ep){const p=bd[r][c];if(!p)return[];const cl=this.col(p);
+        return this.raw(bd,r,c,cas,ep).filter(([nr,nc])=>{const nb=this.clone(bd);nb[nr][nc]=nb[r][c];nb[r][c]=null;if(this.tp(p)==='P'&&ep&&nr===ep[0]&&nc===ep[1])nb[r][nc]=null;return!this.inChk(nb,cl);});},
+      allLegal(bd,cl,cas,ep){const all=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(this.col(bd[r][c])===cl)this.legal(bd,r,c,cas,ep).forEach(m=>all.push({from:[r,c],to:m}));return all;},
+      apply(bd,fr,to,cas,ep,promo){
+        const nb=this.clone(bd),nc=JSON.parse(JSON.stringify(cas));
+        const p=nb[fr[0]][fr[1]],cl=this.col(p),tp=this.tp(p);
+        const isCas=tp==='K'&&Math.abs(to[1]-fr[1])===2;
+        const isEP=tp==='P'&&ep&&to[0]===ep[0]&&to[1]===ep[1];
+        if(isEP){nb[fr[0]][to[1]]=null;}
+        nb[to[0]][to[1]]=p;nb[fr[0]][fr[1]]=null;
+        if(tp==='P'&&(to[0]===0||to[0]===7))nb[to[0]][to[1]]=cl+(promo||'Q');
+        if(tp==='K'){if(to[1]===fr[1]+2){nb[fr[0]][5]=nb[fr[0]][7];nb[fr[0]][7]=null;}else if(to[1]===fr[1]-2){nb[fr[0]][3]=nb[fr[0]][0];nb[fr[0]][0]=null;}nc[cl].K=false;nc[cl].Q=false;}
+        if(tp==='R'){if(fr[1]===7)nc[cl].K=false;if(fr[1]===0)nc[cl].Q=false;}
+        let newEP=null;if(tp==='P'&&Math.abs(to[0]-fr[0])===2)newEP=[(fr[0]+to[0])/2,fr[1]];
+        return{bd:nb,cas:nc,ep:newEP};},
+      eval(bd){let s=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=bd[r][c];if(!p)continue;const cl=this.col(p),tp=this.tp(p),pr=cl==='w'?r:7-r;s+=(cl==='w'?1:-1)*(PV[tp]+(PST[tp]?PST[tp][pr][c]:0));}return s;},
+      mm(bd,d,a,b,max,cas,ep){
+        const cl=max?'w':'b',mvs=this.allLegal(bd,cl,cas,ep);
+        if(!d||!mvs.length){if(!mvs.length)return this.inChk(bd,cl)?(max?-99999:99999):0;return this.eval(bd);}
+        mvs.sort((x,y)=>(bd[y.to[0]][y.to[1]]?PV[this.tp(bd[y.to[0]][y.to[1]])]||0:0)-(bd[x.to[0]][x.to[1]]?PV[this.tp(bd[x.to[0]][x.to[1]])]||0:0));
+        if(max){let bv=-Infinity;for(const mv of mvs){const r2=this.apply(bd,mv.from,mv.to,cas,ep,'Q');const v=this.mm(r2.bd,d-1,a,b,false,r2.cas,r2.ep);if(v>bv)bv=v;if(v>a)a=v;if(b<=a)break;}return bv;}
+        else{let bv=Infinity;for(const mv of mvs){const r2=this.apply(bd,mv.from,mv.to,cas,ep,'Q');const v=this.mm(r2.bd,d-1,a,b,true,r2.cas,r2.ep);if(v<bv)bv=v;if(v<b)b=v;if(b<=a)break;}return bv;}},
+      bestMove(bd,cas,ep,col){
+        const mvs=this.allLegal(bd,col,cas,ep);if(!mvs.length)return null;
+        mvs.sort(()=>Math.random()-.5);const max=col==='w';let best=null,bv=max?-Infinity:Infinity;
+        for(const mv of mvs){const r2=this.apply(bd,mv.from,mv.to,cas,ep,'Q');const v=this.mm(r2.bd,2,-Infinity,Infinity,!max,r2.cas,r2.ep);if(max?v>bv:v<bv){bv=v;best=mv;}}
+        return best;}
+    };
+    self.onmessage=e=>{
+      const{bd,cas,ep,col,snap}=e.data;
+      const mv=W.bestMove(bd,cas,ep,col);
+      self.postMessage({mv,snap});
+    };
+  `;
+
+  let _worker=null;
+  let _snap=null;
+
+  function _getWorker(){
+    if(_worker)return _worker;
+    try{
+      const blob=new Blob([WORKER_SRC],{type:'application/javascript'});
+      const url=URL.createObjectURL(blob);
+      _worker=new Worker(url);
+      _worker.onmessage=e=>{
+        const{mv,snap}=e.data;
+        /* نتجاهل النتيجة لو تغيرت الحالة */
+        if(snap!==_snap){S.astBusy=false;return;}
+        S.astMove=mv;S.astBusy=false;
+        _snap=null;
+        requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
+      };
+      _worker.onerror=()=>{_worker=null;};
+    }catch(ex){_worker=null;}
+    return _worker;
   }
-};
+
+  return{
+    compute(){
+      if(!S.assistOn||S.over||S.busy){S.astMove=null;S.astBusy=false;return;}
+      const isMyTurn=S.myCol==='both'?(S.mode==='bot'?S.turn==='w':true):S.turn===S.myCol;
+      if(!isMyTurn){S.astMove=null;S.astBusy=false;return;}
+      const snap=S.turn+JSON.stringify(S.bd);
+      if(_snap===snap&&S.astMove!==null)return;
+      S.astMove=null;S.astBusy=true;
+      _snap=snap;
+      R.toolbar();
+      const w=_getWorker();
+      if(w){
+        /* نرسل للـ worker — لا يحجب الـ main thread */
+        w.postMessage({bd:S.bd.map(r=>[...r]),cas:JSON.parse(JSON.stringify(S.cas)),ep:S.ep?[...S.ep]:null,col:S.myCol==='both'?S.turn:S.myCol,snap});
+      }else{
+        /* fallback لو Worker مش متاح */
+        setTimeout(()=>{
+          if(_snap!==snap){S.astBusy=false;return;}
+          const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
+          S.astMove=mv;S.astBusy=false;_snap=null;
+          requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
+        },0);
+      }
+    },
+    clear(){
+      _snap=null;
+      S.astMove=null;S.astBusy=false;
+      /* نوقف الـ worker بدون قتله — هيتجاهل النتيجة القديمة بسبب snap mismatch */
+    }
+  };
+})();
 
 /* ══════════════════════════════════════
    RENDER
@@ -1598,7 +1686,6 @@ const G={
     /* حفظ snapshot قبل الحركة للتقييم */
     S.snapshots.push({bd:S.bd.map(r=>[...r]),turn:S.turn,move:E.notation(S.bd,fr,to,promo)});
     const res=E.apply(S.bd,fr,to,S.cas,S.ep,promo);
-    if(promo)SFX.promote();else if(res.isCas)SFX.castle();else if(res.cap)SFX.capture();else SFX.move();
     if(res.cap)(S.turn==='w'?S.capW:S.capB).push(res.cap);
     S.hist.push(E.notation(S.bd,fr,to,promo));
     S.bd=res.bd;S.cas=res.cas;S.ep=res.ep;
@@ -1606,19 +1693,28 @@ const G={
     AST.clear();
     if(S.turn==='w')S.moveCount++;
     S.turn=E.opp(S.turn);
+    /* نحدد الحالة أولاً قبل الصوت — checkmate له أولوية */
+    const avail=E.allLegal(S.bd,S.turn,S.cas,S.ep);
+    const isCheckmate=!avail.length&&E.inChk(S.bd,S.turn);
+    const isDraw=!avail.length&&!E.inChk(S.bd,S.turn);
+    const isCheck=avail.length&&E.inChk(S.bd,S.turn);
+    /* نشغّل الصوت المناسب — مرة واحدة فقط */
+    if(isCheckmate)SFX.checkmate();
+    else if(promo)SFX.promote();
+    else if(res.isCas)SFX.castle();
+    else if(res.cap)SFX.capture();
+    else SFX.move();
     R.all();
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
       if(sq){const piece=sq.querySelector('.piece');if(piece){piece.classList.remove('moved');void piece.offsetWidth;piece.classList.add('moved');}}
     },10);
-    const avail=E.allLegal(S.bd,S.turn,S.cas,S.ep);
     if(!avail.length){
       S.over=true;
-      if(E.inChk(S.bd,S.turn)){
+      if(isCheckmate){
         const w=E.opp(S.turn);
         const nm=w==='w'?document.getElementById('nm-w').textContent:document.getElementById('nm-b').textContent;
-        SFX.checkmate();
         setTimeout(()=>{
           spawnConfetti();
           if(w==='w'&&S.levelId>=0){
@@ -1631,7 +1727,7 @@ const G={
           }
         },350);
       }else{
-        SFX.draw();
+        /* تعادل — الصوت اتشغّل فوق بالفعل عبر SFX.move() */
         setTimeout(()=>{
           this.showOver('◎','تعادل!','جمود — لا توجد حركات متاحة','#5eead4');
           document.getElementById('go-review').style.display='inline-flex';
@@ -1639,6 +1735,7 @@ const G={
       }
       return;
     }
+    if(isCheck)SFX.check();
     if(S.mode==='bot'&&S.turn==='b'&&!S.over){
       /* دور البوت — نوقف المساعد كلياً أولاً حتى لا يتنافس مع البوت على الـ thread */
       AST.clear();
@@ -1658,8 +1755,6 @@ const G={
         if(bm){S.sel=null;S.legal=[];this.applyMove(bm.from,bm.to,'Q');}
       },thinkDelay);
     }else{
-      /* دور اللاعب — نشغّل المساعد بعد رسم الرقعة */
-      if(E.inChk(S.bd,S.turn))SFX.check();
       AST.compute();
     }
   },
