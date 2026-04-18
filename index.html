@@ -1363,6 +1363,7 @@ const R={
   _boardBuilt:false,
   _boardFlip:null,
   _prevStarEl:null,   /* مرجع مباشر لعنصر النجمة السابقة */
+  _squares:[],        /* cache للـ squares حتى لا نعمل querySelectorAll في كل render */
   board(){
     const el=document.getElementById('board');
     const flip=S.myCol==='b';
@@ -1372,6 +1373,7 @@ const R={
       this._boardFlip=flip;
       this._boardBuilt=true;
       this._prevStarEl=null;
+      this._squares=[];
       for(let ri=0;ri<8;ri++){
         for(let ci=0;ci<8;ci++){
           const r=flip?7-ri:ri;
@@ -1386,6 +1388,7 @@ const R={
           }
           sq.addEventListener('click',()=>G.click(r,c));
           el.appendChild(sq);
+          this._squares.push(sq);
         }
       }
     }
@@ -1395,7 +1398,7 @@ const R={
       this._prevStarEl=null;
     }
     const inChk=Cfg.data.check&&E.inChk(S.bd,S.turn);
-    const squares=el.querySelectorAll('.sq');
+    const squares=this._squares;
     squares.forEach(sq=>{
       const r=+sq.dataset.r,c=+sq.dataset.c;
       const isL=(r+c)%2===0;
@@ -1434,7 +1437,7 @@ const R={
       }
     });
   },
-  boardReset(){this._boardBuilt=false;this._boardFlip=null;this._prevStarEl=null;},
+  boardReset(){this._boardBuilt=false;this._boardFlip=null;this._prevStarEl=null;this._squares=[];},
   /* يضيف/يزيل النجمة فقط — بدون إعادة رسم الرقعة كلها */
   updateStar(){
     /* امسح النجمة القديمة */
@@ -1590,6 +1593,54 @@ const G={
     if(S.mode==='online')OL.sendMove({fr,to,promo});
     this.applyMove(fr,to,promo);
   },
+  /* نسخة خاصة للبوت: الصوت الأساسي (move/capture) اتشغّل قبلها خارجياً */
+  _applyBotMove(fr,to,promo){
+    S.snapshots.push({bd:S.bd.map(r=>[...r]),turn:S.turn,move:E.notation(S.bd,fr,to,promo)});
+    const res=E.apply(S.bd,fr,to,S.cas,S.ep,promo);
+    /* صوت الـ castle/promo لو حدثا — capture/move اتشغّلا فعلاً قبل الدالة */
+    if(res.isCas)SFX.castle();else if(promo)SFX.promote();
+    if(res.cap)(S.turn==='w'?S.capW:S.capB).push(res.cap);
+    S.hist.push(E.notation(S.bd,fr,to,promo));
+    S.bd=res.bd;S.cas=res.cas;S.ep=res.ep;
+    S.lastMove={from:fr,to};S.sel=null;S.legal=[];
+    AST.clear();
+    if(S.turn==='w')S.moveCount++;
+    S.turn=E.opp(S.turn);
+    R.all();
+    R.ripple(to[0],to[1]);
+    setTimeout(()=>{
+      const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
+      if(sq){const piece=sq.querySelector('.piece');if(piece){piece.classList.remove('moved');void piece.offsetWidth;piece.classList.add('moved');}}
+    },10);
+    const avail=E.allLegal(S.bd,S.turn,S.cas,S.ep);
+    if(!avail.length){
+      S.over=true;
+      if(E.inChk(S.bd,S.turn)){
+        const w=E.opp(S.turn);
+        const nm=w==='w'?document.getElementById('nm-w').textContent:document.getElementById('nm-b').textContent;
+        SFX.checkmate();
+        setTimeout(()=>{
+          spawnConfetti();
+          if(w==='w'&&S.levelId>=0){
+            const stars=LVL.calcStars(S.moveCount,S.levelId);
+            LVL.save(S.levelId,stars,S.moveCount);SFX.levelDone();this._showLevelWin(stars);
+          }else{
+            this.showOver('✦','كش مات!',`${nm} يفوز!`,'#e8d080');
+            document.getElementById('go-review').style.display='inline-flex';
+          }
+        },350);
+      }else{
+        SFX.draw();
+        setTimeout(()=>{
+          this.showOver('◎','تعادل!','جمود — لا توجد حركات متاحة','#5eead4');
+          document.getElementById('go-review').style.display='inline-flex';
+        },350);
+      }
+      return;
+    }
+    if(E.inChk(S.bd,S.turn))SFX.check();
+    AST.compute();
+  },
   applyMove(fr,to,promo){
     /* حفظ snapshot قبل الحركة للتقييم */
     S.snapshots.push({bd:S.bd.map(r=>[...r]),turn:S.turn,move:E.notation(S.bd,fr,to,promo)});
@@ -1608,14 +1659,13 @@ const G={
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
       if(sq){const piece=sq.querySelector('.piece');if(piece){piece.classList.remove('moved');void piece.offsetWidth;piece.classList.add('moved');}}
     },10);
-    if(E.inChk(S.bd,S.turn))SFX.check();
     const avail=E.allLegal(S.bd,S.turn,S.cas,S.ep);
     if(!avail.length){
       S.over=true;
       if(E.inChk(S.bd,S.turn)){
         const w=E.opp(S.turn);
         const nm=w==='w'?document.getElementById('nm-w').textContent:document.getElementById('nm-b').textContent;
-        SFX.win();
+        SFX.checkmate();
         setTimeout(()=>{
           spawnConfetti();
           if(w==='w'&&S.levelId>=0){
@@ -1636,6 +1686,7 @@ const G={
       }
       return;
     }
+    if(E.inChk(S.bd,S.turn))SFX.check();
     AST.compute();
     if(S.mode==='bot'&&S.turn==='b'&&!S.over){
       /* دور البوت — نخفي المساعد نهائياً ريثما ينتهي البوت */
@@ -1644,12 +1695,22 @@ const G={
       S.busy=true;
       const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
       const depth=lv?lv.depth:S.diff;
-      const delay=depth<=1?380:depth===2?560:depth===3?820:1100;
+      const thinkDelay=depth<=1?300:depth===2?480:depth===3?720:980;
+      /* نحسب حركة البوت في timeout منفصل حتى لا يحجب الـ UI thread */
       setTimeout(()=>{
-        const bm=E.botMove(S.bd,S.cas,S.ep,depth);
+        const bd=S.bd.map(r=>[...r]);
+        const cas=JSON.parse(JSON.stringify(S.cas));
+        const ep=S.ep?[...S.ep]:null;
+        const bm=E.botMove(bd,cas,ep,depth);
         S.busy=false;
-        if(bm){S.sel=null;S.legal=[];this.applyMove(bm.from,bm.to,'Q');}
-      },delay);
+        if(bm){
+          /* نشغل صوت الحركة أولاً قبل applyMove حتى لا يتأخر */
+          const willCap=!!S.bd[bm.to[0]][bm.to[1]];
+          if(willCap)SFX.capture();else SFX.move();
+          S.sel=null;S.legal=[];
+          this._applyBotMove(bm.from,bm.to,'Q');
+        }
+      },thinkDelay);
     }
   },
   _showLevelWin(stars){
