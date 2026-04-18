@@ -702,30 +702,20 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 ══════════════════════════════════════ */
 const SFX=(()=>{
   /* ── تحميل ملفات MP3 ── */
-  const FILES={move:'move.mp3',capture:'capture.mp3',castle:'castle.mp3',checkmate:'checkmate.mp3',error:'Error.mp3'};
-  const cache={};
-  function load(name){
-    if(cache[name])return cache[name];
-    const a=new Audio(FILES[name]);a.preload='auto';
-    cache[name]=a;return a;
-  }
-  /* نحمّل كل الأصوات مسبقاً */
-  Object.keys(FILES).forEach(k=>load(k));
+  const FILES={move:'move.mp3',capture:'capture.mp3',castle:'castle.mp3',checkmate:'checkmate.mp3',check:'check.mp3',error:'Error.mp3'};
 
   function play(name){
     if(!Cfg.data.sound)return;
     try{
       const src=FILES[name];
       if(!src)return;
-      const vol=Cfg.data.vol/100;
-      /* new Audio() مباشرة أكثر موثوقية من cloneNode على المتصفحات المختلفة */
       const a=new Audio(src);
-      a.volume=vol;
+      a.volume=Cfg.data.vol/100;
       a.play().catch(()=>{});
     }catch(e){}
   }
 
-  /* ── أصوات الواجهة بالـ Web Audio API (نفس الأصوات القديمة) ── */
+  /* ── أصوات الواجهة بالـ Web Audio API ── */
   let ctx=null;
   const gc=()=>{
     if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();
@@ -746,16 +736,18 @@ const SFX=(()=>{
 
   return{
     /* ── أصوات الشطرنج من MP3 ── */
-    move()   {play('move');},
-    capture(){play('capture');},
-    castle() {play('castle');},
-    check()  {play('move');},        /* chess.com بيعزف move عند الكش */
-    checkmate(){play('checkmate');},
-    promote(){play('move');},        /* chess.com بيعزف move عند الترقية */
-    illegal(){play('error');},
-    draw()   {play('move');},
-    win()    {play('checkmate');},
-    levelDone(){play('checkmate');},
+    move()      {play('move');},
+    capture()   {play('capture');},
+    castle()    {play('castle');},
+    check()     {play('check');},
+    checkmate() {play('checkmate');},
+    promote()   {play('move');},
+    illegal()   {play('error');},
+    draw()      {play('move');},
+    win()       {play('checkmate');},
+    levelDone() {play('checkmate');},
+    /* لما في capture + check — نشغّل capture فوراً وcheck بعد 180ms */
+    captureCheck(){play('capture');setTimeout(()=>play('check'),180);},
     /* ── أصوات الواجهة ── */
     select() {uiClick();},
     btn()    {uiClick();},
@@ -1699,11 +1691,13 @@ const G={
     const isDraw=!avail.length&&!E.inChk(S.bd,S.turn);
     const isCheck=avail.length&&E.inChk(S.bd,S.turn);
     /* نشغّل الصوت المناسب — مرة واحدة فقط */
-    if(isCheckmate)SFX.checkmate();
-    else if(promo)SFX.promote();
-    else if(res.isCas)SFX.castle();
-    else if(res.cap)SFX.capture();
-    else SFX.move();
+    if(isCheckmate)     SFX.checkmate();
+    else if(promo)      SFX.promote();
+    else if(res.isCas)  SFX.castle();
+    else if(res.cap && isCheck) SFX.captureCheck();
+    else if(res.cap)    SFX.capture();
+    else if(isCheck)    SFX.check();
+    else                SFX.move();
     R.all();
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
@@ -1735,7 +1729,6 @@ const G={
       }
       return;
     }
-    if(isCheck)SFX.check();
     if(S.mode==='bot'&&S.turn==='b'&&!S.over){
       /* دور البوت — نوقف المساعد كلياً أولاً حتى لا يتنافس مع البوت على الـ thread */
       AST.clear();
