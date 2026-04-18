@@ -802,7 +802,7 @@ const SFX=(()=>{
     draw()      {play('move');},
     win()       {play('checkmate');},
     levelDone() {play('checkmate');},
-    captureCheck(){play('capture');setTimeout(()=>play('check'),180);},
+    captureCheck(){play('check');},
     select() {uiClick();},
     btn()    {uiClick();},
     hint()   {uiClick();},
@@ -1800,7 +1800,11 @@ const G={
         const ep=S.ep?[...S.ep]:null;
         const bm=E.botMove(bd,cas,ep,depth);
         S.busy=false;
-        if(bm){S.sel=null;S.legal=[];this.applyMove(bm.from,bm.to,'Q');}
+        if(bm){
+          S.sel=null;S.legal=[];
+          const isPromo=S.bd[bm.from[0]]&&S.bd[bm.from[0]][bm.from[1]]&&E.tp(S.bd[bm.from[0]][bm.from[1]])==='P'&&(bm.to[0]===0||bm.to[0]===7);
+          this.applyMove(bm.from,bm.to,isPromo?'Q':null);
+        }
       },thinkDelay);
     }else{
       AST.compute();
