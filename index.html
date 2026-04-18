@@ -153,7 +153,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .tsl::before{content:'';position:absolute;width:19px;height:19px;left:2px;top:2px;background:var(--text2);border-radius:50%;transition:.28s;}
 .toggle input:checked+.tsl{background:rgba(201,168,76,.2);border-color:var(--gold);box-shadow:0 0 8px rgba(201,168,76,.2);}
 .toggle input:checked+.tsl::before{transform:translateX(22px);background:var(--gold2);}
-.th-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px;}
+.th-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px;}
 .th-opt{border-radius:9px;padding:8px 5px;text-align:center;cursor:pointer;border:2px solid rgba(255,255,255,.06);transition:all .2s cubic-bezier(.34,1.56,.64,1);font-size:11px;color:var(--text2);}
 .th-opt:hover{border-color:rgba(201,168,76,.27);transform:scale(1.04);}
 .th-opt.on{border-color:var(--gold);color:var(--gold2);background:rgba(201,168,76,.08);box-shadow:0 0 10px rgba(201,168,76,.1);}
@@ -236,10 +236,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .pb-nm{font-size:13px;font-weight:700;}
 .pb-turn{font-size:10px;color:var(--gold2);animation:dbt .9s infinite;visibility:hidden;}
 .pb-turn.show{visibility:visible;}
-.pb-ast{font-size:10px;padding:1px 7px;border-radius:10px;margin-top:2px;display:none;background:transparent;border:1px solid transparent;}
-.pb-ast.on{display:inline-block;background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
-.pb-ast.spy{display:inline-block;background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
+.pb-ast{font-size:10px;padding:1px 7px;border-radius:10px;margin-top:2px;display:inline-block;background:transparent;border:1px solid transparent;color:transparent;min-height:16px;}
+.pb-ast.on{background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
+.pb-ast.spy{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
 .pb-caps{flex:1;text-align:center;font-size:11px;line-height:1.8;padding:0 4px;}
+.pb-ast-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text3);font-size:14px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.pb-ast-btn:hover{border-color:rgba(201,168,76,.4);color:var(--gold2);}
+.pb-ast-btn.on{border-color:rgba(201,168,76,.6);color:var(--gold2);background:rgba(201,168,76,.12);box-shadow:0 0 8px rgba(201,168,76,.2);}
 .pb-timer{font-family:'Amiri',serif;font-size:18px;font-weight:700;color:var(--gold2);min-width:48px;text-align:center;}
 .sc-row{padding:2px 11px 6px;font-size:11px;color:var(--text2);display:none;}
 .sc-row.show{display:flex;align-items:center;gap:5px;}
@@ -263,6 +266,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.SL{background:var(--sq-sl);}.sq.SD{background:var(--sq-sd);}
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
 .sq.CK{background:rgba(248,113,113,.78)!important;box-shadow:inset 0 0 20px rgba(248,113,113,.4)!important;}
+.sq.PM{background:rgba(220,40,40,.72)!important;box-shadow:inset 0 0 14px rgba(220,40,40,.35)!important;}
+.sq.PM-FROM{background:rgba(200,30,30,.55)!important;box-shadow:inset 0 0 10px rgba(200,30,30,.3)!important;}
 .sq.ast-from{box-shadow:inset 0 0 0 3px rgba(96,165,250,.85);}
 .sq.dot::after{content:'';position:absolute;width:33%;height:33%;border-radius:50%;background:rgba(0,0,0,.16);pointer-events:none;z-index:2;}
 .sq.ring::after{content:'';position:absolute;inset:6%;border-radius:50%;border:5px solid rgba(0,0,0,.16);pointer-events:none;z-index:2;}
@@ -510,6 +515,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <div class="th-opt" id="th-rose"    onclick="Cfg.theme('rose')"><div class="th-sw"><div class="sw" style="background:#f5e8e0"></div><div class="sw" style="background:#c16b6b"></div></div>وردي</div>
           <div class="th-opt" id="th-slate"   onclick="Cfg.theme('slate')"><div class="th-sw"><div class="sw" style="background:#d6d6d6"></div><div class="sw" style="background:#5a6068"></div></div>رمادي</div>
           <div class="th-opt" id="th-gold"    onclick="Cfg.theme('gold')"><div class="th-sw"><div class="sw" style="background:#fdf3c0"></div><div class="sw" style="background:#b8860b"></div></div>ذهبي</div>
+          <div class="th-opt" id="th-bw"      onclick="Cfg.theme('bw')"><div class="th-sw"><div class="sw" style="background:#ffffff;border:1px solid #ccc"></div><div class="sw" style="background:#1a1a1a"></div></div>أبيض وأسود</div>
+          <div class="th-opt" id="th-ice"     onclick="Cfg.theme('ice')"><div class="th-sw"><div class="sw" style="background:#dff0f8"></div><div class="sw" style="background:#3a6090"></div></div>جليدي</div>
         </div>
       </div>
     </div>
@@ -588,6 +595,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         </div>
       </div>
       <div class="pb-caps" id="cap-b"></div>
+      <button class="pb-ast-btn" id="ast-btn-b" onclick="G.toggleAstFor('b')" style="display:none">◈</button>
       <div class="pb-timer" id="tmr-b">—</div>
     </div>
     <div class="sc-row" id="scr-b"><span>التقدم: </span><span id="sc-b-val">—</span></div>
@@ -604,6 +612,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         </div>
       </div>
       <div class="pb-caps" id="cap-w"></div>
+      <button class="pb-ast-btn" id="ast-btn-w" onclick="G.toggleAstFor('w')" style="display:none">◈</button>
       <div class="pb-timer" id="tmr-w">—</div>
     </div>
     <div class="sc-row" id="scr-w"><span>التقدم: </span><span id="sc-w-val">—</span></div>
@@ -839,6 +848,8 @@ const THEMES={
   rose:   {l:'#f5e8e0',d:'#c16b6b',sl:'#f6f669',sd:'#d4602f',ml:'#e8d07a',md:'#c06030'},
   slate:  {l:'#d6d6d6',d:'#5a6068',sl:'#e8e84a',sd:'#8a9020',ml:'#c8c860',md:'#787f25'},
   gold:   {l:'#fdf3c0',d:'#b8860b',sl:'#f6f669',sd:'#baca2b',ml:'#e8d07a',md:'#9a7200'},
+  bw:     {l:'#ffffff',d:'#1a1a1a',sl:'#f6f669',sd:'#666600',ml:'#cccc44',md:'#555500'},
+  ice:    {l:'#dff0f8',d:'#3a6090',sl:'#f0ff80',sd:'#8ab520',ml:'#c0e070',md:'#5a8010'},
 };
 
 /* ══════════════════════════════════════
@@ -1140,8 +1151,13 @@ const S={
   assistOn:false,hintsOn:true,oppUsingAssist:false,
   astMove:null,astBusy:false,_astSnap:null,
   levelId:-1,moveCount:0,
+  /* مساعد منفصل لكل لاعب في وضع لاعبَان */
+  assistW:false, assistB:false,
   /* لتقييم المباراة — نحتفظ بنسخ الحالة قبل كل حركة */
   snapshots:[],
+  /* pre-move: النقلة المحجوزة مسبقاً */
+  preMove:null, /* {fr:[r,c], to:[r,c], selFr:[r,c]} */
+  preMoveSelFr:null, /* المربع المختار للحجز */
 };
 
 /* ══════════════════════════════════════
@@ -1541,6 +1557,9 @@ const R={
       /* لون الخانة */
       let cls='sq ';
       if(S.sel&&S.sel[0]===r&&S.sel[1]===c) cls+=isL?'SL':'SD';
+      else if(S.preMove&&S.preMove.to[0]===r&&S.preMove.to[1]===c) cls+='PM';
+      else if(S.preMove&&S.preMove.fr[0]===r&&S.preMove.fr[1]===c) cls+='PM-FROM';
+      else if(S.preMoveSelFr&&S.preMoveSelFr[0]===r&&S.preMoveSelFr[1]===c) cls+='PM-FROM';
       else if(Cfg.data.lastmove&&S.lastMove&&((S.lastMove.from[0]===r&&S.lastMove.from[1]===c)||(S.lastMove.to[0]===r&&S.lastMove.to[1]===c))) cls+=isL?'ML':'MD';
       else cls+=isL?'L':'D';
       if(inChk&&E.tp(S.bd[r][c])==='K'&&E.col(S.bd[r][c])===S.turn) cls+=' CK';
@@ -1635,27 +1654,41 @@ const R={
   astLbls(){
     const wEl=document.getElementById('ast-w');
     const bEl=document.getElementById('ast-b');
-    /* صفّر الكل أولاً */
+    const wBtn=document.getElementById('ast-btn-w');
+    const bBtn=document.getElementById('ast-btn-b');
+    /* صفّر الكل */
     wEl.className='pb-ast';wEl.textContent='';
     bEl.className='pb-ast';bEl.textContent='';
+    if(wBtn)wBtn.style.display='none';
+    if(bBtn)bBtn.style.display='none';
+
     if(S.mode==='online'){
       const myEl=S.myCol==='b'?bEl:wEl;
       const opEl=S.myCol==='b'?wEl:bEl;
       if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
       if(S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
     }else if(S.mode==='bot'){
-      /* في وضع bot: المساعد يظهر دائماً على bar اللاعب (أبيض = wEl) فقط — بغض النظر عن دور من */
       if(S.assistOn){wEl.className='pb-ast on';wEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
-    }else{
-      /* local — المساعد يظهر على bar اللاعب الحالي */
-      const curEl=S.turn==='b'?bEl:wEl;
-      if(S.assistOn){curEl.className='pb-ast on';curEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
+    }else if(S.mode==='local'){
+      /* إظهار زر المساعد في كل bar */
+      if(wBtn){wBtn.style.display='flex';wBtn.classList.toggle('on',S.assistW);}
+      if(bBtn){bBtn.style.display='flex';bBtn.classList.toggle('on',S.assistB);}
+      /* badge الحالة */
+      if(S.assistW){wEl.className='pb-ast on';wEl.textContent=S.turn==='w'&&S.astBusy?'◌ يحسب...':'◈ نشط';}
+      if(S.assistB){bEl.className='pb-ast on';bEl.textContent=S.turn==='b'&&S.astBusy?'◌ يحسب...':'◈ نشط';}
     }
   },
   toolbar(){
     const ba=document.getElementById('btn-ast'),dot=document.getElementById('ast-dot'),bh=document.getElementById('btn-hint');
-    if(S.assistOn){ba.classList.add('ast-on');document.getElementById('ast-lbl').textContent=S.astBusy?'المساعد: يحسب...':'المساعد: تشغيل';dot.style.display='inline-block';}
-    else{ba.classList.remove('ast-on');document.getElementById('ast-lbl').textContent='المساعد: إيقاف';dot.style.display='none';}
+    /* زر المساعد الرئيسي — يختفي في وضع لاعبَان */
+    if(ba){
+      if(S.mode==='local'){ba.style.display='none';}
+      else{
+        ba.style.display='';
+        if(S.assistOn){ba.classList.add('ast-on');document.getElementById('ast-lbl').textContent=S.astBusy?'المساعد: يحسب...':'المساعد: تشغيل';dot.style.display='inline-block';}
+        else{ba.classList.remove('ast-on');document.getElementById('ast-lbl').textContent='المساعد: إيقاف';dot.style.display='none';}
+      }
+    }
     if(S.hintsOn){bh.classList.add('hint-on');document.getElementById('hint-lbl').textContent='النقاط: تشغيل';}
     else{bh.classList.remove('hint-on');document.getElementById('hint-lbl').textContent='النقاط: إيقاف';}
   },
@@ -1680,7 +1713,9 @@ const G={
     S.capW=[];S.capB=[];S.hist=[];S.lastMove=null;
     S.over=false;S.pending=null;S.busy=false;
     S.assistOn=false;S.oppUsingAssist=false;S.astMove=null;S.astBusy=false;
+    S.assistW=false;S.assistB=false;
     S.snapshots=[];
+    S.preMove=null;S.preMoveSelFr=null;
     AST.clear();
     R.boardReset();
     CHAT.hide();
@@ -1713,8 +1748,48 @@ const G={
   },
   click(r,c){
     if(S.over||S.pending||S.busy)return;
+
+    /* ---- وضع اللعب العادي (دوري) ---- */
+    const isMyTurn=(S.mode==='online'&&S.turn===S.myCol)||
+                   (S.mode==='bot'&&S.turn==='w')||
+                   (S.mode==='local'||S.mode==='bot'&&S.turn==='w');
+
+    /* اللعب المسبق (pre-move) — فقط في الأونلاين لما يكون دور الخصم */
+    if(S.mode==='online'&&S.turn!==S.myCol){
+      /* لو ضغط على قطعته — نحدد مصدر الحجز */
+      if(S.bd[r][c]&&E.col(S.bd[r][c])===S.myCol){
+        S.preMoveSelFr=[r,c];
+        S.preMove=null;
+        SFX.select();
+        R.board();
+        return;
+      }
+      /* لو ضغط على مربع بعد تحديد قطعة — نحجز النقلة */
+      if(S.preMoveSelFr){
+        const fr=S.preMoveSelFr;
+        /* نتحقق أن النقلة ممكنة (بصرف النظر عن دور من) */
+        const fakeLegal=E.legal(S.bd,fr[0],fr[1],S.cas,S.ep);
+        if(fakeLegal.some(([lr,lc])=>lr===r&&lc===c)){
+          S.preMove={fr,to:[r,c]};
+          S.preMoveSelFr=null;
+          SFX.select();
+          R.board();
+        }else{
+          /* ضغط على مربع غير قانوني — نلغي الحجز */
+          S.preMove=null;S.preMoveSelFr=null;
+          R.board();
+        }
+        return;
+      }
+      /* ضغط على أي مكان آخر — إلغاء */
+      S.preMove=null;S.preMoveSelFr=null;
+      R.board();
+      return;
+    }
+
     if(S.mode==='bot'&&S.turn==='b')return;
     if(S.mode==='online'&&S.turn!==S.myCol)return;
+
     const isLeg=S.legal.some(([lr,lc])=>lr===r&&lc===c);
     if(isLeg){this.exec(S.sel,[r,c]);return;}
     if(S.bd[r][c]&&E.col(S.bd[r][c])===S.turn){
@@ -1742,6 +1817,11 @@ const G={
     AST.clear();
     if(S.turn==='w')S.moveCount++;
     S.turn=E.opp(S.turn);
+    /* في وضع لاعبَان: حدّث S.assistOn حسب اللاعب الجديد */
+    if(S.mode==='local'){
+      S.assistOn=S.turn==='w'?S.assistW:S.assistB;
+      AST.clear();
+    }
     /* نحدد الحالة أولاً قبل الصوت — checkmate له أولوية */
     const avail=E.allLegal(S.bd,S.turn,S.cas,S.ep);
     const isCheckmate=!avail.length&&E.inChk(S.bd,S.turn);
@@ -1809,7 +1889,23 @@ const G={
         }
       },thinkDelay);
     }else{
-      AST.compute();
+      /* هل يوجد pre-move محجوز؟ */
+      if(S.mode==='online'&&S.preMove&&S.turn===S.myCol){
+        const pm=S.preMove;
+        S.preMove=null;S.preMoveSelFr=null;
+        /* نتحقق أن النقلة لا تزال قانونية بعد حركة الخصم */
+        const stillLegal=E.legal(S.bd,pm.fr[0],pm.fr[1],S.cas,S.ep)
+          .some(([lr,lc])=>lr===pm.to[0]&&lc===pm.to[1]);
+        if(stillLegal){
+          setTimeout(()=>{this.exec(pm.fr,pm.to);},80);
+        }else{
+          /* النقلة لم تعد قانونية — نلغيها بهدوء */
+          R.board();
+          AST.compute();
+        }
+      }else{
+        AST.compute();
+      }
     }
   },
   _showLevelWin(stars){
@@ -1874,8 +1970,20 @@ const G={
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   toggleAst(){
+    /* للوضع أونلاين وبوت فقط */
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
     if(S.mode==='online')OL.sendAssist(S.assistOn);
+    if(S.assistOn){SFX.hint();AST.compute();}
+    R.all();
+  },
+  toggleAstFor(col){
+    /* للوضع لاعبَان فقط — كل لاعب يتحكم في مساعده */
+    SFX.btn();
+    if(col==='w'){S.assistW=!S.assistW;}
+    else{S.assistB=!S.assistB;}
+    /* حدّث S.assistOn حسب اللاعب الحالي */
+    S.assistOn=S.turn==='w'?S.assistW:S.assistB;
+    AST.clear();
     if(S.assistOn){SFX.hint();AST.compute();}
     R.all();
   },
@@ -2090,7 +2198,7 @@ const OL=(()=>{
     else if(d.type==='name')    {/* اسم الخصم بعد الاتصال */
       const myC=S.myCol;const oc=E.opp(myC);
       const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
-      if(d.name&&oppEl)oppEl.textContent=d.name;
+      if(oppEl)oppEl.textContent=d.name&&d.name.trim()?d.name.trim():'الخصم';
     }
   }
   function _go(mc,oppName){
@@ -2099,7 +2207,7 @@ const OL=(()=>{
     S.mode='online';S.levelId=-1;S.myCol=mc;
     document.getElementById('gmode').textContent='⊕ أونلاين';
     const myName=Cfg.data.playerName||'أنت';
-    const oppLabel=oppName||'الخصم';
+    const oppLabel=(oppName&&oppName.trim())?oppName.trim():'الخصم';
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent=myName;
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent=oppLabel;
     fixBars(mc);
