@@ -704,6 +704,7 @@ const SFX=(()=>{
   const FILES={move:'move.mp3',capture:'capture.mp3',castle:'castle.mp3',checkmate:'checkmate.mp3',check:'check.mp3',error:'Error.mp3'};
   let ctx=null;
   const buffers={};
+  const _loading=new Set();
 
   /* نفتح AudioContext عند أول تفاعل للمستخدم */
   function getCtx(){
@@ -712,26 +713,52 @@ const SFX=(()=>{
     return ctx;
   }
 
+  /* نحمّل ملفاً واحداً مع retry */
+  function loadOne(name,file,c,attempt){
+    if(buffers[name]||_loading.has(name))return;
+    _loading.add(name);
+    fetch(file+'?_='+Date.now())
+      .then(r=>{if(!r.ok)throw new Error('bad');return r.arrayBuffer();})
+      .then(ab=>{
+        return new Promise((res,rej)=>{
+          try{c.decodeAudioData(ab,buf=>{res(buf);},()=>rej(new Error('decode')));}
+          catch(e){rej(e);}
+        });
+      })
+      .then(buf=>{buffers[name]=buf;_loading.delete(name);})
+      .catch(()=>{
+        _loading.delete(name);
+        /* نحاول مرة أخرى بعد ثانية لو لم نتجاوز ثلاث محاولات */
+        if((attempt||0)<3){
+          setTimeout(()=>loadOne(name,file,c,(attempt||0)+1),1000);
+        }
+      });
+  }
+
   /* نحمّل ونفك تشفير كل ملف مرة واحدة */
   function preload(){
     const c=getCtx();
-    Object.entries(FILES).forEach(([name,file])=>{
-      fetch(file)
-        .then(r=>r.arrayBuffer())
-        .then(ab=>c.decodeAudioData(ab,buf=>{buffers[name]=buf;},()=>{}))
-        .catch(()=>{});
-    });
+    Object.entries(FILES).forEach(([name,file])=>loadOne(name,file,c,0));
   }
 
   function play(name){
     if(!Cfg.data.sound)return;
     try{
       const c=getCtx();
+      /* إذا الـ context معلّق نستأنفه — مهم لحركات الخصم */
+      if(c.state==='suspended')c.resume();
       const buf=buffers[name];
       if(!buf){
-        /* fallback لو الـ buffer لسه مش جاهز */
-        const a=new Audio(FILES[name]);if(!a.src)return;
-        a.volume=Cfg.data.vol/100;a.play().catch(()=>{});return;
+        /* الـ buffer غير جاهز — نحاول تحميله إذا لم يكن قيد التحميل */
+        if(!_loading.has(name)&&FILES[name])loadOne(name,FILES[name],c,0);
+        /* fallback: new Audio — يعمل حتى بدون context */
+        try{
+          const a=new Audio(FILES[name]);
+          a.volume=Cfg.data.vol/100;
+          const p=a.play();
+          if(p&&typeof p.catch==='function')p.catch(()=>{});
+        }catch(fe){}
+        return;
       }
       const src=c.createBufferSource();
       const gain=c.createGain();
@@ -2050,7 +2077,7 @@ const OL=(()=>{
   }
   function handleGame(d){
     if(d.type==='start')        _go(d.yourColor,d.name||'');
-    else if(d.type==='move')    {S.sel=[];S.legal=[];G.applyMove(d.fr,d.to,d.promo||null);}
+    else if(d.type==='move')    {S.sel=[];S.legal=[];SFX.init();G.applyMove(d.fr,d.to,d.promo||null);}
     else if(d.type==='assist')  {S.oppUsingAssist=d.on;R.astLbls();}
     else if(d.type==='resign')  {if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','استسلم الخصم','#e8d080');document.getElementById('go-review').style.display='inline-flex';}}
     else if(d.type==='chat')    {CHAT.recv(d.text);}
