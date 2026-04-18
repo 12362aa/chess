@@ -25,7 +25,7 @@
   --sq-l:#f0d9b5; --sq-d:#b58863;
   --sq-sl:#f6f669; --sq-sd:#baca2b;
   --sq-ml:#cdd26a; --sq-md:#aaa23a;
-  --board:min(88vw,480px); --sq:calc(var(--board)/8);
+  --board:min(96vw,560px); --sq:calc(var(--board)/8);
   --glow-gold:rgba(201,168,76,.35);
   --glow-teal:rgba(45,212,191,.3);
 }
@@ -220,12 +220,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .chat-badge.show{display:inline-flex;}
 
 /* ══════════ GAME ══════════ */
-#s-game{flex-direction:column;align-items:center;min-height:100dvh;padding:36px 9px 12px;gap:5px;}
+#s-game{flex-direction:column;align-items:center;min-height:100dvh;padding:36px 4px 8px;gap:4px;}
 .gtop{display:flex;align-items:center;gap:7px;width:100%;max-width:510px;}
 .bsm{background:var(--bg2);border:1px solid rgba(201,168,76,.12);color:var(--gold2);padding:7px 11px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;position:relative;overflow:hidden;}
 .bsm:hover{border-color:rgba(201,168,76,.36);background:rgba(201,168,76,.06);transform:scale(1.03);}
 .gmlbl{flex:1;text-align:center;font-size:11px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.pbar{width:100%;max-width:510px;background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:11px;overflow:hidden;transition:border-color .3s,background .3s,box-shadow .3s;}
+.pbar{width:100%;max-width:min(96vw,560px);background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:11px;overflow:hidden;transition:border-color .3s,background .3s,box-shadow .3s;}
 .pbar.myturn{border-color:rgba(201,168,76,.38);background:rgba(201,168,76,.04);box-shadow:0 0 20px rgba(201,168,76,.08),0 0 0 1px rgba(201,168,76,.05);}
 .pbar-top{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;}
 .pb-l{display:flex;align-items:center;gap:7px;}
@@ -248,7 +248,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sc-row.show{display:flex;align-items:center;gap:5px;}
 .sc-lead{color:var(--green);font-weight:700;}
 .sc-behind{color:var(--red);font-weight:700;}
-.gtbar{display:flex;gap:7px;width:100%;max-width:510px;}
+.gtbar{display:flex;gap:7px;width:100%;max-width:min(96vw,560px);}
 .tbb2{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:var(--bg2);font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text2);}
 .tbb2:hover{background:var(--bg3);transform:scale(1.02);}
 .tbb2.ast-on{border-color:rgba(96,165,250,.44);background:rgba(96,165,250,.08);color:var(--blue);box-shadow:0 0 10px rgba(96,165,250,.1);}
@@ -301,10 +301,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .bP{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 45 45'%3E%3Cpath d='M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03C15.41 27.09 11 31.58 11 39.5H34c0-7.92-4.41-12.41-7.41-13.47C28.06 24.84 29 23.03 29 21c0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z' fill='%23282828' stroke='%23ccc' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");}
 
 /* ══════════ STATUS + HISTORY ══════════ */
-.sbar{width:100%;max-width:510px;padding:9px 13px;background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;text-align:center;font-size:13px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:39px;transition:all .3s;}
+.sbar{width:100%;max-width:min(96vw,560px);padding:9px 13px;background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;text-align:center;font-size:13px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:39px;transition:all .3s;}
 .sbar.check{border-color:var(--red);color:var(--red);box-shadow:0 0 15px rgba(248,113,113,.15),0 0 30px rgba(248,113,113,.05);animation:checkPulse 1s ease-in-out infinite;}
 @keyframes checkPulse{0%,100%{box-shadow:0 0 15px rgba(248,113,113,.15)}50%{box-shadow:0 0 25px rgba(248,113,113,.3)}}
-.mvhist{width:100%;max-width:510px;background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:6px 10px;max-height:44px;overflow-x:auto;overflow-y:hidden;display:flex;flex-wrap:nowrap;gap:3px;white-space:nowrap;}
+.mvhist{width:100%;max-width:min(96vw,560px);background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:6px 10px;max-height:44px;overflow-x:auto;overflow-y:hidden;display:flex;flex-wrap:nowrap;gap:3px;white-space:nowrap;}
 .mv{font-size:10px;padding:2px 5px;background:var(--bg3);border-radius:5px;color:var(--text2);font-family:monospace;}
 .mv:last-child{background:rgba(201,168,76,.13);color:var(--gold2);box-shadow:0 0 6px rgba(201,168,76,.15);}
 @keyframes ripple{0%{transform:scale(0);opacity:.8;}100%{transform:scale(3);opacity:0;}}
@@ -376,7 +376,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 /* ══════════ LANDSCAPE ══════════ */
 @media (orientation:landscape) and (max-height:520px){
-  :root{--board:min(82vh,400px);}
+  :root{--board:min(82vh,420px);}
   #s-game{flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;padding:40px 4px 6px;gap:4px;}
   .gtop{width:100%;order:-2;max-width:none;margin-bottom:0;}
   .bwrap{order:0;align-self:flex-start;}
@@ -389,11 +389,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   .sc-row{display:none!important;}
   .pb-timer{font-size:15px;min-width:38px;}
 }
-@media (orientation:landscape) and (min-height:521px) and (max-height:700px){:root{--board:min(78vh,440px);}}
+@media (orientation:landscape) and (min-height:521px) and (max-height:700px){:root{--board:min(78vh,480px);}}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:4px;}
-@media(max-width:380px){:root{--board:97vw;}}
+@media(max-width:380px){:root{--board:98vw;}}
 </style>
 </head>
 <body>
@@ -419,26 +419,26 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <p class="logo-s">Chess · Am-Kh</p>
   </div>
   <div class="mode-grid">
-    <div class="mc" onclick="Nav.online()">
+    <div class="mc" onclick="SFX.btn();Nav.online()">
       <span class="mc-ic ic-teal">⊕</span>
       <div class="mc-t">أونلاين</div>
       <div class="mc-d">العب مع صديق في أي مكان بالعالم</div>
       <span class="mc-b bt">اتصال مباشر P2P</span>
     </div>
 
-    <div class="mc" onclick="Nav.levels()">
+    <div class="mc" onclick="SFX.btn();Nav.levels()">
       <span class="mc-ic ic-gold">◈</span>
       <div class="mc-t">مراحل نور</div>
       <div class="mc-d">12 مرحلة تدريجية — افتح مرحلة مرحلة</div>
       <span class="mc-b bg">محفوظ أوفلاين ✓</span>
     </div>
-    <div class="mc" onclick="G.start('local',0)">
+    <div class="mc" onclick="SFX.btn();G.start('local',0)">
       <span class="mc-ic ic-green">⚔</span>
       <div class="mc-t">لاعبَان</div>
       <div class="mc-d">على نفس الشاشة بالتناوب</div>
       <span class="mc-b bv">أوفلاين ✓</span>
     </div>
-    <div class="mc" onclick="Nav.settings()">
+    <div class="mc" onclick="SFX.btn();Nav.settings()">
       <span class="mc-ic ic-blue">⚙</span>
       <div class="mc-t">الإعدادات</div>
       <div class="mc-d">صوت — رقعة — ألوان وأكثر</div>
@@ -457,7 +457,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="lp-bar"><div class="lp-fill" id="lp-fill" style="width:0%"></div></div>
     </div>
     <div class="lvl-grid" id="lvl-grid"></div>
-    <button class="back-btn" onclick="Nav.menu()">← العودة للقائمة</button>
+    <button class="back-btn" onclick="SFX.btn();Nav.menu()">← العودة للقائمة</button>
   </div>
 </div>
 
@@ -481,7 +481,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <h2><span class="ic-gold">◆</span> الصوت</h2>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">تفعيل الأصوات</div><div class="sr-d">أصوات الحركات والكش والفوز</div></div>
-        <label class="toggle"><input type="checkbox" id="set-sound" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+        <label class="toggle"><input type="checkbox" id="set-sound" checked onchange="SFX.btn();Cfg.save()"><span class="tsl"></span></label>
       </div>
       <div class="sr" style="flex-direction:column;align-items:flex-start;gap:7px;">
         <div class="sr-n">مستوى الصوت</div>
@@ -496,27 +496,27 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <h2><span class="ic-teal">⊕</span> رقعة اللعب</h2>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">الإحداثيات</div><div class="sr-d">أرقام وحروف على حواف الرقعة</div></div>
-        <label class="toggle"><input type="checkbox" id="set-coords" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+        <label class="toggle"><input type="checkbox" id="set-coords" checked onchange="SFX.btn();Cfg.save()"><span class="tsl"></span></label>
       </div>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">تمييز آخر حركة</div><div class="sr-d">تلوين مربعَي آخر حركة</div></div>
-        <label class="toggle"><input type="checkbox" id="set-lastmove" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+        <label class="toggle"><input type="checkbox" id="set-lastmove" checked onchange="SFX.btn();Cfg.save()"><span class="tsl"></span></label>
       </div>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">تمييز الكش</div><div class="sr-d">تلوين الملك أحمر عند الكش</div></div>
-        <label class="toggle"><input type="checkbox" id="set-check" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+        <label class="toggle"><input type="checkbox" id="set-check" checked onchange="SFX.btn();Cfg.save()"><span class="tsl"></span></label>
       </div>
       <div style="padding-top:9px">
         <div class="sr-n" style="margin-bottom:8px">ألوان الرقعة</div>
         <div class="th-grid">
-          <div class="th-opt on" id="th-classic" onclick="Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#f0d9b5"></div><div class="sw" style="background:#b58863"></div></div>كلاسيك</div>
-          <div class="th-opt" id="th-ocean"   onclick="Cfg.theme('ocean')"><div class="th-sw"><div class="sw" style="background:#dee3e6"></div><div class="sw" style="background:#8ca2ad"></div></div>أوقيانوس</div>
-          <div class="th-opt" id="th-night"   onclick="Cfg.theme('night')"><div class="th-sw"><div class="sw" style="background:#e8e9db"></div><div class="sw" style="background:#4a7c59"></div></div>ليلي</div>
-          <div class="th-opt" id="th-rose"    onclick="Cfg.theme('rose')"><div class="th-sw"><div class="sw" style="background:#f5e8e0"></div><div class="sw" style="background:#c16b6b"></div></div>وردي</div>
-          <div class="th-opt" id="th-slate"   onclick="Cfg.theme('slate')"><div class="th-sw"><div class="sw" style="background:#d6d6d6"></div><div class="sw" style="background:#5a6068"></div></div>رمادي</div>
-          <div class="th-opt" id="th-gold"    onclick="Cfg.theme('gold')"><div class="th-sw"><div class="sw" style="background:#fdf3c0"></div><div class="sw" style="background:#b8860b"></div></div>ذهبي</div>
-          <div class="th-opt" id="th-bw"      onclick="Cfg.theme('bw')"><div class="th-sw"><div class="sw" style="background:#ffffff;border:1px solid #ccc"></div><div class="sw" style="background:#1a1a1a"></div></div>أبيض وأسود</div>
-          <div class="th-opt" id="th-ice"     onclick="Cfg.theme('ice')"><div class="th-sw"><div class="sw" style="background:#dff0f8"></div><div class="sw" style="background:#3a6090"></div></div>جليدي</div>
+          <div class="th-opt on" id="th-classic" onclick="SFX.btn();Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#f0d9b5"></div><div class="sw" style="background:#b58863"></div></div>كلاسيك</div>
+          <div class="th-opt" id="th-ocean"   onclick="SFX.btn();Cfg.theme('ocean')"><div class="th-sw"><div class="sw" style="background:#dee3e6"></div><div class="sw" style="background:#8ca2ad"></div></div>أوقيانوس</div>
+          <div class="th-opt" id="th-night"   onclick="SFX.btn();Cfg.theme('night')"><div class="th-sw"><div class="sw" style="background:#e8e9db"></div><div class="sw" style="background:#4a7c59"></div></div>ليلي</div>
+          <div class="th-opt" id="th-rose"    onclick="SFX.btn();Cfg.theme('rose')"><div class="th-sw"><div class="sw" style="background:#f5e8e0"></div><div class="sw" style="background:#c16b6b"></div></div>وردي</div>
+          <div class="th-opt" id="th-slate"   onclick="SFX.btn();Cfg.theme('slate')"><div class="th-sw"><div class="sw" style="background:#d6d6d6"></div><div class="sw" style="background:#5a6068"></div></div>رمادي</div>
+          <div class="th-opt" id="th-gold"    onclick="SFX.btn();Cfg.theme('gold')"><div class="th-sw"><div class="sw" style="background:#fdf3c0"></div><div class="sw" style="background:#b8860b"></div></div>ذهبي</div>
+          <div class="th-opt" id="th-bw"      onclick="SFX.btn();Cfg.theme('bw')"><div class="th-sw"><div class="sw" style="background:#ffffff;border:1px solid #ccc"></div><div class="sw" style="background:#1a1a1a"></div></div>أبيض وأسود</div>
+          <div class="th-opt" id="th-ice"     onclick="SFX.btn();Cfg.theme('ice')"><div class="th-sw"><div class="sw" style="background:#dff0f8"></div><div class="sw" style="background:#3a6090"></div></div>جليدي</div>
         </div>
       </div>
     </div>
@@ -524,18 +524,18 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <h2><span class="ic-green">◆</span> اللعب</h2>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">عرض نقاط التقدم</div><div class="sr-d">من يتقدم وبكم نقطة</div></div>
-        <label class="toggle"><input type="checkbox" id="set-score" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+        <label class="toggle"><input type="checkbox" id="set-score" checked onchange="SFX.btn();Cfg.save()"><span class="tsl"></span></label>
       </div>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">تأكيد الخروج</div><div class="sr-d">سؤال قبل الخروج من اللعبة</div></div>
-        <label class="toggle"><input type="checkbox" id="set-confirm" checked onchange="Cfg.save()"><span class="tsl"></span></label>
+        <label class="toggle"><input type="checkbox" id="set-confirm" checked onchange="SFX.btn();Cfg.save()"><span class="tsl"></span></label>
       </div>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">السماح بالتدوير التلقائي</div><div class="sr-d">تدوير الشاشة تلقائياً عند تغيير اتجاه الجهاز</div></div>
-        <label class="toggle"><input type="checkbox" id="set-rotation" onchange="Cfg.toggleRotation(this.checked)"><span class="tsl"></span></label>
+        <label class="toggle"><input type="checkbox" id="set-rotation" onchange="SFX.btn();Cfg.toggleRotation(this.checked)"><span class="tsl"></span></label>
       </div>
     </div>
-    <button class="back-btn" onclick="Nav.menu()">← العودة للقائمة</button>
+    <button class="back-btn" onclick="SFX.btn();Nav.menu()">← العودة للقائمة</button>
   </div>
 </div>
 
@@ -561,7 +561,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
         <div class="rb-c" id="rcode">—</div>
         <div class="rb-h">انتظر حتى ينضم صديقك…</div>
-        <button class="rb-cp" onclick="OL.copy()">⧉ نسخ الكود</button>
+        <button class="rb-cp" onclick="SFX.btn();OL.copy()">⧉ نسخ الكود</button>
       </div>
       <button class="btnp" id="btn-create" onclick="OL.create()">♟ إنشاء غرفة</button>
     </div>
@@ -571,7 +571,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div id="st-j" class="ost"></div>
       <button class="btnp" onclick="OL.join()">◈ الانضمام</button>
     </div>
-    <button class="btnb" onclick="Nav.menu()">← العودة</button>
+    <button class="btnb" onclick="SFX.btn();Nav.menu()">← العودة</button>
   </div>
 </div>
 
@@ -622,6 +622,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <span>◈</span><span id="ast-lbl">المساعد: إيقاف</span>
       <span class="tbb2-dot" id="ast-dot" style="display:none"></span>
     </button>
+    <button class="tbb2" id="btn-undo" onclick="G.undo()" style="display:none">
+      <span>↩</span><span>تراجع</span>
+    </button>
     <button class="tbb2" id="btn-hint" onclick="G.toggleHints()">
       <span>◆</span><span id="hint-lbl">النقاط: تشغيل</span>
     </button>
@@ -638,7 +641,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="chat-inp-row">
       <input class="chat-inp" id="chat-inp" placeholder="اكتب رسالة…" maxlength="120"
              onkeydown="if(event.key==='Enter')CHAT.send()">
-      <button class="chat-send" onclick="CHAT.send()">إرسال</button>
+      <button class="chat-send" onclick="SFX.btn();CHAT.send()">إرسال</button>
     </div>
   </div>
 </div>
@@ -665,7 +668,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="go-bts">
       <button class="bgp" onclick="G.restart()">↺ مرة أخرى</button>
       <button id="go-next" class="bgp" style="display:none" onclick="G.nextLevel()">التالي ←</button>
-      <button id="go-review" class="bgp" style="display:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1a18" onclick="REV.open()">◈ تقييم المباراة</button>
+      <button id="go-review" class="bgp" style="display:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1a18" onclick="SFX.btn();REV.open()">◈ تقييم المباراة</button>
       <button class="bgs" onclick="G.goMenu()">القائمة</button>
     </div>
   </div>
@@ -682,7 +685,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div>جاري التحليل…</div>
       </div>
     </div>
-    <button class="rv-close" onclick="REV.close()">✕ إغلاق</button>
+    <button class="rv-close" onclick="SFX.btn();REV.close()">✕ إغلاق</button>
   </div>
 </div>
 
@@ -1158,6 +1161,8 @@ const S={
   /* pre-move: النقلة المحجوزة مسبقاً */
   preMove:null, /* {fr:[r,c], to:[r,c], selFr:[r,c]} */
   preMoveSelFr:null, /* المربع المختار للحجز */
+  /* undo stack — للوضع لاعبَان فقط */
+  undoStack:[],
 };
 
 /* ══════════════════════════════════════
@@ -1680,6 +1685,17 @@ const R={
   },
   toolbar(){
     const ba=document.getElementById('btn-ast'),dot=document.getElementById('ast-dot'),bh=document.getElementById('btn-hint');
+    const bu=document.getElementById('btn-undo');
+    /* زر التراجع — يظهر فقط في وضع لاعبَان */
+    if(bu){
+      if(S.mode==='local'){
+        bu.style.display='';
+        bu.disabled=S.undoStack.length===0;
+        bu.style.opacity=S.undoStack.length===0?'0.4':'1';
+      }else{
+        bu.style.display='none';
+      }
+    }
     /* زر المساعد الرئيسي — يختفي في وضع لاعبَان */
     if(ba){
       if(S.mode==='local'){ba.style.display='none';}
@@ -1716,6 +1732,7 @@ const G={
     S.assistW=false;S.assistB=false;
     S.snapshots=[];
     S.preMove=null;S.preMoveSelFr=null;
+    S.undoStack=[];
     AST.clear();
     R.boardReset();
     CHAT.hide();
@@ -1760,7 +1777,6 @@ const G={
       if(S.bd[r][c]&&E.col(S.bd[r][c])===S.myCol){
         S.preMoveSelFr=[r,c];
         S.preMove=null;
-        SFX.select();
         R.board();
         return;
       }
@@ -1772,17 +1788,19 @@ const G={
         if(fakeLegal.some(([lr,lc])=>lr===r&&lc===c)){
           S.preMove={fr,to:[r,c]};
           S.preMoveSelFr=null;
-          SFX.select();
           R.board();
         }else{
-          /* ضغط على مربع غير قانوني — صوت error وإلغاء */
-          SFX.illegal();
+          /* ضغط على مربع غير قانوني — إلغاء صامت */
           S.preMove=null;S.preMoveSelFr=null;
+          document.querySelectorAll('#board .sq.PM-FROM,#board .sq.PM').forEach(sq=>{
+            const r2=+sq.dataset.r,c2=+sq.dataset.c;
+            const isL=(r2+c2)%2===0;sq.className='sq '+(isL?'L':'D');
+          });
           R.board();
         }
         return;
       }
-      /* ضغط على أي مكان آخر — إلغاء */
+      /* ضغط على أي مكان آخر — إلغاء صامت */
       S.preMove=null;S.preMoveSelFr=null;
       R.board();
       return;
@@ -1808,6 +1826,23 @@ const G={
     this.applyMove(fr,to,promo);
   },
   applyMove(fr,to,promo){
+    /* مسح pre-move فوراً قبل أي رسم — يمنع تعليق المربع الأحمر */
+    S.preMove=null;S.preMoveSelFr=null;
+    /* حفظ الحالة الكاملة في undoStack للوضع لاعبَان */
+    if(S.mode==='local'){
+      S.undoStack.push({
+        bd:S.bd.map(r=>[...r]),
+        turn:S.turn,
+        cas:JSON.parse(JSON.stringify(S.cas)),
+        ep:S.ep?[...S.ep]:null,
+        capW:[...S.capW],capB:[...S.capB],
+        hist:[...S.hist],
+        lastMove:S.lastMove?{from:[...S.lastMove.from],to:[...S.lastMove.to]}:null,
+        moveCount:S.moveCount,
+        snapshots:S.snapshots.map(s=>({...s,bd:s.bd.map(r=>[...r])})),
+        assistW:S.assistW,assistB:S.assistB,
+      });
+    }
     /* حفظ snapshot قبل الحركة للتقييم */
     S.snapshots.push({bd:S.bd.map(r=>[...r]),turn:S.turn,move:E.notation(S.bd,fr,to,promo)});
     const res=E.apply(S.bd,fr,to,S.cas,S.ep,promo);
@@ -1988,7 +2023,25 @@ const G={
     if(S.assistOn){SFX.hint();AST.compute();}
     R.all();
   },
-  toggleHints(){SFX.btn();S.hintsOn=!S.hintsOn;R.all();}
+  toggleHints(){SFX.btn();S.hintsOn=!S.hintsOn;R.all();},
+  undo(){
+    /* تراجع حركة واحدة بالتسلسل — وضع لاعبَان فقط */
+    if(S.mode!=='local')return;
+    if(S.over){S.over=false;document.getElementById('go-ov').classList.remove('open');}
+    if(!S.undoStack.length){SFX.illegal();return;}
+    const snap=S.undoStack.pop();
+    if(!snap)return;
+    SFX.btn();
+    S.bd=snap.bd;S.turn=snap.turn;S.cas=snap.cas;S.ep=snap.ep;
+    S.capW=snap.capW;S.capB=snap.capB;S.hist=snap.hist;
+    S.lastMove=snap.lastMove;S.moveCount=snap.moveCount;
+    S.snapshots=snap.snapshots;
+    S.assistW=snap.assistW;S.assistB=snap.assistB;
+    S.assistOn=S.turn==='w'?S.assistW:S.assistB;
+    S.sel=null;S.legal=[];S.pending=null;S.busy=false;
+    AST.clear();
+    R.all();
+  }
 };
 
 /* ══════════════════════════════════════
