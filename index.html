@@ -1475,8 +1475,7 @@ const R={
       if(fsq&&!fsq.classList.contains('ast-from'))fsq.classList.add('ast-from');
     }
   },
-    this.board();
-  },
+  boardOverlay(){this.board();},
   ripple(r,c){
     const sq=document.querySelector(`#board .sq[data-r="${r}"][data-c="${c}"]`);
     if(sq){const ov=document.createElement('div');ov.className='sq-ripple';sq.appendChild(ov);setTimeout(()=>ov.remove(),400);}
