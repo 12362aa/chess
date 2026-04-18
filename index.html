@@ -236,9 +236,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .pb-nm{font-size:13px;font-weight:700;}
 .pb-turn{font-size:10px;color:var(--gold2);animation:dbt .9s infinite;visibility:hidden;}
 .pb-turn.show{visibility:visible;}
-.pb-ast{font-size:10px;padding:1px 7px;border-radius:10px;margin-top:2px;visibility:hidden;background:transparent;border:1px solid transparent;}
-.pb-ast.on{visibility:visible;background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
-.pb-ast.spy{visibility:visible;background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
+.pb-ast{font-size:10px;padding:1px 7px;border-radius:10px;margin-top:2px;display:none;background:transparent;border:1px solid transparent;}
+.pb-ast.on{display:inline-block;background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
+.pb-ast.spy{display:inline-block;background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
 .pb-caps{flex:1;text-align:center;font-size:11px;line-height:1.8;padding:0 4px;}
 .pb-timer{font-family:'Amiri',serif;font-size:18px;font-weight:700;color:var(--gold2);min-width:48px;text-align:center;}
 .sc-row{padding:2px 11px 6px;font-size:11px;color:var(--text2);display:none;}
@@ -1633,7 +1633,6 @@ const R={
       document.getElementById('sc-b-val').innerHTML=`<span class="sc-lead">+${pts} ▲</span>`;}
   },
   astLbls(){
-    /* في وضع local/both لا يوجد خصم — نظهر المساعد على bar الدور الحالي فقط */
     const wEl=document.getElementById('ast-w');
     const bEl=document.getElementById('ast-b');
     /* صفّر الكل أولاً */
@@ -1644,8 +1643,11 @@ const R={
       const opEl=S.myCol==='b'?wEl:bEl;
       if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
       if(S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
+    }else if(S.mode==='bot'){
+      /* في وضع bot: المساعد يظهر دائماً على bar اللاعب (أبيض = wEl) فقط — بغض النظر عن دور من */
+      if(S.assistOn){wEl.className='pb-ast on';wEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
     }else{
-      /* bot أو local — المساعد يظهر فقط على bar اللاعب الحالي */
+      /* local — المساعد يظهر على bar اللاعب الحالي */
       const curEl=S.turn==='b'?bEl:wEl;
       if(S.assistOn){curEl.className='pb-ast on';curEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
     }
