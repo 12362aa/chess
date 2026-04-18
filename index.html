@@ -374,6 +374,29 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .confetti-p{position:absolute;top:-20px;width:8px;height:8px;border-radius:2px;animation:confettiFall linear forwards;}
 @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(110vh) rotate(720deg);opacity:.3;}}
 
+/* ══════════ KING CHECK SHAKE ANIMATION ══════════ */
+@keyframes kingCheckShake{
+  0%  {transform:translate(0,0) scale(1);}
+  10% {transform:translate(-4px,-3px) scale(1.08);}
+  20% {transform:translate(4px,3px) scale(1.08);}
+  30% {transform:translate(-4px,2px) scale(1.06);}
+  40% {transform:translate(4px,-2px) scale(1.06);}
+  50% {transform:translate(-3px,3px) scale(1.04);}
+  60% {transform:translate(3px,-1px) scale(1.04);}
+  70% {transform:translate(-2px,2px) scale(1.02);}
+  80% {transform:translate(2px,-1px) scale(1.02);}
+  90% {transform:translate(-1px,1px) scale(1.01);}
+  100%{transform:translate(0,0) scale(1);}
+}
+@keyframes kingCheckPulse{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(248,113,113,.9)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  50%    {filter:drop-shadow(0 0 18px rgba(248,113,113,1)) drop-shadow(0 0 30px rgba(248,113,113,.6)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+}
+.piece.king-check{
+  animation:kingCheckShake .55s cubic-bezier(.36,.07,.19,.97),
+            kingCheckPulse 1s ease-in-out 0.55s infinite;
+}
+
 /* ══════════ LANDSCAPE ══════════ */
 @media (orientation:landscape) and (max-height:520px){
   :root{--board:min(82vh,420px);}
@@ -390,6 +413,113 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   .pb-timer{font-size:15px;min-width:38px;}
 }
 @media (orientation:landscape) and (min-height:521px) and (max-height:700px){:root{--board:min(78vh,480px);}}
+
+/* ══════════ DESKTOP LAYOUT — البارات على الجنب ══════════ */
+@media (min-width:900px){
+  :root{--board:min(68vh,580px);}
+
+  #s-game{
+    flex-direction:row;
+    flex-wrap:nowrap;
+    align-items:center;
+    justify-content:center;
+    min-height:100dvh;
+    padding:44px 20px 16px;
+    gap:0;
+  }
+
+  /* الرقعة في المنتصف */
+  .bwrap{
+    order:2;
+    flex-shrink:0;
+    align-self:center;
+  }
+
+  /* bar-b (اللاعب الأعلى في الموبايل) ← يصير على اليمين في الديسكتوب */
+  #bar-b{
+    order:3;
+    width:200px;
+    min-width:180px;
+    max-width:220px;
+    flex-shrink:0;
+    margin-right:0;
+    margin-left:14px;
+    align-self:center;
+    /* بدل الـ max-width المحدود */
+    max-height:none;
+  }
+
+  /* bar-w (اللاعب الأسفل في الموبايل) ← يصير على اليسار في الديسكتوب */
+  #bar-w{
+    order:1;
+    width:200px;
+    min-width:180px;
+    max-width:220px;
+    flex-shrink:0;
+    margin-right:14px;
+    margin-left:0;
+    align-self:center;
+    max-height:none;
+  }
+
+  /* gtop بار العلوي — يكون فوق كل شيء */
+  .gtop{
+    position:fixed;
+    top:36px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:100;
+    width:auto;
+    max-width:520px;
+    background:rgba(10,10,20,.85);
+    backdrop-filter:blur(10px);
+    border-radius:10px;
+    padding:4px 8px;
+    border:1px solid rgba(201,168,76,.1);
+  }
+
+  /* الـ toolbar والمعلومات تحت الرقعة مباشرة */
+  .gtbar{
+    position:absolute;
+    bottom:10px;
+    left:50%;
+    transform:translateX(-50%);
+    width:var(--board);
+    max-width:var(--board);
+    z-index:10;
+  }
+  .sbar{
+    display:none; /* يتكرر في التصميم — في الديسكتوب نخفيه */
+  }
+  .mvhist{
+    position:absolute;
+    bottom:52px;
+    left:50%;
+    transform:translateX(-50%);
+    width:var(--board);
+    max-width:var(--board);
+    z-index:10;
+  }
+  .chat-wrap{
+    position:absolute;
+    bottom:100px;
+    left:50%;
+    transform:translateX(-50%);
+    width:var(--board);
+    max-width:var(--board);
+    z-index:10;
+  }
+
+  /* البارات تصبح عمودية — معلومات اللاعب من فوق لأسفل */
+  .pbar{
+    width:200px;
+    max-width:220px;
+    flex-direction:column;
+  }
+
+  /* نخفي sc-row في الديسكتوب لأنه بيطول البار */
+  #s-game .sc-row{display:none!important;}
+}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:4px;}
@@ -543,8 +673,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <div id="s-online" class="screen">
   <div class="oc">
     <h2><span class="ic-teal">⊕</span> أونلاين</h2>
-    <p class="oc-sub">اتصال مباشر P2P — يعمل مع واي فاي وداتا</p>
-    <div class="p2p">يستخدم <strong>WebRTC + TURN/TLS Relay</strong> — يعمل مع واي فاي وداتا الهاتف ✓<br><span style="font-size:11px;opacity:.8">في حال فشل الاتصال سيتم التبديل تلقائياً لوضع داتا الهاتف</span></div>
+    <p class="oc-sub">اتصال عبر سيرفر مركزي — يعمل مع واي فاي وداتا</p>
+    <div class="p2p">يستخدم <strong>WebSocket Server</strong> — اتصال مستقر ومضمون ✓<br><span style="font-size:11px;opacity:.8">أنشئ غرفة وشارك الكود مع صديقك</span></div>
     <div class="tabs">
       <button class="tbb on" id="tb-c" onclick="OL.tab('c')">إنشاء غرفة</button>
       <button class="tbb"    id="tb-j" onclick="OL.tab('j')">الانضمام</button>
@@ -691,7 +821,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <div class="confetti-wrap" id="confetti-wrap"></div>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 'use strict';
 
@@ -1875,10 +2004,38 @@ const G={
     else                SFX.move();
     R.all();
     R.ripple(to[0],to[1]);
+    /* أنيميشن الحركة */
     setTimeout(()=>{
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
       if(sq){const piece=sq.querySelector('.piece');if(piece){piece.classList.remove('moved');void piece.offsetWidth;piece.classList.add('moved');}}
     },10);
+    /* أنيميشن كش الملك */
+    if(isCheck||isCheckmate){
+      setTimeout(()=>{
+        /* ابحث عن موقع الملك اللي اتعمل له كش */
+        const turnColor=S.turn; /* S.turn اتحدّث بالفعل للاعب اللي في الكش */
+        for(let ri=0;ri<8;ri++){
+          for(let ci=0;ci<8;ci++){
+            if(S.bd[ri][ci]&&E.tp(S.bd[ri][ci])==='K'&&E.col(S.bd[ri][ci])===turnColor){
+              const ksq=document.querySelector(`#board .sq[data-r="${ri}"][data-c="${ci}"]`);
+              if(ksq){
+                const kp=ksq.querySelector('.piece');
+                if(kp){
+                  kp.classList.remove('king-check');
+                  void kp.offsetWidth; /* reflow لإعادة تشغيل الأنيميشن */
+                  kp.classList.add('king-check');
+                  /* بعد نهاية اللعبة نوقف الـ pulse */
+                  if(isCheckmate){setTimeout(()=>kp.classList.remove('king-check'),600);}
+                }
+              }
+            }
+          }
+        }
+      },60);
+    }else{
+      /* لو مفيش كش — نشيل الـ class لو كانت موجودة من قبل */
+      document.querySelectorAll('.piece.king-check').forEach(p=>p.classList.remove('king-check'));
+    }
     if(!avail.length){
       S.over=true;
       if(isCheckmate){
@@ -2100,163 +2257,150 @@ function fixBars(myCol){
 }
 
 /* ══════════════════════════════════════
-   ONLINE — PeerJS مع TURN قوي يدعم داتا الهاتف
+   ONLINE — WebSocket Server
    ════════════════════════════════════
-   - أضفنا TURN servers إضافية تعمل على port 443/TCP
-     وهو ما تسمح به شبكات الداتا حتى مع الـ CGNAT
-   - turns: (TLS) يتجاوز أي firewall
-   - relay fallback: لو STUN فشل على الداتا نجبر relay mode
+   بدل PeerJS — نستخدم سيرفر Node.js WebSocket
+   على Back4app (أو أي hosting)
 ══════════════════════════════════════ */
 const OL=(()=>{
-  const PEER_CFGS=[
-    {host:'0.peerjs.com',port:443,path:'/',secure:true,ping:5000},
-    {host:'peerjs.com',port:443,path:'/myapp',secure:true,ping:5000},
-    {host:'peer-server-yw4n.onrender.com',port:443,path:'/',secure:true,ping:8000},
-  ];
+  /* ★ غيّر هذا العنوان بعد رفع السيرفر على Back4app ★ */
+  const SERVER_URL='wss://YOUR-APP-NAME.back4app.io';
 
-  /* TURN Worker URL — غيّره لو نشرت الـ Worker على عنوان مختلف */
-  const TURN_WORKER='https://chess-turn.ahmed-chess.workers.dev/turn';
+  let ws=null;
+  let _myCol='w';
+  let _roomCode='';
+  let _reconnectTimer=null;
+  let _pingTimer=null;
 
-  /* ICE ثابت كـ fallback — مُرتَّب بالأولوية: STUN أولاً، TURN/TCP ثانياً، TURN/TLS ثالثاً */
-  const ICE_STATIC=[
-    {urls:'stun:stun.l.google.com:19302'},
-    {urls:'stun:stun1.l.google.com:19302'},
-    {urls:'stun:stun.cloudflare.com:3478'},
-    /* TURN عبر UDP (يعمل على WiFi) */
-    {urls:'turn:a.relay.metered.ca:80',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    /* TURN عبر TCP 443 (يعمل على داتا الهاتف) */
-    {urls:'turn:a.relay.metered.ca:443?transport=tcp',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    /* TURN/TLS (يخترق أي firewall) */
-    {urls:'turns:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turns:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:freestun.net:3479?transport=tcp',username:'free',credential:'free'},
-    {urls:'turns:freestun.net:5349',username:'free',credential:'free'},
-  ];
-
-  /* ICE خاص بداتا الهاتف — relay-only (لا يحتاج STUN) */
-  const ICE_RELAY_ONLY=[
-    {urls:'turn:a.relay.metered.ca:443?transport=tcp',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turns:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turns:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turns:freestun.net:5349',username:'free',credential:'free'},
-  ];
-
-  let _iceCache=null,_iceFetchTime=0;
-  /* نجيب Cloudflare TURN credentials — مخزّنة 4 دقائق */
-  async function getIce(relayOnly=false){
-    if(relayOnly)return ICE_RELAY_ONLY;
-    const now=Date.now();
-    if(_iceCache&&now-_iceFetchTime<240000)return _iceCache;
-    try{
-      const r=await fetch(TURN_WORKER,{signal:AbortSignal.timeout(5000)});
-      if(!r.ok)throw new Error('bad status');
-      const data=await r.json();
-      if(data&&data.iceServers&&data.iceServers.length){
-        _iceCache=[
-          {urls:'stun:stun.l.google.com:19302'},
-          {urls:'stun:stun.cloudflare.com:3478'},
-          ...data.iceServers,
-          /* fallback إضافي */
-          ...ICE_STATIC.slice(3),
-        ];
-        _iceFetchTime=now;
-        return _iceCache;
-      }
-    }catch(e){}
-    /* Fallback للـ static ICE */
-    return ICE_STATIC;
-  }
-
-  let peer=null,conn=null;
-  let _myCol='w',_srvIdx=0,_retryTimer=null,_relayMode=false;
-
+  /* ══ Status display ══ */
   function setSt(tab,msg,tp=''){
     const el=document.getElementById('st-'+tab);
     if(el){el.className='ost'+(tp?' '+tp:'');el.textContent=msg;}
   }
+
+  /* ══ Close connection ══ */
   function destroy(){
-    clearTimeout(_retryTimer);
-    if(conn){try{conn.close();}catch(e){}conn=null;}
-    if(peer){try{peer.destroy();}catch(e){}peer=null;}
-  }
-  async function mkPeer(id,onReady,onFail){
-    destroy();
-    const ice=await getIce(_relayMode);
-    const cfg=PEER_CFGS[_srvIdx%PEER_CFGS.length];
-    /* iceTransportPolicy: relay عند تفعيل relay mode لضمان العمل على داتا الهاتف */
-    const icePolicy=_relayMode?'relay':'all';
-    const opts={
-      config:{
-        iceServers:ice,
-        iceCandidatePoolSize:10,
-        iceTransportPolicy:icePolicy,
-        bundlePolicy:'max-bundle',
-        rtcpMuxPolicy:'require',
-      },
-      pingInterval:cfg.ping,
-      ...cfg
-    };
-    peer=id?new Peer(id,opts):new Peer(opts);
-    const timeout=_srvIdx===0?15000:12000;
-    const t=setTimeout(()=>{
-      if(peer&&peer.open)return;
-      _srvIdx++;
-      if(_srvIdx<PEER_CFGS.length){
-        setSt('c',`◌ جاري المحاولة على خادم آخر... (${_srvIdx+1})`,'conn');
-        setSt('j',`◌ جاري المحاولة على خادم آخر... (${_srvIdx+1})`,'conn');
-        mkPeer(id,onReady,onFail);
-      }else if(!_relayMode){
-        /* كل الخوادم فشلت — نحاول relay-only mode (مناسب لداتا الهاتف) */
-        _relayMode=true;_srvIdx=0;
-        setSt('c','◌ جاري التجربة في وضع داتا الهاتف...','conn');
-        setSt('j','◌ جاري التجربة في وضع داتا الهاتف...','conn');
-        mkPeer(id,onReady,onFail);
-      }else{onFail('تعذر الاتصال — تأكد من الإنترنت وحاول مجدداً');}
-    },timeout);
-    peer.on('open',id2=>{clearTimeout(t);onReady(id2);});
-    peer.on('error',err=>{
-      clearTimeout(t);
-      const m=err.type==='peer-unavailable'?'الكود غير صحيح أو المضيف غادر':
-              err.type==='network'?'مشكلة في الشبكة — حاول مجدداً':err.message||'خطأ في الاتصال';
-      if(err.type==='peer-unavailable'){onFail(m);return;}
-      _srvIdx++;
-      if(_srvIdx<PEER_CFGS.length){
-        setSt('c',`◌ جاري المحاولة... (${_srvIdx+1})`,'conn');
-        setSt('j',`◌ جاري المحاولة... (${_srvIdx+1})`,'conn');
-        _retryTimer=setTimeout(()=>mkPeer(id,onReady,onFail),600);
-      }else if(!_relayMode){
-        _relayMode=true;_srvIdx=0;
-        setSt('c','◌ جاري التجربة في وضع داتا الهاتف...','conn');
-        setSt('j','◌ جاري التجربة في وضع داتا الهاتف...','conn');
-        _retryTimer=setTimeout(()=>mkPeer(id,onReady,onFail),600);
-      }else{onFail(m);}
-    });
-    peer.on('disconnected',()=>{if(peer&&!peer.destroyed)peer.reconnect();});
-  }
-  function setupConn(c){
-    conn=c;
-    c.on('data',d=>{try{handleGame(d);}catch(e){}});
-    c.on('close',()=>{
-      if(!S.over&&S.mode==='online'){
-        S.over=true;SFX.win();G.showOver('✦','فوز!','انسحب الخصم','#e8d080');
-        document.getElementById('go-review').style.display='inline-flex';
-      }
-    });
-    c.on('error',()=>{});
-  }
-  function handleGame(d){
-    if(d.type==='start')        _go(d.yourColor,d.name||'');
-    else if(d.type==='move')    {S.sel=[];S.legal=[];SFX.init();G.applyMove(d.fr,d.to,d.promo||null);}
-    else if(d.type==='assist')  {S.oppUsingAssist=d.on;R.astLbls();}
-    else if(d.type==='resign')  {if(!S.over){S.over=true;SFX.win();G.showOver('✦','فوز!','استسلم الخصم','#e8d080');document.getElementById('go-review').style.display='inline-flex';}}
-    else if(d.type==='chat')    {CHAT.recv(d.text);}
-    else if(d.type==='name')    {/* اسم الخصم بعد الاتصال */
-      const myC=S.myCol;const oc=E.opp(myC);
-      const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
-      if(oppEl)oppEl.textContent=d.name&&d.name.trim()?d.name.trim():'الخصم';
+    clearTimeout(_reconnectTimer);
+    clearInterval(_pingTimer);
+    if(ws){
+      try{ws.close();}catch(e){}
+      ws=null;
     }
   }
+
+  /* ══ Send helper ══ */
+  function send(obj){
+    if(ws&&ws.readyState===WebSocket.OPEN){
+      try{ws.send(JSON.stringify(obj));}catch(e){}
+    }
+  }
+
+  /* ══ Connect to server ══ */
+  function connect(onOpen){
+    destroy();
+    setSt('c','◌ جاري الاتصال بالخادم...','conn');
+    setSt('j','◌ جاري الاتصال بالخادم...','conn');
+    try{
+      ws=new WebSocket(SERVER_URL);
+    }catch(e){
+      setSt('c','✕ تعذر الاتصال بالخادم','err');
+      setSt('j','✕ تعذر الاتصال بالخادم','err');
+      return;
+    }
+
+    ws.onopen=()=>{
+      /* ping كل 25 ثانية لإبقاء الاتصال */
+      _pingTimer=setInterval(()=>send({type:'ping'}),25000);
+      if(onOpen)onOpen();
+    };
+
+    ws.onmessage=(ev)=>{
+      try{
+        const d=JSON.parse(ev.data);
+        handleMsg(d);
+      }catch(e){}
+    };
+
+    ws.onclose=()=>{
+      clearInterval(_pingTimer);
+      if(S.mode==='online'&&!S.over&&S.hist.length>0){
+        /* انقطع الاتصال أثناء اللعب */
+        S.over=true;
+        SFX.win();
+        G.showOver('✦','فوز!','انقطع الاتصال بالخصم','#e8d080');
+        document.getElementById('go-review').style.display='inline-flex';
+      }
+    };
+
+    ws.onerror=()=>{
+      setSt('c','✕ خطأ في الاتصال — تحقق من الإنترنت','err');
+      setSt('j','✕ خطأ في الاتصال — تحقق من الإنترنت','err');
+    };
+  }
+
+  /* ══ Handle incoming messages ══ */
+  function handleMsg(d){
+    switch(d.type){
+      case 'room-created':
+        _roomCode=d.code;
+        document.getElementById('rcode').textContent=d.code;
+        document.getElementById('rbox').style.display='block';
+        setSt('c','◎ في انتظار الخصم…','wait');
+        break;
+
+      case 'room-joined':
+        /* الضيف انضم بنجاح — انتظر start */
+        setSt('j','◌ جاري بدء اللعبة…','conn');
+        break;
+
+      case 'room-error':
+        setSt('j','✕ '+(d.msg||'الكود غير صحيح أو انتهت صلاحية الغرفة'),'err');
+        break;
+
+      case 'start':
+        _go(d.yourColor, d.oppName||'');
+        break;
+
+      case 'move':
+        if(S.mode==='online'){
+          S.sel=[];S.legal=[];
+          SFX.init();
+          G.applyMove(d.fr,d.to,d.promo||null);
+        }
+        break;
+
+      case 'assist':
+        S.oppUsingAssist=d.on;
+        R.astLbls();
+        break;
+
+      case 'resign':
+        if(!S.over){
+          S.over=true;
+          SFX.win();
+          G.showOver('✦','فوز!','استسلم الخصم','#e8d080');
+          document.getElementById('go-review').style.display='inline-flex';
+        }
+        break;
+
+      case 'chat':
+        CHAT.recv(d.text);
+        break;
+
+      case 'name':
+        {
+          const oc=E.opp(S.myCol);
+          const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
+          if(oppEl)oppEl.textContent=d.name&&d.name.trim()?d.name.trim():'الخصم';
+        }
+        break;
+
+      case 'pong': break; /* server heartbeat */
+      default: break;
+    }
+  }
+
+  /* ══ Start game ══ */
   function _go(mc,oppName){
     const oc=E.opp(mc);
     G._reset('online',0);
@@ -2269,18 +2413,19 @@ const OL=(()=>{
     fixBars(mc);
     CHAT.show();
     /* نرسل اسمنا للخصم */
-    setTimeout(()=>{if(conn&&conn.open)try{conn.send({type:'name',name:myName});}catch(e){}},500);
+    setTimeout(()=>send({type:'name',name:myName}),300);
     Nav.game();R.all();
   }
+
   return{
     pc:'w',
-    _conn(){return conn;},
     init(){
       setSt('c','');setSt('j','');
       document.getElementById('rbox').style.display='none';
       const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
       document.getElementById('jinp').value='';
-      this.dc();_srvIdx=0;_relayMode=false;
+      _roomCode='';
+      destroy();
     },
     tab(n){
       SFX.btn();
@@ -2296,44 +2441,23 @@ const OL=(()=>{
     create(){
       SFX.btn();
       let col=this.pc;if(col==='r')col=Math.random()<.5?'w':'b';
-      _myCol=col;_srvIdx=0;
+      _myCol=col;
       document.getElementById('btn-create').disabled=true;
-      setSt('c','◌ جاري الاتصال بالخادم...','conn');
-      mkPeer(null,peerId=>{
-        document.getElementById('rcode').textContent=peerId;
-        document.getElementById('rbox').style.display='block';
-        setSt('c','◎ في انتظار الخصم…','wait');
-        peer.on('connection',c=>{
-          /* iOS يحتاج نتأكد من serialization */
-          setupConn(c);
-          c.on('open',()=>{
-            setSt('c','◉ متصل! بدء اللعبة…','ok');
-            const opp=_myCol==='w'?'b':'w';
-            /* تأخير صغير لضمان استقرار الاتصال على iOS */
-            setTimeout(()=>{
-              try{c.send({type:'start',yourColor:opp,name:Cfg.data.playerName||''});}catch(ex){}
-              _go(_myCol);
-            },200);
-          });
-        });
-      },msg=>{setSt('c','✕ '+msg,'err');document.getElementById('btn-create').disabled=false;});
+      connect(()=>{
+        send({type:'create',color:col,name:Cfg.data.playerName||''});
+      });
     },
     join(){
       SFX.btn();
-      const pid=document.getElementById('jinp').value.trim();
-      if(!pid){setSt('j','أدخل الكود أولاً','err');return;}
-      _srvIdx=0;setSt('j','◌ جاري الاتصال...','conn');
-      mkPeer(null,()=>{
-        setSt('j','◌ جاري الانضمام للغرفة...','wait');
-        conn=peer.connect(pid,{reliable:true,serialization:'json'});
-        setupConn(conn);
-        const t=setTimeout(()=>{if(conn&&conn.open)return;setSt('j','✕ انتهت المهلة — تأكد من الكود وأن المضيف ينتظر','err');},30000);
-        conn.on('open',()=>{clearTimeout(t);});
-      },msg=>{setSt('j','✕ '+msg,'err');});
+      const code=document.getElementById('jinp').value.trim().toUpperCase();
+      if(!code){setSt('j','أدخل الكود أولاً','err');return;}
+      connect(()=>{
+        send({type:'join',code,name:Cfg.data.playerName||''});
+      });
     },
     copy(){
       SFX.btn();
-      const code=document.getElementById('rcode').textContent;
+      const code=_roomCode||document.getElementById('rcode').textContent;
       if(!code||code==='—')return;
       navigator.clipboard.writeText(code).then(()=>{
         const b=document.querySelector('.rb-cp');b.textContent='◉ تم النسخ!';
@@ -2344,11 +2468,11 @@ const OL=(()=>{
         window.getSelection().removeAllRanges();window.getSelection().addRange(rng);
       });
     },
-    sendMove(mv){if(conn&&conn.open)conn.send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
-    sendAssist(on){if(conn&&conn.open)conn.send({type:'assist',on});},
+    sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
+    sendAssist(on){send({type:'assist',on});},
     sendResign(){
-      if(conn&&conn.open){try{conn.send({type:'resign'});}catch(e){}setTimeout(()=>destroy(),400);}
-      else{destroy();}
+      send({type:'resign'});
+      setTimeout(()=>destroy(),400);
     },
     dc(){destroy();}
   };
