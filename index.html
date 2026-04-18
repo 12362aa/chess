@@ -536,7 +536,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <div class="oc">
     <h2><span class="ic-teal">⊕</span> أونلاين</h2>
     <p class="oc-sub">اتصال مباشر P2P — يعمل مع واي فاي وداتا</p>
-    <div class="p2p">يستخدم <strong>WebRTC + TURN Relay</strong> — يعمل حتى مع داتا الهاتف ✓</div>
+    <div class="p2p">يستخدم <strong>WebRTC + TURN/TLS Relay</strong> — يعمل مع واي فاي وداتا الهاتف ✓<br><span style="font-size:11px;opacity:.8">في حال فشل الاتصال سيتم التبديل تلقائياً لوضع داتا الهاتف</span></div>
     <div class="tabs">
       <button class="tbb on" id="tb-c" onclick="OL.tab('c')">إنشاء غرفة</button>
       <button class="tbb"    id="tb-j" onclick="OL.tab('j')">الانضمام</button>
@@ -1342,6 +1342,8 @@ const R={
       }
     }
     /* تحديث سريع للخانات بدون إعادة بناء الرقعة كلها */
+    /* أزل كل النجوم أولاً — ثم أضف الصحيح فقط بعدين */
+    el.querySelectorAll('.ast-star').forEach(s=>s.remove());
     const inChk=Cfg.data.check&&E.inChk(S.bd,S.turn);
     const squares=el.querySelectorAll('.sq');
     squares.forEach(sq=>{
@@ -1361,7 +1363,6 @@ const R={
       const pieceCode=S.bd[r][c];
       if(pieceCode){
         if(!piece||piece.dataset.pc!==pieceCode){
-          /* أزل القطعة القديمة وضع الجديدة */
           if(piece)piece.remove();
           const p=document.createElement('div');p.className='piece '+pieceCode;p.dataset.pc=pieceCode;
           if(S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c){
@@ -1369,19 +1370,17 @@ const R={
           }
           sq.appendChild(p);
         }else{
-          /* القطعة موجودة — فقط حدّث نجمة المساعد */
-          const star=piece.querySelector('.ast-star');
-          const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
-          if(wantStar&&!star){const s=document.createElement('div');s.className='ast-star';s.textContent='★';piece.appendChild(s);}
-          else if(!wantStar&&star)star.remove();
+          /* القطعة موجودة — أضف النجمة فقط إذا لزم (تم مسح الكل أعلاه) */
+          if(S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c){
+            const s=document.createElement('div');s.className='ast-star';s.textContent='★';piece.appendChild(s);
+          }
         }
       }else{
         if(piece)piece.remove();
-        /* نجمة المساعد على خانة فارغة */
-        const star=sq.querySelector('.ast-star');
-        const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
-        if(wantStar&&!star){const s=document.createElement('div');s.className='ast-star';s.textContent='★';sq.appendChild(s);}
-        else if(!wantStar&&star)star.remove();
+        /* نجمة على خانة فارغة */
+        if(S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c){
+          const s=document.createElement('div');s.className='ast-star';s.textContent='★';sq.appendChild(s);
+        }
       }
     });
   },
@@ -1428,12 +1427,22 @@ const R={
       document.getElementById('sc-b-val').innerHTML=`<span class="sc-lead">+${pts} ▲</span>`;}
   },
   astLbls(){
-    const myEl=S.myCol==='b'?document.getElementById('ast-b'):document.getElementById('ast-w');
-    const opEl=S.myCol==='b'?document.getElementById('ast-w'):document.getElementById('ast-b');
-    if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
-    else{myEl.className='pb-ast';myEl.textContent='';}
-    if(S.mode==='online'&&S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
-    else{opEl.className='pb-ast';opEl.textContent='';}
+    /* في وضع local/both لا يوجد خصم — نظهر المساعد على bar الدور الحالي فقط */
+    const wEl=document.getElementById('ast-w');
+    const bEl=document.getElementById('ast-b');
+    /* صفّر الكل أولاً */
+    wEl.className='pb-ast';wEl.textContent='';
+    bEl.className='pb-ast';bEl.textContent='';
+    if(S.mode==='online'){
+      const myEl=S.myCol==='b'?bEl:wEl;
+      const opEl=S.myCol==='b'?wEl:bEl;
+      if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
+      if(S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
+    }else{
+      /* bot أو local — المساعد يظهر فقط على bar اللاعب الحالي */
+      const curEl=S.turn==='b'?bEl:wEl;
+      if(S.assistOn){curEl.className='pb-ast on';curEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
+    }
   },
   toolbar(){
     const ba=document.getElementById('btn-ast'),dot=document.getElementById('ast-dot'),bh=document.getElementById('btn-hint');
@@ -1462,7 +1471,7 @@ const G={
     S.cas={w:{K:true,Q:true},b:{K:true,Q:true}};S.ep=null;
     S.capW=[];S.capB=[];S.hist=[];S.lastMove=null;
     S.over=false;S.pending=null;S.busy=false;
-    S.assistOn=false;S.oppUsingAssist=false;
+    S.assistOn=false;S.oppUsingAssist=false;S.astMove=null;S.astBusy=false;
     S.snapshots=[];
     AST.clear();
     R.boardReset();
@@ -1562,6 +1571,9 @@ const G={
     }
     AST.compute();
     if(S.mode==='bot'&&S.turn==='b'&&!S.over){
+      /* دور البوت — نخفي المساعد نهائياً ريثما ينتهي البوت */
+      S.astMove=null;S.astBusy=false;
+      R.boardOverlay();R.toolbar();
       S.busy=true;
       const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
       const depth=lv?lv.depth:S.diff;
@@ -1702,37 +1714,51 @@ function fixBars(myCol){
    - أضفنا TURN servers إضافية تعمل على port 443/TCP
      وهو ما تسمح به شبكات الداتا حتى مع الـ CGNAT
    - turns: (TLS) يتجاوز أي firewall
+   - relay fallback: لو STUN فشل على الداتا نجبر relay mode
 ══════════════════════════════════════ */
 const OL=(()=>{
   const PEER_CFGS=[
-    {host:'0.peerjs.com',port:443,path:'/',secure:true,ping:3000},
-    {host:'peerjs.com',port:443,path:'/myapp',secure:true,ping:3000},
-    {host:'peer-server-yw4n.onrender.com',port:443,path:'/',secure:true,ping:5000},
+    {host:'0.peerjs.com',port:443,path:'/',secure:true,ping:5000},
+    {host:'peerjs.com',port:443,path:'/myapp',secure:true,ping:5000},
+    {host:'peer-server-yw4n.onrender.com',port:443,path:'/',secure:true,ping:8000},
   ];
 
   /* TURN Worker URL — غيّره لو نشرت الـ Worker على عنوان مختلف */
   const TURN_WORKER='https://chess-turn.ahmed-chess.workers.dev/turn';
 
-  /* ICE ثابت كـ fallback */
+  /* ICE ثابت كـ fallback — مُرتَّب بالأولوية: STUN أولاً، TURN/TCP ثانياً، TURN/TLS ثالثاً */
   const ICE_STATIC=[
     {urls:'stun:stun.l.google.com:19302'},
     {urls:'stun:stun1.l.google.com:19302'},
     {urls:'stun:stun.cloudflare.com:3478'},
+    /* TURN عبر UDP (يعمل على WiFi) */
     {urls:'turn:a.relay.metered.ca:80',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    /* TURN عبر TCP 443 (يعمل على داتا الهاتف) */
+    {urls:'turn:a.relay.metered.ca:443?transport=tcp',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    /* TURN/TLS (يخترق أي firewall) */
     {urls:'turns:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
-    {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:freestun.net:3478',username:'free',credential:'free'},
+    {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turns:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:freestun.net:3479?transport=tcp',username:'free',credential:'free'},
+    {urls:'turns:freestun.net:5349',username:'free',credential:'free'},
+  ];
+
+  /* ICE خاص بداتا الهاتف — relay-only (لا يحتاج STUN) */
+  const ICE_RELAY_ONLY=[
+    {urls:'turn:a.relay.metered.ca:443?transport=tcp',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turns:a.relay.metered.ca:443',username:'83e3d9955b262c04ad2c9c9b',credential:'5l0gzgH5v59fllf3'},
+    {urls:'turns:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
     {urls:'turns:freestun.net:5349',username:'free',credential:'free'},
   ];
 
   let _iceCache=null,_iceFetchTime=0;
   /* نجيب Cloudflare TURN credentials — مخزّنة 4 دقائق */
-  async function getIce(){
+  async function getIce(relayOnly=false){
+    if(relayOnly)return ICE_RELAY_ONLY;
     const now=Date.now();
     if(_iceCache&&now-_iceFetchTime<240000)return _iceCache;
     try{
-      const r=await fetch(TURN_WORKER,{signal:AbortSignal.timeout(4000)});
+      const r=await fetch(TURN_WORKER,{signal:AbortSignal.timeout(5000)});
       if(!r.ok)throw new Error('bad status');
       const data=await r.json();
       if(data&&data.iceServers&&data.iceServers.length){
@@ -1740,7 +1766,7 @@ const OL=(()=>{
           {urls:'stun:stun.l.google.com:19302'},
           {urls:'stun:stun.cloudflare.com:3478'},
           ...data.iceServers,
-          /* fallback مع Cloudflare */
+          /* fallback إضافي */
           ...ICE_STATIC.slice(3),
         ];
         _iceFetchTime=now;
@@ -1752,7 +1778,7 @@ const OL=(()=>{
   }
 
   let peer=null,conn=null;
-  let _myCol='w',_srvIdx=0,_retryTimer=null;
+  let _myCol='w',_srvIdx=0,_retryTimer=null,_relayMode=false;
 
   function setSt(tab,msg,tp=''){
     const el=document.getElementById('st-'+tab);
@@ -1765,19 +1791,38 @@ const OL=(()=>{
   }
   async function mkPeer(id,onReady,onFail){
     destroy();
-    const ice=await getIce();
+    const ice=await getIce(_relayMode);
     const cfg=PEER_CFGS[_srvIdx%PEER_CFGS.length];
-    const opts={config:{iceServers:ice,iceCandidatePoolSize:10,iceTransportPolicy:'all'},pingInterval:cfg.ping,...cfg};
+    /* iceTransportPolicy: relay عند تفعيل relay mode لضمان العمل على داتا الهاتف */
+    const icePolicy=_relayMode?'relay':'all';
+    const opts={
+      config:{
+        iceServers:ice,
+        iceCandidatePoolSize:10,
+        iceTransportPolicy:icePolicy,
+        bundlePolicy:'max-bundle',
+        rtcpMuxPolicy:'require',
+      },
+      pingInterval:cfg.ping,
+      ...cfg
+    };
     peer=id?new Peer(id,opts):new Peer(opts);
+    const timeout=_srvIdx===0?15000:12000;
     const t=setTimeout(()=>{
       if(peer&&peer.open)return;
       _srvIdx++;
-      if(_srvIdx<PEER_CFGS.length*2){
-        setSt('c','◌ جاري المحاولة على خادم آخر... ('+(_srvIdx+1)+')','conn');
-        setSt('j','◌ جاري المحاولة على خادم آخر... ('+(_srvIdx+1)+')','conn');
+      if(_srvIdx<PEER_CFGS.length){
+        setSt('c',`◌ جاري المحاولة على خادم آخر... (${_srvIdx+1})`,'conn');
+        setSt('j',`◌ جاري المحاولة على خادم آخر... (${_srvIdx+1})`,'conn');
         mkPeer(id,onReady,onFail);
-      }else{onFail('تعذر الاتصال بأي خادم — تأكد من الإنترنت');}
-    },10000);
+      }else if(!_relayMode){
+        /* كل الخوادم فشلت — نحاول relay-only mode (مناسب لداتا الهاتف) */
+        _relayMode=true;_srvIdx=0;
+        setSt('c','◌ جاري التجربة في وضع داتا الهاتف...','conn');
+        setSt('j','◌ جاري التجربة في وضع داتا الهاتف...','conn');
+        mkPeer(id,onReady,onFail);
+      }else{onFail('تعذر الاتصال — تأكد من الإنترنت وحاول مجدداً');}
+    },timeout);
     peer.on('open',id2=>{clearTimeout(t);onReady(id2);});
     peer.on('error',err=>{
       clearTimeout(t);
@@ -1786,9 +1831,14 @@ const OL=(()=>{
       if(err.type==='peer-unavailable'){onFail(m);return;}
       _srvIdx++;
       if(_srvIdx<PEER_CFGS.length){
-        setSt('c','◌ جاري المحاولة... ('+(_srvIdx+1)+')','conn');
-        setSt('j','◌ جاري المحاولة... ('+(_srvIdx+1)+')','conn');
-        _retryTimer=setTimeout(()=>mkPeer(id,onReady,onFail),800);
+        setSt('c',`◌ جاري المحاولة... (${_srvIdx+1})`,'conn');
+        setSt('j',`◌ جاري المحاولة... (${_srvIdx+1})`,'conn');
+        _retryTimer=setTimeout(()=>mkPeer(id,onReady,onFail),600);
+      }else if(!_relayMode){
+        _relayMode=true;_srvIdx=0;
+        setSt('c','◌ جاري التجربة في وضع داتا الهاتف...','conn');
+        setSt('j','◌ جاري التجربة في وضع داتا الهاتف...','conn');
+        _retryTimer=setTimeout(()=>mkPeer(id,onReady,onFail),600);
       }else{onFail(m);}
     });
     peer.on('disconnected',()=>{if(peer&&!peer.destroyed)peer.reconnect();});
@@ -1839,7 +1889,7 @@ const OL=(()=>{
       document.getElementById('rbox').style.display='none';
       const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
       document.getElementById('jinp').value='';
-      this.dc();_srvIdx=0;
+      this.dc();_srvIdx=0;_relayMode=false;
     },
     tab(n){
       SFX.btn();
@@ -1919,9 +1969,11 @@ const OL=(()=>{
 ══════════════════════════════════════ */
 Cfg.load();
 
-/* منع التدوير التلقائي — يعمل في وضع PWA فقط */
+/* منع التدوير التلقائي — يعمل فقط إذا كان المستخدم لم يفعّل "السماح بالتدوير" */
 (function(){
   function tryLockPortrait(){
+    /* لا نقفل لو المستخدم فعّل السماح بالتدوير */
+    if(Cfg.data.allowRotation)return;
     try{
       if(screen.orientation&&screen.orientation.lock){
         screen.orientation.lock('portrait').catch(()=>{
@@ -1930,13 +1982,15 @@ Cfg.load();
       }
     }catch(e){}
   }
-  /* نحاول القفل مباشرة — سينجح فقط في PWA/fullscreen */
+  /* ننتظر حتى يُحمَّل الـ config أولاً */
   if(document.readyState==='complete')tryLockPortrait();
   else window.addEventListener('load',tryLockPortrait,{once:true});
-  /* كذلك عند تغيير الاتجاه لو مش مفعّل السماح */
-  screen.orientation&&screen.orientation.addEventListener&&screen.orientation.addEventListener('change',()=>{
-    if(!Cfg.data.allowRotation)tryLockPortrait();
-  });
+  /* عند تغيير الاتجاه نعيد التقييم */
+  if(screen.orientation&&screen.orientation.addEventListener){
+    screen.orientation.addEventListener('change',()=>{
+      if(!Cfg.data.allowRotation)tryLockPortrait();
+    });
+  }
 })();
 
 window.addEventListener('beforeunload',e=>{
