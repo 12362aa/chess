@@ -266,8 +266,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.SL{background:var(--sq-sl);}.sq.SD{background:var(--sq-sd);}
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
 .sq.CK{background:rgba(248,113,113,.78)!important;box-shadow:inset 0 0 20px rgba(248,113,113,.4)!important;}
-.sq.PM{background:rgba(220,40,40,.72)!important;box-shadow:inset 0 0 14px rgba(220,40,40,.35)!important;}
-.sq.PM-FROM{background:rgba(200,30,30,.55)!important;box-shadow:inset 0 0 10px rgba(200,30,30,.3)!important;}
+.sq.PM-FROM{background:rgba(200,30,30,.75)!important;box-shadow:inset 0 0 16px rgba(200,30,30,.4)!important;}
+.sq.PM{background:rgba(220,40,40,.38)!important;box-shadow:inset 0 0 10px rgba(220,40,40,.2)!important;}
 .sq.ast-from{box-shadow:inset 0 0 0 3px rgba(96,165,250,.85);}
 .sq.dot::after{content:'';position:absolute;width:33%;height:33%;border-radius:50%;background:rgba(0,0,0,.16);pointer-events:none;z-index:2;}
 .sq.ring::after{content:'';position:absolute;inset:6%;border-radius:50%;border:5px solid rgba(0,0,0,.16);pointer-events:none;z-index:2;}
@@ -1775,7 +1775,8 @@ const G={
           SFX.select();
           R.board();
         }else{
-          /* ضغط على مربع غير قانوني — نلغي الحجز */
+          /* ضغط على مربع غير قانوني — صوت error وإلغاء */
+          SFX.illegal();
           S.preMove=null;S.preMoveSelFr=null;
           R.board();
         }
