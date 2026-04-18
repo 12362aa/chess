@@ -227,29 +227,29 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .gmlbl{flex:1;text-align:center;font-size:11px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .pbar{width:100%;max-width:min(96vw,560px);background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:11px;overflow:hidden;transition:border-color .3s,background .3s,box-shadow .3s;}
 .pbar.myturn{border-color:rgba(201,168,76,.38);background:rgba(201,168,76,.04);box-shadow:0 0 20px rgba(201,168,76,.08),0 0 0 1px rgba(201,168,76,.05);}
-.pbar-top{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;}
-.pb-l{display:flex;align-items:center;gap:7px;}
-.pb-av{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;transition:transform .3s;}
+.pbar-top{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;}
+.pb-l{display:flex;align-items:center;gap:6px;}
+.pb-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;transition:transform .3s;}
 .pbar.myturn .pb-av{transform:scale(1.1);}
 .av-w{background:rgba(255,248,240,.13);}
 .av-b{background:rgba(20,14,4,.55);border:1px solid rgba(255,255,255,.07);}
-.pb-nm{font-size:13px;font-weight:700;}
-.pb-turn{font-size:10px;color:var(--gold2);animation:dbt .9s infinite;visibility:hidden;}
+.pb-nm{font-size:12px;font-weight:700;}
+.pb-turn{font-size:9px;color:var(--gold2);animation:dbt .9s infinite;visibility:hidden;}
 .pb-turn.show{visibility:visible;}
-.pb-ast{font-size:10px;padding:1px 7px;border-radius:10px;margin-top:2px;display:inline-block;background:transparent;border:1px solid transparent;color:transparent;min-height:16px;}
+.pb-ast{font-size:9px;padding:1px 6px;border-radius:10px;margin-top:1px;display:inline-block;background:transparent;border:1px solid transparent;color:transparent;min-height:14px;}
 .pb-ast.on{background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
 .pb-ast.spy{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
-.pb-caps{flex:1;text-align:center;font-size:11px;line-height:1.8;padding:0 4px;}
-.pb-ast-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text3);font-size:14px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.pb-caps{flex:1;text-align:center;font-size:10px;line-height:1.6;padding:0 3px;}
+.pb-ast-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text3);font-size:13px;width:25px;height:25px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
 .pb-ast-btn:hover{border-color:rgba(201,168,76,.4);color:var(--gold2);}
 .pb-ast-btn.on{border-color:rgba(201,168,76,.6);color:var(--gold2);background:rgba(201,168,76,.12);box-shadow:0 0 8px rgba(201,168,76,.2);}
-.pb-timer{font-family:'Amiri',serif;font-size:18px;font-weight:700;color:var(--gold2);min-width:48px;text-align:center;}
-.sc-row{padding:2px 11px 6px;font-size:11px;color:var(--text2);display:none;}
+.pb-timer{font-family:'Amiri',serif;font-size:16px;font-weight:700;color:var(--gold2);min-width:42px;text-align:center;}
+.sc-row{padding:1px 10px 4px;font-size:10px;color:var(--text2);display:none;}
 .sc-row.show{display:flex;align-items:center;gap:5px;}
 .sc-lead{color:var(--green);font-weight:700;}
 .sc-behind{color:var(--red);font-weight:700;}
 .gtbar{display:flex;gap:7px;width:100%;max-width:min(96vw,560px);}
-.tbb2{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:var(--bg2);font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text2);}
+.tbb2{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 6px;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:var(--bg2);font-family:'Cairo',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text2);}
 .tbb2:hover{background:var(--bg3);transform:scale(1.02);}
 .tbb2.ast-on{border-color:rgba(96,165,250,.44);background:rgba(96,165,250,.08);color:var(--blue);box-shadow:0 0 10px rgba(96,165,250,.1);}
 .tbb2.hint-on{border-color:rgba(74,222,128,.44);background:rgba(74,222,128,.08);color:var(--green);box-shadow:0 0 10px rgba(74,222,128,.1);}
@@ -301,10 +301,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .bP{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 45 45'%3E%3Cpath d='M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03C15.41 27.09 11 31.58 11 39.5H34c0-7.92-4.41-12.41-7.41-13.47C28.06 24.84 29 23.03 29 21c0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z' fill='%23282828' stroke='%23ccc' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");}
 
 /* ══════════ STATUS + HISTORY ══════════ */
-.sbar{width:100%;max-width:min(96vw,560px);padding:9px 13px;background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;text-align:center;font-size:13px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:39px;transition:all .3s;}
+.sbar{width:100%;max-width:min(96vw,560px);padding:6px 13px;background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;text-align:center;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:32px;transition:all .3s;}
 .sbar.check{border-color:var(--red);color:var(--red);box-shadow:0 0 15px rgba(248,113,113,.15),0 0 30px rgba(248,113,113,.05);animation:checkPulse 1s ease-in-out infinite;}
 @keyframes checkPulse{0%,100%{box-shadow:0 0 15px rgba(248,113,113,.15)}50%{box-shadow:0 0 25px rgba(248,113,113,.3)}}
-.mvhist{width:100%;max-width:min(96vw,560px);background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:6px 10px;max-height:44px;overflow-x:auto;overflow-y:hidden;display:flex;flex-wrap:nowrap;gap:3px;white-space:nowrap;}
+.mvhist{width:100%;max-width:min(96vw,560px);background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:4px 10px;max-height:36px;overflow-x:auto;overflow-y:hidden;display:flex;flex-wrap:nowrap;gap:3px;white-space:nowrap;}
 .mv{font-size:10px;padding:2px 5px;background:var(--bg3);border-radius:5px;color:var(--text2);font-family:monospace;}
 .mv:last-child{background:rgba(201,168,76,.13);color:var(--gold2);box-shadow:0 0 6px rgba(201,168,76,.15);}
 @keyframes ripple{0%{transform:scale(0);opacity:.8;}100%{transform:scale(3);opacity:0;}}
@@ -1826,8 +1826,10 @@ const G={
     this.applyMove(fr,to,promo);
   },
   applyMove(fr,to,promo){
-    /* مسح pre-move فوراً قبل أي رسم — يمنع تعليق المربع الأحمر */
-    S.preMove=null;S.preMoveSelFr=null;
+    /* مسح sel/legal دايماً — لكن preMove نمسحه بس لما يكون دور اللاعب نفسه (مش الخصم) */
+    /* في الأونلاين: لما الخصم يلعب S.turn !== S.myCol، فنحتفظ بـ preMove */
+    const isOwnMove=S.mode!=='online'||(S.turn===S.myCol);
+    if(isOwnMove){S.preMove=null;S.preMoveSelFr=null;}
     /* حفظ الحالة الكاملة في undoStack للوضع لاعبَان */
     if(S.mode==='local'){
       S.undoStack.push({
@@ -1928,7 +1930,7 @@ const G={
       /* هل يوجد pre-move محجوز؟ */
       if(S.mode==='online'&&S.preMove&&S.turn===S.myCol){
         const pm=S.preMove;
-        S.preMove=null;S.preMoveSelFr=null;
+        S.preMove=null;S.preMoveSelFr=null;  /* امسح قبل التنفيذ */
         /* نتحقق أن النقلة لا تزال قانونية بعد حركة الخصم */
         const stillLegal=E.legal(S.bd,pm.fr[0],pm.fr[1],S.cas,S.ep)
           .some(([lr,lc])=>lr===pm.to[0]&&lc===pm.to[1]);
