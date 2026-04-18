@@ -389,6 +389,23 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:4px;}
 @media(max-width:380px){:root{--board:97vw;}}
+
+/* ══ قفل التدوير — يُفعَّل لما allowRotation=false ══ */
+body.no-rotate {
+  /* نقفل العرض على portrait بتدوير CSS لما يكون الجهاز landscape */
+  overflow: hidden;
+}
+@media (orientation: landscape) {
+  body.no-rotate {
+    /* نعكس العرض عشان يفضل portrait */
+    width: 100vh;
+    height: 100vw;
+    transform-origin: top left;
+    transform: rotate(-90deg) translateX(-100%);
+    position: fixed;
+    top: 0; left: 0;
+  }
+}
 </style>
 </head>
 <body>
@@ -701,6 +718,30 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
    AUDIO
 ══════════════════════════════════════ */
 const SFX=(()=>{
+  /* ── تحميل ملفات MP3 ── */
+  const FILES={move:'move.mp3',capture:'capture.mp3',castle:'castle.mp3',checkmate:'checkmate.mp3',error:'Error.mp3'};
+  const cache={};
+  function load(name){
+    if(cache[name])return cache[name];
+    const a=new Audio(FILES[name]);a.preload='auto';
+    cache[name]=a;return a;
+  }
+  /* نحمّل كل الأصوات مسبقاً */
+  Object.keys(FILES).forEach(k=>load(k));
+
+  function play(name){
+    if(!Cfg.data.sound)return;
+    try{
+      const a=load(name);
+      const vol=Cfg.data.vol/100;
+      /* نعمل clone عشان نقدر نشغل نفس الصوت أكتر من مرة */
+      const clone=a.cloneNode();
+      clone.volume=vol;
+      clone.play().catch(()=>{});
+    }catch(e){}
+  }
+
+  /* ── أصوات الواجهة بالـ Web Audio API (نفس الأصوات القديمة) ── */
   let ctx=null;
   const gc=()=>{
     if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();
@@ -708,89 +749,36 @@ const SFX=(()=>{
     return ctx;
   };
   const v=()=>Cfg.data.vol/100;
-
-  function nz(t,freq,q,dur,gain){
+  function uiClick(){
+    if(!Cfg.data.sound)return;
     try{
-      const c=gc(),len=Math.floor(c.sampleRate*dur);
-      const buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
-      for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,4);
-      const src=c.createBufferSource();src.buffer=buf;
-      const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=freq;bp.Q.value=q;
-      const g=c.createGain();g.gain.setValueAtTime(v()*gain,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-      src.connect(bp);bp.connect(g);g.connect(c.destination);src.start(t);src.stop(t+dur+0.01);
-    }catch(e){}
-  }
-  function os(t,freq,type,dur,gain,f2){
-    try{
-      const c=gc(),o=c.createOscillator(),g=c.createGain();
-      o.type=type;o.frequency.setValueAtTime(freq,t);
-      if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
-      g.gain.setValueAtTime(v()*gain,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.01);
+      const c=gc(),t=c.currentTime;
+      const o=c.createOscillator(),g=c.createGain();
+      o.type='sine';o.frequency.setValueAtTime(660,t);
+      g.gain.setValueAtTime(v()*0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.07);
     }catch(e){}
   }
 
   return{
-    move(){
+    /* ── أصوات الشطرنج من MP3 ── */
+    move()   {play('move');},
+    capture(){play('capture');},
+    castle() {play('castle');},
+    check()  {play('move');},        /* chess.com بيعزف move عند الكش */
+    checkmate(){play('checkmate');},
+    promote(){play('move');},        /* chess.com بيعزف move عند الترقية */
+    illegal(){play('error');},
+    draw()   {play('move');},
+    win()    {play('checkmate');},
+    levelDone(){play('checkmate');},
+    /* ── أصوات الواجهة ── */
+    select() {uiClick();},
+    btn()    {uiClick();},
+    hint()   {uiClick();},
+    chat()   {
       if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;
-      nz(t,1600,1.2,0.055,2.8);os(t,260,'sine',0.045,0.35,110);
-    },
-    capture(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;
-      nz(t,800,0.8,0.08,3.5);os(t,160,'sine',0.07,0.5,65);
-      nz(t+0.045,1800,1.5,0.035,1.5);
-    },
-    castle(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;
-      nz(t,1600,1.2,0.055,2.8);os(t,260,'sine',0.045,0.35,110);
-      nz(t+0.13,1600,1.2,0.055,2.2);os(t+0.13,260,'sine',0.045,0.28,110);
-    },
-    check(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;
-      nz(t,1600,1.2,0.055,2.8);os(t,260,'sine',0.045,0.35,110);
-      os(t+0.07,1046,'sine',0.35,0.4);os(t+0.085,1480,'sine',0.3,0.3);
-    },
-    promote(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;
-      nz(t,1600,1.2,0.055,2.8);
-      [880,1100,1320].forEach((f,i)=>os(t+0.07+i*0.09,f,'sine',0.28,0.35));
-    },
-    win(){
-      if(!Cfg.data.sound)return;
-      [0,130,260,400].forEach((d,i)=>setTimeout(()=>{const c=gc();os(c.currentTime,[523,659,784,1047][i],'sine',0.5,0.4);},d));
-    },
-    draw(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;os(t,440,'sine',0.5,0.3);os(t+0.28,415,'sine',0.55,0.25);
-    },
-    illegal(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;os(t,180,'sawtooth',0.12,0.3,100);
-    },
-    levelDone(){
-      if(!Cfg.data.sound)return;
-      [0,110,220,340,480].forEach((d,i)=>setTimeout(()=>{const c=gc();os(c.currentTime,[523,659,784,1047,784][i],'sine',0.4,0.38);},d));
-    },
-    select(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;nz(t,2200,2,0.028,1.0);os(t,340,'sine',0.022,0.15,220);
-    },
-    hint(){
-      if(!Cfg.data.sound)return;
-      const c=gc();os(c.currentTime,1200,'sine',0.1,0.2);
-    },
-    btn(){
-      if(!Cfg.data.sound)return;
-      const c=gc(),t=c.currentTime;nz(t,2000,3,0.022,0.7);
-    },
-    chat(){
-      if(!Cfg.data.sound)return;
-      const c=gc();os(c.currentTime,1320,'sine',0.12,0.18);
+      try{const c=gc();const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1320;g.gain.setValueAtTime(v()*0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);o.connect(g);g.connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+0.13);}catch(e){}
     },
   };
 })();
@@ -855,6 +843,8 @@ const Cfg={
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
     this._updateAvatar(this.data.playerName||'');
     this.theme(this.data.boardTheme,false);
+    /* طبّق قفل التدوير */
+    document.body.classList.toggle('no-rotate',!this.data.allowRotation);
   },
   saveName(val){
     this.data.playerName=(val||'').trim().slice(0,20);
@@ -880,13 +870,7 @@ const Cfg={
   toggleRotation(on){
     this.data.allowRotation=on;
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
-    if(on){
-      /* سماح بالتدوير — ارفع القفل */
-      try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}
-    }else{
-      /* منع التدوير — اقفل على portrait */
-      try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(()=>{});}catch(e){}
-    }
+    document.body.classList.toggle('no-rotate',!on);
   }
 };
 
@@ -1355,7 +1339,7 @@ const REV={
 const AST={
   _tid:null,
   compute(){
-    if(this._tid){clearTimeout(this._tid);this._tid=null;}
+    if(this._tid){cancelAnimationFrame(this._tid);this._tid=null;}
     if(!S.assistOn||S.over||S.busy){S.astMove=null;S.astBusy=false;return;}
     const isMyTurn=S.myCol==='both'?(S.mode==='bot'?S.turn==='w':true):S.turn===S.myCol;
     if(!isMyTurn){S.astMove=null;S.astBusy=false;return;}
@@ -1367,16 +1351,27 @@ const AST={
     const cas=JSON.parse(JSON.stringify(S.cas));
     const ep=S.ep?[...S.ep]:null;
     const col=S.myCol==='both'?S.turn:S.myCol;
-    this._tid=setTimeout(()=>{
-      this._tid=null;
-      if(!S.assistOn||S.over||S._astSnap!==snap){S.astBusy=false;return;}
+    /* نستخدم setTimeout صغير حتى لا يحجب الـ UI ثم نرسم في الـ animation frame */
+    const t=setTimeout(()=>{
+      if(!S.assistOn||S.over||S._astSnap!==snap){S.astBusy=false;this._tid=null;return;}
       const mv=E.bestMove(bd,cas,ep,col);
-      if(S._astSnap===snap){S.astMove=mv;S.astBusy=false;R.boardOverlay();R.toolbar();}
-      else{S.astBusy=false;}
+      if(S._astSnap!==snap){S.astBusy=false;this._tid=null;return;}
+      S.astMove=mv;S.astBusy=false;
+      /* نرسم النجمة في نفس frame الرسم — بدون render إضافي */
+      this._tid=requestAnimationFrame(()=>{
+        this._tid=null;
+        if(S._astSnap===snap)R.updateStar();
+        R.toolbar();
+      });
     },0);
+    this._tid=t;
   },
   clear(){
-    if(this._tid){clearTimeout(this._tid);this._tid=null;}
+    if(this._tid){
+      clearTimeout(this._tid);
+      cancelAnimationFrame(this._tid);
+      this._tid=null;
+    }
     S.astMove=null;S.astBusy=false;S._astSnap=null;
   }
 };
@@ -1460,8 +1455,26 @@ const R={
     });
   },
   boardReset(){this._boardBuilt=false;this._boardFlip=null;this._prevStarEl=null;},
-  boardOverlay(){
-    /* boardOverlay مُدمج الآن في board() — لا حاجة لإعادة حساب */
+  /* يضيف/يزيل النجمة فقط — بدون إعادة رسم الرقعة كلها */
+  updateStar(){
+    /* امسح النجمة القديمة */
+    if(this._prevStarEl){try{this._prevStarEl.remove();}catch(e){}this._prevStarEl=null;}
+    if(!S.assistOn||!S.astMove)return;
+    const r=S.astMove.to[0],c=S.astMove.to[1];
+    const sq=document.querySelector(`#board .sq[data-r="${r}"][data-c="${c}"]`);
+    if(!sq)return;
+    const s=document.createElement('div');s.className='ast-star';s.textContent='★';
+    /* ضعها داخل الـ piece لو موجودة، أو على الـ sq مباشرة */
+    const piece=sq.querySelector('.piece');
+    (piece||sq).appendChild(s);
+    this._prevStarEl=s;
+    /* كمان لون الـ from square */
+    if(S.astMove.from){
+      const fr=S.astMove.from[0],fc=S.astMove.from[1];
+      const fsq=document.querySelector(`#board .sq[data-r="${fr}"][data-c="${fc}"]`);
+      if(fsq&&!fsq.classList.contains('ast-from'))fsq.classList.add('ast-from');
+    }
+  },
     this.board();
   },
   ripple(r,c){
