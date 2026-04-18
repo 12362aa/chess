@@ -389,23 +389,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:4px;}
 @media(max-width:380px){:root{--board:97vw;}}
-
-/* ══ قفل التدوير — يُفعَّل لما allowRotation=false ══ */
-body.no-rotate {
-  /* نقفل العرض على portrait بتدوير CSS لما يكون الجهاز landscape */
-  overflow: hidden;
-}
-@media (orientation: landscape) {
-  body.no-rotate {
-    /* نعكس العرض عشان يفضل portrait */
-    width: 100vh;
-    height: 100vw;
-    transform-origin: top left;
-    transform: rotate(-90deg) translateX(-100%);
-    position: fixed;
-    top: 0; left: 0;
-  }
-}
 </style>
 </head>
 <body>
@@ -843,8 +826,6 @@ const Cfg={
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
     this._updateAvatar(this.data.playerName||'');
     this.theme(this.data.boardTheme,false);
-    /* طبّق قفل التدوير */
-    document.body.classList.toggle('no-rotate',!this.data.allowRotation);
   },
   saveName(val){
     this.data.playerName=(val||'').trim().slice(0,20);
@@ -870,7 +851,6 @@ const Cfg={
   toggleRotation(on){
     this.data.allowRotation=on;
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
-    document.body.classList.toggle('no-rotate',!on);
   }
 };
 
@@ -1597,7 +1577,7 @@ const G={
     const isLeg=S.legal.some(([lr,lc])=>lr===r&&lc===c);
     if(isLeg){this.exec(S.sel,[r,c]);return;}
     if(S.bd[r][c]&&E.col(S.bd[r][c])===S.turn){
-      S.sel=[r,c];S.legal=E.legal(S.bd,r,c,S.cas,S.ep);SFX.select();}
+      S.sel=[r,c];S.legal=E.legal(S.bd,r,c,S.cas,S.ep);}
     else{if(S.sel)SFX.illegal();S.sel=null;S.legal=[];}
     R.board();
   },
