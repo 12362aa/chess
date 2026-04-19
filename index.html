@@ -338,36 +338,78 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .bgs:hover{background:rgba(255,255,255,.06);transform:scale(1.03);}
 
 /* ══════════ REVIEW OVERLAY ══════════ */
-#review-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(12px);z-index:870;align-items:flex-start;justify-content:center;padding:36px 12px 12px;overflow-y:auto;}
+/* ══════ EVAL BAR ══════ */
+.eval-bar-wrap{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0;gap:4px;}
+.eval-bar{width:14px;height:var(--board);border-radius:7px;overflow:hidden;background:#111;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 4px 14px rgba(0,0,0,.5);display:flex;flex-direction:column;flex-shrink:0;}
+.eval-bar-black{background:#2a2a2a;transition:flex .5s cubic-bezier(.4,0,.2,1);}
+.eval-bar-white{background:#f0f0f0;transition:flex .5s cubic-bezier(.4,0,.2,1);}
+.eval-score{font-size:9px;font-weight:700;color:var(--text2);text-align:center;line-height:1;}
+
+/* ══════ REVIEW OVERLAY ══════ */
+#review-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);backdrop-filter:blur(14px);z-index:870;flex-direction:column;align-items:center;padding-top:44px;overflow:hidden;}
 #review-ov.open{display:flex;}
-.rv-box{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:20px;padding:24px 20px;width:100%;max-width:480px;animation:pop .3s cubic-bezier(.34,1.56,.64,1);}
-.rv-title{font-family:'Amiri',serif;font-size:20px;color:var(--gold2);margin-bottom:6px;text-align:center;}
-.rv-sub{font-size:12px;color:var(--text2);text-align:center;margin-bottom:16px;}
-.rv-loading{text-align:center;padding:30px;color:var(--teal2);font-size:14px;}
+.rv-topbar{width:100%;max-width:680px;display:flex;align-items:center;justify-content:space-between;padding:0 14px 8px;flex-shrink:0;}
+.rv-title{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);}
+.rv-close{padding:7px 16px;background:var(--bg3);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
+.rv-close:hover{background:var(--bg4);color:var(--text);}
+/* scroll area */
+.rv-main{display:flex;flex-direction:column;align-items:center;width:100%;flex:1;overflow-y:auto;gap:8px;padding:0 10px 14px;}
+/* board */
+:root{--rv-sz:min(52vw,280px);--rv-sq:calc(var(--rv-sz)/8);}
+@media(max-width:440px){:root{--rv-sz:min(66vw,250px);}}
+.rv-board-row{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.rv-board-wrap{border-radius:3px;box-shadow:0 0 0 3px var(--bg3),0 0 0 6px rgba(201,168,76,.2),0 14px 36px rgba(0,0,0,.6);line-height:0;}
+#rv-board{display:grid;grid-template-columns:repeat(8,var(--rv-sq));grid-template-rows:repeat(8,var(--rv-sq));direction:ltr;width:var(--rv-sz);height:var(--rv-sz);}
+#rv-board .sq{width:var(--rv-sq);height:var(--rv-sq);position:relative;display:flex;align-items:center;justify-content:center;font-size:calc(var(--rv-sq)*.72);}
+#rv-board .sq.rv-from{box-shadow:inset 0 0 0 3px rgba(255,200,0,.75)!important;}
+#rv-board .sq.rv-to{background:rgba(255,200,0,.32)!important;}
+/* mini eval bar beside board */
+.rv-ebar{width:10px;height:var(--rv-sz);border-radius:5px;overflow:hidden;background:#111;box-shadow:0 0 0 1px rgba(255,255,255,.07);display:flex;flex-direction:column;flex-shrink:0;}
+.rv-ebar-b{background:#2d2d2d;transition:flex .4s ease;}
+.rv-ebar-w{background:#e8e8e8;transition:flex .4s ease;}
+/* move info card */
+.rv-card{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.rv-card-badge{font-size:11px;padding:3px 10px;border-radius:8px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.rv-card-info{flex:1;}
+.rv-card-notation{font-family:monospace;font-size:15px;font-weight:700;color:var(--text);}
+.rv-card-num{font-size:11px;color:var(--text3);margin-bottom:2px;}
+/* coach */
+.rv-coach{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(45,212,191,.16);border-radius:12px;padding:10px 14px;min-height:54px;}
+.rv-coach-lbl{font-size:10px;color:var(--teal2);letter-spacing:2px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.rv-coach-txt{font-size:12px;color:var(--text);line-height:1.65;}
+.rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;}
+.rv-dot{width:5px;height:5px;border-radius:50%;background:var(--teal2);animation:dbt .7s ease-in-out infinite;}
+.rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
+/* nav bar */
+.rv-nav{flex-shrink:0;display:flex;align-items:center;gap:5px;width:100%;max-width:400px;}
+.rv-nbtn{width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
+.rv-nbtn:hover:not(:disabled){background:var(--bg3);color:var(--text);border-color:rgba(201,168,76,.3);transform:scale(1.07);}
+.rv-nbtn:disabled{opacity:.28;cursor:not-allowed;}
+.rv-strip{flex:1;overflow-x:auto;display:flex;gap:3px;padding:1px 0;scrollbar-width:none;}
+.rv-strip::-webkit-scrollbar{display:none;}
+.rv-chip{font-size:10px;padding:4px 7px;background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:6px;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .14s;flex-shrink:0;font-family:monospace;}
+.rv-chip:hover{background:var(--bg4);color:var(--text);}
+.rv-chip.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold2);}
+.rv-chip.blunder{border-color:rgba(255,50,50,.4);color:#ff5555;}
+.rv-chip.mistake{border-color:rgba(248,113,113,.35);color:var(--red);}
+.rv-chip.inaccuracy{border-color:rgba(255,200,0,.35);color:#ffe000;}
+.rv-chip.best{border-color:rgba(74,222,128,.3);color:var(--green);}
+/* summary */
+.rv-sumbar{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
+.rv-sum-col{flex:1;text-align:center;}
+.rv-sum-lbl{font-size:10px;color:var(--text3);margin-bottom:2px;}
+.rv-sum-val{font-size:15px;font-weight:700;}
+.rv-sum-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+/* loading */
+.rv-loading{text-align:center;padding:40px;color:var(--teal2);font-size:13px;}
 .rv-spinner{display:inline-block;width:28px;height:28px;border:3px solid rgba(45,212,191,.2);border-top-color:var(--teal2);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.rv-moves{display:flex;flex-direction:column;gap:7px;max-height:55vh;overflow-y:auto;padding-right:4px;}
-.rv-move{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:9px 12px;display:flex;align-items:flex-start;gap:10px;}
-.rv-move.best{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.04);}
-.rv-move.good{border-color:rgba(201,168,76,.2);}
-.rv-move.inaccuracy{border-color:rgba(255,200,0,.2);background:rgba(255,200,0,.03);}
-.rv-move.mistake{border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.03);}
-.rv-move.blunder{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.07);}
-.rv-move-num{font-size:11px;color:var(--text3);min-width:22px;}
-.rv-move-txt{font-family:monospace;font-size:13px;font-weight:700;min-width:60px;}
-.rv-move-badge{font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;}
+/* badges */
 .badge-best{background:rgba(74,222,128,.15);color:var(--green);}
 .badge-good{background:rgba(201,168,76,.15);color:var(--gold2);}
 .badge-inaccuracy{background:rgba(255,200,0,.15);color:#ffe000;}
 .badge-mistake{background:rgba(248,113,113,.15);color:var(--red);}
 .badge-blunder{background:rgba(248,70,70,.25);color:#ff4444;}
-.rv-move-note{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.5;}
-.rv-summary{background:var(--bg3);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;gap:16px;}
-.rv-sum-col{flex:1;text-align:center;}
-.rv-sum-lbl{font-size:11px;color:var(--text3);margin-bottom:3px;}
-.rv-sum-val{font-size:16px;font-weight:700;}
-.rv-close{width:100%;padding:11px;margin-top:14px;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
-.rv-close:hover{background:var(--bg4);}
 
 /* ══════════ WIN CONFETTI ══════════ */
 .confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:840;overflow:hidden;}
@@ -403,6 +445,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   #s-game{flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;padding:40px 4px 6px;gap:4px;}
   .gtop{width:100%;order:-2;max-width:none;margin-bottom:0;}
   .bwrap{order:0;align-self:flex-start;}
+  #board-container{order:0;align-self:flex-start;}
   #bar-b{order:-1;flex:1;min-width:130px;max-width:170px;max-height:none;}
   #bar-w{order:1;flex:1;min-width:130px;max-width:170px;max-height:none;}
   .gtbar{order:2;width:auto;flex:1;min-width:130px;max-width:170px;flex-direction:column;}
@@ -429,7 +472,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   }
 
   /* الرقعة في المنتصف */
-  .bwrap{
+  #board-container{
     order:2;
     flex-shrink:0;
     align-self:center;
@@ -736,7 +779,16 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     </div>
     <div class="sc-row" id="scr-b"><span>التقدم: </span><span id="sc-b-val">—</span></div>
   </div>
-  <div class="bwrap" id="bwrap"><div id="board"></div></div>
+  <div id="board-container" style="display:flex;align-items:center;gap:6px;">
+    <div class="eval-bar-wrap" id="eval-bar-wrap">
+      <div class="eval-bar" id="eval-bar">
+        <div class="eval-bar-black" id="eval-black" style="flex:50"></div>
+        <div class="eval-bar-white" id="eval-white" style="flex:50"></div>
+      </div>
+      <div class="eval-score" id="eval-score">0</div>
+    </div>
+    <div class="bwrap" id="bwrap"><div id="board"></div></div>
+  </div>
   <div class="pbar" id="bar-w">
     <div class="pbar-top">
       <div class="pb-l">
@@ -812,16 +864,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <!-- REVIEW OVERLAY -->
 <div id="review-ov">
-  <div class="rv-box">
-    <div class="rv-title">◈ تقييم المباراة</div>
-    <div class="rv-sub" id="rv-sub">تحليل بالذكاء الاصطناعي</div>
-    <div id="rv-content">
-      <div class="rv-loading">
-        <div class="rv-spinner"></div>
-        <div>جاري التحليل…</div>
-      </div>
-    </div>
+  <div class="rv-topbar">
+    <div class="rv-title">◈ مراجعة المباراة</div>
     <button class="rv-close" onclick="SFX.btn();REV.close()">✕ إغلاق</button>
+  </div>
+  <div class="rv-main" id="rv-main">
+    <div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>
   </div>
 </div>
 
@@ -1355,34 +1403,55 @@ const CHAT={
 
 
 /* ══════════════════════════════════════
-   REVIEW — تقييم المباراة محلياً بالخوارزمية
+   EVAL BAR — شريط التقييم بجانب الرقعة
 ══════════════════════════════════════ */
-const REV={
-  open(){
-    if(S.hist.length<4){alert('المباراة قصيرة جداً للتقييم');return;}
-    document.getElementById('review-ov').classList.add('open');
-    document.getElementById('rv-content').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>`;
-    /* نشغّل التحليل في requestAnimationFrame لإظهار الـ spinner أولاً */
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      try{this._render(this._analyze());}
-      catch(e){document.getElementById('rv-content').innerHTML=`<div style="color:var(--red);padding:20px;text-align:center">تعذر التحليل</div>`;}
-    }));
-  },
-  close(){document.getElementById('review-ov').classList.remove('open');},
-  _analyze(){
+const EVALBAR={
+  update(bd){
+    const v=E.eval(bd);
+    /* تحويل القيمة لنسبة مئوية: نحدّها بين -1000 و+1000 */
+    const clamped=Math.max(-1000,Math.min(1000,v));
+    /* الأبيض يكون أسفل — نسبة الأبيض */
+    const whitePct=50+clamped/20; /* 1000 centipawn = 50% تقريباً */
+    const wp=Math.max(5,Math.min(95,whitePct));
+    const bp=100-wp;
+    const eb=document.getElementById('eval-black');
+    const ew=document.getElementById('eval-white');
+    const es=document.getElementById('eval-score');
+    if(!eb)return;
+    eb.style.flex=bp;
+    ew.style.flex=wp;
+    const pawns=Math.abs(v/100);
+    if(Math.abs(v)<50){es.textContent='0';}
+    else{const sign=v>0?'+':'-';es.textContent=sign+pawns.toFixed(1);}
+  }
+};
+
+/* ══════════════════════════════════════
+   REVIEW — مراجعة تفاعلية كاملة
+══════════════════════════════════════ */
+const REV=(()=>{
+  const GROQ_KEY='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';
+  const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+
+  /* حالة المراجعة */
+  let _data=null;   /* نتيجة التحليل */
+  let _idx=0;       /* الحركة الحالية */
+  let _boards=[];   /* snapshot الرقعة بعد كل حركة */
+  let _coachCache={}; /* cache نصائح الكوتش */
+
+  /* ══ تحليل المباراة (depth=2) ══ */
+  function _analyze(){
     const snaps=S.snapshots;
-    if(!snaps||!snaps.length)return{summary:{white_accuracy:50,black_accuracy:50,white_blunders:0,black_blunders:0,white_mistakes:0,black_mistakes:0,highlight:'لا توجد بيانات كافية',best_move:'—'},moves:[]};
-    /* تقييم سريع: نُشغّل المباراة ونقيس الفرق المادي قبل وبعد كل حركة
-       مقارنةً بأفضل حركة متاحة (depth=1 فقط للسرعة) */
+    if(!snaps||!snaps.length)return null;
     let bd=INIT_BD.map(r=>[...r]);
     let cas={w:{K:true,Q:true},b:{K:true,Q:true}};
     let ep=null;
     const moves=[];
+    const boards=[INIT_BD.map(r=>[...r])]; /* حالة الرقعة قبل الحركة الأولى */
     let wTotal=0,bTotal=0,wCount=0,bCount=0;
     let wBlunders=0,bBlunders=0,wMistakes=0,bMistakes=0;
-    let overallBestVal=-Infinity,overallBestStr='—';
+    const evalHistory=[E.eval(bd)]; /* تقييم قبل الحركة الأولى */
 
-    /* دالة تقييم سريعة depth=1 */
     const quickBest=(board,cas2,ep2,color)=>{
       const mvs=E.allLegal(board,color,cas2,ep2);
       if(!mvs.length)return{val:color==='w'?-99999:99999,mv:null};
@@ -1390,21 +1459,35 @@ const REV={
       let bv=isMax?-Infinity:Infinity,bm=mvs[0];
       for(const mv of mvs){
         const r2=E.apply(board,mv.from,mv.to,cas2,ep2,'Q');
-        const v=E.eval(r2.bd);
-        if(isMax?v>bv:v<bv){bv=v;bm=mv;}
+        /* depth=2: نضيف ردّ فعل الخصم */
+        const opp=color==='w'?'b':'w';
+        const oMvs=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
+        let oppBest=r2.bd;
+        if(oMvs.length){
+          const isOppMax=opp==='w';
+          let ob2=isOppMax?-Infinity:Infinity;
+          for(const om of oMvs){
+            const r3=E.apply(r2.bd,om.from,om.to,r2.cas,r2.ep,'Q');
+            const vv=E.eval(r3.bd);
+            if(isOppMax?vv>ob2:vv<ob2){ob2=vv;oppBest=r3.bd;}
+          }
+          const v2=E.eval(oppBest);
+          if(isMax?v2>bv:v2<bv){bv=v2;bm=mv;}
+        }else{
+          const v2=E.eval(r2.bd);
+          if(isMax?v2>bv:v2<bv){bv=v2;bm=mv;}
+        }
       }
       return{val:bv,mv:bm};
     };
 
+    const f='abcdefgh';
     for(let i=0;i<snaps.length;i++){
       const snap=snaps[i];
       const color=snap.turn;
       const isMax=color==='w';
-      /* أفضل حركة بـ depth=1 */
       const {val:bestVal,mv:bestMv}=quickBest(bd,cas,ep,color);
-      /* الحركة الفعلية من الـ notation */
       const actualMoveStr=snap.move;
-      const f='abcdefgh';
       let actualFrom=null,actualTo=null,promo=null;
       if(actualMoveStr&&actualMoveStr.length>=4){
         try{
@@ -1418,99 +1501,269 @@ const REV={
           }
         }catch(ex){}
       }
-      let actualVal=bestVal;
-      let appliedOk=false;
-      if(actualFrom&&actualTo){
-        try{
-          const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
-          actualVal=E.eval(r2.bd);
-          bd=r2.bd;cas=r2.cas;ep=r2.ep;
-          appliedOk=true;
-        }catch(ex){}
-      }
+      if(!actualFrom||!actualTo)continue;
+      let actualVal=bestVal,appliedOk=false;
+      try{
+        const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
+        actualVal=E.eval(r2.bd);
+        bd=r2.bd;cas=r2.cas;ep=r2.ep;
+        appliedOk=true;
+      }catch(ex){}
       if(!appliedOk)continue;
-      /* الفرق: للأبيض نريد bestVal أعلى من actualVal، للأسود العكس */
+      boards.push(bd.map(r=>[...r]));
+      evalHistory.push(actualVal);
       const diff=isMax?(bestVal-actualVal):(actualVal-bestVal);
-      let rating,score;
+      let rating,score,bestMvStr='';
       if(diff<=0){rating='best';score=100;}
       else if(diff<50){rating='good';score=88;}
       else if(diff<150){rating='inaccuracy';score=65;}
       else if(diff<400){rating='mistake';score=38;if(color==='w')wMistakes++;else bMistakes++;}
       else{rating='blunder';score=5;if(color==='w')wBlunders++;else bBlunders++;}
-      if(color==='w'){wTotal+=score;wCount++;}
-      else{bTotal+=score;bCount++;}
-      /* أفضل حركة عامة */
-      if(rating==='best'&&bestMv){
-        const mv=E.notation(bd,bestMv.from,bestMv.to,null);
-        if(Math.abs(bestVal)>Math.abs(overallBestVal)){overallBestVal=bestVal;overallBestStr=mv;}
-      }
-      const notes={blunder:'خطأ فادح — ضاعت ميزة كبيرة',mistake:'خطأ أضعف الموقف',inaccuracy:'يمكن تحسين هذه الحركة',good:'حركة جيدة',best:'أفضل حركة في الموقف'};
-      moves.push({move:actualMoveStr||'—',color,rating,note:notes[rating]});
+      if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
+      if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,null);}catch(e){}
+      moves.push({
+        move:actualMoveStr||'—',color,rating,score,
+        evalAfter:actualVal,bestVal,bestMv:bestMvStr,
+        from:actualFrom,to:actualTo,
+        moveNum:Math.floor(i/2)+1
+      });
     }
     const wAcc=wCount?Math.round(wTotal/wCount):50;
     const bAcc=bCount?Math.round(bTotal/bCount):50;
     const wName=document.getElementById('nm-w')?.textContent||'الأبيض';
     const bName=document.getElementById('nm-b')?.textContent||'الأسود';
     let highlight='مباراة متوازنة';
-    if(wAcc>=90&&bAcc>=90)highlight='مباراة ممتازة من الطرفين';
+    if(wAcc>=90&&bAcc>=90)highlight='مباراة ممتازة من الطرفين!';
     else if(wAcc>bAcc+20)highlight=`${wName} تفوّق بوضوح`;
     else if(bAcc>wAcc+20)highlight=`${bName} تفوّق بوضوح`;
-    else if(wBlunders+bBlunders>=4)highlight='مباراة مليئة بالأخطاء الكبيرة';
-    else if(wMistakes+bMistakes===0&&wBlunders+bBlunders===0)highlight='مباراة دقيقة — بدون أخطاء!';
+    else if(wBlunders+bBlunders>=4)highlight='مباراة مليئة بالأخطاء';
+    else if(wMistakes+bMistakes===0&&wBlunders+bBlunders===0)highlight='مباراة دقيقة بدون أخطاء!';
     return{
-      summary:{white_accuracy:wAcc,black_accuracy:bAcc,white_blunders:wBlunders,black_blunders:bBlunders,white_mistakes:wMistakes,black_mistakes:bMistakes,best_move:overallBestStr,highlight,wName,bName},
-      moves
+      moves,boards,evalHistory,
+      summary:{wAcc,bAcc,wBlunders,bBlunders,wMistakes,bMistakes,highlight,
+               wName,bName}
     };
-  },
-  _render(data){
-    const s=data.summary||{};
-    const ratingAr={best:'الأفضل',good:'جيد',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح'};
+  }
+
+  /* ══ رسم الرقعة في المراجعة ══ */
+  function _drawBoard(bd,fromSq,toSq){
+    const el=document.getElementById('rv-board');
+    if(!el)return;
+    el.innerHTML='';
+    const th=THEMES[Cfg.data.boardTheme]||THEMES.classic;
+    for(let r=0;r<8;r++){
+      for(let c=0;c<8;c++){
+        const sq=document.createElement('div');
+        const isL=(r+c)%2===0;
+        sq.className='sq '+(isL?'L':'D');
+        sq.style.background=isL?th.l:th.d;
+        if(fromSq&&fromSq[0]===r&&fromSq[1]===c)sq.classList.add('rv-from');
+        if(toSq&&toSq[0]===r&&toSq[1]===c){sq.classList.add('rv-to');sq.style.background='rgba(255,200,0,.32)';}
+        const pc=bd[r][c];
+        if(pc){
+          const p=document.createElement('div');
+          p.className='piece '+pc;
+          sq.appendChild(p);
+        }
+        el.appendChild(sq);
+      }
+    }
+  }
+
+  /* ══ تحديث شريط التقييم في المراجعة ══ */
+  function _updateEvalBar(val){
+    const eb=document.getElementById('rv-ebar-b');
+    const ew=document.getElementById('rv-ebar-w');
+    if(!eb)return;
+    const wp=Math.max(5,Math.min(95,50+val/20));
+    eb.style.flex=100-wp;
+    ew.style.flex=wp;
+  }
+
+  /* ══ رسم بطاقة الحركة ══ */
+  function _updateCard(mv,idx){
+    const ratingAr={best:'الأفضل ✦',good:'جيد',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح ✕'};
     const badgeCls={best:'badge-best',good:'badge-good',inaccuracy:'badge-inaccuracy',mistake:'badge-mistake',blunder:'badge-blunder'};
-    const moveCls={best:'best',good:'good',inaccuracy:'inaccuracy',mistake:'mistake',blunder:'blunder'};
-    const wLabel=s.wName||'الأبيض';
-    const bLabel=s.bName||'الأسود';
-    let html=`<div class="rv-summary">
-      <div class="rv-sum-col">
-        <div class="rv-sum-lbl">♙ ${wLabel}</div>
-        <div class="rv-sum-val" style="color:var(--gold2)">${s.white_accuracy||'—'}%</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:3px">${s.white_blunders||0} فادح · ${s.white_mistakes||0} خطأ</div>
+    const card=document.getElementById('rv-card');
+    if(!card)return;
+    const rat=ratingAr[mv.rating]||mv.rating;
+    const bc=badgeCls[mv.rating]||'badge-good';
+    const isW=mv.color==='w';
+    const pawns=(Math.abs(mv.evalAfter)/100).toFixed(1);
+    const evalSign=mv.evalAfter>=0?'+':'';
+    card.innerHTML=`
+      <div class="rv-card-badge ${bc}">${rat}</div>
+      <div class="rv-card-info">
+        <div class="rv-card-num">${isW?'♙':'♟'} حركة ${mv.moveNum}${isW?' (أبيض)':' (أسود)'}</div>
+        <div class="rv-card-notation">${mv.move}</div>
       </div>
-      <div class="rv-sum-col" style="border-right:1px solid rgba(255,255,255,.06);border-left:1px solid rgba(255,255,255,.06)">
-        <div class="rv-sum-lbl">خلاصة</div>
-        <div style="font-size:11px;color:var(--text2);line-height:1.5;padding:0 4px">${s.highlight||'—'}</div>
-      </div>
-      <div class="rv-sum-col">
-        <div class="rv-sum-lbl">♟ ${bLabel}</div>
-        <div class="rv-sum-val" style="color:var(--text)">${s.black_accuracy||'—'}%</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:3px">${s.black_blunders||0} فادح · ${s.black_mistakes||0} خطأ</div>
-      </div>
-    </div>
-    <div class="rv-moves">`;
-    (data.moves||[]).forEach((m,i)=>{
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:18px;font-weight:700;color:${mv.evalAfter>=0?'var(--gold2)':'var(--text2)'}">${evalSign}${pawns}</div>
+        <div style="font-size:10px;color:var(--text3)">تقييم</div>
+      </div>`;
+  }
+
+  /* ══ تنشيط الشريحة النشطة في strip ══ */
+  function _activateChip(idx){
+    document.querySelectorAll('.rv-chip').forEach((c,i)=>{
+      c.classList.toggle('active',i===idx);
+      if(i===idx)c.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    });
+  }
+
+  /* ══ الانتقال لحركة معينة ══ */
+  function goTo(idx){
+    if(!_data)return;
+    _idx=Math.max(0,Math.min(_data.moves.length-1,idx));
+    const mv=_data.moves[_idx];
+    const bd=_data.boards[_idx+1]||_data.boards[_idx];
+    _drawBoard(bd,mv.from,mv.to);
+    _updateEvalBar(mv.evalAfter);
+    _updateCard(mv,_idx);
+    _activateChip(_idx);
+    /* تحديث أزرار التنقل */
+    const btnPrev=document.getElementById('rv-prev');
+    const btnNext=document.getElementById('rv-next');
+    if(btnPrev)btnPrev.disabled=_idx<=0;
+    if(btnNext)btnNext.disabled=_idx>=_data.moves.length-1;
+    /* تحميل نصيحة الكوتش */
+    _loadCoach(_idx,mv);
+  }
+
+  /* ══ كوتش AI بـ Groq ══ */
+  async function _loadCoach(idx,mv){
+    const coachEl=document.getElementById('rv-coach-txt');
+    if(!coachEl)return;
+    if(_coachCache[idx]!==undefined){
+      coachEl.parentElement.innerHTML=`<div class="rv-coach-lbl">🤖 كوتش</div><div class="rv-coach-txt" id="rv-coach-txt">${_coachCache[idx]}</div>`;
+      return;
+    }
+    /* عرض loading */
+    coachEl.parentElement.innerHTML=`<div class="rv-coach-lbl">🤖 كوتش</div><div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-right:6px">يحلل…</span></div>`;
+    const ratingNames={best:'أفضل حركة',good:'حركة جيدة',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح'};
+    const evalPawns=(mv.evalAfter/100).toFixed(1);
+    const prompt=`أنت كوتش شطرنج محترف. اشرح هذه الحركة باختصار بالعربية المصرية العامية (جملة أو جملتين بالكثير).
+
+الحركة: ${mv.move}
+اللاعب: ${mv.color==='w'?'الأبيض':'الأسود'}
+رقم الحركة: ${mv.moveNum}
+التقييم: ${ratingNames[mv.rating]}
+قيمة الموقف بعد الحركة: ${evalPawns} بيدق
+${mv.bestMv&&mv.rating!=='best'?`أفضل حركة كانت: ${mv.bestMv}`:''}
+
+اشرح ليه الحركة دي ${ratingNames[mv.rating]}، وإيه اللي كان ممكن يتعمل أحسن. كن صريح ومفيد ومشجع.`;
+
+    try{
+      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
+        body:JSON.stringify({
+          model:GROQ_MODEL,
+          messages:[{role:'user',content:prompt}],
+          max_tokens:120,
+          temperature:0.7
+        })
+      });
+      const json=await res.json();
+      const txt=json.choices?.[0]?.message?.content?.trim()||'مفيش تعليق على الحركة دي.';
+      _coachCache[idx]=txt;
+      const coachEl2=document.getElementById('rv-coach-txt');
+      if(coachEl2)coachEl2.parentElement.innerHTML=`<div class="rv-coach-lbl">🤖 كوتش</div><div class="rv-coach-txt" id="rv-coach-txt">${txt}</div>`;
+    }catch(e){
+      const coachEl2=document.getElementById('rv-coach-txt');
+      if(coachEl2)coachEl2.parentElement.innerHTML=`<div class="rv-coach-lbl">🤖 كوتش</div><div class="rv-coach-txt" id="rv-coach-txt" style="color:var(--text3)">تعذر تحميل التحليل.</div>`;
+    }
+  }
+
+  /* ══ بناء واجهة المراجعة ══ */
+  function _buildUI(){
+    const d=_data;
+    const s=d.summary;
+    const badgeCls={best:'best',good:'',inaccuracy:'inaccuracy',mistake:'mistake',blunder:'blunder'};
+    /* شرائح الحركات */
+    const chips=d.moves.map((m,i)=>{
       const num=Math.floor(i/2)+1;
       const isW=m.color==='w';
-      const cls=moveCls[m.rating]||'';
-      const bc=badgeCls[m.rating]||'badge-good';
-      const rat=ratingAr[m.rating]||m.rating||'';
-      html+=`<div class="rv-move ${cls}">
-        <div class="rv-move-num">${isW?num+'.':''}${isW?'':'…'}</div>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-            <span class="rv-move-txt">${m.move||'—'}</span>
-            <span class="rv-move-badge ${bc}">${rat}</span>
-            <span style="font-size:10px;color:var(--text3)">${isW?'♙ أبيض':'♟ أسود'}</span>
-          </div>
-          ${m.note?`<div class="rv-move-note">${m.note}</div>`:''}
+      const cls=badgeCls[m.rating]||'';
+      return `<div class="rv-chip ${cls}" onclick="REV.goTo(${i})" id="rv-chip-${i}">${isW?num+'.':'…'}${m.move}</div>`;
+    }).join('');
+
+    const html=`
+      <!-- ملخص -->
+      <div class="rv-sumbar">
+        <div class="rv-sum-col">
+          <div class="rv-sum-lbl">♙ ${s.wName}</div>
+          <div class="rv-sum-val" style="color:var(--gold2)">${s.wAcc}%</div>
+          <div class="rv-sum-sub">${s.wBlunders} فادح · ${s.wMistakes} خطأ</div>
         </div>
+        <div class="rv-sum-col" style="border-left:1px solid rgba(255,255,255,.07);border-right:1px solid rgba(255,255,255,.07)">
+          <div class="rv-sum-lbl">خلاصة</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.5">${s.highlight}</div>
+        </div>
+        <div class="rv-sum-col">
+          <div class="rv-sum-lbl">♟ ${s.bName}</div>
+          <div class="rv-sum-val" style="color:var(--text)">${s.bAcc}%</div>
+          <div class="rv-sum-sub">${s.bBlunders} فادح · ${s.bMistakes} خطأ</div>
+        </div>
+      </div>
+      <!-- الرقعة + eval bar -->
+      <div class="rv-board-row">
+        <div class="rv-ebar" id="rv-ebar">
+          <div class="rv-ebar-b" id="rv-ebar-b" style="flex:50"></div>
+          <div class="rv-ebar-w" id="rv-ebar-w" style="flex:50"></div>
+        </div>
+        <div class="rv-board-wrap">
+          <div id="rv-board"></div>
+        </div>
+      </div>
+      <!-- بطاقة الحركة -->
+      <div class="rv-card" id="rv-card"></div>
+      <!-- كوتش AI -->
+      <div class="rv-coach" id="rv-coach">
+        <div class="rv-coach-lbl">🤖 كوتش</div>
+        <div class="rv-coach-txt" id="rv-coach-txt">اختر حركة لتحليلها</div>
+      </div>
+      <!-- شريط التنقل -->
+      <div class="rv-nav">
+        <button class="rv-nbtn" id="rv-first" onclick="REV.goTo(0)" title="أول حركة">⏮</button>
+        <button class="rv-nbtn" id="rv-prev" onclick="REV.prev()" title="السابقة">◀</button>
+        <div class="rv-strip" id="rv-strip">${chips}</div>
+        <button class="rv-nbtn" id="rv-next" onclick="REV.next()" title="التالية">▶</button>
+        <button class="rv-nbtn" id="rv-last" onclick="REV.goTo(${d.moves.length-1})" title="آخر حركة">⏭</button>
       </div>`;
-    });
-    html+='</div>';
-    if(s.best_move&&s.best_move!=='—'){
-      html+=`<div style="margin-top:12px;padding:9px 12px;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.18);border-radius:9px;font-size:12px;color:var(--green)">◆ أفضل حركة في المباراة: <strong>${s.best_move}</strong></div>`;
-    }
-    document.getElementById('rv-content').innerHTML=html;
+
+    document.getElementById('rv-main').innerHTML=html;
+    /* انتقل للحركة الأولى */
+    goTo(0);
   }
-};
+
+  return{
+    open(){
+      if(S.hist.length<4){alert('المباراة قصيرة جداً للتقييم');return;}
+      _coachCache={};
+      document.getElementById('review-ov').classList.add('open');
+      document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>`;
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        try{
+          _data=_analyze();
+          if(!_data||!_data.moves.length){
+            document.getElementById('rv-main').innerHTML=`<div style="color:var(--text2);padding:30px;text-align:center">لا توجد بيانات كافية</div>`;
+            return;
+          }
+          _idx=0;
+          _boards=_data.boards;
+          _buildUI();
+        }catch(e){
+          document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذر التحليل</div>`;
+        }
+      }));
+    },
+    close(){document.getElementById('review-ov').classList.remove('open');},
+    goTo(i){goTo(i);},
+    prev(){if(_idx>0)goTo(_idx-1);},
+    next(){if(_data&&_idx<_data.moves.length-1)goTo(_idx+1);}
+  };
+})();
 
 /* ══════════════════════════════════════
    ASSISTANT
@@ -1985,6 +2238,8 @@ const G={
     AST.clear();
     if(S.turn==='w')S.moveCount++;
     S.turn=E.opp(S.turn);
+    /* تحديث شريط التقييم */
+    EVALBAR.update(S.bd);
     /* في وضع لاعبَان: حدّث S.assistOn حسب اللاعب الجديد */
     if(S.mode==='local'){
       S.assistOn=S.turn==='w'?S.assistW:S.assistB;
@@ -2224,35 +2479,25 @@ const Nav={
    - للأسود: bar-w فوق اللوح (الخصم فوق)، bar-b تحت (أنا تحت)
 ══════════════════════════════════════ */
 function fixBars(myCol){
-  const bwrap=document.getElementById('bwrap');
+  const container=document.getElementById('board-container');
   const barB=document.getElementById('bar-b');
   const barW=document.getElementById('bar-w');
   const parent=document.getElementById('s-game');
 
   /* نزيل القديم من DOM ثم نعيد ترتيبه */
-  if(parent.contains(barB))parent.removeChild(barB);
-  if(parent.contains(bwrap))parent.removeChild(bwrap);
-  if(parent.contains(barW))parent.removeChild(barW);
+  if(barB.parentNode===parent)parent.removeChild(barB);
+  if(container.parentNode===parent)parent.removeChild(container);
+  if(barW.parentNode===parent)parent.removeChild(barW);
 
-  /* نحضر مرجع عنصر gtop */
-  const gtop=document.getElementById('s-game').querySelector('.gtop');
   const gtbar=document.getElementById('s-game').querySelector('.gtbar');
 
   if(myCol==='b'){
-    /* الأسود يلعب من الأسفل:
-       - فوق اللوح: bar-w (الخصم الأبيض)
-       - تحت اللوح: bar-b (أنا الأسود)
-    */
     gtbar.parentNode.insertBefore(barW, gtbar);
-    gtbar.parentNode.insertBefore(bwrap, gtbar);
+    gtbar.parentNode.insertBefore(container, gtbar);
     gtbar.parentNode.insertBefore(barB, gtbar);
   }else{
-    /* الأبيض أو كلاهما:
-       - فوق اللوح: bar-b (الخصم الأسود)
-       - تحت اللوح: bar-w (أنا الأبيض أو اللاعب الأسفل)
-    */
     gtbar.parentNode.insertBefore(barB, gtbar);
-    gtbar.parentNode.insertBefore(bwrap, gtbar);
+    gtbar.parentNode.insertBefore(container, gtbar);
     gtbar.parentNode.insertBefore(barW, gtbar);
   }
 }
@@ -2529,6 +2774,14 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
   });
 }
+
+/* تنقل لوحة المفاتيح في المراجعة */
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('review-ov').classList.contains('open'))return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();REV.next();}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();REV.prev();}
+  else if(e.key==='Escape'){REV.close();}
+});
 </script>
 </body>
 </html>
