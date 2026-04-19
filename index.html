@@ -500,14 +500,20 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     max-width:var(--board);
     z-index:10;
   }
+  /* نجعل الرقعة + الشات + التاريخ في عمود مركزي */
+  #s-game{
+    align-items:center;
+  }
+
   .chat-wrap{
-    position:absolute;
-    bottom:100px;
+    position:fixed;
+    bottom:110px;
     left:50%;
     transform:translateX(-50%);
-    width:var(--board);
-    max-width:var(--board);
-    z-index:10;
+    width:min(var(--board), 580px);
+    max-width:580px;
+    max-height:220px;
+    z-index:50;
   }
 
   /* البارات تصبح عمودية — معلومات اللاعب من فوق لأسفل */
@@ -553,7 +559,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <span class="mc-ic ic-teal">⊕</span>
       <div class="mc-t">أونلاين</div>
       <div class="mc-d">العب مع صديق في أي مكان بالعالم</div>
-      <span class="mc-b bt">اتصال مباشر P2P</span>
+      <span class="mc-b bt">سيرفر WebSocket ✓</span>
     </div>
 
     <div class="mc" onclick="SFX.btn();Nav.levels()">
@@ -1318,8 +1324,7 @@ const CHAT={
     const txt=inp.value.trim();if(!txt)return;
     inp.value='';
     this._addMsg(txt,'me');
-    const conn=_getActiveConn();
-    if(conn&&conn.open)conn.send({type:'chat',text:txt});
+    if(S.mode==='online')OL.sendChat(txt);
   },
   recv(text){this._addMsg(text,'opp');},
   sys(text){this._addMsg(text,'sys');},
@@ -1347,11 +1352,7 @@ const CHAT={
   }
 };
 
-/* helper لإيجاد الـ conn الحالي (online أو lan) */
-function _getActiveConn(){
-  if(S.mode==='online')return OL._conn();
-  return null;
-}
+
 
 /* ══════════════════════════════════════
    REVIEW — تقييم المباراة محلياً بالخوارزمية
@@ -2263,8 +2264,18 @@ function fixBars(myCol){
    على Back4app (أو أي hosting)
 ══════════════════════════════════════ */
 const OL=(()=>{
-  /* ★ غيّر هذا العنوان بعد رفع السيرفر على Back4app ★ */
-  const SERVER_URL='wss://chess-vbqsoqxp.b4a.run';
+  /* ★ يتم جلب عنوان السيرفر تلقائياً من GitHub ★ */
+  let SERVER_URL='';
+  async function loadServerUrl(){
+    try{
+      const r=await fetch('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t='+Date.now());
+      const j=await r.json();
+      SERVER_URL=j.url.replace('https://','wss://');
+    }catch(e){
+      SERVER_URL='';
+    }
+  }
+  loadServerUrl();
 
   let ws=null;
   let _myCol='w';
@@ -2298,6 +2309,19 @@ const OL=(()=>{
   /* ══ Connect to server ══ */
   function connect(onOpen){
     destroy();
+    if(!SERVER_URL){
+      setSt('c','◌ جاري تحميل بيانات الخادم...','conn');
+      setSt('j','◌ جاري تحميل بيانات الخادم...','conn');
+      loadServerUrl().then(()=>{
+        if(!SERVER_URL){
+          setSt('c','✕ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
+          setSt('j','✕ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
+          return;
+        }
+        connect(onOpen);
+      });
+      return;
+    }
     setSt('c','◌ جاري الاتصال بالخادم...','conn');
     setSt('j','◌ جاري الاتصال بالخادم...','conn');
     try{
@@ -2470,6 +2494,7 @@ const OL=(()=>{
     },
     sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
     sendAssist(on){send({type:'assist',on});},
+    sendChat(txt){send({type:'chat',text:txt});},
     sendResign(){
       send({type:'resign'});
       setTimeout(()=>destroy(),400);
