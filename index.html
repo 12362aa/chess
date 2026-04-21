@@ -221,7 +221,24 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .chat-badge.show{display:inline-flex;}
 
 /* ══════════ GAME ══════════ */
-#s-game{flex-direction:column;align-items:center;min-height:100dvh;padding:36px 0 8px;gap:2px;overflow-x:hidden;}
+#s-game{flex-direction:column;align-items:center;min-height:100dvh;padding:46px 0 24px;gap:12px;overflow-x:hidden;justify-content: flex-start;}
+@media(min-width:1000px){
+  #s-game{
+    display:grid;
+    grid-template-columns: 280px 1fr 280px;
+    grid-template-rows: auto auto 1fr;
+    gap: 20px;
+    padding: 60px 40px;
+    align-items: start;
+  }
+  .gtop { grid-column: 1 / -1; grid-row: 1; position: static !important; transform: none !important; margin: 0 auto 20px; width: 100% !important; max-width: 800px !important; }
+  #nour-bubble { grid-column: 1 / -1; grid-row: 2; margin-bottom: 20px; }
+  #bar-b { grid-column: 1; grid-row: 3; }
+  #board-container { grid-column: 2; grid-row: 3; justify-self: center; }
+  #bar-w { grid-column: 3; grid-row: 3; }
+  .gtbar, .sbar, .mvhist { grid-column: 2; width: 100% !important; max-width: 600px !important; margin: 5px auto; }
+  .chat-wrap { grid-column: 3; grid-row: 4; margin-top: 20px; display: flex !important; position: static !important; }
+}
 .gtop{display:flex;align-items:center;gap:7px;width:100%;max-width:510px;}
 .bsm{background:var(--bg2);border:1px solid rgba(201,168,76,.12);color:var(--gold2);padding:7px 11px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;position:relative;overflow:hidden;}
 .bsm:hover{border-color:rgba(201,168,76,.36);background:rgba(201,168,76,.06);transform:scale(1.03);}
@@ -1196,6 +1213,7 @@ const PST={
   Q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],
   K:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]],
 };
+/* En Passant is confirmed to be implemented in E.raw, E.legal and E.apply */
 const E={
   col:p=>p?p[0]:null, tp:p=>p?p[1]:null, opp:c=>c==='w'?'b':'w',
   inb:(r,c)=>r>=0&&r<8&&c>=0&&c<8, clone:b=>b.map(r=>[...r]),
@@ -2275,7 +2293,8 @@ const G={
     if(S.mode==='online')OL.sendMove({fr,to,promo});
     this.applyMove(fr,to,promo);
   },
-  applyMove(fr,to,promo){
+    applyMove(fr,to,promo){
+    const cl=E.col(S.bd[fr[0]][fr[1]]);
     /* مسح sel/legal دايماً — لكن preMove نمسحه بس لما يكون دور اللاعب نفسه (مش الخصم) */
     /* في الأونلاين: لما الخصم يلعب S.turn !== S.myCol، فنحتفظ بـ preMove */
     const isOwnMove=S.mode!=='online'||(S.turn===S.myCol);
@@ -2327,6 +2346,10 @@ const G={
     else                SFX.move();
     R.all();
     R.ripple(to[0],to[1]);
+    if(S.mode==='bot' || S.mode==='local') {
+        const lastMoveNot = S.hist[S.hist.length-1];
+        NOUR_CHAT.onMove(S.moveCount, res.cap, isCheck, lastMoveNot, cl);
+    }
     /* أنيميشن الحركة */
     setTimeout(()=>{
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
@@ -3070,18 +3093,16 @@ const NOUR_CHAT=(()=>{
       say(prompt);
     },
     /* يُستدعى بعد كل حركة (بتردد محدود) */
-    onMove(moveCount,isCapture,isCheck){
+    onMove(moveCount,isCapture,isCheck,lastMoveNotation,playerColor){
       const now=Date.now();
-      if(now-_lastMove<8000)return; /* لا تعلّق على كل حركة */
+      if(now-_lastMove<4000)return; 
       _lastMove=now;
-      /* علّق على الحركات المهمة فقط */
-      if(isCheck){
-        const prompt='أنت مدرب شطرنج. اللاعب وضع الملك في كش. قل له جملة تشجيعية مختصرة جداً بالعربية الفصحى (جملة واحدة فقط).';
-        say(prompt);
-      }else if(isCapture&&moveCount%5===0){
-        const prompt='أنت مدرب شطرنج. اللاعب أكل قطعة من الخصم. قل له ملاحظة تكتيكية مختصرة جداً (جملة واحدة فقط بالعربية الفصحى).';
-        say(prompt);
-      }
+      let prompt = `أنت "نور"، مدرب شطرنج ذكي وتفاعلي مثل بوتات chess.com. علّق باختصار شديد (جملة واحدة فقط) بالعربية الفصحى على الحركة الأخيرة: "${lastMoveNotation}" التي قام بها اللاعب (${playerColor === 'w' ? 'الأبيض' : 'الأسود'}).`;
+      if(isCheck) prompt += " الحركة أدت إلى كش الملك!";
+      if(isCapture) prompt += " الحركة تضمنت أكل قطعة.";
+      if(moveCount < 10) prompt += " نحن لا نزال في مرحلة الافتتاح.";
+      prompt += " كن مرحاً، محفزاً، وناقداً تقنياً عند الحاجة. لا ترحب باللاعب، بل علّق على الموقف الحالي.";
+      say(prompt);
     },
     /* يُستدعى عند انتهاء المرحلة */
     levelEnd(won,stars){
