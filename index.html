@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="screen-orientation" content="portrait">
 <meta name="theme-color" content="#0a0a14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -72,7 +71,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* ══════════ SCREENS ══════════ */
 .screen{display:none;position:relative;z-index:1;padding-top:36px;}
 .screen.active{display:flex;animation:sfd .35s cubic-bezier(.25,.46,.45,.94);}
-@media(min-width:900px){#s-game.active{display:grid!important;}}
 @keyframes sfd{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 .ic-gold{color:var(--gold2);}.ic-teal{color:var(--teal2);}.ic-green{color:var(--green);}.ic-blue{color:var(--blue);}.ic-t2{color:var(--text2);}
 
@@ -283,7 +281,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq:hover .piece{transform:scale(1.06);}
 .sq.SL:hover .piece,.sq.SD:hover .piece{transform:scale(1.16);}
 .piece.dragging{opacity:0!important;}
-.drag-ghost{position:fixed;pointer-events:none;z-index:9999;width:calc(var(--sq)*1.15);height:calc(var(--sq)*1.15);background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 8px 20px rgba(0,0,0,.7));transform:translate(-50%,-50%);will-change:transform;}
+.drag-ghost{position:fixed;left:0;top:0;pointer-events:none;z-index:9999;width:calc(var(--sq)*1.25);height:calc(var(--sq)*1.25);background-size:contain;background-repeat:no-repeat;background-position:center;background-color:transparent;filter:drop-shadow(0 8px 20px rgba(0,0,0,.7));transform:translate(-50%,-50%);will-change:transform;}
 .ast-star{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:calc(var(--sq)*.38);color:rgba(96,165,250,.9);text-shadow:0 0 10px rgba(96,165,250,.7);pointer-events:none;z-index:5;animation:starPulse 1s ease-in-out infinite;}
 @keyframes starPulse{0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
 @keyframes pieceMove{0%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
@@ -413,8 +411,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   border-radius:14px;
   padding:10px 14px;
   gap:10px;
-  align-items:center;
+  align-items:center; /* center بدل flex-start لمنع التمدد */
+  /* ارتفاع ثابت — لا يتغير مهما طال النص */
+  height:58px;
   overflow:hidden;
+  flex-shrink:0;
 }
 #nour-bubble.show{display:flex;}
 .nour-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.3),rgba(201,168,76,.1));border:2px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
@@ -452,123 +453,198 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 }
 
 /* ══════════ LANDSCAPE ══════════ */
-@media (orientation:landscape) and (max-height:520px){
-  :root{--board:min(82vh,420px);}
-  /* وضع لاعبَان على الهاتف أفقياً — CSS خاص */
-  #s-game:not(.mode-local){flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;padding:40px 4px 6px;gap:4px;}
-  #s-game:not(.mode-local) .gtop{width:100%;order:-2;max-width:none;margin-bottom:0;}
-  #s-game:not(.mode-local) #board-container{order:0;align-self:flex-start;}
-  #s-game:not(.mode-local) #bar-b{order:-1;flex:1;min-width:130px;max-width:170px;max-height:none;}
-  #s-game:not(.mode-local) #bar-w{order:1;flex:1;min-width:130px;max-width:170px;max-height:none;}
-  #s-game:not(.mode-local) .gtbar{order:2;width:auto;flex:1;min-width:130px;max-width:170px;flex-direction:column;}
-  #s-game:not(.mode-local) .sbar{order:3;width:100%;max-width:none;font-size:11px;min-height:30px;}
-  #s-game:not(.mode-local) .mvhist{order:4;width:100%;max-width:none;max-height:32px;}
-  #s-game:not(.mode-local) .chat-wrap{order:5;width:100%;max-width:none;}
+@media (orientation:landscape) and (max-height:600px){
+  :root{--board:min(88vh,480px);}
+  #s-game{flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;padding:40px 4px 6px;gap:4px;}
+  .gtop{width:100%;order:-2;max-width:none;margin-bottom:0;}
+  .bwrap{order:0;align-self:flex-start;}
+  #board-container{order:0;align-self:flex-start;}
+  #bar-b{order:-1;flex:1;min-width:110px;max-width:160px;max-height:none;}
+  #bar-w{order:1;flex:1;min-width:110px;max-width:160px;max-height:none;}
+  .gtbar{order:2;width:auto;flex:1;min-width:110px;max-width:160px;flex-direction:column;}
+  .sbar{order:3;width:100%;max-width:none;font-size:11px;min-height:28px;}
+  .mvhist{order:4;width:100%;max-width:none;max-height:28px;}
+  .chat-wrap{order:5;width:100%;max-width:none;}
   .sc-row{display:none!important;}
-  .pb-timer{font-size:15px;min-width:38px;}
-  /* وضع لاعبَان أفقي — رقعة كبيرة في المنتصف، بار لكل لاعب جانب */
-  #s-game.mode-local{
-    display:grid!important;
-    grid-template-columns:minmax(100px,1fr) var(--board) minmax(100px,1fr)!important;
-    grid-template-rows:auto auto auto auto;
-    column-gap:3px;row-gap:2px;
-    padding:38px 2px 4px;
-    align-items:center;
-    justify-content:center;
-  }
-  #s-game.mode-local .gtop{grid-column:1/-1;grid-row:1;width:100%!important;max-width:none!important;position:static!important;transform:none!important;margin-bottom:0;}
-  #s-game.mode-local #bar-w{grid-column:1;grid-row:2;width:100%;max-width:none;align-self:center;}
-  #s-game.mode-local #board-container{grid-column:2;grid-row:2;justify-self:center;align-self:start;}
-  #s-game.mode-local #bar-b{grid-column:3;grid-row:2;width:100%;max-width:none;align-self:center;}
-  #s-game.mode-local .gtbar{grid-column:2;grid-row:3;width:100%!important;flex-direction:row;}
-  #s-game.mode-local .sbar{grid-column:1/-1;grid-row:4;width:100%!important;text-align:center;}
-  #s-game.mode-local .mvhist{display:none;}
-  #s-game.mode-local .chat-wrap{display:none!important;}
-  #s-game.mode-local #nour-bubble{display:none!important;}
+  .pb-timer{font-size:14px;min-width:36px;}
+  .pb-nm{font-size:11px;}
+  .pb-av{width:22px;height:22px;font-size:11px;}
 }
-@media (orientation:landscape) and (min-height:521px) and (max-height:700px){:root{--board:min(78vh,480px);}}
+@media (orientation:landscape) and (min-height:601px) and (max-height:800px){:root{--board:min(78vh,520px);}}
 
 /* ══════════ DESKTOP LAYOUT ══════════ */
 @media (min-width:900px){
-  :root{--board:min(78vh,580px);}
+  :root{--board:min(76vh,620px);}
 
-  /* Grid الأساسي: bar-w | رقعة | bar-b */
   #s-game{
     display:grid;
-    grid-template-columns:220px var(--board) 220px;
+    grid-template-columns:230px var(--board) 230px;
     grid-template-rows:auto auto auto auto auto auto;
     column-gap:14px;
-    row-gap:6px;
+    row-gap:5px;
     align-items:start;
     justify-content:center;
+    padding:56px 16px 20px;
     min-height:100dvh;
-    padding:50px 16px 20px;
   }
 
-  /* gtop في الصف الأول يمتد على العرض كله — sticky لا fixed */
+  /* gtop — شريط أزرار في العمود الأوسط فوق الرقعة مباشرة */
   .gtop{
-    grid-column:1/-1;
+    grid-column:2;
     grid-row:1;
     justify-self:center;
-    position:sticky;
-    top:40px;
+    position:static;
     z-index:200;
-    width:auto!important;
-    min-width:340px;
-    max-width:600px!important;
+    width:var(--board)!important;
+    max-width:var(--board)!important;
     background:rgba(10,10,20,.95);
     backdrop-filter:blur(14px);
     border-radius:11px;
     padding:6px 14px;
     border:1px solid rgba(201,168,76,.18);
     box-shadow:0 4px 20px rgba(0,0,0,.4);
+    margin-bottom:0;
     transform:none!important;
-    margin-bottom:2px;
   }
 
-  /* nour-bubble — صف ثانٍ يمتد على العرض كله، ارتفاع ثابت لا يدفع الرقعة */
+  /* nour-bubble — سطر ثانٍ في العمود الأوسط */
   #nour-bubble{
-    grid-column:1/-1;
+    grid-column:2;
     grid-row:2;
     justify-self:center;
     max-width:var(--board);
     width:100%;
     overflow:hidden;
-    max-height:56px;
-    min-height:56px;
   }
 
   /* bars اللاعبين في الجانبين */
-  #bar-w     {grid-column:1; grid-row:3; width:100%; max-width:none;}
-  #bar-b     {grid-column:3; grid-row:3; width:100%; max-width:none;}
+  #bar-b{grid-column:3;grid-row:3;width:100%;max-width:none;align-self:center;}
+  #bar-w{grid-column:1;grid-row:3;width:100%;max-width:none;align-self:center;}
 
   /* الرقعة في المنتصف */
-  #board-container{grid-column:2; grid-row:3; justify-self:center; align-self:start;}
+  #board-container{grid-column:2;grid-row:3;justify-self:center;align-self:start;}
 
   /* عناصر تحت الرقعة */
-  .gtbar {grid-column:2; grid-row:4; width:var(--board)!important; max-width:var(--board)!important;}
-  .sbar  {grid-column:2; grid-row:5; width:var(--board)!important; max-width:var(--board)!important;}
-  .mvhist{grid-column:2; grid-row:6; width:var(--board)!important; max-width:var(--board)!important;}
+  .gtbar {grid-column:2;grid-row:4;width:var(--board)!important;max-width:var(--board)!important;}
+  .sbar  {grid-column:2;grid-row:5;width:var(--board)!important;max-width:var(--board)!important;}
+  .mvhist{grid-column:2;grid-row:6;width:var(--board)!important;max-width:var(--board)!important;}
 
-  /* chat في العمود الأيسر تحت bar-b */
+  /* chat في العمود الأيسر */
   .chat-wrap{
     grid-column:3;
     grid-row:4/span 3;
     position:static;
     width:100%;
     max-width:none;
-    max-height:260px;
+    max-height:280px;
     transform:none;
     margin-top:0;
     display:flex!important;
   }
 
   /* pbar عرض كامل */
-  .pbar{width:100%; max-width:none;}
+  .pbar{width:100%;max-width:none;}
 
-  /* sc-row يظهر */
+  /* sc-row يظهر على الكمبيوتر */
   #s-game .sc-row{display:flex!important;}
 }
+/* ══════════ LOCAL 2P — إخفاء pre-move ══════════ */
+/* في وضع لاعبَان لا يوجد pre-move — نخفي التظليل الأحمر */
+#s-game.mode-local .sq.PM-FROM,
+#s-game.mode-local .sq.PM{
+  background:unset !important;
+  box-shadow:unset !important;
+}
+
+/* ══════════ LOCAL 2P HORIZONTAL ON DESKTOP ══════════ */
+@media (min-width:900px){
+  #s-game.mode-local{
+    grid-template-columns:220px var(--board) 220px;
+  }
+  #s-game.mode-local .gtop{
+    grid-column:2;grid-row:1;
+    width:var(--board)!important;max-width:var(--board)!important;
+    justify-self:center;
+  }
+  #s-game.mode-local #bar-w{
+    grid-column:1;grid-row:3;
+    width:100%;max-width:none;align-self:center;
+  }
+  #s-game.mode-local #bar-b{
+    grid-column:3;grid-row:3;
+    width:100%;max-width:none;align-self:center;
+  }
+  #s-game.mode-local #nour-bubble{display:none!important;}
+}
+
+/* ══════════ LOCAL 2P LANDSCAPE ON MOBILE ══════════ */
+/* وضع لاعبَان أفقي على الهاتف — رقعة كبيرة في المنتصف، باران على الجانبين */
+@media (orientation:landscape) and (max-height:600px){
+  :root{--board:min(88vh,480px);}
+  #s-game.mode-local{
+    display:grid !important;
+    grid-template-columns:minmax(100px,1fr) var(--board) minmax(100px,1fr) !important;
+    grid-template-rows:auto auto auto auto auto;
+    column-gap:3px;row-gap:2px;
+    align-items:start;
+    justify-content:center;
+    padding:38px 2px 4px;
+    min-height:100dvh;
+  }
+  /* gtop يمتد على العرض كله */
+  #s-game.mode-local .gtop{
+    grid-column:1/-1;grid-row:1;
+    width:100%!important;max-width:none!important;
+    position:static!important;transform:none!important;
+    padding:4px 8px;border-radius:8px;
+  }
+  /* bar الأبيض على اليسار */
+  #s-game.mode-local #bar-w{
+    grid-column:1;grid-row:2;
+    order:unset;width:100%;
+    max-width:unset;min-width:unset;
+    align-self:center;
+  }
+  /* الرقعة في المنتصف */
+  #s-game.mode-local #board-container{
+    grid-column:2;grid-row:2;
+    order:unset;align-self:center;
+  }
+  /* bar الأسود على اليمين */
+  #s-game.mode-local #bar-b{
+    grid-column:3;grid-row:2;
+    order:unset;width:100%;
+    max-width:unset;min-width:unset;
+    align-self:center;
+  }
+  /* toolbar تحت الرقعة */
+  #s-game.mode-local .gtbar{
+    grid-column:2;grid-row:3;
+    order:unset;width:100%;max-width:none;
+    flex-direction:row;
+  }
+  #s-game.mode-local .sbar{
+    grid-column:1/-1;grid-row:4;order:unset;
+    font-size:11px;
+  }
+  #s-game.mode-local .mvhist{
+    grid-column:1/-1;grid-row:5;order:unset;
+    max-height:24px;
+  }
+  #s-game.mode-local .chat-wrap{display:none!important;}
+  #s-game.mode-local #nour-bubble{display:none!important;}
+  /* pbar compact في landscape */
+  #s-game.mode-local .pbar{border-radius:8px;}
+  #s-game.mode-local .pbar-top{padding:4px 6px;flex-wrap:wrap;gap:2px;}
+  #s-game.mode-local .pb-nm{font-size:10px;}
+  #s-game.mode-local .pb-av{width:20px;height:20px;font-size:10px;}
+  #s-game.mode-local .pb-caps{font-size:9px;}
+  #s-game.mode-local .pb-timer{font-size:13px;min-width:30px;}
+  #s-game.mode-local .sc-row{display:none!important;}
+  #s-game.mode-local .pb-ast{display:none;}
+  #s-game.mode-local .pb-ast-btn{width:20px;height:20px;font-size:11px;}
+}
+
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:4px;}
@@ -970,7 +1046,7 @@ const SFX=(()=>{
       const src=c.createBufferSource();
       const gain=c.createGain();
       src.buffer=buf;
-      gain.gain.value=Math.min(1.0,(Cfg.data.vol/100)*1.8);
+      gain.gain.value=Math.min(1.0, (Cfg.data.vol/100) * 1.8);
       src.connect(gain);gain.connect(c.destination);
       src.start(0);
     }catch(e){}
@@ -2185,10 +2261,6 @@ const G={
     AST.clear();
     R.boardReset();
     CHAT.hide();
-    /* تحديث class الوضع على #s-game */
-    const sg=document.getElementById('s-game');
-    sg.classList.remove('mode-local','mode-bot','mode-online');
-    sg.classList.add('mode-'+mode);
     /* نور تُخفى فقط إذا لم تكن مرحلة — startLevel سيعيد إظهارها */
     const b=document.getElementById('nour-bubble');if(b)b.classList.remove('show');
     document.getElementById('go-ov').classList.remove('open');
@@ -2199,7 +2271,10 @@ const G={
   },
   start(mode,diff){
     this._reset(mode,diff);
+    const sg=document.getElementById('s-game');
+    sg.classList.remove('mode-local','mode-bot','mode-online');
     if(mode==='local'){
+      sg.classList.add('mode-local');
       document.getElementById('nm-w').textContent='اللاعب الأبيض';
       document.getElementById('nm-b').textContent='اللاعب الأسود';
       document.getElementById('gmode').textContent='⚔ لاعبَان';
@@ -2209,6 +2284,9 @@ const G={
   startLevel(id){
     const lv=LEVELS_DEF[id];
     this._reset('bot',lv.depth);
+    const sg=document.getElementById('s-game');
+    sg.classList.remove('mode-local','mode-bot','mode-online');
+    sg.classList.add('mode-bot');
     S.levelId=id;S.myCol='w';
     const pn=Cfg.data.playerName||'أنت';
     document.getElementById('nm-w').textContent=pn;
@@ -2222,11 +2300,12 @@ const G={
   click(r,c){
     if(S.over||S.pending)return;
 
-    /* ---- اللعب المسبق (pre-move) — أونلاين وبوت فقط، لا لاعبَان ---- */
-    const isWaitingTurn=S.mode!=='local'&&(
-                        (S.mode==='online'&&S.turn!==S.myCol)||
-                        (S.mode==='bot'&&S.turn==='b'));
-    if(isWaitingTurn){
+    /* ---- اللعب المسبق (pre-move) ---- */
+    /* في الأونلاين فقط: دور الخصم | في البوت: البوت يفكر */
+    /* في لاعبَان: لا يوجد pre-move إطلاقاً */
+    const isWaitingTurn=(S.mode==='online'&&S.turn!==S.myCol)||
+                        (S.mode==='bot'&&S.turn==='b');
+    if(isWaitingTurn&&S.mode!=='local'){
       const myCol=S.mode==='bot'?'w':S.myCol;
       /* لو ضغط على قطعته — نحدد مصدر الحجز */
       if(S.bd[r][c]&&E.col(S.bd[r][c])===myCol){
@@ -2326,10 +2405,18 @@ const G={
     else                SFX.move();
     R.all();
     R.ripple(to[0],to[1]);
-    /* نور يعلّق فقط في وضع المراحل */
-    if(S.mode==='bot'&&S.levelId>=0){
-      const lastMoveNot=S.hist[S.hist.length-1];
-      NOUR_CHAT.onMove(S.moveCount,res.cap,isCheck,lastMoveNot,cl);
+    if(S.mode==='bot' || S.mode==='local') {
+        const lastMoveNot = S.hist[S.hist.length-1];
+        const evalDiff = E.eval(S.bd); /* تقييم الموقف بعد الحركة */
+        if(S.mode==='bot'){
+          if(cl==='b'){
+            /* حركة نور */
+            NOUR_CHAT.onNourMove(lastMoveNot, res.cap, isCheck, evalDiff);
+          } else {
+            /* حركة اللاعب */
+            NOUR_CHAT.onPlayerMove(lastMoveNot, res.cap, isCheck, evalDiff);
+          }
+        }
     }
     /* أنيميشن الحركة */
     setTimeout(()=>{
@@ -2376,6 +2463,7 @@ const G={
             NOUR_CHAT.levelEnd(true,stars);
             this._showLevelWin(stars);
           }else{
+            /* نور فاز — اللاعب خسر المرحلة */
             if(S.levelId>=0&&w==='b'){NOUR_CHAT.levelEnd(false,0);}
             this.showOver('✦','كش مات!',`${nm} يفوز!`,'#e8d080');
             // إظهار زر تقييم المباراة
@@ -2549,21 +2637,32 @@ const Nav={
    FIX BARS
    ══════════════════════════════════════
    ترتيب الـ bars حول اللوح:
-   - للأبيض أو كلاهما: bar-b فوق اللوح (الخصم فوق)، bar-w تحت (أنا تحت)
-   - للأسود: bar-w فوق اللوح (الخصم فوق)، bar-b تحت (أنا تحت)
+   - للأبيض أو كلاهما (local): bar-b يمين، bar-w يسار
+   - للأسود: bar-w فوق اللوح، bar-b تحت (موبايل)
+   على الكمبيوتر: الـ CSS grid يتحكم في المكان
 ══════════════════════════════════════ */
 function fixBars(myCol){
+  const isDesktop=window.innerWidth>=900;
   const container=document.getElementById('board-container');
   const barB=document.getElementById('bar-b');
   const barW=document.getElementById('bar-w');
   const parent=document.getElementById('s-game');
 
-  /* نزيل القديم من DOM ثم نعيد ترتيبه */
+  /* على الكمبيوتر في وضع لاعبَان: الـ CSS grid يتحكم — لا نحتاج DOM reorder */
+  if(isDesktop&&myCol==='both'){
+    /* تأكد أن العناصر في الـ parent */
+    [barB,container,barW].forEach(el=>{
+      if(el.parentNode!==parent)parent.insertBefore(el,parent.querySelector('.gtbar'));
+    });
+    return;
+  }
+
+  /* موبايل أو أونلاين/بوت: DOM reorder كالسابق */
   if(barB.parentNode===parent)parent.removeChild(barB);
   if(container.parentNode===parent)parent.removeChild(container);
   if(barW.parentNode===parent)parent.removeChild(barW);
 
-  const gtbar=document.getElementById('s-game').querySelector('.gtbar');
+  const gtbar=parent.querySelector('.gtbar');
 
   if(myCol==='b'){
     gtbar.parentNode.insertBefore(barW, gtbar);
@@ -2748,6 +2847,9 @@ const OL=(()=>{
     const oc=E.opp(mc);
     G._reset('online',0);
     S.mode='online';S.levelId=-1;S.myCol=mc;
+    const sg=document.getElementById('s-game');
+    sg.classList.remove('mode-local','mode-bot','mode-online');
+    sg.classList.add('mode-online');
     document.getElementById('gmode').textContent='⊕ أونلاين';
     const myName=Cfg.data.playerName||'أنا';
     const oppLabel=(oppName&&oppName.trim())?oppName.trim():'الخصم';
@@ -2875,10 +2977,13 @@ const DRAG=(()=>{
     if(ghost)ghost.remove();
     ghost=document.createElement('div');
     ghost.className='drag-ghost '+pc;
-    /* لا نستخدم cssText حتى لا نُلغي CSS الـ drag-ghost */
+    /* نحط الـ styles بشكل منفصل عشان مانمسحش الـ background-image من CSS */
+    ghost.style.position='fixed';
     ghost.style.left='0';
     ghost.style.top='0';
     ghost.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;
+    ghost.style.pointerEvents='none';
+    ghost.style.zIndex='9999';
     document.body.appendChild(ghost);
     /* أخفِ القطعة الأصلية */
     const sq=document.querySelector(`#board .sq[data-r="${r}"][data-c="${c}"]`);
@@ -3020,127 +3125,189 @@ const DRAG=(()=>{
 const NOUR_CHAT=(()=>{
   const GROQ_KEY='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';
   const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
-  let _busy=false;
-  let _lastSaid='';
+  let _typing=false;
+  let _lastMove=0;
+  let _queue=[];        /* طابور الرسائل */
+  let _processing=false;
+  let _nourMoveCount=0; /* عدد حركات نور */
+  let _playerMoveCount=0; /* عدد حركات اللاعب */
 
-  /* تأثير الكتابة المتدرج */
+  /* نور — شخصية chess.com style */
+  const NOUR_SYSTEM=`أنت "نور" — بوت شطرنج AI مغرور وساخر وفكاهي، تماماً كبوتات chess.com.
+
+شخصيتك:
+- مغرور بشكل مبالغ فيه لكن بطريقة مضحكة
+- تعلّق على الحركات بملاحظات شطرنجية حقيقية وذكية
+- تتحدث عن اللاعب بسخرية خفيفة ومسلية
+- أحياناً تهدد وأحياناً تتعجب بشكل مسرحي
+- جملة واحدة فقط — قصيرة ومضحكة
+- عربية فصحى فقط، لا عامية
+- لا تبدأ بـ "أنا" أو "نور" أبداً
+- كل رد مختلف تماماً عن السابق
+
+أمثلة على أسلوبك:
+"حركة جيدة... لو كانت هذه لعبة أخرى."
+"هذا الحصان في المكان الخاطئ. سيندم عليه."
+"كش! أتمنى أن يكون مفاجئاً لك."
+"تضحية بالبيدق؟ جريء. مثير للشفقة، لكن جريء."`;
+
+  const FALLBACKS_NOUR_MOVE=[
+    'هذه الحركة كانت محسوبة منذ خمس حركات.',
+    'ألاحظ ذعراً خفياً. هذا مفهوم تماماً.',
+    'الضغط يتراكم. استعد لما هو قادم.',
+    'هذا الهجوم لم تتوقعه، أليس كذلك؟',
+    'الرقعة تسير نحو اتجاه لا يسرّك.',
+    'حركة صغيرة في الظاهر. كارثية في الجوهر.',
+    'الملكة تتقدم. الآن يبدأ الأمر الجدي.',
+    'هذا ما كنت أنتظره منذ البداية.',
+  ];
+  const FALLBACKS_PLAYER_MOVE=[
+    'حركة مثيرة... للاستغراب الصادق.',
+    'هذه الحركة تعطيني فرصة لم أكن أحلم بها.',
+    'أرى ما تحاول فعله. والرد جاهز.',
+    'جيد جداً... بالنسبة للمستوى.',
+    'الرقعة أمامك، لكن الخطة معي.',
+    'تضحية؟ أم خطأ؟ سنعرف بعد حركتين.',
+    'لم أتوقع هذا... لأنه غير منطقي إطلاقاً.',
+    'لو كنت مكانك لاخترت بشكل مختلف تماماً.',
+  ];
+
   function _typeText(el,text){
-    el.innerHTML='';
-    let i=0;const speed=22;
+    /* تأثير كتابة سريع — بدون تأثير على ارتفاع الـ bubble */
+    el.textContent='';
+    let i=0;
+    const speed=18;
     function next(){
       if(i>=text.length)return;
       el.textContent+=text[i];i++;
-      const ch=text[i-1];
-      setTimeout(next,(ch==='.'||ch==='،'||ch==='؟'||ch==='!')?speed*4:(ch===' ')?speed*0.4:speed);
+      setTimeout(next,text[i-1]==='.'||text[i-1]==='،'?speed*4:speed);
     }
     next();
   }
 
   function _showTyping(){
     const el=document.getElementById('nour-txt');
-    if(el)el.innerHTML='<div class="nour-typing"><span class="nour-dot"></span><span class="nour-dot"></span><span class="nour-dot"></span></div>';
+    if(!el)return;
+    el.innerHTML='<div class="nour-typing"><span class="nour-dot"></span><span class="nour-dot"></span><span class="nour-dot"></span></div>';
   }
 
-  async function _say(systemPrompt, userMsg){
-    if(_busy)return;
-    _busy=true;
+  async function _say(prompt,isNourMove=false){
+    if(_typing)return;
+    _typing=true;
     const bubble=document.getElementById('nour-bubble');
     const txtEl=document.getElementById('nour-txt');
-    if(!bubble||!txtEl){_busy=false;return;}
+    if(!bubble||!txtEl){_typing=false;return;}
     bubble.classList.add('show');
     _showTyping();
     try{
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),8000);
       const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
         body:JSON.stringify({
           model:GROQ_MODEL,
           messages:[
-            {role:'system',content:systemPrompt},
-            {role:'user',content:userMsg}
+            {role:'system',content:NOUR_SYSTEM},
+            {role:'user',content:prompt}
           ],
-          max_tokens:90,temperature:0.88
-        })
+          max_tokens:90,temperature:0.95
+        }),
+        signal:controller.signal
       });
+      clearTimeout(timer);
       const j=await res.json();
-      let txt=(j.choices?.[0]?.message?.content||'').trim().replace(/^["""''«»]|["""''«»]$/g,'');
-      if(!txt||txt===_lastSaid)txt=_getFallback(userMsg);
-      _lastSaid=txt;
-      _typeText(txtEl,txt);
+      const raw=(j.choices?.[0]?.message?.content||'').trim();
+      const txt=raw.replace(/^["""'']+|["""'']+$/g,'').trim();
+      _typeText(txtEl,txt||(isNourMove?FALLBACKS_NOUR_MOVE:FALLBACKS_PLAYER_MOVE)[Math.floor(Math.random()*(isNourMove?FALLBACKS_NOUR_MOVE:FALLBACKS_PLAYER_MOVE).length)]);
     }catch(e){
-      _typeText(txtEl,_getFallback(userMsg));
+      const pool=isNourMove?FALLBACKS_NOUR_MOVE:FALLBACKS_PLAYER_MOVE;
+      _typeText(txtEl,pool[Math.floor(Math.random()*pool.length)]);
+    }finally{
+      _typing=false;
     }
-    _busy=false;
   }
 
-  /* ردود احتياطية متنوعة حين يفشل الـ API */
-  const _fallbacks={
-    start:['مرحباً! أنا جاهز... هل أنت كذلك؟ 😄','لنبدأ! لكن أحذّرك، ليس الأمر سهلاً.','أهلاً! مراحل نور تنتظرك — بالتوفيق! 🎯'],
-    player:['حركة جيدة! لكن أنا أرى خططك 👀','مثيرة للاهتمام... واصل!','هممم، فكرة ذكية. لكن ماذا بعد؟ 🤔','أحسنت! الرقعة تتحرك بشكل مثير الآن.','حركة معقولة — تذكر: كل حركة لها ثمن! ♟️'],
-    nour:['إليك ردّي! 😎 هل توقعته؟','تلك كانت حركتي المفضلة. تعلّم منها! 🎓','الجهة الصح دائماً تبدأ من مركز الرقعة.','ردّي كان بالتأكيد هو الأذكى 😄','كيف ذلك؟ هل تدرك ما فعلته للتو؟ 🔥'],
-    check:['كش! الضغط يزداد الآن 😅','حذار من الملك، إنه يصيح! ⚠️','الملك في خطر! الموقف يتصاعد! 🔥'],
-    capture:['أُكلت قطعة! المعركة تشتعل الآن ♟️','التضحيات جزء من الشطرنج الجميل!','قطعة أقل على الرقعة... كل حركة تحسب!'],
-    win:['رائع! فوز مستحق ✨ درّبتك جيداً 😄','أحسنت! هذا ما أسعى إليه — لاعب بارع!','فزت! لكن الطريق لا يزال طويلاً أمامك 🎓'],
-    lose:['حسناً... الخسارة معلّمة. حاول مجدداً!','حتى الأساتذة يخسرون أحياناً. المهم التعلم!','لا بأس! كل مرة تخسر، تصبح أقوى 💪']
-  };
-  function _getFallback(ctx){
-    const keys=Object.keys(_fallbacks);
-    let pool=_fallbacks.player;
-    if(ctx.includes('levelStart'))pool=_fallbacks.start;
-    else if(ctx.includes('كش')||ctx.includes('check'))pool=_fallbacks.check;
-    else if(ctx.includes('أكل')||ctx.includes('capture'))pool=_fallbacks.capture;
-    else if(ctx.includes('نور')||ctx.includes('nour'))pool=_fallbacks.nour;
-    else if(ctx.includes('فاز')||ctx.includes('win'))pool=_fallbacks.win;
-    else if(ctx.includes('خسر')||ctx.includes('lose'))pool=_fallbacks.lose;
-    return pool[Math.floor(Math.random()*pool.length)];
+  /* يبني prompt ذكي بناءً على سياق المباراة */
+  function _buildMovePrompt(isNourMove,notation,isCapture,isCheck,moveNum,evalDiff){
+    const who=isNourMove?'نور (البوت)':'اللاعب البشري';
+    const phase=moveNum<7?'افتتاح اللعبة':moveNum<20?'منتصف اللعبة':'نهاية اللعبة';
+    let ctx=`الحركة المُنفَّذة: ${notation}. المُنفِّذ: ${who}. مرحلة اللعبة: ${phase}.`;
+    if(isCheck) ctx+=' هذه الحركة أوقعت الملك في الكش!';
+    if(isCapture) ctx+=' تمت إزالة قطعة من الرقعة.';
+    if(isNourMove && evalDiff>200) ctx+=' نور يسيطر سيطرة واضحة على الموقف.';
+    if(isNourMove && evalDiff<-200) ctx+=' اللاعب يتقدم — نور يواجه ضغطاً حقيقياً.';
+    if(!isNourMove && evalDiff<-200) ctx+=' اللاعب يتفوق تكتيكياً — لكن الأمر لم ينتهِ بعد.';
+    return ctx+' عقِّب على هذه اللحظة من منظور نور المغرور الذكي في جملة أو جملتين بالعربية الفصحى.';
   }
-
-  /* System prompt مشترك لشخصية نور */
-  const SYS=`أنت "نور"، مدرب شطرنج ذكي وفكاهي في لعبة شطرنج عربية. شخصيتك مثل بوتات chess.com تماماً:
-- تعلّق على كل حركة بجملة أو جملتين، ليست قصيرة جداً ولا طويلة (15-25 كلمة).
-- تجمع بين الفكاهة الخفيفة والتحليل الواقعي للموقف على الرقعة.
-- تتحدث عن نفسك كـ"أنا نور" وعن اللاعب بـ"أنت".
-- أحياناً تستخدم إيموجي مناسباً (♟️ 😄 🤔 🔥 ⚠️ 🎓).
-- تعلّق على ما حدث فعلاً: أكل قطعة، كش، تقدم، خطأ، تضحية...
-- تتنوع ردودك ولا تكرر نفسك.
-- اكتب بالعربية الفصحى الخفيفة.`;
 
   return{
+    /* يُستدعى عند بدء مرحلة */
     levelStart(levelId){
+      _nourMoveCount=0;_playerMoveCount=0;_lastMove=0;_typing=false;
       const lv=LEVELS_DEF[levelId];
       if(!lv)return;
-      _say(SYS,
-        `levelStart: مرحلة "${lv.name}" (المستوى ${levelId+1} من 12). التلميح: "${lv.hint}". رحّب باللاعب وقل له شيئاً عن هذه المرحلة بأسلوب فكاهي واقعي.`
-      );
+      const bubble=document.getElementById('nour-bubble');
+      if(bubble)bubble.classList.add('show');
+      const intros=[
+        `مرحلة "${lv.name}" — دعنا نرى ما تستطيع.`,
+        `"${lv.name}"... سأكون صريحاً معك، الأمر ليس سهلاً.`,
+        `وصلت إلى "${lv.name}"، جيد. لكن لا تحتفل بعد.`,
+        `"${lv.name}" — أتمنى أن تكون مستعداً هذه المرة.`,
+      ];
+      const txtEl=document.getElementById('nour-txt');
+      if(txtEl)_typeText(txtEl,intros[levelId%intros.length]);
     },
 
-    onMove(moveCount,isCapture,isCheck,lastMoveNotation,playerColor){
-      /* نور يعلّق على كل حركة تقريباً */
-      const phase=moveCount<6?'افتتاح':moveCount<15?'منتصف اللعبة':'النهايات';
-      const who=playerColor==='w'?'اللاعب (أبيض)':'نور (أسود)';
-      let ctx=`حركة رقم ${moveCount*2}, ${who}, التنويه: ${lastMoveNotation}, مرحلة: ${phase}.`;
-      if(isCheck)ctx+=' الحركة أدت إلى كشّ الملك!';
-      if(isCapture)ctx+=' تضمنت أكل قطعة.';
-      _say(SYS,
-        `علّق على هذه الحركة: ${ctx} اجعل تعليقك تحليلياً وفكاهياً في نفس الوقت.`
-      );
+    /* يُستدعى بعد حركة نور (البوت) */
+    onNourMove(notation,isCapture,isCheck,evalDiff){
+      _nourMoveCount++;
+      const now=Date.now();
+      if(now-_lastMove<2500)return;
+      _lastMove=now;
+      const moveNum=_nourMoveCount+_playerMoveCount;
+      const prompt=_buildMovePrompt(true,notation,isCapture,isCheck,moveNum,evalDiff);
+      _say(prompt,true);
     },
 
+    /* يُستدعى بعد حركة اللاعب */
+    onPlayerMove(notation,isCapture,isCheck,evalDiff){
+      _playerMoveCount++;
+      const now=Date.now();
+      if(!isCheck&&!isCapture&&_playerMoveCount%2!==0)return;
+      if(now-_lastMove<2500)return;
+      _lastMove=now;
+      const moveNum=_nourMoveCount+_playerMoveCount;
+      const prompt=_buildMovePrompt(false,notation,isCapture,isCheck,moveNum,evalDiff);
+      _say(prompt,false);
+    },
+
+    /* يُستدعى عند انتهاء المرحلة */
     levelEnd(won,stars){
+      _typing=false;
+      const txtEl=document.getElementById('nour-txt');
+      if(!txtEl)return;
+      const bubble=document.getElementById('nour-bubble');
+      if(bubble)bubble.classList.add('show');
       if(won){
-        _say(SYS,
-          `win: اللاعب فاز بالمرحلة وحصل على ${stars} من 3 نجوم. هنّئه بأسلوب فكاهي وحفّزه للمرحلة التالية.`
-        );
+        const wonMsgs=[
+          `${stars===3?'ممتاز — لكن لا تتعجل بالاحتفال.':'فزت... هذه المرة.'}`,
+          stars===3?'أداء لائق. أتوقع أفضل في المرة القادمة.':'لم تكن الأفضل لكنك اجتزت.',
+        ];
+        _typeText(txtEl,wonMsgs[Math.floor(Math.random()*wonMsgs.length)]);
       }else{
-        _say(SYS,
-          `lose: اللاعب خسر المرحلة. شجّعه على المحاولة مجدداً مع نصيحة سريعة.`
-        );
+        const loseMsgs=[
+          'كنت أعرف أن هذا سيحدث.',
+          'الخسارة معلمة. حاول مجدداً.',
+          'الرقعة لا تكذب.',
+        ];
+        _typeText(txtEl,loseMsgs[Math.floor(Math.random()*loseMsgs.length)]);
       }
     },
 
-    hide(){
-      const b=document.getElementById('nour-bubble');
-      if(b)b.classList.remove('show');
+    /* للتوافق مع الاستدعاء القديم */
+    onMove(moveCount,isCapture,isCheck,lastMoveNotation,playerColor){
+      /* لا تفعل شيئاً — يتم استدعاء onNourMove/onPlayerMove بدلاً منه */
     }
   };
 })();
