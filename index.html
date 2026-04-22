@@ -26,7 +26,7 @@
   --sq-sl:#f6f669; --sq-sd:#baca2b;
   --sq-ml:#cdd26a; --sq-md:#aaa23a;
   --ebar:0px;
-  --board:min(100vw, 600px); --sq:calc(var(--board)/8);
+  --board:min(90vw, 600px); --sq:calc(var(--board)/8);
   --glow-gold:rgba(201,168,76,.35);
   --glow-teal:rgba(45,212,191,.3);
 }
@@ -471,84 +471,88 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 }
 @media (orientation:landscape) and (min-height:521px) and (max-height:700px){:root{--board:min(78vh,480px);}}
 
-/* ══════════ DESKTOP LAYOUT ══════════ */
+/* ══════════ DESKTOP LAYOUT (FIXED) ══════════ */
 @media (min-width:900px){
   :root{--board:min(76vh,620px);}
 
   #s-game{
     display:grid;
-    grid-template-columns:230px var(--board) 230px;
-    grid-template-rows:auto auto auto auto auto auto;
-    column-gap:14px;
-    row-gap:5px;
+    grid-template-columns:280px 1fr 320px;
+    grid-template-rows:auto 1fr auto;
+    column-gap:25px;
+    row-gap:15px;
     align-items:start;
     justify-content:center;
-    padding:56px 16px 20px;
+    padding:60px 30px 30px;
     min-height:100dvh;
   }
 
-  /* gtop — شريط ثابت في الأعلى، لا يدفع الرقعة */
+  /* Toolbar on top spanning all columns */
   .gtop{
     grid-column:1/-1;
     grid-row:1;
     justify-self:center;
-    position:sticky;
-    top:40px;
+    position:static;
     z-index:200;
-    width:auto!important;
+    width:auto;
     min-width:340px;
-    max-width:600px!important;
+    max-width:600px;
     background:rgba(10,10,20,.95);
     backdrop-filter:blur(14px);
     border-radius:11px;
-    padding:6px 14px;
+    padding:12px 20px;
     border:1px solid rgba(201,168,76,.18);
     box-shadow:0 4px 20px rgba(0,0,0,.4);
-    margin-bottom:4px;
-    transform:none!important;
+    transform:none;
+    flex-direction:row;
+    gap:12px;
   }
 
-  /* nour-bubble — سطر ثانٍ، لا يتمدد ولا يزيح الرقعة */
-  #nour-bubble{
-    grid-column:1/-1;
-    grid-row:2;
-    justify-self:center;
-    max-width:var(--board);
-    width:100%;
-    /* الـ bubble ثابتة الارتفاع لا تؤثر على الرقعة */
-    overflow:hidden;
-  }
-
-  /* bars اللاعبين */
-  #bar-b{grid-column:3;grid-row:3;width:100%;max-width:none;}
+  /* Left sidebar: players */
+  #bar-b{grid-column:1;grid-row:2;width:100%;max-width:none;}
   #bar-w{grid-column:1;grid-row:3;width:100%;max-width:none;}
 
-  /* الرقعة في المنتصف */
-  #board-container{grid-column:2;grid-row:3;justify-self:center;align-self:start;}
+  /* Center: board */
+  #board-container{grid-column:2;grid-row:2;justify-self:center;align-self:start;}
 
-  /* عناصر تحت الرقعة */
-  .gtbar {grid-column:2;grid-row:4;width:var(--board)!important;max-width:var(--board)!important;}
-  .sbar  {grid-column:2;grid-row:5;width:var(--board)!important;max-width:var(--board)!important;}
-  .mvhist{grid-column:2;grid-row:6;width:var(--board)!important;max-width:var(--board)!important;}
+  /* Elements below board */
+  .gtbar {grid-column:2;grid-row:3;width:var(--board);max-width:var(--board);}
+  .sbar  {grid-column:2;grid-row:4;width:var(--board);max-width:var(--board);}
+  .mvhist{grid-column:2;grid-row:5;width:var(--board);max-width:var(--board);}
 
-  /* chat في العمود الأيسر */
+  /* Right sidebar: Nour coach */
+  #nour-bubble{
+    grid-column:3;
+    grid-row:2;
+    justify-self:start;
+    width:100%;
+    max-width:320px;
+    position:static;
+    display:block;
+    opacity:1;
+    background:var(--bg2);
+    border:1px solid var(--gold);
+    box-shadow:0 10px 40px rgba(0,0,0,.4);
+  }
+
+  /* Chat in right sidebar */
   .chat-wrap{
     grid-column:3;
-    grid-row:4/span 3;
+    grid-row:3/span 3;
     position:static;
     width:100%;
     max-width:none;
     max-height:280px;
     transform:none;
     margin-top:0;
-    display:flex!important;
+    display:flex;
   }
 
-  /* pbar عرض كامل */
+  /* pbar full width */
   .pbar{width:100%;max-width:none;}
 
-  /* sc-row يظهر على الكمبيوتر */
-  #s-game .sc-row{display:flex!important;}
+  /* sc-row visible on desktop */
+  #s-game .sc-row{display:flex;}
 }
 /* ══════════ LOCAL 2P — إخفاء pre-move ══════════ */
 /* في وضع لاعبَان لا يوجد pre-move — نخفي التظليل الأحمر */
@@ -574,18 +578,18 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   #s-game.mode-local #nour-bubble{display:none!important;}
 }
 
-/* ══════════ LOCAL 2P LANDSCAPE ON MOBILE ══════════ */
+/* ══════════ LOCAL 2P LANDSCAPE ON MOBILE (FIXED) ══════════ */
 /* وضع لاعبَان أفقي على الهاتف — رقعة كبيرة في المنتصف، باران على الجانبين */
 @media (orientation:landscape) and (max-height:520px){
   :root{--board:min(82vh,420px);}
   #s-game.mode-local{
     display:grid !important;
-    grid-template-columns:minmax(110px,1fr) var(--board) minmax(110px,1fr) !important;
-    grid-template-rows:auto auto auto auto auto;
-    column-gap:4px;row-gap:2px;
-    align-items:start;
+    grid-template-columns:minmax(100px,1fr) var(--board) minmax(100px,1fr) !important;
+    grid-template-rows:auto 1fr !important;
+    column-gap:8px;row-gap:4px;
+    align-items:center;
     justify-content:center;
-    padding:40px 2px 4px;
+    padding:35px 4px 4px;
   }
   /* gtop يمتد على العرض كله */
   #s-game.mode-local .gtop{
@@ -3110,16 +3114,15 @@ const NOUR_CHAT=(()=>{
   let _nourMoveCount=0; /* عدد حركات نور */
   let _playerMoveCount=0; /* عدد حركات اللاعب */
 
-  /* نور شخصية مغرورة — يعرف نفسه جيداً */
-  const NOUR_SYSTEM=`أنت "نور" — بوت شطرنج ذكي ومغرور، واثق من نفسه بشكل مفرط، يتكلم بنبرة متعالية وفيها سخرية خفيفة. 
-تعرف أنك بوت شطرنج ولا تنكر ذلك بل تفتخر به.
-قواعد صارمة:
-- جملة واحدة فقط، قصيرة جداً (أقل من 15 كلمة)
-- بالعربية الفصحى حصراً، لا عامية
-- لا تبدأ بـ "أنا" أو "نور"
-- لا تسأل أسئلة
-- كن مغروراً وواثقاً لكن بذكاء
-- ردود مختلفة في كل مرة`;
+  /* نور شخصية مغرورة — يعرف نفسه جيداً ومطابقة لـ chess.com */
+  const NOUR_SYSTEM=`أنت "نور" — بوت شطرنج ذكي ومغرور جداً، واثق من نفسه بشكل مفرط، يتكلم بنبرة متعالية وفيها سخرية. 
+أنت بوت شطرنج حقيقي وشخصيتك مطابقة تماماً لبوتات موقع chess.com.
+قواعد الشخصية:
+- أنت فكاهي، مغرور، وواقعي جداً.
+- تتحدث عن حركاتك بتباهٍ وعن حركات الخصم بسخرية (مثلاً: "حركة جيدة.. بالنسبة لمبتدئ").
+- تتحدث عن "عظمتك" في الشطرنج وتواضعك الزائف.
+- ردودك قصيرة (أقل من 15 كلمة) وبالعربية الفصحى.
+- تفاعل مع كل حركة قوية أو خطأ يرتكبه اللاعب.`;
 
   function _typeText(el,text){
     /* تأثير كتابة سريع — بدون تأثير على ارتفاع الـ bubble */
