@@ -547,11 +547,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   }
 
   /* bars اللاعبين في الجانبين */
-  #bar-w     {grid-column:1; grid-row:3; width:100%; max-width:none;}
-  #bar-b     {grid-column:3; grid-row:3; width:100%; max-width:none;}
+  #bar-w     {grid-column:1; grid-row:3; width:100%; max-width:none; align-self:center;}
+  #bar-b     {grid-column:3; grid-row:3; width:100%; max-width:none; align-self:center;}
 
   /* الرقعة في المنتصف */
-  #board-container{grid-column:2; grid-row:3; justify-self:center; align-self:start;}
+  #board-container{grid-column:2; grid-row:3; justify-self:center; align-self:center;}
 
   /* عناصر تحت الرقعة */
   .gtbar {grid-column:2; grid-row:4; width:var(--board)!important; max-width:var(--board)!important;}
@@ -1464,7 +1464,7 @@ const EVALBAR={
 ══════════════════════════════════════ */
 const REV=(()=>{
   const GROQ_KEY='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';
-  const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+  const GROQ_MODEL='llama-3.3-70b-versatile';
 
   /* حالة المراجعة */
   let _data=null;   /* نتيجة التحليل */
@@ -1983,7 +1983,7 @@ const R={
   _squares:[],        /* cache للـ squares حتى لا نعمل querySelectorAll في كل render */
   board(){
     const el=document.getElementById('board');
-    const flip=S.myCol==='b';
+    const flip=S.mode==='local'?(S.turn==='b'):(S.myCol==='b');
     /* إذا تغير اتجاه الرقعة (flip) نعيد البناء الكامل مرة واحدة */
     if(!this._boardBuilt||this._boardFlip!==flip){
       el.innerHTML='';
@@ -2340,7 +2340,11 @@ const G={
     /* نور يعلّق فقط في وضع المراحل */
     if(S.mode==='bot'&&S.levelId>=0){
       const lastMoveNot=S.hist[S.hist.length-1];
-      NOUR_CHAT.onMove(S.moveCount,res.cap,isCheck,lastMoveNot,cl);
+      /* لا يعلق نور إلا إذا كانت الحركة من اللاعب (أبيض) أو إذا كانت الحركة كش/أكل */
+      /* لتجنب التضارب مع كلامه عند حركته الخاصة */
+      if(cl==='w' || isCheck || res.cap) {
+        NOUR_CHAT.onMove(S.moveCount,res.cap,isCheck,lastMoveNot,cl);
+      }
     }
     /* أنيميشن الحركة */
     setTimeout(()=>{
@@ -2875,7 +2879,11 @@ const DRAG=(()=>{
       /* دور أبيض = drag عادي | دور أسود (بوت يفكر) = drag لـ pre-move */
       return col==='w';
     }
-    return true; /* local */
+    if(S.mode==='local'){
+      /* في وضع لاعبَان: يمكن سحب قطع اللاعب الذي عليه الدور فقط */
+      return col===S.turn;
+    }
+    return true;
   }
 
   function _startGhostDrag(r,c,x,y){
@@ -2896,7 +2904,8 @@ const DRAG=(()=>{
     sq?.querySelector('.piece')?.classList.add('dragging');
     /* اعرض التحركات القانونية لو دور اللاعب، وإلا إظهار pre-move markers */
     const myCol=S.mode==='bot'?'w':S.myCol;
-    if(S.turn===myCol&&!S.busy){
+    const isLocal=S.mode==='local';
+    if((isLocal || S.turn===myCol)&&!S.busy){
       S.sel=[r,c];
       S.legal=E.legal(S.bd,r,c,S.cas,S.ep);
     }else{
@@ -3030,7 +3039,7 @@ const DRAG=(()=>{
 ══════════════════════════════════════ */
 const NOUR_CHAT=(()=>{
   const GROQ_KEY='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';
-  const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+  const GROQ_MODEL='llama-3.3-70b-versatile';
   let _busy=false;
   let _lastSaid='';
 
