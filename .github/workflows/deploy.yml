@@ -14,14 +14,18 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .   # لو موقعك فيه index.html في الروت
+          path: .   # لو index.html في الروت
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
     permissions:
       pages: write
       id-token: write
+
+    environment:
+      name: github-pages   # 🔥 ده المهم اللي كان ناقص
 
     steps:
       - name: Deploy
