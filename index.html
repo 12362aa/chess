@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="شطرنج">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.png?v=2">
 <title>♟ شطرنج — Am-Kh</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -205,10 +205,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .ost.ok{background:rgba(74,222,128,.09);color:var(--green);border:1px solid rgba(74,222,128,.18);display:block;}
 
 /* ══════════ CHAT ══════════ */
-.chat-wrap{width:100%;max-width:510px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;display:none!important;flex-direction:column;max-height:180px;position:static;z-index:1;}
+.chat-wrap{width:100%;max-width:510px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;display:none!important;flex-direction:column;height:190px;min-height:190px;position:static;z-index:1;}
 .chat-wrap.show{display:flex!important;}
-.chat-msgs{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px;}
-.chat-msg{font-size:12px;padding:5px 9px;border-radius:8px;max-width:85%;line-height:1.5;word-break:break-word;}
+.chat-msgs{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px;scroll-behavior:smooth;overscroll-behavior:contain;}
+.chat-msg{font-size:12px;padding:6px 9px;border-radius:8px;max-width:85%;line-height:1.6;word-break:break-word;}
 .chat-msg.me{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid rgba(201,168,76,.18);align-self:flex-start;}
 .chat-msg.opp{background:var(--bg3);color:var(--text);border:1px solid rgba(255,255,255,.06);align-self:flex-end;}
 .chat-msg.sys{background:rgba(45,212,191,.07);color:var(--teal2);border:1px solid rgba(45,212,191,.12);align-self:center;font-size:11px;text-align:center;}
@@ -513,7 +513,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   .gtop{
     grid-column:1/-1;
     grid-row:1;
-    justify-self:center;
+    justify-self:end;
     position:sticky;
     top:40px;
     z-index:200;
@@ -528,6 +528,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     box-shadow:0 4px 20px rgba(0,0,0,.4);
     transform:none!important;
     margin-bottom:2px;
+    margin-inline-end:10px;
   }
 
   /* nour-bubble — صف ثانٍ يمتد على العرض كله، ارتفاع ثابت لا يدفع الرقعة */
@@ -1386,6 +1387,7 @@ const S={
   /* pre-move: النقلة المحجوزة مسبقاً */
   preMove:null, /* {fr:[r,c], to:[r,c], selFr:[r,c]} */
   preMoveSelFr:null, /* المربع المختار للحجز */
+  dragFrom:null, /* [r,c] during drag to hide source piece */
   /* undo stack — للوضع لاعبَان فقط */
   undoStack:[],
 };
@@ -1397,8 +1399,14 @@ const CHAT={
   unread:0,
   _addMsg(text,type){
     const el=document.getElementById('chat-msgs');
+    if(!el)return;
+    const _scrollToBottom=(smooth=false)=>{
+      requestAnimationFrame(()=>{
+        el.scrollTo({top:el.scrollHeight,behavior:smooth?'smooth':'auto'});
+      });
+    };
     const m=document.createElement('div');m.className='chat-msg '+type;m.textContent=text;
-    el.appendChild(m);el.scrollTop=el.scrollHeight;
+    el.appendChild(m);_scrollToBottom(true);
     if(type==='opp'||type==='sys'){
       const wrap=document.getElementById('chat-wrap');
       if(!wrap.classList.contains('show')){
@@ -1432,6 +1440,10 @@ const CHAT={
   show(){
     document.getElementById('btn-chat').style.display='flex';
     document.getElementById('chat-msgs').innerHTML='';
+    requestAnimationFrame(()=>{
+      const el=document.getElementById('chat-msgs');
+      if(el)el.scrollTop=el.scrollHeight;
+    });
     this.unread=0;
     document.getElementById('chat-badge').classList.remove('show');
   },
@@ -2045,7 +2057,8 @@ const R={
       const pieceCode=S.bd[r][c];
       const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
       const shouldFlipPiece=!!(S.mode==='local'&&pieceCode&&E.col(pieceCode)!==S.turn);
-      const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'');
+      const isDragged=!!(S.dragFrom&&S.dragFrom[0]===r&&S.dragFrom[1]===c);
+      const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'')+(isDragged?' dragging':'');
       if(pieceCode){
         if(!piece||piece.dataset.pc!==pieceCode){
           if(piece)piece.remove();
@@ -2926,6 +2939,7 @@ const DRAG=(()=>{
   function _startGhostDrag(r,c,x,y){
     dragActive=true;
     dragFr=[r,c];
+    S.dragFrom=[r,c];
     const pc=S.bd[r][c];
     /* اعمل ghost */
     if(ghost)ghost.remove();
@@ -2936,9 +2950,6 @@ const DRAG=(()=>{
     ghost.style.top='0';
     ghost.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;
     document.body.appendChild(ghost);
-    /* أخفِ القطعة الأصلية */
-    const sq=document.querySelector(`#board .sq[data-r="${r}"][data-c="${c}"]`);
-    sq?.querySelector('.piece')?.classList.add('dragging');
     /* اعرض التحركات القانونية لو دور اللاعب، وإلا إظهار pre-move markers */
     const myCol=S.mode==='bot'?'w':S.myCol;
     const isLocal=S.mode==='local';
@@ -2957,9 +2968,9 @@ const DRAG=(()=>{
   function _cancelDrag(){
     dragActive=false;
     dragFr=null;
+    S.dragFrom=null;
     downInfo=null;
     if(ghost){ghost.remove();ghost=null;}
-    document.querySelectorAll('#board .piece.dragging').forEach(p=>p.classList.remove('dragging'));
   }
 
   /* ══ MOUSE ══ */
@@ -3079,6 +3090,10 @@ const NOUR_CHAT=(()=>{
   const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
   let _busy=false;
   let _lastSaid='';
+  let _debounceTimer=null;
+  let _pendingSay=null;
+  let _activeCtrl=null;
+  let _reqSeq=0;
 
   /* تأثير الكتابة المتدرج */
   function _typeText(el,text){
@@ -3098,9 +3113,11 @@ const NOUR_CHAT=(()=>{
     if(el)el.innerHTML='<div class="nour-typing"><span class="nour-dot"></span><span class="nour-dot"></span><span class="nour-dot"></span></div>';
   }
 
-  async function _say(systemPrompt, userMsg){
-    if(_busy)return;
+  async function _sayNow(systemPrompt, userMsg){
     _busy=true;
+    const mySeq=++_reqSeq;
+    if(_activeCtrl){try{_activeCtrl.abort();}catch(e){}}
+    _activeCtrl=new AbortController();
     const bubble=document.getElementById('nour-bubble');
     const txtEl=document.getElementById('nour-txt');
     if(!bubble||!txtEl){_busy=false;return;}
@@ -3116,29 +3133,42 @@ const NOUR_CHAT=(()=>{
             {role:'system',content:systemPrompt},
             {role:'user',content:userMsg}
           ],
-          max_tokens:150,temperature:0.85
-        })
+          max_tokens:135,temperature:0.72
+        }),
+        signal:_activeCtrl.signal
       });
       const j=await res.json();
+      if(mySeq!==_reqSeq)return;
       let txt=(j.choices?.[0]?.message?.content||'').trim().replace(/^["""''«»]|["""''«»]$/g,'');
       if(!txt||txt===_lastSaid)txt=_getFallback(userMsg);
       _lastSaid=txt;
       _typeText(txtEl,txt);
     }catch(e){
-      _typeText(txtEl,_getFallback(userMsg));
+      if(e?.name!=='AbortError')_typeText(txtEl,_getFallback(userMsg));
     }
+    if(_activeCtrl&&mySeq===_reqSeq)_activeCtrl=null;
     _busy=false;
+  }
+
+  function _sayDebounced(systemPrompt,userMsg,delay=700){
+    _pendingSay={systemPrompt,userMsg};
+    if(_debounceTimer)clearTimeout(_debounceTimer);
+    _debounceTimer=setTimeout(()=>{
+      const p=_pendingSay;
+      _pendingSay=null;
+      if(!p)return;
+      _sayNow(p.systemPrompt,p.userMsg);
+    },delay);
   }
 
   /* ردود احتياطية متنوعة حين يفشل الـ API */
   const _fallbacks={
-    start:['مرحباً! أنا جاهز... هل أنت كذلك؟ 😄','لنبدأ! لكن أحذّرك، ليس الأمر سهلاً.','أهلاً! مراحل نور تنتظرك — بالتوفيق! 🎯'],
-    player:['حركة جيدة! لكن أنا أرى خططك 👀','مثيرة للاهتمام... واصل!','هممم، فكرة ذكية. لكن ماذا بعد؟ 🤔','أحسنت! الرقعة تتحرك بشكل مثير الآن.','حركة معقولة — تذكر: كل حركة لها ثمن! ♟️'],
-    nour:['إليك ردّي! 😎 هل توقعته؟','تلك كانت حركتي المفضلة. تعلّم منها! 🎓','الجهة الصح دائماً تبدأ من مركز الرقعة.','ردّي كان بالتأكيد هو الأذكى 😄','كيف ذلك؟ هل تدرك ما فعلته للتو؟ 🔥'],
-    check:['كش! الضغط يزداد الآن 😅','حذار من الملك، إنه يصيح! ⚠️','الملك في خطر! الموقف يتصاعد! 🔥'],
-    capture:['أُكلت قطعة! المعركة تشتعل الآن ♟️','التضحيات جزء من الشطرنج الجميل!','قطعة أقل على الرقعة... كل حركة تحسب!'],
-    win:['رائع! فوز مستحق ✨ درّبتك جيداً 😄','أحسنت! هذا ما أسعى إليه — لاعب بارع!','فزت! لكن الطريق لا يزال طويلاً أمامك 🎓'],
-    lose:['حسناً... الخسارة معلّمة. حاول مجدداً!','حتى الأساتذة يخسرون أحياناً. المهم التعلم!','لا بأس! كل مرة تخسر، تصبح أقوى 💪']
+    start:['جاهز نبدأ؟ 🎯 ركّز على تطوير القطع مبكراً ولا تكرر تحريك نفس القطعة بلا داعٍ.','مرحلة جديدة ✅ خطتك الأولى: سيطر على المركز ثم أمّن الملك سريعاً ♟️','ممتاز! بداية هادئة وفكرة واضحة ستمنحك أفضلية من الافتتاح 🧠'],
+    player:['فكرة جيدة 👍 لكن انتبه لمربع الإسناد خلف القطعة المتقدمة حتى لا تخسر الإيقاع.','نقلة عملية ✨ أعطتك مساحة، والآن الأفضل ربط القطع بدل اللعب المنفرد.','قرار قوي 🔥 لكن تأكد أن الملك آمن قبل أي هجوم إضافي.'],
+    check:['كش مباشر ⚠️ دافع بدقة، والأفضل اختيار نقلة تطور قطعة مع إزالة التهديد معاً.','الكش هنا مهم ♟️ لكنه يصبح أقوى إذا تبعته بنقلة تمنع هروب الملك.','ضغط ممتاز 😮 استمر، لكن لا تضحي بقطعة دون تعويض واضح.'],
+    capture:['الالتقاط مفيد ✅ راقب الرد التكتيكي فوراً حتى لا تعيد القطعة مجاناً.','كسبت مادة 💰 الآن الهدف تحويل الأفضلية تدريجياً بدون مخاطرة زائدة.','أكل جيد 👌 ركّز على نشاط القطع بعد التبديل وليس العدد فقط.'],
+    win:['ممتاز جداً 🏆 أنهيت المرحلة بخطة أوضح وانضباط تكتيكي جيد.','فوز مستحق ✨ أفضل نقطة كانت إدارة الوضع بعد أفضلية المادة.','أحسنت 👏 لعب منظم ونهاية نظيفة؛ جاهز للمرحلة التالية.'],
+    lose:['لا بأس 💪 الخسارة هنا تعليمية؛ راجع أول لحظة فقدت فيها التنسيق بين القطع.','خسارة مفيدة 📘 المشكلة كانت في التوقيت، وليس الفكرة نفسها.','ممكن تعويضها سريعاً 🔁 ابدأ الجولة القادمة بخطة مركز + أمان ملك أولاً.']
   };
   function _getFallback(ctx){
     const keys=Object.keys(_fallbacks);
@@ -3153,18 +3183,19 @@ const NOUR_CHAT=(()=>{
   }
 
   /* System prompt مشترك لشخصية نور */
-  const SYS=`أنت "نور المدرب" في لعبة شطرنج.
-- تحدث فقط عن الحركة الأخيرة وما نتج عنها على الرقعة.
-- اكتب جملة واحدة أو جملتين كحد أقصى، بوضوح شديد.
-- امنع الحشو، التكرار، والعبارات المبهمة.
-- لا تخرج لمواضيع عامة.
-- اكتب بالعربية الفصحى السهلة.`;
+  const SYS=`أنت "نور المدرب" (Coach) في لعبة شطرنج عربية، بأسلوب قريب من Chess.com.
+- دورك: مدرب شخصي يشرح الوضع، وليس لاعباً أسود.
+- اربط تعليقك بالحركة الأخيرة وحالة الرقعة فقط.
+- اكتب جملة أو جملتين قصيرتين كحد أقصى، بوضوح ودقة.
+- استخدم 1 أو 2 إيموجي مناسبين فقط لإضفاء تفاعل.
+- تجنب التكرار، الحشو، الكلام المبهم، وأي حديث خارج التحليل.
+- العربية فصحى بسيطة ومباشرة.`;
 
   return{
     levelStart(levelId){
       const lv=LEVELS_DEF[levelId];
       if(!lv)return;
-      _say(SYS,
+      _sayDebounced(SYS,
         `levelStart: مرحلة "${lv.name}" (المستوى ${levelId+1} من 12). التلميح: "${lv.hint}". رحّب باللاعب وقل له شيئاً عن هذه المرحلة بأسلوب فكاهي واقعي.`
       );
     },
@@ -3172,28 +3203,32 @@ const NOUR_CHAT=(()=>{
     onMove(moveCount,isCapture,isCheck,lastMoveNotation,playerColor){
       /* نور يعلّق على كل حركة تقريباً */
       const phase=moveCount<6?'افتتاح':moveCount<15?'منتصف اللعبة':'النهايات';
-      const who=playerColor==='w'?'اللاعب (أبيض)':'نور (أسود)';
+      const who=playerColor==='w'?'الأبيض':'الأسود';
       let ctx=`حركة رقم ${moveCount*2}, ${who}, التنويه: ${lastMoveNotation}, مرحلة: ${phase}.`;
       if(isCheck)ctx+=' الحركة أدت إلى كشّ الملك!';
       if(isCapture)ctx+=' تضمنت أكل قطعة.';
-      _say(SYS,
-        `علّق على هذه الحركة: ${ctx} اجعل تعليقك تحليلياً وفكاهياً في نفس الوقت.`
+      _sayDebounced(SYS,
+        `حلّل الحركة التالية كمدرب: ${ctx} أعط ملاحظة تدريبية عملية قصيرة قابلة للتنفيذ بالنقلة القادمة.`
       );
     },
 
     levelEnd(won,stars){
       if(won){
-        _say(SYS,
+        _sayDebounced(SYS,
           `win: اللاعب فاز بالمرحلة وحصل على ${stars} من 3 نجوم. هنّئه بأسلوب فكاهي وحفّزه للمرحلة التالية.`
         );
       }else{
-        _say(SYS,
+        _sayDebounced(SYS,
           `lose: اللاعب خسر المرحلة. شجّعه على المحاولة مجدداً مع نصيحة سريعة.`
         );
       }
     },
 
     hide(){
+      if(_debounceTimer){clearTimeout(_debounceTimer);_debounceTimer=null;}
+      _pendingSay=null;
+      if(_activeCtrl){try{_activeCtrl.abort();}catch(e){}}
+      _activeCtrl=null;
       const b=document.getElementById('nour-bubble');
       if(b)b.classList.remove('show');
     }
