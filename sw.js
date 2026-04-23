@@ -3,12 +3,13 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const CACHE_NAME = 'chess-amkh-v5';
+const SW_VERSION = '1.1';
+const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon.png?v=2',
+  './icon_v2.png?v=2',
   'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap',
 ];
 
