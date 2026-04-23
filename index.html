@@ -587,6 +587,43 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:4px;}
 @media(max-width:380px){:root{--board:min(100vw - 2px, 360px);}}
+
+/* Force layout for top buttons */
+@media (min-width:769px){
+  #s-game .gtop{
+    position:fixed !important;
+    top:20px !important;
+    right:20px !important;
+    z-index:9999 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:10px !important;
+    width:auto !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+}
+@media (max-width:768px){
+  #s-game .gtop{
+    position:relative !important;
+    width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    margin:10px 0 !important;
+    right:auto !important;
+    top:auto !important;
+    z-index:200 !important;
+  }
+}
+
+/* Nour chat box layout */
+#nour-txt{
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  height:120px;
+}
 </style>
 </head>
 <body>
@@ -3089,11 +3126,11 @@ const DRAG=(()=>{
 const NOUR_CHAT=(()=>{
   const GROQ_KEY='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';
   const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+  let currentController=null;
   let _busy=false;
   let _lastSaid='';
   let _debounceTimer=null;
   let _pendingSay=null;
-  let _activeCtrl=null;
   let _reqSeq=0;
   const EMOJI_RE=/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
 
@@ -3104,6 +3141,7 @@ const NOUR_CHAT=(()=>{
     function next(){
       if(i>=text.length)return;
       el.textContent+=text[i];i++;
+      el.scrollTop=el.scrollHeight;
       const ch=text[i-1];
       setTimeout(next,(ch==='.'||ch==='،'||ch==='؟'||ch==='!')?speed*4:(ch===' ')?speed*0.4:speed);
     }
@@ -3112,7 +3150,10 @@ const NOUR_CHAT=(()=>{
 
   function _showTyping(){
     const el=document.getElementById('nour-txt');
-    if(el)el.innerHTML='<div class="nour-typing"><span class="nour-dot"></span><span class="nour-dot"></span><span class="nour-dot"></span></div>';
+    if(el){
+      el.innerHTML='<div class="nour-typing"><span class="nour-dot"></span><span class="nour-dot"></span><span class="nour-dot"></span></div>';
+      el.scrollTop=el.scrollHeight;
+    }
   }
 
   function _ensureEmoji(txt){
@@ -3123,16 +3164,16 @@ const NOUR_CHAT=(()=>{
   function _cancelInFlight(){
     if(_debounceTimer){clearTimeout(_debounceTimer);_debounceTimer=null;}
     _pendingSay=null;
-    if(_activeCtrl){try{_activeCtrl.abort();}catch(e){}}
-    _activeCtrl=null;
+    if(currentController){try{currentController.abort();}catch(e){}}
+    currentController=null;
     _busy=false;
   }
 
   async function _sayNow(systemPrompt, userMsg){
     _busy=true;
     const mySeq=++_reqSeq;
-    if(_activeCtrl){try{_activeCtrl.abort();}catch(e){}}
-    _activeCtrl=new AbortController();
+    if(currentController) currentController.abort();
+    currentController=new AbortController();
     const bubble=document.getElementById('nour-bubble');
     const txtEl=document.getElementById('nour-txt');
     if(!bubble||!txtEl){_busy=false;return;}
@@ -3150,7 +3191,7 @@ const NOUR_CHAT=(()=>{
           ],
           max_tokens:135,temperature:0.72
         }),
-        signal:_activeCtrl.signal
+        signal:currentController.signal
       });
       const j=await res.json();
       if(mySeq!==_reqSeq)return;
@@ -3162,13 +3203,13 @@ const NOUR_CHAT=(()=>{
     }catch(e){
       if(e?.name!=='AbortError')_typeText(txtEl,_ensureEmoji(_getFallback(userMsg)));
     }
-    if(_activeCtrl&&mySeq===_reqSeq)_activeCtrl=null;
+    if(currentController&&mySeq===_reqSeq)currentController=null;
     _busy=false;
   }
 
   function _sayDebounced(systemPrompt,userMsg,delay=700){
     /* أي حركة جديدة تُلغي فوراً الطلب السابق لمنع race condition */
-    if(_activeCtrl){try{_activeCtrl.abort();}catch(e){}}
+    if(currentController) currentController.abort();
     _pendingSay={systemPrompt,userMsg};
     if(_debounceTimer)clearTimeout(_debounceTimer);
     _debounceTimer=setTimeout(()=>{
@@ -3201,14 +3242,7 @@ const NOUR_CHAT=(()=>{
   }
 
   /* System prompt مشترك لشخصية نور */
-  const SYS=`أنت نور، مدرب شطرنج محترف ومحلل للمباراة، لست لاعباً في المباراة بل أنت خبير تعطي نصائح وتقييمات.
-- لا تتحدث بصيغة "أنا اللاعب الأسود" إطلاقاً.
-- حلّل فقط الحركة الأخيرة وتأثيرها الواقعي على الوضع.
-- قدّم نصيحة عملية قصيرة.
-- اكتب جملة أو جملتين بحد أقصى.
-- إجباري: ضع إيموجي مناسباً في كل رد.
-- امنع التكرار أو الكلام غير المفهوم.
-- اكتب بالعربية الفصحى الواضحة.`;
+  const SYS='You are Nour, a professional chess coach. Your task is to analyze the board and comment on the moves. NEVER refer to yourself as the Black player or the White player. Use emojis. Keep responses short and helpful.';
 
   return{
     levelStart(levelId){
@@ -3222,12 +3256,17 @@ const NOUR_CHAT=(()=>{
     onMove(moveCount,isCapture,isCheck,lastMoveNotation,playerColor){
       /* نور يعلّق على كل حركة تقريباً */
       const phase=moveCount<6?'افتتاح':moveCount<15?'منتصف اللعبة':'النهايات';
-      const who=playerColor==='w'?'الأبيض':'الأسود';
-      let ctx=`حركة رقم ${moveCount*2}, ${who}, التنويه: ${lastMoveNotation}, مرحلة: ${phase}.`;
-      if(isCheck)ctx+=' الحركة أدت إلى كشّ الملك!';
-      if(isCapture)ctx+=' تضمنت أكل قطعة.';
+      const boardState={
+        board:S.bd,
+        turn:S.turn,
+        moveCount,
+        lastMove:lastMoveNotation,
+        isCapture:!!isCapture,
+        isCheck:!!isCheck,
+        phase
+      };
       _sayDebounced(SYS,
-        `حلّل الحركة التالية كمدرب: ${ctx} أعط ملاحظة تدريبية عملية قصيرة قابلة للتنفيذ بالنقلة القادمة.`
+        JSON.stringify(boardState)
       );
     },
 
