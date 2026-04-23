@@ -278,7 +278,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.D .crd-r,.sq.D .crd-f,.sq.SD .crd-r,.sq.SD .crd-f,.sq.MD .crd-r,.sq.MD .crd-f{color:var(--sq-l);}
 .sq.L .crd-r,.sq.L .crd-f,.sq.SL .crd-r,.sq.SL .crd-f,.sq.ML .crd-r,.sq.ML .crd-f{color:var(--sq-d);}
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
-.piece{position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+.piece{position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform-origin:center;}
 .sq.SL .piece,.sq.SD .piece{transform:scale(1.1);}
 .sq:hover .piece{transform:scale(1.06);}
 .sq.SL:hover .piece,.sq.SD:hover .piece{transform:scale(1.16);}
@@ -448,11 +448,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   0%,100%{filter:drop-shadow(0 0 6px rgba(248,113,113,.9)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
   50%    {filter:drop-shadow(0 0 18px rgba(248,113,113,1)) drop-shadow(0 0 30px rgba(248,113,113,.6)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
 }
-  .piece.king-check{
+.piece.king-check{
   animation:kingCheckShake .55s cubic-bezier(.36,.07,.19,.97),
             kingCheckPulse 1s ease-in-out 0.55s infinite;
 }
-.piece.rotate180 { transform: rotate(180deg); }
 
 /* ══════════ LANDSCAPE ══════════ */
 @media (orientation:landscape) and (max-height:520px){
@@ -623,7 +622,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mc-d">12 مرحلة تدريجية — افتح مرحلة مرحلة</div>
       <span class="mc-b bg">محفوظ أوفلاين ✓</span>
     </div>
-    <div class="mc" onclick="SFX.btn();G.start('local',0)">
+    <div class="mc" onclick="SFX.btn();G.start('local',0);rotatePieces(false);">
       <span class="mc-ic ic-green">⚔</span>
       <div class="mc-t">لاعبَان</div>
       <div class="mc-d">على نفس الشاشة بالتناوب</div>
@@ -780,8 +779,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <!-- GAME -->
 <div id="s-game" class="screen">
   <div class="gtop">
-    <button class="bsm" onclick="G.back()">← قائمة</button>
     <span class="gmlbl" id="gmode">—</span>
+  </div>
+  <div class="gtop" style="position: fixed; right: 16px; top: 50px; width: auto; left: auto; background: transparent; border: none; box-shadow: none; padding: 0; gap: 8px;">
+    <button class="bsm" onclick="G.back()">← قائمة</button>
     <button class="bsm" onclick="G.restart()">↺ جديدة</button>
   </div>
   <!-- Nour Personality Bubble (levels only) — فوق الرقعة -->
@@ -1202,6 +1203,36 @@ const PST={
   K:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]],
 };
 /* En Passant is confirmed to be implemented in E.raw, E.legal and E.apply */
+
+/* ══════════════════════════════════════
+   THREEFOLD REPETITION TRACKING
+══════════════════════════════════════ */
+const BOARD_HISTORY=[];
+function _hashBoard(bd,turn,cas,ep){
+  let h='';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)h+=bd[r][c]||'.';
+  h+=turn+JSON.stringify(cas)+JSON.stringify(ep);
+  return h;
+}
+function _checkThreefold(bd,turn,cas,ep){
+  const hash=_hashBoard(bd,turn,cas,ep);
+  const count=(BOARD_HISTORY.filter(h=>h===hash)||[]).length;
+  return count>=2; /* 3 تكرارات = 2 تكرار سابق */
+}
+function _addBoardHistory(bd,turn,cas,ep){
+  BOARD_HISTORY.push(_hashBoard(bd,turn,cas,ep));
+}
+function _clearBoardHistory(){
+  BOARD_HISTORY.length=0;
+}
+function rotatePieces(shouldRotate){
+  const pieces=document.querySelectorAll('.piece');
+  pieces.forEach(p=>{
+    if(shouldRotate)p.style.transform='scaleX(-1) scaleY(-1)';
+    else p.style.transform='none';
+  });
+}
+
 const E={
   col:p=>p?p[0]:null, tp:p=>p?p[1]:null, opp:c=>c==='w'?'b':'w',
   inb:(r,c)=>r>=0&&r<8&&c>=0&&c<8, clone:b=>b.map(r=>[...r]),
@@ -1464,7 +1495,7 @@ const EVALBAR={
    REVIEW — مراجعة تفاعلية كاملة
 ══════════════════════════════════════ */
 const REV=(()=>{
-  const GROQ_KEY='gsk_Qv';
+  const GROQ_KEY='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';
   const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
 
   /* حالة المراجعة */
@@ -1715,10 +1746,16 @@ const REV=(()=>{
     coachEl.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-right:6px;color:var(--text2)">يُحلِّل…</span></div>`;
     const ratingNames={best:'أفضل حركة',good:'حركة جيدة',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح'};
     const evalPawns=(mv.evalAfter/100).toFixed(1);
-    const prompt=`أنت "نور المدرب"، مدرب شطرنج محترف.
-حلل هذه الحركة: ${mv.move} (اللاعب: ${mv.color==='w'?'الأبيض':'الأسود'}، التصنيف: ${ratingNames[mv.rating]}، القيمة: ${evalPawns}).
-${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى: ${mv.bestMv}`:''}
-اكتب تحليلاً دقيقاً ومختصراً جداً (جملتين) بالعربية الفصحى فقط.`;
+    const prompt=`أنت "نور المدرب"، مدرب شطرنج محترف. قدِّم تحليلاً موجزاً لهذه الحركة باللغة العربية الفصحى في جملتين أو ثلاث جمل على الأكثر. استخدم أسلوباً أكاديمياً رصيناً دون عامية.
+
+الحركة: ${mv.move}
+اللاعب: ${mv.color==='w'?'الأبيض':'الأسود'}
+رقم الحركة: ${mv.moveNum}
+التصنيف: ${ratingNames[mv.rating]}
+قيمة الموقف بعدها: ${evalPawns} بيدق
+${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv}`:''}
+
+اشرح سبب هذا التصنيف وما كان يمكن تحسينه. كن دقيقاً ومشجعاً. لا تستخدم العامية المصرية أو أي لهجة عربية.`;
     try{
       const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',
@@ -1978,8 +2015,7 @@ const R={
   _squares:[],        /* cache للـ squares حتى لا نعمل querySelectorAll في كل render */
   board(){
     const el=document.getElementById('board');
-    const flip=(S.mode==='local' && S.turn==='b') || (S.mode!=='local' && S.myCol==='b');
-    const rotatePieces=S.mode==='local';
+    const flip=S.mode==='local'?(S.turn==='b'):(S.myCol==='b');
     /* إذا تغير اتجاه الرقعة (flip) نعيد البناء الكامل مرة واحدة */
     if(!this._boardBuilt||this._boardFlip!==flip){
       el.innerHTML='';
@@ -2031,22 +2067,24 @@ const R={
       const piece=sq.querySelector('.piece');
       const pieceCode=S.bd[r][c];
       const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
+      const shouldRotate=S.mode==='local'&&S.turn==='b';
       if(pieceCode){
         if(!piece||piece.dataset.pc!==pieceCode){
           if(piece)piece.remove();
           const p=document.createElement('div');p.className='piece '+pieceCode;p.dataset.pc=pieceCode;
-          if(rotatePieces){
-            const pCol=pieceCode[0];
-            if(pCol===(flip?'w':'b')) p.classList.add('rotate180');
-          }
+          if(shouldRotate)p.style.transform='scaleX(-1) scaleY(-1)';
           if(wantStar){
             const star=document.createElement('div');star.className='ast-star';star.textContent='★';p.appendChild(star);
             this._prevStarEl=star;
           }
           sq.appendChild(p);
-        }else if(wantStar){
-          const s=document.createElement('div');s.className='ast-star';s.textContent='★';piece.appendChild(s);
-          this._prevStarEl=s;
+        }else{
+          if(shouldRotate)piece.style.transform='scaleX(-1) scaleY(-1)';
+          else piece.style.transform='none';
+          if(wantStar){
+            const s=document.createElement('div');s.className='ast-star';s.textContent='★';piece.appendChild(s);
+            this._prevStarEl=s;
+          }
         }
       }else{
         if(piece)piece.remove();
@@ -2193,7 +2231,6 @@ const G={
     S.snapshots=[];
     S.preMove=null;S.preMoveSelFr=null;
     S.undoStack=[];
-    S.posHistory={};
     AST.clear();
     R.boardReset();
     CHAT.hide();
@@ -2215,8 +2252,11 @@ const G={
       document.getElementById('nm-w').textContent='اللاعب الأبيض';
       document.getElementById('nm-b').textContent='اللاعب الأسود';
       document.getElementById('gmode').textContent='⚔ لاعبَان';
-      fixBars('both');}
+      fixBars('both');
+      _clearBoardHistory();
+    }
     Nav.game();R.all();
+    if(mode==='local') rotatePieces(false);
   },
   startLevel(id){
     const lv=LEVELS_DEF[id];
@@ -2231,8 +2271,10 @@ const G={
     /* شخصية نور */
     NOUR_CHAT.levelStart(id);
   },
-  click(r,c){
+  click(r_in,c_in){
     if(S.over||S.pending)return;
+    let r=r_in, c=c_in;
+    if(S.mode==='local'&&S.turn==='b'){r=7-r;c=7-c;}
 
     /* ---- اللعب المسبق (pre-move) — أونلاين وبوت فقط، لا لاعبَان ---- */
     const isWaitingTurn=S.mode!=='local'&&(
@@ -2272,11 +2314,8 @@ const G={
     const isLeg=S.legal.some(([lr,lc])=>lr===r&&lc===c);
     if(isLeg){this.exec(S.sel,[r,c]);return;}
     if(S.bd[r][c]&&E.col(S.bd[r][c])===S.turn){
-      S.sel=[r,c];S.legal=E.legal(S.bd,r,c,S.cas,S.ep);
-    }else{
-      if(S.sel)SFX.illegal();
-      S.sel=null;S.legal=[];
-    }
+      S.sel=[r,c];S.legal=E.legal(S.bd,r,c,S.cas,S.ep);}
+    else{if(S.sel)SFX.illegal();S.sel=null;S.legal=[];}
     R.board();
   },
   exec(fr,to){
@@ -2307,11 +2346,12 @@ const G={
         moveCount:S.moveCount,
         snapshots:S.snapshots.map(s=>({...s,bd:s.bd.map(r=>[...r])})),
         assistW:S.assistW,assistB:S.assistB,
-        posHistory:JSON.parse(JSON.stringify(S.posHistory||{})),
       });
     }
     /* حفظ snapshot قبل الحركة للتقييم */
     S.snapshots.push({bd:S.bd.map(r=>[...r]),turn:S.turn,move:E.notation(S.bd,fr,to,promo)});
+    /* إضافة الحالة الحالية لتاريخ الرقعة */
+    _addBoardHistory(S.bd,S.turn,S.cas,S.ep);
     const res=E.apply(S.bd,fr,to,S.cas,S.ep,promo);
     if(res.cap)(S.turn==='w'?S.capW:S.capB).push(res.cap);
     S.hist.push(E.notation(S.bd,fr,to,promo));
@@ -2320,19 +2360,6 @@ const G={
     AST.clear();
     if(S.turn==='w')S.moveCount++;
     S.turn=E.opp(S.turn);
-
-    /* Threefold Repetition Check */
-    const getPosKey=(bd,turn,cas,ep)=>{
-      let s=bd.flat().map(p=>p||'.').join('')+turn;
-      s+=cas.w.K?'1':'0';s+=cas.w.Q?'1':'0';s+=cas.b.K?'1':'0';s+=cas.b.Q?'1':'0';
-      s+=ep?`${ep[0]}${ep[1]}`:'-';
-      return s;
-    };
-    const currentKey=getPosKey(S.bd,S.turn,S.cas,S.ep);
-    S.posHistory=S.posHistory||{};
-    S.posHistory[currentKey]=(S.posHistory[currentKey]||0)+1;
-    const isRepetition=S.posHistory[currentKey]>=3;
-
     /* تحديث شريط التقييم */
     EVALBAR.update(S.bd);
     /* في وضع لاعبَان: حدّث S.assistOn حسب اللاعب الجديد */
@@ -2342,19 +2369,29 @@ const G={
     }
     /* نحدد الحالة أولاً قبل الصوت — checkmate له أولوية */
     const avail=E.allLegal(S.bd,S.turn,S.cas,S.ep);
+    const isThreefold=_checkThreefold(S.bd,S.turn,S.cas,S.ep);
     const isCheckmate=!avail.length&&E.inChk(S.bd,S.turn);
-    const isDraw=(!avail.length&&!E.inChk(S.bd,S.turn)) || isRepetition;
+    const isDraw=!avail.length&&!E.inChk(S.bd,S.turn);
     const isCheck=avail.length&&E.inChk(S.bd,S.turn);
     /* نشغّل الصوت المناسب — مرة واحدة فقط */
     if(isCheckmate)     SFX.checkmate();
+    else if(isThreefold) SFX.draw();
+    else if(isDraw)     SFX.draw();
     else if(promo)      SFX.promote();
     else if(res.isCas)  SFX.castle();
     else if(res.cap && isCheck) SFX.captureCheck();
     else if(res.cap)    SFX.capture();
     else if(isCheck)    SFX.check();
     else                SFX.move();
+    /* النهاية — المات أو التعادل */
+    if(isCheckmate){S.over=true;S.pending=S.turn+' wins';AST.hide();}
+    else if(isThreefold){S.over=true;S.pending='draw';AST.hide();}
+    else if(isDraw){S.over=true;S.pending='draw';AST.hide();}
     R.all();
-    R.ripple(to[0],to[1]);
+    if(S.mode==='local') rotatePieces(S.turn==='b');
+    let rr=to[0],rc=to[1];
+    if(S.mode==='local'&&S.turn==='w'){rr=7-rr;rc=7-rc;}
+    R.ripple(rr,rc);
     /* نور يعلّق فقط في وضع المراحل */
     if(S.mode==='bot'&&S.levelId>=0){
       const lastMoveNot=S.hist[S.hist.length-1];
@@ -2414,11 +2451,6 @@ const G={
             // إظهار زر تقييم المباراة
             document.getElementById('go-review').style.display='inline-flex';
           }
-        },350);
-      }else if(isRepetition){
-        setTimeout(()=>{
-          this.showOver('◎','تعادل!','تكرار الوضع ثلاث مرات','#5eead4');
-          document.getElementById('go-review').style.display='inline-flex';
         },350);
       }else{
         /* تعادل — الصوت اتشغّل فوق بالفعل عبر SFX.move() */
@@ -2564,7 +2596,6 @@ const G={
     S.lastMove=snap.lastMove;S.moveCount=snap.moveCount;
     S.snapshots=snap.snapshots;
     S.assistW=snap.assistW;S.assistB=snap.assistB;
-    S.posHistory=snap.posHistory||{};
     S.assistOn=S.turn==='w'?S.assistW:S.assistB;
     S.sel=null;S.legal=[];S.pending=null;S.busy=false;
     AST.clear();
@@ -2788,7 +2819,7 @@ const OL=(()=>{
     G._reset('online',0);
     S.mode='online';S.levelId=-1;S.myCol=mc;
     document.getElementById('gmode').textContent='⊕ أونلاين';
-    const myName=Cfg.data.playerName||'أنا';
+    const myName=Cfg.data.playerName||'أنت';
     const oppLabel=(oppName&&oppName.trim())?oppName.trim():'الخصم';
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent=myName;
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent=oppLabel;
@@ -3062,10 +3093,11 @@ const DRAG=(()=>{
    NOUR PERSONALITY — شخصية نور في المراحل
 ══════════════════════════════════════ */
 const NOUR_CHAT=(()=>{
-  const GROQ_KEY='gsk_Qv';
+  const GROQ_KEY='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';
   const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
   let _busy=false;
   let _lastSaid='';
+  let _lastContext='';
 
   /* تأثير الكتابة المتدرج */
   function _typeText(el,text){
@@ -3108,8 +3140,10 @@ const NOUR_CHAT=(()=>{
       });
       const j=await res.json();
       let txt=(j.choices?.[0]?.message?.content||'').trim().replace(/^["""''«»]|["""''«»]$/g,'');
-      if(!txt||txt===_lastSaid)txt=_getFallback(userMsg);
+      /* تجنب التكرار والكلام الفارغ */
+      if(!txt||txt===_lastSaid||txt===_lastContext)txt=_getFallback(userMsg);
       _lastSaid=txt;
+      _lastContext=userMsg;
       _typeText(txtEl,txt);
     }catch(e){
       _typeText(txtEl,_getFallback(userMsg));
@@ -3140,29 +3174,34 @@ const NOUR_CHAT=(()=>{
   }
 
   /* System prompt مشترك لشخصية نور */
-  const SYS=`أنت "نور"، مدرب شطرنج ذكي وفكاهي.
-- مهمتك هي التعليق على حركاتك الخاصة فقط (حركات نور/الأسود).
-- لا تعلق على حركات اللاعب (الأبيض).
-- اجعل تعليقك يركز على الحركة التي قمت بها وسبب قوتها أو جمالها بأسلوب فكاهي ومحترف.
-- لا تكرر كلامك، كن مبدعاً في كل مرة.
-- اكتب بالعربية الفصحى الخفيفة وبجملة قصيرة (10-20 كلمة).`;
+  const SYS=`أنت "نور"، مدرب شطرنج ذكي وفكاهي في لعبة شطرنج عربية. شخصيتك مثل بوتات chess.com تماماً:
+- تعلّق على كل حركة بجملة أو جملتين، ليست قصيرة جداً ولا طويلة (15-25 كلمة).
+- تجمع بين الفكاهة الخفيفة والتحليل الواقعي للموقف على الرقعة.
+- تتحدث عن نفسك كـ"أنا نور" وعن اللاعب بـ"أنت".
+- أحياناً تستخدم إيموجي مناسباً (♟️ 😄 🤔 🔥 ⚠️ 🎓).
+- تعلّق على ما حدث فعلاً: أكل قطعة، كش، تقدم، خطأ، تضحية...
+- تتنوع ردودك ولا تكرر نفسك.
+- اكتب بالعربية الفصحى الخفيفة.`;
 
   return{
     levelStart(levelId){
       const lv=LEVELS_DEF[levelId];
       if(!lv)return;
-      _say(`أنت "نور"، رحّب باللاعب في مرحلة "${lv.name}".`,
-        `levelStart: مرحلة "${lv.name}". رحّب باللاعب بأسلوب فكاهي.`
+      _say(SYS,
+        `levelStart: مرحلة "${lv.name}" (المستوى ${levelId+1} من 12). التلميح: "${lv.hint}". رحّب باللاعب وقل له شيئاً عن هذه المرحلة بأسلوب فكاهي واقعي.`
       );
     },
 
     onMove(moveCount,isCapture,isCheck,lastMoveNotation,playerColor){
-      if(playerColor==='w') return; // لا يتحدث عن حركات اللاعب
+      /* نور يعلّق على حركات اللاعب فقط */
+      if(playerColor!=='w')return;
       const phase=moveCount<6?'افتتاح':moveCount<15?'منتصف اللعبة':'النهايات';
-      let ctx=`حركتي أنا (نور): ${lastMoveNotation}, مرحلة: ${phase}.`;
-      if(isCheck)ctx+=' لقد قمت بكش لملكك!';
-      if(isCapture)ctx+=' لقد أكلت قطعة من قطعك.';
-      _say(SYS, `علّق على حركتك هذه فقط: ${ctx}`);
+      let ctx=`اللاعب قام بحركة: ${lastMoveNotation} في مرحلة ${phase}.`;
+      if(isCheck)ctx+=' أدت إلى كشّ الملك!';
+      if(isCapture)ctx+=' تضمنت أكل قطعة.';
+      _say(SYS,
+        `علّق على هذه الحركة بجملة واحدة فقط: ${ctx}`
+      );
     },
 
     levelEnd(won,stars){
