@@ -1,3 +1,79 @@
+
+
+ترقية
+
+مشاركة
+pasted_content_2.txt
+نص · 292.52 KB
+اللعبة تعمل تماما كما اريد ولكن هنالك بعض المشاكل التي أرجو إصلاحها
+أولا ميزة تخصيص رقعة في الاعدادت ليست واضحة للمستخدم وشكلها ليس جميل وغير محدد للمستخدم انه يمكن اختيار صورة
+حسنها
+ثانيا لا يتم استخدام الرقعة المخصصة تلك في رقعة التقيم (في تقيم المباراة)
+أصلح تلك المشاكل
+
+المشكلة الثانية الرقعة الأساسية يجب أن تكون الرقعة الخشبية هي صورة مرفوعة علي المستودع الخاص بالمشروع باسم wood.png اجعل الكود يستخدم تلك الصورة لتكون الرقعة الأساسية
+
+
+المشكلة الثالثة أصوات النقر لا تعمل أصوات النقر الخاصة بالواجهة لا تعمل إطلاقاً لم اعد اسمع أصوات ضغط عند الضغط على عنصر في الواجهة
+
+
+المشكلة الرابعة في وضع 'لاعبان'، عند قيام اللاعب بحركة، يجب أن تنقلب القطعة التي تحركت فوراً بمجرد تركها في المربع الجديد، لتتماشى مع وضعية الخصم القادم. حالياً القطعة تظل بوضعها القديم حتى تنقلب باقي القطع، وهذا خطأ. اجعل عملية الـ rotation تشمل كل القطع بما فيها القطعة المتحركة في نفس اللحظة
+
+المشكلة الأخيرة هي أن احيانا الأصوات (أصوات الشطرنج move, check إلخ) 
+لا تعمل عندما لا أكون متصل بالإنترنت ولكن عندما اتصل بالانترنت تعمل هذه المشاكل احيانا تظهر مشاكل الصوت أرجو إصلاحها أيضا 
+
+واخيرا تأكد من عمل التعادل بالتكرار وعدم كفاية القطع
+
+تلك فقط المشاكل البسيطة التي أرجو منك إصلاحها أنا على خطتك المجانية ان لم. تكمل تذكر ان تحفظ كل شئ تفعله كل تكمل في وقت لاحق ان انتهى رصيدي لاني اريد الملف كامل مصلح
+Lite
+علمت بطلباتك. سأقوم بفحص الكود المرفق وإصلاح المشاكل المتعلقة بتخصيص الرقعة، أصوات الواجهة، دوران القطع في وضع اللاعبين، وضمان عمل الأصوات والتعادل بشكل صحيح. سأبدأ الآن بتحليل المشروع.
+Analyzing the code reveals layout and feature details. Next, I'll identify specific issues with the board customization, sounds, rotation, and game logic.
+
+I've reviewed the game logic, sound effects, and UI code. Key issues include sound triggers, board customization, rotation, and game state handling. Next, I'll identify specific problem areas and plan fixes accordingly.
+
+I confirmed no explicit SFX object definition exists; will further examine sound trigger code to locate where sound effects are set up or used.
+
+I've confirmed sound effects are linked to the 'move.mp3' file in the FILES object, with no explicit SFX object definition; next, I will check where these sounds are triggered.
+
+Analyzing code for renderer and board functions yielded no matches; need to further explore how sound effects trigger, as they're linked to 'move.mp3' without direct SFX object reference.
+
+I found no direct definition of _drawBoard in the code, indicating it may be dynamically assigned or defined elsewhere, making sound effect trigger analysis more complex. Next, I will search for related event handlers or function calls.
+
+I found the _drawBoard function, which draws the chessboard, but no THEMES variable is defined in the code segment. Next, I will check for event handlers or sound trigger functions related to _drawBoard.
+
+I confirmed the theme is set via `boardTheme:'classic'` in the configuration object; no THEMES variable exists. Next, I will check how this theme is applied in the board drawing process.
+
+I confirmed the theme is set with `boardTheme:'classic'`; no THEMES variable exists. Next, I will investigate how this theme influences the board drawing process.
+
+The `'_countRepetition'` function tracks move repetitions; will analyze its usage further. No `boardReset` function found, indicating it may be defined elsewhere or differently.
+
+Analyzed the 'boardReset' function confirms it resets state variables; no 'board' function found, indicating the board is managed elsewhere, likely in the main game logic. Will continue reviewing the code.
+
+The code contains a 'board()' function at line 1939, but no 'board' variable or method is managed in the main logic, indicating the board is handled elsewhere. Next, I will review the 'board()' function.
+
+The 'board()' function constructs the game board dynamically, but its management is separate from core logic. Found references to sound functions using 'v()'; will review their definitions next.
+
+Lite
+ليس لديك رصيد كافٍ. يرجى الترقية عبر الرابط أدناه للمتابعة.
+https://manus.go.link/iW6sB?action=open-subscription
+I've confirmed no direct function v() or v = () => exists in the code. I'll review the SFX object carefully to locate sound-related functions next.
+
+حسنا فلتكمل وتذكر ان الأصوات التي تعتمد على الملفات ستبقي كما هي تماما ولكن أصلح مشكلة انها لا تعمل بدون إنترنت على هواتف الأشخاص 
+Lite
+فهمت تماماً. سأقوم بإصلاح مشكلة الأصوات لتكون متاحة أوفلاين عبر تحسين آلية التحميل والتخزين المؤقت، وسأعالج كافة المشاكل الأخرى التي ذكرتها (تحسين واجهة التخصيص، استخدام الرقعة المخصصة في التقييم، تعيين wood.png كرقعة أساسية، إصلاح دوران القطع، والتحقق من قوانين التعادل). سأبدأ الآن بتطبيق هذه الإصلاحات على الكود.
+Offline sound file functionality
+
+
+Lite
+الملف كبير جداً ولم أتمكن من كتابته بالكامل في مرة واحدة. سأقوم بحفظ الملف المتبقي الآن.
+تم استنفاد نقاطك. يرجى ترقية خطتك للحصول على المزيد من النقاط.
+ترقية
+
+
+
+
+
+pasted_content_2.txt
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -699,13 +775,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <div class="th-opt"    id="th-gold"        onclick="SFX.btn();Cfg.theme('gold')"><div class="th-sw"><div class="sw" style="background:#fdf3c0"></div><div class="sw" style="background:#b8860b"></div></div>ذهبي</div>
           <div class="th-opt"    id="th-bw"          onclick="SFX.btn();Cfg.theme('bw')"><div class="th-sw"><div class="sw" style="background:#fff;border:1px solid #ccc"></div><div class="sw" style="background:#1a1a1a"></div></div>أبيض وأسود</div>
           <div class="th-opt"    id="th-ice"         onclick="SFX.btn();Cfg.theme('ice')"><div class="th-sw"><div class="sw" style="background:#dff0f8"></div><div class="sw" style="background:#3a6090"></div></div>جليدي</div>
-          <div class="th-opt"    id="th-custom"      onclick="SFX.btn();Cfg.theme('custom')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,0.2)"></div><div class="sw" style="background:rgba(0,0,0,0.4)"></div></div>صورة مخصصة</div>
+          <div class="th-opt"    id="th-custom"      onclick="SFX.btn();Cfg.theme('custom')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,0.2)"></div><div class="sw" style="background:rgba(0,0,0,0.4)"></div></div>صورة ★</div>
         </div>
-        <div id="custom-board-upload" style="margin-top:12px;display:none;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid rgba(201,168,76,.15);">
-          <label style="font-size:12px;color:var(--gold2);display:block;margin-bottom:8px;font-weight:700;">اختر صورة للرقعة:</label>
-          <input type="file" id="board-image-input" accept="image/*" style="color:var(--text);font-size:11px;width:100%;padding:8px;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.2);border-radius:6px;cursor:pointer;">
-          <button class="btnb" style="margin-top:8px;width:100%;padding:8px;" onclick="Cfg.applyCustomBoardImage()">تطبيق الصورة</button>
-          <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.4;">ملاحظة: اختر صورة بجودة عالية وحجم مناسب. ستُحفظ محلياً على جهازك.</div>
+        <div id="custom-board-upload" style="margin-top:12px;display:none;padding:8px;background:var(--bg3);border-radius:8px;">
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;">اختر صورة للرقعة:</label>
+          <input type="file" id="board-image-input" accept="image/*" style="color:var(--text);font-size:11px;">
+          <button class="btnb" style="margin-top:6px;padding:5px;" onclick="Cfg.applyCustomBoardImage()">تطبيق</button>
         </div>
       </div>
     </div>
@@ -895,13 +970,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 /* ══════════════════════════════════════
    AUDIO
-══════════════════════════════════════ */const SFX=(()=>{
+══════════════════════════════════════ */
+const SFX=(()=>{
   const FILES={move:'move.mp3',capture:'capture.mp3',castle:'castle.mp3',checkmate:'checkmate.mp3',check:'check.mp3',error:'Error.mp3'};
   let ctx=null;
   const buffers={};
   const _loading=new Set();
-  const _failed=new Set();
-  const _audioCache={};
 
   function getCtx(){
     if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();}
@@ -910,31 +984,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   }
 
   function loadOne(name,file,c,attempt){
-    if(buffers[name]||_loading.has(name)||_failed.has(name))return;
+    if(buffers[name]||_loading.has(name))return;
     _loading.add(name);
-    
-    if(_audioCache[name]){
-      try{
-        c.decodeAudioData(_audioCache[name].slice(0), buf=>{
-          buffers[name]=buf;
-          _loading.delete(name);
-        }, ()=>{
-          _loading.delete(name);
-          _failed.add(name);
-        });
-      }catch(e){
-        _loading.delete(name);
-        _failed.add(name);
-      }
-      return;
-    }
-
     fetch(file+'?_='+Date.now())
       .then(r=>{if(!r.ok)throw new Error('bad');return r.arrayBuffer();})
       .then(ab=>{
-        _audioCache[name]=ab;
         return new Promise((res,rej)=>{
-          try{c.decodeAudioData(ab,buf=>{res(buf);},()=>rej(new Error('decode')));}\n          catch(e){rej(e);}
+          try{c.decodeAudioData(ab,buf=>{res(buf);},()=>rej(new Error('decode')));}
+          catch(e){rej(e);}
         });
       })
       .then(buf=>{buffers[name]=buf;_loading.delete(name);})
@@ -942,8 +999,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         _loading.delete(name);
         if((attempt||0)<3){
           setTimeout(()=>loadOne(name,file,c,(attempt||0)+1),1000);
-        }else{
-          _failed.add(name);
         }
       });
   }
@@ -960,7 +1015,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       if(c.state==='suspended')c.resume();
       const buf=buffers[name];
       if(!buf){
-        if(!_loading.has(name)&&!_failed.has(name)&&FILES[name])loadOne(name,FILES[name],c,0);
+        if(!_loading.has(name)&&FILES[name])loadOne(name,FILES[name],c,0);
         try{
           const a=new Audio(FILES[name]);
           a.volume=Cfg.data.vol/100;
@@ -992,7 +1047,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       const c=getCtx(),t=c.currentTime;
       const o=c.createOscillator(),g=c.createGain();
       o.type='sine';o.frequency.setValueAtTime(660,t);
-      g.gain.setValueAtTime((Cfg.data.vol/100)*0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+      g.gain.setValueAtTime(v()*0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.06);
       o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.07);
     }catch(e){}
   }
@@ -1014,7 +1069,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     hint()   {uiClick();},
     chat()   {
       if(!Cfg.data.sound)return;
-      try{const c=getCtx();const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1320;g.gain.setValueAtTime((Cfg.data.vol/100)*0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);o.connect(g);g.connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+0.13);}catch(e){}
+      try{const c=getCtx();const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1320;g.gain.setValueAtTime(v()*0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);o.connect(g);g.connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+0.13);}catch(e){}
     },
     init(){_init();}
   };
@@ -1113,9 +1168,6 @@ const Cfg={
     const boardDiv=document.getElementById('board');
     if(name==='custom' && this.data.customBoardImage){
       boardDiv.style.backgroundImage=`url(${this.data.customBoardImage})`;
-      boardDiv.style.backgroundSize='cover';
-    }else if(name==='classic'){
-      boardDiv.style.backgroundImage=`url('wood.png')`;
       boardDiv.style.backgroundSize='cover';
     }else{
       boardDiv.style.backgroundImage='';
@@ -1600,15 +1652,6 @@ const REV=(()=>{
     if(!el)return;
     el.innerHTML='';
     const th=THEMES[Cfg.data.boardTheme]||THEMES.classic;
-    if(Cfg.data.boardTheme==='custom' && Cfg.data.customBoardImage){
-      el.style.backgroundImage=`url(${Cfg.data.customBoardImage})`;
-      el.style.backgroundSize='cover';
-    }else if(Cfg.data.boardTheme==='classic'){
-      el.style.backgroundImage=`url('wood.png')`;
-      el.style.backgroundSize='cover';
-    }else{
-      el.style.backgroundImage='';
-    }
     for(let r=0;r<8;r++){
       for(let c=0;c<8;c++){
         const sq=document.createElement('div');
@@ -2299,7 +2342,6 @@ const G={
     if(S.mode==='local'){
       S.assistOn=S.turn==='w'?S.assistW:S.assistB;
       AST.clear();
-      R.board();
     }
     const repetitionCount=this._countRepetition();
     const isThreefold=repetitionCount>=3;
@@ -3072,3 +3114,4 @@ window.addEventListener('load',()=>{SFX.init(); DRAG.init(); _loadChessPieces();
 </script>
 </body>
 </html>
+مشاكل اللعبة التي تحتاج إلى إصلاح - Manus
