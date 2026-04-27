@@ -2825,6 +2825,19 @@ const OL=(()=>{
         }
         break;
 
+      case 'pimg':
+        {
+          const oc=E.opp(S.myCol);
+          const avEl=document.querySelector('.av-'+oc);
+          if(avEl && d.img){
+            avEl.style.backgroundImage=`url(${d.img})`;
+            avEl.style.backgroundSize='cover';
+            avEl.style.backgroundPosition='center';
+            avEl.style.color='transparent';
+          }
+        }
+        break;
+
       case 'pong': break;
       default: break;
     }
@@ -2846,7 +2859,10 @@ const OL=(()=>{
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent=oppLabel;
     fixBars(mc);
     CHAT.show();
-    setTimeout(()=>send({type:'name',name:myName}),300);
+    setTimeout(()=>{
+      send({type:'name',name:myName});
+      if(Cfg.data.playerImage) send({type:'pimg',img:Cfg.data.playerImage});
+    },300);
     Nav.game();R.all();updatePlayerImages();
   }
 
