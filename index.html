@@ -650,6 +650,16 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <div id="set-name-av" style="width:38px;height:38px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:var(--gold2);font-weight:700"></div>
         </div>
       </div>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:8px;margin-top:12px;">
+        <div class="sr-n">صورة الملف الشخصي</div>
+        <div class="sr-d">صورة صغيرة تظهر بجانب اسمك في جميع اوضاع اللعبة</div>
+        <input type="file" id="profile-image-input" accept="image/*" style="color:var(--text);font-size:11px;width:100%;padding:8px;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.2);border-radius:6px;cursor:pointer;">
+        <div style="display:flex;gap:8px;width:100%;">
+          <button class="btnb" style="flex:1;padding:8px;" onclick="Cfg.applyProfileImage()">تطبيق الصورة</button>
+          <button class="btnb" style="flex:1;padding:8px;background:rgba(248,113,113,.11);border-color:rgba(248,113,113,.24);color:var(--red);" onclick="Cfg.removeProfileImage()">حذف الصورة</button>
+        </div>
+        <div style="font-size:10px;color:var(--text3);line-height:1.4;">ملاحظة: اختر صورة بجودة عالية. ستحفظ محليا على جهازك.</div>
+      </div>
     </div>
     <div class="sc">
       <h2><span class="ic-gold">◆</span> الصوت</h2>
@@ -684,6 +694,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="sr-n" style="margin-bottom:8px">ألوان الرقعة</div>
         <div class="th-grid" style="grid-template-columns:repeat(4,1fr);">
           <div class="th-opt on" id="th-classic"    onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>خشب ★</div>
+          <div class="th-opt"    id="th-burl_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood')"><div class="th-sw"><div class="sw" style="background:#d4a574"></div><div class="sw" style="background:#8b6f47"></div></div>بيرل</div>
+          <div class="th-opt"    id="th-dark_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood')"><div class="th-sw"><div class="sw" style="background:#9d8b7e"></div><div class="sw" style="background:#4a3a2a"></div></div>داكن</div>
+          <div class="th-opt"    id="th-dark_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood2')"><div class="th-sw"><div class="sw" style="background:#8b7d6b"></div><div class="sw" style="background:#3a2a1a"></div></div>داكن 2</div>
+          <div class="th-opt"    id="th-burl_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood2')"><div class="th-sw"><div class="sw" style="background:#c9a574"></div><div class="sw" style="background:#7a5a3a"></div></div>بيرل 2</div>
           <div class="th-opt"    id="th-green"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('green')"><div class="th-sw"><div class="sw" style="background:#eeeed2"></div><div class="sw" style="background:#769656"></div></div>أخضر</div>
           <div class="th-opt"    id="th-wood_walnut" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_walnut')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>جوز ★</div>
           <div class="th-opt"    id="th-wood_maple"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_maple')"><div class="th-sw"><div class="sw" style="background:#efc99e"></div><div class="sw" style="background:#c56e3a"></div></div>قيقب ★</div>
@@ -1039,6 +1053,10 @@ function spawnConfetti(){
    THEMES
 ══════════════════════════════════════ */
 const THEMES={
+  burl_wood:  {l:'#d4a574',d:'#8b6f47',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
+  dark_wood:  {l:'#9d8b7e',d:'#4a3a2a',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
+  dark_wood2: {l:'#8b7d6b',d:'#3a2a1a',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
+  burl_wood2: {l:'#c9a574',d:'#7a5a3a',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
   classic:    {l:'#ba9d79',d:'#74533a',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
   green:      {l:'#eeeed2',d:'#769656',sl:'#f6f669',sd:'#baca2b',ml:'#cdd26a',md:'#5a8c3a'},
   wood_walnut:{l:'#ba9d79',d:'#74533a',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
@@ -1058,8 +1076,15 @@ const THEMES={
   custom:     {l:'rgba(255,255,255,0.15)',d:'rgba(0,0,0,0.35)',sl:'rgba(255,255,255,0.25)',sd:'rgba(0,0,0,0.45)',ml:'rgba(255,255,255,0.2)',md:'rgba(0,0,0,0.4)',tex:false}
 };
 
+const BOARD_IMAGES={
+  burl_wood:  'Burl_wood.png',
+  dark_wood:  'dark_wood.png',
+  dark_wood2: 'dark_wood2.png',
+  burl_wood2: 'burl_wood2.png'
+};
+
 const Cfg={
-  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',allowRotation:false,playerName:'',customBoardImage:''},
+  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',allowRotation:false,playerName:'',playerImage:'',customBoardImage:''},
   load(){
     try{const s=localStorage.getItem('chess-cfg-v6');if(s)this.data={...this.data,...JSON.parse(s)};}catch(e){}
     this.apply();
@@ -1087,6 +1112,7 @@ const Cfg={
     const rotEl=document.getElementById('set-rotation');if(rotEl)rotEl.checked=!!this.data.allowRotation;
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
     this._updateAvatar(this.data.playerName||'');
+    this._updateProfileImage();
     this.theme(this.data.boardTheme,false);
     if(this.data.customBoardImage){
       const el=document.getElementById('board');if(el)el.style.backgroundImage=`url(${this.data.customBoardImage})`;
@@ -1099,10 +1125,41 @@ const Cfg={
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
     this._updateAvatar(this.data.playerName);
   },
+  applyProfileImage(){
+    const fileInput=document.getElementById('profile-image-input');
+    const file=fileInput.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(e)=>{
+      this.data.playerImage=e.target.result;
+      try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+      this._updateAvatar(this.data.playerName);
+      alert('تم تطبيق صورة الملف الشخصي');
+    };
+    reader.readAsDataURL(file);
+  },
   _updateAvatar(name){
     const av=document.getElementById('set-name-av');
     if(!av)return;
-    av.textContent=name?name[0].toUpperCase():'◈';
+    if(this.data.playerImage){
+      av.style.backgroundImage=`url(${this.data.playerImage})`;
+      av.style.backgroundSize='cover';
+      av.style.backgroundPosition='center';
+      av.textContent='';
+    }else{
+      av.style.backgroundImage='';
+      av.textContent=name?name[0].toUpperCase():'◈';
+    }
+  },
+  _updateProfileImage(){
+    const av=document.getElementById('set-name-av');
+    if(!av)return;
+    if(this.data.playerImage){
+      av.style.backgroundImage=`url(${this.data.playerImage})`;
+      av.style.backgroundSize='cover';
+      av.style.backgroundPosition='center';
+      av.textContent='';
+    }
   },
   theme(name,save=true){
     this.data.boardTheme=name;
@@ -1116,6 +1173,9 @@ const Cfg={
     const boardDiv=document.getElementById('board');
     if(name==='custom' && this.data.customBoardImage){
       boardDiv.style.backgroundImage=`url(${this.data.customBoardImage})`;
+      boardDiv.style.backgroundSize='cover';
+    }else if(BOARD_IMAGES[name]){
+      boardDiv.style.backgroundImage=`url('${BOARD_IMAGES[name]}')`;
       boardDiv.style.backgroundSize='cover';
     }else if(name==='classic'){
       boardDiv.style.backgroundImage=`url('wood.png')`;
@@ -1131,6 +1191,22 @@ const Cfg={
     this.data.allowRotation=on;
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
   },
+  _updateProfileImage(){
+    const av=document.getElementById('set-name-av');
+    if(!av)return;
+    if(this.data.playerImage){
+      av.style.backgroundImage=`url(${this.data.playerImage})`;
+      av.style.backgroundSize='cover';
+      av.style.backgroundPosition='center';
+      av.textContent='';
+    }
+  },
+  removeProfileImage(){
+    this.data.playerImage='';
+    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+    this._updateAvatar(this.data.playerName);
+    alert('تم حذف صورة الملف الشخصي');
+  },
   applyCustomBoardImage(){
     const fileInput=document.getElementById('board-image-input');
     const file=fileInput.files[0];
@@ -1145,6 +1221,17 @@ const Cfg={
     reader.readAsDataURL(file);
   }
 };
+
+function updatePlayerImages(){
+  const playerImg=Cfg.data.playerImage;
+  if(!playerImg)return;
+  document.querySelectorAll('.av-w, .av-b').forEach(av=>{
+    av.style.backgroundImage=`url(${playerImg})`;
+    av.style.backgroundSize='cover';
+    av.style.backgroundPosition='center';
+    av.style.color='transparent';
+  });
+}
 
 /* ══════════════════════════════════════
    LEVELS
@@ -1484,7 +1571,7 @@ const EVALBAR={
 };
 
 const REV=(()=>{
-  const GROQ_KEY='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';
+  const GROQ_KEY='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';
   const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
 
   let _data=null;
@@ -2159,7 +2246,7 @@ const R={
       t.textContent=(i%2===0?`${Math.floor(i/2)+1}.`:'')+m;el.appendChild(t);});
     el.scrollLeft=el.scrollWidth;
   },
-  all(){this.board();this.status();this.players();this.hist();this.toolbar();}
+  all(){this.board();this.status();this.players();this.hist();this.toolbar();updatePlayerImages();}
 };
 
 const G={
@@ -2206,7 +2293,7 @@ const G={
       document.getElementById('nm-b').textContent='اللاعب الأسود';
       document.getElementById('gmode').textContent='⚔ لاعبَان';
       fixBars('both');}
-    Nav.game();R.all();
+    Nav.game();R.all();updatePlayerImages();
   },
   startLevel(id){
     const lv=LEVELS_DEF[id];
@@ -2217,7 +2304,7 @@ const G={
     document.getElementById('nm-b').textContent=`نور — ${lv.name}`;
     document.getElementById('gmode').textContent=`◈ المرحلة ${id+1}: ${lv.name}`;
     fixBars('w');
-    Nav.game();R.all();
+    Nav.game();R.all();updatePlayerImages();
   },
   click(r,c){
     if(S.over||S.pending)return;
@@ -2716,7 +2803,7 @@ const OL=(()=>{
     fixBars(mc);
     CHAT.show();
     setTimeout(()=>send({type:'name',name:myName}),300);
-    Nav.game();R.all();
+    Nav.game();R.all();updatePlayerImages();
   }
 
   return{
