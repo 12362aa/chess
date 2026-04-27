@@ -276,11 +276,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 }
 #board[style*="background-image"] .sq.SL,
 #board[style*="background-image"] .sq.SD {
-  background: rgba(255, 255, 0, 0.3);
+  background: rgba(246, 246, 105, 0.6) !important;
 }
 #board[style*="background-image"] .sq.ML,
 #board[style*="background-image"] .sq.MD {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(205, 210, 106, 0.5) !important;
 }
 .sq.CK{background:rgba(248,113,113,.78)!important;box-shadow:inset 0 0 20px rgba(248,113,113,.4)!important;}
 .sq.PM-FROM{background:rgba(200,30,30,.75)!important;box-shadow:inset 0 0 16px rgba(200,30,30,.4)!important;}
@@ -1245,20 +1245,28 @@ const Cfg={
 
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
-  if(!playerImg)return;
-  if(S.mode==='local') {
-    document.querySelectorAll('.av-w, .av-b').forEach(av=>{
-      av.style.backgroundImage='';
-      av.style.color='';
-    });
-    return;
-  }
+  // Reset all first
   document.querySelectorAll('.av-w, .av-b').forEach(av=>{
-    av.style.backgroundImage=`url(${playerImg})`;
-    av.style.backgroundSize='cover';
-    av.style.backgroundPosition='center';
-    av.style.color='transparent';
+    av.style.backgroundImage='';
+    av.style.color='';
   });
+  
+  if(!playerImg || S.mode==='local') return;
+
+  // In online mode, myCol is 'w' or 'b'. In bot mode, player is always 'w'.
+  let myColClass = '';
+  if(S.mode==='online') myColClass = '.av-' + S.myCol;
+  else if(S.mode==='bot') myColClass = '.av-w';
+  
+  if(myColClass){
+    const av = document.querySelector(myColClass);
+    if(av){
+      av.style.backgroundImage=`url(${playerImg})`;
+      av.style.backgroundSize='cover';
+      av.style.backgroundPosition='center';
+      av.style.color='transparent';
+    }
+  }
 }
 
 /* ══════════════════════════════════════
