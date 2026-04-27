@@ -268,6 +268,20 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.L{background:var(--sq-l);}.sq.D{background:var(--sq-d);}
 .sq.SL{background:var(--sq-sl);}.sq.SD{background:var(--sq-sd);}
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
+
+/* Transparency for image boards */
+#board[style*="background-image"] .sq.L,
+#board[style*="background-image"] .sq.D {
+  background: transparent;
+}
+#board[style*="background-image"] .sq.SL,
+#board[style*="background-image"] .sq.SD {
+  background: rgba(255, 255, 0, 0.3);
+}
+#board[style*="background-image"] .sq.ML,
+#board[style*="background-image"] .sq.MD {
+  background: rgba(255, 255, 255, 0.2);
+}
 .sq.CK{background:rgba(248,113,113,.78)!important;box-shadow:inset 0 0 20px rgba(248,113,113,.4)!important;}
 .sq.PM-FROM{background:rgba(200,30,30,.75)!important;box-shadow:inset 0 0 16px rgba(200,30,30,.4)!important;}
 .sq.PM{background:rgba(220,40,40,.38)!important;box-shadow:inset 0 0 10px rgba(220,40,40,.2)!important;}
@@ -278,6 +292,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .crd-r{bottom:2px;left:3px;}.crd-f{top:2px;right:3px;}
 .sq.D .crd-r,.sq.D .crd-f,.sq.SD .crd-r,.sq.SD .crd-f,.sq.MD .crd-r,.sq.MD .crd-f{color:var(--sq-l);}
 .sq.L .crd-r,.sq.L .crd-f,.sq.SL .crd-r,.sq.SL .crd-f,.sq.ML .crd-r,.sq.ML .crd-f{color:var(--sq-d);}
+
+/* Coordinate colors for image boards */
+#board[style*="background-image"] .crd-r,
+#board[style*="background-image"] .crd-f {
+  color: #fff !important;
+  text-shadow: 1px 1px 2px #000;
+}
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
 .piece{--rot:0deg;position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
@@ -1178,7 +1199,7 @@ const Cfg={
       boardDiv.style.backgroundImage=`url('${BOARD_IMAGES[name]}')`;
       boardDiv.style.backgroundSize='cover';
     }else if(name==='classic'){
-      boardDiv.style.backgroundImage=`url('wood.png')`;
+      boardDiv.style.backgroundImage=`url('Burl_wood.png')`;
       boardDiv.style.backgroundSize='cover';
     }else{
       boardDiv.style.backgroundImage='';
@@ -1225,6 +1246,13 @@ const Cfg={
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
   if(!playerImg)return;
+  if(S.mode==='local') {
+    document.querySelectorAll('.av-w, .av-b').forEach(av=>{
+      av.style.backgroundImage='';
+      av.style.color='';
+    });
+    return;
+  }
   document.querySelectorAll('.av-w, .av-b').forEach(av=>{
     av.style.backgroundImage=`url(${playerImg})`;
     av.style.backgroundSize='cover';
