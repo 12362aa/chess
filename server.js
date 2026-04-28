@@ -155,7 +155,8 @@ wss.on('connection', (ws, req) => {
       case 'assist':
       case 'resign':
       case 'chat':
-      case 'name': {
+      case 'name': 
+      case 'pimg': { 
         relay(ws, msg);
         break;
       }
