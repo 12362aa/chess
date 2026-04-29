@@ -2439,51 +2439,72 @@ const PR=(()=>{
   }
 
   async function generatePuzzle(){
-    // Start from a random position after 10-20 moves
-    let bd=INIT_BD.map(r=>[...r]);
-    let cas={w:{K:true,Q:true},b:{K:true,Q:true}};
-    let ep=null;
-    const moves=10+Math.floor(Math.random()*10);
-    
-    for(let i=0;i<moves;i++){
-      const turn=i%2===0?'w':'b';
-      const mvs=E.allLegal(bd,turn,cas,ep);
-      if(!mvs.length)break;
-      const mv=mvs[Math.floor(Math.random()*mvs.length)];
-      const r2=E.apply(bd,mv.from,mv.to,cas,ep,'Q');
-      bd=r2.bd;cas=r2.cas;ep=r2.ep;
-    }
+    try{
+      // Start from a random position after 10-20 moves
+      let bd=INIT_BD.map(r=>[...r]);
+      let cas={w:{K:true,Q:true},b:{K:true,Q:true}};
+      let ep=null;
+      const moves=10+Math.floor(Math.random()*10);
+      
+      for(let i=0;i<moves;i++){
+        const turn=i%2===0?'w':'b';
+        const mvs=E.allLegal(bd,turn,cas,ep);
+        if(!mvs.length)break;
+        const mv=mvs[Math.floor(Math.random()*mvs.length)];
+        const r2=E.apply(bd,mv.from,mv.to,cas,ep,'Q');
+        bd=r2.bd;cas=r2.cas;ep=r2.ep;
+      }
 
-    // Find a tactical position using Stockfish
-    const turn=_turn;
-    const bestMove=await SF.bestMove(bd,turn,cas,ep,12);
-    
-    if(!bestMove){
-      return generatePuzzle(); // Try again
-    }
+      // Find a tactical position using Stockfish
+      const turn=_turn;
+      const bestMove=await SF.bestMove(bd,turn,cas,ep,12);
+      
+      if(!bestMove){
+        return generatePuzzle(); // Try again
+      }
 
-    const f='abcdefgh';
-    const fromCol=f.indexOf(bestMove[0]);
-    const fromRow=8-parseInt(bestMove[1]);
-    const toCol=f.indexOf(bestMove[2]);
-    const toRow=8-parseInt(bestMove[3]);
-    
-    if(fromCol<0||fromRow<0||toCol<0||toRow<0){
-      return generatePuzzle();
-    }
+      const f='abcdefgh';
+      const fromCol=f.indexOf(bestMove[0]);
+      const fromRow=8-parseInt(bestMove[1]);
+      const toCol=f.indexOf(bestMove[2]);
+      const toRow=8-parseInt(bestMove[3]);
+      
+      if(fromCol<0||fromRow<0||toCol<0||toRow<0){
+        return generatePuzzle();
+      }
 
-    _bd=bd;
-    _turn=turn;
-    _cas=cas;
-    _ep=ep;
-    _solution={from:[fromRow,fromCol],to:[toRow,toCol]};
-    _selected=null;
-    renderBoard();
+      _bd=bd;
+      _turn=turn;
+      _cas=cas;
+      _ep=ep;
+      _solution={from:[fromRow,fromCol],to:[toRow,toCol]};
+      _selected=null;
+      renderBoard();
+    }catch(e){
+      console.error('Puzzle generation error:', e);
+      // Fallback: use initial position
+      _bd=INIT_BD.map(r=>[...r]);
+      _turn='w';
+      _cas={w:{K:true,Q:true},b:{K:true,Q:true}};
+      _ep=null;
+      _solution={from:[6,4],to:[4,4]}; // e2-e4
+      _selected=null;
+      renderBoard();
+    }
   }
 
   function renderBoard(){
     const board=document.getElementById('pr-board');
+    if(!board){
+      console.error('Puzzle board element not found');
+      return;
+    }
     board.innerHTML='';
+    
+    if(!_bd){
+      console.error('Board data (_bd) is not defined');
+      return;
+    }
     
     const unicodePieces={
       'wP':'♙','wN':'♘','wB':'♗','wR':'♖','wQ':'♕','wK':'♔',
@@ -2494,7 +2515,6 @@ const PR=(()=>{
       for(let c=0;c<8;c++){
         const sq=document.createElement('div');
         const isL=(r+c)%2===0;
-        sq.className='sq '+(isL?'L':'D');
         sq.dataset.r=r;
         sq.dataset.c=c;
         sq.style.display='flex';
@@ -2502,6 +2522,7 @@ const PR=(()=>{
         sq.style.justifyContent='center';
         sq.style.fontSize='32px';
         sq.style.cursor='pointer';
+        sq.style.background=isL?'#f0d9b5':'#b58863';
         
         const piece=_bd[r][c];
         if(piece){
@@ -2627,12 +2648,6 @@ const PR=(()=>{
     document.getElementById('pr-start').style.display='none';
     document.getElementById('pr-end').style.display='none';
     document.getElementById('pr-board-container').style.display='flex';
-    
-    // Show game screen and hide unnecessary elements
-    Nav.show('s-game');
-    document.querySelector('.gtop').style.display='none';
-    document.getElementById('bar-b').style.display='none';
-    document.getElementById('bar-w').style.display='none';
     
     updateStats();
     updateTimer();
