@@ -270,8 +270,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
 
 /* Transparency for image boards */
-#board.has-bg-image .sq.L,
-#board.has-bg-image .sq.D {
+#board.has-bg-image .sq.L:not(.CK),
+#board.has-bg-image .sq.D:not(.CK) {
   background: transparent !important;
 }
 /* Highlight overlays for image boards */
@@ -284,13 +284,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   content: ''; position: absolute; inset: 0; background: rgba(255, 255, 0, 0.4); z-index: 1;
 }
 /* Ensure highlights don't cover pieces or coords */
-#board[style*="background-image"] .sq.SL, 
+#board[style*="background-image"] .sq.SL,
 #board[style*="background-image"] .sq.SD,
 #board[style*="background-image"] .sq.ML,
 #board[style*="background-image"] .sq.MD {
   background: transparent !important;
 }
-.sq.CK{background:rgba(248,113,113,.78)!important;box-shadow:inset 0 0 20px rgba(248,113,113,.4)!important;}
+/* Check indicator - always show regardless of transparency */
+.sq.CK{background:rgba(248,113,113,.78)!important;box-shadow:inset 0 0 20px rgba(248,113,113,.4)!important;animation:checkPulse 1s infinite;}
 .sq.PM-FROM{background:rgba(200,30,30,.75)!important;box-shadow:inset 0 0 16px rgba(200,30,30,.4)!important;}
 .sq.PM{background:rgba(220,40,40,.38)!important;box-shadow:inset 0 0 10px rgba(220,40,40,.2)!important;}
 .sq.ast-from{box-shadow:inset 0 0 0 3px rgba(96,165,250,.85);}
@@ -1242,6 +1243,15 @@ const Cfg={
       boardDiv.style.backgroundImage=`url(${this.data.customBoardImage})`;
       boardDiv.style.backgroundSize='cover';
       boardDiv.classList.add('custom-board', 'has-bg-image');
+      // Apply transparent square colors directly for custom boards
+      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
+      squares.forEach(sq => {
+        if(sq.classList.contains('L')){
+          sq.style.background='rgba(255,255,255,0.15)';
+        }else{
+          sq.style.background='rgba(0,0,0,0.35)';
+        }
+      });
     }else if(BOARD_IMAGES[name]){
       // Try to load the image, but don't break if it doesn't exist
       const imagePath = BOARD_IMAGES[name];
@@ -1249,15 +1259,38 @@ const Cfg={
       boardDiv.style.backgroundImage=`url('${imagePath}')`;
       boardDiv.style.backgroundSize='cover';
       boardDiv.classList.add('has-bg-image');
+      // Apply transparent square colors directly for image boards
+      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
+      squares.forEach(sq => {
+        if(sq.classList.contains('L')){
+          sq.style.background='rgba(255,255,255,0.15)';
+        }else{
+          sq.style.background='rgba(0,0,0,0.35)';
+        }
+      });
     }else if(name==='classic'){
       // Classic theme also uses Burl_wood.png but has CSS fallback
       loadBoardImage('Burl_wood.png', 'classic');
       boardDiv.style.backgroundImage=`url('Burl_wood.png')`;
       boardDiv.style.backgroundSize='cover';
       boardDiv.classList.add('has-bg-image');
+      // Apply transparent square colors directly for classic theme
+      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
+      squares.forEach(sq => {
+        if(sq.classList.contains('L')){
+          sq.style.background='rgba(255,255,255,0.15)';
+        }else{
+          sq.style.background='rgba(0,0,0,0.35)';
+        }
+      });
     }else{
       // Explicitly clear background image for themes without images
       boardDiv.style.backgroundImage='';
+      // Reset square colors to CSS variables
+      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
+      squares.forEach(sq => {
+        sq.style.background='';
+      });
     }
     const customUpload=document.getElementById('custom-board-upload');
     if(customUpload)customUpload.style.display=name==='custom'?'block':'none';
@@ -1294,10 +1327,9 @@ const Cfg={
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
   if(!playerImg) return;
-  let myColClass = '';
-  if(S.mode==='online') myColClass = '.av-' + S.myCol;
-  else if(S.mode==='bot') myColClass = '.av-w';
-  if(myColClass){
+  // Only apply player image in online mode
+  if(S.mode==='online'){
+    const myColClass = '.av-' + S.myCol;
     const av = document.querySelector(myColClass);
     if(av){
       av.style.backgroundImage=`url(${playerImg})`;
@@ -1715,6 +1747,13 @@ const REV=(()=>{
         }catch(ex){}
       }
       if(!actualFrom||!actualTo)continue;
+      // Check for capture BEFORE applying the move
+      const capturedPiece = bd[actualTo[0]][actualTo[1]];
+      let moveType = 'move';
+      if (capturedPiece) moveType = 'capture';
+      else if (promo) moveType = 'promo';
+      else if (actualMoveStr && actualMoveStr.includes('O-O')) moveType = 'castle';
+      
       let actualVal=bestVal,appliedOk=false;
       try{
         const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
@@ -1736,12 +1775,6 @@ const REV=(()=>{
       else{rating='blunder';score=5;if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
       if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,null);}catch(e){}
-      // Determine move type for sound effects
-      let moveType = 'move';
-      const capturedPiece = bd[actualTo[0]][actualTo[1]];
-      if (capturedPiece) moveType = 'capture';
-      else if (promo) moveType = 'promo';
-      else if (actualMoveStr && actualMoveStr.includes('O-O')) moveType = 'castle';
       
       moves.push({
         move:actualMoveStr||'—',color,rating,score,
@@ -2169,24 +2202,27 @@ const AST=(()=>{
       const snap=S.turn+JSON.stringify(S.bd);
       if(_snap===snap&&S.astMove!==null)return;
       
-      // Start computation immediately
+      // Start computation with setTimeout to avoid blocking UI
       S.astMove=null;S.astBusy=true;
       _snap=snap;
       R.toolbar();
       
-      // Use simple synchronous computation - no worker, no timeouts
-      try{
-        const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
-        S.astMove=mv;
-        S.astBusy=false;
-        _snap=null;
-        requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
-      }catch(e){
-        console.error('Assistant computation error:', e);
-        S.astBusy=false;
-        _snap=null;
-        S.astMove=null;
-      }
+      setTimeout(()=>{
+        try{
+          const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
+          if(_snap===snap){ // Only update if board hasn't changed
+            S.astMove=mv;
+            S.astBusy=false;
+            _snap=null;
+            requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
+          }
+        }catch(e){
+          console.error('Assistant computation error:', e);
+          S.astBusy=false;
+          _snap=null;
+          S.astMove=null;
+        }
+      }, 10); // Small delay to allow UI to update
     },
     clear(){
       _snap=null;
@@ -2540,6 +2576,7 @@ const G={
     const isDraw=(!avail.length&&!E.inChk(S.bd,S.turn))||isThreefold||insufficient;
     const isCheck=avail.length&&E.inChk(S.bd,S.turn);
     if(isCheckmate)     SFX.checkmate();
+    else if(promo && isCheck) {SFX.promote(); SFX.check();} // Play both sounds for promo with check
     else if(promo)      SFX.promote();
     else if(res.isCas)  SFX.castle();
     else if(res.cap && isCheck) SFX.captureCheck();
@@ -2936,12 +2973,21 @@ const OL=(()=>{
           const oc=E.opp(S.myCol);
           const avEl=document.querySelector('.av-'+oc);
           if(avEl && d.img){
-            console.log('Setting opponent avatar image');
+            console.log('Setting opponent avatar image for color:', oc);
             avEl.style.backgroundImage=`url(${d.img})`;
             avEl.style.backgroundSize='cover';
             avEl.style.backgroundPosition='center';
             avEl.style.color='transparent';
             avEl.textContent='';
+            // Also update the avatar element by ID for redundancy
+            const avById = document.getElementById(oc==='w'?'av-w':'av-b');
+            if(avById){
+              avById.style.backgroundImage=`url(${d.img})`;
+              avById.style.backgroundSize='cover';
+              avById.style.backgroundPosition='center';
+              avById.style.color='transparent';
+              avById.textContent='';
+            }
           }
         }
         break;
