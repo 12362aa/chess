@@ -270,8 +270,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
 
 /* Transparency for image boards */
-#board.has-bg-image .sq.L:not(.CK),
-#board.has-bg-image .sq.D:not(.CK) {
+#board.has-bg-image .sq.L:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD),
+#board.has-bg-image .sq.D:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD) {
   background: transparent !important;
 }
 /* Highlight overlays for image boards */
@@ -283,11 +283,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 #board.has-bg-image .sq.MD::before {
   content: ''; position: absolute; inset: 0; background: rgba(255, 255, 0, 0.4); z-index: 1;
 }
-/* Ensure highlights don't cover pieces or coords */
-#board[style*="background-image"] .sq.SL,
-#board[style*="background-image"] .sq.SD,
-#board[style*="background-image"] .sq.ML,
-#board[style*="background-image"] .sq.MD {
+/* Highlighted squares on image boards should be transparent base */
+#board.has-bg-image .sq.SL,
+#board.has-bg-image .sq.SD,
+#board.has-bg-image .sq.ML,
+#board.has-bg-image .sq.MD {
   background: transparent !important;
 }
 /* Check indicator - always show regardless of transparency */
@@ -1172,7 +1172,12 @@ const Cfg={
     this.theme(this.data.boardTheme,false);
     // Only apply custom board image if the current theme is 'custom'
     if(this.data.boardTheme==='custom' && this.data.customBoardImage){
-      const el=document.getElementById('board');if(el)el.style.backgroundImage=`url(${this.data.customBoardImage})`;
+      const el=document.getElementById('board');
+      if(el){
+        el.style.backgroundImage=`url(${this.data.customBoardImage})`;
+        el.style.backgroundSize='cover';
+        el.classList.add('has-bg-image');
+      }
     }
     const customUpload=document.getElementById('custom-board-upload');
     if(customUpload)customUpload.style.display=this.data.boardTheme==='custom'?'block':'none';
@@ -1198,8 +1203,8 @@ const Cfg={
     if(!this.data.playerImage) return alert('لم تختر صورة بعد');
     this._updateProfileImage();
     alert('تم تطبيق صورة الملف الشخصي');
-    if(S.mode==='online' && OL.ws && OL.ws.readyState===WebSocket.OPEN){
-      OL.send({type:'pimg',img:this.data.playerImage});
+    if(S.mode==='online'){
+      OL.sendPimg(this.data.playerImage);
     }
   },
   _updateAvatar(name){
@@ -1243,54 +1248,19 @@ const Cfg={
       boardDiv.style.backgroundImage=`url(${this.data.customBoardImage})`;
       boardDiv.style.backgroundSize='cover';
       boardDiv.classList.add('custom-board', 'has-bg-image');
-      // Apply transparent square colors directly for custom boards
-      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
-      squares.forEach(sq => {
-        if(sq.classList.contains('L')){
-          sq.style.background='rgba(255,255,255,0.15)';
-        }else{
-          sq.style.background='rgba(0,0,0,0.35)';
-        }
-      });
     }else if(BOARD_IMAGES[name]){
-      // Try to load the image, but don't break if it doesn't exist
       const imagePath = BOARD_IMAGES[name];
       loadBoardImage(imagePath, name);
       boardDiv.style.backgroundImage=`url('${imagePath}')`;
       boardDiv.style.backgroundSize='cover';
       boardDiv.classList.add('has-bg-image');
-      // Apply transparent square colors directly for image boards
-      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
-      squares.forEach(sq => {
-        if(sq.classList.contains('L')){
-          sq.style.background='rgba(255,255,255,0.15)';
-        }else{
-          sq.style.background='rgba(0,0,0,0.35)';
-        }
-      });
     }else if(name==='classic'){
-      // Classic theme also uses Burl_wood.png but has CSS fallback
       loadBoardImage('Burl_wood.png', 'classic');
       boardDiv.style.backgroundImage=`url('Burl_wood.png')`;
       boardDiv.style.backgroundSize='cover';
       boardDiv.classList.add('has-bg-image');
-      // Apply transparent square colors directly for classic theme
-      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
-      squares.forEach(sq => {
-        if(sq.classList.contains('L')){
-          sq.style.background='rgba(255,255,255,0.15)';
-        }else{
-          sq.style.background='rgba(0,0,0,0.35)';
-        }
-      });
     }else{
-      // Explicitly clear background image for themes without images
       boardDiv.style.backgroundImage='';
-      // Reset square colors to CSS variables
-      const squares = boardDiv.querySelectorAll('.sq.L, .sq.D');
-      squares.forEach(sq => {
-        sq.style.background='';
-      });
     }
     const customUpload=document.getElementById('custom-board-upload');
     if(customUpload)customUpload.style.display=name==='custom'?'block':'none';
@@ -1326,27 +1296,67 @@ const Cfg={
 
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
-  if(!playerImg) return;
-  // In online mode, apply to my color
+  // In online mode, set both player and opponent images
   if(S.mode==='online'){
-    const myColClass = '.av-' + S.myCol;
-    const av = document.querySelector(myColClass);
-    if(av){
-      av.style.backgroundImage=`url(${playerImg})`;
-      av.style.backgroundSize='cover';
-      av.style.backgroundPosition='center';
-      av.style.color='transparent';
+    const myCol=S.myCol;
+    const oppCol=myCol==='w'?'b':'w';
+    // Set player's own image
+    const myAv=document.querySelector('.av-'+myCol);
+    if(myAv){
+      if(playerImg){
+        myAv.style.backgroundImage=`url(${playerImg})`;
+        myAv.style.backgroundSize='cover';
+        myAv.style.backgroundPosition='center';
+        myAv.style.color='transparent';
+        myAv.textContent='';
+      }else{
+        myAv.style.backgroundImage='';
+        myAv.style.color='';
+      }
+    }
+    // Set opponent's image from stored state
+    const oppAv=document.querySelector('.av-'+oppCol);
+    if(oppAv){
+      if(S.oppImg){
+        oppAv.style.backgroundImage=`url(${S.oppImg})`;
+        oppAv.style.backgroundSize='cover';
+        oppAv.style.backgroundPosition='center';
+        oppAv.style.color='transparent';
+        oppAv.textContent='';
+      }else{
+        oppAv.style.backgroundImage='';
+        oppAv.style.color='';
+      }
     }
   }
   // In bot mode, apply only to white (player), not black (Nour)
   else if(S.mode==='bot'){
-    const av = document.querySelector('.av-w');
+    const av=document.querySelector('.av-w');
     if(av){
-      av.style.backgroundImage=`url(${playerImg})`;
-      av.style.backgroundSize='cover';
-      av.style.backgroundPosition='center';
-      av.style.color='transparent';
+      if(playerImg){
+        av.style.backgroundImage=`url(${playerImg})`;
+        av.style.backgroundSize='cover';
+        av.style.backgroundPosition='center';
+        av.style.color='transparent';
+        av.textContent='';
+      }else{
+        av.style.backgroundImage='';
+        av.style.color='';
+      }
     }
+    // Clear Nour's avatar to ensure no player image leaks
+    const nourAv=document.querySelector('.av-b');
+    if(nourAv){
+      nourAv.style.backgroundImage='';
+      nourAv.style.color='';
+    }
+  }
+  // In local mode, clear all avatars
+  else{
+    document.querySelectorAll('.av-w,.av-b').forEach(av=>{
+      av.style.backgroundImage='';
+      av.style.color='';
+    });
   }
 }
 
@@ -1607,6 +1617,7 @@ const S={
   preMoveSelFr:null,
   dragFrom:null,
   undoStack:[],
+  oppImg:null,
 };
 
 const CHAT={
@@ -1759,15 +1770,20 @@ const REV=(()=>{
       if(!actualFrom||!actualTo)continue;
       // Check for capture BEFORE applying the move
       const capturedPiece = bd[actualTo[0]][actualTo[1]];
-      let moveType = 'move';
-      if (capturedPiece) moveType = 'capture';
-      else if (promo) moveType = 'promo';
-      else if (actualMoveStr && actualMoveStr.includes('O-O')) moveType = 'castle';
+      const isCapture = !!capturedPiece;
+      const isCastle = actualMoveStr && actualMoveStr.includes('O-O');
+      const isPromo = !!promo;
       
       let actualVal=bestVal,appliedOk=false;
+      let isCheck=false, isCheckmate=false;
       try{
         const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
         actualVal=E.eval(r2.bd);
+        // Detect check and checkmate after the move
+        const opp=color==='w'?'b':'w';
+        isCheck=E.inChk(r2.bd,opp);
+        const oppLegal=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
+        isCheckmate=isCheck&&oppLegal.length===0;
         bd=r2.bd;cas=r2.cas;ep=r2.ep;
         appliedOk=true;
       }catch(ex){}
@@ -1791,7 +1807,7 @@ const REV=(()=>{
         evalAfter:actualVal,bestVal,bestMv:bestMvStr,
         from:actualFrom,to:actualTo,
         moveNum:Math.floor(i/2)+1,
-        moveType:moveType
+        isCapture,isCastle,isPromo,isCheck,isCheckmate
       });
     }
     const wAcc=wCount?Math.round(wTotal/wCount):50;
@@ -1817,22 +1833,27 @@ const REV=(()=>{
     el.innerHTML='';
     const th=THEMES[Cfg.data.boardTheme]||THEMES.classic;
     // Apply same board image as main board
+    let hasImage=false;
     const mainBoardDiv=document.getElementById('board');
     if(Cfg.data.boardTheme==='custom' && Cfg.data.customBoardImage){
       el.style.backgroundImage=`url(${Cfg.data.customBoardImage})`;
       el.style.backgroundSize='cover';
+      hasImage=true;
     }else if(BOARD_IMAGES[Cfg.data.boardTheme]){
       const imagePath = BOARD_IMAGES[Cfg.data.boardTheme];
       loadBoardImage(imagePath, Cfg.data.boardTheme);
       el.style.backgroundImage=`url('${imagePath}')`;
       el.style.backgroundSize='cover';
+      hasImage=true;
     }else if(Cfg.data.boardTheme==='classic'){
       loadBoardImage('Burl_wood.png', 'classic');
       el.style.backgroundImage=`url('Burl_wood.png')`;
       el.style.backgroundSize='cover';
+      hasImage=true;
     }else if(mainBoardDiv.style.backgroundImage){
       el.style.backgroundImage=mainBoardDiv.style.backgroundImage;
       el.style.backgroundSize='cover';
+      hasImage=true;
     }else{
       el.style.backgroundImage='';
     }
@@ -1841,8 +1862,9 @@ const REV=(()=>{
         const sq=document.createElement('div');
         const isL=(r+c)%2===0;
         sq.className='sq '+(isL?'L':'D');
-        // Use CSS colors for normal themes, let CSS handle transparency for image boards
-        sq.style.background=isL?th.l:th.d;
+        // Only apply inline background color when there's NO image
+        // When there IS an image, CSS rules will make squares transparent
+        if(!hasImage) sq.style.background=isL?th.l:th.d;
         if(fromSq&&fromSq[0]===r&&fromSq[1]===c)sq.classList.add('rv-from');
         if(toSq&&toSq[0]===r&&toSq[1]===c){sq.classList.add('rv-to');sq.style.background='rgba(255,200,0,.32)';}
         const pc=bd[r][c];
@@ -1905,30 +1927,15 @@ const REV=(()=>{
     _updateCard(mv,_idx);
     _activateChip(_idx);
     if(idx!==prevIdx){
-      // Play sound based on actual move type
-      console.log('Playing sound for move type:', mv.moveType, 'rating:', mv.rating); // Debug
-      if(mv.moveType === 'capture'){
-        console.log('Playing capture sound');
-        SFX.capture();
-      } else if(mv.moveType === 'castle'){
-        console.log('Playing castle sound');
-        SFX.castle();
-      } else if(mv.moveType === 'promo'){
-        console.log('Playing move sound for promotion (promote uses move sound)');
-        SFX.move();
-      } else if(mv.rating === 'blunder' || mv.rating === 'mistake'){
-        console.log('Playing error sound for bad move');
-        SFX.illegal();
-      } else if(mv.rating === 'best' && mv.score >= 95){
-        console.log('Playing check sound for excellent move (not checkmate)');
-        SFX.check();
-      } else if(mv.rating === 'best' || mv.score >= 80){
-        console.log('Playing check sound for good move');
-        SFX.check();
-      } else {
-        console.log('Playing normal move sound');
-        SFX.move();
-      }
+      // Play sound matching the main game's logic exactly
+      if(mv.isCheckmate)        SFX.checkmate();
+      else if(mv.isPromo && mv.isCheck) {SFX.promote(); SFX.check();}
+      else if(mv.isPromo)       SFX.promote();
+      else if(mv.isCastle)      SFX.castle();
+      else if(mv.isCapture && mv.isCheck) SFX.captureCheck();
+      else if(mv.isCapture)     SFX.capture();
+      else if(mv.isCheck)       SFX.check();
+      else                      SFX.move();
     }
     const btnPrev=document.getElementById('rv-prev');
     const btnNext=document.getElementById('rv-next');
@@ -2461,6 +2468,7 @@ const G={
     S.snapshots=[];
     S.preMove=null;S.preMoveSelFr=null;
     S.undoStack=[];
+    S.oppImg=null;
     AST.clear();
     R.boardReset();
     CHAT.hide();
@@ -2979,20 +2987,9 @@ const OL=(()=>{
 
       case 'pimg':
         {
-          console.log('Received profile image from opponent:', d.img ? 'has image' : 'no image');
-          const oc=E.opp(S.myCol);
-          console.log('Opponent color:', oc, 'My color:', S.myCol);
-          const avEl=document.querySelector('.av-'+oc);
-          console.log('Avatar element found:', !!avEl);
-          if(avEl && d.img){
-            console.log('Setting opponent avatar image');
-            avEl.style.backgroundImage=`url(${d.img})`;
-            avEl.style.backgroundSize='cover';
-            avEl.style.backgroundPosition='center';
-            avEl.style.color='transparent';
-            avEl.textContent='';
-          } else {
-            console.log('Failed to set avatar - element:', !!avEl, 'image:', !!d.img);
+          if(d.img){
+            S.oppImg=d.img;
+            updatePlayerImages();
           }
         }
         break;
@@ -3079,6 +3076,7 @@ const OL=(()=>{
     sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
     sendAssist(on){send({type:'assist',on});},
     sendChat(txt){send({type:'chat',text:txt});},
+    sendPimg(img){send({type:'pimg',img});},
     sendResign(){
       send({type:'resign'});
       setTimeout(()=>destroy(),400);
@@ -3350,17 +3348,10 @@ function _loadChessPieces(){
     }
   })();
 }
-// Apply profile image apply function fix
-Cfg.applyProfileImage = function(){
-  if(!this.data.playerImage) return alert('لم تختر صورة بعد');
-  this._updateProfileImage();
-  alert('تم تطبيق صورة الملف الشخصي');
-  if(S.mode==='online' && OL.ws && OL.ws.readyState===WebSocket.OPEN){
-    OL.send({type:'pimg',img:this.data.playerImage});
-  }
-};
-// Ensure OL send method is exposed
-if(OL.send) OL.send = OL.send || function(obj){ if(OL.ws && OL.ws.readyState===WebSocket.OPEN) OL.ws.send(JSON.stringify(obj)); };
+// Ensure OL send method works correctly
+if(typeof OL !== 'undefined' && OL.send && !OL._sendPatched){
+  OL._sendPatched = true;
+}
 
 window.addEventListener('beforeunload',e=>{
   if(S.mode==='online'&&!S.over&&S.hist.length>0){
