@@ -729,15 +729,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <span id="pr-best-score" style="color:var(--text);font-size:14px;font-weight:600;">0</span>
     </div>
 
-    <div id="pr-board-container" style="display:none;width:100%;max-width:400px;flex-direction:column;align-items:center;gap:12px;padding-bottom:20px;">
-      <div id="pr-instruction" style="background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 15px;width:100%;text-align:center;">
-        <span style="color:var(--gold2);font-size:14px;font-weight:700;">ابحث عن أفضل حركة للأبيض</span>
-      </div>
-      <div id="pr-board-wrapper" style="width:100%;aspect-ratio:1/1;"></div>
-      <div id="pr-feedback" style="text-align:center;font-size:14px;font-weight:600;height:20px;"></div>
-      <button class="btnp" onclick="PR.skip()" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--red);">تخطي (-1 نقطة)</button>
-    </div>
-
     <div id="pr-start" style="text-align:center;padding:20px;">
       <div style="color:var(--text2);font-size:13px;margin-bottom:15px;line-height:1.6;">
         حل أكبر عدد من الألغاز التكتيكية في 3 دقائق.<br>
@@ -935,6 +926,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   </div>
   <div id="board-container" style="display:flex;align-items:center;gap:6px;">
     <div class="bwrap" id="bwrap"><div id="board"></div></div>
+  </div>
+  <div id="pr-board-container" style="display:none;width:100%;max-width:400px;margin:0 auto;flex-direction:column;align-items:center;gap:12px;padding:20px 0;">
+    <div id="pr-instruction" style="background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 15px;width:100%;text-align:center;">
+      <span style="color:var(--gold2);font-size:14px;font-weight:700;">ابحث عن أفضل حركة للأبيض</span>
+    </div>
+    <div id="pr-feedback" style="text-align:center;font-size:14px;font-weight:600;height:20px;"></div>
+    <button class="btnp" onclick="PR.skip()" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--red);">تخطي (-1 نقطة)</button>
   </div>
   <div class="pbar" id="bar-w">
     <div class="pbar-top">
@@ -2497,13 +2495,6 @@ const PR=(()=>{
   }
 
   function renderBoard(){
-    // Move main board to puzzle wrapper
-    const mainBoard=document.getElementById('board');
-    const wrapper=document.getElementById('pr-board-wrapper');
-    if(mainBoard && wrapper){
-      wrapper.appendChild(mainBoard);
-    }
-    
     // Update game state with puzzle data
     S.bd=_bd;
     S.turn=_turn;
@@ -2636,16 +2627,31 @@ const PR=(()=>{
     
     document.getElementById('pr-start').style.display='none';
     document.getElementById('pr-end').style.display='none';
-    document.getElementById('pr-board-container').style.display='flex';
     
-    // Show game screen and hide unnecessary elements
+    // Show game screen
     Nav.show('s-game');
+    
+    // Hide unnecessary game UI elements
     const gtop=document.querySelector('.gtop');
     if(gtop)gtop.style.display='none';
+    
     const barB=document.getElementById('bar-b');
     if(barB)barB.style.display='none';
+    
     const barW=document.getElementById('bar-w');
     if(barW)barW.style.display='none';
+    
+    const sbar=document.getElementById('sbar');
+    if(sbar)sbar.style.display='none';
+    
+    const mvhist=document.getElementById('mvhist');
+    if(mvhist)mvhist.style.display='none';
+    
+    const toolbar=document.querySelector('.toolbar');
+    if(toolbar)toolbar.style.display='none';
+    
+    // Show puzzle UI
+    document.getElementById('pr-board-container').style.display='flex';
     
     updateStats();
     updateTimer();
