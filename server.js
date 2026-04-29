@@ -18,13 +18,23 @@ const PORT = process.env.PORT || 8080;
   كل غرفة:
   {
     code: 'ABCD',
-    host: { ws, color, name },
-    guest: { ws, color, name } | null,
+    host: { ws, color, name, pimg },
+    guest: { ws, color, name, pimg } | null,
     createdAt: Date.now()
   }
 */
 const rooms = new Map(); /* code → room */
 const clientRoom = new Map(); /* ws → code */
+
+function getRoomAndSide(ws) {
+  const code = clientRoom.get(ws);
+  if (!code) return null;
+  const room = rooms.get(code);
+  if (!room) return null;
+  const side = room.host?.ws === ws ? 'host' : (room.guest?.ws === ws ? 'guest' : null);
+  if (!side) return null;
+  return { room, code, side };
+}
 
 /* توليد كود 6 حروف عشوائي */
 function genCode() {
@@ -92,7 +102,7 @@ wss.on('connection', (ws, req) => {
 
         const room = {
           code,
-          host: { ws, color: hostColor, name: (msg.name || '').slice(0, 20) },
+          host: { ws, color: hostColor, name: (msg.name || '').slice(0, 20), pimg: null },
           guest: null,
           guestColor,
           createdAt: Date.now(),
@@ -125,7 +135,7 @@ wss.on('connection', (ws, req) => {
 
         leaveRoom(ws);
 
-        room.guest = { ws, color: room.guestColor, name: (msg.name || '').slice(0, 20) };
+        room.guest = { ws, color: room.guestColor, name: (msg.name || '').slice(0, 20), pimg: null };
         clientRoom.set(ws, code);
 
         /* أبلغ الضيف */
@@ -146,6 +156,10 @@ wss.on('connection', (ws, req) => {
           oppName: hostName,
         });
 
+        // Replay cached profile images (if they were sent before the opponent connected)
+        if (room.host.pimg) send(room.guest.ws, { type: 'pimg', img: room.host.pimg });
+        if (room.guest.pimg) send(room.host.ws, { type: 'pimg', img: room.guest.pimg });
+
         console.log(`[room] ${code} started | host=${room.host.color} guest=${room.guest.color}`);
         break;
       }
@@ -157,6 +171,18 @@ wss.on('connection', (ws, req) => {
       case 'chat':
       case 'name':
       case 'pimg': {
+        // Persist latest name/pimg in the room so late joiners get it.
+        const info = getRoomAndSide(ws);
+        if (info) {
+          const { room, side } = info;
+          if (msg.type === 'name') {
+            const nm = (msg.name || '').slice(0, 20);
+            if (room[side]) room[side].name = nm;
+          } else if (msg.type === 'pimg') {
+            const img = msg.img || null;
+            if (room[side]) room[side].pimg = img;
+          }
+        }
         relay(ws, msg);
         break;
       }
