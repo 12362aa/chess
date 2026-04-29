@@ -321,6 +321,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
 .piece{--rot:0deg;position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
+/* chess.com style board rotation for local 2-player */
+#s-game.mode-local #board-container{transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
+#s-game.mode-local #board-container.board-rotated{transform:rotate(180deg);}
+#s-game.mode-local #board-container.board-rotated .piece{transform:rotate(180deg) !important;}
+#s-game.mode-local #board-container.board-rotated .sq .crd-r,
+#s-game.mode-local #board-container.board-rotated .sq .crd-f{transform:rotate(180deg);}
 .sq.SL .piece,.sq.SD .piece{transform:rotate(var(--rot)) scale(1.1);}
 .sq:hover .piece{transform:rotate(var(--rot)) scale(1.06);}
 .sq.SL:hover .piece,.sq.SD:hover .piece{transform:rotate(var(--rot)) scale(1.16);}
@@ -2084,6 +2090,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         try{
           _data=_analyze();
+          console.log('Review analysis complete, moves:', _data?.moves?.length);
           if(!_data||!_data.moves.length){
             document.getElementById('rv-main').innerHTML=`<div style="color:var(--text2);padding:30px;text-align:center">لا توجد بيانات كافية</div>`;
             return;
@@ -2092,7 +2099,8 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
           _boards=_data.boards;
           _buildUI();
         }catch(e){
-          document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذر التحليل</div>`;
+          console.error('Review analysis error:', e);
+          document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذّر التحليل: ${e.message || 'Unknown error'}</div>`;
         }
       }));
     },
@@ -2262,6 +2270,15 @@ const R={
     const flip=(S.mode==='local')?
       (S.turn==='b'):
       (S.mode!=='local'&&(S.myCol==='b'));
+    // Apply board container rotation for local mode (chess.com style)
+    const boardContainer=document.getElementById('board-container');
+    if(boardContainer){
+      if(S.mode==='local'){
+        boardContainer.classList.toggle('board-rotated',S.turn==='b');
+      }else{
+        boardContainer.classList.remove('board-rotated');
+      }
+    }
     if(!this._boardBuilt||this._boardFlip!==flip){
       el.innerHTML='';
       this._boardFlip=flip;
@@ -2309,7 +2326,7 @@ const R={
       const piece=sq.querySelector('.piece');
       const pieceCode=S.bd[r][c];
       const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
-      const shouldFlipPiece=!!(flip&&pieceCode);
+      const shouldFlipPiece=!!(S.mode!=='local' && flip && pieceCode);
       const isDragged=!!(S.dragFrom&&S.dragFrom[0]===r&&S.dragFrom[1]===c);
       const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'')+(isDragged?' dragging':'');
       if(pieceCode){
