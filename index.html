@@ -380,19 +380,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .eval-bar-white{background:#f0f0f0;transition:flex .5s cubic-bezier(.4,0,.2,1);}
 .eval-score{font-size:8px;font-weight:700;color:var(--text3);text-align:center;margin-top:3px;min-width:16px;}
 
-/* ══════ PUZZLE RUSH ══════ */
-.pr-stat{background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 18px;min-width:80px;text-align:center;}
-.pr-stat-l{font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;}
-.pr-stat-v{font-size:22px;font-weight:700;color:var(--gold2);font-family:'Cairo',sans-serif;}
-#pr-board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);direction:ltr;width:100%;aspect-ratio:1/1;}
-#pr-board .sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-#pr-board .sq.L{background:#f0d9b5;}
-#pr-board .sq.D{background:#b58863;}
-#pr-board .sq:hover{filter:brightness(1.1);}
-#pr-board .sq.selected{background:rgba(255,200,0,0.5)!important;}
-#pr-board .sq.hint{background:rgba(74,222,128,.3)!important;}
-#pr-board .sq.wrong{background:rgba(248,113,113,.4)!important;animation:shake .3s;}
-@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
 
 /* ══════ REVIEW OVERLAY ══════ */
 #review-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);backdrop-filter:blur(14px);z-index:870;flex-direction:column;align-items:center;padding-top:44px;overflow:hidden;}
@@ -675,12 +662,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mc-d">على نفس الشاشة بالتناوب</div>
       <span class="mc-b bv">أوفلاين ✓</span>
     </div>
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.puzzleRush()">
-      <span class="mc-ic ic-red">⚡</span>
-      <div class="mc-t">سباق الألغاز</div>
-      <div class="mc-d">حل أكبر عدد من الألغاز في 3 دقائق</div>
-      <span class="mc-b br">Stockfish AI ✓</span>
-    </div>
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.settings()">
       <span class="mc-ic ic-blue">⚙</span>
       <div class="mc-t">الإعدادات</div>
@@ -704,52 +685,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   </div>
 </div>
 
-<!-- PUZZLE RUSH -->
-<div id="s-puzzle-rush" class="screen">
-  <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
-    <div class="lvl-hdr"><h2>⚡ سباق الألغاز</h2><p>حل أكبر عدد من الألغاز في 3 دقائق</p></div>
-    
-    <div class="pr-stats" style="display:flex;gap:15px;width:100%;justify-content:center;margin-bottom:10px;">
-      <div class="pr-stat">
-        <div class="pr-stat-l">الوقت</div>
-        <div class="pr-stat-v" id="pr-timer">3:00</div>
-      </div>
-      <div class="pr-stat">
-        <div class="pr-stat-l">النقاط</div>
-        <div class="pr-stat-v" id="pr-score">0</div>
-      </div>
-      <div class="pr-stat">
-        <div class="pr-stat-l">الألغاز</div>
-        <div class="pr-stat-v" id="pr-count">0</div>
-      </div>
-    </div>
-
-    <div class="pr-best" id="pr-best" style="display:none;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:10px 15px;width:100%;text-align:center;">
-      <span style="color:var(--gold2);font-size:12px;font-weight:700;">أعلى نتيجة: </span>
-      <span id="pr-best-score" style="color:var(--text);font-size:14px;font-weight:600;">0</span>
-    </div>
-
-    <div id="pr-start" style="text-align:center;padding:20px;">
-      <div style="color:var(--text2);font-size:13px;margin-bottom:15px;line-height:1.6;">
-        حل أكبر عدد من الألغاز التكتيكية في 3 دقائق.<br>
-        كل لغز صحيح = +10 نقاط<br>
-        التخطي = -1 نقطة<br>
-        الخطأ = -3 نقاط
-      </div>
-      <button class="btnp" onclick="PR.start()">ابدأ السباق</button>
-    </div>
-
-    <div id="pr-end" style="display:none;text-align:center;padding:20px;">
-      <div class="go-em">⚡</div>
-      <div class="go-ttl">انتهى السباق!</div>
-      <div class="go-msg" id="pr-result">حللت 0 لغز بـ 0 نقطة</div>
-      <button class="btnp" onclick="PR.start()">العب مجدداً</button>
-      <button class="btnb" onclick="Nav.menu()" style="margin-top:8px;">القائمة</button>
-    </div>
-
-    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.menu()">← العودة للقائمة</button>
-  </div>
-</div>
 
 <!-- SETTINGS -->
 <div id="s-settings" class="screen">
@@ -926,13 +861,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   </div>
   <div id="board-container" style="display:flex;align-items:center;gap:6px;">
     <div class="bwrap" id="bwrap"><div id="board"></div></div>
-  </div>
-  <div id="pr-board-container" style="display:none;width:100%;max-width:400px;margin:0 auto;flex-direction:column;align-items:center;gap:12px;padding:20px 0;">
-    <div id="pr-instruction" style="background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 15px;width:100%;text-align:center;">
-      <span style="color:var(--gold2);font-size:14px;font-weight:700;">ابحث عن أفضل حركة للأبيض</span>
-    </div>
-    <div id="pr-feedback" style="text-align:center;font-size:14px;font-weight:600;height:20px;"></div>
-    <button class="btnp" onclick="PR.skip()" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--red);">تخطي (-1 نقطة)</button>
   </div>
   <div class="pbar" id="bar-w">
     <div class="pbar-top">
@@ -2399,301 +2327,6 @@ const AST=(()=>{
   };
 })();
 
-/* ══════════════════════════════════════
-   PUZZLE RUSH
-══════════════════════════════════════ */
-const PR=(()=>{
-  let _timer=null;
-  let _timeLeft=180; // 3 minutes
-  let _score=0;
-  let _count=0;
-  let _bd=null;
-  let _turn='w';
-  let _cas=null;
-  let _ep=null;
-  let _solution=null;
-  let _selected=null;
-  let _running=false;
-
-  const PIECES={
-    'wP':'♙','wN':'♘','wB':'♗','wR':'♖','wQ':'♕','wK':'♔',
-    'bP':'♟','bN':'♞','bB':'♝','bR':'♜','bQ':'♛','bK':'♚'
-  };
-
-  function loadBest(){
-    try{
-      const best=localStorage.getItem('puzzle-rush-best')||'0';
-      document.getElementById('pr-best-score').textContent=best;
-      document.getElementById('pr-best').style.display=best!=='0'?'block':'none';
-    }catch(e){}
-  }
-
-  function saveBest(score){
-    try{
-      const current=parseInt(localStorage.getItem('puzzle-rush-best')||'0');
-      if(score>current){
-        localStorage.setItem('puzzle-rush-best',score.toString());
-        document.getElementById('pr-best-score').textContent=score;
-        document.getElementById('pr-best').style.display='block';
-      }
-    }catch(e){}
-  }
-
-  async function generatePuzzle(){
-    try{
-      // Start from a random position after 10-20 moves
-      let bd=INIT_BD.map(r=>[...r]);
-      let cas={w:{K:true,Q:true},b:{K:true,Q:true}};
-      let ep=null;
-      const moves=10+Math.floor(Math.random()*10);
-      
-      for(let i=0;i<moves;i++){
-        const turn=i%2===0?'w':'b';
-        const mvs=E.allLegal(bd,turn,cas,ep);
-        if(!mvs.length)break;
-        const mv=mvs[Math.floor(Math.random()*mvs.length)];
-        const r2=E.apply(bd,mv.from,mv.to,cas,ep,'Q');
-        bd=r2.bd;cas=r2.cas;ep=r2.ep;
-      }
-
-      // Find a tactical position using Stockfish
-      const turn=_turn;
-      const bestMove=await SF.bestMove(bd,turn,cas,ep,12);
-      
-      if(!bestMove){
-        return generatePuzzle(); // Try again
-      }
-
-      const f='abcdefgh';
-      const fromCol=f.indexOf(bestMove[0]);
-      const fromRow=8-parseInt(bestMove[1]);
-      const toCol=f.indexOf(bestMove[2]);
-      const toRow=8-parseInt(bestMove[3]);
-      
-      if(fromCol<0||fromRow<0||toCol<0||toRow<0){
-        return generatePuzzle();
-      }
-
-      _bd=bd;
-      _turn=turn;
-      _cas=cas;
-      _ep=ep;
-      _solution={from:[fromRow,fromCol],to:[toRow,toCol]};
-      _selected=null;
-      renderBoard();
-    }catch(e){
-      console.error('Puzzle generation error:', e);
-      // Fallback: use initial position
-      _bd=INIT_BD.map(r=>[...r]);
-      _turn='w';
-      _cas={w:{K:true,Q:true},b:{K:true,Q:true}};
-      _ep=null;
-      _solution={from:[6,4],to:[4,4]}; // e2-e4
-      _selected=null;
-      renderBoard();
-    }
-  }
-
-  function renderBoard(){
-    // Update game state with puzzle data
-    S.bd=_bd;
-    S.turn=_turn;
-    S.cas=_cas;
-    S.ep=_ep;
-    S.sel=_selected;
-    S.mode='puzzle';
-    
-    // Render using main game renderer
-    R.board();
-    
-    // Override click handler for puzzle mode
-    const squares=document.querySelectorAll('#board .sq');
-    squares.forEach(sq=>{
-      const r=parseInt(sq.dataset.r);
-      const c=parseInt(sq.dataset.c);
-      sq.onclick=()=>handleClick(r,c);
-    });
-    
-    // Update instruction based on turn
-    const instruction=document.getElementById('pr-instruction');
-    if(instruction){
-      instruction.querySelector('span').textContent=_turn==='w'?'ابحث عن أفضل حركة للأبيض':'ابحث عن أفضل حركة للأسود';
-    }
-  }
-
-  function handleClick(r,c){
-    if(!_running)return;
-    
-    if(!_selected){
-      // Select a piece
-      const piece=_bd[r][c];
-      if(piece&&E.col(piece)===_turn){
-        _selected=[r,c];
-        renderBoard();
-        if(typeof SFX !== 'undefined') SFX.select();
-      }
-    }else{
-      // Try to move
-      const from=_selected;
-      const to=[r,c];
-      
-      // Check if move is legal
-      const legal=E.legal(_bd,from[0],from[1],_cas,_ep);
-      const isLegal=legal.some(([lr,lc])=>lr===to[0]&&lc===to[1]);
-      
-      if(!isLegal){
-        _selected=null;
-        renderBoard();
-        showFeedback('حركة غير صالحة', 'wrong');
-        if(typeof SFX !== 'undefined') SFX.illegal();
-        return;
-      }
-      
-      // Check if it's the solution
-      if(from[0]===_solution.from[0]&&from[1]===_solution.from[1]&&
-         to[0]===_solution.to[0]&&to[1]===_solution.to[1]){
-        // Correct!
-        _score+=10;
-        _count++;
-        updateStats();
-        showFeedback('صحيح! +10', 'hint');
-        if(typeof SFX !== 'undefined') SFX.move();
-        setTimeout(()=>nextPuzzle(), 500);
-      }else{
-        // Wrong
-        _score-=3;
-        updateStats();
-        showFeedback('خطأ! -3', 'wrong');
-        if(typeof SFX !== 'undefined') SFX.illegal();
-        
-        // Highlight wrong square
-        const squares=document.querySelectorAll('#board .sq');
-        squares.forEach(sq=>{
-          if(parseInt(sq.dataset.r)===to[0]&&parseInt(sq.dataset.c)===to[1]){
-            sq.style.background='rgba(248,113,113,.4)';
-            setTimeout(()=>sq.style.background='', 300);
-          }
-        });
-        
-        _selected=null;
-        renderBoard();
-      }
-    }
-  }
-
-  function showFeedback(text, type){
-    const fb=document.getElementById('pr-feedback');
-    fb.textContent=text;
-    fb.style.color=type==='hint'?'var(--green)':'var(--red)';
-    setTimeout(()=>fb.textContent='', 1500);
-  }
-
-  function updateStats(){
-    document.getElementById('pr-score').textContent=_score;
-    document.getElementById('pr-count').textContent=_count;
-  }
-
-  function updateTimer(){
-    const mins=Math.floor(_timeLeft/60);
-    const secs=_timeLeft%60;
-    document.getElementById('pr-timer').textContent=`${mins}:${secs.toString().padStart(2,'0')}`;
-    
-    if(_timeLeft<=0){
-      endGame();
-    }else{
-      _timeLeft--;
-    }
-  }
-
-  function nextPuzzle(){
-    if(!_running)return;
-    generatePuzzle();
-  }
-
-  function skip(){
-    if(!_running)return;
-    _score-=1;
-    updateStats();
-    showFeedback('تخطي -1', 'wrong');
-    nextPuzzle();
-  }
-
-  function start(){
-    _running=true;
-    _timeLeft=180;
-    _score=0;
-    _count=0;
-    _turn='w';
-    
-    document.getElementById('pr-start').style.display='none';
-    document.getElementById('pr-end').style.display='none';
-    
-    // Show game screen
-    Nav.show('s-game');
-    
-    // Hide unnecessary game UI elements
-    const gtop=document.querySelector('.gtop');
-    if(gtop)gtop.style.display='none';
-    
-    const barB=document.getElementById('bar-b');
-    if(barB)barB.style.display='none';
-    
-    const barW=document.getElementById('bar-w');
-    if(barW)barW.style.display='none';
-    
-    const sbar=document.getElementById('sbar');
-    if(sbar)sbar.style.display='none';
-    
-    const mvhist=document.getElementById('mvhist');
-    if(mvhist)mvhist.style.display='none';
-    
-    const toolbar=document.querySelector('.toolbar');
-    if(toolbar)toolbar.style.display='none';
-    
-    // Show puzzle UI
-    document.getElementById('pr-board-container').style.display='flex';
-    
-    updateStats();
-    updateTimer();
-    
-    _timer=setInterval(updateTimer, 1000);
-    
-    generatePuzzle();
-  }
-
-  function endGame(){
-    _running=false;
-    clearInterval(_timer);
-    
-    document.getElementById('pr-board-container').style.display='none';
-    document.getElementById('pr-end').style.display='block';
-    document.getElementById('pr-result').textContent=`حللت ${_count} لغز بـ ${_score} نقطة`;
-    
-    // Restore board to original location
-    const mainBoard=document.getElementById('board');
-    const sGame=document.getElementById('s-game');
-    const bwrap=document.querySelector('.bwrap');
-    if(mainBoard && bwrap){
-      bwrap.appendChild(mainBoard);
-    }
-    
-    // Show hidden UI elements
-    const gtop=document.querySelector('.gtop');
-    if(gtop)gtop.style.display='';
-    const barB=document.getElementById('bar-b');
-    if(barB)barB.style.display='';
-    const barW=document.getElementById('bar-w');
-    if(barW)barW.style.display='';
-    
-    saveBestScore();
-  }
-
-  return{
-    start,
-    skip,
-    loadBest
-  };
-})();
 
 const R={
   _boardBuilt:false,
@@ -3290,7 +2923,6 @@ const Nav={
   online(){SFX.btn();this.show('s-online');OL.init();},
   levels(){SFX.btn();this.show('s-levels');LVL.buildUI();},
   settings(){SFX.btn();this.show('s-settings');},
-  puzzleRush(){SFX.btn();this.show('s-puzzle-rush');PR.loadBest();},
 };
 
 function fixBars(myCol){
