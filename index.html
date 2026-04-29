@@ -2276,9 +2276,9 @@ const AST=(()=>{
       
       setTimeout(async()=>{
         try{
-          // Use Stockfish for best move (depth 10 for good analysis)
+          // Use Stockfish for best move (depth 6 for faster response)
           const col=S.myCol==='both'?S.turn:S.myCol;
-          const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,10);
+          const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,6);
           
           // Convert Stockfish move format to internal format
           let mv=null;
