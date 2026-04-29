@@ -384,6 +384,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 #rv-board .sq{width:var(--rv-sq);height:var(--rv-sq);position:relative;display:flex;align-items:center;justify-content:center;font-size:calc(var(--rv-sq)*.72);}
 #rv-board .sq.rv-from{box-shadow:inset 0 0 0 3px rgba(255,200,0,.75)!important;}
 #rv-board .sq.rv-to{background:rgba(255,200,0,.32)!important;}
+
+/* Transparency for evaluation board image boards */
+#rv-board[style*="background-image"] .sq.L,
+#rv-board[style*="background-image"] .sq.D {
+  background: transparent !important;
+}
 /* mini eval bar beside board */
 .rv-ebar{width:10px;height:var(--rv-sz);border-radius:5px;overflow:hidden;background:#111;box-shadow:0 0 0 1px rgba(255,255,255,.07);display:flex;flex-direction:column;flex-shrink:0;}
 .rv-ebar-b{background:#2d2d2d;transition:flex .4s ease;}
@@ -1118,6 +1124,20 @@ const BOARD_IMAGES={
   burl_wood2: 'burl_wood2.png'
 };
 
+// Function to safely load board images with fallback
+function loadBoardImage(imagePath, fallbackTheme) {
+  const img = new Image();
+  img.onload = function() {
+    // Image loaded successfully
+  };
+  img.onerror = function() {
+    // Image failed to load, use fallback CSS colors
+    console.warn(`Board image ${imagePath} not found, using CSS colors instead`);
+  };
+  img.src = imagePath;
+  return imagePath;
+}
+
 const Cfg={
   data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',allowRotation:false,playerName:'',playerImage:'',customBoardImage:''},
   load(){
@@ -1213,20 +1233,27 @@ const Cfg={
     r.setProperty('--sq-sl',t.sl);r.setProperty('--sq-sd',t.sd);
     r.setProperty('--sq-ml',t.ml);r.setProperty('--sq-md',t.md);
     const boardDiv=document.getElementById('board');
-    // Clear any existing custom board class first
+    // Clear any existing custom board class and background image first
     boardDiv.classList.remove('custom-board');
+    boardDiv.style.backgroundImage='';
     
     if(name==='custom' && this.data.customBoardImage){
       boardDiv.style.backgroundImage=`url(${this.data.customBoardImage})`;
       boardDiv.style.backgroundSize='cover';
       boardDiv.classList.add('custom-board');
     }else if(BOARD_IMAGES[name]){
-      boardDiv.style.backgroundImage=`url('${BOARD_IMAGES[name]}')`;
+      // Try to load the image, but don't break if it doesn't exist
+      const imagePath = BOARD_IMAGES[name];
+      loadBoardImage(imagePath, name);
+      boardDiv.style.backgroundImage=`url('${imagePath}')`;
       boardDiv.style.backgroundSize='cover';
     }else if(name==='classic'){
+      // Classic theme also uses Burl_wood.png but has CSS fallback
+      loadBoardImage('Burl_wood.png', 'classic');
       boardDiv.style.backgroundImage=`url('Burl_wood.png')`;
       boardDiv.style.backgroundSize='cover';
     }else{
+      // Explicitly clear background image for themes without images
       boardDiv.style.backgroundImage='';
     }
     const customUpload=document.getElementById('custom-board-upload');
@@ -1263,10 +1290,6 @@ const Cfg={
 
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
-  document.querySelectorAll('.av-w, .av-b').forEach(av=>{
-    av.style.backgroundImage='';
-    av.style.color='';
-  });
   if(!playerImg) return;
   let myColClass = '';
   if(S.mode==='online') myColClass = '.av-' + S.myCol;
@@ -1745,9 +1768,12 @@ const REV=(()=>{
       el.style.backgroundImage=`url(${Cfg.data.customBoardImage})`;
       el.style.backgroundSize='cover';
     }else if(BOARD_IMAGES[Cfg.data.boardTheme]){
-      el.style.backgroundImage=`url('${BOARD_IMAGES[Cfg.data.boardTheme]}')`;
+      const imagePath = BOARD_IMAGES[Cfg.data.boardTheme];
+      loadBoardImage(imagePath, Cfg.data.boardTheme);
+      el.style.backgroundImage=`url('${imagePath}')`;
       el.style.backgroundSize='cover';
     }else if(Cfg.data.boardTheme==='classic'){
+      loadBoardImage('Burl_wood.png', 'classic');
       el.style.backgroundImage=`url('Burl_wood.png')`;
       el.style.backgroundSize='cover';
     }else if(mainBoardDiv.style.backgroundImage){
@@ -1761,12 +1787,8 @@ const REV=(()=>{
         const sq=document.createElement('div');
         const isL=(r+c)%2===0;
         sq.className='sq '+(isL?'L':'D');
-        // For custom board images, use transparent overlays instead of solid colors
-        if(Cfg.data.boardTheme==='custom' && Cfg.data.customBoardImage){
-          sq.style.background=isL?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.2)';
-        }else{
-          sq.style.background=isL?th.l:th.d;
-        }
+        // Use CSS colors for normal themes, let CSS handle transparency for image boards
+        sq.style.background=isL?th.l:th.d;
         if(fromSq&&fromSq[0]===r&&fromSq[1]===c)sq.classList.add('rv-from');
         if(toSq&&toSq[0]===r&&toSq[1]===c){sq.classList.add('rv-to');sq.style.background='rgba(255,200,0,.32)';}
         const pc=bd[r][c];
@@ -1830,13 +1852,18 @@ const REV=(()=>{
     _activateChip(_idx);
     if(idx!==prevIdx){
       // Play appropriate sound based on move type
+      console.log('Playing sound for move:', mv.rating, mv.score); // Debug
       if(mv.rating==='blunder' || mv.rating==='mistake'){
+        console.log('Playing capture sound');
         SFX.capture(); // Play capture sound for mistakes/blunders
-      } else if(mv.score >= 4){
+      } else if(mv.score >= 80){
+        console.log('Playing checkmate sound');
         SFX.checkmate(); // Play checkmate sound for excellent moves
-      } else if(mv.score >= 2){
+      } else if(mv.score >= 60){
+        console.log('Playing check sound');
         SFX.check(); // Play check sound for good moves
       } else {
+        console.log('Playing move sound');
         SFX.move(); // Play normal move sound
       }
     }
@@ -2080,22 +2107,33 @@ const AST=(()=>{
   function _getWorker(){
     if(_worker)return _worker;
     try{
+      console.log('Creating new worker for assistant');
       const blob=new Blob([WORKER_SRC],{type:'application/javascript'});
       const url=URL.createObjectURL(blob);
       _worker=new Worker(url);
       _worker.onmessage=e=>{
+        console.log('Worker message received:', e.data);
         const{mv,snap}=e.data;
-        if(snap!==_snap){S.astBusy=false;return;}
+        if(snap!==_snap){S.astBusy=false;console.log('Snapshot mismatch, ignoring result');return;}
         S.astMove=mv;S.astBusy=false;
         _snap=null;
+        console.log('Assistant computation completed, move:', mv);
         requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
       };
-      _worker.onerror=()=>{
+      _worker.onerror=(error)=>{
+        console.error('Worker error:', error);
+        _worker=null;
+        S.astBusy=false;
+        _snap=null;
+      };
+      _worker.onmessageerror=(error)=>{
+        console.error('Worker message error:', error);
         _worker=null;
         S.astBusy=false;
         _snap=null;
       };
     }catch(ex){
+        console.error('Failed to create worker:', ex);
         _worker=null;
         S.astBusy=false;
         _snap=null;
@@ -2112,15 +2150,30 @@ const AST=(()=>{
       if(_snap===snap&&S.astMove!==null)return;
       S.astMove=null;S.astBusy=true;
       _snap=snap;
+      console.log('Starting assistant computation for turn:', S.turn);
       R.toolbar();
       const w=_getWorker();
       if(w){
+        console.log('Using worker for computation');
         w.postMessage({bd:S.bd.map(r=>[...r]),cas:JSON.parse(JSON.stringify(S.cas)),ep:S.ep?[...S.ep]:null,col:S.myCol==='both'?S.turn:S.myCol,snap});
+        // Add timeout to prevent infinite computation
+        setTimeout(()=>{
+          if(_snap===snap && S.astBusy){
+            console.log('Assistant computation timeout, forcing fallback');
+            S.astBusy=false;
+            _snap=null;
+            const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
+            S.astMove=mv;
+            requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
+          }
+        }, 5000); // 5 second timeout
       }else{
+        console.log('Worker not available, using fallback computation');
         setTimeout(()=>{
           if(_snap!==snap){S.astBusy=false;return;}
           const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
           S.astMove=mv;S.astBusy=false;_snap=null;
+          console.log('Fallback computation completed, move:', mv);
           requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
         },0);
       }
