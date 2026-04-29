@@ -730,7 +730,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     </div>
 
     <div id="pr-board-container" style="display:none;width:100%;max-width:400px;flex-direction:column;align-items:center;gap:12px;padding-bottom:20px;">
-      <div id="pr-board" style="display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:100%;aspect-ratio:1/1;background:#f0d9b5;border-radius:8px;overflow:hidden;border:2px solid rgba(201,168,76,.3);"></div>
+      <div id="pr-instruction" style="background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 15px;width:100%;text-align:center;">
+        <span style="color:var(--gold2);font-size:14px;font-weight:700;">ابحث عن أفضل حركة للأبيض</span>
+      </div>
+      <div id="pr-board-wrapper" style="width:100%;aspect-ratio:1/1;"></div>
       <div id="pr-feedback" style="text-align:center;font-size:14px;font-weight:600;height:20px;"></div>
       <button class="btnp" onclick="PR.skip()" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--red);">تخطي (-1 نقطة)</button>
     </div>
@@ -2494,50 +2497,36 @@ const PR=(()=>{
   }
 
   function renderBoard(){
-    const board=document.getElementById('pr-board');
-    if(!board){
-      console.error('Puzzle board element not found');
-      return;
-    }
-    board.innerHTML='';
-    
-    if(!_bd){
-      console.error('Board data (_bd) is not defined');
-      return;
+    // Move main board to puzzle wrapper
+    const mainBoard=document.getElementById('board');
+    const wrapper=document.getElementById('pr-board-wrapper');
+    if(mainBoard && wrapper){
+      wrapper.appendChild(mainBoard);
     }
     
-    const unicodePieces={
-      'wP':'♙','wN':'♘','wB':'♗','wR':'♖','wQ':'♕','wK':'♔',
-      'bP':'♟','bN':'♞','bB':'♝','bR':'♜','bQ':'♛','bK':'♚'
-    };
+    // Update game state with puzzle data
+    S.bd=_bd;
+    S.turn=_turn;
+    S.cas=_cas;
+    S.ep=_ep;
+    S.sel=_selected;
+    S.mode='puzzle';
     
-    for(let r=0;r<8;r++){
-      for(let c=0;c<8;c++){
-        const sq=document.createElement('div');
-        const isL=(r+c)%2===0;
-        sq.dataset.r=r;
-        sq.dataset.c=c;
-        sq.style.display='flex';
-        sq.style.alignItems='center';
-        sq.style.justifyContent='center';
-        sq.style.fontSize='32px';
-        sq.style.cursor='pointer';
-        sq.style.background=isL?'#f0d9b5':'#b58863';
-        
-        const piece=_bd[r][c];
-        if(piece){
-          sq.textContent=unicodePieces[piece];
-          sq.style.color=E.col(piece)==='w'?'#fff':'#000';
-          sq.style.textShadow=E.col(piece)==='w'?'0 0 3px #000':'0 0 3px #fff';
-        }
-        
-        if(_selected&&_selected[0]===r&&_selected[1]===c){
-          sq.style.background='rgba(255,200,0,0.5)';
-        }
-        
-        sq.onclick=()=>handleClick(r,c);
-        board.appendChild(sq);
-      }
+    // Render using main game renderer
+    R.board();
+    
+    // Override click handler for puzzle mode
+    const squares=document.querySelectorAll('#board .sq');
+    squares.forEach(sq=>{
+      const r=parseInt(sq.dataset.r);
+      const c=parseInt(sq.dataset.c);
+      sq.onclick=()=>handleClick(r,c);
+    });
+    
+    // Update instruction based on turn
+    const instruction=document.getElementById('pr-instruction');
+    if(instruction){
+      instruction.querySelector('span').textContent=_turn==='w'?'ابحث عن أفضل حركة للأبيض':'ابحث عن أفضل حركة للأسود';
     }
   }
 
@@ -2587,11 +2576,11 @@ const PR=(()=>{
         if(typeof SFX !== 'undefined') SFX.illegal();
         
         // Highlight wrong square
-        const squares=document.querySelectorAll('#pr-board .sq');
+        const squares=document.querySelectorAll('#board .sq');
         squares.forEach(sq=>{
           if(parseInt(sq.dataset.r)===to[0]&&parseInt(sq.dataset.c)===to[1]){
-            sq.classList.add('wrong');
-            setTimeout(()=>sq.classList.remove('wrong'), 300);
+            sq.style.background='rgba(248,113,113,.4)';
+            setTimeout(()=>sq.style.background='', 300);
           }
         });
         
@@ -2649,6 +2638,15 @@ const PR=(()=>{
     document.getElementById('pr-end').style.display='none';
     document.getElementById('pr-board-container').style.display='flex';
     
+    // Show game screen and hide unnecessary elements
+    Nav.show('s-game');
+    const gtop=document.querySelector('.gtop');
+    if(gtop)gtop.style.display='none';
+    const barB=document.getElementById('bar-b');
+    if(barB)barB.style.display='none';
+    const barW=document.getElementById('bar-w');
+    if(barW)barW.style.display='none';
+    
     updateStats();
     updateTimer();
     
@@ -2665,7 +2663,23 @@ const PR=(()=>{
     document.getElementById('pr-end').style.display='block';
     document.getElementById('pr-result').textContent=`حللت ${_count} لغز بـ ${_score} نقطة`;
     
-    saveBest(_score);
+    // Restore board to original location
+    const mainBoard=document.getElementById('board');
+    const sGame=document.getElementById('s-game');
+    const bwrap=document.querySelector('.bwrap');
+    if(mainBoard && bwrap){
+      bwrap.appendChild(mainBoard);
+    }
+    
+    // Show hidden UI elements
+    const gtop=document.querySelector('.gtop');
+    if(gtop)gtop.style.display='';
+    const barB=document.getElementById('bar-b');
+    if(barB)barB.style.display='';
+    const barW=document.getElementById('bar-w');
+    if(barW)barW.style.display='';
+    
+    saveBestScore();
   }
 
   return{
