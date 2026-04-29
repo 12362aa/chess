@@ -2485,6 +2485,11 @@ const PR=(()=>{
     const board=document.getElementById('pr-board');
     board.innerHTML='';
     
+    const pieceMap={
+      'wP':'wp','wN':'wn','wB':'wb','wR':'wr','wQ':'wq','wK':'wk',
+      'bP':'bp','bN':'bn','bB':'bb','bR':'br','bQ':'bq','bK':'bk'
+    };
+    
     for(let r=0;r<8;r++){
       for(let c=0;c<8;c++){
         const sq=document.createElement('div');
@@ -2495,8 +2500,9 @@ const PR=(()=>{
         
         const piece=_bd[r][c];
         if(piece){
-          sq.textContent=PIECES[piece];
-          sq.style.color=E.col(piece)==='w'?'#fff':'#000';
+          const pDiv=document.createElement('div');
+          pDiv.className='piece '+pieceMap[piece];
+          sq.appendChild(pDiv);
         }
         
         if(_selected&&_selected[0]===r&&_selected[1]===c){
@@ -2518,6 +2524,7 @@ const PR=(()=>{
       if(piece&&E.col(piece)===_turn){
         _selected=[r,c];
         renderBoard();
+        if(typeof SFX !== 'undefined') SFX.select();
       }
     }else{
       // Try to move
@@ -2532,6 +2539,7 @@ const PR=(()=>{
         _selected=null;
         renderBoard();
         showFeedback('حركة غير صالحة', 'wrong');
+        if(typeof SFX !== 'undefined') SFX.illegal();
         return;
       }
       
@@ -2543,12 +2551,14 @@ const PR=(()=>{
         _count++;
         updateStats();
         showFeedback('صحيح! +10', 'hint');
+        if(typeof SFX !== 'undefined') SFX.move();
         setTimeout(()=>nextPuzzle(), 500);
       }else{
         // Wrong
         _score-=3;
         updateStats();
         showFeedback('خطأ! -3', 'wrong');
+        if(typeof SFX !== 'undefined') SFX.illegal();
         
         // Highlight wrong square
         const squares=document.querySelectorAll('#pr-board .sq');
