@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # أضف هذا عشان تقدر تشغل يدوياً
 
 jobs:
   build:
@@ -19,14 +20,19 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-
+    
+    # شرط مهم: يشتغل مرة واحدة فقط
+    if: github.ref == 'refs/heads/main'
+    
     permissions:
       pages: write
       id-token: write
 
     environment:
-      name: github-pages   # 🔥 ده المهم اللي كان ناقص
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Deploy
-        uses: actions/deploy-pages@v5
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4  # ← غيرت من v5 إلى v4
