@@ -301,7 +301,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background: transparent !important;
 }
 /* Check indicator - always show regardless of transparency */
-.sq.CK{background:rgba(248,113,113,.78)!important;box-shadow:inset 0 0 20px rgba(248,113,113,.4)!important;animation:checkPulse 1s infinite;}
+.sq.CK{background:rgba(248,113,113,.85)!important;box-shadow:inset 0 0 25px rgba(248,113,113,.55), 0 0 15px rgba(248,113,113,.3)!important;animation:checkPulse 1s infinite;z-index:10;}
 .sq.PM-FROM{background:rgba(200,30,30,.75)!important;box-shadow:inset 0 0 16px rgba(200,30,30,.4)!important;}
 .sq.PM{background:rgba(220,40,40,.38)!important;box-shadow:inset 0 0 10px rgba(220,40,40,.2)!important;}
 .sq.ast-from{box-shadow:inset 0 0 0 3px rgba(96,165,250,.85);}
@@ -321,12 +321,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
 .piece{--rot:0deg;position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
-/* chess.com style board rotation for local 2-player */
-#s-game.mode-local #board-container{transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
-#s-game.mode-local #board-container.board-rotated{transform:rotate(180deg);}
-#s-game.mode-local #board-container.board-rotated .piece{transform:rotate(180deg) !important;}
-#s-game.mode-local #board-container.board-rotated .sq .crd-r,
-#s-game.mode-local #board-container.board-rotated .sq .crd-f{transform:rotate(180deg);}
+/* Local 2-player: flip ALL pieces when black's turn so they appear upright for black player */
+#s-game.mode-local.black-turn .piece{--rot:180deg;}
 .sq.SL .piece,.sq.SD .piece{transform:rotate(var(--rot)) scale(1.1);}
 .sq:hover .piece{transform:rotate(var(--rot)) scale(1.06);}
 .sq.SL:hover .piece,.sq.SD:hover .piece{transform:rotate(var(--rot)) scale(1.16);}
@@ -1731,7 +1727,7 @@ const REV=(()=>{
   let _boards=[];
   let _coachCache={};
 
-  function _analyze(){
+  async function _analyze(){
     const snaps=S.snapshots;
     if(!snaps||!snaps.length)return null;
     let bd=INIT_BD.map(r=>[...r]);
@@ -1743,7 +1739,7 @@ const REV=(()=>{
     let wBlunders=0,bBlunders=0,wMistakes=0,bMistakes=0;
     const evalHistory=[E.eval(bd)];
 
-    const REVIEW_DEPTH=3;
+    const REVIEW_DEPTH=1; // Reduced from 3 to prevent UI freezing
     const bestFor=(board,cas2,ep2,color)=>{
       const mvs=E.allLegal(board,color,cas2,ep2);
       if(!mvs.length)return{val:color==='w'?-99999:99999,mv:null};
@@ -1758,6 +1754,8 @@ const REV=(()=>{
     };
 
     const f='abcdefgh';
+    // Process moves in chunks to yield to event loop and prevent UI freeze
+    const CHUNK_SIZE=10;
     for(let i=0;i<snaps.length;i++){
       const snap=snaps[i];
       const color=snap.turn;
@@ -1819,6 +1817,11 @@ const REV=(()=>{
         moveNum:Math.floor(i/2)+1,
         isCapture,isCastle,isPromo,isCheck,isCheckmate
       });
+      
+      // Yield to event loop every CHUNK_SIZE moves to prevent UI freeze
+      if(i>0 && i%CHUNK_SIZE===0){
+        await new Promise(r=>setTimeout(r,0));
+      }
     }
     const wAcc=wCount?Math.round(wTotal/wCount):50;
     const bAcc=bCount?Math.round(bTotal/bCount):50;
@@ -2082,14 +2085,14 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
   }
 
   return{
-    open(){
+    async open(){
       if(S.hist.length<4){alert('المباراة قصيرة جداً للتقييم');return;}
       _coachCache={};
       document.getElementById('review-ov').classList.add('open');
       document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>`;
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      requestAnimationFrame(async ()=>{
         try{
-          _data=_analyze();
+          _data=await _analyze();
           console.log('Review analysis complete, moves:', _data?.moves?.length);
           if(!_data||!_data.moves.length){
             document.getElementById('rv-main').innerHTML=`<div style="color:var(--text2);padding:30px;text-align:center">لا توجد بيانات كافية</div>`;
@@ -2102,7 +2105,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
           console.error('Review analysis error:', e);
           document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذّر التحليل: ${e.message || 'Unknown error'}</div>`;
         }
-      }));
+      });
     },
     close(){document.getElementById('review-ov').classList.remove('open');},
     goTo(i){goTo(i);},
@@ -2270,13 +2273,13 @@ const R={
     const flip=(S.mode==='local')?
       (S.turn==='b'):
       (S.mode!=='local'&&(S.myCol==='b'));
-    // Apply board container rotation for local mode (chess.com style)
-    const boardContainer=document.getElementById('board-container');
-    if(boardContainer){
+    // Apply black-turn class to body/game for piece flipping in local mode
+    const sGame=document.getElementById('s-game');
+    if(sGame){
       if(S.mode==='local'){
-        boardContainer.classList.toggle('board-rotated',S.turn==='b');
+        sGame.classList.toggle('black-turn',S.turn==='b');
       }else{
-        boardContainer.classList.remove('board-rotated');
+        sGame.classList.remove('black-turn');
       }
     }
     if(!this._boardBuilt||this._boardFlip!==flip){
@@ -2326,7 +2329,7 @@ const R={
       const piece=sq.querySelector('.piece');
       const pieceCode=S.bd[r][c];
       const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
-      const shouldFlipPiece=!!(S.mode!=='local' && flip && pieceCode);
+      const shouldFlipPiece=!!(flip && pieceCode && (S.mode!=='local' || S.turn==='b'));
       const isDragged=!!(S.dragFrom&&S.dragFrom[0]===r&&S.dragFrom[1]===c);
       const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'')+(isDragged?' dragging':'');
       if(pieceCode){
