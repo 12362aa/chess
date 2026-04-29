@@ -1737,30 +1737,16 @@ const REV=(()=>{
     let wBlunders=0,bBlunders=0,wMistakes=0,bMistakes=0;
     const evalHistory=[E.eval(bd)];
 
-    const quickBest=(board,cas2,ep2,color)=>{
+    const REVIEW_DEPTH=3;
+    const bestFor=(board,cas2,ep2,color)=>{
       const mvs=E.allLegal(board,color,cas2,ep2);
       if(!mvs.length)return{val:color==='w'?-99999:99999,mv:null};
       const isMax=color==='w';
       let bv=isMax?-Infinity:Infinity,bm=mvs[0];
       for(const mv of mvs){
         const r2=E.apply(board,mv.from,mv.to,cas2,ep2,'Q');
-        const opp=color==='w'?'b':'w';
-        const oMvs=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
-        let oppBest=r2.bd;
-        if(oMvs.length){
-          const isOppMax=opp==='w';
-          let ob2=isOppMax?-Infinity:Infinity;
-          for(const om of oMvs){
-            const r3=E.apply(r2.bd,om.from,om.to,r2.cas,r2.ep,'Q');
-            const vv=E.eval(r3.bd);
-            if(isOppMax?vv>ob2:vv<ob2){ob2=vv;oppBest=r3.bd;}
-          }
-          const v2=E.eval(oppBest);
-          if(isMax?v2>bv:v2<bv){bv=v2;bm=mv;}
-        }else{
-          const v2=E.eval(r2.bd);
-          if(isMax?v2>bv:v2<bv){bv=v2;bm=mv;}
-        }
+        const v=E.mm(r2.bd,REVIEW_DEPTH-1,-Infinity,Infinity,!isMax,r2.cas,r2.ep);
+        if(isMax? v>bv : v<bv){bv=v;bm=mv;}
       }
       return{val:bv,mv:bm};
     };
@@ -1770,7 +1756,7 @@ const REV=(()=>{
       const snap=snaps[i];
       const color=snap.turn;
       const isMax=color==='w';
-      const {val:bestVal,mv:bestMv}=quickBest(bd,cas,ep,color);
+      const {val:bestVal,mv:bestMv}=bestFor(bd,cas,ep,color);
       const actualMoveStr=snap.move;
       let actualFrom=null,actualTo=null,promo=null;
       if(actualMoveStr&&actualMoveStr.length>=4){
@@ -2273,7 +2259,9 @@ const R={
   _squares:[],
   board(){
     const el=document.getElementById('board');
-    const flip=S.mode!=='local'&&(S.myCol==='b');
+    const flip=(S.mode==='local')?
+      (S.turn==='b'):
+      (S.mode!=='local'&&(S.myCol==='b'));
     if(!this._boardBuilt||this._boardFlip!==flip){
       el.innerHTML='';
       this._boardFlip=flip;
@@ -2321,7 +2309,7 @@ const R={
       const piece=sq.querySelector('.piece');
       const pieceCode=S.bd[r][c];
       const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
-      const shouldFlipPiece=!!(S.mode==='local'&&pieceCode&&E.col(pieceCode)!==S.turn);
+      const shouldFlipPiece=!!(flip&&pieceCode);
       const isDragged=!!(S.dragFrom&&S.dragFrom[0]===r&&S.dragFrom[1]===c);
       const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'')+(isDragged?' dragging':'');
       if(pieceCode){
@@ -2625,8 +2613,7 @@ const G={
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
       if(sq){const piece=sq.querySelector('.piece');if(piece){piece.classList.remove('moved');void piece.offsetWidth;piece.classList.add('moved');}}
       // CRITICAL: force flip for moved piece in local mode
-      if(S.mode==='local' && S.turn !== cl){
-        // after move, turn switched. piece should flip with board.
+      if(false && S.mode==='local' && S.turn !== cl){
         const movedPiece=sq.querySelector('.piece');
         if(movedPiece && E.col(S.bd[to[0]][to[1]]) === S.turn){
           movedPiece.classList.add('turn-flipped');
