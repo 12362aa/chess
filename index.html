@@ -1327,10 +1327,20 @@ const Cfg={
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
   if(!playerImg) return;
-  // Only apply player image in online mode
+  // In online mode, apply to my color
   if(S.mode==='online'){
     const myColClass = '.av-' + S.myCol;
     const av = document.querySelector(myColClass);
+    if(av){
+      av.style.backgroundImage=`url(${playerImg})`;
+      av.style.backgroundSize='cover';
+      av.style.backgroundPosition='center';
+      av.style.color='transparent';
+    }
+  }
+  // In bot mode, apply only to white (player), not black (Nour)
+  else if(S.mode==='bot'){
+    const av = document.querySelector('.av-w');
     if(av){
       av.style.backgroundImage=`url(${playerImg})`;
       av.style.backgroundSize='cover';
@@ -1896,7 +1906,7 @@ const REV=(()=>{
     _activateChip(_idx);
     if(idx!==prevIdx){
       // Play sound based on actual move type
-      console.log('Playing sound for move type:', mv.moveType); // Debug
+      console.log('Playing sound for move type:', mv.moveType, 'rating:', mv.rating); // Debug
       if(mv.moveType === 'capture'){
         console.log('Playing capture sound');
         SFX.capture();
@@ -1904,14 +1914,14 @@ const REV=(()=>{
         console.log('Playing castle sound');
         SFX.castle();
       } else if(mv.moveType === 'promo'){
-        console.log('Playing promote sound');
-        SFX.promote();
+        console.log('Playing move sound for promotion (promote uses move sound)');
+        SFX.move();
       } else if(mv.rating === 'blunder' || mv.rating === 'mistake'){
         console.log('Playing error sound for bad move');
-        SFX.error();
+        SFX.illegal();
       } else if(mv.rating === 'best' && mv.score >= 95){
-        console.log('Playing checkmate sound for excellent move');
-        SFX.checkmate();
+        console.log('Playing check sound for excellent move (not checkmate)');
+        SFX.check();
       } else if(mv.rating === 'best' || mv.score >= 80){
         console.log('Playing check sound for good move');
         SFX.check();
@@ -2969,25 +2979,20 @@ const OL=(()=>{
 
       case 'pimg':
         {
-          console.log('Received profile image from opponent');
+          console.log('Received profile image from opponent:', d.img ? 'has image' : 'no image');
           const oc=E.opp(S.myCol);
+          console.log('Opponent color:', oc, 'My color:', S.myCol);
           const avEl=document.querySelector('.av-'+oc);
+          console.log('Avatar element found:', !!avEl);
           if(avEl && d.img){
-            console.log('Setting opponent avatar image for color:', oc);
+            console.log('Setting opponent avatar image');
             avEl.style.backgroundImage=`url(${d.img})`;
             avEl.style.backgroundSize='cover';
             avEl.style.backgroundPosition='center';
             avEl.style.color='transparent';
             avEl.textContent='';
-            // Also update the avatar element by ID for redundancy
-            const avById = document.getElementById(oc==='w'?'av-w':'av-b');
-            if(avById){
-              avById.style.backgroundImage=`url(${d.img})`;
-              avById.style.backgroundSize='cover';
-              avById.style.backgroundPosition='center';
-              avById.style.color='transparent';
-              avById.textContent='';
-            }
+          } else {
+            console.log('Failed to set avatar - element:', !!avEl, 'image:', !!d.img);
           }
         }
         break;
