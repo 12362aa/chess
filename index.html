@@ -384,15 +384,16 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .pr-stat{background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 18px;min-width:80px;text-align:center;}
 .pr-stat-l{font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;}
 .pr-stat-v{font-size:22px;font-weight:700;color:var(--gold2);font-family:'Cairo',sans-serif;}
-#pr-board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);direction:ltr;}
-#pr-board .sq{position:relative;display:flex;align-items:center;justify-content:center;font-size:calc(100%/8 * .72);cursor:pointer;}
-#pr-board .sq.L{background:var(--sq-l);}
-#pr-board .sq.D{background:var(--sq-d);}
+#pr-board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);direction:ltr;width:100%;height:100%;}
+#pr-board .sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#pr-board .sq.L{background:#f0d9b5;}
+#pr-board .sq.D{background:#b58863;}
 #pr-board .sq:hover{filter:brightness(1.1);}
 #pr-board .sq.selected{box-shadow:inset 0 0 0 3px rgba(255,200,0,.75)!important;}
 #pr-board .sq.hint{background:rgba(74,222,128,.3)!important;}
 #pr-board .sq.wrong{background:rgba(248,113,113,.4)!important;animation:shake .3s;}
 @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+#pr-board .piece{--rot:0deg;position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 
 /* ══════ REVIEW OVERLAY ══════ */
 #review-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);backdrop-filter:blur(14px);z-index:870;flex-direction:column;align-items:center;padding-top:44px;overflow:hidden;}
@@ -730,7 +731,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     </div>
 
     <div id="pr-board-container" style="display:none;width:100%;max-width:400px;">
-      <div id="pr-board" style="position:relative;width:100%;padding-bottom:100%;background:var(--sq-l);border-radius:8px;overflow:hidden;"></div>
+      <div id="pr-board" style="position:relative;width:100%;aspect-ratio:1/1;background:#f0d9b5;border-radius:8px;overflow:hidden;border:2px solid rgba(201,168,76,.3);"></div>
       <div id="pr-feedback" style="margin-top:12px;text-align:center;font-size:14px;font-weight:600;height:20px;"></div>
       <button class="btnp" onclick="PR.skip()" style="margin-top:10px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--red);">تخطي (-1 نقطة)</button>
     </div>
@@ -2485,11 +2486,6 @@ const PR=(()=>{
     const board=document.getElementById('pr-board');
     board.innerHTML='';
     
-    const pieceMap={
-      'wP':'wp','wN':'wn','wB':'wb','wR':'wr','wQ':'wq','wK':'wk',
-      'bP':'bp','bN':'bn','bB':'bb','bR':'br','bQ':'bq','bK':'bk'
-    };
-    
     for(let r=0;r<8;r++){
       for(let c=0;c<8;c++){
         const sq=document.createElement('div');
@@ -2501,7 +2497,8 @@ const PR=(()=>{
         const piece=_bd[r][c];
         if(piece){
           const pDiv=document.createElement('div');
-          pDiv.className='piece '+pieceMap[piece];
+          pDiv.className='piece '+piece;
+          pDiv.dataset.pc=piece;
           sq.appendChild(pDiv);
         }
         
@@ -2627,6 +2624,23 @@ const PR=(()=>{
     updateTimer();
     
     _timer=setInterval(updateTimer, 1000);
+    
+    // Ensure piece CSS is loaded
+    if(!document.getElementById('chess-piece-styles')){
+      _applyPieceCSS(SVG_FALLBACK);
+    }
+    
+    // Also ensure puzzle board has piece styles
+    const puzzleStyle=document.getElementById('puzzle-piece-styles');
+    if(!puzzleStyle){
+      const s=document.createElement('style');
+      s.id='puzzle-piece-styles';
+      s.textContent=Object.entries(SVG_FALLBACK).map(([cls,url])=>
+        `#pr-board .piece.${cls}{background-image:url("${url}")!important;}`
+      ).join('');
+      document.head.appendChild(s);
+    }
+    
     generatePuzzle();
   }
 
