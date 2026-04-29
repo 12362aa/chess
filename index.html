@@ -270,17 +270,17 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
 
 /* Transparency for image boards */
-#board[style*="background-image"] .sq.L,
-#board[style*="background-image"] .sq.D {
-  background: transparent;
+#board.has-bg-image .sq.L,
+#board.has-bg-image .sq.D {
+  background: transparent !important;
 }
 /* Highlight overlays for image boards */
-#board[style*="background-image"] .sq.SL::before,
-#board[style*="background-image"] .sq.SD::before {
+#board.has-bg-image .sq.SL::before,
+#board.has-bg-image .sq.SD::before {
   content: ''; position: absolute; inset: 0; background: rgba(255, 255, 0, 0.5); z-index: 1;
 }
-#board[style*="background-image"] .sq.ML::before,
-#board[style*="background-image"] .sq.MD::before {
+#board.has-bg-image .sq.ML::before,
+#board.has-bg-image .sq.MD::before {
   content: ''; position: absolute; inset: 0; background: rgba(255, 255, 0, 0.4); z-index: 1;
 }
 /* Ensure highlights don't cover pieces or coords */
@@ -1169,7 +1169,8 @@ const Cfg={
     this._updateAvatar(this.data.playerName||'');
     this._updateProfileImage();
     this.theme(this.data.boardTheme,false);
-    if(this.data.customBoardImage){
+    // Only apply custom board image if the current theme is 'custom'
+    if(this.data.boardTheme==='custom' && this.data.customBoardImage){
       const el=document.getElementById('board');if(el)el.style.backgroundImage=`url(${this.data.customBoardImage})`;
     }
     const customUpload=document.getElementById('custom-board-upload');
@@ -1233,25 +1234,27 @@ const Cfg={
     r.setProperty('--sq-sl',t.sl);r.setProperty('--sq-sd',t.sd);
     r.setProperty('--sq-ml',t.ml);r.setProperty('--sq-md',t.md);
     const boardDiv=document.getElementById('board');
-    // Clear any existing custom board class and background image first
-    boardDiv.classList.remove('custom-board');
+    // Clear any existing classes and background image first
+    boardDiv.classList.remove('custom-board', 'has-bg-image');
     boardDiv.style.backgroundImage='';
     
     if(name==='custom' && this.data.customBoardImage){
       boardDiv.style.backgroundImage=`url(${this.data.customBoardImage})`;
       boardDiv.style.backgroundSize='cover';
-      boardDiv.classList.add('custom-board');
+      boardDiv.classList.add('custom-board', 'has-bg-image');
     }else if(BOARD_IMAGES[name]){
       // Try to load the image, but don't break if it doesn't exist
       const imagePath = BOARD_IMAGES[name];
       loadBoardImage(imagePath, name);
       boardDiv.style.backgroundImage=`url('${imagePath}')`;
       boardDiv.style.backgroundSize='cover';
+      boardDiv.classList.add('has-bg-image');
     }else if(name==='classic'){
       // Classic theme also uses Burl_wood.png but has CSS fallback
       loadBoardImage('Burl_wood.png', 'classic');
       boardDiv.style.backgroundImage=`url('Burl_wood.png')`;
       boardDiv.style.backgroundSize='cover';
+      boardDiv.classList.add('has-bg-image');
     }else{
       // Explicitly clear background image for themes without images
       boardDiv.style.backgroundImage='';
@@ -1733,11 +1736,19 @@ const REV=(()=>{
       else{rating='blunder';score=5;if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
       if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,null);}catch(e){}
+      // Determine move type for sound effects
+      let moveType = 'move';
+      const capturedPiece = bd[actualTo[0]][actualTo[1]];
+      if (capturedPiece) moveType = 'capture';
+      else if (promo) moveType = 'promo';
+      else if (actualMoveStr && actualMoveStr.includes('O-O')) moveType = 'castle';
+      
       moves.push({
         move:actualMoveStr||'—',color,rating,score,
         evalAfter:actualVal,bestVal,bestMv:bestMvStr,
         from:actualFrom,to:actualTo,
-        moveNum:Math.floor(i/2)+1
+        moveNum:Math.floor(i/2)+1,
+        moveType:moveType
       });
     }
     const wAcc=wCount?Math.round(wTotal/wCount):50;
@@ -1851,20 +1862,29 @@ const REV=(()=>{
     _updateCard(mv,_idx);
     _activateChip(_idx);
     if(idx!==prevIdx){
-      // Play appropriate sound based on move type
-      console.log('Playing sound for move:', mv.rating, mv.score); // Debug
-      if(mv.rating==='blunder' || mv.rating==='mistake'){
+      // Play sound based on actual move type
+      console.log('Playing sound for move type:', mv.moveType); // Debug
+      if(mv.moveType === 'capture'){
         console.log('Playing capture sound');
-        SFX.capture(); // Play capture sound for mistakes/blunders
-      } else if(mv.score >= 80){
-        console.log('Playing checkmate sound');
-        SFX.checkmate(); // Play checkmate sound for excellent moves
-      } else if(mv.score >= 60){
-        console.log('Playing check sound');
-        SFX.check(); // Play check sound for good moves
+        SFX.capture();
+      } else if(mv.moveType === 'castle'){
+        console.log('Playing castle sound');
+        SFX.castle();
+      } else if(mv.moveType === 'promo'){
+        console.log('Playing promote sound');
+        SFX.promote();
+      } else if(mv.rating === 'blunder' || mv.rating === 'mistake'){
+        console.log('Playing error sound for bad move');
+        SFX.error();
+      } else if(mv.rating === 'best' && mv.score >= 95){
+        console.log('Playing checkmate sound for excellent move');
+        SFX.checkmate();
+      } else if(mv.rating === 'best' || mv.score >= 80){
+        console.log('Playing check sound for good move');
+        SFX.check();
       } else {
-        console.log('Playing move sound');
-        SFX.move(); // Play normal move sound
+        console.log('Playing normal move sound');
+        SFX.move();
       }
     }
     const btnPrev=document.getElementById('rv-prev');
@@ -2148,34 +2168,24 @@ const AST=(()=>{
       if(!isMyTurn){S.astMove=null;S.astBusy=false;return;}
       const snap=S.turn+JSON.stringify(S.bd);
       if(_snap===snap&&S.astMove!==null)return;
+      
+      // Start computation immediately
       S.astMove=null;S.astBusy=true;
       _snap=snap;
-      console.log('Starting assistant computation for turn:', S.turn);
       R.toolbar();
-      const w=_getWorker();
-      if(w){
-        console.log('Using worker for computation');
-        w.postMessage({bd:S.bd.map(r=>[...r]),cas:JSON.parse(JSON.stringify(S.cas)),ep:S.ep?[...S.ep]:null,col:S.myCol==='both'?S.turn:S.myCol,snap});
-        // Add timeout to prevent infinite computation
-        setTimeout(()=>{
-          if(_snap===snap && S.astBusy){
-            console.log('Assistant computation timeout, forcing fallback');
-            S.astBusy=false;
-            _snap=null;
-            const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
-            S.astMove=mv;
-            requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
-          }
-        }, 5000); // 5 second timeout
-      }else{
-        console.log('Worker not available, using fallback computation');
-        setTimeout(()=>{
-          if(_snap!==snap){S.astBusy=false;return;}
-          const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
-          S.astMove=mv;S.astBusy=false;_snap=null;
-          console.log('Fallback computation completed, move:', mv);
-          requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
-        },0);
+      
+      // Use simple synchronous computation - no worker, no timeouts
+      try{
+        const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
+        S.astMove=mv;
+        S.astBusy=false;
+        _snap=null;
+        requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
+      }catch(e){
+        console.error('Assistant computation error:', e);
+        S.astBusy=false;
+        _snap=null;
+        S.astMove=null;
       }
     },
     clear(){
@@ -2922,13 +2932,16 @@ const OL=(()=>{
 
       case 'pimg':
         {
+          console.log('Received profile image from opponent');
           const oc=E.opp(S.myCol);
           const avEl=document.querySelector('.av-'+oc);
           if(avEl && d.img){
+            console.log('Setting opponent avatar image');
             avEl.style.backgroundImage=`url(${d.img})`;
             avEl.style.backgroundSize='cover';
             avEl.style.backgroundPosition='center';
             avEl.style.color='transparent';
+            avEl.textContent='';
           }
         }
         break;
@@ -3328,4 +3341,3 @@ window.addEventListener('load',()=>{SFX.init(); DRAG.init(); _loadChessPieces();
 </script>
 </body>
 </html>
-هلا ياربببب
