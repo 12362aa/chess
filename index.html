@@ -1213,9 +1213,13 @@ const Cfg={
     r.setProperty('--sq-sl',t.sl);r.setProperty('--sq-sd',t.sd);
     r.setProperty('--sq-ml',t.ml);r.setProperty('--sq-md',t.md);
     const boardDiv=document.getElementById('board');
+    // Clear any existing custom board class first
+    boardDiv.classList.remove('custom-board');
+    
     if(name==='custom' && this.data.customBoardImage){
       boardDiv.style.backgroundImage=`url(${this.data.customBoardImage})`;
       boardDiv.style.backgroundSize='cover';
+      boardDiv.classList.add('custom-board');
     }else if(BOARD_IMAGES[name]){
       boardDiv.style.backgroundImage=`url('${BOARD_IMAGES[name]}')`;
       boardDiv.style.backgroundSize='cover';
@@ -1737,17 +1741,17 @@ const REV=(()=>{
     const th=THEMES[Cfg.data.boardTheme]||THEMES.classic;
     // Apply same board image as main board
     const mainBoardDiv=document.getElementById('board');
-    if(mainBoardDiv.style.backgroundImage){
-      el.style.backgroundImage=mainBoardDiv.style.backgroundImage;
-      el.style.backgroundSize='cover';
-    }else if(Cfg.data.boardTheme==='custom' && Cfg.data.customBoardImage){
+    if(Cfg.data.boardTheme==='custom' && Cfg.data.customBoardImage){
       el.style.backgroundImage=`url(${Cfg.data.customBoardImage})`;
+      el.style.backgroundSize='cover';
+    }else if(BOARD_IMAGES[Cfg.data.boardTheme]){
+      el.style.backgroundImage=`url('${BOARD_IMAGES[Cfg.data.boardTheme]}')`;
       el.style.backgroundSize='cover';
     }else if(Cfg.data.boardTheme==='classic'){
       el.style.backgroundImage=`url('Burl_wood.png')`;
       el.style.backgroundSize='cover';
-    }else if(BOARD_IMAGES[Cfg.data.boardTheme]){
-      el.style.backgroundImage=`url('${BOARD_IMAGES[Cfg.data.boardTheme]}')`;
+    }else if(mainBoardDiv.style.backgroundImage){
+      el.style.backgroundImage=mainBoardDiv.style.backgroundImage;
       el.style.backgroundSize='cover';
     }else{
       el.style.backgroundImage='';
@@ -1757,7 +1761,12 @@ const REV=(()=>{
         const sq=document.createElement('div');
         const isL=(r+c)%2===0;
         sq.className='sq '+(isL?'L':'D');
-        sq.style.background=isL?th.l:th.d;
+        // For custom board images, use transparent overlays instead of solid colors
+        if(Cfg.data.boardTheme==='custom' && Cfg.data.customBoardImage){
+          sq.style.background=isL?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.2)';
+        }else{
+          sq.style.background=isL?th.l:th.d;
+        }
         if(fromSq&&fromSq[0]===r&&fromSq[1]===c)sq.classList.add('rv-from');
         if(toSq&&toSq[0]===r&&toSq[1]===c){sq.classList.add('rv-to');sq.style.background='rgba(255,200,0,.32)';}
         const pc=bd[r][c];
@@ -1820,7 +1829,16 @@ const REV=(()=>{
     _updateCard(mv,_idx);
     _activateChip(_idx);
     if(idx!==prevIdx){
-      SFX.move(); // play move sound for every navigation in review
+      // Play appropriate sound based on move type
+      if(mv.rating==='blunder' || mv.rating==='mistake'){
+        SFX.capture(); // Play capture sound for mistakes/blunders
+      } else if(mv.score >= 4){
+        SFX.checkmate(); // Play checkmate sound for excellent moves
+      } else if(mv.score >= 2){
+        SFX.check(); // Play check sound for good moves
+      } else {
+        SFX.move(); // Play normal move sound
+      }
     }
     const btnPrev=document.getElementById('rv-prev');
     const btnNext=document.getElementById('rv-next');
@@ -2072,8 +2090,16 @@ const AST=(()=>{
         _snap=null;
         requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
       };
-      _worker.onerror=()=>{_worker=null;};
-    }catch(ex){_worker=null;}
+      _worker.onerror=()=>{
+        _worker=null;
+        S.astBusy=false;
+        _snap=null;
+      };
+    }catch(ex){
+        _worker=null;
+        S.astBusy=false;
+        _snap=null;
+      }
     return _worker;
   }
 
