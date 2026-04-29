@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/stockfish@18.0.0/stockfish-18-lite-single.js"></script>
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -1438,7 +1439,143 @@ const LVL={
 };
 
 /* ══════════════════════════════════════
-   CHESS ENGINE
+   STOCKFISH WRAPPER
+══════════════════════════════════════ */
+const SF=(()=>{
+  let _engine=null;
+  let _ready=false;
+  let _pending={};
+  let _msgId=0;
+
+  function bdToFen(bd,turn,cas,ep){
+    const pMap={
+      'wP':'P','wN':'N','wB':'B','wR':'R','wQ':'Q','wK':'K',
+      'bP':'p','bN':'n','bB':'b','bR':'r','bQ':'q','bK':'k'
+    };
+    let fen='',empty=0;
+    for(let r=0;r<8;r++){
+      empty=0;
+      for(let c=0;c<8;c++){
+        const p=bd[r][c];
+        if(p){
+          if(empty>0){fen+=empty;empty=0;}
+          fen+=pMap[p]||'';
+        }else{empty++;}
+      }
+      if(empty>0)fen+=empty;
+      if(r<7)fen+='/';
+    }
+    fen+=' '+turn;
+    const casStr=(cas.w.K?'K':'')+(cas.w.Q?'Q':'')+(cas.b.K?'k':'')+(cas.b.Q?'q':'')||'-';
+    fen+=' '+casStr;
+    fen+=' '+(ep?String.fromCharCode(97+ep[1])+(8-ep[0]):'-');
+    fen+=' 0 1';
+    return fen;
+  }
+
+  function init(){
+    if(_engine)return Promise.resolve(_engine);
+    return new Promise((resolve,reject)=>{
+      try{
+        if(typeof STOCKFISH==='undefined'){
+          reject(new Error('Stockfish not loaded'));
+          return;
+        }
+        _engine=new STOCKFISH();
+        _engine.onmessage=(e)=>{
+          const msg=e.data;
+          if(msg.startsWith('info depth')&&msg.includes('score')){
+            const scoreMatch=msg.match(/score (cp|mate) (-?\d+)/);
+            if(scoreMatch){
+              const type=scoreMatch[1],val=parseInt(scoreMatch[2]);
+              const cp=type==='mate'?(val>0?99999:-99999):val;
+              for(const id in _pending){
+                if(_pending[id].onEval)_pending[id].onEval(cp);
+              }
+            }
+          }
+          if(msg.startsWith('bestmove')){
+            const match=msg.match(/bestmove (\w+)/);
+            if(match){
+              const move=match[1];
+              for(const id in _pending){
+                if(_pending[id].onBestMove){
+                  _pending[id].onBestMove(move);
+                  delete _pending[id];
+                }
+              }
+            }
+          }
+        };
+        _engine.postMessage('uci');
+        _engine.postMessage('isready');
+        _ready=true;
+        resolve(_engine);
+      }catch(e){
+        reject(e);
+      }
+    });
+  }
+
+  function evaluate(bd,turn,cas,ep,depth=10){
+    return new Promise(async(resolve,reject)=>{
+      try{
+        await init();
+        const fen=bdToFen(bd,turn,cas,ep);
+        const id=++_msgId;
+        let result=null;
+        _pending[id]={
+          onEval:(cp)=>{
+            result=cp;
+          },
+          onBestMove:()=>{
+            resolve(result);
+          }
+        };
+        _engine.postMessage('position fen '+fen);
+        _engine.postMessage('go depth '+depth);
+        setTimeout(()=>{
+          if(_pending[id]){
+            delete _pending[id];
+            resolve(result||0);
+          }
+        },3000);
+      }catch(e){
+        reject(e);
+      }
+    });
+  }
+
+  function bestMove(bd,turn,cas,ep,depth=10){
+    return new Promise(async(resolve,reject)=>{
+      try{
+        await init();
+        const fen=bdToFen(bd,turn,cas,ep);
+        const id=++_msgId;
+        _pending[id]={
+          onBestMove:(move)=>{
+            resolve(move);
+          }
+        };
+        _engine.postMessage('position fen '+fen);
+        _engine.postMessage('go depth '+depth);
+        setTimeout(()=>{
+          if(_pending[id]){
+            delete _pending[id];
+            resolve(null);
+          }
+        },3000);
+      }catch(e){
+        reject(e);
+      }
+    });
+  }
+
+  return{init,evaluate,bestMove};
+})();
+
+/* ══════════════════════════════════════
+   CHESS ENGINE (LOCAL - FALLBACK)
 ══════════════════════════════════════ */
 const PV={P:100,N:320,B:330,R:500,Q:900,K:0};
 const PST={
@@ -1737,7 +1874,11 @@ const REV=(()=>{
     const boards=[INIT_BD.map(r=>[...r])];
     let wTotal=0,bTotal=0,wCount=0,bCount=0;
     let wBlunders=0,bBlunders=0,wMistakes=0,bMistakes=0;
-    const evalHistory=[E.eval(bd)];
+    
+    // Initialize Stockfish
+    try{await SF.init();}catch(e){console.error('Stockfish init failed, using fallback:',e);}
+    
+    const evalHistory=[await SF.evaluate(bd,'w',cas,ep,8).catch(()=>E.eval(bd))];
 
     const REVIEW_DEPTH=1; // Reduced from 3 to prevent UI freezing
     const bestFor=(board,cas2,ep2,color)=>{
@@ -1786,9 +1927,10 @@ const REV=(()=>{
       let isCheck=false, isCheckmate=false;
       try{
         const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
-        actualVal=E.eval(r2.bd);
-        // Detect check and checkmate after the move
+        // Use Stockfish for evaluation (depth 8 for accuracy, fallback to local eval)
         const opp=color==='w'?'b':'w';
+        actualVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,8).catch(()=>E.eval(r2.bd));
+        // Detect check and checkmate after the move
         isCheck=E.inChk(r2.bd,opp);
         const oppLegal=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
         isCheckmate=isCheck&&oppLegal.length===0;
@@ -2115,146 +2257,66 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
 })();
 
 const AST=(()=>{
-  const WORKER_SRC=`
-    const PV={P:100,N:320,B:330,R:500,Q:900,K:0};
-    const PST={
-      P:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
-      N:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],
-      B:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],
-      R:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],
-      Q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],
-      K:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]],
-    };
-    const W={
-      col:p=>p?p[0]:null,tp:p=>p?p[1]:null,opp:c=>c==='w'?'b':'w',
-      inb:(r,c)=>r>=0&&r<8&&c>=0&&c<8,clone:b=>b.map(r=>[...r]),
-      raw(bd,r,c,cas,ep){
-        const p=bd[r][c];if(!p)return[];
-        const cl=this.col(p),tp=this.tp(p),mv=[];
-        const sl=(dr,dc)=>{let nr=r+dr,nc=c+dc;while(this.inb(nr,nc)){if(bd[nr][nc]){if(this.col(bd[nr][nc])!==cl)mv.push([nr,nc]);break;}mv.push([nr,nc]);nr+=dr;nc+=dc;}};
-        if(tp==='P'){const d=cl==='w'?-1:1,sr=cl==='w'?6:1;
-          if(this.inb(r+d,c)&&!bd[r+d][c]){mv.push([r+d,c]);if(r===sr&&!bd[r+2*d][c])mv.push([r+2*d][c]);}
-          for(const dc of[-1,1]){if(!this.inb(r+d,c+dc))continue;
-            if(bd[r+d][c+dc]&&this.col(bd[r+d][c+dc])!==cl)mv.push([r+d,c+dc]);
-            if(ep&&ep[0]===r+d&&ep[1]===c+dc)mv.push([r+d,c+dc]);}}
-        else if(tp==='N'){for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(this.inb(nr,nc)&&this.col(bd[nr][nc])!==cl)mv.push([nr,nc]);}}
-        else if(tp==='B'){[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([a,b])=>sl(a,b));}
-        else if(tp==='R'){[[-1,0],[1,0],[0,-1],[0,1]].forEach(([a,b])=>sl(a,b));}
-        else if(tp==='Q'){[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]].forEach(([a,b])=>sl(a,b));}
-        else if(tp==='K'){
-          for(const[dr,dc]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){const nr=r+dr,nc=c+dc;if(this.inb(nr,nc)&&this.col(bd[nr][nc])!==cl)mv.push([nr,nc]);}
-          if(cas){const row=cl==='w'?7:0,op=this.opp(cl);
-            if(r===row&&c===4){
-              if(cas[cl].K&&!bd[row][5]&&!bd[row][6]&&bd[row][7]===cl+'R'&&!this.atk(bd,row,4,op)&&!this.atk(bd,row,5,op)&&!this.atk(bd,row,6,op))mv.push([row,6]);
-              if(cas[cl].Q&&!bd[row][3]&&!bd[row][2]&&!bd[row][1]&&bd[row][0]===cl+'R'&&!this.atk(bd,row,4,op)&&!this.atk(bd,row,3,op)&&!this.atk(bd,row,2,op))mv.push([row,2]);}}}
-        return mv;},
-      atk(bd,r,c,by){for(let tr=0;tr<8;tr++)for(let tc=0;tc<8;tc++)if(this.col(bd[tr][tc])===by&&this.raw(bd,tr,tc,null,null).some(([mr,mc])=>mr===r&&mc===c))return true;return false;},
-      king(bd,cl){for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(bd[r][c]===cl+'K')return[r,c];return null;},
-      inChk(bd,cl){const k=this.king(bd,cl);return k?this.atk(bd,k[0],k[1],this.opp(cl)):false;},
-      legal(bd,r,c,cas,ep){const p=bd[r][c];if(!p)return[];const cl=this.col(p);
-        return this.raw(bd,r,c,cas,ep).filter(([nr,nc])=>{const nb=this.clone(bd);nb[nr][nc]=nb[r][c];nb[r][c]=null;if(this.tp(p)==='P'&&ep&&nr===ep[0]&&nc===ep[1])nb[r][nc]=null;return!this.inChk(nb,cl);});},
-      allLegal(bd,cl,cas,ep){const all=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(this.col(bd[r][c])===cl)this.legal(bd,r,c,cas,ep).forEach(m=>all.push({from:[r,c],to:m}));return all;},
-      apply(bd,fr,to,cas,ep,promo){
-        const nb=this.clone(bd),nc=JSON.parse(JSON.stringify(cas));
-        const p=nb[fr[0]][fr[1]],cl=this.col(p),tp=this.tp(p);
-        const isCas=tp==='K'&&Math.abs(to[1]-fr[1])===2;
-        const isEP=tp==='P'&&ep&&to[0]===ep[0]&&to[1]===ep[1];
-        if(isEP){nb[fr[0]][to[1]]=null;}
-        nb[to[0]][to[1]]=p;nb[fr[0]][fr[1]]=null;
-        if(tp==='P'&&(to[0]===0||to[0]===7))nb[to[0]][to[1]]=cl+(promo||'Q');
-        if(tp==='K'){if(to[1]===fr[1]+2){nb[fr[0]][5]=nb[fr[0]][7];nb[fr[0]][7]=null;}else if(to[1]===fr[1]-2){nb[fr[0]][3]=nb[fr[0]][0];nb[fr[0]][0]=null;}nc[cl].K=false;nc[cl].Q=false;}
-        if(tp==='R'){if(fr[1]===7)nc[cl].K=false;if(fr[1]===0)nc[cl].Q=false;}
-        let newEP=null;if(tp==='P'&&Math.abs(to[0]-fr[0])===2)newEP=[(fr[0]+to[0])/2,fr[1]];
-        return{bd:nb,cas:nc,ep:newEP};},
-      eval(bd){let s=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=bd[r][c];if(!p)continue;const cl=this.col(p),tp=this.tp(p),pr=cl==='w'?r:7-r;s+=(cl==='w'?1:-1)*(PV[tp]+(PST[tp]?PST[tp][pr][c]:0));}return s;},
-      mm(bd,d,a,b,max,cas,ep){
-        const cl=max?'w':'b',mvs=this.allLegal(bd,cl,cas,ep);
-        if(!d||!mvs.length){if(!mvs.length)return this.inChk(bd,cl)?(max?-99999:99999):0;return this.eval(bd);}
-        mvs.sort((x,y)=>(bd[y.to[0]][y.to[1]]?PV[this.tp(bd[y.to[0]][y.to[1]])]||0:0)-(bd[x.to[0]][x.to[1]]?PV[this.tp(bd[x.to[0]][x.to[1]])]||0:0));
-        if(max){let bv=-Infinity;for(const mv of mvs){const r2=this.apply(bd,mv.from,mv.to,cas,ep,'Q');const v=this.mm(r2.bd,d-1,a,b,false,r2.cas,r2.ep);if(v>bv)bv=v;if(v>a)a=v;if(b<=a)break;}return bv;}
-        else{let bv=Infinity;for(const mv of mvs){const r2=this.apply(bd,mv.from,mv.to,cas,ep,'Q');const v=this.mm(r2.bd,d-1,a,b,true,r2.cas,r2.ep);if(v<bv)bv=v;if(v<b)b=v;if(b<=a)break;}return bv;}},
-      bestMove(bd,cas,ep,col){
-        const mvs=this.allLegal(bd,col,cas,ep);if(!mvs.length)return null;
-        mvs.sort(()=>Math.random()-.5);const max=col==='w';let best=null,bv=max?-Infinity:Infinity;
-        for(const mv of mvs){const r2=this.apply(bd,mv.from,mv.to,cas,ep,'Q');const v=this.mm(r2.bd,2,-Infinity,Infinity,!max,r2.cas,r2.ep);if(max?v>bv:v<bv){bv=v;best=mv;}}
-        return best;}
-    };
-    self.onmessage=e=>{
-      const{bd,cas,ep,col,snap}=e.data;
-      const mv=W.bestMove(bd,cas,ep,col);
-      self.postMessage({mv,snap});
-    };
-  `;
-
-  let _worker=null;
   let _snap=null;
 
-  function _getWorker(){
-    if(_worker)return _worker;
-    try{
-      console.log('Creating new worker for assistant');
-      const blob=new Blob([WORKER_SRC],{type:'application/javascript'});
-      const url=URL.createObjectURL(blob);
-      _worker=new Worker(url);
-      _worker.onmessage=e=>{
-        console.log('Worker message received:', e.data);
-        const{mv,snap}=e.data;
-        if(snap!==_snap){S.astBusy=false;console.log('Snapshot mismatch, ignoring result');return;}
-        S.astMove=mv;S.astBusy=false;
-        _snap=null;
-        console.log('Assistant computation completed, move:', mv);
-        requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
-      };
-      _worker.onerror=(error)=>{
-        console.error('Worker error:', error);
-        _worker=null;
-        S.astBusy=false;
-        _snap=null;
-      };
-      _worker.onmessageerror=(error)=>{
-        console.error('Worker message error:', error);
-        _worker=null;
-        S.astBusy=false;
-        _snap=null;
-      };
-    }catch(ex){
-        console.error('Failed to create worker:', ex);
-        _worker=null;
-        S.astBusy=false;
-        _snap=null;
-      }
-    return _worker;
-  }
-
   return{
-    compute(){
+    async compute(){
       if(!S.assistOn||S.over||S.busy){S.astMove=null;S.astBusy=false;return;}
       const isMyTurn=S.myCol==='both'?(S.mode==='bot'?S.turn==='w':true):S.turn===S.myCol;
       if(!isMyTurn){S.astMove=null;S.astBusy=false;return;}
       const snap=S.turn+JSON.stringify(S.bd);
       if(_snap===snap&&S.astMove!==null)return;
       
-      // Start computation with setTimeout to avoid blocking UI
+      // Start computation with Stockfish
       S.astMove=null;S.astBusy=true;
       _snap=snap;
       R.toolbar();
       
-      setTimeout(()=>{
+      setTimeout(async()=>{
         try{
-          const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
+          // Use Stockfish for best move (depth 10 for good analysis)
+          const col=S.myCol==='both'?S.turn:S.myCol;
+          const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,10);
+          
+          // Convert Stockfish move format to internal format
+          let mv=null;
+          if(sfMove){
+            const f='abcdefgh';
+            const fromCol=f.indexOf(sfMove[0]);
+            const fromRow=8-parseInt(sfMove[1]);
+            const toCol=f.indexOf(sfMove[2]);
+            const toRow=8-parseInt(sfMove[3]);
+            if(fromCol>=0&&fromRow>=0&&toCol>=0&&toRow>=0){
+              mv={from:[fromRow,fromCol],to:[toRow,toCol]};
+            }
+          }
+          
           if(_snap===snap){ // Only update if board hasn't changed
             S.astMove=mv;
             S.astBusy=false;
             _snap=null;
+            console.log('Stockfish assistant move:', mv);
             requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
           }
         }catch(e){
-          console.error('Assistant computation error:', e);
-          S.astBusy=false;
-          _snap=null;
-          S.astMove=null;
+          console.error('Stockfish assistant error:', e);
+          // Fallback to local engine
+          try{
+            const mv=E.bestMove(S.bd,S.cas,S.ep,S.myCol==='both'?S.turn:S.myCol);
+            if(_snap===snap){
+              S.astMove=mv;
+              S.astBusy=false;
+              _snap=null;
+              requestAnimationFrame(()=>{R.updateStar();R.toolbar();});
+            }
+          }catch(e2){
+            console.error('Fallback also failed:', e2);
+            S.astBusy=false;
+            _snap=null;
+            S.astMove=null;
+          }
         }
-      }, 10); // Small delay to allow UI to update
+      }, 10);
     },
     clear(){
       _snap=null;
@@ -2705,12 +2767,31 @@ const G={
       const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
       const depth=lv?lv.depth:S.diff;
       const thinkDelay=depth<=1?300:depth===2?480:depth===3?720:980;
-      setTimeout(()=>{
+      setTimeout(async()=>{
         if(S.over){S.busy=false;return;}
         const bd=S.bd.map(r=>[...r]);
         const cas=JSON.parse(JSON.stringify(S.cas));
         const ep=S.ep?[...S.ep]:null;
-        const bm=E.botMove(bd,cas,ep,depth);
+        
+        // Use Stockfish for bot move (depth based on difficulty)
+        let bm=null;
+        try{
+          const sfMove=await SF.bestMove(bd,'b',cas,ep,depth+5); // Extra depth for Stockfish
+          if(sfMove){
+            const f='abcdefgh';
+            const fromCol=f.indexOf(sfMove[0]);
+            const fromRow=8-parseInt(sfMove[1]);
+            const toCol=f.indexOf(sfMove[2]);
+            const toRow=8-parseInt(sfMove[3]);
+            if(fromCol>=0&&fromRow>=0&&toCol>=0&&toRow>=0){
+              bm={from:[fromRow,fromCol],to:[toRow,toCol]};
+            }
+          }
+        }catch(e){
+          console.error('Stockfish bot error, using fallback:', e);
+          bm=E.botMove(bd,cas,ep,depth);
+        }
+        
         S.busy=false;
         if(bm){
           S.sel=null;S.legal=[];
