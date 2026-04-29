@@ -235,7 +235,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .pb-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;transition:transform .3s;}
 .pbar.myturn .pb-av{transform:scale(1.1);}
 .av-w{background:rgba(255,248,240,.13);}
-.av-b{background:rgba(20,14,4,.55);border:1px solid rgba(255,255,255,.07);}
+.av-b{background:rgba(20,14,4,.55);border:1px solid rgba(255,255,255,.07);color:var(--gold2);}
 .pb-nm{font-size:12px;font-weight:700;}
 .pb-turn{font-size:9px;color:var(--gold2);animation:dbt .9s infinite;visibility:hidden;}
 .pb-turn.show{visibility:visible;}
@@ -269,11 +269,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.SL{background:var(--sq-sl);}.sq.SD{background:var(--sq-sd);}
 .sq.ML{background:var(--sq-ml);}.sq.MD{background:var(--sq-md);}
 
-/* Transparency for image boards */
+/* Overlay squares for image boards (so board is playable on custom images) */
 #board.has-bg-image .sq.L:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD),
 #board.has-bg-image .sq.D:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD) {
   background: transparent !important;
 }
+#board.has-bg-image .sq.L:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before,
+#board.has-bg-image .sq.D:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before{
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+}
+#board.has-bg-image .sq.L:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before{background:rgba(255,255,255,0.12);}
+#board.has-bg-image .sq.D:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before{background:rgba(0,0,0,0.28);}
+
+/* If custom-board theme sets square backgrounds, force overlay approach when an image is present */
+#board.has-bg-image.custom-board .sq.L,
+#board.has-bg-image.custom-board .sq.D{background:transparent !important;}
 /* Highlight overlays for image boards */
 #board.has-bg-image .sq.SL::before,
 #board.has-bg-image .sq.SD::before {
@@ -1312,6 +1322,7 @@ function updatePlayerImages(){
       }else{
         myAv.style.backgroundImage='';
         myAv.style.color='';
+        myAv.textContent=(myCol==='w')?'♙':'♟';
       }
     }
     // Set opponent's image from stored state
@@ -1326,6 +1337,7 @@ function updatePlayerImages(){
       }else{
         oppAv.style.backgroundImage='';
         oppAv.style.color='';
+        oppAv.textContent=(oppCol==='w')?'♙':'♟';
       }
     }
   }
@@ -1342,6 +1354,7 @@ function updatePlayerImages(){
       }else{
         av.style.backgroundImage='';
         av.style.color='';
+        av.textContent='♙';
       }
     }
     // Clear Nour's avatar to ensure no player image leaks
@@ -1349,6 +1362,7 @@ function updatePlayerImages(){
     if(nourAv){
       nourAv.style.backgroundImage='';
       nourAv.style.color='';
+      nourAv.textContent='♟';
     }
   }
   // In local mode, clear all avatars
@@ -1357,6 +1371,10 @@ function updatePlayerImages(){
       av.style.backgroundImage='';
       av.style.color='';
     });
+    const bw=document.querySelector('.av-w');
+    const bb=document.querySelector('.av-b');
+    if(bw)bw.textContent='♙';
+    if(bb)bb.textContent='♟';
   }
 }
 
@@ -2936,10 +2954,20 @@ const OL=(()=>{
         document.getElementById('rcode').textContent=d.code;
         document.getElementById('rbox').style.display='block';
         setSt('c','◎ في انتظار الخصم…','wait');
+        // Send my name/pimg immediately so server can cache it for the opponent
+        try{
+          send({type:'name',name:Cfg.data.playerName||''});
+          if(Cfg.data.playerImage) send({type:'pimg',img:Cfg.data.playerImage});
+        }catch(e){}
         break;
 
       case 'room-joined':
         setSt('j','◌ جاري بدء اللعبة…','conn');
+        // Send my name/pimg immediately so server can cache it for the opponent
+        try{
+          send({type:'name',name:Cfg.data.playerName||''});
+          if(Cfg.data.playerImage) send({type:'pimg',img:Cfg.data.playerImage});
+        }catch(e){}
         break;
 
       case 'room-error':
@@ -3383,4 +3411,3 @@ window.addEventListener('load',()=>{SFX.init(); DRAG.init(); _loadChessPieces();
 </script>
 </body>
 </html>
-س
