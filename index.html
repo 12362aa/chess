@@ -2270,8 +2270,10 @@ const R={
   _squares:[],
   board(){
     const el=document.getElementById('board');
+    // In local mode, board stays stationary - no square swapping
+    // Only pieces rotate via CSS when black's turn
     const flip=(S.mode==='local')?
-      (S.turn==='b'):
+      false:
       (S.mode!=='local'&&(S.myCol==='b'));
     // Apply black-turn class to body/game for piece flipping in local mode
     const sGame=document.getElementById('s-game');
@@ -2329,7 +2331,7 @@ const R={
       const piece=sq.querySelector('.piece');
       const pieceCode=S.bd[r][c];
       const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
-      const shouldFlipPiece=!!(flip && pieceCode && (S.mode!=='local' || S.turn==='b'));
+      const shouldFlipPiece=!!(flip && pieceCode);
       const isDragged=!!(S.dragFrom&&S.dragFrom[0]===r&&S.dragFrom[1]===c);
       const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'')+(isDragged?' dragging':'');
       if(pieceCode){
