@@ -4034,6 +4034,8 @@ const FB=(()=>{
   return{init,register,login,logout,refreshUI,syncNow,onLocalLevelSave,copyMyId,sendFriendRequest,_getApiBase};
 })();
 
+console.log('FB module defined, window.FB:', window.FB);
+
 // Login/Signup UI functions
 function showLogin(){
   document.getElementById('acc-guest').style.display='flex';
