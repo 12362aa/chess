@@ -1442,13 +1442,10 @@ const LVL={
 };
 
 /* ══════════════════════════════════════
-   STOCKFISH WRAPPER
+   STOCKFISH WRAPPER (Fallback to Local Engine)
 ══════════════════════════════════════ */
 const SF=(()=>{
-  let _worker=null;
-  let _ready=false;
-  let _pending={};
-  let _msgId=0;
+  let _useLocal=true; // Force local engine due to CDN/CORS issues
 
   function bdToFen(bd,turn,cas,ep){
     const pMap={
@@ -1480,48 +1477,64 @@ const SF=(()=>{
     if(_worker)return Promise.resolve(_worker);
     return new Promise((resolve,reject)=>{
       try{
-        // Load Stockfish from CDN as Web Worker
-        const workerUrl='https://cdn.jsdelivr.net/npm/stockfish@18.0.0/stockfish-18-lite-single.js';
-        _worker=new Worker(workerUrl);
-        _worker.onmessage=(e)=>{
-          const msg=e.data;
-          if(msg.startsWith('info depth')&&msg.includes('score')){
-            const scoreMatch=msg.match(/score (cp|mate) (-?\d+)/);
-            if(scoreMatch){
-              const type=scoreMatch[1],val=parseInt(scoreMatch[2]);
-              const cp=type==='mate'?(val>0?99999:-99999):val;
-              for(const id in _pending){
-                if(_pending[id].onEval)_pending[id].onEval(cp);
-              }
-            }
-          }
-          if(msg.startsWith('bestmove')){
-            const match=msg.match(/bestmove (\w+)/);
-            if(match){
-              const move=match[1];
-              for(const id in _pending){
-                if(_pending[id].onBestMove){
-                  _pending[id].onBestMove(move);
-                  delete _pending[id];
-                }
-              }
-            }
-          }
-          if(msg.startsWith('readyok')){
-            _ready=true;
-          }
-        };
-        _worker.onerror=(e)=>{
-          console.error('Stockfish worker error:', e);
-          reject(new Error('Stockfish worker failed'));
-        };
-        _worker.postMessage('uci');
-        _worker.postMessage('isready');
-        resolve(_worker);
+        // Load local stockfish-18-lite-single.js file
+        fetch('stockfish-18-lite-single.js')
+          .then(response => {
+            if(!response.ok) throw new Error('stockfish-18-lite-single.js not found');
+            return response.text();
+          })
+          .then(scriptContent => {
+            const blob = new Blob([scriptContent], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(blob);
+            _worker = new Worker(workerUrl);
+            setupWorker(_worker, resolve, reject);
+          })
+          .catch(err => {
+            console.error('Failed to load stockfish-18-lite-single.js:', err);
+            reject(new Error('stockfish-18-lite-single.js not found'));
+          });
       }catch(e){
         reject(e);
       }
     });
+  }
+
+  function setupWorker(worker, resolve, reject){
+    worker.onmessage=(e)=>{
+      const msg=e.data;
+      if(msg.startsWith('info depth')&&msg.includes('score')){
+        const scoreMatch=msg.match(/score (cp|mate) (-?\d+)/);
+        if(scoreMatch){
+          const type=scoreMatch[1],val=parseInt(scoreMatch[2]);
+          const cp=type==='mate'?(val>0?99999:-99999):val;
+          for(const id in _pending){
+            if(_pending[id].onEval)_pending[id].onEval(cp);
+          }
+        }
+      }
+      if(msg.startsWith('bestmove')){
+        const match=msg.match(/bestmove (\w+)/);
+        if(match){
+          const move=match[1];
+          for(const id in _pending){
+            if(_pending[id].onBestMove){
+              _pending[id].onBestMove(move);
+              delete _pending[id];
+            }
+          }
+        }
+      }
+      if(msg.startsWith('readyok')){
+        _ready=true;
+      }
+    };
+    worker.onerror=(e)=>{
+      console.error('Stockfish worker error:', e);
+      reject(new Error('Stockfish worker failed'));
+    };
+    worker.postMessage('uci');
+    worker.postMessage('isready');
+    resolve(worker);
   }
 
   function evaluate(bd,turn,cas,ep,depth=10){
@@ -1546,9 +1559,10 @@ const SF=(()=>{
             delete _pending[id];
             resolve(result||0);
           }
-        },3000);
+        },5000);
       }catch(e){
-        reject(e);
+        // Fallback to local engine
+        resolve(E.eval(bd));
       }
     });
   }
@@ -1571,9 +1585,10 @@ const SF=(()=>{
             delete _pending[id];
             resolve(null);
           }
-        },3000);
+        },5000);
       }catch(e){
-        reject(e);
+        // Fallback to null (will use local engine)
+        resolve(null);
       }
     });
   }
@@ -1588,25 +1603,34 @@ const SF=(()=>{
         const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
         const move=await bestMove(testBoard,'w',testCas,null,1);
         if(move&&move.length>=4){
-            el.textContent='SF18 ✓';
+            el.textContent='SF ✓';
             el.style.background='rgba(74,222,128,.12)';
             el.style.color='var(--green)';
             el.style.borderColor='rgba(74,222,128,.28)';
         }else{
-            el.textContent='SF ✗';
-            el.style.background='rgba(248,113,113,.1)';
-            el.style.color='var(--red)';
-            el.style.borderColor='rgba(248,113,113,.22)';
+            el.textContent='Local ✓';
+            el.style.background='rgba(201,168,76,.12)';
+            el.style.color='var(--gold2)';
+            el.style.borderColor='rgba(201,168,76,.28)';
         }
     }catch(e){
-        el.textContent='SF ✗';
-        el.style.background='rgba(248,113,113,.1)';
-        el.style.color='var(--red)';
-        el.style.borderColor='rgba(248,113,113,.22)';
+        console.error('Stockfish check failed:', e);
+        const el=document.getElementById('sf-status');
+        if(el){
+            el.textContent='Local ✓';
+            el.style.background='rgba(201,168,76,.12)';
+            el.style.color='var(--gold2)';
+            el.style.borderColor='rgba(201,168,76,.28)';
+        }
     }
-}
+  }
 
-return{init,evaluate,bestMove,checkReady};
+  return{
+    init,
+    evaluate,
+    bestMove,
+    checkReady
+  };
 })();
 
 /* ══════════════════════════════════════
@@ -3536,8 +3560,8 @@ window.addEventListener('load',()=>{
     SFX.init();
     DRAG.init();
     _loadChessPieces();
-    // اختبار Stockfish حقيقي بعد ثانيتين
-    setTimeout(()=>SF.checkReady(),2000);
+    // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
+    setTimeout(()=>SF.checkReady(),5000);
 },{ once:true });
 
 </script>
