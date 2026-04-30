@@ -1,15 +1,53 @@
 /**
- * ♟ شطرنج Am-Kh — WebSocket Game Server
- * Node.js + ws
+ * ♟ شطرنج Am-Kh — WebSocket Game Server with API
+ * Node.js + ws + Express + SQLite
  * يرفع على Back4app (Container)
  */
 
 'use strict';
 
+require('dotenv').config();
 const http = require('http');
+const express = require('express');
+const cors = require('cors');
 const { WebSocketServer, WebSocket } = require('ws');
 
 const PORT = process.env.PORT || 8080;
+
+// Initialize database
+const db = require('./database');
+
+// Express app for API
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// API Routes
+const authRoutes = require('./routes/auth');
+const progressRoutes = require('./routes/progress');
+const friendsRoutes = require('./routes/friends');
+const challengesRoutes = require('./routes/challenges');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/progress', progressRoutes);
+app.use('/api/friends', friendsRoutes);
+app.use('/api/challenges', challengesRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root health check (for Back4app)
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    rooms: rooms.size,
+    clients: wss ? wss.clients.size : 0,
+    uptime: Math.floor(process.uptime())
+  });
+});
 
 /* ══════════════════════════════════════
    ROOM MANAGER
@@ -62,17 +100,9 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 /* ══════════════════════════════════════
-   HTTP SERVER (health check للـ Back4app)
+   HTTP SERVER (Express + WebSocket)
 ══════════════════════════════════════ */
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({
-    status: 'ok',
-    rooms: rooms.size,
-    clients: wss.clients.size,
-    uptime: Math.floor(process.uptime())
-  }));
-});
+const server = http.createServer(app);
 
 /* ══════════════════════════════════════
    WEBSOCKET SERVER
