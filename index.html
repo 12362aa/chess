@@ -693,9 +693,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="sr-n">تسجيل الدخول</div>
         <div class="sr-d">سجّل دخولك لمزامنة تقدم مراحل نور بين الأجهزة</div>
         <div id="acc-user" style="display:none;width:100%;gap:10px;align-items:center;">
-          <div id="acc-photo" style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;"></div>
+          <div id="acc-photo" style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;" onclick="document.getElementById('profile-image-input-acc').click()"></div>
           <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
-            <div id="acc-name" style="font-weight:900;color:var(--text);"></div>
+            <div id="acc-name" style="font-weight:900;color:var(--text);cursor:pointer;" onclick="editUsername()"></div>
             <div id="acc-id" style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;"></div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
               <span style="font-size:11px;color:var(--text3);">معرّفك</span>
@@ -704,6 +704,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
             </div>
           </div>
           <button class="btnb" style="padding:8px 10px;" onclick="if(window.FB&&FB.logout)FB.logout()">تسجيل خروج</button>
+          <input type="file" id="profile-image-input-acc" accept="image/*" style="display:none;" onchange="uploadProfileImage(this)">
+        </div>
+        <div id="edit-username-box" style="display:none;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
+          <input id="edit-username-input" type="text" placeholder="اسم المستخدم الجديد (3-20 حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
+          <div style="display:flex;gap:10px;">
+            <button class="btnp" style="flex:1;" onclick="saveUsername()">حفظ</button>
+            <button class="btnb" style="flex:1;" onclick="cancelEditUsername()">إلغاء</button>
+          </div>
         </div>
         <div id="acc-guest" style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
           <input id="login-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
@@ -3967,6 +3975,7 @@ window.FB={
     this._loadFriendRequests();
     this._challengeInterval=setInterval(async()=>{
       try{
+        // Check for challenges
         const data=await this._api('/challenges/pending');
         if(data.challenges&&data.challenges.length>0){
           const ch=data.challenges[0];
@@ -3978,6 +3987,8 @@ window.FB={
             await this._api(`/challenges/decline/${ch.matchId}`,'POST');
           }
         }
+        // Check for friend requests
+        await this._loadFriendRequests();
       }catch(e){}
     },5000);
   },
@@ -4003,7 +4014,14 @@ window.FB={
       if(idEl)idEl.textContent='';
       const pidEl=this._el('acc-pid');
       if(pidEl)pidEl.textContent=this._myPublicId||'—';
-      if(photoEl)photoEl.style.backgroundImage='';
+      if(photoEl){
+        const savedImage=localStorage.getItem('chess_profile_image');
+        if(savedImage){
+          photoEl.style.backgroundImage=`url(${savedImage})`;
+        }else{
+          photoEl.style.backgroundImage='';
+        }
+      }
     }else{
       if(userBox)userBox.style.display='none';
       if(guestBox)guestBox.style.display='flex';
@@ -4056,6 +4074,51 @@ function showForgotPassword(){
     }else{
       alert('FB module not loaded');
     }
+  }
+}
+
+function editUsername(){
+  const currentName=document.getElementById('acc-name').textContent;
+  document.getElementById('edit-username-input').value=currentName;
+  document.getElementById('acc-user').style.display='none';
+  document.getElementById('edit-username-box').style.display='flex';
+}
+
+function cancelEditUsername(){
+  document.getElementById('edit-username-box').style.display='none';
+  document.getElementById('acc-user').style.display='flex';
+}
+
+async function saveUsername(){
+  const newUsername=document.getElementById('edit-username-input').value.trim();
+  if(!newUsername||newUsername.length<3||newUsername.length>20){
+    alert('اسم المستخدم يجب أن يكون 3-20 حرف');
+    return;
+  }
+  if(window.FB && window.FB._api){
+    try{
+      await window.FB._api('/auth/username','PUT',{username:newUsername});
+      window.FB._user.username=newUsername;
+      localStorage.setItem('chess_user',JSON.stringify(window.FB._user));
+      window.FB.refreshUI();
+      cancelEditUsername();
+      alert('تم تحديث اسم المستخدم');
+    }catch(e){
+      alert('فشل تحديث اسم المستخدم: '+e.message);
+    }
+  }
+}
+
+function uploadProfileImage(input){
+  if(input.files&&input.files[0]){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const imageData=e.target.result;
+      localStorage.setItem('chess_profile_image',imageData);
+      document.getElementById('acc-photo').style.backgroundImage=`url(${imageData})`;
+      alert('تم تحديث الصورة الرمزية');
+    };
+    reader.readAsDataURL(input.files[0]);
   }
 }
 
