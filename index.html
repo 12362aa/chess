@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="شطرنج">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon_v2.png?v=2">
+<link rel="icon" type="image/png" href="icon_v2.png?v=2">
 <title>♟ شطرنج — Am-Kh</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1446,6 +1447,10 @@ const LVL={
 ══════════════════════════════════════ */
 const SF=(()=>{
   let _useLocal=true; // Force local engine due to CDN/CORS issues
+  let _worker=null;
+  let _pending={};
+  let _msgId=0;
+  let _ready=false;
 
   function bdToFen(bd,turn,cas,ep){
     const pMap={
