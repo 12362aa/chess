@@ -673,8 +673,114 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mc-d">صوت — رقعة — ألوان وأكثر</div>
       <span class="mc-b bb">تخصيص</span>
     </div>
+
+    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.account()">
+      <span class="mc-ic ic-gold">👤</span>
+      <div class="mc-t">الحساب</div>
+      <div class="mc-d">تسجيل دخول — مزامنة التقدم</div>
+      <span class="mc-b bg">سيرفر محلي</span>
+    </div>
   </div>
   <div class="offline-n">◉ مراحل نور ولاعبَان يعملان بدون إنترنت بالكامل</div>
+</div>
+
+<!-- ACCOUNT -->
+<div id="s-account" class="screen">
+  <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
+    <div class="sc" style="width:100%;max-width:520px;">
+      <h2><span class="ic-gold">👤</span> الحساب</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
+        <div class="sr-n">تسجيل الدخول</div>
+        <div class="sr-d">سجّل دخولك لمزامنة تقدم مراحل نور بين الأجهزة</div>
+        <div id="acc-user" style="display:none;width:100%;gap:10px;align-items:center;">
+          <div id="acc-photo" style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;"></div>
+          <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+            <div id="acc-name" style="font-weight:900;color:var(--text);"></div>
+            <div id="acc-id" style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;"></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+              <span style="font-size:11px;color:var(--text3);">معرّفك</span>
+              <span id="acc-pid" style="font-size:12px;color:var(--gold2);font-weight:900;direction:ltr;">—</span>
+              <button class="btnb" style="padding:5px 8px;font-size:11px;" onclick="if(window.FB&&FB.copyMyId)FB.copyMyId()">نسخ</button>
+            </div>
+          </div>
+          <button class="btnb" style="padding:8px 10px;" onclick="if(window.FB&&FB.logout)FB.logout()">تسجيل خروج</button>
+        </div>
+        <div id="acc-guest" style="display:flex;flex-direction:column;gap:10px;width:100%;">
+          <div style="display:flex;gap:10px;">
+            <input id="login-email" type="email" placeholder="البريد الإلكتروني" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
+            <input id="login-password" type="password" placeholder="كلمة المرور" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btnp" style="flex:1;" onclick="handleLogin()">تسجيل الدخول</button>
+            <button class="btnb" style="flex:1;" onclick="showSignup()">إنشاء حساب</button>
+          </div>
+          <button class="btnb" style="font-size:11px;padding:6px 10px;" onclick="showForgotPassword()">نسيت كلمة المرور؟</button>
+        </div>
+        <div id="acc-signup" style="display:none;flex-direction:column;gap:10px;width:100%;">
+          <input id="signup-username" type="text" placeholder="اسم المستخدم (3-20 حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
+          <input id="signup-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
+          <input id="signup-password" type="password" placeholder="كلمة المرور (6+ حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
+          <div style="display:flex;gap:10px;">
+            <button class="btnp" style="flex:1;" onclick="handleSignup()">إنشاء الحساب</button>
+            <button class="btnb" style="flex:1;" onclick="showLogin()">عودة</button>
+          </div>
+        </div>
+        <div id="acc-status" style="font-size:11px;color:var(--text2);line-height:1.4;"></div>
+      </div>
+    </div>
+    <div class="sc" style="width:100%;max-width:520px;">
+      <h2><span class="ic-teal">◈</span> المزامنة</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
+        <div class="sr-n">تقدم مراحل نور</div>
+        <div class="sr-d">سيتم حفظ تقدمك تلقائياً عند الفوز في أي مرحلة</div>
+        <div style="display:flex;gap:10px;width:100%;">
+          <button class="btnb" style="flex:1;" onclick="if(window.FB&&FB.syncNow)FB.syncNow()">مزامنة الآن</button>
+          <button class="btnb" style="flex:1;" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.levels()">فتح مراحل نور</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sc" style="width:100%;max-width:520px;">
+      <h2><span class="ic-green">⚔</span> الأصدقاء</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
+        <div class="sr-n">إضافة صديق</div>
+        <div class="sr-d">أدخل معرف صديقك (ID) ثم أرسل طلب صداقة</div>
+        <div style="display:flex;gap:10px;width:100%;">
+          <input class="finp" id="fr-inp" placeholder="ID صديقك…" maxlength="12" style="margin-bottom:0;flex:1;letter-spacing:1px;direction:ltr;text-align:left;" />
+          <button class="btnp" style="flex:0 0 auto;" onclick="if(window.FB&&FB.sendFriendRequest)FB.sendFriendRequest()">إرسال</button>
+        </div>
+        <div id="fr-status" style="font-size:11px;color:var(--text2);"></div>
+      </div>
+
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px;">
+        <div class="sr-n">طلبات الصداقة</div>
+        <div class="sr-d">طلبات واردة — اضغط قبول للبدء بالتحدي</div>
+        <div id="fr-reqs" style="display:flex;flex-direction:column;gap:8px;width:100%;"></div>
+      </div>
+
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px;">
+        <div class="sr-n">قائمة الأصدقاء</div>
+        <div class="sr-d">تحدَّ صديقك مباشرة بدون إنشاء غرفة</div>
+        <div id="fr-list" style="display:flex;flex-direction:column;gap:8px;width:100%;"></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
+  </div>
+</div>
+
+<div id="nick-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;align-items:center;justify-content:center;padding:18px;">
+  <div style="width:min(520px,96vw);background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:16px;padding:14px 14px 12px;box-shadow:0 20px 60px rgba(0,0,0,.55);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <div style="width:34px;height:34px;border-radius:10px;background:rgba(201,168,76,.13);border:1px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;color:var(--gold2);font-weight:900;">◈</div>
+      <div style="font-weight:900;color:var(--text);">مرحباً! اختر اسمك المستعار</div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">سيظهر اسمك للخصوم ويتم ربط تقدم مراحل نور بحسابك.</div>
+    <input class="finp" id="nick-inp" placeholder="اسم مستعار…" maxlength="20" style="margin-bottom:10px;letter-spacing:0;text-align:right" />
+    <div style="display:flex;gap:10px;">
+      <button class="btnp" style="flex:1;" id="nick-save">حفظ</button>
+      <button class="btnb" style="flex:1;" id="nick-cancel">لاحقاً</button>
+    </div>
+  </div>
 </div>
 
 <!-- LEVELS -->
@@ -1412,6 +1518,7 @@ const LVL={
     p[id]={stars:Math.max(prev.stars,stars),moves:Math.min(prev.moves,moves),done:true};
     if(id+1<LEVELS_DEF.length)p['u'+(id+1)]=true;
     try{localStorage.setItem('chess-lvl-v6',JSON.stringify(p));}catch(e){}
+    try{if(window.FB&&typeof FB.onLocalLevelSave==='function')FB.onLocalLevelSave(id,p[id],p);}catch(e){}
   },
   unlocked(id){if(id===0)return true;const p=this.get();return!!(p['u'+id]||p[id]?.done);},
   stars(id){return this.get()[id]?.stars||0;},
@@ -2994,6 +3101,7 @@ const Nav={
   online(){SFX.btn();this.show('s-online');OL.init();},
   levels(){SFX.btn();this.show('s-levels');LVL.buildUI();},
   settings(){SFX.btn();this.show('s-settings');},
+  account(){SFX.btn();this.show('s-account');try{if(window.FB&&FB.refreshUI)FB.refreshUI();}catch(e){}},
 };
 
 function fixBars(myCol){
@@ -3569,11 +3677,407 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Escape'){REV.close();}
 });
 
+const FB=(()=>{
+  // API Base URL - change this to your server URL
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8080/api'
+    : '/api';
+
+  let _user=null;
+  let _token=null;
+  let _syncInFlight=false;
+  let _myPublicId='';
+  let _challengeInterval=null;
+
+  function _el(id){return document.getElementById(id);}
+  function _setStatus(txt){const e=_el('acc-status');if(e)e.textContent=txt||'';}
+  function _setFriendStatus(txt){const e=_el('fr-status');if(e)e.textContent=txt||'';}
+
+  function _localLevels(){try{return JSON.parse(localStorage.getItem('chess-lvl-v6')||'{}');}catch(e){return{};}}
+  function _levelsProgress(p){
+    let max=-1;
+    for(let i=0;i<LEVELS_DEF.length;i++){
+      if(p&&p[i]&&p[i].done)max=i;
+    }
+    return max;
+  }
+
+  async function _api(endpoint,method='GET',body=null){
+    const headers={'Content-Type':'application/json'};
+    if(_token)headers['Authorization']=`Bearer ${_token}`;
+    const opts={method,headers};
+    if(body)opts.body=JSON.stringify(body);
+    try{
+      const res=await fetch(API_BASE+endpoint,opts);
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||'API error');
+      return data;
+    }catch(e){
+      console.error('API error:',e);
+      throw e;
+    }
+  }
+
+  async function register(username,email,password){
+    try{
+      _setStatus('◌ جاري إنشاء الحساب...');
+      const data=await _api('/auth/register','POST',{username,email,password});
+      _token=data.token;
+      _user=data.user;
+      localStorage.setItem('chess_token',_token);
+      localStorage.setItem('chess_user',JSON.stringify(_user));
+      _myPublicId=_user.publicId||'';
+      await _syncLevelsBidirectional();
+      _startWatching();
+      refreshUI();
+      _setStatus('✓ تم إنشاء الحساب بنجاح');
+      return true;
+    }catch(e){
+      _setStatus('✕ '+ (e.message||'فشل إنشاء الحساب'));
+      return false;
+    }
+  }
+
+  async function login(email,password){
+    try{
+      _setStatus('◌ جاري تسجيل الدخول...');
+      const data=await _api('/auth/login','POST',{email,password});
+      _token=data.token;
+      _user=data.user;
+      localStorage.setItem('chess_token',_token);
+      localStorage.setItem('chess_user',JSON.stringify(_user));
+      _myPublicId=_user.publicId||'';
+      await _syncLevelsBidirectional();
+      _startWatching();
+      refreshUI();
+      _setStatus('✓ تم تسجيل الدخول');
+      return true;
+    }catch(e){
+      _setStatus('✕ '+ (e.message||'فشل تسجيل الدخول'));
+      return false;
+    }
+  }
+
+  async function logout(){
+    _stopWatching();
+    _token=null;
+    _user=null;
+    _myPublicId='';
+    localStorage.removeItem('chess_token');
+    localStorage.removeItem('chess_user');
+    refreshUI();
+    _setStatus('');
+  }
+
+  async function syncNow(){
+    if(!_user)return;
+    await _syncLevelsBidirectional();
+  }
+
+  async function onLocalLevelSave(levelId,stars,moves){
+    if(!_user)return;
+    try{
+      await _api('/progress/level','POST',{levelId,stars,moves});
+    }catch(e){
+      console.error('Failed to sync level:',e);
+    }
+  }
+
+  function copyMyId(){
+    if(!_myPublicId)return;
+    navigator.clipboard.writeText(_myPublicId).then(()=>{
+      _setStatus('✓ تم نسخ ID');
+      setTimeout(()=>_setStatus(''),2000);
+    }).catch(()=>_setStatus('✕ تعذر النسخ'));
+  }
+
+  async function sendFriendRequest(){
+    if(!_user)return;
+    _setFriendStatus('');
+    const inp=_el('fr-inp');
+    const pid=(inp?.value||'').trim().toUpperCase();
+    if(!pid){_setFriendStatus('أدخل ID أولاً');return;}
+    if(pid===_myPublicId){_setFriendStatus('لا يمكنك إضافة نفسك');return;}
+    _setFriendStatus('◌ جاري الإرسال...');
+    try{
+      await _api('/friends/request','POST',{publicId:pid});
+      if(inp)inp.value='';
+      _setFriendStatus('✓ تم إرسال الطلب');
+      await _loadFriends();
+    }catch(e){
+      _setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
+    }
+  }
+
+  async function _loadFriends(){
+    if(!_user)return;
+    try{
+      const data=await _api('/friends/list');
+      _renderFriendsList(data.friends||[]);
+    }catch(e){
+      console.error('Failed to load friends:',e);
+    }
+  }
+
+  async function _loadFriendRequests(){
+    if(!_user)return;
+    try{
+      const data=await _api('/friends/requests');
+      _renderFriendRequests(data.requests||[]);
+    }catch(e){
+      console.error('Failed to load requests:',e);
+    }
+  }
+
+  async function _acceptFriendRequest(requestId){
+    try{
+      await _api(`/friends/accept/${requestId}`,'POST');
+      await _loadFriends();
+      await _loadFriendRequests();
+    }catch(e){
+      console.error('Failed to accept request:',e);
+    }
+  }
+
+  async function _declineFriendRequest(requestId){
+    try{
+      await _api(`/friends/decline/${requestId}`,'POST');
+      await _loadFriendRequests();
+    }catch(e){
+      console.error('Failed to decline request:',e);
+    }
+  }
+
+  async function _renderFriendRequests(reqs){
+    const box=_el('fr-reqs');
+    if(!box)return;
+    box.innerHTML='';
+    if(!reqs.length){
+      const e=document.createElement('div');
+      e.style.fontSize='12px';e.style.color='var(--text3)';
+      e.textContent='لا توجد طلبات حالياً';
+      box.appendChild(e);
+      return;
+    }
+    reqs.forEach(r=>{
+      const row=document.createElement('div');
+      row.style.display='flex';row.style.gap='10px';row.style.alignItems='center';
+      row.style.padding='10px';row.style.border='1px solid rgba(201,168,76,.18)';
+      row.style.borderRadius='12px';row.style.background='rgba(255,255,255,.03)';
+      const left=document.createElement('div');
+      left.style.flex='1';
+      left.innerHTML=`<div style="font-weight:900;color:var(--text);">طلب صداقة</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;">ID: ${(r.publicId||'—')}</div>`;
+      const a=document.createElement('button');
+      a.className='btnp';a.style.padding='8px 10px';a.textContent='قبول';
+      a.onclick=async()=>{a.disabled=true;try{await _acceptFriendRequest(r.id);}catch(e){}a.disabled=false;};
+      const d=document.createElement('button');
+      d.className='btnb';d.style.padding='8px 10px';d.textContent='رفض';
+      d.onclick=async()=>{d.disabled=true;try{await _declineFriendRequest(r.id);}catch(e){}d.disabled=false;};
+      row.appendChild(left);row.appendChild(a);row.appendChild(d);
+      box.appendChild(row);
+    });
+  }
+
+  async function _challengeFriend(friendId){
+    if(!_user)return;
+    _setFriendStatus('◌ جاري إرسال التحدي...');
+    try{
+      await _api('/challenges/send','POST',{toUserId:friendId});
+      _setFriendStatus('✓ تم إرسال التحدي — انتظر القبول');
+    }catch(e){
+      _setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
+    }
+  }
+
+  function _olCreateRoomAs(color){
+    try{Nav.online();}catch(e){}
+    try{OL.col(color);}catch(e){}
+    try{OL.create();}catch(e){}
+  }
+
+  function _olJoinRoom(code){
+    try{Nav.online();}catch(e){}
+    try{OL.tab('j');}catch(e){}
+    try{const inp=document.getElementById('jinp');if(inp)inp.value=String(code||'').trim().toUpperCase();}catch(e){}
+    try{OL.join();}catch(e){}
+  }
+
+  async function _renderFriendsList(friends){
+    const box=_el('fr-list');
+    if(!box)return;
+    box.innerHTML='';
+    if(!friends.length){
+      const e=document.createElement('div');
+      e.style.fontSize='12px';e.style.color='var(--text3)';
+      e.textContent='لا يوجد أصدقاء بعد';
+      box.appendChild(e);
+      return;
+    }
+    friends.forEach(fr=>{
+      const row=document.createElement('div');
+      row.style.display='flex';row.style.gap='10px';row.style.alignItems='center';
+      row.style.padding='10px';row.style.border='1px solid rgba(201,168,76,.18)';
+      row.style.borderRadius='12px';row.style.background='rgba(255,255,255,.03)';
+      const left=document.createElement('div');
+      left.style.flex='1';
+      left.innerHTML=`<div style="font-weight:900;color:var(--text);">${fr.username||'صديق'}</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;">ID: ${fr.publicId||'—'}</div>`;
+      const b=document.createElement('button');
+      b.className='btnp';b.style.padding='8px 10px';b.textContent='تحدي';
+      b.onclick=async()=>{b.disabled=true;try{await _challengeFriend(fr.id);}catch(e){}b.disabled=false;};
+      row.appendChild(left);
+      row.appendChild(b);
+      box.appendChild(row);
+    });
+  }
+
+  function _applyRemoteToLocal(remoteLevels){
+    if(!remoteLevels||typeof remoteLevels!=='object')return;
+    try{localStorage.setItem('chess-lvl-v6',JSON.stringify(remoteLevels));}catch(e){}
+    try{if(document.getElementById('s-levels')?.classList.contains('active'))LVL.buildUI();}catch(e){}
+  }
+
+  async function _syncLevelsBidirectional(){
+    if(!_user||_syncInFlight)return;
+    _syncInFlight=true;
+    try{
+      const local=_localLevels();
+      const data=await _api('/progress/sync','POST',{localLevels:local});
+      _applyRemoteToLocal(data.levels);
+      _setStatus('✓ تمت المزامنة');
+    }catch(e){
+      _setStatus('✕ تعذر المزامنة الآن');
+    }finally{
+      _syncInFlight=false;
+    }
+  }
+
+  function _startWatching(){
+    _stopWatching();
+    _loadFriends();
+    _loadFriendRequests();
+    _challengeInterval=setInterval(async()=>{
+      try{
+        const data=await _api('/challenges/pending');
+        if(data.challenges&&data.challenges.length>0){
+          const ch=data.challenges[0];
+          const accept=confirm(`لديك تحدي جديد من ${ch.username}. هل تريد قبول التحدي؟`);
+          if(accept){
+            const res=await _api(`/challenges/accept/${ch.matchId}`,'POST');
+            _olJoinRoom(res.roomCode);
+          }else{
+            await _api(`/challenges/decline/${ch.matchId}`,'POST');
+          }
+        }
+      }catch(e){}
+    },5000);
+  }
+
+  function _stopWatching(){
+    if(_challengeInterval){
+      clearInterval(_challengeInterval);
+      _challengeInterval=null;
+    }
+  }
+
+  function refreshUI(){
+    const u=_user;
+    const userBox=_el('acc-user');
+    const guestBox=_el('acc-guest');
+    const nameEl=_el('acc-name');
+    const idEl=_el('acc-id');
+    const photoEl=_el('acc-photo');
+    if(u){
+      if(userBox)userBox.style.display='flex';
+      if(guestBox)guestBox.style.display='none';
+      if(nameEl)nameEl.textContent=u.username||'لاعب';
+      if(idEl)idEl.textContent='';
+      const pidEl=_el('acc-pid');
+      if(pidEl)pidEl.textContent=_myPublicId||'—';
+      if(photoEl)photoEl.style.backgroundImage='';
+    }else{
+      if(userBox)userBox.style.display='none';
+      if(guestBox)guestBox.style.display='flex';
+    }
+  }
+
+  async function init(){
+    const token=localStorage.getItem('chess_token');
+    const userStr=localStorage.getItem('chess_user');
+    if(token&&userStr){
+      try{
+        _token=token;
+        _user=JSON.parse(userStr);
+        _myPublicId=_user.publicId||'';
+        await _syncLevelsBidirectional();
+        _startWatching();
+        refreshUI();
+      }catch(e){
+        localStorage.removeItem('chess_token');
+        localStorage.removeItem('chess_user');
+      }
+    }
+  }
+
+  return{init,register,login,logout,refreshUI,syncNow,onLocalLevelSave,copyMyId,sendFriendRequest};
+})();
+
+// Login/Signup UI functions
+function showLogin(){
+  document.getElementById('acc-guest').style.display='flex';
+  document.getElementById('acc-signup').style.display='none';
+}
+
+function showSignup(){
+  document.getElementById('acc-guest').style.display='none';
+  document.getElementById('acc-signup').style.display='flex';
+}
+
+function showForgotPassword(){
+  const email=prompt('أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور:');
+  if(email){
+    fetch('http://localhost:8080/api/auth/forgot-password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    }).then(r=>r.json()).then(d=>{
+      alert(d.message||'تم إرسال الرابط إذا كان البريد موجوداً');
+    }).catch(e=>{
+      alert('حدث خطأ. تأكد أن السيرفر يعمل على localhost:8080');
+    });
+  }
+}
+
+async function handleLogin(){
+  const email=document.getElementById('login-email').value;
+  const password=document.getElementById('login-password').value;
+  if(!email||!password){
+    alert('أدخل البريد الإلكتروني وكلمة المرور');
+    return;
+  }
+  if(window.FB&&FB.login){
+    await FB.login(email,password);
+  }
+}
+
+async function handleSignup(){
+  const username=document.getElementById('signup-username').value;
+  const email=document.getElementById('signup-email').value;
+  const password=document.getElementById('signup-password').value;
+  if(!username||!email||!password){
+    alert('أدخل جميع الحقول المطلوبة');
+    return;
+  }
+  if(window.FB&&FB.register){
+    await FB.register(username,email,password);
+  }
+}
+
 Cfg.load();
 window.addEventListener('load',()=>{
     SFX.init();
     DRAG.init();
     _loadChessPieces();
+    try{FB.init();}catch(e){}
     // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
     setTimeout(()=>SF.checkReady(),5000);
 },{ once:true });
