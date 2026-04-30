@@ -1489,7 +1489,15 @@ const SF=(()=>{
             return response.text();
           })
           .then(scriptContent => {
-            const blob = new Blob([scriptContent], { type: 'application/javascript' });
+            // Create worker with proper WASM loading support
+            const modifiedScript = scriptContent.replace(
+              /new URL\("stockfish-18-lite-single\.wasm", import\.meta\.url\)/g,
+              '"stockfish-18-lite-single.wasm"'
+            ).replace(
+              /var Module=typeof Stockfish!="undefined"\?Stockfish:\{\};/g,
+              'var Module=typeof Stockfish!="undefined"?Stockfish:{};Module.locateFile=function(path){return path.replace("stockfish-18-lite-single.wasm","stockfish-18-lite-single.wasm")};'
+            );
+            const blob = new Blob([modifiedScript], { type: 'application/javascript' });
             const workerUrl = URL.createObjectURL(blob);
             _worker = new Worker(workerUrl);
             setupWorker(_worker, resolve, reject);
