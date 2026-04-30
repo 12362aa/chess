@@ -631,8 +631,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <span class="bby">Powered by</span>
     <span class="bnm">Am-Kh</span>
     <span class="bd-dot"></span>
+    <span id="sf-status" style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.08);color:var(--text3);border:1px solid rgba(255,255,255,.1)">SF ...</span>
+    <span class="bd-dot"></span>
     <span class="bp">♚</span>
-  </div>
+</div>
 </div>
 
 <!-- MENU -->
@@ -1573,7 +1575,35 @@ const SF=(()=>{
     });
   }
 
-  return{init,evaluate,bestMove};
+  async function checkReady(){
+    const el=document.getElementById('sf-status');
+    if(!el)return;
+    try{
+        await init();
+        // اختبار حقيقي: اطلب أفضل حركة من موقف البداية
+        const testBoard=INIT_BD.map(r=>[...r]);
+        const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
+        const move=await bestMove(testBoard,'w',testCas,null,1);
+        if(move&&move.length>=4){
+            el.textContent='SF18 ✓';
+            el.style.background='rgba(74,222,128,.12)';
+            el.style.color='var(--green)';
+            el.style.borderColor='rgba(74,222,128,.28)';
+        }else{
+            el.textContent='SF ✗';
+            el.style.background='rgba(248,113,113,.1)';
+            el.style.color='var(--red)';
+            el.style.borderColor='rgba(248,113,113,.22)';
+        }
+    }catch(e){
+        el.textContent='SF ✗';
+        el.style.background='rgba(248,113,113,.1)';
+        el.style.color='var(--red)';
+        el.style.borderColor='rgba(248,113,113,.22)';
+    }
+}
+
+return{init,evaluate,bestMove,checkReady};
 })();
 
 /* ══════════════════════════════════════
@@ -3499,7 +3529,13 @@ document.addEventListener('keydown',e=>{
 });
 
 Cfg.load();
-window.addEventListener('load',()=>{SFX.init(); DRAG.init(); _loadChessPieces();},{ once:true });
+window.addEventListener('load',()=>{
+    SFX.init();
+    DRAG.init();
+    _loadChessPieces();
+    // اختبار Stockfish حقيقي بعد ثانيتين
+    setTimeout(()=>SF.checkReady(),2000);
+},{ once:true });
 
 </script>
 </body>
