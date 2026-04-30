@@ -2344,8 +2344,8 @@ const AST=(()=>{
         try{
           // Use Stockfish for best move (depth 6 for faster response)
           const col=S.myCol==='both'?S.turn:S.myCol;
-          const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
-          const skillLevel = lv ? Math.min(lv.skill, 20) : 10; // Use level skill or default 10
+          // Assistant always uses maximum skill level (30) to be the strongest
+          const skillLevel = 30; // Always maximum strength for assistant
           const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,6, skillLevel);
           
           // Convert Stockfish move format to internal format
