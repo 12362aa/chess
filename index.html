@@ -705,21 +705,19 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           </div>
           <button class="btnb" style="padding:8px 10px;" onclick="if(window.FB&&FB.logout)FB.logout()">تسجيل خروج</button>
         </div>
-        <div id="acc-guest" style="display:flex;flex-direction:column;gap:10px;width:100%;">
-          <div style="display:flex;gap:10px;">
-            <input id="login-email" type="email" placeholder="البريد الإلكتروني" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
-            <input id="login-password" type="password" placeholder="كلمة المرور" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
-          </div>
+        <div id="acc-guest" style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
+          <input id="login-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
+          <input id="login-password" type="password" placeholder="كلمة المرور" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
           <div style="display:flex;gap:10px;">
             <button class="btnp" style="flex:1;" onclick="handleLogin()">تسجيل الدخول</button>
             <button class="btnb" style="flex:1;" onclick="showSignup()">إنشاء حساب</button>
           </div>
           <button class="btnb" style="font-size:11px;padding:6px 10px;" onclick="showForgotPassword()">نسيت كلمة المرور؟</button>
         </div>
-        <div id="acc-signup" style="display:none;flex-direction:column;gap:10px;width:100%;">
-          <input id="signup-username" type="text" placeholder="اسم المستخدم (3-20 حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
-          <input id="signup-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
-          <input id="signup-password" type="password" placeholder="كلمة المرور (6+ حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;">
+        <div id="acc-signup" style="display:none;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
+          <input id="signup-username" type="text" placeholder="اسم المستخدم (3-20 حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
+          <input id="signup-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
+          <input id="signup-password" type="password" placeholder="كلمة المرور (6+ حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
           <div style="display:flex;gap:10px;">
             <button class="btnp" style="flex:1;" onclick="handleSignup()">إنشاء الحساب</button>
             <button class="btnb" style="flex:1;" onclick="showLogin()">عودة</button>
@@ -3678,16 +3676,25 @@ document.addEventListener('keydown',e=>{
 });
 
 const FB=(()=>{
-  // API Base URL - change this to your server URL
-  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8080/api'
-    : '/api';
-
+  let API_BASE = 'http://localhost:8080/api';
   let _user=null;
   let _token=null;
   let _syncInFlight=false;
   let _myPublicId='';
   let _challengeInterval=null;
+
+  // Load API URL from url.json (same as WebSocket server)
+  async function loadApiUrl(){
+    try{
+      const r=await fetch('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t='+Date.now());
+      const j=await r.json();
+      API_BASE=j.url.replace('https://','http://').replace('/','');
+      if(!API_BASE.endsWith('/api'))API_BASE+='/api';
+    }catch(e){
+      console.error('Failed to load API URL:',e);
+    }
+  }
+  loadApiUrl();
 
   function _el(id){return document.getElementById(id);}
   function _setStatus(txt){const e=_el('acc-status');if(e)e.textContent=txt||'';}
