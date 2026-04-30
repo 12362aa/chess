@@ -12,7 +12,7 @@ const express = require('express');
 const cors = require('cors');
 const { WebSocketServer, WebSocket } = require('ws');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8081;
 
 // Initialize database
 const db = require('./database');
