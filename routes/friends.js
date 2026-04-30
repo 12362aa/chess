@@ -1,0 +1,265 @@
+const express = require('express');
+const db = require('../database');
+const { authenticateToken } = require('../middleware/auth');
+
+const router = express.Router();
+
+// Get user ID from public ID
+async function getUserIdFromPublicId(publicId) {
+  const result = await new Promise((resolve, reject) => {
+    db.get('SELECT userId FROM publicIds WHERE publicId = ?', [publicId], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+  return result ? result.userId : null;
+}
+
+// Send friend request
+router.post('/request', authenticateToken, async (req, res) => {
+  try {
+    const { publicId } = req.body;
+
+    if (!publicId) {
+      return res.status(400).json({ error: 'Public ID is required' });
+    }
+
+    const toUserId = await getUserIdFromPublicId(publicId.toUpperCase());
+
+    if (!toUserId) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (toUserId === req.user.userId) {
+      return res.status(400).json({ error: 'Cannot add yourself' });
+    }
+
+    // Check if already friends
+    const existingFriend = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT id FROM friends WHERE (user1Id = ? AND user2Id = ?) OR (user1Id = ? AND user2Id = ?)',
+        [req.user.userId, toUserId, toUserId, req.user.userId],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (existingFriend) {
+      return res.status(400).json({ error: 'Already friends' });
+    }
+
+    // Check if request already exists
+    const existingRequest = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT id, status FROM friendRequests WHERE fromUserId = ? AND toUserId = ?',
+        [req.user.userId, toUserId],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (existingRequest) {
+      if (existingRequest.status === 'pending') {
+        return res.status(400).json({ error: 'Friend request already sent' });
+      }
+      // Update if declined
+      await new Promise((resolve, reject) => {
+        db.run(
+          'UPDATE friendRequests SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
+          ['pending', existingRequest.id],
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
+    } else {
+      // Create new request
+      await new Promise((resolve, reject) => {
+        db.run(
+          'INSERT INTO friendRequests (fromUserId, toUserId, status) VALUES (?, ?, ?)',
+          [req.user.userId, toUserId, 'pending'],
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
+    }
+
+    res.json({ message: 'Friend request sent' });
+  } catch (error) {
+    console.error('Send friend request error:', error);
+    res.status(500).json({ error: 'Failed to send friend request' });
+  }
+});
+
+// Get pending friend requests
+router.get('/requests', authenticateToken, async (req, res) => {
+  try {
+    const requests = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT fr.id, fr.fromUserId, u.username, u.publicId, fr.createdAt
+         FROM friendRequests fr
+         JOIN users u ON fr.fromUserId = u.id
+         WHERE fr.toUserId = ? AND fr.status = 'pending'
+         ORDER BY fr.createdAt DESC`,
+        [req.user.userId],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows || []);
+        }
+      );
+    });
+
+    res.json({ requests });
+  } catch (error) {
+    console.error('Get friend requests error:', error);
+    res.status(500).json({ error: 'Failed to get friend requests' });
+  }
+});
+
+// Accept friend request
+router.post('/accept/:requestId', authenticateToken, async (req, res) => {
+  try {
+    const { requestId } = req.params;
+
+    // Get request
+    const request = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM friendRequests WHERE id = ? AND toUserId = ? AND status = ?',
+        [requestId, req.user.userId, 'pending'],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (!request) {
+      return res.status(404).json({ error: 'Friend request not found' });
+    }
+
+    // Add to friends table
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO friends (user1Id, user2Id) VALUES (?, ?)',
+        [request.fromUserId, request.toUserId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    // Update request status
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE friendRequests SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
+        ['accepted', requestId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({ message: 'Friend request accepted' });
+  } catch (error) {
+    console.error('Accept friend request error:', error);
+    res.status(500).json({ error: 'Failed to accept friend request' });
+  }
+});
+
+// Decline friend request
+router.post('/decline/:requestId', authenticateToken, async (req, res) => {
+  try {
+    const { requestId } = req.params;
+
+    // Get request
+    const request = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM friendRequests WHERE id = ? AND toUserId = ? AND status = ?',
+        [requestId, req.user.userId, 'pending'],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (!request) {
+      return res.status(404).json({ error: 'Friend request not found' });
+    }
+
+    // Update request status
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE friendRequests SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
+        ['declined', requestId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({ message: 'Friend request declined' });
+  } catch (error) {
+    console.error('Decline friend request error:', error);
+    res.status(500).json({ error: 'Failed to decline friend request' });
+  }
+});
+
+// Get friends list
+router.get('/list', authenticateToken, async (req, res) => {
+  try {
+    const friends = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT u.id, u.username, u.publicId, u.wins, u.losses, u.draws
+         FROM friends f
+         JOIN users u ON (f.user1Id = ? AND u.id = f.user2Id) OR (f.user2Id = ? AND u.id = f.user1Id)
+         WHERE f.user1Id = ? OR f.user2Id = ?`,
+        [req.user.userId, req.user.userId, req.user.userId, req.user.userId],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows || []);
+        }
+      );
+    });
+
+    res.json({ friends });
+  } catch (error) {
+    console.error('Get friends list error:', error);
+    res.status(500).json({ error: 'Failed to get friends list' });
+  }
+});
+
+// Remove friend
+router.delete('/remove/:friendId', authenticateToken, async (req, res) => {
+  try {
+    const { friendId } = req.params;
+
+    await new Promise((resolve, reject) => {
+      db.run(
+        'DELETE FROM friends WHERE (user1Id = ? AND user2Id = ?) OR (user1Id = ? AND user2Id = ?)',
+        [req.user.userId, friendId, friendId, req.user.userId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({ message: 'Friend removed' });
+  } catch (error) {
+    console.error('Remove friend error:', error);
+    res.status(500).json({ error: 'Failed to remove friend' });
+  }
+});
+
+module.exports = router;
