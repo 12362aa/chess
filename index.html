@@ -322,7 +322,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
 .piece{--rot:0deg;position:relative;z-index:4;width:87%;height:87%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
-/* Local 2-player: pieces should not be flipped automatically */
+/* Local 2-player: flip ALL pieces when black's turn so they appear upright for black player */
+/* Online mode: prevent automatic flipping */
+#s-game.mode-local.black-turn .piece{--rot:180deg;}
+#s-game:not(.mode-local).black-turn .piece{--rot:0deg !important;}
 .sq.SL .piece,.sq.SD .piece{transform:rotate(var(--rot)) scale(1.1);}
 .sq:hover .piece{transform:rotate(var(--rot)) scale(1.06);}
 .sq.SL:hover .piece,.sq.SD:hover .piece{transform:rotate(var(--rot)) scale(1.16);}
@@ -970,7 +973,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
    AUDIO
 ══════════════════════════════════════ */
 const SFX=(()=>{
-  const FILES={move:'move.mp3',capture:'capture.mp3',castle:'castle.mp3',checkmate:'checkmate.mp3',check:'check.mp3',error:'Error.mp3'};
+  const FILES={move:'./move.mp3',capture:'./capture.mp3',castle:'./castle.mp3',checkmate:'./checkmate.mp3',check:'./check.mp3',error:'./Error.mp3'};
   let ctx=null;
   const buffers={};
   const _loading=new Set();
