@@ -3676,6 +3676,7 @@ document.addEventListener('keydown',e=>{
 });
 
 const FB=(()=>{
+  console.log('FB module initializing...');
   let API_BASE = 'http://localhost:8080/api';
   let _user=null;
   let _token=null;
@@ -4025,7 +4026,11 @@ const FB=(()=>{
     }
   }
 
-  return{init,register,login,logout,refreshUI,syncNow,onLocalLevelSave,copyMyId,sendFriendRequest};
+  function _getApiBase(){
+    return API_BASE;
+  }
+
+  return{init,register,login,logout,refreshUI,syncNow,onLocalLevelSave,copyMyId,sendFriendRequest,_getApiBase};
 })();
 
 // Login/Signup UI functions
@@ -4042,14 +4047,15 @@ function showSignup(){
 function showForgotPassword(){
   const email=prompt('أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور:');
   if(email){
-    fetch('http://localhost:8080/api/auth/forgot-password',{
+    const API_BASE = window.FB && window.FB._getApiBase ? window.FB._getApiBase() : 'http://localhost:8080/api';
+    fetch(API_BASE+'/auth/forgot-password',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({email})
     }).then(r=>r.json()).then(d=>{
       alert(d.message||'تم إرسال الرابط إذا كان البريد موجوداً');
     }).catch(e=>{
-      alert('حدث خطأ. تأكد أن السيرفر يعمل على localhost:8080');
+      alert('حدث خطأ. تأكد أن السيرفر يعمل');
     });
   }
 }
