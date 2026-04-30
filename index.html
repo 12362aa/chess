@@ -743,9 +743,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
         <div class="sr-n">إضافة صديق</div>
         <div class="sr-d">أدخل معرف صديقك (ID) ثم أرسل طلب صداقة</div>
-        <div style="display:flex;gap:10px;width:100%;">
-          <input class="finp" id="fr-inp" placeholder="ID صديقك…" maxlength="12" style="margin-bottom:0;flex:1;letter-spacing:1px;direction:ltr;text-align:left;" />
-          <button class="btnp" style="flex:0 0 auto;" onclick="if(window.FB&&FB.sendFriendRequest)FB.sendFriendRequest()">إرسال</button>
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
+          <input class="finp" id="fr-inp" placeholder="ID صديقك…" maxlength="12" style="margin-bottom:0;width:100%;box-sizing:border-box;letter-spacing:1px;direction:ltr;text-align:left;" />
+          <button class="btnp" style="width:100%;box-sizing:border-box;" onclick="if(window.FB&&FB.sendFriendRequest)FB.sendFriendRequest()">إرسال</button>
         </div>
         <div id="fr-status" style="font-size:11px;color:var(--text2);"></div>
       </div>
@@ -3675,6 +3675,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Escape'){REV.close();}
 });
 
+console.log('About to define FB module...');
 const FB=(()=>{
   console.log('FB module initializing...');
   let API_BASE = 'http://localhost:8080/api';
