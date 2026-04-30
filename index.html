@@ -3676,7 +3676,7 @@ document.addEventListener('keydown',e=>{
 });
 
 console.log('About to define FB module...');
-const FB={
+window.FB={
   API_BASE: 'http://localhost:8080/api',
   _user:null,
   _token:null,
@@ -3688,8 +3688,7 @@ const FB={
     try{
       const r=await fetch('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t='+Date.now());
       const j=await r.json();
-      this.API_BASE=j.url.replace('https://','http://').replace('/','');
-      if(!this.API_BASE.endsWith('/api'))this.API_BASE+='/api';
+      this.API_BASE = j.url.replace(/\/+$/, '') + '/api';
     }catch(e){
       console.error('Failed to load API URL:',e);
     }
@@ -3709,7 +3708,10 @@ const FB={
   },
 
   async _api(endpoint,method='GET',body=null){
-    const headers={'Content-Type':'application/json'};
+    const headers={
+      'Content-Type':'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    };
     if(this._token)headers['Authorization']=`Bearer ${this._token}`;
     const opts={method,headers};
     if(body)opts.body=JSON.stringify(body);
@@ -4028,7 +4030,7 @@ const FB={
     return this.API_BASE;
   }
 };
-FB.loadApiUrl();
+window.FB.loadApiUrl();
 console.log('FB module defined, window.FB:', window.FB);
 
 // Login/Signup UI functions
