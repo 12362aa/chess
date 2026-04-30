@@ -1385,22 +1385,22 @@ function updatePlayerImages(){
   }
 }
 
-/* ══════════════════════════════════════
+/* =====================================
    LEVELS
-══════════════════════════════════════ */
+===================================== */
 const LEVELS_DEF=[
-  {id:0,  name:'البداية',      icon:'♙',depth:1,desc:'حركاتك الأولى على الرقعة',              hint:'استخدم المساعد للمساعدة', starReq:[99,35,22]},
-  {id:1,  name:'المتدرب',      icon:'♘',depth:1,desc:'تعلم السيطرة على المركز',               hint:'حاول إخراج قطعك بسرعة',   starReq:[99,30,20]},
-  {id:2,  name:'الجندي',       icon:'♗',depth:2,desc:'قطعك تعمل معاً كفريق',                  hint:'حافظ على ملكك بأمان',     starReq:[99,28,18]},
-  {id:3,  name:'الفارس',       icon:'♖',depth:2,desc:'نور يبدأ التفكير الاستراتيجي',          hint:'فكر قبل كل حركة',         starReq:[99,26,17]},
-  {id:4,  name:'القائد',       icon:'♕',depth:3,desc:'المعركة تشتعل بالكامل',                 hint:'القطع النشطة تفوز',       starReq:[99,24,16]},
-  {id:5,  name:'الحارس',       icon:'♔',depth:3,desc:'نور يستخدم كل قوته',                    hint:'لا تترك قطعاً دون حماية', starReq:[99,22,15]},
-  {id:6,  name:'المحارب',      icon:'♛',depth:3,desc:'تكتيكات متقدمة مطلوبة',                 hint:'ابحث عن التضحيات المربحة',starReq:[99,20,14]},
-  {id:7,  name:'القائد الكبير',icon:'♚',depth:4,desc:'نور لا يرحم في هذا المستوى',            hint:'التخطيط البعيد هو المفتاح',starReq:[99,20,13]},
-  {id:8,  name:'الأسطورة',     icon:'♟',depth:4,desc:'فقط المتمرسون يصلون هنا',              hint:'كل حركة لها ثمن',         starReq:[99,18,12]},
-  {id:9,  name:'البطل',        icon:'♞',depth:4,desc:'نور في أعلى مستوياته',                  hint:'ابحث عن نقاط ضعف الخصم', starReq:[99,16,11]},
-  {id:10, name:'الإمبراطور',   icon:'♝',depth:4,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
-  {id:11, name:'الخالد',       icon:'♜',depth:4,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
+  {id:0,  name:'المبتدئ',      icon:'♙',depth:1,skill:1,desc:'بداية رحلة الشطرنج',                     hint:'حرك القطع وافز',           starReq:[8,6,4]},
+  {id:1,  name:'المتدرب',      icon:'♘',depth:2,skill:3,desc:'تعلم الأساسيات',                        hint:'سيطر على المركز',          starReq:[12,9,7]},
+  {id:2,  name:'المستكشف',     icon:'♗',depth:3,skill:5,desc:'اكتشاف التكتيكات',                      hint:'استخدم الخدع',            starReq:[15,12,9]},
+  {id:3,  name:'المحترف',      icon:'♖',depth:4,skill:7,desc:'احتراف اللعب',                           hint:'فكر قبل التحرك',          starReq:[18,14,11]},
+  {id:4,  name:'القائد',       icon:'♕',depth:5,skill:10,desc:'المعركة تشتعل بالكامل',                 hint:'القطع النشطة تفوز',       starReq:[99,24,16]},
+  {id:5,  name:'الحارس',       icon:'♔',depth:6,skill:13,desc:'نور يستخدم كل قوته',                    hint:'لا تترك قطعاً دون حماية', starReq:[99,22,15]},
+  {id:6,  name:'المحارب',      icon:'♛',depth:7,skill:16,desc:'تكتيكات متقدمة مطلوبة',                 hint:'ابحث عن التضحيات المربحة',starReq:[99,20,14]},
+  {id:7,  name:'القائد الكبير',icon:'♚',depth:8,skill:19,desc:'نور لا يرحم في هذا المستوى',            hint:'التخطيط البعيد هو المفتاح',starReq:[99,20,13]},
+  {id:8,  name:'الأسطورة',     icon:'♟',depth:10,skill:22,desc:'فقط المتمرسون يصلون هنا',              hint:'كل حركة لها ثمن',         starReq:[99,18,12]},
+  {id:9,  name:'البطل',        icon:'♞',depth:12,skill:25,desc:'نور في أعلى مستوياته',                  hint:'ابحث عن نقاط ضعف الخصم', starReq:[99,16,11]},
+  {id:10, name:'الإمبراطور',   icon:'♝',depth:15,skill:28,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
+  {id:11, name:'الخالد',       icon:'♜',depth:20,skill:30,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
 ];
 const LVL={
   get(){try{return JSON.parse(localStorage.getItem('chess-lvl-v6')||'{}');}catch(e){return{};}},
@@ -1530,13 +1530,19 @@ const SF=(()=>{
     resolve(worker);
   }
 
-  function evaluate(bd,turn,cas,ep,depth=8){
+  function evaluate(bd,turn,cas,ep,depth=8,skillLevel=null){
     return new Promise(async(resolve,reject)=>{
       try{
         await init();
         const fen=bdToFen(bd,turn,cas,ep);
         const id=++_msgId;
         let result=null;
+        
+        // Set skill level if provided
+        if(skillLevel !== null){
+          _worker.postMessage('setoption name Skill Level value '+skillLevel);
+        }
+        
         _pending[id]={
           onEval:(cp)=>{
             result=cp;
@@ -1560,12 +1566,18 @@ const SF=(()=>{
     });
   }
 
-  function bestMove(bd,turn,cas,ep,depth=6){
+  function bestMove(bd,turn,cas,ep,depth=6,skillLevel=null){
     return new Promise(async(resolve,reject)=>{
       try{
         await init();
         const fen=bdToFen(bd,turn,cas,ep);
         const id=++_msgId;
+        
+        // Set skill level if provided
+        if(skillLevel !== null){
+          _worker.postMessage('setoption name Skill Level value '+skillLevel);
+        }
+        
         _pending[id]={
           onBestMove:(move)=>{
             resolve(move);
@@ -1930,7 +1942,11 @@ const REV=(()=>{
     // Initialize Stockfish
     try{await SF.init();}catch(e){console.error('Stockfish init failed, using fallback:',e);}
     
-    const evalHistory=[await SF.evaluate(bd,'w',cas,ep,8).catch(()=>E.eval(bd))];
+    // Get current level skill for analysis
+    const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
+    const skillLevel = lv ? Math.min(lv.skill, 20) : 8;
+    
+    const evalHistory=[await SF.evaluate(bd,'w',cas,ep,6,skillLevel).catch(()=>E.eval(bd))];
 
     const REVIEW_DEPTH=1; // Reduced from 3 to prevent UI freezing
     const bestFor=(board,cas2,ep2,color)=>{
@@ -2328,7 +2344,9 @@ const AST=(()=>{
         try{
           // Use Stockfish for best move (depth 6 for faster response)
           const col=S.myCol==='both'?S.turn:S.myCol;
-          const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,6);
+          const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
+          const skillLevel = lv ? Math.min(lv.skill, 20) : 10; // Use level skill or default 10
+          const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,6, skillLevel);
           
           // Convert Stockfish move format to internal format
           let mv=null;
@@ -2826,10 +2844,11 @@ const G={
         const cas=JSON.parse(JSON.stringify(S.cas));
         const ep=S.ep?[...S.ep]:null;
         
-        // Use Stockfish for bot move (depth based on difficulty)
+        // Use Stockfish for bot move (depth and skill based on level)
         let bm=null;
         try{
-          const sfMove=await SF.bestMove(bd,'b',cas,ep,depth+5); // Extra depth for Stockfish
+          const skillLevel = lv ? lv.skill : Math.min(S.diff * 3, 20); // Map difficulty to skill level
+          const sfMove=await SF.bestMove(bd,'b',cas,ep,depth+5, skillLevel);
           if(sfMove){
             const f='abcdefgh';
             const fromCol=f.indexOf(sfMove[0]);
