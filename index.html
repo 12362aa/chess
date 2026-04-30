@@ -1537,7 +1537,7 @@ const SF=(()=>{
     resolve(worker);
   }
 
-  function evaluate(bd,turn,cas,ep,depth=10){
+  function evaluate(bd,turn,cas,ep,depth=8){
     return new Promise(async(resolve,reject)=>{
       try{
         await init();
@@ -1559,7 +1559,7 @@ const SF=(()=>{
             delete _pending[id];
             resolve(result||0);
           }
-        },5000);
+        },10000);
       }catch(e){
         // Fallback to local engine
         resolve(E.eval(bd));
@@ -1567,7 +1567,7 @@ const SF=(()=>{
     });
   }
 
-  function bestMove(bd,turn,cas,ep,depth=10){
+  function bestMove(bd,turn,cas,ep,depth=6){
     return new Promise(async(resolve,reject)=>{
       try{
         await init();
@@ -1585,7 +1585,7 @@ const SF=(()=>{
             delete _pending[id];
             resolve(null);
           }
-        },5000);
+        },8000);
       }catch(e){
         // Fallback to null (will use local engine)
         resolve(null);
@@ -1601,7 +1601,7 @@ const SF=(()=>{
         // اختبار حقيقي: اطلب أفضل حركة من موقف البداية
         const testBoard=INIT_BD.map(r=>[...r]);
         const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
-        const move=await bestMove(testBoard,'w',testCas,null,1);
+        const move=await bestMove(testBoard,'w',testCas,null,4);
         if(move&&move.length>=4){
             el.textContent='SF ✓';
             el.style.background='rgba(74,222,128,.12)';
