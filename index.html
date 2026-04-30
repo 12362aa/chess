@@ -3676,48 +3676,45 @@ document.addEventListener('keydown',e=>{
 });
 
 console.log('About to define FB module...');
-const FB=(()=>{
-  console.log('FB module initializing...');
-  let API_BASE = 'http://localhost:8080/api';
-  let _user=null;
-  let _token=null;
-  let _syncInFlight=false;
-  let _myPublicId='';
-  let _challengeInterval=null;
+const FB={
+  API_BASE: 'http://localhost:8080/api',
+  _user:null,
+  _token:null,
+  _syncInFlight:false,
+  _myPublicId:'',
+  _challengeInterval:null,
 
-  // Load API URL from url.json (same as WebSocket server)
-  async function loadApiUrl(){
+  async loadApiUrl(){
     try{
       const r=await fetch('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t='+Date.now());
       const j=await r.json();
-      API_BASE=j.url.replace('https://','http://').replace('/','');
-      if(!API_BASE.endsWith('/api'))API_BASE+='/api';
+      this.API_BASE=j.url.replace('https://','http://').replace('/','');
+      if(!this.API_BASE.endsWith('/api'))this.API_BASE+='/api';
     }catch(e){
       console.error('Failed to load API URL:',e);
     }
-  }
-  loadApiUrl();
+  },
 
-  function _el(id){return document.getElementById(id);}
-  function _setStatus(txt){const e=_el('acc-status');if(e)e.textContent=txt||'';}
-  function _setFriendStatus(txt){const e=_el('fr-status');if(e)e.textContent=txt||'';}
+  _el(id){return document.getElementById(id);},
+  _setStatus(txt){const e=this._el('acc-status');if(e)e.textContent=txt||'';},
+  _setFriendStatus(txt){const e=this._el('fr-status');if(e)e.textContent=txt||'';},
 
-  function _localLevels(){try{return JSON.parse(localStorage.getItem('chess-lvl-v6')||'{}');}catch(e){return{};}}
-  function _levelsProgress(p){
+  _localLevels(){try{return JSON.parse(localStorage.getItem('chess-lvl-v6')||'{}');}catch(e){return{};}},
+  _levelsProgress(p){
     let max=-1;
     for(let i=0;i<LEVELS_DEF.length;i++){
       if(p&&p[i]&&p[i].done)max=i;
     }
     return max;
-  }
+  },
 
-  async function _api(endpoint,method='GET',body=null){
+  async _api(endpoint,method='GET',body=null){
     const headers={'Content-Type':'application/json'};
-    if(_token)headers['Authorization']=`Bearer ${_token}`;
+    if(this._token)headers['Authorization']=`Bearer ${this._token}`;
     const opts={method,headers};
     if(body)opts.body=JSON.stringify(body);
     try{
-      const res=await fetch(API_BASE+endpoint,opts);
+      const res=await fetch(this.API_BASE+endpoint,opts);
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||'API error');
       return data;
@@ -3725,140 +3722,140 @@ const FB=(()=>{
       console.error('API error:',e);
       throw e;
     }
-  }
+  },
 
-  async function register(username,email,password){
+  async register(username,email,password){
     try{
-      _setStatus('◌ جاري إنشاء الحساب...');
-      const data=await _api('/auth/register','POST',{username,email,password});
-      _token=data.token;
-      _user=data.user;
-      localStorage.setItem('chess_token',_token);
-      localStorage.setItem('chess_user',JSON.stringify(_user));
-      _myPublicId=_user.publicId||'';
-      await _syncLevelsBidirectional();
-      _startWatching();
-      refreshUI();
-      _setStatus('✓ تم إنشاء الحساب بنجاح');
+      this._setStatus('◌ جاري إنشاء الحساب...');
+      const data=await this._api('/auth/register','POST',{username,email,password});
+      this._token=data.token;
+      this._user=data.user;
+      localStorage.setItem('chess_token',this._token);
+      localStorage.setItem('chess_user',JSON.stringify(this._user));
+      this._myPublicId=this._user.publicId||'';
+      await this._syncLevelsBidirectional();
+      this._startWatching();
+      this.refreshUI();
+      this._setStatus('✓ تم إنشاء الحساب بنجاح');
       return true;
     }catch(e){
-      _setStatus('✕ '+ (e.message||'فشل إنشاء الحساب'));
+      this._setStatus('✕ '+ (e.message||'فشل إنشاء الحساب'));
       return false;
     }
-  }
+  },
 
-  async function login(email,password){
+  async login(email,password){
     try{
-      _setStatus('◌ جاري تسجيل الدخول...');
-      const data=await _api('/auth/login','POST',{email,password});
-      _token=data.token;
-      _user=data.user;
-      localStorage.setItem('chess_token',_token);
-      localStorage.setItem('chess_user',JSON.stringify(_user));
-      _myPublicId=_user.publicId||'';
-      await _syncLevelsBidirectional();
-      _startWatching();
-      refreshUI();
-      _setStatus('✓ تم تسجيل الدخول');
+      this._setStatus('◌ جاري تسجيل الدخول...');
+      const data=await this._api('/auth/login','POST',{email,password});
+      this._token=data.token;
+      this._user=data.user;
+      localStorage.setItem('chess_token',this._token);
+      localStorage.setItem('chess_user',JSON.stringify(this._user));
+      this._myPublicId=this._user.publicId||'';
+      await this._syncLevelsBidirectional();
+      this._startWatching();
+      this.refreshUI();
+      this._setStatus('✓ تم تسجيل الدخول');
       return true;
     }catch(e){
-      _setStatus('✕ '+ (e.message||'فشل تسجيل الدخول'));
+      this._setStatus('✕ '+ (e.message||'فشل تسجيل الدخول'));
       return false;
     }
-  }
+  },
 
-  async function logout(){
-    _stopWatching();
-    _token=null;
-    _user=null;
-    _myPublicId='';
+  async logout(){
+    this._stopWatching();
+    this._token=null;
+    this._user=null;
+    this._myPublicId='';
     localStorage.removeItem('chess_token');
     localStorage.removeItem('chess_user');
-    refreshUI();
-    _setStatus('');
-  }
+    this.refreshUI();
+    this._setStatus('');
+  },
 
-  async function syncNow(){
-    if(!_user)return;
-    await _syncLevelsBidirectional();
-  }
+  async syncNow(){
+    if(!this._user)return;
+    await this._syncLevelsBidirectional();
+  },
 
-  async function onLocalLevelSave(levelId,stars,moves){
-    if(!_user)return;
+  async onLocalLevelSave(levelId,stars,moves){
+    if(!this._user)return;
     try{
-      await _api('/progress/level','POST',{levelId,stars,moves});
+      await this._api('/progress/level','POST',{levelId,stars,moves});
     }catch(e){
       console.error('Failed to sync level:',e);
     }
-  }
+  },
 
-  function copyMyId(){
-    if(!_myPublicId)return;
-    navigator.clipboard.writeText(_myPublicId).then(()=>{
-      _setStatus('✓ تم نسخ ID');
-      setTimeout(()=>_setStatus(''),2000);
-    }).catch(()=>_setStatus('✕ تعذر النسخ'));
-  }
+  copyMyId(){
+    if(!this._myPublicId)return;
+    navigator.clipboard.writeText(this._myPublicId).then(()=>{
+      this._setStatus('✓ تم نسخ ID');
+      setTimeout(()=>this._setStatus(''),2000);
+    }).catch(()=>this._setStatus('✕ تعذر النسخ'));
+  },
 
-  async function sendFriendRequest(){
-    if(!_user)return;
-    _setFriendStatus('');
-    const inp=_el('fr-inp');
+  async sendFriendRequest(){
+    if(!this._user)return;
+    this._setFriendStatus('');
+    const inp=this._el('fr-inp');
     const pid=(inp?.value||'').trim().toUpperCase();
-    if(!pid){_setFriendStatus('أدخل ID أولاً');return;}
-    if(pid===_myPublicId){_setFriendStatus('لا يمكنك إضافة نفسك');return;}
-    _setFriendStatus('◌ جاري الإرسال...');
+    if(!pid){this._setFriendStatus('أدخل ID أولاً');return;}
+    if(pid===this._myPublicId){this._setFriendStatus('لا يمكنك إضافة نفسك');return;}
+    this._setFriendStatus('◌ جاري الإرسال...');
     try{
-      await _api('/friends/request','POST',{publicId:pid});
+      await this._api('/friends/request','POST',{publicId:pid});
       if(inp)inp.value='';
-      _setFriendStatus('✓ تم إرسال الطلب');
-      await _loadFriends();
+      this._setFriendStatus('✓ تم إرسال الطلب');
+      await this._loadFriends();
     }catch(e){
-      _setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
+      this._setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
     }
-  }
+  },
 
-  async function _loadFriends(){
-    if(!_user)return;
+  async _loadFriends(){
+    if(!this._user)return;
     try{
-      const data=await _api('/friends/list');
-      _renderFriendsList(data.friends||[]);
+      const data=await this._api('/friends/list');
+      this._renderFriendsList(data.friends||[]);
     }catch(e){
       console.error('Failed to load friends:',e);
     }
-  }
+  },
 
-  async function _loadFriendRequests(){
-    if(!_user)return;
+  async _loadFriendRequests(){
+    if(!this._user)return;
     try{
-      const data=await _api('/friends/requests');
-      _renderFriendRequests(data.requests||[]);
+      const data=await this._api('/friends/requests');
+      this._renderFriendRequests(data.requests||[]);
     }catch(e){
       console.error('Failed to load requests:',e);
     }
-  }
+  },
 
-  async function _acceptFriendRequest(requestId){
+  async _acceptFriendRequest(requestId){
     try{
-      await _api(`/friends/accept/${requestId}`,'POST');
-      await _loadFriends();
-      await _loadFriendRequests();
+      await this._api(`/friends/accept/${requestId}`,'POST');
+      await this._loadFriends();
+      await this._loadFriendRequests();
     }catch(e){
       console.error('Failed to accept request:',e);
     }
-  }
+  },
 
-  async function _declineFriendRequest(requestId){
+  async _declineFriendRequest(requestId){
     try{
-      await _api(`/friends/decline/${requestId}`,'POST');
-      await _loadFriendRequests();
+      await this._api(`/friends/decline/${requestId}`,'POST');
+      await this._loadFriendRequests();
     }catch(e){
       console.error('Failed to decline request:',e);
     }
-  }
+  },
 
-  async function _renderFriendRequests(reqs){
-    const box=_el('fr-reqs');
+  async _renderFriendRequests(reqs){
+    const box=this._el('fr-reqs');
     if(!box)return;
     box.innerHTML='';
     if(!reqs.length){
@@ -3878,41 +3875,41 @@ const FB=(()=>{
       left.innerHTML=`<div style="font-weight:900;color:var(--text);">طلب صداقة</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;">ID: ${(r.publicId||'—')}</div>`;
       const a=document.createElement('button');
       a.className='btnp';a.style.padding='8px 10px';a.textContent='قبول';
-      a.onclick=async()=>{a.disabled=true;try{await _acceptFriendRequest(r.id);}catch(e){}a.disabled=false;};
+      a.onclick=async()=>{a.disabled=true;try{await this._acceptFriendRequest(r.id);}catch(e){}a.disabled=false;};
       const d=document.createElement('button');
       d.className='btnb';d.style.padding='8px 10px';d.textContent='رفض';
-      d.onclick=async()=>{d.disabled=true;try{await _declineFriendRequest(r.id);}catch(e){}d.disabled=false;};
+      d.onclick=async()=>{d.disabled=true;try{await this._declineFriendRequest(r.id);}catch(e){}d.disabled=false;};
       row.appendChild(left);row.appendChild(a);row.appendChild(d);
       box.appendChild(row);
     });
-  }
+  },
 
-  async function _challengeFriend(friendId){
-    if(!_user)return;
-    _setFriendStatus('◌ جاري إرسال التحدي...');
+  async _challengeFriend(friendId){
+    if(!this._user)return;
+    this._setFriendStatus('◌ جاري إرسال التحدي...');
     try{
-      await _api('/challenges/send','POST',{toUserId:friendId});
-      _setFriendStatus('✓ تم إرسال التحدي — انتظر القبول');
+      await this._api('/challenges/send','POST',{toUserId:friendId});
+      this._setFriendStatus('✓ تم إرسال التحدي — انتظر القبول');
     }catch(e){
-      _setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
+      this._setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
     }
-  }
+  },
 
-  function _olCreateRoomAs(color){
+  _olCreateRoomAs(color){
     try{Nav.online();}catch(e){}
     try{OL.col(color);}catch(e){}
     try{OL.create();}catch(e){}
-  }
+  },
 
-  function _olJoinRoom(code){
+  _olJoinRoom(code){
     try{Nav.online();}catch(e){}
     try{OL.tab('j');}catch(e){}
     try{const inp=document.getElementById('jinp');if(inp)inp.value=String(code||'').trim().toUpperCase();}catch(e){}
     try{OL.join();}catch(e){}
-  }
+  },
 
-  async function _renderFriendsList(friends){
-    const box=_el('fr-list');
+  async _renderFriendsList(friends){
+    const box=this._el('fr-list');
     if(!box)return;
     box.innerHTML='';
     if(!friends.length){
@@ -3932,108 +3929,106 @@ const FB=(()=>{
       left.innerHTML=`<div style="font-weight:900;color:var(--text);">${fr.username||'صديق'}</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;">ID: ${fr.publicId||'—'}</div>`;
       const b=document.createElement('button');
       b.className='btnp';b.style.padding='8px 10px';b.textContent='تحدي';
-      b.onclick=async()=>{b.disabled=true;try{await _challengeFriend(fr.id);}catch(e){}b.disabled=false;};
+      b.onclick=async()=>{b.disabled=true;try{await this._challengeFriend(fr.id);}catch(e){}b.disabled=false;};
       row.appendChild(left);
       row.appendChild(b);
       box.appendChild(row);
     });
-  }
+  },
 
-  function _applyRemoteToLocal(remoteLevels){
+  _applyRemoteToLocal(remoteLevels){
     if(!remoteLevels||typeof remoteLevels!=='object')return;
     try{localStorage.setItem('chess-lvl-v6',JSON.stringify(remoteLevels));}catch(e){}
     try{if(document.getElementById('s-levels')?.classList.contains('active'))LVL.buildUI();}catch(e){}
-  }
+  },
 
-  async function _syncLevelsBidirectional(){
-    if(!_user||_syncInFlight)return;
-    _syncInFlight=true;
+  async _syncLevelsBidirectional(){
+    if(!this._user||this._syncInFlight)return;
+    this._syncInFlight=true;
     try{
-      const local=_localLevels();
-      const data=await _api('/progress/sync','POST',{localLevels:local});
-      _applyRemoteToLocal(data.levels);
-      _setStatus('✓ تمت المزامنة');
+      const local=this._localLevels();
+      const data=await this._api('/progress/sync','POST',{localLevels:local});
+      this._applyRemoteToLocal(data.levels);
+      this._setStatus('✓ تمت المزامنة');
     }catch(e){
-      _setStatus('✕ تعذر المزامنة الآن');
+      this._setStatus('✕ تعذر المزامنة الآن');
     }finally{
-      _syncInFlight=false;
+      this._syncInFlight=false;
     }
-  }
+  },
 
-  function _startWatching(){
-    _stopWatching();
-    _loadFriends();
-    _loadFriendRequests();
-    _challengeInterval=setInterval(async()=>{
+  _startWatching(){
+    this._stopWatching();
+    this._loadFriends();
+    this._loadFriendRequests();
+    this._challengeInterval=setInterval(async()=>{
       try{
-        const data=await _api('/challenges/pending');
+        const data=await this._api('/challenges/pending');
         if(data.challenges&&data.challenges.length>0){
           const ch=data.challenges[0];
           const accept=confirm(`لديك تحدي جديد من ${ch.username}. هل تريد قبول التحدي؟`);
           if(accept){
-            const res=await _api(`/challenges/accept/${ch.matchId}`,'POST');
-            _olJoinRoom(res.roomCode);
+            const res=await this._api(`/challenges/accept/${ch.matchId}`,'POST');
+            this._olJoinRoom(res.roomCode);
           }else{
-            await _api(`/challenges/decline/${ch.matchId}`,'POST');
+            await this._api(`/challenges/decline/${ch.matchId}`,'POST');
           }
         }
       }catch(e){}
     },5000);
-  }
+  },
 
-  function _stopWatching(){
-    if(_challengeInterval){
-      clearInterval(_challengeInterval);
-      _challengeInterval=null;
+  _stopWatching(){
+    if(this._challengeInterval){
+      clearInterval(this._challengeInterval);
+      this._challengeInterval=null;
     }
-  }
+  },
 
-  function refreshUI(){
-    const u=_user;
-    const userBox=_el('acc-user');
-    const guestBox=_el('acc-guest');
-    const nameEl=_el('acc-name');
-    const idEl=_el('acc-id');
-    const photoEl=_el('acc-photo');
+  refreshUI(){
+    const u=this._user;
+    const userBox=this._el('acc-user');
+    const guestBox=this._el('acc-guest');
+    const nameEl=this._el('acc-name');
+    const idEl=this._el('acc-id');
+    const photoEl=this._el('acc-photo');
     if(u){
       if(userBox)userBox.style.display='flex';
       if(guestBox)guestBox.style.display='none';
       if(nameEl)nameEl.textContent=u.username||'لاعب';
       if(idEl)idEl.textContent='';
-      const pidEl=_el('acc-pid');
-      if(pidEl)pidEl.textContent=_myPublicId||'—';
+      const pidEl=this._el('acc-pid');
+      if(pidEl)pidEl.textContent=this._myPublicId||'—';
       if(photoEl)photoEl.style.backgroundImage='';
     }else{
       if(userBox)userBox.style.display='none';
       if(guestBox)guestBox.style.display='flex';
     }
-  }
+  },
 
-  async function init(){
+  async init(){
     const token=localStorage.getItem('chess_token');
     const userStr=localStorage.getItem('chess_user');
     if(token&&userStr){
       try{
-        _token=token;
-        _user=JSON.parse(userStr);
-        _myPublicId=_user.publicId||'';
-        await _syncLevelsBidirectional();
-        _startWatching();
-        refreshUI();
+        this._token=token;
+        this._user=JSON.parse(userStr);
+        this._myPublicId=this._user.publicId||'';
+        await this._syncLevelsBidirectional();
+        this._startWatching();
+        this.refreshUI();
       }catch(e){
         localStorage.removeItem('chess_token');
         localStorage.removeItem('chess_user');
       }
     }
+  },
+
+  _getApiBase(){
+    return this.API_BASE;
   }
-
-  function _getApiBase(){
-    return API_BASE;
-  }
-
-  return{init,register,login,logout,refreshUI,syncNow,onLocalLevelSave,copyMyId,sendFriendRequest,_getApiBase};
-})();
-
+};
+FB.loadApiUrl();
 console.log('FB module defined, window.FB:', window.FB);
 
 // Login/Signup UI functions
