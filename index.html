@@ -2408,7 +2408,8 @@ const R={
     const el=document.getElementById('board');
     // In local mode, board stays stationary - no square swapping
     // Only pieces rotate via CSS when black's turn
-    const flip=false; // Never flip pieces in online mode
+    // In online mode, flip board when player is black so their pieces are at bottom
+    const flip=(S.mode==='online' && S.myCol==='b');
     // Apply black-turn class to body/game for piece flipping in local mode
     const sGame=document.getElementById('s-game');
     if(sGame){
