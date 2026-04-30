@@ -687,7 +687,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <!-- ACCOUNT -->
 <div id="s-account" class="screen">
   <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
-    <div class="sc" style="width:100%;max-width:520px;">
+    <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
       <h2><span class="ic-gold">👤</span> الحساب</h2>
       <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
         <div class="sr-n">تسجيل الدخول</div>
@@ -726,7 +726,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div id="acc-status" style="font-size:11px;color:var(--text2);line-height:1.4;"></div>
       </div>
     </div>
-    <div class="sc" style="width:100%;max-width:520px;">
+    <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
       <h2><span class="ic-teal">◈</span> المزامنة</h2>
       <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
         <div class="sr-n">تقدم مراحل نور</div>
@@ -738,7 +738,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       </div>
     </div>
 
-    <div class="sc" style="width:100%;max-width:520px;">
+    <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
       <h2><span class="ic-green">⚔</span> الأصدقاء</h2>
       <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
         <div class="sr-n">إضافة صديق</div>
@@ -4055,27 +4055,41 @@ function showForgotPassword(){
 }
 
 async function handleLogin(){
+  console.log('handleLogin called');
   const email=document.getElementById('login-email').value;
   const password=document.getElementById('login-password').value;
+  console.log('email:',email,'password:',password?'***':'empty');
   if(!email||!password){
     alert('أدخل البريد الإلكتروني وكلمة المرور');
     return;
   }
+  console.log('window.FB:',window.FB);
   if(window.FB&&FB.login){
+    console.log('Calling FB.login...');
     await FB.login(email,password);
+  }else{
+    console.error('FB.login not available');
+    alert('FB module not loaded. Check console for errors.');
   }
 }
 
 async function handleSignup(){
+  console.log('handleSignup called');
   const username=document.getElementById('signup-username').value;
   const email=document.getElementById('signup-email').value;
   const password=document.getElementById('signup-password').value;
+  console.log('username:',username,'email:',email,'password:',password?'***':'empty');
   if(!username||!email||!password){
     alert('أدخل جميع الحقول المطلوبة');
     return;
   }
+  console.log('window.FB:',window.FB);
   if(window.FB&&FB.register){
+    console.log('Calling FB.register...');
     await FB.register(username,email,password);
+  }else{
+    console.error('FB.register not available');
+    alert('FB module not loaded. Check console for errors.');
   }
 }
 
