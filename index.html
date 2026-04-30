@@ -4047,16 +4047,13 @@ function showSignup(){
 function showForgotPassword(){
   const email=prompt('أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور:');
   if(email){
-    const API_BASE = window.FB && window.FB._getApiBase ? window.FB._getApiBase() : 'http://localhost:8080/api';
-    fetch(API_BASE+'/auth/forgot-password',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email})
-    }).then(r=>r.json()).then(d=>{
-      alert(d.message||'تم إرسال الرابط إذا كان البريد موجوداً');
-    }).catch(e=>{
-      alert('حدث خطأ. تأكد أن السيرفر يعمل');
-    });
+    if(window.FB && window.FB._api){
+      window.FB._api('/auth/forgot-password','POST',{email})
+        .then(d=>alert(d.message||'تم إرسال الرابط إذا كان البريد موجوداً'))
+        .catch(e=>alert('حدث خطأ. تأكد أن السيرفر يعمل'));
+    }else{
+      alert('FB module not loaded');
+    }
   }
 }
 
