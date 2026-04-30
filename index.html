@@ -3830,7 +3830,9 @@ window.FB={
   async _loadFriendRequests(){
     if(!this._user)return;
     try{
+      console.log('Loading friend requests...');
       const data=await this._api('/friends/requests');
+      console.log('Friend requests loaded:', data.requests);
       this._renderFriendRequests(data.requests||[]);
     }catch(e){
       console.error('Failed to load requests:',e);
