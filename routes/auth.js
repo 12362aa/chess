@@ -182,6 +182,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return res.status(403).json({ error: 'الرجاء تفعيل إيميلك أولاً. تحقق من بريدك الإلكتروني لرابط التفعيل.' });
+    }
+
     // Update last seen
     await new Promise((resolve, reject) => {
       db.run('UPDATE users SET lastSeen = CURRENT_TIMESTAMP WHERE id = ?', [user.id], (err) => {
