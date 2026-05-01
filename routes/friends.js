@@ -215,15 +215,17 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get friends list
+// Get friends list with online status and profile
 router.get('/list', authenticateToken, async (req, res) => {
   try {
     const friends = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT u.id, u.username, u.publicId, u.wins, u.losses, u.draws
+        `SELECT u.id, u.username, u.publicId, u.wins, u.losses, u.draws,
+                u.isOnline, u.lastSeen, u.profileImage
          FROM friends f
          JOIN users u ON (f.user1Id = ? AND u.id = f.user2Id) OR (f.user2Id = ? AND u.id = f.user1Id)
-         WHERE f.user1Id = ? OR f.user2Id = ?`,
+         WHERE f.user1Id = ? OR f.user2Id = ?
+         ORDER BY u.isOnline DESC, u.lastSeen DESC`,
         [req.user.userId, req.user.userId, req.user.userId, req.user.userId],
         (err, rows) => {
           if (err) reject(err);
@@ -259,6 +261,55 @@ router.delete('/remove/:friendId', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Remove friend error:', error);
     res.status(500).json({ error: 'Failed to remove friend' });
+  }
+});
+
+// Update profile image
+router.post('/profile-image', authenticateToken, async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+    // Limit image size (base64 can be large)
+    if (image.length > 500000) {
+      return res.status(400).json({ error: 'Image too large. Max 500KB allowed.' });
+    }
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE users SET profileImage = ? WHERE id = ?',
+        [image, req.user.userId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+    res.json({ message: 'Profile image updated' });
+  } catch (error) {
+    console.error('Update profile image error:', error);
+    res.status(500).json({ error: 'Failed to update profile image' });
+  }
+});
+
+// Update online status
+router.post('/status', authenticateToken, async (req, res) => {
+  try {
+    const { isOnline } = req.body;
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE users SET isOnline = ?, lastSeen = CURRENT_TIMESTAMP WHERE id = ?',
+        [isOnline ? 1 : 0, req.user.userId],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+    res.json({ message: 'Status updated', isOnline: !!isOnline });
+  } catch (error) {
+    console.error('Update status error:', error);
+    res.status(500).json({ error: 'Failed to update status' });
   }
 });
 
