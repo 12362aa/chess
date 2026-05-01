@@ -688,33 +688,32 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <div id="s-account" class="screen">
   <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
     <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
-      <h2><span class="ic-gold">👤</span> الحساب</h2>
-      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
-        <div class="sr-n">تسجيل الدخول</div>
-        <div class="sr-d">سجّل دخولك لمزامنة تقدم مراحل نور بين الأجهزة</div>
-        <div id="acc-user" style="display:none;width:100%;gap:10px;align-items:flex-start;">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <div id="acc-photo" style="width:50px;height:50px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;position:relative;" onclick="document.getElementById('profile-image-input-acc').click()">
-              <div style="position:absolute;bottom:0;right:0;background:var(--gold2);width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;">✎</div>
+      <h2><span class="ic-gold">👤</span> إدارة الحساب</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:12px;">
+        <div class="sr-n" style="font-size:15px;color:var(--gold2);">حساب اللاعب</div>
+        <div class="sr-d">قم بتسجيل الدخول لمزامنة تقدمك عبر جميع أجهزتك</div>
+        <div id="acc-user" style="display:none;width:100%;gap:12px;align-items:flex-start;padding:16px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:16px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <div id="acc-photo" style="width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,.2);border:3px solid rgba(201,168,76,.4);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;position:relative;box-shadow:0 4px 15px rgba(201,168,76,.2);" onclick="document.getElementById('profile-image-input-acc').click()">
+              <div style="position:absolute;bottom:2px;right:2px;background:var(--gold2);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#000;border:2px solid var(--bg2);">📷</div>
             </div>
-            <span style="font-size:9px;color:var(--text3);">اضغط لتغيير</span>
+            <span style="font-size:10px;color:var(--text3);font-weight:500;">تغيير الصورة</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:4px;flex:1;margin-top:4px;">
-            <div style="display:flex;flex-direction:column;gap:2px;">
-              <span style="font-size:10px;color:var(--text3);">اسم اللاعب (اضغط للتعديل)</span>
-              <div id="acc-name" style="font-weight:900;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:4px;background:rgba(201,168,76,.1);padding:6px 10px;border-radius:6px;border:1px solid rgba(201,168,76,.2);" onclick="editUsername()">
+          <div style="display:flex;flex-direction:column;gap:8px;flex:1;margin-top:4px;">
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <span style="font-size:11px;color:var(--text3);font-weight:500;">اسم اللاعب</span>
+              <div id="acc-name" style="font-weight:800;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;background:rgba(201,168,76,.12);padding:8px 12px;border-radius:10px;border:1px solid rgba(201,168,76,.25);font-size:15px;transition:all .2s;" onclick="editUsername()">
                 <span></span>
-                <span style="font-size:10px;color:var(--gold2);">✎</span>
+                <span style="font-size:12px;color:var(--gold2);margin-right:auto;">✎ تعديل</span>
               </div>
             </div>
-            <div id="acc-id" style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;"></div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px;">
-              <span style="font-size:11px;color:var(--text3);">معرّفك</span>
-              <span id="acc-pid" style="font-size:12px;color:var(--gold2);font-weight:900;direction:ltr;">—</span>
-              <button class="btnb" style="padding:5px 8px;font-size:11px;" onclick="if(window.FB&&FB.copyMyId)FB.copyMyId()">نسخ</button>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+              <span style="font-size:12px;color:var(--text3);font-weight:500;">المعرّف:</span>
+              <span id="acc-pid" style="font-size:14px;color:var(--gold2);font-weight:800;direction:ltr;background:rgba(201,168,76,.1);padding:4px 10px;border-radius:6px;">—</span>
+              <button class="btnp" style="padding:6px 12px;font-size:11px;border-radius:8px;" onclick="if(window.FB&&FB.copyMyId)FB.copyMyId()">📋 نسخ</button>
+              <button class="btnb" style="padding:6px 12px;font-size:11px;border-radius:8px;margin-right:auto;" onclick="if(window.FB&&FB.logout)FB.logout()">🚪 خروج</button>
             </div>
           </div>
-          <button class="btnb" style="padding:8px 10px;align-self:flex-start;" onclick="if(window.FB&&FB.logout)FB.logout()">تسجيل خروج</button>
           <input type="file" id="profile-image-input-acc" accept="image/*" style="display:none;" onchange="uploadProfileImage(this)">
         </div>
         <div id="edit-username-box" style="display:none;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
@@ -724,22 +723,22 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
             <button class="btnb" style="flex:1;" onclick="cancelEditUsername()">إلغاء</button>
           </div>
         </div>
-        <div id="acc-guest" style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
-          <input id="login-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
-          <input id="login-password" type="password" placeholder="كلمة المرور" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
-          <div style="display:flex;gap:10px;">
-            <button class="btnp" style="flex:1;" onclick="handleLogin()">تسجيل الدخول</button>
-            <button class="btnb" style="flex:1;" onclick="showSignup()">إنشاء حساب</button>
+        <div id="acc-guest" style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:100%;overflow:hidden;padding:16px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.15);border-radius:16px;">
+          <input id="login-email" type="email" placeholder="📧 البريد الإلكتروني" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--gold2)'" onblur="this.style.borderColor='rgba(201,168,76,.3)'">
+          <input id="login-password" type="password" placeholder="🔒 كلمة المرور" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--gold2)'" onblur="this.style.borderColor='rgba(201,168,76,.3)'">
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button class="btnp" style="flex:1;padding:12px;font-size:14px;border-radius:10px;" onclick="handleLogin()">🔐 تسجيل الدخول</button>
+            <button class="btnp" style="flex:1;padding:12px;font-size:14px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));" onclick="showSignup()">✨ إنشاء حساب</button>
           </div>
-          <button class="btnb" style="font-size:11px;padding:6px 10px;" onclick="showForgotPassword()">نسيت كلمة المرور؟</button>
+          <button class="btnb" style="font-size:12px;padding:10px;margin-top:4px;border-radius:10px;" onclick="showForgotPassword()">🔑 نسيت كلمة المرور؟</button>
         </div>
-        <div id="acc-signup" style="display:none;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
-          <input id="signup-username" type="text" placeholder="اسم المستخدم (3-20 حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
-          <input id="signup-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
-          <input id="signup-password" type="password" placeholder="كلمة المرور (6+ حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
-          <div style="display:flex;gap:10px;">
-            <button class="btnp" style="flex:1;" onclick="handleSignup()">إنشاء الحساب</button>
-            <button class="btnb" style="flex:1;" onclick="showLogin()">عودة</button>
+        <div id="acc-signup" style="display:none;flex-direction:column;gap:12px;width:100%;max-width:100%;overflow:hidden;padding:16px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);border-radius:16px;">
+          <input id="signup-username" type="text" placeholder="👤 اسم المستخدم (3-20 حرف)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(45,212,191,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(45,212,191,.3)'">
+          <input id="signup-email" type="email" placeholder="📧 البريد الإلكتروني" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(45,212,191,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(45,212,191,.3)'">
+          <input id="signup-password" type="password" placeholder="🔒 كلمة المرور (6+ أحرف)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(45,212,191,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(45,212,191,.3)'">
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button class="btnp" style="flex:1;padding:12px;font-size:14px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));" onclick="handleSignup()">✨ إنشاء الحساب</button>
+            <button class="btnb" style="flex:1;padding:12px;font-size:14px;border-radius:10px;" onclick="showLogin()">⬅️ عودة</button>
           </div>
         </div>
         <div id="acc-status" style="font-size:11px;color:var(--text2);line-height:1.4;"></div>
@@ -1038,6 +1037,33 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   </div>
 </div>
 
+<!-- CUSTOM ALERT/MODAL -->
+<div id="custom-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:950;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg2);border:2px solid var(--gold2);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 100px rgba(201,168,76,.2),0 40px 80px rgba(0,0,0,.6);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
+    <div id="modal-icon" style="font-size:52px;margin-bottom:16px;display:block;">📢</div>
+    <div id="modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">تنبيه</div>
+    <div id="modal-message" style="font-size:15px;color:var(--text);line-height:1.7;margin-bottom:24px;"></div>
+    <div id="modal-buttons" style="display:flex;gap:12px;justify-content:center;">
+      <button id="modal-btn-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">موافق</button>
+      <button id="modal-btn-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;display:none;">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM INPUT MODAL (for forgot password) -->
+<div id="input-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:960;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg2);border:2px solid var(--gold2);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 100px rgba(201,168,76,.2),0 40px 80px rgba(0,0,0,.6);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
+    <div id="input-modal-icon" style="font-size:52px;margin-bottom:16px;display:block;">📧</div>
+    <div id="input-modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">إعادة تعيين كلمة المرور</div>
+    <div id="input-modal-message" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;">أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين</div>
+    <input id="input-modal-field" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:20px;text-align:center;direction:ltr;">
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="input-modal-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">إرسال</button>
+      <button id="input-modal-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <!-- REVIEW OVERLAY -->
 <div id="review-ov">
   <div class="rv-topbar">
@@ -1320,14 +1346,14 @@ const Cfg={
       this.data.playerImage=e.target.result;
       try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
       this._updateAvatar(this.data.playerName);
-      alert('تم تحميل الصورة، اضغط "تطبيق الصورة" لحفظها.');
+      Modal.show('تم تحميل الصورة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','🖼️');
     };
     reader.readAsDataURL(file);
   },
   applyProfileImage(){
-    if(!this.data.playerImage) return alert('لم تختر صورة بعد');
+    if(!this.data.playerImage) return Modal.show('لم تختر صورة بعد','تنبيه','⚠️');
     this._updateProfileImage();
-    alert('تم تطبيق صورة الملف الشخصي');
+    Modal.show('تم تطبيق صورة الملف الشخصي','تم','✅');
     if(S.mode==='online'){
       OL.sendPimg(this.data.playerImage);
     }
@@ -1399,7 +1425,7 @@ const Cfg={
     this.data.playerImage='';
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
     this._updateAvatar(this.data.playerName);
-    alert('تم حذف صورة الملف الشخصي');
+    Modal.show('تم حذف صورة الملف الشخصي','تم','🗑️');
   },
   prepareCustomBoardImage(fileInput){
     const file=fileInput.files[0];
@@ -1408,14 +1434,14 @@ const Cfg={
     reader.onload=(e)=>{
       this.data.customBoardImage=e.target.result;
       try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
-      alert('تم تحميل صورة الرقعة، اضغط "تطبيق الصورة" لحفظها.');
+      Modal.show('تم تحميل صورة الرقعة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','🖼️');
     };
     reader.readAsDataURL(file);
   },
   applyCustomBoardImage(){
-    if(!this.data.customBoardImage) return alert('لم تختر صورة بعد');
+    if(!this.data.customBoardImage) return Modal.show('لم تختر صورة بعد','تنبيه','⚠️');
     if(this.data.boardTheme==='custom')this.theme('custom');
-    alert('تم تطبيق صورة الرقعة');
+    Modal.show('تم تطبيق صورة الرقعة','تم','✅');
   }
 };
 
@@ -1510,6 +1536,60 @@ const LEVELS_DEF=[
   {id:10, name:'الإمبراطور',   icon:'♝',depth:15,skill:28,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
   {id:11, name:'الخالد',       icon:'♜',depth:20,skill:30,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
 ];
+// ══════════════════════════════════════
+// CUSTOM MODAL SYSTEM (replacing alert/confirm)
+// ══════════════════════════════════════
+const Modal={
+  show(message,title='تنبيه',icon='📢',onOk=null){
+    const modal=document.getElementById('custom-modal');
+    const titleEl=document.getElementById('modal-title');
+    const msgEl=document.getElementById('modal-message');
+    const iconEl=document.getElementById('modal-icon');
+    const okBtn=document.getElementById('modal-btn-ok');
+    const cancelBtn=document.getElementById('modal-btn-cancel');
+    if(!modal)return;
+    titleEl.textContent=title;
+    msgEl.textContent=message;
+    iconEl.textContent=icon;
+    cancelBtn.style.display='none';
+    okBtn.textContent='موافق';
+    okBtn.onclick=()=>{
+      if(typeof SFX!=='undefined')SFX.btn();
+      modal.style.display='none';
+      if(onOk)onOk();
+    };
+    modal.style.display='flex';
+    if(typeof SFX!=='undefined')SFX.btn();
+  },
+  confirm(message,title='تأكيد',icon='❓',onOk=null,onCancel=null){
+    const modal=document.getElementById('custom-modal');
+    const titleEl=document.getElementById('modal-title');
+    const msgEl=document.getElementById('modal-message');
+    const iconEl=document.getElementById('modal-icon');
+    const okBtn=document.getElementById('modal-btn-ok');
+    const cancelBtn=document.getElementById('modal-btn-cancel');
+    if(!modal)return;
+    titleEl.textContent=title;
+    msgEl.textContent=message;
+    iconEl.textContent=icon;
+    cancelBtn.style.display='inline-block';
+    cancelBtn.textContent='إلغاء';
+    okBtn.textContent='تأكيد';
+    okBtn.onclick=()=>{
+      if(typeof SFX!=='undefined')SFX.btn();
+      modal.style.display='none';
+      if(onOk)onOk();
+    };
+    cancelBtn.onclick=()=>{
+      if(typeof SFX!=='undefined')SFX.btn();
+      modal.style.display='none';
+      if(onCancel)onCancel();
+    };
+    modal.style.display='flex';
+    if(typeof SFX!=='undefined')SFX.btn();
+  }
+};
+
 const LVL={
   get(){try{return JSON.parse(localStorage.getItem('chess-lvl-v6')||'{}');}catch(e){return{};}},
   save(id,stars,moves){
@@ -2405,7 +2485,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
 
   return{
     async open(){
-      if(S.hist.length<4){alert('المباراة قصيرة جداً للتقييم');return;}
+      if(S.hist.length<4){Modal.show('المباراة قصيرة جداً للتقييم - يجب 4 حركات على الأقل','تنبيه','⚠️');return;}
       _coachCache={};
       document.getElementById('review-ov').classList.add('open');
       document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>`;
@@ -2737,7 +2817,7 @@ const G={
     S.snapshots=[];
     S.preMove=null;S.preMoveSelFr=null;
     S.undoStack=[];
-    S.oppImg=null;
+    if(S.oppImg) S.oppImg = S.oppImg; // Don't reset oppImg if it's already set (from WebSocket)
     AST.clear();
     R.boardReset();
     CHAT.hide();
@@ -3047,7 +3127,16 @@ const G={
   },
   back(){
     SFX.btn();S.busy=false;AST.clear();
-    if(Cfg.data.confirm&&!S.over&&S.hist.length>0&&!confirm('تريد الخروج من اللعبة؟'))return;
+    if(Cfg.data.confirm&&!S.over&&S.hist.length>0){
+      Modal.confirm('تريد الخروج من اللعبة؟','تأكيد الخروج','❓',
+        ()=>{this._continueBack();},
+        ()=>{/* cancel - do nothing */}
+      );
+      return;
+    }
+    this._continueBack();
+  },
+  _continueBack(){
     if(S.mode==='online'&&!S.over){
       S.over=true;
       if(S.mode==='online')OL.sendResign();
@@ -3832,23 +3921,25 @@ window.FB={
 
   async sendFriendRequest(){
     if(!this._user){
-      console.log('sendFriendRequest: No user logged in');
+      console.log('❌ sendFriendRequest: No user logged in');
       return;
     }
     this._setFriendStatus('');
     const inp=this._el('fr-inp');
     const pid=(inp?.value||'').trim().toUpperCase();
-    console.log('sendFriendRequest: Sending request to', pid, 'myPublicId:', this._myPublicId);
-    if(!pid){this._setFriendStatus('أدخل ID أولاً');return;}
-    if(pid===this._myPublicId){this._setFriendStatus('لا يمكنك إضافة نفسك');return;}
+    console.log('📤 sendFriendRequest: Attempting to send to', pid, '| myPublicId:', this._myPublicId, '| API_BASE:', this.API_BASE);
+    if(!pid){this._setFriendStatus('⚠️ أدخل ID أولاً');return;}
+    if(pid===this._myPublicId){this._setFriendStatus('⚠️ لا يمكنك إضافة نفسك');return;}
     this._setFriendStatus('◌ جاري الإرسال...');
     try{
-      await this._api('/friends/request','POST',{publicId:pid});
-      if(inp)inp.value='';
-      this._setFriendStatus('✓ تم إرسال الطلب');
+      const result=await this._api('/friends/request','POST',{publicId:pid});
+      console.log('✅ sendFriendRequest: Success! Server response:', result);
+      this._setFriendStatus('✓ تم إرسال الطلب بنجاح');
       await this._loadFriends();
+      // Clear input
+      if(inp)inp.value='';
     }catch(e){
-      console.error('sendFriendRequest error:', e);
+      console.error('❌ sendFriendRequest error:', e);
       this._setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
     }
   },
@@ -3894,32 +3985,67 @@ window.FB={
     }
   },
 
+  _prevRequestCount:0,
+
   async _renderFriendRequests(reqs){
     const box=this._el('fr-reqs');
     if(!box)return;
+
+    // Check for new requests
+    const hasNewRequests=reqs.length>this._prevRequestCount;
+    this._prevRequestCount=reqs.length;
+
+    // Notify if new requests arrived
+    if(hasNewRequests&&reqs.length>0){
+      // Play notification sound
+      try{SFX.error();}catch(e){}
+      // Show browser notification if allowed
+      if(Notification&&Notification.permission==='granted'){
+        new Notification('طلب صداقة جديد',{body:`لديك ${reqs.length} طلب صداقة في انتظار القبول`});
+      }
+    }
+
     box.innerHTML='';
     if(!reqs.length){
       const e=document.createElement('div');
       e.style.fontSize='12px';e.style.color='var(--text3)';
       e.textContent='لا توجد طلبات حالياً';
       box.appendChild(e);
+      this._prevRequestCount=0;
       return;
     }
+
+    // Add header with count
+    const header=document.createElement('div');
+    header.style.cssText='font-size:11px;color:var(--accent);margin-bottom:8px;font-weight:bold;';
+    header.textContent=`📬 ${reqs.length} طلب${reqs.length>1?'ات':' صداقة'} في الانتظار`;
+    box.appendChild(header);
+
     reqs.forEach(r=>{
       const row=document.createElement('div');
-      row.style.display='flex';row.style.gap='10px';row.style.alignItems='center';
-      row.style.padding='10px';row.style.border='1px solid rgba(201,168,76,.18)';
-      row.style.borderRadius='12px';row.style.background='rgba(255,255,255,.03)';
+      row.style.cssText='display:flex;gap:10px;align-items:center;padding:12px;border:1px solid rgba(201,168,76,.3);border-radius:12px;background:rgba(201,168,76,.08);margin-bottom:8px;animation:slideIn 0.3s ease;';
+
       const left=document.createElement('div');
       left.style.flex='1';
-      left.innerHTML=`<div style="font-weight:900;color:var(--text);">طلب صداقة</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;">ID: ${(r.publicId||'—')}</div>`;
+      left.innerHTML=`<div style="font-weight:900;color:var(--text);font-size:14px;">👤 ${r.username||'لاعب'}</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;margin-top:2px;">ID: ${(r.publicId||'—')}</div>`;
+
+      const btnGroup=document.createElement('div');
+      btnGroup.style.cssText='display:flex;gap:6px;';
+
       const a=document.createElement('button');
-      a.className='btnp';a.style.padding='8px 10px';a.textContent='قبول';
+      a.className='btnp';a.style.cssText='padding:8px 14px;font-size:12px;border-radius:8px;';
+      a.textContent='✓ قبول';
       a.onclick=async()=>{a.disabled=true;try{await this._acceptFriendRequest(r.id);}catch(e){}a.disabled=false;};
+
       const d=document.createElement('button');
-      d.className='btnb';d.style.padding='8px 10px';d.textContent='رفض';
+      d.className='btnb';d.style.cssText='padding:8px 14px;font-size:12px;border-radius:8px;';
+      d.textContent='✕ رفض';
       d.onclick=async()=>{d.disabled=true;try{await this._declineFriendRequest(r.id);}catch(e){}d.disabled=false;};
-      row.appendChild(left);row.appendChild(a);row.appendChild(d);
+
+      btnGroup.appendChild(a);
+      btnGroup.appendChild(d);
+      row.appendChild(left);
+      row.appendChild(btnGroup);
       box.appendChild(row);
     });
   },
@@ -4100,6 +4226,8 @@ window.FB={
     }
   },
 
+  _challengeModalOpen:false,
+
   _startWatching(){
     this._stopWatching();
     this._loadFriends();
@@ -4115,18 +4243,34 @@ window.FB={
           this._updateOnlineStatus(true);
         }
 
+        // Skip challenge check if modal is already open
+        if(this._challengeModalOpen) return;
+
         // Check for challenges
         const data=await this._api('/challenges/pending');
         if(data.challenges&&data.challenges.length>0){
           const ch=data.challenges[0];
-          const accept=confirm(`📢 لديك تحدي جديد من ${ch.username}\n\nهل تريد قبول التحدي واللعب الآن؟`);
-          if(accept){
-            const res=await this._api(`/challenges/accept/${ch.matchId}`,'POST');
-            // Use matchId as direct room code - join immediately
-            this._olJoinDirectRoom(res.roomCode || ch.matchId, res.opponent);
-          }else{
-            await this._api(`/challenges/decline/${ch.matchId}`,'POST');
-          }
+          this._challengeModalOpen=true;
+          Modal.confirm(
+            `📢 لديك تحدي جديد من ${ch.username}\n\nهل تريد قبول التحدي واللعب الآن؟`,
+            'تحدي جديد',
+            '⚔️',
+            async ()=>{
+              // Accept
+              try{
+                const res=await this._api(`/challenges/accept/${ch.matchId}`,'POST');
+                this._olJoinDirectRoom(res.roomCode || ch.matchId, res.opponent);
+              }catch(e){console.error('Accept challenge error:',e);}
+              this._challengeModalOpen=false;
+            },
+            async ()=>{
+              // Decline
+              try{
+                await this._api(`/challenges/decline/${ch.matchId}`,'POST');
+              }catch(e){console.error('Decline challenge error:',e);}
+              this._challengeModalOpen=false;
+            }
+          );
         }
 
         // Refresh friends list to get updated online status
@@ -4160,6 +4304,10 @@ window.FB={
       if(opponent){
         Cfg.data.opponentName = opponent.username;
         Cfg.data.opponentPublicId = opponent.publicId;
+        // Set opponent image for the game
+        if(opponent.profileImage){
+          S.oppImg = opponent.profileImage;
+        }
       }
       // Join the room directly
       setTimeout(()=>{
@@ -4184,12 +4332,15 @@ window.FB={
     const u=this._user;
     const userBox=this._el('acc-user');
     const guestBox=this._el('acc-guest');
+    const signupBox=this._el('acc-signup');
     const nameEl=this._el('acc-name');
     const idEl=this._el('acc-id');
     const photoEl=this._el('acc-photo');
     if(u){
+      // User logged in - show user box, hide guest & signup
       if(userBox)userBox.style.display='flex';
       if(guestBox)guestBox.style.display='none';
+      if(signupBox)signupBox.style.display='none';
       if(nameEl)nameEl.textContent=u.username||'لاعب';
       if(idEl)idEl.textContent='';
       const pidEl=this._el('acc-pid');
@@ -4203,7 +4354,9 @@ window.FB={
         }
       }
     }else{
+      // User not logged in - show guest box, hide user & signup
       if(userBox)userBox.style.display='none';
+      if(signupBox)signupBox.style.display='none';
       if(guestBox)guestBox.style.display='flex';
     }
   },
@@ -4247,16 +4400,32 @@ function showSignup(){
 }
 
 function showForgotPassword(){
-  const email=prompt('أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور:');
-  if(email){
+  const modal=document.getElementById('input-modal');
+  const field=document.getElementById('input-modal-field');
+  const okBtn=document.getElementById('input-modal-ok');
+  const cancelBtn=document.getElementById('input-modal-cancel');
+  if(!modal)return;
+  field.value='';
+  modal.style.display='flex';
+  if(typeof SFX!=='undefined')SFX.btn();
+  field.focus();
+  okBtn.onclick=()=>{
+    const email=field.value.trim();
+    if(!email)return;
+    modal.style.display='none';
+    if(typeof SFX!=='undefined')SFX.btn();
     if(window.FB && window.FB._api){
       window.FB._api('/auth/forgot-password','POST',{email})
-        .then(d=>alert(d.message||'تم إرسال الرابط إذا كان البريد موجوداً'))
-        .catch(e=>alert('حدث خطأ. تأكد أن السيرفر يعمل'));
+        .then(d=>Modal.show(d.message||'تم إرسال الرابط إذا كان البريد موجوداً','تم','✅'))
+        .catch(e=>Modal.show('حدث خطأ. تأكد أن السيرفر يعمل','خطأ','❌'));
     }else{
-      alert('FB module not loaded');
+      Modal.show('وحدة FB غير محملة','خطأ','❌');
     }
-  }
+  };
+  cancelBtn.onclick=()=>{
+    if(typeof SFX!=='undefined')SFX.btn();
+    modal.style.display='none';
+  };
 }
 
 function editUsername(){
@@ -4287,16 +4456,16 @@ async function saveUsername(){
       Cfg.saveData();
       window.FB.refreshUI();
       cancelEditUsername();
-      alert('تم تحديث اسم المستخدم');
+      Modal.show('تم تحديث اسم المستخدم','تم','✅');
     }catch(e){
       if(e.message && (e.message.includes('token') || e.message.includes('Token'))){
-        alert('انتهت صلاحية الجلسة. يرجى تسجيل الخروج وإعادة تسجيل الدخول.');
+        Modal.show('انتهت صلاحية الجلسة. يرجى تسجيل الخروج وإعادة تسجيل الدخول.','خطأ','⚠️');
         // Clear stored credentials
         localStorage.removeItem('chess_token');
         localStorage.removeItem('chess_user');
         window.FB.logout();
       }else{
-        alert('فشل تحديث اسم المستخدم: '+e.message);
+        Modal.show('فشل تحديث اسم المستخدم: '+e.message,'خطأ','❌');
       }
     }
   }
@@ -4320,14 +4489,14 @@ async function uploadProfileImage(input){
           // Compress image if too large (max 500KB for base64)
           let uploadData=imageData;
           if(uploadData.length>500000){
-            alert('الصورة كبيرة جداً. يتم رفعها محلياً فقط.');
+            Modal.show('الصورة كبيرة جداً. يتم رفعها محلياً فقط.','تنبيه','⚠️');
           }else{
             await window.FB._api('/friends/profile-image','POST',{image:uploadData});
           }
         }catch(e){/* silent fail - local image works */}
       }
 
-      alert('تم تحديث الصورة الرمزية');
+      Modal.show('تم تحديث الصورة الرمزية','تم','✅');
     };
     reader.readAsDataURL(input.files[0]);
   }
@@ -4339,7 +4508,7 @@ async function handleLogin(){
   const password=document.getElementById('login-password').value;
   console.log('email:',email,'password:',password?'***':'empty');
   if(!email||!password){
-    alert('أدخل البريد الإلكتروني وكلمة المرور');
+    Modal.show('أدخل البريد الإلكتروني وكلمة المرور','تنبيه','⚠️');
     return;
   }
   console.log('window.FB:',window.FB);
@@ -4348,7 +4517,7 @@ async function handleLogin(){
     await FB.login(email,password);
   }else{
     console.error('FB.login not available');
-    alert('FB module not loaded. Check console for errors.');
+    Modal.show('وحدة FB غير محملة','خطأ','❌');
   }
 }
 
@@ -4359,7 +4528,7 @@ async function handleSignup(){
   const password=document.getElementById('signup-password').value;
   console.log('username:',username,'email:',email,'password:',password?'***':'empty');
   if(!username||!email||!password){
-    alert('أدخل جميع الحقول المطلوبة');
+    Modal.show('أدخل جميع الحقول المطلوبة','تنبيه','⚠️');
     return;
   }
   console.log('window.FB:',window.FB);
