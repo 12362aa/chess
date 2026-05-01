@@ -104,48 +104,17 @@ router.post('/register', async (req, res) => {
       });
     });
 
-    // Send verification email
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      try {
-        const transporter = nodemailer.createTransport({
-          host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-          port: process.env.EMAIL_PORT || 587,
-          secure: false,
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-          }
-        });
-
-        const verificationUrl = `${process.env.FRONTEND_URL || 'https://12362aa.github.io/chess'}/verify-email?token=${verificationToken}`;
-
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: 'تحقق من إيميلك - لعبة الشطرنج',
-          html: `
-            <h2 style="text-align: right; direction: rtl;">مرحباً بك في لعبة الشطرنج!</h2>
-            <p style="text-align: right; direction: rtl;">مرحباً ${username}،</p>
-            <p style="text-align: right; direction: rtl;">يرجى التحقق من عنوان إيميلك بالضغط على الرابط أدناه:</p>
-            <a href="${verificationUrl}" style="background: #c9a84c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">تحقق من الإيميل</a>
-            <p style="text-align: right; direction: rtl;">هذا الرابط سينتهي صلاحيته خلال 24 ساعة.</p>
-            <p style="text-align: right; direction: rtl;">إذا لم تقم بإنشاء هذا الحساب، يرجى تجاهل هذا الإيميل.</p>
-          `
-        });
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-      }
-    } else {
-      console.log('Email not configured - verification token saved but not sent:', verificationToken);
-    }
-
-    // Do NOT generate token until email is verified
-    // User must verify email before they can login
+    // Generate token immediately - no email verification required
+    const token = jwt.sign(
+      { userId, username, publicId },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
 
     res.status(201).json({
-      message: 'تم إنشاء الحساب. يرجى التحقق من إيميلك لتفعيل الحساب.',
-      requiresVerification: true,
-      user: { userId, username, publicId, emailVerified: false }
+      message: 'تم إنشاء الحساب بنجاح!',
+      token,
+      user: { userId, username, publicId, nourProgress: -1, stats: { wins: 0, losses: 0, draws: 0 } }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -178,10 +147,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
-      return res.status(403).json({ error: 'الرجاء تفعيل إيميلك أولاً. تحقق من بريدك الإلكتروني لرابط التفعيل.' });
-    }
+    // Email verification removed - login allowed immediately
 
     // Update last seen
     await new Promise((resolve, reject) => {
