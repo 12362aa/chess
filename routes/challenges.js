@@ -85,7 +85,7 @@ router.get('/pending', authenticateToken, async (req, res) => {
   }
 });
 
-// Accept challenge
+// Accept challenge - no room needed, direct match
 router.post('/accept/:matchId', authenticateToken, async (req, res) => {
   try {
     const { matchId } = req.params;
@@ -106,14 +106,12 @@ router.post('/accept/:matchId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Challenge not found' });
     }
 
-    // Generate room code
-    const roomCode = crypto.randomBytes(4).toString('hex').toUpperCase();
-
+    // Use matchId as room code - no separate room creation needed
     // Update challenge
     await new Promise((resolve, reject) => {
       db.run(
         'UPDATE challenges SET status = ?, roomCode = ?, acceptedAt = CURRENT_TIMESTAMP, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
-        ['accepted', roomCode, challenge.id],
+        ['accepted', matchId, challenge.id],
         (err) => {
           if (err) reject(err);
           else resolve();
@@ -121,7 +119,19 @@ router.post('/accept/:matchId', authenticateToken, async (req, res) => {
       );
     });
 
-    res.json({ message: 'Challenge accepted', roomCode, matchId });
+    // Get opponent info for the response
+    const opponent = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT username, publicId FROM users WHERE id = ?',
+        [challenge.fromUserId],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    res.json({ message: 'Challenge accepted', roomCode: matchId, matchId, opponent });
   } catch (error) {
     console.error('Accept challenge error:', error);
     res.status(500).json({ error: 'Failed to accept challenge' });
