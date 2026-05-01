@@ -30,7 +30,7 @@ async function getUniquePublicId() {
     });
     if (!exists) return pid;
   }
-  throw new Error('Failed to generate unique public ID');
+  throw new Error('فشل إنشاء معرف فريد');
 }
 
 // Register
@@ -39,15 +39,15 @@ router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
     }
 
     if (username.length < 3 || username.length > 20) {
-      return res.status(400).json({ error: 'Username must be 3-20 characters' });
+      return res.status(400).json({ error: 'يجب أن يكون اسم المستخدم بين 3-20 حرفاً' });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      return res.status(400).json({ error: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل' });
     }
 
     // Check if username exists
@@ -59,7 +59,7 @@ router.post('/register', async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
+      return res.status(400).json({ error: 'اسم المستخدم موجود مسبقاً' });
     }
 
     // Check if email exists
@@ -71,7 +71,7 @@ router.post('/register', async (req, res) => {
     });
 
     if (existingEmail) {
-      return res.status(400).json({ error: 'Email already exists' });
+      return res.status(400).json({ error: 'البريد الإلكتروني موجود مسبقاً' });
     }
 
     // Hash password
@@ -118,7 +118,7 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ error: 'فشل إنشاء الحساب' });
   }
 });
 
@@ -128,7 +128,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'البريد الإلكتروني وكلمة المرور مطلوبان' });
     }
 
     const user = await new Promise((resolve, reject) => {
@@ -139,12 +139,12 @@ router.post('/login', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' });
     }
 
     // Email verification removed - login allowed immediately
@@ -164,7 +164,7 @@ router.post('/login', async (req, res) => {
     );
 
     res.json({
-      message: 'Login successful',
+      message: 'تم تسجيل الدخول بنجاح',
       token,
       user: {
         userId: user.id,
@@ -176,7 +176,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ error: 'فشل تسجيل الدخول' });
   }
 });
 
@@ -191,7 +191,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'المستخدم غير موجود' });
     }
 
     res.json({
@@ -208,7 +208,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({ error: 'Failed to get user data' });
+    res.status(500).json({ error: 'فشل جلب بيانات المستخدم' });
   }
 });
 
@@ -218,7 +218,7 @@ router.put('/username', authenticateToken, async (req, res) => {
     const { username } = req.body;
 
     if (!username || username.length < 3 || username.length > 20) {
-      return res.status(400).json({ error: 'Username must be 3-20 characters' });
+      return res.status(400).json({ error: 'يجب أن يكون اسم المستخدم بين 3-20 حرفاً' });
     }
 
     // Check if username exists
@@ -230,7 +230,7 @@ router.put('/username', authenticateToken, async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
+      return res.status(400).json({ error: 'اسم المستخدم موجود مسبقاً' });
     }
 
     await new Promise((resolve, reject) => {
@@ -240,10 +240,10 @@ router.put('/username', authenticateToken, async (req, res) => {
       });
     });
 
-    res.json({ message: 'Username updated successfully' });
+    res.json({ message: 'تم تحديث اسم المستخدم بنجاح' });
   } catch (error) {
     console.error('Update username error:', error);
-    res.status(500).json({ error: 'Failed to update username' });
+    res.status(500).json({ error: 'فشل تحديث اسم المستخدم' });
   }
 });
 
@@ -253,7 +253,7 @@ router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+      return res.status(400).json({ error: 'البريد الإلكتروني مطلوب' });
     }
 
     const user = await new Promise((resolve, reject) => {
@@ -264,8 +264,8 @@ router.post('/forgot-password', async (req, res) => {
     });
 
     if (!user) {
-      // Don't reveal if email exists
-      return res.json({ message: 'If the email exists, a reset link will be sent' });
+      // Don't reveal if email exists - use generic message in Arabic
+      return res.json({ message: 'تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني إذا كان مسجلاً في نظامنا' });
     }
 
     // Generate reset token
@@ -323,10 +323,10 @@ router.post('/forgot-password', async (req, res) => {
       console.log('Reset token saved but email not sent:', resetToken);
     }
 
-    res.json({ message: 'If the email exists, a reset link will be sent' });
+    res.json({ message: 'تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني إذا كان مسجلاً في نظامنا' });
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({ error: 'Failed to process request' });
+    res.status(500).json({ error: 'حدث خطأ في معالجة الطلب' });
   }
 });
 
@@ -336,7 +336,7 @@ router.post('/verify-email', async (req, res) => {
     const { token } = req.body;
 
     if (!token) {
-      return res.status(400).json({ error: 'Token is required' });
+      return res.status(400).json({ error: 'الرمز مطلوب' });
     }
 
     const user = await new Promise((resolve, reject) => {
@@ -351,7 +351,7 @@ router.post('/verify-email', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ error: 'Invalid or expired token' });
+      return res.status(400).json({ error: 'رمز غير صالح أو منتهي الصلاحية' });
     }
 
     await new Promise((resolve, reject) => {
@@ -365,10 +365,10 @@ router.post('/verify-email', async (req, res) => {
       );
     });
 
-    res.json({ message: 'Email verified successfully' });
+    res.json({ message: 'تم التحقق من البريد الإلكتروني بنجاح' });
   } catch (error) {
     console.error('Verify email error:', error);
-    res.status(500).json({ error: 'Failed to verify email' });
+    res.status(500).json({ error: 'فشل التحقق من البريد الإلكتروني' });
   }
 });
 
@@ -383,11 +383,11 @@ router.post('/resend-verification', authenticateToken, async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'المستخدم غير موجود' });
     }
 
     if (user.emailVerified) {
-      return res.status(400).json({ error: 'Email already verified' });
+      return res.status(400).json({ error: 'تم التحقق من البريد الإلكتروني مسبقاً' });
     }
 
     // Generate new verification token
@@ -432,15 +432,10 @@ router.post('/resend-verification', authenticateToken, async (req, res) => {
             <p style="text-align: right; direction: rtl;">هذا الرابط سينتهي صلاحيته خلال 24 ساعة.</p>
           `
         });
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-      }
-    }
-
-    res.json({ message: 'Verification email sent' });
+    res.json({ message: 'تم إرسال بريد التحقق' });
   } catch (error) {
     console.error('Resend verification error:', error);
-    res.status(500).json({ error: 'Failed to resend verification email' });
+    res.status(500).json({ error: 'فشل إعادة إرسال بريد التحقق' });
   }
 });
 
@@ -450,11 +445,11 @@ router.post('/reset-password', async (req, res) => {
     const { token, password } = req.body;
 
     if (!token || !password) {
-      return res.status(400).json({ error: 'Token and password are required' });
+      return res.status(400).json({ error: 'الرمز وكلمة المرور مطلوبان' });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      return res.status(400).json({ error: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل' });
     }
 
     const resetData = await new Promise((resolve, reject) => {
@@ -469,7 +464,7 @@ router.post('/reset-password', async (req, res) => {
     });
 
     if (!resetData) {
-      return res.status(400).json({ error: 'Invalid or expired token' });
+      return res.status(400).json({ error: 'رمز غير صالح أو منتهي الصلاحية' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -488,10 +483,10 @@ router.post('/reset-password', async (req, res) => {
       });
     });
 
-    res.json({ message: 'Password reset successfully' });
+    res.json({ message: 'تم إعادة تعيين كلمة المرور بنجاح' });
   } catch (error) {
     console.error('Reset password error:', error);
-    res.status(500).json({ error: 'Failed to reset password' });
+    res.status(500).json({ error: 'فشل إعادة تعيين كلمة المرور' });
   }
 });
 
