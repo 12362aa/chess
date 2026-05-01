@@ -432,6 +432,12 @@ router.post('/resend-verification', authenticateToken, async (req, res) => {
             <p style="text-align: right; direction: rtl;">هذا الرابط سينتهي صلاحيته خلال 24 ساعة.</p>
           `
         });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError.message);
+        // Continue anyway - token is still saved
+      }
+    }
+
     res.json({ message: 'تم إرسال بريد التحقق' });
   } catch (error) {
     console.error('Resend verification error:', error);
