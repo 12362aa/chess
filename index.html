@@ -692,23 +692,29 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
         <div class="sr-n">تسجيل الدخول</div>
         <div class="sr-d">سجّل دخولك لمزامنة تقدم مراحل نور بين الأجهزة</div>
-        <div id="acc-user" style="display:none;width:100%;gap:10px;align-items:center;">
-          <div id="acc-photo" style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;position:relative;" onclick="document.getElementById('profile-image-input-acc').click()">
-            <div style="position:absolute;bottom:0;right:0;background:var(--gold2);width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;">✎</div>
+        <div id="acc-user" style="display:none;width:100%;gap:10px;align-items:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div id="acc-photo" style="width:50px;height:50px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;position:relative;" onclick="document.getElementById('profile-image-input-acc').click()">
+              <div style="position:absolute;bottom:0;right:0;background:var(--gold2);width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;">✎</div>
+            </div>
+            <span style="font-size:9px;color:var(--text3);">اضغط لتغيير</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
-            <div id="acc-name" style="font-weight:900;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="editUsername()">
-              <span></span>
-              <span style="font-size:10px;color:var(--gold2);">✎</span>
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;margin-top:4px;">
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-size:10px;color:var(--text3);">اسم اللاعب (اضغط للتعديل)</span>
+              <div id="acc-name" style="font-weight:900;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:4px;background:rgba(201,168,76,.1);padding:6px 10px;border-radius:6px;border:1px solid rgba(201,168,76,.2);" onclick="editUsername()">
+                <span></span>
+                <span style="font-size:10px;color:var(--gold2);">✎</span>
+              </div>
             </div>
             <div id="acc-id" style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;"></div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px;">
               <span style="font-size:11px;color:var(--text3);">معرّفك</span>
               <span id="acc-pid" style="font-size:12px;color:var(--gold2);font-weight:900;direction:ltr;">—</span>
               <button class="btnb" style="padding:5px 8px;font-size:11px;" onclick="if(window.FB&&FB.copyMyId)FB.copyMyId()">نسخ</button>
             </div>
           </div>
-          <button class="btnb" style="padding:8px 10px;" onclick="if(window.FB&&FB.logout)FB.logout()">تسجيل خروج</button>
+          <button class="btnb" style="padding:8px 10px;align-self:flex-start;" onclick="if(window.FB&&FB.logout)FB.logout()">تسجيل خروج</button>
           <input type="file" id="profile-image-input-acc" accept="image/*" style="display:none;" onchange="uploadProfileImage(this)">
         </div>
         <div id="edit-username-box" style="display:none;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
@@ -1265,9 +1271,16 @@ const Cfg={
     this.data.check   =document.getElementById('set-check').checked;
     this.data.score   =document.getElementById('set-score').checked;
     this.data.confirm =document.getElementById('set-confirm').checked;
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+    this._persist();
     this.apply();
-    if(S.bd)R.all();
+  },
+  // Save data directly without reading from HTML elements
+  saveData(){
+    this._persist();
+    this.apply();
+  },
+  _persist(){
+    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
   },
   apply(){
     document.getElementById('set-sound').checked   =this.data.sound;
@@ -3704,6 +3717,13 @@ window.FB={
   },
 
   async _api(endpoint,method='GET',body=null){
+    // Wait for API_BASE to be loaded
+    if(!this.API_BASE){
+      await this.loadApiUrl();
+      if(!this.API_BASE){
+        throw new Error('API URL not loaded. Check url.json configuration.');
+      }
+    }
     const headers={
       'Content-Type':'application/json',
       'ngrok-skip-browser-warning': 'true'
@@ -3726,14 +3746,23 @@ window.FB={
     try{
       this._setStatus('◌ جاري إنشاء الحساب...');
       const data=await this._api('/auth/register','POST',{username,email,password});
-      this._token=data.token;
-      this._user=data.user;
-      localStorage.setItem('chess_token',this._token);
-      localStorage.setItem('chess_user',JSON.stringify(this._user));
-      this._myPublicId=this._user.publicId||'';
-      await this._syncLevelsBidirectional();
-      this._startWatching();
-      this.refreshUI();
+      // Check if email verification is required
+      if(data.requiresVerification){
+        this._setStatus('✓ '+data.message);
+        alert('تم إنشاء الحساب! يرجى التحقق من إيميلك ('+email+') والضغط على رابط التفعيل قبل تسجيل الدخول.');
+        return true;
+      }
+      // Legacy: if token is provided (old behavior)
+      if(data.token){
+        this._token=data.token;
+        this._user=data.user;
+        localStorage.setItem('chess_token',this._token);
+        localStorage.setItem('chess_user',JSON.stringify(this._user));
+        this._myPublicId=this._user.publicId||'';
+        await this._syncLevelsBidirectional();
+        this._startWatching();
+        this.refreshUI();
+      }
       this._setStatus('✓ تم إنشاء الحساب بنجاح');
       return true;
     }catch(e){
@@ -3759,7 +3788,7 @@ window.FB={
       if(savedImage){
         Cfg.data.playerImage=savedImage;
       }
-      Cfg.save();
+      Cfg.saveData();
       await this._syncLevelsBidirectional();
       this._startWatching();
       this.refreshUI();
@@ -4031,6 +4060,8 @@ window.FB={
   },
 
   async init(){
+    // Load API URL first
+    await this.loadApiUrl();
     const token=localStorage.getItem('chess_token');
     const userStr=localStorage.getItem('chess_user');
     if(token&&userStr){
@@ -4102,6 +4133,9 @@ async function saveUsername(){
       await window.FB._api('/auth/username','PUT',{username:newUsername});
       window.FB._user.username=newUsername;
       localStorage.setItem('chess_user',JSON.stringify(window.FB._user));
+      // Update Cfg for game display
+      Cfg.data.playerName=newUsername;
+      Cfg.saveData();
       window.FB.refreshUI();
       cancelEditUsername();
       alert('تم تحديث اسم المستخدم');
@@ -4118,6 +4152,9 @@ function uploadProfileImage(input){
       const imageData=e.target.result;
       localStorage.setItem('chess_profile_image',imageData);
       document.getElementById('acc-photo').style.backgroundImage=`url(${imageData})`;
+      // Update Cfg for game display
+      Cfg.data.playerImage=imageData;
+      Cfg.saveData();
       alert('تم تحديث الصورة الرمزية');
     };
     reader.readAsDataURL(input.files[0]);
@@ -4156,7 +4193,14 @@ async function handleSignup(){
   console.log('window.FB:',window.FB);
   if(window.FB&&FB.register){
     console.log('Calling FB.register...');
-    await FB.register(username,email,password);
+    const success=await FB.register(username,email,password);
+    if(success){
+      // Show login form after successful registration
+      document.getElementById('signup-username').value='';
+      document.getElementById('signup-password').value='';
+      document.getElementById('login-email').value=email;
+      showLogin();
+    }
   }else{
     console.error('FB.register not available');
     alert('FB module not loaded. Check console for errors.');
@@ -4164,11 +4208,11 @@ async function handleSignup(){
 }
 
 Cfg.load();
-window.addEventListener('load',()=>{
+window.addEventListener('load',async ()=>{
     SFX.init();
     DRAG.init();
     _loadChessPieces();
-    try{FB.init();}catch(e){}
+    try{await FB.init();}catch(e){console.error('FB.init error:',e);}
     // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
     setTimeout(()=>SF.checkReady(),5000);
 },{ once:true });
