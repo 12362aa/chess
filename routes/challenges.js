@@ -16,11 +16,11 @@ router.post('/send', authenticateToken, async (req, res) => {
     const { toUserId } = req.body;
 
     if (!toUserId) {
-      return res.status(400).json({ error: 'toUserId is required' });
+      return res.status(400).json({ error: 'معرف المستخدم مطلوب' });
     }
 
     if (toUserId === req.user.userId) {
-      return res.status(400).json({ error: 'Cannot challenge yourself' });
+      return res.status(400).json({ error: 'لا يمكنك تحدي نفسك' });
     }
 
     // Check if friends
@@ -36,7 +36,7 @@ router.post('/send', authenticateToken, async (req, res) => {
     });
 
     if (!isFriend) {
-      return res.status(400).json({ error: 'Can only challenge friends' });
+      return res.status(400).json({ error: 'يمكن فقط تحدي الأصدقاء' });
     }
 
     const matchId = generateMatchId();
@@ -53,10 +53,10 @@ router.post('/send', authenticateToken, async (req, res) => {
       );
     });
 
-    res.json({ message: 'Challenge sent', matchId });
+    res.json({ message: 'تم إرسال التحدي', matchId });
   } catch (error) {
     console.error('Send challenge error:', error);
-    res.status(500).json({ error: 'Failed to send challenge' });
+    res.status(500).json({ error: 'فشل إرسال التحدي' });
   }
 });
 
@@ -65,7 +65,7 @@ router.get('/pending', authenticateToken, async (req, res) => {
   try {
     const challenges = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT c.id, c.matchId, c.fromUserId, u.username, u.publicId, c.createdAt
+        `SELECT c.id, c.matchId, c.fromUserId, u.username, u.publicId, u.profileImage, c.createdAt
          FROM challenges c
          JOIN users u ON c.fromUserId = u.id
          WHERE c.toUserId = ? AND c.status = 'pending'
@@ -81,7 +81,7 @@ router.get('/pending', authenticateToken, async (req, res) => {
     res.json({ challenges });
   } catch (error) {
     console.error('Get pending challenges error:', error);
-    res.status(500).json({ error: 'Failed to get pending challenges' });
+    res.status(500).json({ error: 'فشل جلب التحديات المعلقة' });
   }
 });
 
@@ -122,7 +122,7 @@ router.post('/accept/:matchId', authenticateToken, async (req, res) => {
     // Get opponent info for the response
     const opponent = await new Promise((resolve, reject) => {
       db.get(
-        'SELECT username, publicId FROM users WHERE id = ?',
+        'SELECT username, publicId, profileImage FROM users WHERE id = ?',
         [challenge.fromUserId],
         (err, row) => {
           if (err) reject(err);
@@ -131,10 +131,10 @@ router.post('/accept/:matchId', authenticateToken, async (req, res) => {
       );
     });
 
-    res.json({ message: 'Challenge accepted', roomCode: matchId, matchId, opponent });
+    res.json({ message: 'تم قبول التحدي', roomCode: matchId, matchId, opponent });
   } catch (error) {
     console.error('Accept challenge error:', error);
-    res.status(500).json({ error: 'Failed to accept challenge' });
+    res.status(500).json({ error: 'فشل قبول التحدي' });
   }
 });
 
@@ -156,7 +156,7 @@ router.post('/decline/:matchId', authenticateToken, async (req, res) => {
     });
 
     if (!challenge) {
-      return res.status(404).json({ error: 'Challenge not found' });
+      return res.status(404).json({ error: 'التحدي غير موجود' });
     }
 
     // Update challenge
@@ -171,10 +171,10 @@ router.post('/decline/:matchId', authenticateToken, async (req, res) => {
       );
     });
 
-    res.json({ message: 'Challenge declined' });
+    res.json({ message: 'تم رفض التحدي' });
   } catch (error) {
     console.error('Decline challenge error:', error);
-    res.status(500).json({ error: 'Failed to decline challenge' });
+    res.status(500).json({ error: 'فشل رفض التحدي' });
   }
 });
 
@@ -195,7 +195,7 @@ router.get('/status/:matchId', authenticateToken, async (req, res) => {
     });
 
     if (!challenge) {
-      return res.status(404).json({ error: 'Challenge not found' });
+      return res.status(404).json({ error: 'التحدي غير موجود' });
     }
 
     res.json({
@@ -204,7 +204,7 @@ router.get('/status/:matchId', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Get challenge status error:', error);
-    res.status(500).json({ error: 'Failed to get challenge status' });
+    res.status(500).json({ error: 'فشل جلب حالة التحدي' });
   }
 });
 
