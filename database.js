@@ -26,11 +26,19 @@ function initTables() {
       losses INTEGER DEFAULT 0,
       draws INTEGER DEFAULT 0,
       levels TEXT DEFAULT '{}',
+      emailVerified INTEGER DEFAULT 0,
+      verificationToken TEXT,
+      verificationExpires DATETIME,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       lastSeen DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Add email verification columns if they don't exist (for existing databases)
+  db.run(`ALTER TABLE users ADD COLUMN emailVerified INTEGER DEFAULT 0`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN verificationToken TEXT`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN verificationExpires DATETIME`, () => {});
 
   // Public IDs mapping
   db.run(`
