@@ -122,14 +122,14 @@ router.post('/register', async (req, res) => {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: email,
-          subject: 'Verify Your Email - Chess Game',
+          subject: 'تحقق من إيميلك - لعبة الشطرنج',
           html: `
-            <h2>Welcome to Chess Game!</h2>
-            <p>Hello ${username},</p>
-            <p>Please verify your email address by clicking the link below:</p>
-            <a href="${verificationUrl}" style="background: #c9a84c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
-            <p>This link will expire in 24 hours.</p>
-            <p>If you didn't create this account, please ignore this email.</p>
+            <h2 style="text-align: right; direction: rtl;">مرحباً بك في لعبة الشطرنج!</h2>
+            <p style="text-align: right; direction: rtl;">مرحباً ${username}،</p>
+            <p style="text-align: right; direction: rtl;">يرجى التحقق من عنوان إيميلك بالضغط على الرابط أدناه:</p>
+            <a href="${verificationUrl}" style="background: #c9a84c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">تحقق من الإيميل</a>
+            <p style="text-align: right; direction: rtl;">هذا الرابط سينتهي صلاحيته خلال 24 ساعة.</p>
+            <p style="text-align: right; direction: rtl;">إذا لم تقم بإنشاء هذا الحساب، يرجى تجاهل هذا الإيميل.</p>
           `
         });
       } catch (emailError) {
@@ -334,14 +334,14 @@ router.post('/forgot-password', async (req, res) => {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: email,
-          subject: 'Password Reset - Chess Game',
+          subject: 'إعادة تعيين كلمة المرور - لعبة الشطرنج',
           html: `
-            <h2>Password Reset Request</h2>
-            <p>Hello ${user.username},</p>
-            <p>You requested a password reset. Click the link below to reset your password:</p>
-            <a href="${resetUrl}" style="background: #c9a84c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this, please ignore this email.</p>
+            <h2 style="text-align: right; direction: rtl;">طلب إعادة تعيين كلمة المرور</h2>
+            <p style="text-align: right; direction: rtl;">مرحباً ${user.username}،</p>
+            <p style="text-align: right; direction: rtl;">لقد طلبت إعادة تعيين كلمة المرور. اضغط على الرابط أدناه لإعادة تعيينها:</p>
+            <a href="${resetUrl}" style="background: #c9a84c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">إعادة تعيين كلمة المرور</a>
+            <p style="text-align: right; direction: rtl;">هذا الرابط سينتهي صلاحيته خلال ساعة واحدة.</p>
+            <p style="text-align: right; direction: rtl;">إذا لم تطلب هذا، يرجى تجاهل هذا الإيميل.</p>
           `
         });
       } catch (emailError) {
@@ -452,13 +452,13 @@ router.post('/resend-verification', authenticateToken, async (req, res) => {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: user.email,
-          subject: 'Verify Your Email - Chess Game',
+          subject: 'تحقق من إيميلك - لعبة الشطرنج',
           html: `
-            <h2>Email Verification</h2>
-            <p>Hello ${user.username},</p>
-            <p>Please verify your email address by clicking the link below:</p>
-            <a href="${verificationUrl}" style="background: #c9a84c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
-            <p>This link will expire in 24 hours.</p>
+            <h2 style="text-align: right; direction: rtl;">التحقق من الإيميل</h2>
+            <p style="text-align: right; direction: rtl;">مرحباً ${user.username}،</p>
+            <p style="text-align: right; direction: rtl;">يرجى التحقق من عنوان إيميلك بالضغط على الرابط أدناه:</p>
+            <a href="${verificationUrl}" style="background: #c9a84c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">تحقق من الإيميل</a>
+            <p style="text-align: right; direction: rtl;">هذا الرابط سينتهي صلاحيته خلال 24 ساعة.</p>
           `
         });
       } catch (emailError) {
