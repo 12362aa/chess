@@ -110,9 +110,10 @@ router.get('/requests', authenticateToken, async (req, res) => {
     
     const requests = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT fr.id, fr.fromUserId, u.username, u.publicId, fr.createdAt
+        `SELECT fr.id, fr.fromUserId, u.username, pi.publicId, fr.createdAt
          FROM friendRequests fr
          JOIN users u ON fr.fromUserId = u.id
+         LEFT JOIN publicIds pi ON u.id = pi.userId
          WHERE fr.toUserId = ? AND fr.status = 'pending'
          ORDER BY fr.createdAt DESC`,
         [userId],
