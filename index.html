@@ -693,9 +693,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="sr-n">تسجيل الدخول</div>
         <div class="sr-d">سجّل دخولك لمزامنة تقدم مراحل نور بين الأجهزة</div>
         <div id="acc-user" style="display:none;width:100%;gap:10px;align-items:center;">
-          <div id="acc-photo" style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;" onclick="document.getElementById('profile-image-input-acc').click()"></div>
+          <div id="acc-photo" style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;position:relative;" onclick="document.getElementById('profile-image-input-acc').click()">
+            <div style="position:absolute;bottom:0;right:0;background:var(--gold2);width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;">✎</div>
+          </div>
           <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
-            <div id="acc-name" style="font-weight:900;color:var(--text);cursor:pointer;" onclick="editUsername()"></div>
+            <div id="acc-name" style="font-weight:900;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="editUsername()">
+              <span></span>
+              <span style="font-size:10px;color:var(--gold2);">✎</span>
+            </div>
             <div id="acc-id" style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;"></div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
               <span style="font-size:11px;color:var(--text3);">معرّفك</span>
@@ -3331,6 +3336,10 @@ const OL=(()=>{
       document.getElementById('btn-create').disabled=true;
       connect(()=>{
         send({type:'create',color:col,name:Cfg.data.playerName||''});
+        // Send profile image if available
+        if(Cfg.data.playerImage){
+          send({type:'pimg',img:Cfg.data.playerImage});
+        }
       });
     },
     join(){
@@ -3339,6 +3348,10 @@ const OL=(()=>{
       if(!code){setSt('j','أدخل الكود أولاً','err');return;}
       connect(()=>{
         send({type:'join',code,name:Cfg.data.playerName||''});
+        // Send profile image if available
+        if(Cfg.data.playerImage){
+          send({type:'pimg',img:Cfg.data.playerImage});
+        }
       });
     },
     copy(){
@@ -3738,6 +3751,15 @@ window.FB={
       localStorage.setItem('chess_token',this._token);
       localStorage.setItem('chess_user',JSON.stringify(this._user));
       this._myPublicId=this._user.publicId||'';
+      // Update Cfg with account username and profile image
+      if(this._user.username){
+        Cfg.data.playerName=this._user.username;
+      }
+      const savedImage=localStorage.getItem('chess_profile_image');
+      if(savedImage){
+        Cfg.data.playerImage=savedImage;
+      }
+      Cfg.save();
       await this._syncLevelsBidirectional();
       this._startWatching();
       this.refreshUI();
