@@ -3746,24 +3746,21 @@ window.FB={
     try{
       this._setStatus('◌ جاري إنشاء الحساب...');
       const data=await this._api('/auth/register','POST',{username,email,password});
-      // Check if email verification is required
-      if(data.requiresVerification){
-        this._setStatus('✓ '+data.message);
-        alert('تم إنشاء الحساب! يرجى التحقق من إيميلك ('+email+') والضغط على رابط التفعيل قبل تسجيل الدخول.');
-        return true;
+      // Token is always provided now - auto login after register
+      this._token=data.token;
+      this._user=data.user;
+      localStorage.setItem('chess_token',this._token);
+      localStorage.setItem('chess_user',JSON.stringify(this._user));
+      this._myPublicId=this._user.publicId||'';
+      // Update Cfg with account username
+      if(this._user.username){
+        Cfg.data.playerName=this._user.username;
+        Cfg.saveData();
       }
-      // Legacy: if token is provided (old behavior)
-      if(data.token){
-        this._token=data.token;
-        this._user=data.user;
-        localStorage.setItem('chess_token',this._token);
-        localStorage.setItem('chess_user',JSON.stringify(this._user));
-        this._myPublicId=this._user.publicId||'';
-        await this._syncLevelsBidirectional();
-        this._startWatching();
-        this.refreshUI();
-      }
-      this._setStatus('✓ تم إنشاء الحساب بنجاح');
+      await this._syncLevelsBidirectional();
+      this._startWatching();
+      this.refreshUI();
+      this._setStatus('✓ تم إنشاء الحساب وتسجيل الدخول بنجاح');
       return true;
     }catch(e){
       this._setStatus('✕ '+ (e.message||'فشل إنشاء الحساب'));
@@ -3931,11 +3928,39 @@ window.FB={
     if(!this._user)return;
     this._setFriendStatus('◌ جاري إرسال التحدي...');
     try{
-      await this._api('/challenges/send','POST',{toUserId:friendId});
-      this._setFriendStatus('✓ تم إرسال التحدي — انتظر القبول');
+      const res=await this._api('/challenges/send','POST',{toUserId:friendId});
+      this._setFriendStatus('✓ تم إرسال التحدي — في انتظار القبول...');
+      // Wait for acceptance and auto-join
+      this._waitForChallengeAccept(res.matchId);
     }catch(e){
       this._setFriendStatus('✕ '+ (e.message||'تعذر الإرسال'));
     }
+  },
+
+  // Poll for challenge acceptance and auto-join when accepted
+  async _waitForChallengeAccept(matchId){
+    let attempts=0;
+    const maxAttempts=60; // 5 minutes (5s * 60)
+    const checkInterval=setInterval(async()=>{
+      attempts++;
+      if(attempts>maxAttempts){
+        clearInterval(checkInterval);
+        this._setFriendStatus('⌛ انتهى وقت انتظار القبول');
+        return;
+      }
+      try{
+        const status=await this._api(`/challenges/status/${matchId}`);
+        if(status.status==='accepted' && status.roomCode){
+          clearInterval(checkInterval);
+          this._setFriendStatus('✓ تم قبول التحدي! جاري الدخول...');
+          // Join the room as creator (white by default)
+          this._olJoinDirectRoom(status.roomCode, null);
+        }else if(status.status==='declined'){
+          clearInterval(checkInterval);
+          this._setFriendStatus('✕ تم رفض التحدي');
+        }
+      }catch(e){}
+    },5000);
   },
 
   _olCreateRoomAs(color){
@@ -3951,6 +3976,18 @@ window.FB={
     try{OL.join();}catch(e){}
   },
 
+  _formatLastSeen(lastSeen){
+    if(!lastSeen)return'';
+    const d=new Date(lastSeen);
+    const now=new Date();
+    const diff=Math.floor((now-d)/1000);
+    if(diff<60)return'الآن';
+    if(diff<3600)return`منذ ${Math.floor(diff/60)} دقيقة`;
+    if(diff<86400)return`منذ ${Math.floor(diff/3600)} ساعة`;
+    if(diff<604800)return`منذ ${Math.floor(diff/86400)} يوم`;
+    return d.toLocaleDateString('ar-SA');
+  },
+
   async _renderFriendsList(friends){
     const box=this._el('fr-list');
     if(!box)return;
@@ -3958,22 +3995,85 @@ window.FB={
     if(!friends.length){
       const e=document.createElement('div');
       e.style.fontSize='12px';e.style.color='var(--text3)';
-      e.textContent='لا يوجد أصدقاء بعد';
+      e.textContent='لا يوجد أصدقاء بعد - أضف صديقاً باستخدام المعرف (ID)';
       box.appendChild(e);
       return;
     }
     friends.forEach(fr=>{
       const row=document.createElement('div');
       row.style.display='flex';row.style.gap='10px';row.style.alignItems='center';
-      row.style.padding='10px';row.style.border='1px solid rgba(201,168,76,.18)';
-      row.style.borderRadius='12px';row.style.background='rgba(255,255,255,.03)';
-      const left=document.createElement('div');
-      left.style.flex='1';
-      left.innerHTML=`<div style="font-weight:900;color:var(--text);">${fr.username||'صديق'}</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;">ID: ${fr.publicId||'—'}</div>`;
+      row.style.padding='12px';row.style.border='1px solid rgba(201,168,76,.18)';
+      row.style.borderRadius='14px';row.style.background='rgba(255,255,255,.03)';
+      row.style.transition='all 0.2s';
+
+      // Avatar with online indicator
+      const avatarContainer=document.createElement('div');
+      avatarContainer.style.position='relative';
+      avatarContainer.style.flexShrink='0';
+
+      const avatar=document.createElement('div');
+      avatar.style.width='44px';avatar.style.height='44px';
+      avatar.style.borderRadius='50%';
+      avatar.style.background=fr.profileImage?`url(${fr.profileImage})`:'rgba(201,168,76,.15)';
+      avatar.style.backgroundSize='cover';
+      avatar.style.backgroundPosition='center';
+      avatar.style.border='2px solid rgba(201,168,76,.3)';
+      if(!fr.profileImage){
+        avatar.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>';
+      }
+
+      // Online status indicator
+      const statusDot=document.createElement('div');
+      statusDot.style.position='absolute';
+      statusDot.style.bottom='2px';statusDot.style.right='2px';
+      statusDot.style.width='12px';statusDot.style.height='12px';
+      statusDot.style.borderRadius='50%';
+      statusDot.style.border='2px solid var(--bg2)';
+      if(fr.isOnline){
+        statusDot.style.background='#4CAF50';
+        statusDot.title='متصل الآن';
+      }else{
+        statusDot.style.background='#9E9E9E';
+        statusDot.title=this._formatLastSeen(fr.lastSeen);
+      }
+
+      avatarContainer.appendChild(avatar);
+      avatarContainer.appendChild(statusDot);
+
+      // Info section
+      const info=document.createElement('div');
+      info.style.flex='1';
+      info.style.minWidth='0';
+
+      const nameRow=document.createElement('div');
+      nameRow.style.display='flex';nameRow.style.alignItems='center';nameRow.style.gap='6px';
+      nameRow.innerHTML=`<span style="font-weight:900;color:var(--text);font-size:14px;">${fr.username||'صديق'}</span>`;
+      if(fr.isOnline){
+        nameRow.innerHTML+='<span style="font-size:10px;color:#4CAF50;background:rgba(76,175,80,.15);padding:2px 6px;border-radius:10px;">متصل</span>';
+      }
+
+      const metaRow=document.createElement('div');
+      metaRow.style.fontSize='11px';metaRow.style.color='var(--text3)';
+      metaRow.style.direction='ltr';metaRow.style.textAlign='left';
+      metaRow.style.marginTop='2px';
+      const stats=`🔥 ${fr.wins||0} فوز / ${fr.losses||0} خسارة / ${fr.draws||0} تعادل`;
+      const lastSeen=fr.isOnline?'':` • ${this._formatLastSeen(fr.lastSeen)}`;
+      metaRow.textContent=stats+lastSeen;
+
+      info.appendChild(nameRow);
+      info.appendChild(metaRow);
+
+      // Challenge button
       const b=document.createElement('button');
-      b.className='btnp';b.style.padding='8px 10px';b.textContent='تحدي';
-      b.onclick=async()=>{b.disabled=true;try{await this._challengeFriend(fr.id);}catch(e){}b.disabled=false;};
-      row.appendChild(left);
+      b.className='btnp';b.style.padding='8px 14px';b.style.fontSize='12px';
+      b.style.borderRadius='10px';
+      b.textContent=fr.isOnline?'⚔ تحدي':'🔔 تحدي';
+      b.disabled=!fr.isOnline;
+      b.style.opacity=fr.isOnline?'1':'0.5';
+      b.onclick=async()=>{if(!fr.isOnline)return;b.disabled=true;try{await this._challengeFriend(fr.id);}catch(e){}setTimeout(()=>b.disabled=false,3000);};
+
+      row.appendChild(avatarContainer);
+      row.appendChild(info);
       row.appendChild(b);
       box.appendChild(row);
     });
@@ -4004,24 +4104,73 @@ window.FB={
     this._stopWatching();
     this._loadFriends();
     this._loadFriendRequests();
+
+    // Send online status immediately when starting
+    this._updateOnlineStatus(true);
+
     this._challengeInterval=setInterval(async()=>{
       try{
+        // Update online status every 30 seconds (every 6th interval)
+        if(this._user&&Math.random()<0.16){
+          this._updateOnlineStatus(true);
+        }
+
         // Check for challenges
         const data=await this._api('/challenges/pending');
         if(data.challenges&&data.challenges.length>0){
           const ch=data.challenges[0];
-          const accept=confirm(`لديك تحدي جديد من ${ch.username}. هل تريد قبول التحدي؟`);
+          const accept=confirm(`📢 لديك تحدي جديد من ${ch.username}\n\nهل تريد قبول التحدي واللعب الآن؟`);
           if(accept){
             const res=await this._api(`/challenges/accept/${ch.matchId}`,'POST');
-            this._olJoinRoom(res.roomCode);
+            // Use matchId as direct room code - join immediately
+            this._olJoinDirectRoom(res.roomCode || ch.matchId, res.opponent);
           }else{
             await this._api(`/challenges/decline/${ch.matchId}`,'POST');
           }
         }
+
+        // Refresh friends list to get updated online status
+        await this._loadFriends();
+
         // Check for friend requests
         await this._loadFriendRequests();
-      }catch(e){}
+      }catch(e){console.error('Challenge check error:',e);}
     },5000);
+
+    // Send offline status when page closes
+    window.addEventListener('beforeunload',()=>{
+      if(this._user){
+        navigator.sendBeacon?navigator.sendBeacon(this.API_BASE+'/friends/status',JSON.stringify({isOnline:false})):(()=>{})();
+      }
+    });
+  },
+
+  async _updateOnlineStatus(isOnline){
+    if(!this._user)return;
+    try{
+      await this._api('/friends/status','POST',{isOnline});
+    }catch(e){/* silent fail */}
+  },
+
+  // Direct room join for challenges - no separate room creation
+  _olJoinDirectRoom(roomCode, opponent){
+    try{
+      Nav.online();
+      // Set opponent info if available
+      if(opponent){
+        Cfg.data.opponentName = opponent.username;
+        Cfg.data.opponentPublicId = opponent.publicId;
+      }
+      // Join the room directly
+      setTimeout(()=>{
+        try{OL.tab('j');}catch(e){}
+        const inp=document.getElementById('jinp');
+        if(inp)inp.value=String(roomCode||'').trim().toUpperCase();
+        setTimeout(()=>{
+          try{OL.join();}catch(e){console.error('OL.join error:',e);}
+        },300);
+      },300);
+    }catch(e){console.error('_olJoinDirectRoom error:',e);}
   },
 
   _stopWatching(){
@@ -4140,21 +4289,44 @@ async function saveUsername(){
       cancelEditUsername();
       alert('تم تحديث اسم المستخدم');
     }catch(e){
-      alert('فشل تحديث اسم المستخدم: '+e.message);
+      if(e.message && (e.message.includes('token') || e.message.includes('Token'))){
+        alert('انتهت صلاحية الجلسة. يرجى تسجيل الخروج وإعادة تسجيل الدخول.');
+        // Clear stored credentials
+        localStorage.removeItem('chess_token');
+        localStorage.removeItem('chess_user');
+        window.FB.logout();
+      }else{
+        alert('فشل تحديث اسم المستخدم: '+e.message);
+      }
     }
   }
 }
 
-function uploadProfileImage(input){
+async function uploadProfileImage(input){
   if(input.files&&input.files[0]){
     const reader=new FileReader();
-    reader.onload=function(e){
+    reader.onload=async function(e){
       const imageData=e.target.result;
+      // Save locally first
       localStorage.setItem('chess_profile_image',imageData);
       document.getElementById('acc-photo').style.backgroundImage=`url(${imageData})`;
       // Update Cfg for game display
       Cfg.data.playerImage=imageData;
       Cfg.saveData();
+
+      // Upload to server if logged in
+      if(window.FB&&window.FB._user&&window.FB._api){
+        try{
+          // Compress image if too large (max 500KB for base64)
+          let uploadData=imageData;
+          if(uploadData.length>500000){
+            alert('الصورة كبيرة جداً. يتم رفعها محلياً فقط.');
+          }else{
+            await window.FB._api('/friends/profile-image','POST',{image:uploadData});
+          }
+        }catch(e){/* silent fail - local image works */}
+      }
+
       alert('تم تحديث الصورة الرمزية');
     };
     reader.readAsDataURL(input.files[0]);
