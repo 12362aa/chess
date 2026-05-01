@@ -139,16 +139,12 @@ router.post('/register', async (req, res) => {
       console.log('Email not configured - verification token saved but not sent:', verificationToken);
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { userId, username, publicId },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
+    // Do NOT generate token until email is verified
+    // User must verify email before they can login
 
     res.status(201).json({
-      message: 'User registered successfully. Please check your email to verify your account.',
-      token,
+      message: 'تم إنشاء الحساب. يرجى التحقق من إيميلك لتفعيل الحساب.',
+      requiresVerification: true,
       user: { userId, username, publicId, emailVerified: false }
     });
   } catch (error) {
