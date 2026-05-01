@@ -675,7 +675,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     </div>
 
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.account()">
-      <span class="mc-ic ic-gold">◊</span>
+      <span class="mc-ic ic-gold">★</span>
       <div class="mc-t">الحساب</div>
       <div class="mc-d">تسجيل دخول — مزامنة التقدم</div>
       <span class="mc-b bp">مزامنة</span>
@@ -1039,7 +1039,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <!-- CUSTOM ALERT/MODAL -->
 <div id="custom-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:950;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border:2px solid var(--gold2);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 100px rgba(201,168,76,.2),0 40px 80px rgba(0,0,0,.6);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
+  <div style="background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 60px rgba(201,168,76,.08),0 20px 60px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
     <div id="modal-icon" style="font-size:52px;margin-bottom:16px;display:block;">📢</div>
     <div id="modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">تنبيه</div>
     <div id="modal-message" style="font-size:15px;color:var(--text);line-height:1.7;margin-bottom:24px;"></div>
@@ -1052,7 +1052,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <!-- CUSTOM INPUT MODAL (for forgot password) -->
 <div id="input-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:960;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border:2px solid var(--gold2);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 100px rgba(201,168,76,.2),0 40px 80px rgba(0,0,0,.6);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
+  <div style="background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 60px rgba(201,168,76,.08),0 20px 60px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
     <div id="input-modal-icon" style="font-size:52px;margin-bottom:16px;display:block;color:var(--gold2);">◈</div>
     <div id="input-modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">إعادة تعيين كلمة المرور</div>
     <div id="input-modal-message" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;">أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين</div>
@@ -1098,12 +1098,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
    AUDIO
 ══════════════════════════════════════ */
 const SFX=(()=>{
+  // Local files for game moves
   const FILES={move:'./move.mp3',capture:'./capture.mp3',castle:'./castle.mp3',checkmate:'./checkmate.mp3',check:'./check.mp3',error:'./Error.mp3'};
+  // External CC0 sounds for game outcomes (unique, not repetitive)
+  const EXT_SOUNDS={
+    win:    'https://cdn.freesound.org/previews/391/391539_7385081-lq.mp3',     // Victory fanfare
+    loss:   'https://cdn.freesound.org/previews/162/162351_24603-lq.mp3',      // Sad trombone
+    draw:   'https://cdn.freesound.org/previews/219/219619_4284968-lq.mp3',    // Neutral chime
+    resign: 'https://cdn.freesound.org/previews/162/162351_24603-lq.mp3'       // Same as loss
+  };
   let ctx=null;
   const buffers={};
   const _loading=new Set();
   const _failed=new Set();
   const _audioCache={};
+  const _extBuffers={};
 
   function getCtx(){
     if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();}
@@ -1155,6 +1164,49 @@ const SFX=(()=>{
   function preload(){
     const c=getCtx();
     Object.entries(FILES).forEach(([name,file])=>loadOne(name,file,c,0));
+    // Also preload external sounds
+    Object.entries(EXT_SOUNDS).forEach(([name,url])=>loadExtSound(name,url,c,0));
+  }
+
+  // Load external sound from URL
+  function loadExtSound(name,url,c,attempt){
+    if(_extBuffers[name]||_loading.has(name)||_failed.has(name))return;
+    _loading.add(name);
+    fetch(url)
+      .then(r=>{if(!r.ok)throw new Error('bad');return r.arrayBuffer();})
+      .then(ab=>new Promise((res,rej)=>{
+        try{c.decodeAudioData(ab,buf=>{res(buf);},()=>rej(new Error('decode')));}
+        catch(e){rej(e);}
+      }))
+      .then(buf=>{_extBuffers[name]=buf;_loading.delete(name);})
+      .catch(()=>{
+        _loading.delete(name);
+        if((attempt||0)<2){
+          setTimeout(()=>loadExtSound(name,url,c,(attempt||0)+1),1500);
+        }else{
+          _failed.add(name);
+        }
+      });
+  }
+
+  // Play external sound by name
+  function playExt(name){
+    if(!Cfg.data.sound)return;
+    try{
+      const c=getCtx();
+      if(c.state==='suspended')c.resume();
+      const buf=_extBuffers[name];
+      if(buf){
+        const src=c.createBufferSource();
+        const gain=c.createGain();
+        src.buffer=buf;
+        gain.gain.value=Math.min(1.0,(Cfg.data.vol/100)*1.5);
+        src.connect(gain);gain.connect(c.destination);
+        src.start(0);
+        return true;
+      }
+    }catch(e){}
+    return false;
   }
 
   function play(name){
@@ -1207,9 +1259,12 @@ const SFX=(()=>{
     checkmate() {play('checkmate');},
     promote()   {play('move');},
     illegal()   {play('error');},
-    draw()      {play('move');},
-    win()       {play('checkmate');},
-    levelDone() {play('checkmate');},
+    // Unique external sounds for game outcomes (not repetitive)
+    draw()      {if(!playExt('draw'))play('move');},   // Neutral chime
+    win()       {if(!playExt('win'))play('checkmate');},  // Victory fanfare
+    loss()      {playExt('loss');},  // Sad trombone
+    resign()    {playExt('resign');}, // Same as loss
+    levelDone() {if(!playExt('win'))play('checkmate');},
     captureCheck(){play('check');},
     select() {uiClick();},
     btn()    {uiClick();},
@@ -1352,7 +1407,7 @@ const Cfg={
     reader.readAsDataURL(file);
   },
   applyProfileImage(){
-    if(!this.data.playerImage) return Modal.show('لم تختر صورة بعد','تنبيه','▲');
+    if(!this.data.playerImage) return Modal.show('لم تختر صورة بعد','تنبيه','✕');
     this._updateProfileImage();
     Modal.show('تم تطبيق صورة الملف الشخصي','تم','◈');
     if(S.mode==='online'){
@@ -1440,7 +1495,7 @@ const Cfg={
     reader.readAsDataURL(file);
   },
   applyCustomBoardImage(){
-    if(!this.data.customBoardImage) return Modal.show('لم تختر صورة بعد','تنبيه','▲');
+    if(!this.data.customBoardImage) return Modal.show('لم تختر صورة بعد','تنبيه','✕');
     if(this.data.boardTheme==='custom')this.theme('custom');
     Modal.show('تم تطبيق صورة الرقعة','تم','◈');
   }
@@ -1546,8 +1601,9 @@ const Modal={
   _playSound(icon){
     if(typeof SFX==='undefined')return;
     // Error/warning sounds
-    if(icon==='▲'||icon==='◆'||icon==='⚡'){
-      try{SFX.illegal();}catch(e){SFX.btn();}
+    if(icon==='✕'||icon==='◆'||icon==='⚡'){
+      // Use loss sound for errors/defeat, not the harsh error sound
+      try{SFX.loss();}catch(e){SFX.btn();}
     }
     // Success sounds
     else if(icon==='◈'||icon==='◈'){
@@ -2503,7 +2559,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
 
   return{
     async open(){
-      if(S.hist.length<4){Modal.show('المباراة قصيرة جداً للتقييم - يجب 4 حركات على الأقل','تنبيه','▲');return;}
+      if(S.hist.length<4){Modal.show('المباراة قصيرة جداً للتقييم - يجب 4 حركات على الأقل','تنبيه','✕');return;}
       _coachCache={};
       document.getElementById('review-ov').classList.add('open');
       document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>`;
@@ -3896,14 +3952,21 @@ window.FB={
       localStorage.setItem('chess_token',this._token);
       localStorage.setItem('chess_user',JSON.stringify(this._user));
       this._myPublicId=this._user.publicId||'';
-      // Update Cfg with account username and profile image
+      // Update Cfg with account username
       if(this._user.username){
         Cfg.data.playerName=this._user.username;
       }
-      const savedImage=localStorage.getItem('chess_profile_image');
-      if(savedImage){
-        Cfg.data.playerImage=savedImage;
-      }
+      // Clear any old profile image first to prevent cross-account contamination
+      localStorage.removeItem('chess_profile_image');
+      Cfg.data.playerImage='';
+      // Fetch user's profile image from server
+      try{
+        const userData=await this._api('/auth/me');
+        if(userData.user&&userData.user.profileImage){
+          Cfg.data.playerImage=userData.user.profileImage;
+          localStorage.setItem('chess_profile_image',userData.user.profileImage);
+        }
+      }catch(imgErr){/* ignore */}
       Cfg.saveData();
       await this._syncLevelsBidirectional();
       this._startWatching();
@@ -3923,6 +3986,14 @@ window.FB={
     this._myPublicId='';
     localStorage.removeItem('chess_token');
     localStorage.removeItem('chess_user');
+    // Clear account-specific data to isolate accounts
+    localStorage.removeItem('chess_profile_image');
+    localStorage.removeItem('chess_my_friends');
+    localStorage.removeItem('chess_friend_requests');
+    // Reset Cfg player data to defaults
+    Cfg.data.playerName=''; 
+    Cfg.data.playerImage='';
+    Cfg.saveData();
     this.refreshUI();
     this._setStatus('');
   },
@@ -3958,8 +4029,8 @@ window.FB={
     const inp=this._el('fr-inp');
     const pid=(inp?.value||'').trim().toUpperCase();
     console.log('[SEND] sendFriendRequest: Attempting to send to', pid, '| myPublicId:', this._myPublicId, '| API_BASE:', this.API_BASE);
-    if(!pid){this._setFriendStatus('▲ أدخل ID أولاً');return;}
-    if(pid===this._myPublicId){this._setFriendStatus('▲ لا يمكنك إضافة نفسك');return;}
+    if(!pid){this._setFriendStatus('✕ أدخل ID أولاً');return;}
+    if(pid===this._myPublicId){this._setFriendStatus('✕ لا يمكنك إضافة نفسك');return;}
     this._setFriendStatus('◌ جاري الإرسال...');
     try{
       const result=await this._api('/friends/request','POST',{publicId:pid});
@@ -4489,7 +4560,7 @@ async function saveUsername(){
       Modal.show('تم تحديث اسم المستخدم','تم','◈');
     }catch(e){
       if(e.message && (e.message.includes('token') || e.message.includes('Token'))){
-        Modal.show('انتهت صلاحية الجلسة. يرجى تسجيل الخروج وإعادة تسجيل الدخول.','خطأ','▲');
+        Modal.show('انتهت صلاحية الجلسة. يرجى تسجيل الخروج وإعادة تسجيل الدخول.','خطأ','✕');
         // Clear stored credentials
         localStorage.removeItem('chess_token');
         localStorage.removeItem('chess_user');
@@ -4519,7 +4590,7 @@ async function uploadProfileImage(input){
           // Compress image if too large (max 500KB for base64)
           let uploadData=imageData;
           if(uploadData.length>500000){
-            Modal.show('الصورة كبيرة جداً. يتم رفعها محلياً فقط.','تنبيه','▲');
+            Modal.show('الصورة كبيرة جداً. يتم رفعها محلياً فقط.','تنبيه','✕');
           }else{
             await window.FB._api('/friends/profile-image','POST',{image:uploadData});
           }
@@ -4538,7 +4609,7 @@ async function handleLogin(){
   const password=document.getElementById('login-password').value;
   console.log('email:',email,'password:',password?'***':'empty');
   if(!email||!password){
-    Modal.show('أدخل البريد الإلكتروني وكلمة المرور','تنبيه','▲');
+    Modal.show('أدخل البريد الإلكتروني وكلمة المرور','تنبيه','✕');
     return;
   }
   console.log('window.FB:',window.FB);
@@ -4558,7 +4629,7 @@ async function handleSignup(){
   const password=document.getElementById('signup-password').value;
   console.log('username:',username,'email:',email,'password:',password?'***':'empty');
   if(!username||!email||!password){
-    Modal.show('أدخل جميع الحقول المطلوبة','تنبيه','▲');
+    Modal.show('أدخل جميع الحقول المطلوبة','تنبيه','✕');
     return;
   }
   console.log('window.FB:',window.FB);
