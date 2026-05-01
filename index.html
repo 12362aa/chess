@@ -4086,14 +4086,24 @@ window.FB={
     }
   },
 
-  _prevRequestCount:0,
+  get _prevRequestCount(){
+    try{
+      return parseInt(localStorage.getItem('chess_prev_request_count')||'0');
+    }catch(e){return 0;}
+  },
+  set _prevRequestCount(val){
+    try{
+      localStorage.setItem('chess_prev_request_count',val.toString());
+    }catch(e){}
+  },
 
   async _renderFriendRequests(reqs){
     const box=this._el('fr-reqs');
     if(!box)return;
 
     // Check for new requests
-    const hasNewRequests=reqs.length>this._prevRequestCount;
+    const prevCount=this._prevRequestCount;
+    const hasNewRequests=reqs.length>prevCount;
     this._prevRequestCount=reqs.length;
 
     // Notify if new requests arrived
@@ -4344,10 +4354,8 @@ window.FB={
           this._updateOnlineStatus(true);
         }
 
-        // Skip challenge check if modal is already open
-        if(this._challengeModalOpen) return;
-
-        // Check for challenges
+        // Check for challenges (but only if modal is not already open)
+        if(!this._challengeModalOpen){
         const data=await this._api('/challenges/pending');
         if(data.challenges&&data.challenges.length>0){
           const ch=data.challenges[0];
@@ -4372,6 +4380,7 @@ window.FB={
               this._challengeModalOpen=false;
             }
           );
+        }
         }
 
         // Refresh friends list to get updated online status
