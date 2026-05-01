@@ -19,12 +19,16 @@ async function getUserIdFromPublicId(publicId) {
 router.post('/request', authenticateToken, async (req, res) => {
   try {
     const { publicId } = req.body;
+    const fromUserId = req.user.userId;
+
+    console.log(`[DEBUG] Friend request: fromUserId=${fromUserId}, toPublicId=${publicId}`);
 
     if (!publicId) {
       return res.status(400).json({ error: 'Public ID is required' });
     }
 
     const toUserId = await getUserIdFromPublicId(publicId.toUpperCase());
+    console.log(`[DEBUG] Resolved toUserId=${toUserId} from publicId=${publicId}`);
 
     if (!toUserId) {
       return res.status(404).json({ error: 'User not found' });
@@ -64,7 +68,7 @@ router.post('/request', authenticateToken, async (req, res) => {
 
     if (existingRequest) {
       if (existingRequest.status === 'pending') {
-        return res.status(400).json({ error: 'Friend request already sent' });
+        return res.status(400).json({ error: 'طلب الصداقة مرسل مسبقاً' });
       }
       // Update if declined
       await new Promise((resolve, reject) => {
@@ -91,16 +95,19 @@ router.post('/request', authenticateToken, async (req, res) => {
       });
     }
 
-    res.json({ message: 'Friend request sent' });
+    res.json({ message: 'تم إرسال طلب الصداقة' });
   } catch (error) {
     console.error('Send friend request error:', error);
-    res.status(500).json({ error: 'Failed to send friend request' });
+    res.status(500).json({ error: 'فشل إرسال طلب الصداقة' });
   }
 });
 
 // Get pending friend requests
 router.get('/requests', authenticateToken, async (req, res) => {
   try {
+    const userId = req.user.userId;
+    console.log(`[DEBUG] Fetching friend requests for userId: ${userId}`);
+    
     const requests = await new Promise((resolve, reject) => {
       db.all(
         `SELECT fr.id, fr.fromUserId, u.username, u.publicId, fr.createdAt
@@ -108,10 +115,15 @@ router.get('/requests', authenticateToken, async (req, res) => {
          JOIN users u ON fr.fromUserId = u.id
          WHERE fr.toUserId = ? AND fr.status = 'pending'
          ORDER BY fr.createdAt DESC`,
-        [req.user.userId],
+        [userId],
         (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows || []);
+          if (err) {
+            console.error('[DEBUG] Database error fetching requests:', err);
+            reject(err);
+          } else {
+            console.log(`[DEBUG] Found ${rows?.length || 0} friend requests for userId ${userId}`);
+            resolve(rows || []);
+          }
         }
       );
     });
@@ -119,7 +131,7 @@ router.get('/requests', authenticateToken, async (req, res) => {
     res.json({ requests });
   } catch (error) {
     console.error('Get friend requests error:', error);
-    res.status(500).json({ error: 'Failed to get friend requests' });
+    res.status(500).json({ error: 'فشل جلب طلبات الصداقة' });
   }
 });
 
@@ -141,7 +153,7 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
     });
 
     if (!request) {
-      return res.status(404).json({ error: 'Friend request not found' });
+      return res.status(404).json({ error: 'طلب الصداقة غير موجود' });
     }
 
     // Add to friends table
@@ -168,10 +180,10 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
       );
     });
 
-    res.json({ message: 'Friend request accepted' });
+    res.json({ message: 'تم قبول طلب الصداقة' });
   } catch (error) {
     console.error('Accept friend request error:', error);
-    res.status(500).json({ error: 'Failed to accept friend request' });
+    res.status(500).json({ error: 'فشل قبول طلب الصداقة' });
   }
 });
 
@@ -193,7 +205,7 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
     });
 
     if (!request) {
-      return res.status(404).json({ error: 'Friend request not found' });
+      return res.status(404).json({ error: 'طلب الصداقة غير موجود' });
     }
 
     // Update request status
@@ -208,10 +220,10 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
       );
     });
 
-    res.json({ message: 'Friend request declined' });
+    res.json({ message: 'تم رفض طلب الصداقة' });
   } catch (error) {
     console.error('Decline friend request error:', error);
-    res.status(500).json({ error: 'Failed to decline friend request' });
+    res.status(500).json({ error: 'فشل رفض طلب الصداقة' });
   }
 });
 
@@ -237,7 +249,7 @@ router.get('/list', authenticateToken, async (req, res) => {
     res.json({ friends });
   } catch (error) {
     console.error('Get friends list error:', error);
-    res.status(500).json({ error: 'Failed to get friends list' });
+    res.status(500).json({ error: 'فشل جلب قائمة الأصدقاء' });
   }
 });
 
@@ -257,10 +269,10 @@ router.delete('/remove/:friendId', authenticateToken, async (req, res) => {
       );
     });
 
-    res.json({ message: 'Friend removed' });
+    res.json({ message: 'تم حذف الصديق' });
   } catch (error) {
     console.error('Remove friend error:', error);
-    res.status(500).json({ error: 'Failed to remove friend' });
+    res.status(500).json({ error: 'فشل حذف الصديق' });
   }
 });
 
@@ -269,11 +281,11 @@ router.post('/profile-image', authenticateToken, async (req, res) => {
   try {
     const { image } = req.body;
     if (!image) {
-      return res.status(400).json({ error: 'Image is required' });
+      return res.status(400).json({ error: 'الصورة مطلوبة' });
     }
     // Limit image size (base64 can be large)
     if (image.length > 500000) {
-      return res.status(400).json({ error: 'Image too large. Max 500KB allowed.' });
+      return res.status(400).json({ error: 'حجم الصورة كبير جداً. الحد الأقصى 500 كيلوبايت.' });
     }
     await new Promise((resolve, reject) => {
       db.run(
@@ -285,10 +297,10 @@ router.post('/profile-image', authenticateToken, async (req, res) => {
         }
       );
     });
-    res.json({ message: 'Profile image updated' });
+    res.json({ message: 'تم تحديث صورة الملف الشخصي' });
   } catch (error) {
     console.error('Update profile image error:', error);
-    res.status(500).json({ error: 'Failed to update profile image' });
+    res.status(500).json({ error: 'فشل تحديث صورة الملف الشخصي' });
   }
 });
 
@@ -306,10 +318,10 @@ router.post('/status', authenticateToken, async (req, res) => {
         }
       );
     });
-    res.json({ message: 'Status updated', isOnline: !!isOnline });
+    res.json({ message: 'تم تحديث الحالة', isOnline: !!isOnline });
   } catch (error) {
     console.error('Update status error:', error);
-    res.status(500).json({ error: 'Failed to update status' });
+    res.status(500).json({ error: 'فشل تحديث الحالة' });
   }
 });
 
