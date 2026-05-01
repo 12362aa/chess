@@ -70,6 +70,7 @@ router.post('/request', authenticateToken, async (req, res) => {
       if (existingRequest.status === 'pending') {
         return res.status(400).json({ error: 'طلب الصداقة مرسل مسبقاً' });
       }
+      // Update if declined
       await new Promise((resolve, reject) => {
         db.run(
           'UPDATE friendRequests SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
@@ -81,6 +82,7 @@ router.post('/request', authenticateToken, async (req, res) => {
         );
       });
     } else {
+      // Create new request
       await new Promise((resolve, reject) => {
         db.run(
           'INSERT INTO friendRequests (fromUserId, toUserId, status) VALUES (?, ?, ?)',
@@ -93,15 +95,6 @@ router.post('/request', authenticateToken, async (req, res) => {
       });
     }
 
-    // تحقق من الإدراج فوراً
-    const checkAfterInsert = await new Promise((resolve, reject) => {
-      db.all('SELECT * FROM friendRequests WHERE toUserId = ?', [toUserId], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows || []);
-      });
-    });
-    console.log(`[DEBUG] Requests in DB for toUserId=${toUserId} after insert:`, JSON.stringify(checkAfterInsert));
-
     res.json({ message: 'تم إرسال طلب الصداقة' });
   } catch (error) {
     console.error('Send friend request error:', error);
@@ -113,25 +106,15 @@ router.post('/request', authenticateToken, async (req, res) => {
 router.get('/requests', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-
-    console.log('=== /requests called ===');
-    console.log('userId:', userId);
-
-    // تحقق من كل الطلبات في قاعدة البيانات
-    const all = await new Promise((resolve, reject) => {
-      db.all('SELECT * FROM friendRequests', [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows || []);
-      });
-    });
-    console.log('ALL requests in DB:', JSON.stringify(all));
-
+    console.log(`[DEBUG] Fetching friend requests for userId: ${userId}`);
+    
     const requests = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT fr.id, fr.fromUserId, u.username, u.publicId, fr.createdAt
+        `SELECT fr.id, fr.fromUserId, u.username, pi.publicId, fr.createdAt
          FROM friendRequests fr
          JOIN users u ON fr.fromUserId = u.id
-         WHERE fr.toUserId = ? AND fr.status = 'pending'
+         LEFT JOIN publicIds pi ON u.id = pi.userId
+         WHERE fr.toUserId = CAST(? AS INTEGER) AND fr.status = 'pending'
          ORDER BY fr.createdAt DESC`,
         [userId],
         (err, rows) => {
@@ -139,7 +122,7 @@ router.get('/requests', authenticateToken, async (req, res) => {
             console.error('[DEBUG] Database error fetching requests:', err);
             reject(err);
           } else {
-            console.log(`[DEBUG] Found ${rows?.length || 0} requests for userId=${userId}:`, JSON.stringify(rows));
+            console.log(`[DEBUG] Found ${rows?.length || 0} friend requests for userId ${userId}`);
             resolve(rows || []);
           }
         }
@@ -158,6 +141,7 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
   try {
     const { requestId } = req.params;
 
+    // Get request
     const request = await new Promise((resolve, reject) => {
       db.get(
         'SELECT * FROM friendRequests WHERE id = ? AND toUserId = ? AND status = ?',
@@ -173,6 +157,7 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'طلب الصداقة غير موجود' });
     }
 
+    // Add to friends table
     await new Promise((resolve, reject) => {
       db.run(
         'INSERT INTO friends (user1Id, user2Id) VALUES (?, ?)',
@@ -184,6 +169,7 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
       );
     });
 
+    // Update request status
     await new Promise((resolve, reject) => {
       db.run(
         'UPDATE friendRequests SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
@@ -207,6 +193,7 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   try {
     const { requestId } = req.params;
 
+    // Get request
     const request = await new Promise((resolve, reject) => {
       db.get(
         'SELECT * FROM friendRequests WHERE id = ? AND toUserId = ? AND status = ?',
@@ -222,6 +209,7 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'طلب الصداقة غير موجود' });
     }
 
+    // Update request status
     await new Promise((resolve, reject) => {
       db.run(
         'UPDATE friendRequests SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
@@ -240,7 +228,7 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get friends list
+// Get friends list with online status and profile
 router.get('/list', authenticateToken, async (req, res) => {
   try {
     const friends = await new Promise((resolve, reject) => {
@@ -296,8 +284,9 @@ router.post('/profile-image', authenticateToken, async (req, res) => {
     if (!image) {
       return res.status(400).json({ error: 'الصورة مطلوبة' });
     }
+    // Limit image size (base64 can be large)
     if (image.length > 500000) {
-      return res.status(400).json({ error: 'حجم الصورة كبير جداً' });
+      return res.status(400).json({ error: 'حجم الصورة كبير جداً. الحد الأقصى 500 كيلوبايت.' });
     }
     await new Promise((resolve, reject) => {
       db.run(
@@ -330,7 +319,7 @@ router.post('/status', authenticateToken, async (req, res) => {
         }
       );
     });
-    res.json({ message: 'تم تحديث الحالة' });
+    res.json({ message: 'تم تحديث الحالة', isOnline: !!isOnline });
   } catch (error) {
     console.error('Update status error:', error);
     res.status(500).json({ error: 'فشل تحديث الحالة' });
