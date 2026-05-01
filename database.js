@@ -40,6 +40,10 @@ function initTables() {
   db.run(`ALTER TABLE users ADD COLUMN verificationToken TEXT`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN verificationExpires DATETIME`, () => {});
 
+  // Add profile and online status columns
+  db.run(`ALTER TABLE users ADD COLUMN profileImage TEXT`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN isOnline INTEGER DEFAULT 0`, () => {});
+
   // Public IDs mapping
   db.run(`
     CREATE TABLE IF NOT EXISTS publicIds (
