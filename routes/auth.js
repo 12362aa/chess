@@ -284,8 +284,10 @@ router.post('/forgot-password', async (req, res) => {
     });
 
     // Send email (configure in .env)
+    console.log('Email config check:', {hasUser:!!process.env.EMAIL_USER, hasPass:!!process.env.EMAIL_PASS});
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
+        console.log('Attempting to send email to:', email);
         const transporter = nodemailer.createTransport({
           host: process.env.EMAIL_HOST || 'smtp.gmail.com',
           port: process.env.EMAIL_PORT || 587,
@@ -298,7 +300,7 @@ router.post('/forgot-password', async (req, res) => {
 
         const resetUrl = `${process.env.FRONTEND_URL || 'https://12362aa.github.io/chess'}/reset-password?token=${resetToken}`;
 
-        await transporter.sendMail({
+        const result = await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: email,
           subject: 'إعادة تعيين كلمة المرور - لعبة الشطرنج',
@@ -311,12 +313,14 @@ router.post('/forgot-password', async (req, res) => {
             <p style="text-align: right; direction: rtl;">إذا لم تطلب هذا، يرجى تجاهل هذا الإيميل.</p>
           `
         });
+        console.log('Email sent successfully:', result.messageId);
       } catch (emailError) {
-        console.error('Email sending failed:', emailError);
+        console.error('Email sending failed:', emailError.message, emailError.code);
         // Continue anyway - token is still saved
       }
     } else {
-      console.log('Email not configured - reset token saved but not sent:', resetToken);
+      console.error('Email credentials missing - EMAIL_USER or EMAIL_PASS not set in .env');
+      console.log('Reset token saved but email not sent:', resetToken);
     }
 
     res.json({ message: 'If the email exists, a reset link will be sent' });
