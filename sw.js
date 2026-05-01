@@ -10,6 +10,13 @@ const STATIC_ASSETS = [
   './index.html',
   './manifest.json',
   './icon_v2.png?v=2',
+  // Sound files - critical for offline gameplay
+  './move.mp3',
+  './capture.mp3',
+  './castle.mp3',
+  './check.mp3',
+  './checkmate.mp3',
+  './Error.mp3',
   'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap',
 ];
 
@@ -50,9 +57,35 @@ self.addEventListener('fetch', e => {
     url.hostname.includes('freestun') ||
     url.hostname.includes('openrelay') ||
     url.hostname.includes('xirsys') ||
-    url.pathname.endsWith('.js') && url.hostname !== location.hostname
+    (url.pathname.endsWith('.js') && url.hostname !== location.hostname)
   ) {
     return; /* نترك المتصفح يتعامل معها */
+  }
+
+  /* ملفات الصوت — Cache First (ضرورية للعمل Offline) */
+  if (url.pathname.match(/\.(mp3|wav|ogg|webm)$/i)) {
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if (cached) {
+          console.log('[SW] Serving audio from cache:', url.pathname);
+          return cached;
+        }
+        return fetch(e.request).then(res => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => {
+              c.put(e.request, clone);
+              console.log('[SW] Cached audio:', url.pathname);
+            });
+          }
+          return res;
+        }).catch(err => {
+          console.error('[SW] Failed to fetch audio:', url.pathname, err);
+          return new Response('', { status: 503 });
+        });
+      })
+    );
+    return;
   }
 
   /* الفونتات من Google — Cache First */
