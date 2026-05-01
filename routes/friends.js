@@ -51,7 +51,7 @@ router.post('/request', authenticateToken, async (req, res) => {
     });
 
     if (existingFriend) {
-      return res.status(400).json({ error: 'Already friends' });
+      return res.status(400).json({ error: 'صديق مسبقاً' });
     }
 
     // Check if request already exists
