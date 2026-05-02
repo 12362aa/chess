@@ -13,8 +13,10 @@ function authenticateToken(req, res, next) {
       return res.status(403).json({ error: 'رمز غير صالح أو منتهي الصلاحية' });
     }
     req.user = user;
+    console.log(`[DEBUG AUTH] Token verified for userId: ${user.userId} (type: ${typeof user.userId})`);
     next();
   });
 }
 
 module.exports = { authenticateToken };
+
