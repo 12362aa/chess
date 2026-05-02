@@ -3906,13 +3906,24 @@ window.FB={
     if(this._token)headers['Authorization']=`Bearer ${this._token}`;
     const opts={method,headers};
     if(body)opts.body=JSON.stringify(body);
+    
+    // Debug logging for friend requests
+    if(endpoint.includes('/friends/requests')){
+      console.log(`[DEBUG FRONTEND] _api: calling ${endpoint} with token present: ${!!this._token}`);
+    }
+    
     try{
       const res=await fetch(this.API_BASE+endpoint,opts);
       const data=await res.json();
+      if(endpoint.includes('/friends/requests')){
+        console.log(`[DEBUG FRONTEND] _api: response status ${res.status}`, data);
+      }
       if(!res.ok)throw new Error(data.error||'API error');
       return data;
     }catch(e){
-      console.error('API error:',e);
+      if(endpoint.includes('/friends/requests')){
+        console.error(`[DEBUG FRONTEND] _api: ERROR for ${endpoint}`, e);
+      }
       throw e;
     }
   },
@@ -4056,14 +4067,17 @@ window.FB={
   },
 
   async _loadFriendRequests(){
-    if(!this._user)return;
+    if(!this._user){
+      console.log('[DEBUG FRONTEND] _loadFriendRequests: no user logged in');
+      return;
+    }
     try{
-      console.log('Loading friend requests...');
+      console.log('[DEBUG FRONTEND] _loadFriendRequests: calling API for user', this._user.userId);
       const data=await this._api('/friends/requests');
-      console.log('Friend requests loaded:', data.requests);
+      console.log('[DEBUG FRONTEND] _loadFriendRequests: API response', data);
       this._renderFriendRequests(data.requests||[]);
     }catch(e){
-      console.error('Failed to load requests:',e);
+      console.error('[DEBUG FRONTEND] _loadFriendRequests: ERROR', e);
     }
   },
 
@@ -4340,6 +4354,7 @@ window.FB={
   _challengeModalOpen:false,
 
   _startWatching(){
+    console.log('[DEBUG FRONTEND] _startWatching: starting for user', this._user?.userId);
     this._stopWatching();
     this._loadFriends();
     this._loadFriendRequests();
