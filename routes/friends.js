@@ -127,7 +127,27 @@ router.post('/request', authenticateToken, async (req, res) => {
 router.get('/requests', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-    console.log(`[DEBUG] Fetching friend requests for userId: ${userId}`);
+    console.log(`[DEBUG] Fetching friend requests for userId: ${userId} (type: ${typeof userId})`);
+    
+    // First check if there are ANY requests for this user
+    const allRequests = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT id, fromUserId, toUserId, status FROM friendRequests WHERE toUserId = ?`,
+        [userId],
+        (err, rows) => {
+          if (err) {
+            console.error('[DEBUG] Raw query error:', err);
+            reject(err);
+          } else {
+            console.log(`[DEBUG] Raw check: Found ${rows?.length || 0} total requests for toUserId=${userId}`);
+            if (rows && rows.length > 0) {
+              console.log(`[DEBUG] Raw rows:`, JSON.stringify(rows));
+            }
+            resolve(rows || []);
+          }
+        }
+      );
+    });
     
     const requests = await new Promise((resolve, reject) => {
       db.all(
@@ -136,7 +156,7 @@ router.get('/requests', authenticateToken, async (req, res) => {
          FROM friendRequests fr
          JOIN users u ON fr.fromUserId = u.id
          LEFT JOIN publicIds pi ON u.id = pi.userId
-         WHERE fr.toUserId = CAST(? AS INTEGER) AND fr.status = 'pending'
+         WHERE fr.toUserId = ? AND fr.status = 'pending'
          ORDER BY fr.createdAt DESC`,
         [userId],
         (err, rows) => {
