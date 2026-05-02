@@ -14,15 +14,14 @@ const { WebSocketServer, WebSocket } = require('ws');
 
 const PORT = process.env.PORT || 8081;
 
-// Initialize database
-const db = require('./database');
+// No database needed for authless version
 
 // Express app for API
 const app = express();
 app.use(cors({
   origin: '*',
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','ngrok-skip-browser-warning']
+  allowedHeaders: ['Content-Type','ngrok-skip-browser-warning']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -33,16 +32,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Routes
-const authRoutes = require('./routes/auth');
-const progressRoutes = require('./routes/progress');
-const friendsRoutes = require('./routes/friends');
-const challengesRoutes = require('./routes/challenges');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/progress', progressRoutes);
-app.use('/api/friends', friendsRoutes);
-app.use('/api/challenges', challengesRoutes);
+// API Routes removed - no authentication needed
+// Only health check endpoints remain
 
 // Health check
 app.get('/api/health', (req, res) => {
