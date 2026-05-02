@@ -125,6 +125,7 @@ router.post('/request', authenticateToken, async (req, res) => {
 
 // Get pending friend requests
 router.get('/requests', authenticateToken, async (req, res) => {
+  console.log(`[DEBUG REQUESTS] Endpoint hit! req.user:`, req.user);
   try {
     // CRITICAL FIX: Convert userId to integer as JWT returns it as string
     const rawUserId = req.user.userId;
@@ -174,9 +175,10 @@ router.get('/requests', authenticateToken, async (req, res) => {
       );
     });
 
+    console.log(`[DEBUG REQUESTS] SUCCESS - Returning ${requests.length} requests`);
     res.json({ requests });
   } catch (error) {
-    console.error('Get friend requests error:', error);
+    console.error('[DEBUG REQUESTS] ERROR:', error);
     res.status(500).json({ error: 'فشل جلب طلبات الصداقة' });
   }
 });
