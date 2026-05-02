@@ -622,6 +622,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   }
 }
 </style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="particles"></div>
@@ -711,7 +715,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
               <span style="font-size:12px;color:var(--text3);font-weight:500;">المعرّف:</span>
               <span id="acc-pid" style="font-size:14px;color:var(--gold2);font-weight:800;direction:ltr;background:rgba(201,168,76,.1);padding:4px 10px;border-radius:6px;">—</span>
               <button class="btnp" style="padding:6px 12px;font-size:11px;border-radius:8px;" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.copyMyId)FB.copyMyId()"><span style="margin-left:4px;">◈</span> نسخ</button>
-              <button class="btnb" style="padding:6px 12px;font-size:11px;border-radius:8px;margin-right:auto;" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.logout)FB.logout()"><span style="margin-left:4px;">←</span> خروج</button>
+              <button class="btnb" style="padding:6px 12px;font-size:11px;border-radius:8px;margin-right:auto;" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.signOut)FB.signOut()"><span style="margin-left:4px;">←</span> خروج</button>
             </div>
           </div>
           <input type="file" id="profile-image-input-acc" accept="image/*" style="display:none;" onchange="uploadProfileImage(this)">
@@ -723,23 +727,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
             <button class="btnb" style="flex:1;" onclick="if(typeof SFX!=='undefined')SFX.btn();cancelEditUsername()">إلغاء</button>
           </div>
         </div>
-        <div id="acc-guest" style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:100%;overflow:hidden;padding:16px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.15);border-radius:16px;">
-          <input id="login-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--gold2)'" onblur="this.style.borderColor='rgba(201,168,76,.3)'">
-          <input id="login-password" type="password" placeholder="كلمة المرور" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--gold2)'" onblur="this.style.borderColor='rgba(201,168,76,.3)'">
-          <div style="display:flex;gap:10px;margin-top:4px;">
-            <button class="btnp" style="flex:1;padding:12px;font-size:14px;border-radius:10px;" onclick="if(typeof SFX!=='undefined')SFX.btn();handleLogin()" style="flex:1;padding:12px;font-size:14px;border-radius:10px;position:relative;"><span style="margin-left:6px;">◈</span> تسجيل الدخول</button>
-            <button class="btnp" style="flex:1;padding:12px;font-size:14px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));" onclick="if(typeof SFX!=='undefined')SFX.btn();showSignup()" style="flex:1;padding:12px;font-size:14px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));position:relative;"><span style="margin-left:6px;">+</span> إنشاء حساب</button>
-          </div>
-          <button class="btnb" style="font-size:12px;padding:10px;margin-top:4px;border-radius:10px;" onclick="if(typeof SFX!=='undefined')SFX.btn();showForgotPassword()" style="font-size:12px;padding:10px;margin-top:4px;border-radius:10px;"><span style="margin-left:6px;color:var(--gold2);">؟</span> نسيت كلمة المرور؟</button>
-        </div>
-        <div id="acc-signup" style="display:none;flex-direction:column;gap:12px;width:100%;max-width:100%;overflow:hidden;padding:16px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);border-radius:16px;">
-          <input id="signup-username" type="text" placeholder="اسم المستخدم (3-20 حرف)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(45,212,191,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(45,212,191,.3)'">
-          <input id="signup-email" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(45,212,191,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(45,212,191,.3)'">
-          <input id="signup-password" type="password" placeholder="كلمة المرور (6+ أحرف)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(45,212,191,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;transition:all .2s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(45,212,191,.3)'">
-          <div style="display:flex;gap:10px;margin-top:4px;">
-            <button class="btnp" style="flex:1;padding:12px;font-size:14px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));" onclick="if(typeof SFX!=='undefined')SFX.btn();handleSignup()" style="flex:1;padding:12px;font-size:14px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));position:relative;"><span style="margin-left:6px;">+</span> إنشاء الحساب</button>
-            <button class="btnb" style="flex:1;padding:12px;font-size:14px;border-radius:10px;" onclick="if(typeof SFX!=='undefined')SFX.btn();showLogin()" style="flex:1;padding:12px;font-size:14px;border-radius:10px;"><span style="margin-left:6px;">←</span> عودة</button>
-          </div>
+        <!-- Google Sign In Button (Firebase) -->
+        <div id="acc-guest" style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:100%;overflow:hidden;padding:16px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.15);border-radius:16px;align-items:center;">
+          <div style="font-size:14px;color:var(--text2);text-align:center;margin-bottom:8px;">سجل الدخول بحساب Google للمزامنة</div>
+          <button id="google-signin-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 16px;background:#fff;border:1px solid #dadce0;border-radius:8px;cursor:pointer;transition:all .2s;box-shadow:0 1px 2px rgba(0,0,0,.05);" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.signInWithGoogle)FB.signInWithGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            <span style="font-size:14px;font-weight:500;color:#3c4043;">Sign in with Google</span>
+          </button>
         </div>
         <div id="acc-status" style="font-size:11px;color:var(--text2);line-height:1.4;"></div>
       </div>
@@ -4457,31 +4451,27 @@ window.FB={
     const u=this._user;
     const userBox=this._el('acc-user');
     const guestBox=this._el('acc-guest');
-    const signupBox=this._el('acc-signup');
     const nameEl=this._el('acc-name');
-    const idEl=this._el('acc-id');
     const photoEl=this._el('acc-photo');
     if(u){
-      // User logged in - show user box, hide guest & signup
+      // User logged in - show user box, hide guest
       if(userBox)userBox.style.display='flex';
       if(guestBox)guestBox.style.display='none';
-      if(signupBox)signupBox.style.display='none';
       if(nameEl)nameEl.textContent=u.username||'لاعب';
-      if(idEl)idEl.textContent='';
       const pidEl=this._el('acc-pid');
       if(pidEl)pidEl.textContent=this._myPublicId||'—';
       if(photoEl){
-        const savedImage=localStorage.getItem('chess_profile_image');
-        if(savedImage){
-          photoEl.style.backgroundImage=`url(${savedImage})`;
+        // Use Firebase photoURL first, fallback to localStorage
+        const photoUrl=u.photoURL||localStorage.getItem('chess_profile_image');
+        if(photoUrl){
+          photoEl.style.backgroundImage=`url(${photoUrl})`;
         }else{
           photoEl.style.backgroundImage='';
         }
       }
     }else{
-      // User not logged in - show guest box, hide user & signup
+      // User not logged in - show guest box, hide user
       if(userBox)userBox.style.display='none';
-      if(signupBox)signupBox.style.display='none';
       if(guestBox)guestBox.style.display='flex';
     }
   },
@@ -4489,20 +4479,79 @@ window.FB={
   async init(){
     // Load API URL first
     await this.loadApiUrl();
-    const token=localStorage.getItem('chess_token');
-    const userStr=localStorage.getItem('chess_user');
-    if(token&&userStr){
-      try{
-        this._token=token;
-        this._user=JSON.parse(userStr);
-        this._myPublicId=this._user.publicId||'';
+    
+    // Setup Firebase Auth state listener
+    auth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in
+        console.log('[Firebase] User signed in:', firebaseUser.uid);
+        this._user = {
+          userId: firebaseUser.uid,
+          username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Player',
+          email: firebaseUser.email,
+          publicId: firebaseUser.uid.substring(0, 8).toUpperCase(), // Use first 8 chars of UID as publicId
+          photoURL: firebaseUser.photoURL
+        };
+        this._myPublicId = this._user.publicId;
+        this._token = await firebaseUser.getIdToken();
+        
+        // Sync user data with backend
+        await this._syncUserWithBackend();
         await this._syncLevelsBidirectional();
         this._startWatching();
         this.refreshUI();
-      }catch(e){
-        localStorage.removeItem('chess_token');
-        localStorage.removeItem('chess_user');
+      } else {
+        // User is signed out
+        console.log('[Firebase] User signed out');
+        this._stopWatching();
+        this._token = null;
+        this._user = null;
+        this._myPublicId = '';
+        this.refreshUI();
       }
+    });
+  },
+
+  // Sync Firebase user with backend database
+  async _syncUserWithBackend(){
+    try{
+      const idToken = await auth.currentUser.getIdToken();
+      await this._api('/auth/firebase-sync','POST',{
+        uid: this._user.userId,
+        email: this._user.email,
+        username: this._user.username,
+        photoURL: this._user.photoURL
+      });
+    }catch(e){
+      console.error('Failed to sync with backend:', e);
+    }
+  },
+
+  // Google Sign In
+  async signInWithGoogle(){
+    try{
+      this._setStatus('◌ جاري تسجيل الدخول...');
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const result = await auth.signInWithPopup(provider);
+      console.log('[Firebase] Google sign in success:', result.user.uid);
+      this._setStatus('◈ تم تسجيل الدخول');
+      return true;
+    }catch(e){
+      console.error('[Firebase] Google sign in error:', e);
+      this._setStatus('◆ فشل تسجيل الدخول: ' + (e.message || 'خطأ غير معروف'));
+      return false;
+    }
+  },
+
+  // Sign out
+  async signOut(){
+    try{
+      await auth.signOut();
+      this._setStatus('◈ تم تسجيل الخروج');
+      return true;
+    }catch(e){
+      console.error('[Firebase] Sign out error:', e);
+      return false;
     }
   },
 
@@ -4513,46 +4562,7 @@ window.FB={
 window.FB.loadApiUrl();
 console.log('FB module defined, window.FB:', window.FB);
 
-// Login/Signup UI functions
-function showLogin(){
-  document.getElementById('acc-guest').style.display='flex';
-  document.getElementById('acc-signup').style.display='none';
-}
-
-function showSignup(){
-  document.getElementById('acc-guest').style.display='none';
-  document.getElementById('acc-signup').style.display='flex';
-}
-
-function showForgotPassword(){
-  const modal=document.getElementById('input-modal');
-  const field=document.getElementById('input-modal-field');
-  const okBtn=document.getElementById('input-modal-ok');
-  const cancelBtn=document.getElementById('input-modal-cancel');
-  if(!modal)return;
-  field.value='';
-  modal.style.display='flex';
-  if(typeof SFX!=='undefined')SFX.btn();
-  field.focus();
-  okBtn.onclick=()=>{
-    const email=field.value.trim();
-    if(!email)return;
-    modal.style.display='none';
-    if(typeof SFX!=='undefined')SFX.btn();
-    if(window.FB && window.FB._api){
-      window.FB._api('/auth/forgot-password','POST',{email})
-        .then(d=>Modal.show(d.message||'تم إرسال الرابط إلى بريدك إذا كان مسجلاً','تم','◈'))
-        .catch(e=>Modal.show('حدث خطأ. تأكد أن السيرفر يعمل','خطأ','◆'));
-    }else{
-      Modal.show('وحدة FB غير محملة','خطأ','◆');
-    }
-  };
-  cancelBtn.onclick=()=>{
-    if(typeof SFX!=='undefined')SFX.btn();
-    modal.style.display='none';
-  };
-}
-
+// Account UI functions
 function editUsername(){
   const currentName=document.getElementById('acc-name').textContent;
   document.getElementById('edit-username-input').value=currentName;
@@ -4585,10 +4595,10 @@ async function saveUsername(){
     }catch(e){
       if(e.message && (e.message.includes('token') || e.message.includes('Token'))){
         Modal.show('انتهت صلاحية الجلسة. يرجى تسجيل الخروج وإعادة تسجيل الدخول.','خطأ','✕');
-        // Clear stored credentials
+        // Clear stored credentials and sign out
         localStorage.removeItem('chess_token');
         localStorage.removeItem('chess_user');
-        window.FB.logout();
+        if(window.FB&&FB.signOut)FB.signOut();
       }else{
         Modal.show('فشل تحديث اسم المستخدم: '+e.message,'خطأ','◆');
       }
@@ -4627,54 +4637,21 @@ async function uploadProfileImage(input){
   }
 }
 
-async function handleLogin(){
-  console.log('handleLogin called');
-  const email=document.getElementById('login-email').value;
-  const password=document.getElementById('login-password').value;
-  console.log('email:',email,'password:',password?'***':'empty');
-  if(!email||!password){
-    Modal.show('أدخل البريد الإلكتروني وكلمة المرور','تنبيه','✕');
-    return;
-  }
-  console.log('window.FB:',window.FB);
-  if(window.FB&&FB.login){
-    console.log('Calling FB.login...');
-    await FB.login(email,password);
-  }else{
-    console.error('FB.login not available');
-    Modal.show('وحدة FB غير محملة','خطأ','◆');
-  }
-}
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCVFjWtbHdXv7HG8IGyTH0Ogv_rZ4jWIVI",
+  authDomain: "chess-85a75.firebaseapp.com",
+  projectId: "chess-85a75",
+  storageBucket: "chess-85a75.firebasestorage.app",
+  messagingSenderId: "467677566583",
+  appId: "1:467677566583:web:3ab926b218de5095b31872",
+  measurementId: "G-39JQ9F34J5"
+};
 
-async function handleSignup(){
-  console.log('handleSignup called');
-  const username=document.getElementById('signup-username').value;
-  const email=document.getElementById('signup-email').value;
-  const password=document.getElementById('signup-password').value;
-  console.log('username:',username,'email:',email,'password:',password?'***':'empty');
-  if(!username||!email||!password){
-    Modal.show('أدخل جميع الحقول المطلوبة','تنبيه','✕');
-    return;
-  }
-  console.log('window.FB:',window.FB);
-  if(window.FB&&FB.register){
-    console.log('Calling FB.register...');
-    const success=await FB.register(username,email,password);
-    if(success){
-      // Registration successful - FB.register already called refreshUI()
-      // which shows the logged-in user interface
-      // Just clear the form fields for next time
-      document.getElementById('signup-username').value='';
-      document.getElementById('signup-password').value='';
-      document.getElementById('signup-email').value='';
-      // Show success message
-      Modal.show('تم إنشاء الحساب وتسجيل الدخول بنجاح!','تم','◈');
-    }
-  }else{
-    console.error('FB.register not available');
-    alert('FB module not loaded. Check console for errors.');
-  }
-}
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 Cfg.load();
 window.addEventListener('load',async ()=>{
