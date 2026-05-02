@@ -6,12 +6,28 @@ const router = express.Router();
 
 // Get user ID from public ID
 async function getUserIdFromPublicId(publicId) {
-  const result = await new Promise((resolve, reject) => {
-    db.get('SELECT userId FROM publicIds WHERE publicId = ?', [publicId], (err, row) => {
+  console.log(`[DEBUG] getUserIdFromPublicId: searching for publicId=${publicId}`);
+  
+  // First try to find in users table (primary location)
+  let result = await new Promise((resolve, reject) => {
+    db.get('SELECT id as userId FROM users WHERE publicId = ?', [publicId], (err, row) => {
       if (err) reject(err);
       else resolve(row);
     });
   });
+  
+  // If not found, try publicIds table (fallback for older users)
+  if (!result) {
+    console.log(`[DEBUG] Not found in users table, checking publicIds table...`);
+    result = await new Promise((resolve, reject) => {
+      db.get('SELECT userId FROM publicIds WHERE publicId = ?', [publicId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+  }
+  
+  console.log(`[DEBUG] getUserIdFromPublicId result:`, result ? `userId=${result.userId}` : 'null');
   return result ? result.userId : null;
 }
 
@@ -87,9 +103,14 @@ router.post('/request', authenticateToken, async (req, res) => {
         db.run(
           'INSERT INTO friendRequests (fromUserId, toUserId, status) VALUES (?, ?, ?)',
           [req.user.userId, toUserId, 'pending'],
-          (err) => {
-            if (err) reject(err);
-            else resolve();
+          function(err) {
+            if (err) {
+              console.error('[DEBUG] Error inserting friend request:', err);
+              reject(err);
+            } else {
+              console.log(`[DEBUG] Friend request inserted successfully. ID: ${this.lastID}, fromUserId: ${req.user.userId}, toUserId: ${toUserId}`);
+              resolve();
+            }
           }
         );
       });
@@ -110,7 +131,8 @@ router.get('/requests', authenticateToken, async (req, res) => {
     
     const requests = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT fr.id, fr.fromUserId, u.username, pi.publicId, fr.createdAt
+        `SELECT fr.id, fr.fromUserId, u.username, 
+         COALESCE(u.publicId, pi.publicId) as publicId, fr.createdAt
          FROM friendRequests fr
          JOIN users u ON fr.fromUserId = u.id
          LEFT JOIN publicIds pi ON u.id = pi.userId
