@@ -127,22 +127,24 @@ router.post('/request', authenticateToken, async (req, res) => {
 router.get('/requests', authenticateToken, async (req, res) => {
   try {
     // CRITICAL FIX: Convert userId to integer as JWT returns it as string
-    const userId = parseInt(req.user.userId, 10);
-    console.log(`[DEBUG] Fetching friend requests for userId: ${userId} (converted from: ${req.user.userId})`);
+    const rawUserId = req.user.userId;
+    const userId = parseInt(rawUserId, 10);
+    console.log(`[DEBUG REQUESTS] START - rawUserId: ${rawUserId} (type: ${typeof rawUserId}), parsed: ${userId} (type: ${typeof userId})`);
     
     // First check if there are ANY requests for this user
+    console.log(`[DEBUG REQUESTS] Query 1: SELECT * FROM friendRequests WHERE toUserId = ${userId}`);
     const allRequests = await new Promise((resolve, reject) => {
       db.all(
         `SELECT id, fromUserId, toUserId, status FROM friendRequests WHERE toUserId = ?`,
         [userId],
         (err, rows) => {
           if (err) {
-            console.error('[DEBUG] Raw query error:', err);
+            console.error('[DEBUG REQUESTS] Query 1 ERROR:', err);
             reject(err);
           } else {
-            console.log(`[DEBUG] Raw check: Found ${rows?.length || 0} total requests for toUserId=${userId}`);
+            console.log(`[DEBUG REQUESTS] Query 1 Result: ${rows?.length || 0} rows`);
             if (rows && rows.length > 0) {
-              console.log(`[DEBUG] Raw rows:`, JSON.stringify(rows));
+              console.log(`[DEBUG REQUESTS] Query 1 Rows:`, JSON.stringify(rows));
             }
             resolve(rows || []);
           }
