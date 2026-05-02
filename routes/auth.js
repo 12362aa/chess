@@ -1,12 +1,107 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const db = require('../database');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Firebase Sync - Create or update user from Firebase Auth
+router.post('/firebase-sync', authenticateToken, async (req, res) => {
+  try {
+    const { uid, email, username, photoURL } = req.body;
+    
+    if (!uid || !email) {
+      return res.status(400).json({ error: 'UID and email are required' });
+    }
+
+    // Check if user exists
+    const existingUser = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE uid = ?', [uid], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (existingUser) {
+      // Update existing user
+      await new Promise((resolve, reject) => {
+        db.run(
+          'UPDATE users SET username = ?, photoURL = ?, updatedAt = CURRENT_TIMESTAMP WHERE uid = ?',
+          [username || existingUser.username, photoURL || existingUser.photoURL, uid],
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
+      
+      const updatedUser = await new Promise((resolve, reject) => {
+        db.get('SELECT * FROM users WHERE uid = ?', [uid], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      return res.json({ 
+        message: 'User updated successfully',
+        user: updatedUser
+      });
+    }
+
+    // Create new user
+    const publicId = uid.substring(0, 8).toUpperCase();
+    
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO users (uid, username, email, publicId, photoURL) VALUES (?, ?, ?, ?, ?)',
+        [uid, username || email.split('@')[0], email, publicId, photoURL],
+        function(err) {
+          if (err) {
+            console.error('Error creating user:', err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+      );
+    });
+
+    const newUser = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE uid = ?', [uid], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    res.status(201).json({ 
+      message: 'User created successfully',
+      user: newUser
+    });
+  } catch (error) {
+    console.error('Firebase sync error:', error);
+    res.status(500).json({ error: 'Failed to sync user' });
+  }
+});
+
+// Get current user info
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE uid = ?', [req.user.userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ error: 'Failed to get user' });
+  }
+});
 
 // Generate public ID
 function generatePublicId() {
