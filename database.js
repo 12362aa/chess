@@ -1,117 +1,98 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'chess.db');
+const dbPath = path.join(__dirname, 'chess-firebase.db');
 
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
   } else {
-    console.log('Connected to SQLite database');
+    console.log('Connected to SQLite database (Firebase Edition)');
     initTables();
   }
 });
 
 function initTables() {
-  // Users table
+  // Users table - using Firebase UID as primary key
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
+      uid TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
       publicId TEXT UNIQUE NOT NULL,
+      photoURL TEXT,
       nourProgress INTEGER DEFAULT -1,
       wins INTEGER DEFAULT 0,
       losses INTEGER DEFAULT 0,
       draws INTEGER DEFAULT 0,
       levels TEXT DEFAULT '{}',
-      emailVerified INTEGER DEFAULT 0,
-      verificationToken TEXT,
-      verificationExpires DATETIME,
+      isOnline INTEGER DEFAULT 0,
+      lastSeen DATETIME DEFAULT CURRENT_TIMESTAMP,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      lastSeen DATETIME DEFAULT CURRENT_TIMESTAMP
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  // Add email verification columns if they don't exist (for existing databases)
-  db.run(`ALTER TABLE users ADD COLUMN emailVerified INTEGER DEFAULT 0`, () => {});
-  db.run(`ALTER TABLE users ADD COLUMN verificationToken TEXT`, () => {});
-  db.run(`ALTER TABLE users ADD COLUMN verificationExpires DATETIME`, () => {});
-
-  // Add profile and online status columns
-  db.run(`ALTER TABLE users ADD COLUMN profileImage TEXT`, () => {});
-  db.run(`ALTER TABLE users ADD COLUMN isOnline INTEGER DEFAULT 0`, () => {});
-
-  // Public IDs mapping
-  db.run(`
-    CREATE TABLE IF NOT EXISTS publicIds (
-      publicId TEXT PRIMARY KEY,
-      userId INTEGER NOT NULL,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (userId) REFERENCES users(id)
-    )
-  `);
-
-  // Friend requests
+  // Friend requests - using Firebase UIDs
   db.run(`
     CREATE TABLE IF NOT EXISTS friendRequests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fromUserId INTEGER NOT NULL,
-      toUserId INTEGER NOT NULL,
+      fromUid TEXT NOT NULL,
+      toUid TEXT NOT NULL,
       status TEXT DEFAULT 'pending',
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (fromUserId) REFERENCES users(id),
-      FOREIGN KEY (toUserId) REFERENCES users(id)
+      FOREIGN KEY (fromUid) REFERENCES users(uid),
+      FOREIGN KEY (toUid) REFERENCES users(uid),
+      UNIQUE(fromUid, toUid)
     )
   `);
 
-  // Friends
+  // Friends - using Firebase UIDs
   db.run(`
     CREATE TABLE IF NOT EXISTS friends (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user1Id INTEGER NOT NULL,
-      user2Id INTEGER NOT NULL,
+      user1Uid TEXT NOT NULL,
+      user2Uid TEXT NOT NULL,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user1Id) REFERENCES users(id),
-      FOREIGN KEY (user2Id) REFERENCES users(id),
-      UNIQUE(user1Id, user2Id)
+      FOREIGN KEY (user1Uid) REFERENCES users(uid),
+      FOREIGN KEY (user2Uid) REFERENCES users(uid),
+      UNIQUE(user1Uid, user2Uid)
     )
   `);
 
-  // Challenges
+  // Challenges - using Firebase UIDs
   db.run(`
     CREATE TABLE IF NOT EXISTS challenges (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       matchId TEXT UNIQUE NOT NULL,
-      fromUserId INTEGER NOT NULL,
-      toUserId INTEGER NOT NULL,
+      fromUid TEXT NOT NULL,
+      toUid TEXT NOT NULL,
       status TEXT DEFAULT 'pending',
       roomCode TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       acceptedAt DATETIME,
-      FOREIGN KEY (fromUserId) REFERENCES users(id),
-      FOREIGN KEY (toUserId) REFERENCES users(id)
+      FOREIGN KEY (fromUid) REFERENCES users(uid),
+      FOREIGN KEY (toUid) REFERENCES users(uid)
     )
   `);
 
-  // Password reset tokens
+  // Progress/Levels - using Firebase UID
   db.run(`
-    CREATE TABLE IF NOT EXISTS passwordResetTokens (
+    CREATE TABLE IF NOT EXISTS progress (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      userId INTEGER NOT NULL,
-      token TEXT UNIQUE NOT NULL,
-      expiresAt DATETIME NOT NULL,
-      used INTEGER DEFAULT 0,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (userId) REFERENCES users(id)
+      uid TEXT NOT NULL,
+      levelId INTEGER NOT NULL,
+      stars INTEGER DEFAULT 0,
+      moves INTEGER DEFAULT 0,
+      completedAt DATETIME,
+      FOREIGN KEY (uid) REFERENCES users(uid),
+      UNIQUE(uid, levelId)
     )
   `);
 
-  console.log('Database tables initialized');
+  console.log('Firebase database tables initialized');
 }
 
 module.exports = db;
