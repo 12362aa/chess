@@ -622,9 +622,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   }
 }
 </style>
-<!-- Firebase SDK -->
+<!-- Firebase SDK for Firestore only (no auth) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
@@ -677,120 +676,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mc-d">صوت — رقعة — ألوان وأكثر</div>
       <span class="mc-b bb">تخصيص</span>
     </div>
-
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.account()">
-      <span class="mc-ic ic-gold">★</span>
-      <div class="mc-t">الحساب</div>
-      <div class="mc-d">تسجيل دخول — مزامنة التقدم</div>
-      <span class="mc-b bp">مزامنة</span>
-    </div>
   </div>
   <div class="offline-n">◉ مراحل نور ولاعبَان يعملان بدون إنترنت بالكامل</div>
-</div>
-
-<!-- ACCOUNT -->
-<div id="s-account" class="screen">
-  <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
-    <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
-      <h2><span class="ic-gold">◈</span> إدارة الحساب</h2>
-      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:12px;">
-        <div class="sr-n" style="font-size:15px;color:var(--gold2);">حساب اللاعب</div>
-        <div class="sr-d">قم بتسجيل الدخول لمزامنة تقدمك عبر جميع أجهزتك</div>
-        <div id="acc-user" style="display:none;width:100%;gap:12px;align-items:flex-start;padding:16px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:16px;">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-            <div id="acc-photo" style="width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,.2);border:3px solid rgba(201,168,76,.4);background-size:cover;background-position:center;flex-shrink:0;cursor:pointer;position:relative;box-shadow:0 4px 15px rgba(201,168,76,.2);" onclick="document.getElementById('profile-image-input-acc').click()">
-              <div style="position:absolute;bottom:2px;right:2px;background:var(--gold2);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#000;border:2px solid var(--bg2);">+</div>
-            </div>
-            <span style="font-size:10px;color:var(--text3);font-weight:500;">تغيير الصورة</span>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;flex:1;margin-top:4px;">
-            <div style="display:flex;flex-direction:column;gap:3px;">
-              <span style="font-size:11px;color:var(--text3);font-weight:500;">اسم اللاعب</span>
-              <div id="acc-name" style="font-weight:800;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;background:rgba(201,168,76,.12);padding:8px 12px;border-radius:10px;border:1px solid rgba(201,168,76,.25);font-size:15px;transition:all .2s;" onclick="if(typeof SFX!=='undefined')SFX.btn();editUsername()">
-                <span></span>
-                <span style="font-size:12px;color:var(--gold2);margin-right:auto;">تعديل</span>
-              </div>
-            </div>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px;">
-              <span style="font-size:12px;color:var(--text3);font-weight:500;">المعرّف:</span>
-              <span id="acc-pid" style="font-size:14px;color:var(--gold2);font-weight:800;direction:ltr;background:rgba(201,168,76,.1);padding:4px 10px;border-radius:6px;">—</span>
-              <button class="btnp" style="padding:6px 12px;font-size:11px;border-radius:8px;" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.copyMyId)FB.copyMyId()"><span style="margin-left:4px;">◈</span> نسخ</button>
-              <button class="btnb" style="padding:6px 12px;font-size:11px;border-radius:8px;margin-right:auto;" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.signOut)FB.signOut()"><span style="margin-left:4px;">←</span> خروج</button>
-            </div>
-          </div>
-          <input type="file" id="profile-image-input-acc" accept="image/*" style="display:none;" onchange="uploadProfileImage(this)">
-        </div>
-        <div id="edit-username-box" style="display:none;flex-direction:column;gap:10px;width:100%;max-width:100%;overflow:hidden;">
-          <input id="edit-username-input" type="text" placeholder="اسم المستخدم الجديد (3-20 حرف)" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;">
-          <div style="display:flex;gap:10px;">
-            <button class="btnp" style="flex:1;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveUsername()">حفظ</button>
-            <button class="btnb" style="flex:1;" onclick="if(typeof SFX!=='undefined')SFX.btn();cancelEditUsername()">إلغاء</button>
-          </div>
-        </div>
-        <!-- Google Sign In Button (Firebase) -->
-        <div id="acc-guest" style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:100%;overflow:hidden;padding:16px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.15);border-radius:16px;align-items:center;">
-          <div style="font-size:14px;color:var(--text2);text-align:center;margin-bottom:8px;">سجل الدخول بحساب Google للمزامنة</div>
-          <button id="google-signin-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 16px;background:#fff;border:1px solid #dadce0;border-radius:8px;cursor:pointer;transition:all .2s;box-shadow:0 1px 2px rgba(0,0,0,.05);" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.signInWithGoogle)FB.signInWithGoogle()">
-            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-            <span style="font-size:14px;font-weight:500;color:#3c4043;">Sign in with Google</span>
-          </button>
-        </div>
-        <div id="acc-status" style="font-size:11px;color:var(--text2);line-height:1.4;"></div>
-      </div>
-    </div>
-    <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
-      <h2><span class="ic-teal">◈</span> المزامنة</h2>
-      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
-        <div class="sr-n">تقدم مراحل نور</div>
-        <div class="sr-d">سيتم حفظ تقدمك تلقائياً عند الفوز في أي مرحلة</div>
-        <div style="display:flex;gap:10px;width:100%;">
-          <button class="btnb" style="flex:1;" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.syncNow)FB.syncNow()">مزامنة الآن</button>
-          <button class="btnb" style="flex:1;" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.levels()">فتح مراحل نور</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
-      <h2><span class="ic-green">⚔</span> الأصدقاء</h2>
-      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;">
-        <div class="sr-n">إضافة صديق</div>
-        <div class="sr-d">أدخل معرف صديقك (ID) ثم أرسل طلب صداقة</div>
-        <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
-          <input class="finp" id="fr-inp" placeholder="ID صديقك…" maxlength="12" style="margin-bottom:0;width:100%;box-sizing:border-box;letter-spacing:1px;direction:ltr;text-align:left;" />
-          <button class="btnp" style="width:100%;box-sizing:border-box;" onclick="if(typeof SFX!=='undefined')SFX.btn();if(window.FB&&FB.sendFriendRequest)FB.sendFriendRequest()">إرسال</button>
-        </div>
-        <div id="fr-status" style="font-size:11px;color:var(--text2);"></div>
-      </div>
-
-      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px;">
-        <div class="sr-n">طلبات الصداقة</div>
-        <div class="sr-d">طلبات واردة — اضغط قبول للبدء بالتحدي</div>
-        <div id="fr-reqs" style="display:flex;flex-direction:column;gap:8px;width:100%;"></div>
-      </div>
-
-      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:10px;margin-top:12px;">
-        <div class="sr-n">قائمة الأصدقاء</div>
-        <div class="sr-d">تحدَّ صديقك مباشرة بدون إنشاء غرفة</div>
-        <div id="fr-list" style="display:flex;flex-direction:column;gap:8px;width:100%;"></div>
-      </div>
-    </div>
-    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
-  </div>
-</div>
-
-<div id="nick-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;align-items:center;justify-content:center;padding:18px;">
-  <div style="width:min(520px,96vw);background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:16px;padding:14px 14px 12px;box-shadow:0 20px 60px rgba(0,0,0,.55);">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-      <div style="width:34px;height:34px;border-radius:10px;background:rgba(201,168,76,.13);border:1px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;color:var(--gold2);font-weight:900;">◈</div>
-      <div style="font-weight:900;color:var(--text);">مرحباً! اختر اسمك المستعار</div>
-    </div>
-    <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">سيظهر اسمك للخصوم ويتم ربط تقدم مراحل نور بحسابك.</div>
-    <input class="finp" id="nick-inp" placeholder="اسم مستعار…" maxlength="20" style="margin-bottom:10px;letter-spacing:0;text-align:right" />
-    <div style="display:flex;gap:10px;">
-      <button class="btnp" style="flex:1;" id="nick-save">حفظ</button>
-      <button class="btnb" style="flex:1;" id="nick-cancel">لاحقاً</button>
-    </div>
-  </div>
 </div>
 
 <!-- LEVELS -->
@@ -810,6 +697,27 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <!-- SETTINGS -->
 <div id="s-settings" class="screen">
   <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
+    <!-- Profile Settings at the Top -->
+    <div class="sc" style="width:100%;max-width:100%;box-sizing:border-box;">
+      <h2><span class="ic-gold">★</span> الملف الشخصي</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;width:100%;">
+          <div id="settings-profile-img" style="width:56px;height:56px;border-radius:50%;background:var(--bg3);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="if(typeof SFX!=='undefined')SFX.btn();document.getElementById('settings-profile-input').click()">
+            <span style="font-size:28px;" id="settings-profile-fallback">♙</span>
+          </div>
+          <div style="flex:1;">
+            <div class="sr-n" id="settings-username-display" style="font-size:16px;color:var(--text);">لاعب</div>
+            <div class="sr-d" style="font-size:11px;">انقر لتعديل الاسم أو الصورة</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;width:100%;">
+          <input type="text" id="settings-username-input" placeholder="اسم اللاعب" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveSettingsUsername()">
+          <button class="btnp" style="padding:10px 16px;font-size:12px;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
+        </div>
+        <input type="file" id="settings-profile-input" accept="image/*" style="display:none;" onchange="handleSettingsProfileImage(this)">
+      </div>
+    </div>
+
     <div class="sc">
       <h2><span class="ic-gold">◆</span> الصوت</h2>
       <div class="sr">
@@ -1659,41 +1567,103 @@ const Modal={
 };
 
 const LVL={
-  get(){try{return JSON.parse(localStorage.getItem('chess-lvl-v6')||'{}');}catch(e){return{};}},
-  save(id,stars,moves){
-    const p=this.get(),prev=p[id]||{stars:0,moves:999,done:false};
+  _cache:null,
+  _deviceId:null,
+  _getDeviceId(){
+    if(!this._deviceId){
+      this._deviceId=localStorage.getItem('chess_device_id');
+      if(!this._deviceId){
+        this._deviceId='device_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);
+        localStorage.setItem('chess_device_id',this._deviceId);
+      }
+    }
+    return this._deviceId;
+  },
+  async _loadFromFirestore(){
+    try{
+      const deviceId=this._getDeviceId();
+      const snapshot=await db.collection('nour_levels').where('deviceId','==',deviceId).get();
+      const progress={};
+      snapshot.forEach(doc=>{
+        const data=doc.data();
+        if(data.levelId!==undefined){
+          progress[data.levelId]={stars:data.stars||0,moves:data.moves||999,done:true};
+          if(data.levelId+1<LEVELS_DEF.length)progress['u'+(data.levelId+1)]=true;
+        }
+      });
+      this._cache=progress;
+      return progress;
+    }catch(e){
+      console.error('[Firestore] Failed to load levels:',e);
+      this._cache={};
+      return {};
+    }
+  },
+  async get(){
+    if(this._cache===null)await this._loadFromFirestore();
+    return this._cache||{};
+  },
+  async save(id,stars,moves){
+    const p=await this.get();
+    const prev=p[id]||{stars:0,moves:999,done:false};
     p[id]={stars:Math.max(prev.stars,stars),moves:Math.min(prev.moves,moves),done:true};
     if(id+1<LEVELS_DEF.length)p['u'+(id+1)]=true;
-    try{localStorage.setItem('chess-lvl-v6',JSON.stringify(p));}catch(e){}
-    try{if(window.FB&&typeof FB.onLocalLevelSave==='function')FB.onLocalLevelSave(id,p[id],p);}catch(e){}
+    this._cache=p;
+    // Save to Firestore without authentication
+    try{
+      const deviceId=this._getDeviceId();
+      const levelRef=db.collection('nour_levels').doc(deviceId+'_'+id);
+      await levelRef.set({
+        deviceId:deviceId,
+        levelId:id,
+        stars:p[id].stars,
+        moves:p[id].moves,
+        done:true,
+        completedAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+      console.log('[Firestore] Level saved:',id);
+    }catch(e){
+      console.error('[Firestore] Failed to save level:',e);
+    }
   },
-  unlocked(id){if(id===0)return true;const p=this.get();return!!(p['u'+id]||p[id]?.done);},
-  stars(id){return this.get()[id]?.stars||0;},
+  async unlocked(id){
+    if(id===0)return true;
+    const p=await this.get();
+    return!!(p['u'+id]||p[id]?.done);
+  },
+  async stars(id){
+    const p=await this.get();
+    return p[id]?.stars||0;
+  },
   calcStars(moves,id){const r=LEVELS_DEF[id].starReq;if(moves<=r[2])return 3;if(moves<=r[1])return 2;return 1;},
-  buildUI(){
+  async buildUI(){
     const grid=document.getElementById('lvl-grid');grid.innerHTML='';
-    const p=this.get();let done=0;
+    const p=await this.get();let done=0;
     LEVELS_DEF.forEach(lv=>{
       if(p[lv.id]?.done)done++;
-      const unlocked=this.unlocked(lv.id),stars=this.stars(lv.id),isDone=!!p[lv.id]?.done;
+    });
+    for(const lv of LEVELS_DEF){
+      const isUnlocked=await this.unlocked(lv.id);
+      const starCount=await this.stars(lv.id);
+      const isDone=!!p[lv.id]?.done;
       const secs=[['◆ مبتدئ',0],['◆◆ متوسط',4],['◆◆◆ متقدم',8],['◆◆◆◆ نخبة',10]];
       secs.forEach(([t,i])=>{if(lv.id===i){const s=document.createElement('div');s.className='lvl-section';s.textContent=t;grid.appendChild(s);}});
       const card=document.createElement('div');
-      card.className='lc '+(!unlocked?'locked':isDone?'done':'open');
-      const bCl=!unlocked?'bl':isDone?'bd2':'bo';
-      const bTx=!unlocked?'◆ مقفولة':isDone?'◉ مكتملة':'◈ العب الآن';
-      const ibg=isDone?'rgba(74,222,128,.11)':unlocked?'rgba(201,168,76,.11)':'rgba(255,255,255,.04)';
-      const sh=isDone?`<div class="lc-stars">${[1,2,3].map(i=>`<span class="star${i<=stars?' on':''}">${i<=stars?'✦':'◇'}</span>`).join('')}</div>`:'';
+      card.className='lc '+(!isUnlocked?'locked':isDone?'done':'open');
+      const bCl=!isUnlocked?'bl':isDone?'bd2':'bo';
+      const bTx=!isUnlocked?'◆ مقفولة':isDone?'◉ مكتملة':'◈ العب الآن';
+      const ibg=isDone?'rgba(74,222,128,.11)':isUnlocked?'rgba(201,168,76,.11)':'rgba(255,255,255,.04)';
+      const sh=isDone?`<div class="lc-stars">${[1,2,3].map(i=>`<span class="star${i<=starCount?' on':''}">${i<=starCount?'✦':'◇'}</span>`).join('')}</div>`:'';
       card.innerHTML=`<div class="lc-ico" style="background:${ibg}">${lv.icon}</div>
         <div class="lc-info">
           <div class="lc-name">المرحلة ${lv.id+1} — ${lv.name}</div>
           <div class="lc-desc">${lv.desc}</div>
           <span class="lc-badge ${bCl}">${bTx}</span>${sh}
         </div>
-        <div class="lc-right">${!unlocked?'<span style="color:var(--text3)">◆</span>':'<span style="font-size:20px;color:var(--gold2)">◈</span>'}</div>`;
-      if(unlocked)card.onclick=()=>{SFX.btn();G.startLevel(lv.id);};
+        <div class="lc-right">${!isUnlocked?'<span style="color:var(--text3)">◆</span>':'<span style="font-size:20px;color:var(--gold2)">◈</span>'}</div>`;
+      if(isUnlocked)card.onclick=()=>{SFX.btn();G.startLevel(lv.id);};
       grid.appendChild(card);
-    });
+    }
     document.getElementById('lp-txt').textContent=done+' / 12';
     document.getElementById('lp-fill').style.width=(done/12*100)+'%';
   }
@@ -2177,7 +2147,7 @@ const EVALBAR={
 };
 
 const REV=(()=>{
-  const GROQ_KEY='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';
+  const GROQ_KEY='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';
   const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
 
   let _data=null;
@@ -3268,8 +3238,7 @@ const Nav={
   game(){this.show('s-game');},
   online(){SFX.btn();this.show('s-online');OL.init();},
   levels(){SFX.btn();this.show('s-levels');LVL.buildUI();},
-  settings(){SFX.btn();this.show('s-settings');},
-  account(){SFX.btn();this.show('s-account');try{if(window.FB&&FB.refreshUI)FB.refreshUI();}catch(e){}},
+  settings(){SFX.btn();this.show('s-settings');}
 };
 
 function fixBars(myCol){
@@ -3853,789 +3822,17 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Escape'){REV.close();}
 });
 
-console.log('About to define FB module...');
+// FB module - minimal version with Firestore only (no auth)
 window.FB={
-  API_BASE: 'http://localhost:8080/api',
-  _user:null,
-  _token:null,
-  _syncInFlight:false,
-  _myPublicId:'',
-  _challengeInterval:null,
-
-  async loadApiUrl(){
-    try{
-      const r=await fetch('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t='+Date.now());
-      const j=await r.json();
-      this.API_BASE = j.url.replace(/\/+$/, '') + '/api';
-    }catch(e){
-      console.error('Failed to load API URL:',e);
+  _generateDeviceId(){
+    let id=localStorage.getItem('chess_device_id');
+    if(!id){
+      id='device_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);
+      localStorage.setItem('chess_device_id',id);
     }
-  },
-
-  _el(id){return document.getElementById(id);},
-  _setStatus(txt){const e=this._el('acc-status');if(e)e.textContent=txt||'';},
-  _setFriendStatus(txt){const e=this._el('fr-status');if(e)e.textContent=txt||'';},
-
-  _localLevels(){try{return JSON.parse(localStorage.getItem('chess-lvl-v6')||'{}');}catch(e){return{};}},
-  _levelsProgress(p){
-    let max=-1;
-    for(let i=0;i<LEVELS_DEF.length;i++){
-      if(p&&p[i]&&p[i].done)max=i;
-    }
-    return max;
-  },
-
-  async _api(endpoint,method='GET',body=null){
-    // Wait for API_BASE to be loaded
-    if(!this.API_BASE){
-      await this.loadApiUrl();
-      if(!this.API_BASE){
-        throw new Error('API URL not loaded. Check url.json configuration.');
-      }
-    }
-    const headers={
-      'Content-Type':'application/json',
-      'ngrok-skip-browser-warning': 'true'
-    };
-    if(this._token)headers['Authorization']=`Bearer ${this._token}`;
-    const opts={method,headers};
-    if(body)opts.body=JSON.stringify(body);
-    
-    // Debug logging for friend requests
-    if(endpoint.includes('/friends/requests')){
-      console.log(`[DEBUG FRONTEND] _api: calling ${endpoint} with token present: ${!!this._token}`);
-    }
-    
-    try{
-      const res=await fetch(this.API_BASE+endpoint,opts);
-      const data=await res.json();
-      if(endpoint.includes('/friends/requests')){
-        console.log(`[DEBUG FRONTEND] _api: response status ${res.status}`, data);
-      }
-      if(!res.ok)throw new Error(data.error||'API error');
-      return data;
-    }catch(e){
-      if(endpoint.includes('/friends/requests')){
-        console.error(`[DEBUG FRONTEND] _api: ERROR for ${endpoint}`, e);
-      }
-      throw e;
-    }
-  },
-
-  async register(username,email,password){
-    try{
-      this._setStatus('◌ جاري إنشاء الحساب...');
-      const data=await this._api('/auth/register','POST',{username,email,password});
-      // Token is always provided now - auto login after register
-      this._token=data.token;
-      this._user=data.user;
-      localStorage.setItem('chess_token',this._token);
-      localStorage.setItem('chess_user',JSON.stringify(this._user));
-      this._myPublicId=this._user.publicId||'';
-      // Update Cfg with account username
-      if(this._user.username){
-        Cfg.data.playerName=this._user.username;
-        Cfg.saveData();
-      }
-      await this._syncLevelsBidirectional();
-      this._startWatching();
-      this.refreshUI();
-      this._setStatus('◈ تم إنشاء الحساب وتسجيل الدخول بنجاح');
-      return true;
-    }catch(e){
-      this._setStatus('◆ '+ (e.message||'فشل إنشاء الحساب'));
-      return false;
-    }
-  },
-
-  async login(email,password){
-    try{
-      this._setStatus('◌ جاري تسجيل الدخول...');
-      const data=await this._api('/auth/login','POST',{email,password});
-      this._token=data.token;
-      this._user=data.user;
-      localStorage.setItem('chess_token',this._token);
-      localStorage.setItem('chess_user',JSON.stringify(this._user));
-      this._myPublicId=this._user.publicId||'';
-      // Update Cfg with account username
-      if(this._user.username){
-        Cfg.data.playerName=this._user.username;
-      }
-      // Clear any old profile image first to prevent cross-account contamination
-      localStorage.removeItem('chess_profile_image');
-      Cfg.data.playerImage='';
-      // Fetch user's profile image from server
-      try{
-        const userData=await this._api('/auth/me');
-        if(userData.user&&userData.user.profileImage){
-          Cfg.data.playerImage=userData.user.profileImage;
-          localStorage.setItem('chess_profile_image',userData.user.profileImage);
-        }
-      }catch(imgErr){/* ignore */}
-      Cfg.saveData();
-      await this._syncLevelsBidirectional();
-      this._startWatching();
-      this.refreshUI();
-      this._setStatus('◈ تم تسجيل الدخول');
-      return true;
-    }catch(e){
-      this._setStatus('◆ '+ (e.message||'فشل تسجيل الدخول'));
-      return false;
-    }
-  },
-
-  async logout(){
-    this._stopWatching();
-    this._token=null;
-    this._user=null;
-    this._myPublicId='';
-    localStorage.removeItem('chess_token');
-    localStorage.removeItem('chess_user');
-    // Clear account-specific data to isolate accounts
-    localStorage.removeItem('chess_profile_image');
-    localStorage.removeItem('chess_my_friends');
-    localStorage.removeItem('chess_friend_requests');
-    // Reset Cfg player data to defaults
-    Cfg.data.playerName=''; 
-    Cfg.data.playerImage='';
-    Cfg.saveData();
-    this.refreshUI();
-    this._setStatus('');
-  },
-
-  async syncNow(){
-    if(!this._user)return;
-    await this._syncLevelsBidirectional();
-  },
-
-  async onLocalLevelSave(levelId,stars,moves){
-    if(!this._user)return;
-    try{
-      await this._api('/progress/level','POST',{levelId,stars,moves});
-    }catch(e){
-      console.error('Failed to sync level:',e);
-    }
-  },
-
-  copyMyId(){
-    if(!this._myPublicId)return;
-    navigator.clipboard.writeText(this._myPublicId).then(()=>{
-      this._setStatus('◈ تم نسخ ID');
-      setTimeout(()=>this._setStatus(''),2000);
-    }).catch(()=>this._setStatus('◆ تعذر النسخ'));
-  },
-
-  async sendFriendRequest(){
-    if(!this._user){
-      console.log('[ERR] sendFriendRequest: No user logged in');
-      return;
-    }
-    this._setFriendStatus('');
-    const inp=this._el('fr-inp');
-    const pid=(inp?.value||'').trim().toUpperCase();
-    console.log('[SEND] sendFriendRequest: Attempting to send to', pid, '| myPublicId:', this._myPublicId, '| API_BASE:', this.API_BASE);
-    if(!pid){this._setFriendStatus('✕ أدخل ID أولاً');return;}
-    if(pid===this._myPublicId){this._setFriendStatus('✕ لا يمكنك إضافة نفسك');return;}
-    this._setFriendStatus('◌ جاري الإرسال...');
-    try{
-      const result=await this._api('/friends/request','POST',{publicId:pid});
-      console.log('[OK] sendFriendRequest: Success! Server response:', result);
-      this._setFriendStatus('◈ تم إرسال الطلب بنجاح');
-      await this._loadFriends();
-      // Clear input
-      if(inp)inp.value='';
-    }catch(e){
-      console.error('[ERR] sendFriendRequest error:', e);
-      this._setFriendStatus('◆ '+ (e.message||'تعذر الإرسال'));
-    }
-  },
-
-  async _loadFriends(){
-    if(!this._user)return;
-    try{
-      const data=await this._api('/friends/list');
-      this._renderFriendsList(data.friends||[]);
-    }catch(e){
-      console.error('Failed to load friends:',e);
-    }
-  },
-
-  async _loadFriendRequests(){
-    if(!this._user){
-      console.log('[DEBUG FRONTEND] _loadFriendRequests: no user logged in');
-      return;
-    }
-    try{
-      console.log('[DEBUG FRONTEND] _loadFriendRequests: calling API for user', this._user.userId);
-      const data=await this._api('/friends/requests');
-      console.log('[DEBUG FRONTEND] _loadFriendRequests: API response', data);
-      this._renderFriendRequests(data.requests||[]);
-    }catch(e){
-      console.error('[DEBUG FRONTEND] _loadFriendRequests: ERROR', e);
-    }
-  },
-
-  async _acceptFriendRequest(requestId){
-    try{
-      await this._api(`/friends/accept/${requestId}`,'POST');
-      await this._loadFriends();
-      await this._loadFriendRequests();
-    }catch(e){
-      console.error('Failed to accept request:',e);
-    }
-  },
-
-  async _declineFriendRequest(requestId){
-    try{
-      await this._api(`/friends/decline/${requestId}`,'POST');
-      await this._loadFriendRequests();
-    }catch(e){
-      console.error('Failed to decline request:',e);
-    }
-  },
-
-  get _prevRequestCount(){
-    try{
-      return parseInt(localStorage.getItem('chess_prev_request_count')||'0');
-    }catch(e){return 0;}
-  },
-  set _prevRequestCount(val){
-    try{
-      localStorage.setItem('chess_prev_request_count',val.toString());
-    }catch(e){}
-  },
-
-  async _renderFriendRequests(reqs){
-    const box=this._el('fr-reqs');
-    if(!box)return;
-
-    // Check for new requests
-    const prevCount=this._prevRequestCount;
-    const hasNewRequests=reqs.length>prevCount;
-    this._prevRequestCount=reqs.length;
-
-    // Notify if new requests arrived
-    if(hasNewRequests&&reqs.length>0){
-      // Play notification sound - use check sound for friend requests
-      try{SFX.check();}catch(e){}
-      // Show browser notification if allowed
-      if(Notification&&Notification.permission==='granted'){
-        new Notification('طلب صداقة جديد',{body:`لديك ${reqs.length} طلب صداقة في انتظار القبول`});
-      }
-    }
-
-    box.innerHTML='';
-    if(!reqs.length){
-      const e=document.createElement('div');
-      e.style.fontSize='12px';e.style.color='var(--text3)';
-      e.textContent='لا توجد طلبات حالياً';
-      box.appendChild(e);
-      this._prevRequestCount=0;
-      return;
-    }
-
-    // Add header with count
-    const header=document.createElement('div');
-    header.style.cssText='font-size:11px;color:var(--gold2);margin-bottom:8px;font-weight:bold;';
-    header.textContent=`◈ ${reqs.length} طلب${reqs.length>1?'ات':' صداقة'} في الانتظار`;
-    box.appendChild(header);
-
-    reqs.forEach(r=>{
-      const row=document.createElement('div');
-      row.style.cssText='display:flex;gap:10px;align-items:center;padding:12px;border:1px solid rgba(201,168,76,.3);border-radius:12px;background:rgba(201,168,76,.08);margin-bottom:8px;animation:slideIn 0.3s ease;';
-
-      const left=document.createElement('div');
-      left.style.flex='1';
-      left.innerHTML=`<div style="font-weight:900;color:var(--text);font-size:14px;">◊ ${r.username||'لاعب'}</div><div style="font-size:11px;color:var(--text3);direction:ltr;text-align:left;margin-top:2px;">ID: ${(r.publicId||'—')}</div>`;
-
-      const btnGroup=document.createElement('div');
-      btnGroup.style.cssText='display:flex;gap:6px;';
-
-      const a=document.createElement('button');
-      a.className='btnp';a.style.cssText='padding:8px 14px;font-size:12px;border-radius:8px;';
-      a.textContent='◈ قبول';
-      a.onclick=async()=>{a.disabled=true;try{await this._acceptFriendRequest(r.id);}catch(e){}a.disabled=false;};
-
-      const d=document.createElement('button');
-      d.className='btnb';d.style.cssText='padding:8px 14px;font-size:12px;border-radius:8px;';
-      d.textContent='◆ رفض';
-      d.onclick=async()=>{d.disabled=true;try{await this._declineFriendRequest(r.id);}catch(e){}d.disabled=false;};
-
-      btnGroup.appendChild(a);
-      btnGroup.appendChild(d);
-      row.appendChild(left);
-      row.appendChild(btnGroup);
-      box.appendChild(row);
-    });
-  },
-
-  async _challengeFriend(friendId){
-    if(!this._user)return;
-    this._setFriendStatus('◌ جاري إرسال التحدي...');
-    try{
-      const res=await this._api('/challenges/send','POST',{toUserId:friendId});
-      this._setFriendStatus('◈ تم إرسال التحدي — في انتظار القبول...');
-      // Wait for acceptance and auto-join
-      this._waitForChallengeAccept(res.matchId);
-    }catch(e){
-      this._setFriendStatus('◆ '+ (e.message||'تعذر الإرسال'));
-    }
-  },
-
-  // Poll for challenge acceptance and auto-join when accepted
-  async _waitForChallengeAccept(matchId){
-    let attempts=0;
-    const maxAttempts=60; // 5 minutes (5s * 60)
-    const checkInterval=setInterval(async()=>{
-      attempts++;
-      if(attempts>maxAttempts){
-        clearInterval(checkInterval);
-        this._setFriendStatus('⌛ انتهى وقت انتظار القبول');
-        return;
-      }
-      try{
-        const status=await this._api(`/challenges/status/${matchId}`);
-        if(status.status==='accepted' && status.roomCode){
-          clearInterval(checkInterval);
-          this._setFriendStatus('◈ تم قبول التحدي! جاري الدخول...');
-          // Join the room as creator (white by default)
-          this._olJoinDirectRoom(status.roomCode, null);
-        }else if(status.status==='declined'){
-          clearInterval(checkInterval);
-          this._setFriendStatus('◆ تم رفض التحدي');
-        }
-      }catch(e){}
-    },5000);
-  },
-
-  _olCreateRoomAs(color){
-    try{Nav.online();}catch(e){}
-    try{OL.col(color);}catch(e){}
-    try{OL.create();}catch(e){}
-  },
-
-  _olJoinRoom(code){
-    try{Nav.online();}catch(e){}
-    try{OL.tab('j');}catch(e){}
-    try{const inp=document.getElementById('jinp');if(inp)inp.value=String(code||'').trim().toUpperCase();}catch(e){}
-    try{OL.join();}catch(e){}
-  },
-
-  _formatLastSeen(lastSeen){
-    if(!lastSeen)return'';
-    const d=new Date(lastSeen);
-    const now=new Date();
-    const diff=Math.floor((now-d)/1000);
-    if(diff<60)return'الآن';
-    if(diff<3600)return`منذ ${Math.floor(diff/60)} دقيقة`;
-    if(diff<86400)return`منذ ${Math.floor(diff/3600)} ساعة`;
-    if(diff<604800)return`منذ ${Math.floor(diff/86400)} يوم`;
-    return d.toLocaleDateString('ar-SA');
-  },
-
-  async _renderFriendsList(friends){
-    const box=this._el('fr-list');
-    if(!box)return;
-    box.innerHTML='';
-    if(!friends.length){
-      const e=document.createElement('div');
-      e.style.fontSize='12px';e.style.color='var(--text3)';
-      e.textContent='لا يوجد أصدقاء بعد - أضف صديقاً باستخدام المعرف (ID)';
-      box.appendChild(e);
-      return;
-    }
-    friends.forEach(fr=>{
-      const row=document.createElement('div');
-      row.style.display='flex';row.style.gap='10px';row.style.alignItems='center';
-      row.style.padding='12px';row.style.border='1px solid rgba(201,168,76,.18)';
-      row.style.borderRadius='14px';row.style.background='rgba(255,255,255,.03)';
-      row.style.transition='all 0.2s';
-
-      // Avatar with online indicator
-      const avatarContainer=document.createElement('div');
-      avatarContainer.style.position='relative';
-      avatarContainer.style.flexShrink='0';
-
-      const avatar=document.createElement('div');
-      avatar.style.width='44px';avatar.style.height='44px';
-      avatar.style.borderRadius='50%';
-      avatar.style.background=fr.profileImage?`url(${fr.profileImage})`:'rgba(201,168,76,.15)';
-      avatar.style.backgroundSize='cover';
-      avatar.style.backgroundPosition='center';
-      avatar.style.border='2px solid rgba(201,168,76,.3)';
-      if(!fr.profileImage){
-        avatar.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>';
-      }
-
-      // Online status indicator
-      const statusDot=document.createElement('div');
-      statusDot.style.position='absolute';
-      statusDot.style.bottom='2px';statusDot.style.right='2px';
-      statusDot.style.width='12px';statusDot.style.height='12px';
-      statusDot.style.borderRadius='50%';
-      statusDot.style.border='2px solid var(--bg2)';
-      if(fr.isOnline){
-        statusDot.style.background='#4CAF50';
-        statusDot.title='متصل الآن';
-      }else{
-        statusDot.style.background='#9E9E9E';
-        statusDot.title=this._formatLastSeen(fr.lastSeen);
-      }
-
-      avatarContainer.appendChild(avatar);
-      avatarContainer.appendChild(statusDot);
-
-      // Info section
-      const info=document.createElement('div');
-      info.style.flex='1';
-      info.style.minWidth='0';
-
-      const nameRow=document.createElement('div');
-      nameRow.style.display='flex';nameRow.style.alignItems='center';nameRow.style.gap='6px';
-      nameRow.innerHTML=`<span style="font-weight:900;color:var(--text);font-size:14px;">${fr.username||'صديق'}</span>`;
-      if(fr.isOnline){
-        nameRow.innerHTML+='<span style="font-size:10px;color:#4CAF50;background:rgba(76,175,80,.15);padding:2px 6px;border-radius:10px;">متصل</span>';
-      }
-
-      const metaRow=document.createElement('div');
-      metaRow.style.fontSize='11px';metaRow.style.color='var(--text3)';
-      metaRow.style.direction='ltr';metaRow.style.textAlign='left';
-      metaRow.style.marginTop='2px';
-      const stats=`◆ ${fr.wins||0} فوز / ${fr.losses||0} خسارة / ${fr.draws||0} تعادل`;
-      const lastSeen=fr.isOnline?'':` • ${this._formatLastSeen(fr.lastSeen)}`;
-      metaRow.textContent=stats+lastSeen;
-
-      info.appendChild(nameRow);
-      info.appendChild(metaRow);
-
-      // Challenge button
-      const b=document.createElement('button');
-      b.className='btnp';b.style.padding='8px 14px';b.style.fontSize='12px';
-      b.style.borderRadius='10px';
-      b.textContent=fr.isOnline?'◈ تحدي':'◉ تحدي';
-      b.disabled=!fr.isOnline;
-      b.style.opacity=fr.isOnline?'1':'0.5';
-      b.onclick=async()=>{if(!fr.isOnline)return;b.disabled=true;try{await this._challengeFriend(fr.id);}catch(e){}setTimeout(()=>b.disabled=false,3000);};
-
-      row.appendChild(avatarContainer);
-      row.appendChild(info);
-      row.appendChild(b);
-      box.appendChild(row);
-    });
-  },
-
-  _applyRemoteToLocal(remoteLevels){
-    if(!remoteLevels||typeof remoteLevels!=='object')return;
-    try{localStorage.setItem('chess-lvl-v6',JSON.stringify(remoteLevels));}catch(e){}
-    try{if(document.getElementById('s-levels')?.classList.contains('active'))LVL.buildUI();}catch(e){}
-  },
-
-  async _syncLevelsBidirectional(){
-    if(!this._user||this._syncInFlight)return;
-    this._syncInFlight=true;
-    try{
-      const local=this._localLevels();
-      const data=await this._api('/progress/sync','POST',{localLevels:local});
-      this._applyRemoteToLocal(data.levels);
-      this._setStatus('✓ تمت المزامنة');
-    }catch(e){
-      this._setStatus('✕ تعذر المزامنة الآن');
-    }finally{
-      this._syncInFlight=false;
-    }
-  },
-
-  _challengeModalOpen:false,
-
-  _startWatching(){
-    console.log('[DEBUG FRONTEND] _startWatching: starting for user', this._user?.userId);
-    this._stopWatching();
-    this._loadFriends();
-    this._loadFriendRequests();
-
-    // Send online status immediately when starting
-    this._updateOnlineStatus(true);
-
-    this._challengeInterval=setInterval(async()=>{
-      try{
-        // Update online status every 30 seconds (every 6th interval)
-        if(this._user&&Math.random()<0.16){
-          this._updateOnlineStatus(true);
-        }
-
-        // Check for challenges (but only if modal is not already open)
-        if(!this._challengeModalOpen){
-        const data=await this._api('/challenges/pending');
-        if(data.challenges&&data.challenges.length>0){
-          const ch=data.challenges[0];
-          this._challengeModalOpen=true;
-          Modal.confirm(
-            `◈ لديك تحدي جديد من ${ch.username}\n\nهل تريد قبول التحدي واللعب الآن؟`,
-            'تحدي جديد',
-            '⚔',
-            async ()=>{
-              // Accept
-              try{
-                const res=await this._api(`/challenges/accept/${ch.matchId}`,'POST');
-                this._olJoinDirectRoom(res.roomCode || ch.matchId, res.opponent);
-              }catch(e){console.error('Accept challenge error:',e);}
-              this._challengeModalOpen=false;
-            },
-            async ()=>{
-              // Decline
-              try{
-                await this._api(`/challenges/decline/${ch.matchId}`,'POST');
-              }catch(e){console.error('Decline challenge error:',e);}
-              this._challengeModalOpen=false;
-            }
-          );
-        }
-        }
-
-        // Refresh friends list to get updated online status
-        await this._loadFriends();
-
-        // Check for friend requests
-        await this._loadFriendRequests();
-      }catch(e){console.error('Challenge check error:',e);}
-    },5000);
-
-    // Send offline status when page closes
-    window.addEventListener('beforeunload',()=>{
-      if(this._user){
-        navigator.sendBeacon?navigator.sendBeacon(this.API_BASE+'/friends/status',JSON.stringify({isOnline:false})):(()=>{})();
-      }
-    });
-  },
-
-  async _updateOnlineStatus(isOnline){
-    if(!this._user)return;
-    try{
-      await this._api('/friends/status','POST',{isOnline});
-    }catch(e){/* silent fail */}
-  },
-
-  // Direct room join for challenges - no separate room creation
-  _olJoinDirectRoom(roomCode, opponent){
-    try{
-      Nav.online();
-      // Set opponent info if available
-      if(opponent){
-        Cfg.data.opponentName = opponent.username;
-        Cfg.data.opponentPublicId = opponent.publicId;
-        // Set opponent image for the game
-        if(opponent.profileImage){
-          S.oppImg = opponent.profileImage;
-        }
-      }
-      // Join the room directly
-      setTimeout(()=>{
-        try{OL.tab('j');}catch(e){}
-        const inp=document.getElementById('jinp');
-        if(inp)inp.value=String(roomCode||'').trim().toUpperCase();
-        setTimeout(()=>{
-          try{OL.join();}catch(e){console.error('OL.join error:',e);}
-        },300);
-      },300);
-    }catch(e){console.error('_olJoinDirectRoom error:',e);}
-  },
-
-  _stopWatching(){
-    if(this._challengeInterval){
-      clearInterval(this._challengeInterval);
-      this._challengeInterval=null;
-    }
-  },
-
-  refreshUI(){
-    const u=this._user;
-    const userBox=this._el('acc-user');
-    const guestBox=this._el('acc-guest');
-    const nameEl=this._el('acc-name');
-    const photoEl=this._el('acc-photo');
-    if(u){
-      // User logged in - show user box, hide guest
-      if(userBox)userBox.style.display='flex';
-      if(guestBox)guestBox.style.display='none';
-      if(nameEl)nameEl.textContent=u.username||'لاعب';
-      const pidEl=this._el('acc-pid');
-      if(pidEl)pidEl.textContent=this._myPublicId||'—';
-      if(photoEl){
-        // Use Firebase photoURL first, fallback to localStorage
-        const photoUrl=u.photoURL||localStorage.getItem('chess_profile_image');
-        if(photoUrl){
-          photoEl.style.backgroundImage=`url(${photoUrl})`;
-        }else{
-          photoEl.style.backgroundImage='';
-        }
-      }
-    }else{
-      // User not logged in - show guest box, hide user
-      if(userBox)userBox.style.display='none';
-      if(guestBox)guestBox.style.display='flex';
-    }
-  },
-
-  async init(){
-    // Load API URL first
-    await this.loadApiUrl();
-    
-    // Setup Firebase Auth state listener
-    auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in
-        console.log('[Firebase] User signed in:', firebaseUser.uid);
-        this._user = {
-          userId: firebaseUser.uid,
-          username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Player',
-          email: firebaseUser.email,
-          publicId: firebaseUser.uid.substring(0, 8).toUpperCase(), // Use first 8 chars of UID as publicId
-          photoURL: firebaseUser.photoURL
-        };
-        this._myPublicId = this._user.publicId;
-        this._token = await firebaseUser.getIdToken();
-        
-        // Sync user data with backend
-        await this._syncUserWithBackend();
-        await this._syncLevelsBidirectional();
-        this._startWatching();
-        this.refreshUI();
-      } else {
-        // User is signed out
-        console.log('[Firebase] User signed out');
-        this._stopWatching();
-        this._token = null;
-        this._user = null;
-        this._myPublicId = '';
-        this.refreshUI();
-      }
-    });
-  },
-
-  // Sync Firebase user with backend database
-  async _syncUserWithBackend(){
-    try{
-      const idToken = await auth.currentUser.getIdToken();
-      await this._api('/auth/firebase-sync','POST',{
-        uid: this._user.userId,
-        email: this._user.email,
-        username: this._user.username,
-        photoURL: this._user.photoURL
-      });
-    }catch(e){
-      console.error('Failed to sync with backend:', e);
-    }
-  },
-
-  // Google Sign In
-  async signInWithGoogle(){
-    try{
-      this._setStatus('◌ جاري تسجيل الدخول...');
-      const provider = new firebase.auth.GoogleAuthProvider();
-      const result = await auth.signInWithPopup(provider);
-      console.log('[Firebase] Google sign in success:', result.user.uid);
-      this._setStatus('◈ تم تسجيل الدخول');
-      return true;
-    }catch(e){
-      console.error('[Firebase] Google sign in error:', e);
-      this._setStatus('◆ فشل تسجيل الدخول: ' + (e.message || 'خطأ غير معروف'));
-      return false;
-    }
-  },
-
-  // Sign out
-  async signOut(){
-    try{
-      await auth.signOut();
-      this._setStatus('◈ تم تسجيل الخروج');
-      return true;
-    }catch(e){
-      console.error('[Firebase] Sign out error:', e);
-      return false;
-    }
-  },
-
-  _getApiBase(){
-    return this.API_BASE;
+    return id;
   }
 };
-window.FB.loadApiUrl();
-console.log('FB module defined, window.FB:', window.FB);
-
-// Account UI functions
-function editUsername(){
-  const currentName=document.getElementById('acc-name').textContent;
-  document.getElementById('edit-username-input').value=currentName;
-  document.getElementById('acc-user').style.display='none';
-  document.getElementById('edit-username-box').style.display='flex';
-}
-
-function cancelEditUsername(){
-  document.getElementById('edit-username-box').style.display='none';
-  document.getElementById('acc-user').style.display='flex';
-}
-
-async function saveUsername(){
-  const newUsername=document.getElementById('edit-username-input').value.trim();
-  if(!newUsername||newUsername.length<3||newUsername.length>20){
-    alert('اسم المستخدم يجب أن يكون 3-20 حرف');
-    return;
-  }
-  if(window.FB && window.FB._api){
-    try{
-      await window.FB._api('/auth/username','PUT',{username:newUsername});
-      window.FB._user.username=newUsername;
-      localStorage.setItem('chess_user',JSON.stringify(window.FB._user));
-      // Update Cfg for game display
-      Cfg.data.playerName=newUsername;
-      Cfg.saveData();
-      window.FB.refreshUI();
-      cancelEditUsername();
-      Modal.show('تم تحديث اسم المستخدم','تم','◈');
-    }catch(e){
-      if(e.message && (e.message.includes('token') || e.message.includes('Token'))){
-        Modal.show('انتهت صلاحية الجلسة. يرجى تسجيل الخروج وإعادة تسجيل الدخول.','خطأ','✕');
-        // Clear stored credentials and sign out
-        localStorage.removeItem('chess_token');
-        localStorage.removeItem('chess_user');
-        if(window.FB&&FB.signOut)FB.signOut();
-      }else{
-        Modal.show('فشل تحديث اسم المستخدم: '+e.message,'خطأ','◆');
-      }
-    }
-  }
-}
-
-async function uploadProfileImage(input){
-  if(input.files&&input.files[0]){
-    const reader=new FileReader();
-    reader.onload=async function(e){
-      const imageData=e.target.result;
-      // Save locally first
-      localStorage.setItem('chess_profile_image',imageData);
-      document.getElementById('acc-photo').style.backgroundImage=`url(${imageData})`;
-      // Update Cfg for game display
-      Cfg.data.playerImage=imageData;
-      Cfg.saveData();
-
-      // Upload to server if logged in
-      if(window.FB&&window.FB._user&&window.FB._api){
-        try{
-          // Compress image if too large (max 500KB for base64)
-          let uploadData=imageData;
-          if(uploadData.length>500000){
-            Modal.show('الصورة كبيرة جداً. يتم رفعها محلياً فقط.','تنبيه','✕');
-          }else{
-            await window.FB._api('/friends/profile-image','POST',{image:uploadData});
-          }
-        }catch(e){/* silent fail - local image works */}
-      }
-
-      Modal.show('تم تحديث الصورة الرمزية','تم','◈');
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -4648,17 +3845,69 @@ const firebaseConfig = {
   measurementId: "G-39JQ9F34J5"
 };
 
-// Initialize Firebase
+// Initialize Firebase (Firestore only - no auth)
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const db = firebase.firestore();
+
+// Settings Profile Functions
+function saveSettingsUsername(){
+  const input=document.getElementById('settings-username-input');
+  const display=document.getElementById('settings-username-display');
+  const newName=input.value.trim();
+  if(!newName||newName.length<2||newName.length>20){
+    if(typeof Modal!=='undefined')Modal.show('الاسم يجب أن يكون بين 2-20 حرف','تنبيه','✕');
+    return;
+  }
+  localStorage.setItem('chess_username',newName);
+  if(display)display.textContent=newName;
+  if(typeof SFX!=='undefined')SFX.btn();
+  if(typeof Modal!=='undefined')Modal.show('تم حفظ الاسم بنجاح','تم','◈');
+}
+
+function handleSettingsProfileImage(input){
+  if(input.files&&input.files[0]){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const imageData=e.target.result;
+      localStorage.setItem('chess_profile_image',imageData);
+      const settingsImg=document.getElementById('settings-profile-img');
+      const fallback=document.getElementById('settings-profile-fallback');
+      if(settingsImg){
+        settingsImg.style.backgroundImage=`url(${imageData})`;
+        if(fallback)fallback.style.display='none';
+      }
+      if(window.OL&&OL.sendProfileImage)OL.sendProfileImage(imageData);
+      if(typeof SFX!=='undefined')SFX.btn();
+      if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','◈');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function loadSettingsProfile(){
+  const savedUsername=localStorage.getItem('chess_username');
+  const display=document.getElementById('settings-username-display');
+  const input=document.getElementById('settings-username-input');
+  if(savedUsername){
+    if(display)display.textContent=savedUsername;
+    if(input)input.value=savedUsername;
+  }
+  const savedImage=localStorage.getItem('chess_profile_image');
+  if(savedImage){
+    const settingsImg=document.getElementById('settings-profile-img');
+    const fallback=document.getElementById('settings-profile-fallback');
+    if(settingsImg){
+      settingsImg.style.backgroundImage=`url(${savedImage})`;
+      if(fallback)fallback.style.display='none';
+    }
+  }
+}
 
 Cfg.load();
 window.addEventListener('load',async ()=>{
     SFX.init();
     DRAG.init();
     _loadChessPieces();
-    try{await FB.init();}catch(e){console.error('FB.init error:',e);}
     // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
     setTimeout(()=>SF.checkReady(),5000);
 },{ once:true });
