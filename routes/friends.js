@@ -4,61 +4,49 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get user ID from public ID
-async function getUserIdFromPublicId(publicId) {
-  console.log(`[DEBUG] getUserIdFromPublicId: searching for publicId=${publicId}`);
+// Get UID from public ID (Firebase Edition)
+async function getUidFromPublicId(publicId) {
+  console.log(`[DEBUG] getUidFromPublicId: searching for publicId=${publicId}`);
   
-  // First try to find in users table (primary location)
-  let result = await new Promise((resolve, reject) => {
-    db.get('SELECT id as userId FROM users WHERE publicId = ?', [publicId], (err, row) => {
+  const result = await new Promise((resolve, reject) => {
+    db.get('SELECT uid FROM users WHERE publicId = ?', [publicId], (err, row) => {
       if (err) reject(err);
       else resolve(row);
     });
   });
   
-  // If not found, try publicIds table (fallback for older users)
-  if (!result) {
-    console.log(`[DEBUG] Not found in users table, checking publicIds table...`);
-    result = await new Promise((resolve, reject) => {
-      db.get('SELECT userId FROM publicIds WHERE publicId = ?', [publicId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-  }
-  
-  console.log(`[DEBUG] getUserIdFromPublicId result:`, result ? `userId=${result.userId}` : 'null');
-  return result ? result.userId : null;
+  console.log(`[DEBUG] getUidFromPublicId result:`, result ? `uid=${result.uid}` : 'null');
+  return result ? result.uid : null;
 }
 
-// Send friend request
+// Send friend request (Firebase Edition)
 router.post('/request', authenticateToken, async (req, res) => {
   try {
     const { publicId } = req.body;
-    const fromUserId = req.user.userId;
+    const fromUid = req.user.userId;
 
-    console.log(`[DEBUG] Friend request: fromUserId=${fromUserId}, toPublicId=${publicId}`);
+    console.log(`[DEBUG] Friend request: fromUid=${fromUid}, toPublicId=${publicId}`);
 
     if (!publicId) {
       return res.status(400).json({ error: 'Public ID is required' });
     }
 
-    const toUserId = await getUserIdFromPublicId(publicId.toUpperCase());
-    console.log(`[DEBUG] Resolved toUserId=${toUserId} from publicId=${publicId}`);
+    const toUid = await getUidFromPublicId(publicId.toUpperCase());
+    console.log(`[DEBUG] Resolved toUid=${toUid} from publicId=${publicId}`);
 
-    if (!toUserId) {
+    if (!toUid) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (toUserId === req.user.userId) {
+    if (toUid === fromUid) {
       return res.status(400).json({ error: 'Cannot add yourself' });
     }
 
     // Check if already friends
     const existingFriend = await new Promise((resolve, reject) => {
       db.get(
-        'SELECT id FROM friends WHERE (user1Id = ? AND user2Id = ?) OR (user1Id = ? AND user2Id = ?)',
-        [req.user.userId, toUserId, toUserId, req.user.userId],
+        'SELECT id FROM friends WHERE (user1Uid = ? AND user2Uid = ?) OR (user1Uid = ? AND user2Uid = ?)',
+        [fromUid, toUid, toUid, fromUid],
         (err, row) => {
           if (err) reject(err);
           else resolve(row);
@@ -73,8 +61,8 @@ router.post('/request', authenticateToken, async (req, res) => {
     // Check if request already exists
     const existingRequest = await new Promise((resolve, reject) => {
       db.get(
-        'SELECT id, status FROM friendRequests WHERE fromUserId = ? AND toUserId = ?',
-        [req.user.userId, toUserId],
+        'SELECT id, status FROM friendRequests WHERE fromUid = ? AND toUid = ?',
+        [fromUid, toUid],
         (err, row) => {
           if (err) reject(err);
           else resolve(row);
@@ -101,14 +89,14 @@ router.post('/request', authenticateToken, async (req, res) => {
       // Create new request
       await new Promise((resolve, reject) => {
         db.run(
-          'INSERT INTO friendRequests (fromUserId, toUserId, status) VALUES (?, ?, ?)',
-          [req.user.userId, toUserId, 'pending'],
+          'INSERT INTO friendRequests (fromUid, toUid, status) VALUES (?, ?, ?)',
+          [fromUid, toUid, 'pending'],
           function(err) {
             if (err) {
               console.error('[DEBUG] Error inserting friend request:', err);
               reject(err);
             } else {
-              console.log(`[DEBUG] Friend request inserted successfully. ID: ${this.lastID}, fromUserId: ${req.user.userId}, toUserId: ${toUserId}`);
+              console.log(`[DEBUG] Friend request inserted successfully. ID: ${this.lastID}, fromUid: ${fromUid}, toUid: ${toUid}`);
               resolve();
             }
           }
@@ -123,52 +111,27 @@ router.post('/request', authenticateToken, async (req, res) => {
   }
 });
 
-// Get pending friend requests
+// Get pending friend requests (Firebase Edition)
 router.get('/requests', authenticateToken, async (req, res) => {
   console.log(`[DEBUG REQUESTS] Endpoint hit! req.user:`, req.user);
   try {
-    // CRITICAL FIX: Convert userId to integer as JWT returns it as string
-    const rawUserId = req.user.userId;
-    const userId = parseInt(rawUserId, 10);
-    console.log(`[DEBUG REQUESTS] START - rawUserId: ${rawUserId} (type: ${typeof rawUserId}), parsed: ${userId} (type: ${typeof userId})`);
-    
-    // First check if there are ANY requests for this user
-    console.log(`[DEBUG REQUESTS] Query 1: SELECT * FROM friendRequests WHERE toUserId = ${userId}`);
-    const allRequests = await new Promise((resolve, reject) => {
-      db.all(
-        `SELECT id, fromUserId, toUserId, status FROM friendRequests WHERE toUserId = ?`,
-        [userId],
-        (err, rows) => {
-          if (err) {
-            console.error('[DEBUG REQUESTS] Query 1 ERROR:', err);
-            reject(err);
-          } else {
-            console.log(`[DEBUG REQUESTS] Query 1 Result: ${rows?.length || 0} rows`);
-            if (rows && rows.length > 0) {
-              console.log(`[DEBUG REQUESTS] Query 1 Rows:`, JSON.stringify(rows));
-            }
-            resolve(rows || []);
-          }
-        }
-      );
-    });
+    const uid = req.user.userId;
+    console.log(`[DEBUG REQUESTS] START - uid: ${uid}`);
     
     const requests = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT fr.id, fr.fromUserId, u.username, 
-         COALESCE(u.publicId, pi.publicId) as publicId, fr.createdAt
+        `SELECT fr.id, fr.fromUid, u.username, u.publicId, u.photoURL, fr.createdAt
          FROM friendRequests fr
-         JOIN users u ON fr.fromUserId = u.id
-         LEFT JOIN publicIds pi ON u.id = pi.userId
-         WHERE fr.toUserId = ? AND fr.status = 'pending'
+         JOIN users u ON fr.fromUid = u.uid
+         WHERE fr.toUid = ? AND fr.status = 'pending'
          ORDER BY fr.createdAt DESC`,
-        [userId],
+        [uid],
         (err, rows) => {
           if (err) {
             console.error('[DEBUG] Database error fetching requests:', err);
             reject(err);
           } else {
-            console.log(`[DEBUG] Found ${rows?.length || 0} friend requests for userId ${userId}`);
+            console.log(`[DEBUG] Found ${rows?.length || 0} friend requests for uid ${uid}`);
             resolve(rows || []);
           }
         }
@@ -207,8 +170,8 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
     // Add to friends table
     await new Promise((resolve, reject) => {
       db.run(
-        'INSERT INTO friends (user1Id, user2Id) VALUES (?, ?)',
-        [request.fromUserId, request.toUserId],
+        'INSERT INTO friends (user1Uid, user2Uid) VALUES (?, ?)',
+        [request.fromUid, request.toUid],
         (err) => {
           if (err) reject(err);
           else resolve();
@@ -235,16 +198,17 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
   }
 });
 
-// Decline friend request
+// Decline friend request (Firebase Edition)
 router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   try {
     const { requestId } = req.params;
+    const uid = req.user.userId;
 
     // Get request
     const request = await new Promise((resolve, reject) => {
       db.get(
-        'SELECT * FROM friendRequests WHERE id = ? AND toUserId = ? AND status = ?',
-        [requestId, req.user.userId, 'pending'],
+        'SELECT * FROM friendRequests WHERE id = ? AND toUid = ? AND status = ?',
+        [requestId, uid, 'pending'],
         (err, row) => {
           if (err) reject(err);
           else resolve(row);
@@ -275,18 +239,19 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get friends list with online status and profile
+// Get friends list with online status and profile (Firebase Edition)
 router.get('/list', authenticateToken, async (req, res) => {
   try {
+    const uid = req.user.userId;
     const friends = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT u.id, u.username, u.publicId, u.wins, u.losses, u.draws,
-                u.isOnline, u.lastSeen, u.profileImage
+        `SELECT u.uid, u.username, u.publicId, u.wins, u.losses, u.draws,
+                u.isOnline, u.lastSeen, u.photoURL
          FROM friends f
-         JOIN users u ON (f.user1Id = ? AND u.id = f.user2Id) OR (f.user2Id = ? AND u.id = f.user1Id)
-         WHERE f.user1Id = ? OR f.user2Id = ?
+         JOIN users u ON (f.user1Uid = ? AND u.uid = f.user2Uid) OR (f.user2Uid = ? AND u.uid = f.user1Uid)
+         WHERE f.user1Uid = ? OR f.user2Uid = ?
          ORDER BY u.isOnline DESC, u.lastSeen DESC`,
-        [req.user.userId, req.user.userId, req.user.userId, req.user.userId],
+        [uid, uid, uid, uid],
         (err, rows) => {
           if (err) reject(err);
           else resolve(rows || []);
@@ -301,15 +266,16 @@ router.get('/list', authenticateToken, async (req, res) => {
   }
 });
 
-// Remove friend
-router.delete('/remove/:friendId', authenticateToken, async (req, res) => {
+// Remove friend (Firebase Edition)
+router.delete('/remove/:friendUid', authenticateToken, async (req, res) => {
   try {
-    const { friendId } = req.params;
+    const { friendUid } = req.params;
+    const uid = req.user.userId;
 
     await new Promise((resolve, reject) => {
       db.run(
-        'DELETE FROM friends WHERE (user1Id = ? AND user2Id = ?) OR (user1Id = ? AND user2Id = ?)',
-        [req.user.userId, friendId, friendId, req.user.userId],
+        'DELETE FROM friends WHERE (user1Uid = ? AND user2Uid = ?) OR (user1Uid = ? AND user2Uid = ?)',
+        [uid, friendUid, friendUid, uid],
         (err) => {
           if (err) reject(err);
           else resolve();
@@ -324,7 +290,7 @@ router.delete('/remove/:friendId', authenticateToken, async (req, res) => {
   }
 });
 
-// Update profile image
+// Update profile image (Firebase Edition)
 router.post('/profile-image', authenticateToken, async (req, res) => {
   try {
     const { image } = req.body;
@@ -337,7 +303,7 @@ router.post('/profile-image', authenticateToken, async (req, res) => {
     }
     await new Promise((resolve, reject) => {
       db.run(
-        'UPDATE users SET profileImage = ? WHERE id = ?',
+        'UPDATE users SET photoURL = ? WHERE uid = ?',
         [image, req.user.userId],
         (err) => {
           if (err) reject(err);
@@ -352,13 +318,13 @@ router.post('/profile-image', authenticateToken, async (req, res) => {
   }
 });
 
-// Update online status
+// Update online status (Firebase Edition)
 router.post('/status', authenticateToken, async (req, res) => {
   try {
     const { isOnline } = req.body;
     await new Promise((resolve, reject) => {
       db.run(
-        'UPDATE users SET isOnline = ?, lastSeen = CURRENT_TIMESTAMP WHERE id = ?',
+        'UPDATE users SET isOnline = ?, lastSeen = CURRENT_TIMESTAMP WHERE uid = ?',
         [isOnline ? 1 : 0, req.user.userId],
         (err) => {
           if (err) reject(err);
