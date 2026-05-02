@@ -126,8 +126,9 @@ router.post('/request', authenticateToken, async (req, res) => {
 // Get pending friend requests
 router.get('/requests', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId;
-    console.log(`[DEBUG] Fetching friend requests for userId: ${userId} (type: ${typeof userId})`);
+    // CRITICAL FIX: Convert userId to integer as JWT returns it as string
+    const userId = parseInt(req.user.userId, 10);
+    console.log(`[DEBUG] Fetching friend requests for userId: ${userId} (converted from: ${req.user.userId})`);
     
     // First check if there are ANY requests for this user
     const allRequests = await new Promise((resolve, reject) => {
