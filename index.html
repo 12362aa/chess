@@ -218,6 +218,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .chat-inp:focus{border-color:var(--gold);}
 .chat-send{padding:7px 12px;background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.28);border-radius:8px;color:var(--gold2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .17s;}
 .chat-send:hover{background:rgba(201,168,76,.3);}
+.chat-mic{padding:7px 10px;background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.28);border-radius:8px;color:var(--red);font-size:12px;cursor:pointer;transition:all .17s;}
+.chat-mic:hover{background:rgba(248,113,113,.3);}
+.chat-mic.recording{background:rgba(248,113,113,.5);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.chat-msg.voice{background:rgba(94,234,212,.12);color:var(--teal2);border:1px solid rgba(94,234,212,.18);align-self:flex-start;cursor:pointer;}
+.chat-msg.voice.opp{align-self:flex-end;background:rgba(94,234,212,.08);}
 .chat-toggle{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;padding:4px 8px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);transition:all .17s;}
 .chat-toggle:hover{background:rgba(255,255,255,.07);}
 .chat-badge{min-width:14px;height:14px;background:var(--red);border-radius:7px;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0 3px;display:none;}
@@ -711,8 +717,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           </div>
         </div>
         <div style="display:flex;gap:8px;width:100%;">
-          <input type="text" id="settings-username-input" placeholder="اسم اللاعب" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveSettingsUsername()">
-          <button class="btnp" style="padding:10px 16px;font-size:12px;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
+          <input type="text" id="settings-username-input" placeholder="اسم اللاعب" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
+          <button id="settings-save-btn" class="btnp" style="padding:10px 16px;font-size:12px;display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
         </div>
         <input type="file" id="settings-profile-input" accept="image/*" style="display:none;" onchange="handleSettingsProfileImage(this)">
       </div>
@@ -794,10 +800,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="sr">
         <div class="sr-l"><div class="sr-n">تأكيد الخروج</div><div class="sr-d">سؤال قبل الخروج من اللعبة</div></div>
         <label class="toggle"><input type="checkbox" id="set-confirm" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
-      </div>
-      <div class="sr">
-        <div class="sr-l"><div class="sr-n">السماح بالتدوير التلقائي</div><div class="sr-d">تدوير الشاشة تلقائياً عند تغيير اتجاه الجهاز</div></div>
-        <label class="toggle"><input type="checkbox" id="set-rotation" onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.toggleRotation(this.checked)"><span class="tsl"></span></label>
       </div>
     </div>
     <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
@@ -904,6 +906,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <div class="chat-wrap" id="chat-wrap">
     <div class="chat-msgs" id="chat-msgs"></div>
     <div class="chat-inp-row">
+      <button class="chat-mic" id="chat-mic" onclick="CHAT.toggleVoiceRecord()" title="رسالة صوتية">🎤</button>
       <input class="chat-inp" id="chat-inp" placeholder="اكتب رسالة…" maxlength="120"
              onkeydown="if(event.key==='Enter')CHAT.send()">
       <button class="chat-send" onclick="if(typeof SFX !== 'undefined') SFX.btn(); CHAT.send()">إرسال</button>
@@ -1002,12 +1005,12 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 const SFX=(()=>{
   // Local files for game moves
   const FILES={move:'./move.mp3',capture:'./capture.mp3',castle:'./castle.mp3',checkmate:'./checkmate.mp3',check:'./check.mp3',error:'./Error.mp3'};
-  // External CC0 sounds for game outcomes (unique, not repetitive)
+  // Use local sounds instead of external URLs (which are broken)
   const EXT_SOUNDS={
-    win:    'https://cdn.freesound.org/previews/391/391539_7385081-lq.mp3',     // Victory fanfare
-    loss:   'https://cdn.freesound.org/previews/162/162351_24603-lq.mp3',      // Sad trombone
-    draw:   'https://cdn.freesound.org/previews/219/219619_4284968-lq.mp3',    // Neutral chime
-    resign: 'https://cdn.freesound.org/previews/162/162351_24603-lq.mp3'       // Same as loss
+    win:    './checkmate.mp3',     // Victory sound (reusing checkmate)
+    loss:   './Error.mp3',         // Defeat sound
+    draw:   './move.mp3',          // Neutral sound
+    resign: './Error.mp3'          // Same as loss
   };
   let ctx=null;
   const buffers={};
@@ -1163,14 +1166,15 @@ const SFX=(()=>{
     illegal()   {play('error');},
     // Unique external sounds for game outcomes (not repetitive)
     draw()      {if(!playExt('draw'))play('move');},   // Neutral chime
-    win()       {if(!playExt('win'))play('checkmate');},  // Victory fanfare
-    loss()      {playExt('loss');},  // Sad trombone
-    resign()    {playExt('resign');}, // Same as loss
-    levelDone() {if(!playExt('win'))play('checkmate');},
+    win()       {play('checkmate');},  // Victory sound (local)
+    loss()      {play('error');},       // Defeat sound (local)
+    resign()    {play('error');},      // Same as loss
+    levelDone() {play('checkmate');},   // Level complete sound
     captureCheck(){play('check');},
     select() {uiClick();},
     btn()    {uiClick();},
     hint()   {uiClick();},
+    undo()   {play('move');},  // Use move sound for undo
     chat()   {
       if(!Cfg.data.sound)return;
       try{const c=getCtx();const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1320;g.gain.setValueAtTime((Cfg.data.vol/100)*0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);o.connect(g);g.connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+0.13);}catch(e){}
@@ -1242,9 +1246,18 @@ function loadBoardImage(imagePath, fallbackTheme) {
 }
 
 const Cfg={
-  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',allowRotation:false,playerName:'',playerImage:'',customBoardImage:''},
+  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',playerName:'',playerImage:'',customBoardImage:''},
   load(){
     try{const s=localStorage.getItem('chess-cfg-v6');if(s)this.data={...this.data,...JSON.parse(s)};}catch(e){}
+    // Sync from old localStorage keys if new keys don't have values
+    if(!this.data.playerName){
+      const oldName=localStorage.getItem('chess_username');
+      if(oldName)this.data.playerName=oldName;
+    }
+    if(!this.data.playerImage){
+      const oldImg=localStorage.getItem('chess_profile_image');
+      if(oldImg)this.data.playerImage=oldImg;
+    }
     this.apply();
   },
   save(){
@@ -1274,7 +1287,6 @@ const Cfg={
     document.getElementById('set-check').checked   =this.data.check;
     document.getElementById('set-score').checked   =this.data.score;
     document.getElementById('set-confirm').checked =this.data.confirm;
-    const rotEl=document.getElementById('set-rotation');if(rotEl)rotEl.checked=!!this.data.allowRotation;
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
     this._updateAvatar(this.data.playerName||'');
     this._updateProfileImage();
@@ -1375,10 +1387,6 @@ const Cfg={
     if(customUpload)customUpload.style.display=name==='custom'?'block':'none';
     if(save){try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}}
   },
-  toggleRotation(on){
-    this.data.allowRotation=on;
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
-  },
   removeProfileImage(){
     this.data.playerImage='';
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
@@ -1422,7 +1430,7 @@ function updatePlayerImages(){
       }else{
         myAv.style.backgroundImage='';
         myAv.style.color='';
-        myAv.textContent=(myCol==='w')?'◈':'◆';
+        myAv.textContent=(myCol==='w')?'♙':'♟';
       }
     }
     // Set opponent's image from stored state
@@ -1437,7 +1445,7 @@ function updatePlayerImages(){
       }else{
         oppAv.style.backgroundImage='';
         oppAv.style.color='';
-        oppAv.textContent=(oppCol==='w')?'◈':'◆';
+        oppAv.textContent=(oppCol==='w')?'♙':'♟';
       }
     }
   }
@@ -1454,15 +1462,26 @@ function updatePlayerImages(){
       }else{
         av.style.backgroundImage='';
         av.style.color='';
-        av.textContent='◈';
+        av.textContent='♙';
       }
     }
-    // Clear Nour's avatar to ensure no player image leaks
+    // Set Nour's avatar (try image first, fallback to pawn)
     const nourAv=document.querySelector('.av-b');
     if(nourAv){
-      nourAv.style.backgroundImage='';
-      nourAv.style.color='';
-      nourAv.textContent='◆';
+      // Try to load Nour's image - will use fallback if image doesn't exist
+      nourAv.style.backgroundImage='url(./nour.png)';
+      nourAv.style.backgroundSize='cover';
+      nourAv.style.backgroundPosition='center';
+      nourAv.style.color='transparent';
+      nourAv.textContent='';
+      // Handle image load error by showing pawn
+      const img=new Image();
+      img.onerror=()=>{
+        nourAv.style.backgroundImage='';
+        nourAv.style.color='';
+        nourAv.textContent='♟';
+      };
+      img.src='./nour.png';
     }
   }
   // In local mode, clear all avatars
@@ -1473,8 +1492,8 @@ function updatePlayerImages(){
     });
     const bw=document.querySelector('.av-w');
     const bb=document.querySelector('.av-b');
-    if(bw)bw.textContent='◈';
-    if(bb)bb.textContent='◆';
+    if(bw)bw.textContent='♙';
+    if(bb)bb.textContent='♟';
   }
 }
 
@@ -1482,18 +1501,21 @@ function updatePlayerImages(){
    LEVELS
 ===================================== */
 const LEVELS_DEF=[
-  {id:0,  name:'المبتدئ',      icon:'◈',depth:1,skill:1,desc:'بداية رحلة الشطرنج',                     hint:'حرك القطع وافز',           starReq:[8,6,4]},
-  {id:1,  name:'المتدرب',      icon:'△',depth:2,skill:3,desc:'تعلم الأساسيات',                        hint:'سيطر على المركز',          starReq:[12,9,7]},
-  {id:2,  name:'المستكشف',     icon:'◇',depth:3,skill:5,desc:'اكتشاف التكتيكات',                      hint:'استخدم الخدع',            starReq:[15,12,9]},
-  {id:3,  name:'المحترف',      icon:'◆',depth:4,skill:7,desc:'احتراف اللعب',                           hint:'فكر قبل التحرك',          starReq:[18,14,11]},
-  {id:4,  name:'القائد',       icon:'△',depth:5,skill:10,desc:'المعركة تشتعل بالكامل',                 hint:'القطع النشطة تفوز',       starReq:[99,24,16]},
-  {id:5,  name:'الحارس',       icon:'◇',depth:6,skill:13,desc:'نور يستخدم كل قوته',                    hint:'لا تترك قطعاً دون حماية', starReq:[99,22,15]},
-  {id:6,  name:'المحارب',      icon:'▲',depth:7,skill:16,desc:'تكتيكات متقدمة مطلوبة',                 hint:'ابحث عن التضحيات المربحة',starReq:[99,20,14]},
-  {id:7,  name:'القائد الكبير',icon:'◈',depth:8,skill:19,desc:'نور لا يرحم في هذا المستوى',            hint:'التخطيط البعيد هو المفتاح',starReq:[99,20,13]},
-  {id:8,  name:'الأسطورة',     icon:'◊',depth:10,skill:22,desc:'فقط المتمرسون يصلون هنا',              hint:'كل حركة لها ثمن',         starReq:[99,18,12]},
-  {id:9,  name:'البطل',        icon:'□',depth:12,skill:25,desc:'نور في أعلى مستوياته',                  hint:'ابحث عن نقاط ضعف الخصم', starReq:[99,16,11]},
-  {id:10, name:'الإمبراطور',   icon:'■',depth:15,skill:28,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
-  {id:11, name:'الخالد',       icon:'◉',depth:20,skill:30,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
+  // Early levels: Very easy with high randomness (70-50% random moves)
+  {id:0,  name:'المبتدئ',      icon:'♙',depth:1,skill:1,random:0.70,desc:'نور يتعلم معك',                        hint:'حرك القطع وافز',           starReq:[8,6,4]},
+  {id:1,  name:'المتدرب',      icon:'♟',depth:1,skill:2,random:0.55,desc:'نور يبدأ بالتعلم',                      hint:'سيطر على المركز',          starReq:[12,9,7]},
+  {id:2,  name:'المستكشف',     icon:'♙',depth:2,skill:3,random:0.40,desc:'اكتشاف التكتيكات',                      hint:'استخدم الخدع',            starReq:[15,12,9]},
+  // Mid levels: Moderate difficulty (30-10% random moves)
+  {id:3,  name:'المحترف',      icon:'♟',depth:3,skill:5,random:0.30,desc:'احتراف اللعب',                           hint:'فكر قبل التحرك',          starReq:[18,14,11]},
+  {id:4,  name:'القائد',       icon:'♙',depth:4,skill:7,random:0.20,desc:'المعركة تشتعل بالكامل',                 hint:'القطع النشطة تفوز',       starReq:[99,24,16]},
+  {id:5,  name:'الحارس',       icon:'♟',depth:5,skill:10,random:0.15,desc:'نور يستخدم قوته',                      hint:'لا تترك قطعاً دون حماية', starReq:[99,22,15]},
+  {id:6,  name:'المحارب',      icon:'♙',depth:6,skill:13,random:0.10,desc:'تكتيكات متقدمة مطلوبة',                 hint:'ابحث عن التضحيات المربحة',starReq:[99,20,14]},
+  {id:7,  name:'القائد الكبير',icon:'♟',depth:8,skill:16,random:0.05,desc:'نور لا يرحم في هذا المستوى',            hint:'التخطيط البعيد هو المفتاح',starReq:[99,20,13]},
+  // Hard levels: Full strength (0% random, high depth)
+  {id:8,  name:'الأسطورة',     icon:'♙',depth:10,skill:20,random:0.00,desc:'فقط المتمرسون يصلون هنا',              hint:'كل حركة لها ثمن',         starReq:[99,18,12]},
+  {id:9,  name:'البطل',        icon:'♟',depth:12,skill:22,random:0.00,desc:'نور في أعلى مستوياته',                  hint:'ابحث عن نقاط ضعف الخصم', starReq:[99,16,11]},
+  {id:10, name:'الإمبراطور',   icon:'♙',depth:15,skill:25,random:0.00,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
+  {id:11, name:'الخالد',       icon:'♟',depth:20,skill:30,random:0.00,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
 ];
 // ══════════════════════════════════════
 // CUSTOM MODAL SYSTEM (replacing alert/confirm)
@@ -2070,7 +2092,10 @@ const S={
 
 const CHAT={
   unread:0,
-  _addMsg(text,type){
+  _recorder:null,
+  _recording:false,
+  _audioChunks:[],
+  _addMsg(text,type,isVoice=false){
     const el=document.getElementById('chat-msgs');
     if(!el)return;
     const _snapToLatest=()=>{
@@ -2078,7 +2103,16 @@ const CHAT={
         el.scrollTo({top:0,behavior:'auto'});
       });
     };
-    const m=document.createElement('div');m.className='chat-msg '+type;m.textContent=text;
+    const m=document.createElement('div');
+    if(isVoice){
+      m.className='chat-msg voice '+type;
+      m.innerHTML='🔊 رسالة صوتية ('+text+' ثواني)';
+      m.dataset.audio=text; // Store audio data
+      m.onclick=()=>this._playVoice(text);
+    }else{
+      m.className='chat-msg '+type;
+      m.textContent=text;
+    }
     el.prepend(m);_snapToLatest();
     if(type==='opp'||type==='sys'){
       const wrap=document.getElementById('chat-wrap');
@@ -2098,7 +2132,70 @@ const CHAT={
     if(S.mode==='online')OL.sendChat(txt);
   },
   recv(text){this._addMsg(text,'opp');},
+  recvVoice(audioData){
+    this._addMsg(audioData,'opp',true);
+    if(document.hidden){
+      Notifications.send('رسالة صوتية',{body:'وصلتك رسالة صوتية من الخصم'});
+    }
+  },
   sys(text){this._addMsg(text,'sys');},
+  async toggleVoiceRecord(){
+    const micBtn=document.getElementById('chat-mic');
+    if(this._recording){
+      // Stop recording
+      this._stopRecording();
+      micBtn.classList.remove('recording');
+      micBtn.textContent='🎤';
+    }else{
+      // Start recording
+      try{
+        await this._startRecording();
+        micBtn.classList.add('recording');
+        micBtn.textContent='⏹';
+      }catch(e){
+        Modal.show('لا يمكن الوصول للميكروفون','تنبيه','✕');
+      }
+    }
+  },
+  async _startRecording(){
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    this._recorder=new MediaRecorder(stream,{mimeType:'audio/webm'});
+    this._audioChunks=[];
+    this._recorder.ondataavailable=(e)=>{
+      if(e.data.size>0)this._audioChunks.push(e.data);
+    };
+    this._recorder.onstop=()=>{
+      const blob=new Blob(this._audioChunks,{type:'audio/webm'});
+      const reader=new FileReader();
+      reader.onloadend=()=>{
+        const audioData=reader.result;
+        const duration=Math.round(this._audioChunks.length/2); // Approximate duration
+        this._addMsg(duration+'','me',true);
+        if(S.mode==='online')OL.sendVoice(audioData);
+      };
+      reader.readAsDataURL(blob);
+    };
+    this._recorder.start();
+    this._recording=true;
+    // Auto-stop after 10 seconds
+    setTimeout(()=>{if(this._recording)this._stopRecording();},10000);
+  },
+  _stopRecording(){
+    if(this._recorder&&this._recording){
+      this._recorder.stop();
+      this._recorder.stream.getTracks().forEach(t=>t.stop());
+    }
+    this._recording=false;
+    const micBtn=document.getElementById('chat-mic');
+    if(micBtn){
+      micBtn.classList.remove('recording');
+      micBtn.textContent='🎤';
+    }
+  },
+  _playVoice(audioData){
+    const audio=new Audio(audioData);
+    audio.play().catch(()=>{});
+  },
   toggle(){
     SFX.btn();
     const wrap=document.getElementById('chat-wrap');
@@ -2239,11 +2336,30 @@ const REV=(()=>{
       const posScale=Math.max(200,Math.abs(bestVal)+100);
       const relativeDiff=diff/posScale;
       let rating,score,bestMvStr='';
-      if(diff<=10){rating='best';score=100;}
-      else if(relativeDiff<0.05||diff<60){rating='good';score=88;}
-      else if(relativeDiff<0.15||diff<180){rating='inaccuracy';score=65;}
-      else if(relativeDiff<0.35||diff<450){rating='mistake';score=38;if(color==='w')wMistakes++;else bMistakes++;}
-      else{rating='blunder';score=5;if(color==='w')wBlunders++;else bBlunders++;}
+      
+      // Chess.com style evaluation with StockFish:
+      // Brilliant: sacrificial move that leads to advantage (detected separately)
+      // Great (Best): within 0.0-0.2 pawns of best
+      // Excellent: within 0.2-0.5 pawns
+      // Good: within 0.5-1.0 pawns
+      // Inaccuracy: 1.0-2.0 pawns
+      // Mistake: 2.0-4.0 pawns
+      // Blunder: > 4.0 pawns
+      const diffInPawns=diff/100;
+      const isBestMove = diff<=20||diffInPawns<=0.2;
+      
+      // Detect brilliant moves: sacrifice material but maintain/eval improves
+      const pieceValues={p:1,n:3,b:3,r:5,q:9,k:0};
+      const sacrificedMaterial = isCapture ? pieceValues[cap?.toLowerCase()]||0 : 0;
+      const isBrilliant = isBestMove && sacrificedMaterial >= 2 && actualVal > -100;
+      
+      if(isBrilliant){rating='brilliant';score=100;}
+      else if(isBestMove){rating='great';score=100;}
+      else if(diffInPawns<0.5){rating='excellent';score=90;}
+      else if(diffInPawns<1.0){rating='good';score=75;}
+      else if(diffInPawns<2.0){rating='inaccuracy';score=50;}
+      else if(diffInPawns<4.0){rating='mistake';score=25;if(color==='w')wMistakes++;else bMistakes++;}
+      else{rating='blunder';score=0;if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
       if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,null);}catch(e){}
       
@@ -2338,8 +2454,23 @@ const REV=(()=>{
   }
 
   function _updateCard(mv,idx){
-    const ratingAr={best:'الأفضل ✦',good:'جيد',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح ◆'};
-    const badgeCls={best:'badge-best',good:'badge-good',inaccuracy:'badge-inaccuracy',mistake:'badge-mistake',blunder:'badge-blunder'};
+    // Chess.com style ratings with Arabic translations
+    const ratingAr={
+      best:'ممتاز! ✦',
+      excellent:'جيد جداً',
+      good:'جيد',
+      inaccuracy:'غير دقيق',
+      mistake:'خطأ',
+      blunder:'خطأ فادح ◆'
+    };
+    const badgeCls={
+      best:'badge-best',
+      excellent:'badge-good',
+      good:'badge-good',
+      inaccuracy:'badge-inaccuracy',
+      mistake:'badge-mistake',
+      blunder:'badge-blunder'
+    };
     const card=document.getElementById('rv-card');
     if(!card)return;
     const rat=ratingAr[mv.rating]||mv.rating;
@@ -2401,7 +2532,10 @@ const REV=(()=>{
     <path d="M9 5.5c-.5.3-1 .8-1.2 1.4" stroke="#e8d080" stroke-width="1" stroke-linecap="round"/>
     <circle cx="18.5" cy="5.5" r="1" fill="#e8d080"/>
   </svg>`;
-  const NOUR_LBL=`<div class="rv-coach-lbl">${NOUR_SVG}<span class="rv-coach-name">نور المدرب</span></div>`;
+  // Try to use Nour's image, fallback to SVG
+  const NOUR_IMG=`<img src="./nour.png" class="nour-icon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+  <span style="display:none;">${NOUR_SVG}</span>`;
+  const NOUR_LBL=`<div class="rv-coach-lbl">${NOUR_IMG}<span class="rv-coach-name">نور المدرب</span></div>`;
 
   function _typeText(el, text, speed=22){
     el.textContent='';
@@ -2427,7 +2561,7 @@ const REV=(()=>{
       return;
     }
     coachEl.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-right:6px;color:var(--text2)">يُحلِّل…</span></div>`;
-    const ratingNames={best:'أفضل حركة',good:'حركة جيدة',inaccuracy:'دقة منخفضة',mistake:'خطأ',blunder:'خطأ فادح'};
+    const ratingNames={best:'أفضل حركة',excellent:'حركة ممتازة',good:'حركة جيدة',inaccuracy:'غير دقيق',mistake:'خطأ',blunder:'خطأ فادح'};
     const evalPawns=(mv.evalAfter/100).toFixed(1);
     const prompt=`أنت "نور المدرب". علّق فقط على الحركة نفسها وما غيّرته على الرقعة، بدون حشو أو تكرار أو كلام مبهم. اكتب جملة واحدة أو جملتين بالعربية الفصحى السهلة.
 
@@ -3074,15 +3208,27 @@ const G={
         let bm=null;
         try{
           const skillLevel = lv ? lv.skill : Math.min(S.diff * 3, 20); // Map difficulty to skill level
-          const sfMove=await SF.bestMove(bd,'b',cas,ep,depth+5, skillLevel);
-          if(sfMove){
-            const f='abcdefgh';
-            const fromCol=f.indexOf(sfMove[0]);
-            const fromRow=8-parseInt(sfMove[1]);
-            const toCol=f.indexOf(sfMove[2]);
-            const toRow=8-parseInt(sfMove[3]);
-            if(fromCol>=0&&fromRow>=0&&toCol>=0&&toRow>=0){
-              bm={from:[fromRow,fromCol],to:[toRow,toCol]};
+          
+          // For easier levels: sometimes make random moves
+          const randomChance = lv && lv.random ? lv.random : 0;
+          const legalMoves = E.allLegal(bd,'b',cas,ep);
+          
+          if(legalMoves.length > 0 && Math.random() < randomChance){
+            // Make a completely random move (for easier levels)
+            const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+            bm={from:randomMove.from,to:randomMove.to};
+          }else{
+            // Use Stockfish for best move
+            const sfMove=await SF.bestMove(bd,'b',cas,ep,depth+5, skillLevel);
+            if(sfMove){
+              const f='abcdefgh';
+              const fromCol=f.indexOf(sfMove[0]);
+              const fromRow=8-parseInt(sfMove[1]);
+              const toCol=f.indexOf(sfMove[2]);
+              const toRow=8-parseInt(sfMove[3]);
+              if(fromCol>=0&&fromRow>=0&&toCol>=0&&toRow>=0){
+                bm={from:[fromRow,fromCol],to:[toRow,toCol]};
+              }
             }
           }
         }catch(e){
@@ -3128,8 +3274,7 @@ const G={
     document.getElementById('go-next').style.display=S.levelId+1<LEVELS_DEF.length?'inline-flex':'none';
     document.getElementById('go-review').style.display='inline-flex';
     document.getElementById('go-ov').classList.add('open');
-    // Play win sound
-    try{SFX.win();}catch(e){}
+    // Note: Win sound is already played by SFX.levelDone() before this function is called
   },
   showOver(em,ttl,msg,col){
     document.getElementById('go-stars').style.display='none';
@@ -3218,7 +3363,7 @@ const G={
     if(!S.undoStack.length){SFX.illegal();return;}
     const snap=S.undoStack.pop();
     if(!snap)return;
-    SFX.btn();
+    SFX.undo();  // Play undo sound
     S.bd=snap.bd;S.turn=snap.turn;S.cas=snap.cas;S.ep=snap.ep;
     S.capW=snap.capW;S.capB=snap.capB;S.hist=snap.hist;
     S.lastMove=snap.lastMove;S.moveCount=snap.moveCount;
@@ -3238,7 +3383,7 @@ const Nav={
   game(){this.show('s-game');},
   online(){SFX.btn();this.show('s-online');OL.init();},
   levels(){SFX.btn();this.show('s-levels');LVL.buildUI();},
-  settings(){SFX.btn();this.show('s-settings');}
+  settings(){SFX.btn();this.show('s-settings');loadSettingsProfile();}
 };
 
 function fixBars(myCol){
@@ -3392,6 +3537,10 @@ const OL=(()=>{
           S.sel=[];S.legal=[];
           SFX.init();
           G.applyMove(d.fr,d.to,d.promo||null);
+          // Notify user it's their turn (if document is not visible)
+          if(document.hidden){
+            Notifications.yourTurn();
+          }
         }
         break;
 
@@ -3411,6 +3560,12 @@ const OL=(()=>{
 
       case 'chat':
         CHAT.recv(d.text);
+        break;
+
+      case 'voice':
+        if(d.audio){
+          CHAT.recvVoice(d.audio);
+        }
         break;
 
       case 'name':
@@ -3457,6 +3612,8 @@ const OL=(()=>{
       if(Cfg.data.playerImage) send({type:'pimg',img:Cfg.data.playerImage});
     },300);
     Nav.game();R.all();updatePlayerImages();
+    // Notify game started
+    Notifications.gameStart();
   }
 
   return{
@@ -3521,6 +3678,7 @@ const OL=(()=>{
     sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
     sendAssist(on){send({type:'assist',on});},
     sendChat(txt){send({type:'chat',text:txt});},
+    sendVoice(audioData){send({type:'voice',audio:audioData});},
     sendPimg(img){send({type:'pimg',img});},
     sendResign(){
       send({type:'resign'});
@@ -3850,9 +4008,24 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // Settings Profile Functions
+let _originalUsername='';
+
+function onSettingsUsernameInput(value){
+  const saveBtn=document.getElementById('settings-save-btn');
+  if(!saveBtn)return;
+  const currentValue=value.trim();
+  // Show save button only if value changed from original
+  if(currentValue!==_originalUsername&&currentValue.length>=2){
+    saveBtn.style.display='inline-block';
+  }else{
+    saveBtn.style.display='none';
+  }
+}
+
 function saveSettingsUsername(){
   const input=document.getElementById('settings-username-input');
   const display=document.getElementById('settings-username-display');
+  const saveBtn=document.getElementById('settings-save-btn');
   const newName=input.value.trim();
   if(!newName||newName.length<2||newName.length>20){
     if(typeof Modal!=='undefined')Modal.show('الاسم يجب أن يكون بين 2-20 حرف','تنبيه','✕');
@@ -3860,8 +4033,31 @@ function saveSettingsUsername(){
   }
   localStorage.setItem('chess_username',newName);
   if(display)display.textContent=newName;
+  // Update original value so save button hides
+  _originalUsername=newName;
+  if(saveBtn)saveBtn.style.display='none';
+  // Sync to Cfg for game modes
+  Cfg.data.playerName=newName;
+  try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
+  // Update player names in active game if any
+  updatePlayerNamesInGame();
   if(typeof SFX!=='undefined')SFX.btn();
   if(typeof Modal!=='undefined')Modal.show('تم حفظ الاسم بنجاح','تم','◈');
+}
+
+function updatePlayerNamesInGame(){
+  const playerName=Cfg.data.playerName||localStorage.getItem('chess_username')||'أنت';
+  // Update level mode name
+  if(S.levelId>=0){
+    const nmW=document.getElementById('nm-w');
+    if(nmW&&S.myCol==='w')nmW.textContent=playerName;
+  }
+  // Update online mode name
+  if(S.mode==='online'){
+    const myCol=S.myCol||'w';
+    const myNameEl=document.getElementById(myCol==='w'?'nm-w':'nm-b');
+    if(myNameEl)myNameEl.textContent=playerName;
+  }
 }
 
 function handleSettingsProfileImage(input){
@@ -3876,6 +4072,12 @@ function handleSettingsProfileImage(input){
         settingsImg.style.backgroundImage=`url(${imageData})`;
         if(fallback)fallback.style.display='none';
       }
+      // Sync to Cfg for game modes
+      Cfg.data.playerImage=imageData;
+      try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
+      // Update display in active game
+      updatePlayerImages();
+      // Send to opponent if in online game
       if(window.OL&&OL.sendProfileImage)OL.sendProfileImage(imageData);
       if(typeof SFX!=='undefined')SFX.btn();
       if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','◈');
@@ -3888,10 +4090,15 @@ function loadSettingsProfile(){
   const savedUsername=localStorage.getItem('chess_username');
   const display=document.getElementById('settings-username-display');
   const input=document.getElementById('settings-username-input');
+  const saveBtn=document.getElementById('settings-save-btn');
   if(savedUsername){
     if(display)display.textContent=savedUsername;
     if(input)input.value=savedUsername;
+    _originalUsername=savedUsername;
+  }else{
+    _originalUsername='';
   }
+  if(saveBtn)saveBtn.style.display='none';
   const savedImage=localStorage.getItem('chess_profile_image');
   if(savedImage){
     const settingsImg=document.getElementById('settings-profile-img');
@@ -3900,6 +4107,9 @@ function loadSettingsProfile(){
       settingsImg.style.backgroundImage=`url(${savedImage})`;
       if(fallback)fallback.style.display='none';
     }
+    // Sync to Cfg for game modes
+    Cfg.data.playerImage=savedImage;
+    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
   }
 }
 
@@ -3910,7 +4120,51 @@ window.addEventListener('load',async ()=>{
     _loadChessPieces();
     // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
     setTimeout(()=>SF.checkReady(),5000);
+    // طلب إذن الإشعارات
+    requestNotificationPermission();
 },{ once:true });
+
+/* ══════════════════════════════════════
+   PUSH NOTIFICATIONS
+══════════════════════════════════════ */
+const Notifications={
+  enabled:false,
+  async requestPermission(){
+    if(!('Notification' in window))return false;
+    if(Notification.permission==='granted'){this.enabled=true;return true;}
+    if(Notification.permission==='denied')return false;
+    const permission=await Notification.requestPermission();
+    this.enabled=permission==='granted';
+    return this.enabled;
+  },
+  send(title,options={}){
+    if(!this.enabled||Notification.permission!=='granted')return;
+    try{
+      const defaultOptions={
+        icon:'./icon-192.png',
+        badge:'./icon-192.png',
+        tag:'chess-game',
+        requireInteraction:true,
+        ...options
+      };
+      new Notification(title,defaultOptions);
+    }catch(e){console.error('Notification error:',e);}
+  },
+  gameStart(){this.send('بدأت المباراة!',{body:'خصمك جاهز للعب'});},
+  yourTurn(){this.send('دورك!',{body:'حان وقت تحريك قطعة'});},
+  gameOver(result){this.send('انتهت المباراة',{body:result});}
+};
+
+function requestNotificationPermission(){
+  if('Notification' in window&&Notification.permission==='default'){
+    // Auto-request after user interaction
+    const requestOnClick=()=>{
+      Notifications.requestPermission();
+      document.removeEventListener('click',requestOnClick);
+    };
+    document.addEventListener('click',requestOnClick,{once:true});
+  }
+}
 
 </script>
 </body>
