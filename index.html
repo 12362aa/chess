@@ -661,6 +661,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     display:flex;
     justify-content:space-between;
   }
+  /* Reorder elements in two-player mode - sbar below board */
+  #s-game.mode-local{flex-direction:column;}
+  #s-game.mode-local .gtbar{order:3;}
+  #s-game.mode-local .sbar{order:5;}
+  #s-game.mode-local .mvhist{order:6;}
 }
 </style>
 <!-- Firebase SDK for Firestore only (no auth) -->
@@ -4523,7 +4528,7 @@ function updatePlayerNamesInGame(){
   // Update level mode name
   if(S.levelId>=0){
     const nmW=document.getElementById('nm-w');
-    if(nmW&&S.myCol==='w')nmW.textContent=playerName;
+    if(nmW)nmW.textContent=playerName; // Always update nm-w in levels mode
   }
   // Update online mode name
   if(S.mode==='online'){
