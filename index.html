@@ -218,7 +218,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .chat-inp:focus{border-color:var(--gold);}
 .chat-send{padding:7px 12px;background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.28);border-radius:8px;color:var(--gold2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .17s;}
 .chat-send:hover{background:rgba(201,168,76,.3);}
-.chat-mic{padding:7px 10px;background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.28);border-radius:8px;color:var(--red);font-size:12px;cursor:pointer;transition:all .17s;}
+.chat-mic{padding:7px 10px;background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.28);border-radius:8px;color:var(--red);font-size:12px;cursor:pointer;transition:all .17s;display:flex;align-items:center;justify-content:center;}
 .chat-mic:hover{background:rgba(248,113,113,.3);}
 .chat-mic.recording{background:rgba(248,113,113,.5);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
@@ -443,10 +443,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .rv-chip{font-size:10px;padding:4px 7px;background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:6px;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .14s;flex-shrink:0;font-family:monospace;}
 .rv-chip:hover{background:var(--bg4);color:var(--text);}
 .rv-chip.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold2);}
-.rv-chip.blunder{border-color:rgba(255,50,50,.4);color:#ff5555;}
-.rv-chip.mistake{border-color:rgba(248,113,113,.35);color:var(--red);}
-.rv-chip.inaccuracy{border-color:rgba(255,200,0,.35);color:#ffe000;}
+.rv-chip.brilliant{border-color:rgba(0,200,255,.4);color:#00c8ff;}
 .rv-chip.best{border-color:rgba(74,222,128,.3);color:var(--green);}
+.rv-chip.excellent{border-color:rgba(144,238,144,.3);color:#90ee90;}
+.rv-chip.good{border-color:rgba(201,168,76,.3);color:var(--gold2);}
+.rv-chip.book{border-color:rgba(100,149,237,.3);color:#6495ed;}
+.rv-chip.miss{border-color:rgba(255,165,0,.35);color:#ffa500;}
+.rv-chip.inaccuracy{border-color:rgba(255,200,0,.35);color:#ffe000;}
+.rv-chip.mistake{border-color:rgba(248,113,113,.35);color:var(--red);}
+.rv-chip.blunder{border-color:rgba(255,50,50,.4);color:#ff5555;}
 /* summary */
 .rv-sumbar{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
 .rv-sum-col{flex:1;text-align:center;}
@@ -458,11 +463,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .rv-spinner{display:inline-block;width:28px;height:28px;border:3px solid rgba(45,212,191,.2);border-top-color:var(--teal2);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* badges */
-.badge-best{background:rgba(74,222,128,.15);color:var(--green);}
-.badge-good{background:rgba(201,168,76,.15);color:var(--gold2);}
-.badge-inaccuracy{background:rgba(255,200,0,.15);color:#ffe000;}
-.badge-mistake{background:rgba(248,113,113,.15);color:var(--red);}
-.badge-blunder{background:rgba(248,70,70,.25);color:#ff4444;}
+.badge-brilliant{background:rgba(0,200,255,.15);color:#00c8ff;border:1px solid rgba(0,200,255,.3);}
+.badge-best{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);}
+.badge-excellent{background:rgba(144,238,144,.15);color:#90ee90;border:1px solid rgba(144,238,144,.3);}
+.badge-good{background:rgba(201,168,76,.15);color:var(--gold2);border:1px solid rgba(201,168,76,.3);}
+.badge-book{background:rgba(100,149,237,.15);color:#6495ed;border:1px solid rgba(100,149,237,.3);}
+.badge-miss{background:rgba(255,165,0,.15);color:#ffa500;border:1px solid rgba(255,165,0,.3);}
+.badge-inaccuracy{background:rgba(255,200,0,.15);color:#ffe000;border:1px solid rgba(255,200,0,.3);}
+.badge-mistake{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3);}
+.badge-blunder{background:rgba(248,70,70,.25);color:#ff4444;border:1px solid rgba(248,70,70,.4);}
 
 /* custom board image */
 .custom-board {
@@ -906,7 +915,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <div class="chat-wrap" id="chat-wrap">
     <div class="chat-msgs" id="chat-msgs"></div>
     <div class="chat-inp-row">
-      <button class="chat-mic" id="chat-mic" onclick="CHAT.toggleVoiceRecord()" title="رسالة صوتية">🎤</button>
+      <button class="chat-mic" id="chat-mic" onclick="CHAT.toggleVoiceRecord()" title="رسالة صوتية">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
       <input class="chat-inp" id="chat-inp" placeholder="اكتب رسالة…" maxlength="120"
              onkeydown="if(event.key==='Enter')CHAT.send()">
       <button class="chat-send" onclick="if(typeof SFX !== 'undefined') SFX.btn(); CHAT.send()">إرسال</button>
@@ -1071,6 +1087,31 @@ const SFX=(()=>{
     Object.entries(FILES).forEach(([name,file])=>loadOne(name,file,c,0));
     // Also preload external sounds
     Object.entries(EXT_SOUNDS).forEach(([name,url])=>loadExtSound(name,url,c,0));
+    // Preload Nour images to ensure they're always available offline
+    _preloadImages();
+  }
+
+  // Preload all Nour stage images and nour.png
+  function _preloadImages(){
+    const images=[
+      'nour.png',
+      'Nour_Beginner.png',
+      'Nour_Intern.png',
+      'Nour_Explorer.png',
+      'Nour_Professional.png',
+      'Nour_Commander.png',
+      'Nour_The_guard.png',
+      'Nour_Warrior.png',
+      'Nour_The_Great_Leader.png',
+      'Nour_Legend.png',
+      'Nour_The_Hero.png',
+      'Nour_Emperor.png',
+      'Nour_The_Immortal.png'
+    ];
+    images.forEach(src=>{
+      const img=new Image();
+      img.src='./'+src;
+    });
   }
 
   // Load external sound from URL
@@ -1502,41 +1543,63 @@ function updatePlayerImages(){
 ===================================== */
 const LEVELS_DEF=[
   // Early levels: Very easy with high randomness (70-50% random moves)
-  {id:0,  name:'المبتدئ',      icon:'♙',depth:1,skill:1,random:0.70,desc:'نور يتعلم معك',                        hint:'حرك القطع وافز',           starReq:[8,6,4]},
-  {id:1,  name:'المتدرب',      icon:'♟',depth:1,skill:2,random:0.55,desc:'نور يبدأ بالتعلم',                      hint:'سيطر على المركز',          starReq:[12,9,7]},
-  {id:2,  name:'المستكشف',     icon:'♙',depth:2,skill:3,random:0.40,desc:'اكتشاف التكتيكات',                      hint:'استخدم الخدع',            starReq:[15,12,9]},
-  // Mid levels: Moderate difficulty (30-10% random moves)
-  {id:3,  name:'المحترف',      icon:'♟',depth:3,skill:5,random:0.30,desc:'احتراف اللعب',                           hint:'فكر قبل التحرك',          starReq:[18,14,11]},
-  {id:4,  name:'القائد',       icon:'♙',depth:4,skill:7,random:0.20,desc:'المعركة تشتعل بالكامل',                 hint:'القطع النشطة تفوز',       starReq:[99,24,16]},
-  {id:5,  name:'الحارس',       icon:'♟',depth:5,skill:10,random:0.15,desc:'نور يستخدم قوته',                      hint:'لا تترك قطعاً دون حماية', starReq:[99,22,15]},
-  {id:6,  name:'المحارب',      icon:'♙',depth:6,skill:13,random:0.10,desc:'تكتيكات متقدمة مطلوبة',                 hint:'ابحث عن التضحيات المربحة',starReq:[99,20,14]},
-  {id:7,  name:'القائد الكبير',icon:'♟',depth:8,skill:16,random:0.05,desc:'نور لا يرحم في هذا المستوى',            hint:'التخطيط البعيد هو المفتاح',starReq:[99,20,13]},
+  {id:0,  name:'المبتدئ',      img:'Nour_Beginner.png',depth:1,skill:1,random:0.70,desc:'نور يتعلم معك',                        hint:'حرك القطع وافز',           starReq:[8,6,4]},
+  {id:1,  name:'المتدرب',      img:'Nour_Intern.png',depth:1,skill:2,random:0.55,desc:'نور يبدأ بالتعلم',                      hint:'سيطر على المركز',          starReq:[12,9,7]},
+  {id:2,  name:'المستكشف',     img:'Nour_Explorer.png',depth:2,skill:3,random:0.40,desc:'نور يتعلم استراتيجيات جديدة',           hint:'تعلم تكتيكات الافتتاح',     starReq:[16,12,9]},
+  {id:3,  name:'المحترف',      img:'Nour_Professional.png',depth:3,skill:5,random:0.25,desc:'نور أصبح يفهم الشطرنج',                 hint:'احمِ ملكك دائماً',          starReq:[20,15,11]},
+  // Medium levels: Balanced randomness (25-10% random moves)
+  {id:4,  name:'القائد',       img:'Nour_Commander.png',depth:4,skill:7,random:0.15,desc:'نور يبدأ بالتخطيط',                      hint:'فكر قبل أن تتحرك',          starReq:[25,18,13]},
+  {id:5,  name:'الحارس',       img:'Nour_The_guard.png',depth:5,skill:10,random:0.10,desc:'نور يحمي ويهاجم بحكمة',                 hint:'دافع ثم اهجم',              starReq:[30,22,16]},
+  {id:6,  name:'المحارب',      img:'Nour_Warrior.png',depth:6,skill:13,random:0.05,desc:'نور يخوض معارك حقيقية',                hint:'لا تستسلم أبداً',           starReq:[35,26,19]},
+  {id:7,  name:'القائد العظيم',img:'Nour_The_Great_Leader.png',depth:8,skill:16,random:0.02,desc:'نور يقود الجيش ببراعة',                 hint:'خطط للنهاية',              starReq:[40,30,22]},
   // Hard levels: Full strength (0% random, high depth)
-  {id:8,  name:'الأسطورة',     icon:'♙',depth:10,skill:20,random:0.00,desc:'فقط المتمرسون يصلون هنا',              hint:'كل حركة لها ثمن',         starReq:[99,18,12]},
-  {id:9,  name:'البطل',        icon:'♟',depth:12,skill:22,random:0.00,desc:'نور في أعلى مستوياته',                  hint:'ابحث عن نقاط ضعف الخصم', starReq:[99,16,11]},
-  {id:10, name:'الإمبراطور',   icon:'♙',depth:15,skill:25,random:0.00,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
-  {id:11, name:'الخالد',       icon:'♟',depth:20,skill:30,random:0.00,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
+  {id:8,  name:'الأسطورة',     img:'Nour_Legend.png',depth:10,skill:20,random:0.00,desc:'فقط المتمرسون يصلون هنا',              hint:'كل حركة لها ثمن',         starReq:[99,18,12]},
+  {id:9,  name:'البطل',        img:'Nour_The_Hero.png',depth:12,skill:22,random:0.00,desc:'نور في أعلى مستوياته',                  hint:'ابحث عن نقاط ضعف الخصم', starReq:[99,16,11]},
+  {id:10, name:'الإمبراطور',   img:'Nour_Emperor.png',depth:15,skill:25,random:0.00,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
+  {id:11, name:'الخالد',       img:'Nour_The_Immortal.png',depth:20,skill:30,random:0.00,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
 ];
 // ══════════════════════════════════════
 // CUSTOM MODAL SYSTEM (replacing alert/confirm)
 // ══════════════════════════════════════
 const Modal={
-  // Play appropriate sound based on icon type
+  // Play appropriate sound based on icon type using Web Audio API (not mp3 files)
   _playSound(icon){
-    if(typeof SFX==='undefined')return;
-    // Error/warning sounds
-    if(icon==='✕'||icon==='◆'||icon==='⚡'){
-      // Use loss sound for errors/defeat, not the harsh error sound
-      try{SFX.loss();}catch(e){SFX.btn();}
-    }
-    // Success sounds
-    else if(icon==='◈'||icon==='◈'){
-      try{SFX.win();}catch(e){SFX.btn();}
-    }
-    // Default button sound for everything else
-    else{
-      SFX.btn();
-    }
+    if(typeof Cfg==='undefined'||!Cfg.data.sound)return;
+    try{
+      const AudioContext=window.AudioContext||window.webkitAudioContext;
+      if(!AudioContext)return;
+      const ctx=new AudioContext();
+      const t=ctx.currentTime;
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      const vol=(Cfg.data.vol/100)*0.15;
+      
+      // Error/warning sounds - lower pitch with quick decay
+      if(icon==='✕'||icon==='◆'||icon==='⚡'||icon==='⚠'){
+        o.type='sine';
+        o.frequency.setValueAtTime(300,t);
+        o.frequency.exponentialRampToValueAtTime(200,t+0.15);
+        g.gain.setValueAtTime(vol,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      }
+      // Success sounds - pleasant higher pitch
+      else if(icon==='◈'||icon==='◉'){
+        o.type='sine';
+        o.frequency.setValueAtTime(880,t);
+        o.frequency.exponentialRampToValueAtTime(1100,t+0.1);
+        g.gain.setValueAtTime(vol,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+      }
+      // Default button sound
+      else{
+        o.type='sine';
+        o.frequency.setValueAtTime(660,t);
+        g.gain.setValueAtTime(vol*0.6,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+      }
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.3);
+      setTimeout(()=>ctx.close(),350);
+    }catch(e){}
   },
   show(message,title='تنبيه',icon='◉',onOk=null){
     const modal=document.getElementById('custom-modal');
@@ -1676,7 +1739,9 @@ const LVL={
       const bTx=!isUnlocked?'◆ مقفولة':isDone?'◉ مكتملة':'◈ العب الآن';
       const ibg=isDone?'rgba(74,222,128,.11)':isUnlocked?'rgba(201,168,76,.11)':'rgba(255,255,255,.04)';
       const sh=isDone?`<div class="lc-stars">${[1,2,3].map(i=>`<span class="star${i<=starCount?' on':''}">${i<=starCount?'✦':'◇'}</span>`).join('')}</div>`:'';
-      card.innerHTML=`<div class="lc-ico" style="background:${ibg}">${lv.icon}</div>
+      // Use Nour stage image with fallback to emoji if image fails to load
+      const imgHtml=`<img src="./${lv.img}" style="width:44px;height:44px;object-fit:cover;border-radius:11px;" onerror="this.style.display='none';this.parentElement.textContent='♟';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';" />`;
+      card.innerHTML=`<div class="lc-ico" style="background:${ibg};padding:0;overflow:hidden;">${imgHtml}</div>
         <div class="lc-info">
           <div class="lc-name">المرحلة ${lv.id+1} — ${lv.name}</div>
           <div class="lc-desc">${lv.desc}</div>
@@ -2095,7 +2160,26 @@ const CHAT={
   _recorder:null,
   _recording:false,
   _audioChunks:[],
-  _addMsg(text,type,isVoice=false){
+  _recordStartTime:0,
+  _arrayBufferToBase64(buffer){
+    const bytes=new Uint8Array(buffer);
+    let binary='';
+    const len=bytes.byteLength;
+    for(let i=0;i<len;i++){
+      binary+=String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  },
+  _base64ToArrayBuffer(base64){
+    const binary=atob(base64);
+    const len=binary.length;
+    const bytes=new Uint8Array(len);
+    for(let i=0;i<len;i++){
+      bytes[i]=binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  },
+  _addMsg(text,type,isVoice=false,audioData=null){
     const el=document.getElementById('chat-msgs');
     if(!el)return;
     const _snapToLatest=()=>{
@@ -2106,9 +2190,11 @@ const CHAT={
     const m=document.createElement('div');
     if(isVoice){
       m.className='chat-msg voice '+type;
-      m.innerHTML='🔊 رسالة صوتية ('+text+' ثواني)';
-      m.dataset.audio=text; // Store audio data
-      m.onclick=()=>this._playVoice(text);
+      m.innerHTML='<span style="font-size:14px;">🎙️</span> رسالة صوتية ('+text+' ثواني)';
+      if(audioData){
+        m.dataset.audio=audioData;
+        m.onclick=()=>this._playVoice(audioData);
+      }
     }else{
       m.className='chat-msg '+type;
       m.textContent=text;
@@ -2132,8 +2218,8 @@ const CHAT={
     if(S.mode==='online')OL.sendChat(txt);
   },
   recv(text){this._addMsg(text,'opp');},
-  recvVoice(audioData){
-    this._addMsg(audioData,'opp',true);
+  recvVoice(audioBase64,durationSec){
+    this._addMsg(durationSec+'','opp',true,audioBase64);
     if(document.hidden){
       Notifications.send('رسالة صوتية',{body:'وصلتك رسالة صوتية من الخصم'});
     }
@@ -2142,59 +2228,88 @@ const CHAT={
   async toggleVoiceRecord(){
     const micBtn=document.getElementById('chat-mic');
     if(this._recording){
-      // Stop recording
       this._stopRecording();
       micBtn.classList.remove('recording');
-      micBtn.textContent='🎤';
+      micBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
     }else{
-      // Start recording
       try{
         await this._startRecording();
         micBtn.classList.add('recording');
-        micBtn.textContent='⏹';
+        micBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:pulse 1s infinite"><rect x="6" y="4" width="12" height="16" rx="2"/></svg>';
       }catch(e){
         Modal.show('لا يمكن الوصول للميكروفون','تنبيه','✕');
       }
     }
   },
   async _startRecording(){
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    this._recorder=new MediaRecorder(stream,{mimeType:'audio/webm'});
+    const stream=await navigator.mediaDevices.getUserMedia({
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        sampleRate:24000,
+        channelCount:1
+      }
+    });
+    this._recorder=new MediaRecorder(stream,{mimeType:'audio/webm;codecs=opus'});
     this._audioChunks=[];
+    this._recordStartTime=Date.now();
+    
     this._recorder.ondataavailable=(e)=>{
-      if(e.data.size>0)this._audioChunks.push(e.data);
+      if(e.data&&e.data.size>0)this._audioChunks.push(e.data);
     };
+    
     this._recorder.onstop=()=>{
+      const durationSec=Math.round((Date.now()-this._recordStartTime)/1000);
+      if(durationSec<1){
+        Modal.show('التسجيل قصير جداً','تنبيه','⚠');
+        return;
+      }
+      
       const blob=new Blob(this._audioChunks,{type:'audio/webm'});
       const reader=new FileReader();
       reader.onloadend=()=>{
-        const audioData=reader.result;
-        const duration=Math.round(this._audioChunks.length/2); // Approximate duration
-        this._addMsg(duration+'','me',true);
-        if(S.mode==='online')OL.sendVoice(audioData);
+        const arrayBuffer=reader.result;
+        const base64Data=this._arrayBufferToBase64(arrayBuffer);
+        this._addMsg(durationSec+'','me',true,base64Data);
+        if(S.mode==='online')OL.sendVoice(base64Data,durationSec);
       };
-      reader.readAsDataURL(blob);
+      reader.onerror=()=>{
+        Modal.show('فشل في معالجة التسجيل','تنبيه','✕');
+      };
+      reader.readAsArrayBuffer(blob);
+      
+      stream.getTracks().forEach(t=>t.stop());
     };
-    this._recorder.start();
+    
+    this._recorder.start(100);
     this._recording=true;
-    // Auto-stop after 10 seconds
-    setTimeout(()=>{if(this._recording)this._stopRecording();},10000);
+    // No auto-stop - user controls recording duration (like WhatsApp)
   },
   _stopRecording(){
     if(this._recorder&&this._recording){
       this._recorder.stop();
-      this._recorder.stream.getTracks().forEach(t=>t.stop());
+      // Stream tracks are stopped in onstop handler
     }
     this._recording=false;
     const micBtn=document.getElementById('chat-mic');
     if(micBtn){
       micBtn.classList.remove('recording');
-      micBtn.textContent='🎤';
+      micBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
     }
   },
-  _playVoice(audioData){
-    const audio=new Audio(audioData);
-    audio.play().catch(()=>{});
+  _playVoice(audioBase64){
+    try{
+      const arrayBuffer=this._base64ToArrayBuffer(audioBase64);
+      const blob=new Blob([arrayBuffer],{type:'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      const audio=new Audio(url);
+      audio.onended=()=>URL.revokeObjectURL(url);
+      audio.play().catch(()=>{
+        Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
+      });
+    }catch(e){
+      Modal.show('خطأ في تشغيل الصوت','تنبيه','✕');
+    }
   },
   toggle(){
     SFX.btn();
@@ -2338,25 +2453,39 @@ const REV=(()=>{
       let rating,score,bestMvStr='';
       
       // Chess.com style evaluation with StockFish:
-      // Brilliant: sacrificial move that leads to advantage (detected separately)
-      // Great (Best): within 0.0-0.2 pawns of best
-      // Excellent: within 0.2-0.5 pawns
-      // Good: within 0.5-1.0 pawns
-      // Inaccuracy: 1.0-2.0 pawns
-      // Mistake: 2.0-4.0 pawns
-      // Blunder: > 4.0 pawns
+      // Book: First 10 moves (opening theory) - within 0.5 pawns
+      // Brilliant: Sacrificial move that leads to advantage
+      // Best: The engine's top choice (within 0.0-0.2 pawns)
+      // Excellent: Within 0.2-0.5 pawns of best
+      // Good: Within 0.5-1.0 pawns of best
+      // Inaccuracy: 1.0-2.0 pawns worse than best
+      // Mistake: 2.0-4.0 pawns worse than best
+      // Blunder: > 4.0 pawns worse than best
+      // Miss: Didn't capitalize on a winning advantage (>3.0 pawns lost)
       const diffInPawns=diff/100;
       const isBestMove = diff<=20||diffInPawns<=0.2;
+      const moveNum=i+1; // Move number in the game
       
       // Detect brilliant moves: sacrifice material but maintain/eval improves
       const pieceValues={p:1,n:3,b:3,r:5,q:9,k:0};
-      const sacrificedMaterial = isCapture ? pieceValues[cap?.toLowerCase()]||0 : 0;
+      const capPiece = isCapture ? capturedPiece : null;
+      const sacrificedMaterial = capPiece ? pieceValues[capPiece[1]?.toLowerCase()]||0 : 0;
       const isBrilliant = isBestMove && sacrificedMaterial >= 2 && actualVal > -100;
       
+      // Detect missed opportunity: had winning advantage (>3.0) but didn't find best move
+      const hadWinningAdvantage = (color==='w' && bestVal > 300) || (color==='b' && bestVal < -300);
+      const isMiss = hadWinningAdvantage && diffInPawns > 1.5;
+      
+      // Opening moves (first 10 moves) within 0.5 pawns are "Book"
+      const isOpening = moveNum <= 10;
+      const isBookMove = isOpening && diffInPawns < 0.5;
+      
       if(isBrilliant){rating='brilliant';score=100;}
-      else if(isBestMove){rating='great';score=100;}
+      else if(isBookMove){rating='book';score=85;}
+      else if(isBestMove){rating='best';score=100;}
       else if(diffInPawns<0.5){rating='excellent';score=90;}
       else if(diffInPawns<1.0){rating='good';score=75;}
+      else if(isMiss){rating='miss';score=40;if(color==='w')wMistakes++;else bMistakes++;}
       else if(diffInPawns<2.0){rating='inaccuracy';score=50;}
       else if(diffInPawns<4.0){rating='mistake';score=25;if(color==='w')wMistakes++;else bMistakes++;}
       else{rating='blunder';score=0;if(color==='w')wBlunders++;else bBlunders++;}
@@ -2454,26 +2583,40 @@ const REV=(()=>{
   }
 
   function _updateCard(mv,idx){
-    // Chess.com style ratings with Arabic translations
-    const ratingAr={
-      best:'ممتاز! ✦',
-      excellent:'جيد جداً',
-      good:'جيد',
-      inaccuracy:'غير دقيق',
-      mistake:'خطأ',
-      blunder:'خطأ فادح ◆'
+    // Chess.com style ratings with English labels (as requested)
+    // Best → The optimal move according to engine
+    // Excellent → Very close to best
+    // Good → Decent move
+    // Book → Known opening move
+    // Inaccuracy → Slightly weak
+    // Mistake → Clear mistake
+    // Blunder → Catastrophic (loses material or game)
+    // Miss → Missed good opportunity
+    const ratingLabels={
+      brilliant:'Brilliant! ✦',
+      best:'Best',
+      excellent:'Excellent',
+      good:'Good',
+      book:'Book',
+      inaccuracy:'Inaccuracy',
+      mistake:'Mistake',
+      blunder:'Blunder ◆',
+      miss:'Miss'
     };
     const badgeCls={
+      brilliant:'badge-best',
       best:'badge-best',
       excellent:'badge-good',
       good:'badge-good',
+      book:'badge-good',
       inaccuracy:'badge-inaccuracy',
       mistake:'badge-mistake',
-      blunder:'badge-blunder'
+      blunder:'badge-blunder',
+      miss:'badge-mistake'
     };
     const card=document.getElementById('rv-card');
     if(!card)return;
-    const rat=ratingAr[mv.rating]||mv.rating;
+    const rat=ratingLabels[mv.rating]||mv.rating;
     const bc=badgeCls[mv.rating]||'badge-good';
     const isW=mv.color==='w';
     const pawns=(Math.abs(mv.evalAfter)/100).toFixed(1);
@@ -2561,7 +2704,17 @@ const REV=(()=>{
       return;
     }
     coachEl.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-right:6px;color:var(--text2)">يُحلِّل…</span></div>`;
-    const ratingNames={best:'أفضل حركة',excellent:'حركة ممتازة',good:'حركة جيدة',inaccuracy:'غير دقيق',mistake:'خطأ',blunder:'خطأ فادح'};
+    const ratingNames={
+      brilliant:'حركة رائعة! ✦',
+      best:'أفضل حركة',
+      excellent:'حركة ممتازة',
+      good:'حركة جيدة',
+      book:'افتتاح معروف',
+      inaccuracy:'غير دقيق',
+      mistake:'خطأ',
+      blunder:'خطأ فادح',
+      miss:'فاتتك فرصة'
+    };
     const evalPawns=(mv.evalAfter/100).toFixed(1);
     const prompt=`أنت "نور المدرب". علّق فقط على الحركة نفسها وما غيّرته على الرقعة، بدون حشو أو تكرار أو كلام مبهم. اكتب جملة واحدة أو جملتين بالعربية الفصحى السهلة.
 
@@ -2601,7 +2754,17 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
   function _buildUI(){
     const d=_data;
     const s=d.summary;
-    const badgeCls={best:'best',good:'',inaccuracy:'inaccuracy',mistake:'mistake',blunder:'blunder'};
+    const badgeCls={
+      brilliant:'brilliant',
+      best:'best',
+      excellent:'excellent',
+      good:'good',
+      book:'book',
+      miss:'miss',
+      inaccuracy:'inaccuracy',
+      mistake:'mistake',
+      blunder:'blunder'
+    };
     const chips=d.moves.map((m,i)=>{
       const num=Math.floor(i/2)+1;
       const isW=m.color==='w';
@@ -2638,7 +2801,8 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
       <div class="rv-card" id="rv-card"></div>
       <div class="rv-coach" id="rv-coach">
         <div class="rv-coach-lbl">
-          <svg class="nour-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="#c9a84c" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><path d="M16 3l1.5-1.5M18 6h2M16.5 9l1.5 1" stroke="#e8d080" stroke-width="1.2" stroke-linecap="round"/><path d="M9 5.5c-.5.3-1 .8-1.2 1.4" stroke="#e8d080" stroke-width="1" stroke-linecap="round"/><circle cx="18.5" cy="5.5" r="1" fill="#e8d080"/></svg>
+          <img src="./nour.png" class="nour-icon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+          <svg class="nour-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;"><circle cx="12" cy="8" r="4" stroke="#c9a84c" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><path d="M16 3l1.5-1.5M18 6h2M16.5 9l1.5 1" stroke="#e8d080" stroke-width="1.2" stroke-linecap="round"/><path d="M9 5.5c-.5.3-1 .8-1.2 1.4" stroke="#e8d080" stroke-width="1" stroke-linecap="round"/><circle cx="18.5" cy="5.5" r="1" fill="#e8d080"/></svg>
           <span class="rv-coach-name">نور المدرب</span>
         </div>
         <div class="rv-coach-txt" id="rv-coach-txt">اختر حركة لتحليلها</div>
@@ -3564,7 +3728,7 @@ const OL=(()=>{
 
       case 'voice':
         if(d.audio){
-          CHAT.recvVoice(d.audio);
+          CHAT.recvVoice(d.audio,d.duration||3);
         }
         break;
 
