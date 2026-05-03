@@ -74,7 +74,31 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* ══════════ SCREENS ══════════ */
 .screen{display:none;position:relative;z-index:1;padding-top:36px;}
 .screen.active{display:flex;animation:sfd .35s cubic-bezier(.25,.46,.45,.94);}
-@media(min-width:900px){#s-game.active.mode-local{display:grid!important;}}
+@media(min-width:900px){
+  #s-game.active.mode-local{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    padding:46px 16px 24px;
+    gap:12px;
+    min-height:100dvh;
+  }
+  #s-game.mode-local #bar-b,
+  #s-game.mode-local #bar-w,
+  #s-game.mode-local #board-container,
+  #s-game.mode-local .gtbar,
+  #s-game.mode-local .sbar,
+  #s-game.mode-local .mvhist{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    width:100%!important;
+    max-width:510px!important;
+    align-self:center!important;
+    justify-self:center!important;
+  }
+  #s-game.mode-local .gtop{position:static!important;transform:none!important;z-index:auto!important;width:100%;max-width:510px;margin:0 auto;}
+  #s-game.mode-local .chat-wrap{display:none!important;}
+}
 @keyframes sfd{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 .ic-gold{color:var(--gold2);}.ic-teal{color:var(--teal2);}.ic-green{color:var(--green);}.ic-blue{color:var(--blue);}.ic-t2{color:var(--text2);}
 
@@ -257,6 +281,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .pb-ast.on{background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
 .pb-ast.spy{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
 .pb-caps{flex:1;text-align:center;font-size:10px;line-height:1.6;padding:0 3px;}
+#cap-w{color:#222;font-variant-emoji:text;-webkit-font-variant-emoji:text;}
+#cap-b{color:#f5f5f5;text-shadow:0 0 1px rgba(0,0,0,0.4);font-variant-emoji:text;-webkit-font-variant-emoji:text;}
 .pb-ast-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text3);font-size:13px;width:25px;height:25px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
 .pb-ast-btn:hover{border-color:rgba(201,168,76,.4);color:var(--gold2);}
 .pb-ast-btn.on{border-color:rgba(201,168,76,.6);color:var(--gold2);background:rgba(201,168,76,.12);box-shadow:0 0 8px rgba(201,168,76,.2);}
@@ -565,7 +591,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   /* Grid الأساسي: bar-w | رقعة | bar-b */
   #s-game.active{
     display:grid;
-    grid-template-columns:220px var(--board) 220px;
+    grid-template-columns:minmax(200px, 1fr) var(--board) minmax(200px, 1fr);
     grid-template-rows:auto auto auto auto auto auto;
     column-gap:14px;
     row-gap:6px;
@@ -620,10 +646,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     transform:none;
     margin-top:0;
     display:none!important;
+    min-width:0;
   }
   .chat-wrap.show{
     display:flex!important;
   }
+  .chat-inp-row{min-width:0;}
+  .chat-inp{min-width:0;}
 
   /* pbar عرض كامل */
   .pbar{width:100%; max-width:none;}
@@ -647,6 +676,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <!-- Firebase SDK for Firestore only (no auth) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
 </head>
 <body>
 <div id="particles"></div>
@@ -2317,9 +2347,25 @@ const CHAT={
   async _sendToNour(txt){
     const pn=Cfg.data.playerName||'اللاعب';
     const lv=LEVELS_DEF[S.levelId];
-    const prompt=`أنت "نور" مدرب شطرنج في مرحلة ${lv?.name||'التدريب'}. العب ضد ${pn}. رد بجملة واحدة أو جملتين بالعربية الفصحى السهلة والمحفزة. حافظ على شخصية مدرب حكيم ومحفز.
+    // Build rich game state context
+    const evalScore=E.eval(S.bd);
+    const evalText=Math.abs(evalScore)<50?'متعادل':evalScore>0?`الأبيض متقدم بـ ${(evalScore/100).toFixed(1)}`:`الأسود متقدم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`;
+    const lastMove=S.hist.length?S.hist[S.hist.length-1]:'لا شيء';
+    const capsW=S.capW.map(p=>({p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'}[E.tp(p)?.toLowerCase()]||'')).join('');
+    const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
+    const isCheck=E.inChk(S.bd,S.turn);
+    const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
+    const turnName=S.turn==='w'?'الأبيض':'الأسود (أنا)';
+    const gameState=`المرحلة: ${lv?.name||'غير معروفة'} | دور: ${turnName} | آخر حركة: ${lastMove} | القطع المأكولة (أنا أكلت): ${capsW||'لا شيء'} | القطع التي أكلتها: ${capsB||'لا شيء'} | التقييم: ${evalText} | عدد الحركات المتاحة: ${legalCount} | كش؟ ${isCheck?'نعم':'لا'}`;
 
-رسالة ${pn}: ${txt}`;
+    const prompt=`أنت "نور" — مدرب شطرنج ذكي وحيوي في مرحلة "${lv?.name||'التدريب'}". أنا (نور) ألعب بالأسود ضد ${pn} (الأبيض).
+
+حالة اللعبة الحالية:
+${gameState}
+
+${pn} يقول: "${txt}"
+
+رد كصديق حميم ومدرب محترف — حواري، طبيعي، غير رسمي. استعمل لغة محكية بسيطة. اربط ردك بحالة اللعبة الحالية (الحركات، القطع المأكولة، التقييم). لا تُعطِ دروساً طويلة. رد بجملة أو جملتين فقط. إذا ${pn} سأل عن نصيحة، اعطِ نصيحة محددة بناءً على الوضع الحالي.`;
     try{
       this._setNourTyping(true);
       const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
@@ -2328,19 +2374,57 @@ const CHAT={
         body:JSON.stringify({
           model:'meta-llama/llama-4-scout-17b-16e-instruct',
           messages:[{role:'user',content:prompt}],
-          max_tokens:150,
-          temperature:0.7
+          max_tokens:180,
+          temperature:0.75
         })
       });
       if(!res.ok)throw new Error('HTTP '+res.status);
       const json=await res.json();
-      const reply=json.choices?.[0]?.message?.content?.trim()||'حظاً موفقاً! 💪';
+      const reply=json.choices?.[0]?.message?.content?.trim();
       this._setNourTyping(false);
-      this._addMsg(reply,'opp');
+      if(reply&&reply.length>2){
+        this._addMsg(reply,'opp');
+      }else{
+        this._addMsg('حاضر! أنا هنا لو احتجت أي شيء 💬','opp');
+      }
     }catch(e){
       this._setNourTyping(false);
-      this._addMsg('تعذّر الاتصال بنور. تأكد من الإنترنت.','sys');
+      this._addMsg('تعذّر الاتصال. جرّب لاحقاً!','sys');
     }
+  },
+  nourAutoMsg(type,moveRes,isCheck,isCheckmate,cap,moveCount){
+    if(S.mode!=='bot'||S.levelId<0)return;
+    if(!this._nourAutoTimes)this._nourAutoTimes=[];
+    const now=Date.now();
+    // Prevent spam: max 1 auto msg per 10 seconds
+    if(this._nourAutoTimes.length&&now-this._nourAutoTimes[this._nourAutoTimes.length-1]<10000)return;
+    const msgs=[];
+    if(type==='playerMove'){
+      if(isCheckmate)msgs.push('كش مات! فزت! 🎉👏','مبروك! إنجاز رائع! ✨');
+      else if(isCheck)msgs.push('انتبه! أنا كاشِك! ردّ بذكاء 😉','كش! هل ترى المخرج؟ 🧩');
+      else if(cap&&Math.random()<0.55){
+        const capName={P:'بيدق',N:'حصان',B:'فيل',R:'رخ',Q:'وزير',K:'ملك'}[E.tp(cap)];
+        msgs.push(`أكلت ${capName||'قطعتي'}! حركة قوية 💪`,`أكلت! أحسنت 👏`,`تبادل جميل! استمر 🎯`);
+      }else if(moveCount>0&&moveCount%7===0&&Math.random()<0.6){
+        msgs.push('أراقبك! فكّر بعمق 🔍','لا تستعجل، خطّط للنهاية 📐','أنا هنا لو احتجت شيء 💬');
+      }
+    }else if(type==='nourMove'){
+      if(isCheckmate)msgs.push('كش مات! هذه المرة لي 😏','انتهت اللعبة! حاول مرة أخرى 💪');
+      else if(isCheck)msgs.push('كش! هل رأيت الحركة؟ 👀','انبه! كش! 🚨');
+      else if(cap&&Math.random()<0.4){
+        msgs.push('أكلتُ قطعة! 😏','هذه لك! تعلّم منها 📖','تبادل! 💥');
+      }else if(moveCount>0&&moveCount%8===0&&Math.random()<0.3){
+        msgs.push('أفكر في خطتي… 🤔','أراقب كل حركة 🔍','خطّط مثلما أفعل 💡');
+      }
+    }else if(type==='levelWin'){
+      msgs.push('رائع! أكملت المرحلة! أنت تتحسن 🌟','ممتاز! جاهز للمرحلة التالية؟ 🚀','أحسنت! أنا فخور بك 😊');
+    }else if(type==='levelLoss'){
+      msgs.push('لا تيأس! حاول مرة أخرى 💪','قريب جداً! استمر 📚','حظاً أوفراً في المحاولة القادمة 🍀');
+    }
+    if(!msgs.length)return;
+    const msg=msgs[Math.floor(Math.random()*msgs.length)];
+    this._nourAutoTimes.push(now);
+    setTimeout(()=>this._addMsg(msg,'opp'),Math.random()*600+300);
   },
   _setNourTyping(show){
     const el=document.getElementById('chat-msgs');
@@ -2555,6 +2639,7 @@ const EVALBAR={
 };
 
 const GROQ_KEY='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';
+const FCM_VAPID_KEY='BCHoPl4NJ2oqiYV6PP1iyl5buD3FZBCjZNc_jvLqG_7deA0p4YkZcVVReAeEjK4LX6g-vuwDFe08Sm8qlVcKMic';
 const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
 
 const REV=(()=>{
@@ -3498,6 +3583,7 @@ const G={
     else if(isCheck)    SFX.check();
     else                SFX.move();
     R.all();
+    if(S.mode==='bot'&&S.levelId>=0){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
@@ -3552,7 +3638,7 @@ const G={
             LVL.save(S.levelId,stars,S.moveCount);SFX.levelDone();
             this._showLevelWin(stars);
           }else{
-            if(S.levelId>=0&&w==='b'){}
+            if(S.levelId>=0&&w==='b'){CHAT.nourAutoMsg('levelLoss');}
             this.showOver('✦','كش مات!',`${nm} يفوز!`,'#e8d080');
             document.getElementById('go-review').style.display='inline-flex';
           }
@@ -3636,6 +3722,7 @@ const G={
     }
   },
   _showLevelWin(stars){
+    if(S.mode==='bot'&&S.levelId>=0)CHAT.nourAutoMsg('levelWin');
     const lv=LEVELS_DEF[S.levelId];
     const e=document.getElementById('go-em');e.textContent='✦';
     e.style.color='var(--gold2)';e.style.textShadow='0 0 28px rgba(201,168,76,.6)';
@@ -4388,9 +4475,20 @@ const firebaseConfig = {
   measurementId: "G-39JQ9F34J5"
 };
 
-// Initialize Firebase (Firestore only - no auth)
+// Initialize Firebase (Firestore + Messaging - no auth)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+let messaging=null;
+try{
+  if(firebase.messaging && firebase.messaging.isSupported && firebase.messaging.isSupported()){
+    messaging=firebase.messaging();
+    messaging.onMessage((payload)=>{
+      console.log('[FCM] Foreground message:',payload);
+      const{title,body,icon}=payload.notification||{};
+      if(title)Notifications.send(title,{body,icon});
+    });
+  }
+}catch(e){console.log('[FCM] Messaging not supported:',e);}
 
 // Settings Profile Functions
 let _originalUsername='';
@@ -4529,6 +4627,23 @@ const Notifications={
     try{
       const reg=await navigator.serviceWorker.register('./sw.js');
       this._swReg=reg;
+      // FCM token registration (requires VAPID key from Firebase Console)
+      if(messaging){
+        try{
+          const vapidKey=FCM_VAPID_KEY;
+          if(vapidKey){
+            const token=await messaging.getToken({vapidKey,serviceWorkerRegistration:reg});
+            if(token){
+              console.log('[FCM] Token:',token.substring(0,20)+'...');
+              db.collection('fcm_tokens').doc(token).set({
+                token,deviceId:LVL._getDeviceId(),platform:navigator.platform,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+              },{merge:true});
+            }
+          }else{
+            console.log('[FCM] No VAPID key stored. Set it via: localStorage.setItem("fcm_vapid_key","YOUR_VAPID_KEY")');
+          }
+        }catch(fcmErr){console.log('[FCM] Token error:',fcmErr);}
+      }
     }catch(e){console.log('SW register failed:',e);}
   },
   send(title,options={}){
@@ -4550,8 +4665,20 @@ const Notifications={
       }
     }catch(e){console.error('Notification error:',e);}
   },
-  // Schedule periodic engagement notifications (every 4-8 hours when app is idle)
-  _scheduleNext(){},
+  _scheduleReminders(){
+    if(this._remindersScheduled)return;
+    this._remindersScheduled=true;
+    const reminders=[
+      {title:'حان وقت الشطرنج! 🎯',body:'مرحلة نور تنتظرك. تمرّن يومياً! 💪',ms:4*3600000},
+      {title:'لا تنسَ مبارياتك! ♟',body:'خصمك ينتظرك أونلاين. ادخل الآن! ⚡',ms:8*3600000},
+      {title:'نور يفتقدك 💬',body:'استمر في التدريب وافتح مرحلة جديدة! 🌟',ms:24*3600000},
+    ];
+    reminders.forEach(r=>{
+      setInterval(()=>{
+        if(document.hidden||!document.hasFocus())this.send(r.title,{body:r.body,tag:'reminder-'+r.ms,requireInteraction:false});
+      },r.ms);
+    });
+  },
   gameStart(){this.send('بدأت المباراة!',{body:'خصمك جاهز للعب',tag:'game-start'});},
   yourTurn(){this.send('دورك!',{body:'حان وقت تحريك قطعة',tag:'your-turn'});},
   gameOver(result){this.send('انتهت المباراة',{body:result,tag:'game-over'});},
@@ -4561,9 +4688,10 @@ const Notifications={
 
 function requestNotificationPermission(){
   if('Notification' in window){
-    // Auto-request after first user interaction
     const requestOnClick=()=>{
-      Notifications.requestPermission();
+      Notifications.requestPermission().then(granted=>{
+        if(granted)Notifications._scheduleReminders();
+      });
       document.removeEventListener('click',requestOnClick);
     };
     document.addEventListener('click',requestOnClick,{once:true});
