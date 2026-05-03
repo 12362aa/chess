@@ -216,14 +216,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .chat-inp-row{display:flex;gap:6px;padding:7px;border-top:1px solid rgba(255,255,255,.05);background:var(--bg3);}
 .chat-inp{flex:1;padding:7px 10px;background:var(--bg);border:1px solid rgba(201,168,76,.16);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:12px;outline:none;}
 .chat-inp:focus{border-color:var(--gold);}
-.chat-send{padding:7px 12px;background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.28);border-radius:8px;color:var(--gold2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .17s;}
+.chat-send{padding:7px 12px;background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.28);border-radius:8px;color:var(--gold2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .17s;white-space:nowrap;flex-shrink:0;}
 .chat-send:hover{background:rgba(201,168,76,.3);}
-.chat-mic{padding:7px 10px;background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.28);border-radius:8px;color:var(--red);font-size:12px;cursor:pointer;transition:all .17s;display:flex;align-items:center;justify-content:center;}
-.chat-mic:hover{background:rgba(248,113,113,.3);}
-.chat-mic.recording{background:rgba(248,113,113,.5);animation:pulse 1s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
-.chat-msg.voice{background:rgba(94,234,212,.12);color:var(--teal2);border:1px solid rgba(94,234,212,.18);align-self:flex-start;cursor:pointer;}
-.chat-msg.voice.opp{align-self:flex-end;background:rgba(94,234,212,.08);}
+.chat-mic{padding:7px 10px;background:rgba(45,212,191,.18);border:1px solid rgba(45,212,191,.28);border-radius:8px;color:var(--teal2);font-size:12px;cursor:pointer;transition:all .17s;display:flex;align-items:center;justify-content:center;}
+.chat-mic:hover{background:rgba(45,212,191,.3);}
+.chat-mic.recording{background:rgba(248,113,113,.6);border-color:rgba(248,113,113,.5);color:#fff;animation:pulse 1s infinite;}
+.chat-mic .rec-timer{font-size:10px;margin-right:4px;min-width:24px;text-align:center;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.chat-msg.voice{background:rgba(45,212,191,.15);color:var(--teal2);border:1px solid rgba(45,212,191,.25);align-self:flex-start;cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;min-width:120px;}
+.chat-msg.voice.opp{align-self:flex-end;background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.2);color:var(--gold2);}
+.chat-msg.voice .v-play{width:22px;height:22px;border-radius:50%;background:rgba(45,212,191,.25);display:flex;align-items:center;justify-content:center;font-size:10px;}
+.chat-msg.voice.opp .v-play{background:rgba(201,168,76,.25);}
+.chat-msg.voice .v-bar{flex:1;height:3px;background:rgba(255,255,255,.1);border-radius:2px;position:relative;overflow:hidden;}
+.chat-msg.voice .v-bar::after{content:'';position:absolute;left:0;top:0;height:100%;width:var(--prog,0%);background:var(--teal2);border-radius:2px;transition:width .3s;}
+.chat-msg.voice.opp .v-bar::after{background:var(--gold2);}
+.chat-msg.voice .v-dur{font-size:10px;opacity:.8;}
 .chat-toggle{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;padding:4px 8px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);transition:all .17s;}
 .chat-toggle:hover{background:rgba(255,255,255,.07);}
 .chat-badge{min-width:14px;height:14px;background:var(--red);border-radius:7px;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0 3px;display:none;}
@@ -270,7 +277,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.26),0 26px 60px rgba(0,0,0,.65),0 0 40px rgba(201,168,76,.06);
   display:inline-block;line-height:0;transition:box-shadow .3s;}
 .bwrap:hover{box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.35),0 30px 70px rgba(0,0,0,.7),0 0 50px rgba(201,168,76,.1);}
-#board{display:grid;grid-template-columns:repeat(8,var(--sq));grid-template-rows:repeat(8,var(--sq));width:var(--board);height:var(--board);direction:ltr;}
+#board{display:grid;grid-template-columns:repeat(8,var(--sq));grid-template-rows:repeat(8,var(--sq));width:var(--board);height:var(--board);direction:ltr;touch-action:none;user-select:none;-webkit-user-select:none;}
 .sq{width:var(--sq);height:var(--sq);position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;flex-grow:0;transition:background-color .15s;}
 .sq.L{background:var(--sq-l);}.sq.D{background:var(--sq-d);}
 .sq.SL{background:var(--sq-sl);}.sq.SD{background:var(--sq-sd);}
@@ -916,12 +923,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="chat-msgs" id="chat-msgs"></div>
     <div class="chat-inp-row">
       <button class="chat-mic" id="chat-mic" onclick="CHAT.toggleVoiceRecord()" title="رسالة صوتية">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-          <line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="8" y1="23" x2="16" y2="23"/>
-        </svg>
+        <span id="mic-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </span>
+        <span id="rec-timer" class="rec-timer" style="display:none">0:00</span>
       </button>
       <input class="chat-inp" id="chat-inp" placeholder="اكتب رسالة…" maxlength="120"
              onkeydown="if(event.key==='Enter')CHAT.send()">
@@ -1019,6 +1029,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
    AUDIO
 ══════════════════════════════════════ */
 const SFX=(()=>{
+  // Debounce to prevent double-fire within 120ms
+  let _lastSfxTime=0;
+  function debouncePlay(fn){
+    const now=Date.now();
+    if(now-_lastSfxTime<120)return;
+    _lastSfxTime=now;
+    fn();
+  }
   // Local files for game moves
   const FILES={move:'./move.mp3',capture:'./capture.mp3',castle:'./castle.mp3',checkmate:'./checkmate.mp3',check:'./check.mp3',error:'./Error.mp3'};
   // Use local sounds instead of external URLs (which are broken)
@@ -1187,14 +1205,16 @@ const SFX=(()=>{
   document.addEventListener('keydown',_init,{once:true,passive:true});
 
   function uiClick(){
-    if(!Cfg.data.sound)return;
-    try{
-      const c=getCtx(),t=c.currentTime;
-      const o=c.createOscillator(),g=c.createGain();
-      o.type='sine';o.frequency.setValueAtTime(660,t);
-      g.gain.setValueAtTime((Cfg.data.vol/100)*0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.06);
-      o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.07);
-    }catch(e){}
+    debouncePlay(()=>{
+      if(!Cfg.data.sound)return;
+      try{
+        const c=getCtx(),t=c.currentTime;
+        const o=c.createOscillator(),g=c.createGain();
+        o.type='sine';o.frequency.setValueAtTime(660,t);
+        g.gain.setValueAtTime((Cfg.data.vol/100)*0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+        o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.07);
+      }catch(e){}
+    });
   }
 
   const api = {
@@ -1651,6 +1671,58 @@ const Modal={
   }
 };
 
+/* ══════════════════════════════════════
+   INDEXEDDB STORAGE (Levels fallback)
+══════════════════════════════════════ */
+const IDB=(()=>{
+  const DB_NAME='NourChessDB',STORE='levels',VER=1;
+  let _db=null;
+  async function _open(){
+    if(_db)return _db;
+    return new Promise((res,rej)=>{
+      const req=indexedDB.open(DB_NAME,VER);
+      req.onerror=()=>rej(req.error);
+      req.onsuccess=()=>{ _db=req.result;res(_db); };
+      req.onupgradeneeded=(e)=>{
+        const db=e.target.result;
+        if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'id'});
+      };
+    });
+  }
+  return{
+    async get(id){
+      const db=await _open();
+      return new Promise((res,rej)=>{
+        const tx=db.transaction(STORE,'readonly');
+        const store=tx.objectStore(STORE);
+        const req=store.get(id);
+        req.onsuccess=()=>res(req.result||null);
+        req.onerror=()=>res(null);
+      });
+    },
+    async set(id,data){
+      const db=await _open();
+      return new Promise((res,rej)=>{
+        const tx=db.transaction(STORE,'readwrite');
+        const store=tx.objectStore(STORE);
+        store.put({id,...data});
+        tx.oncomplete=()=>res();
+        tx.onerror=()=>rej(tx.error);
+      });
+    },
+    async getAll(){
+      const db=await _open();
+      return new Promise((res,rej)=>{
+        const tx=db.transaction(STORE,'readonly');
+        const store=tx.objectStore(STORE);
+        const req=store.getAll();
+        req.onsuccess=()=>res(req.result||[]);
+        req.onerror=()=>res([]);
+      });
+    }
+  };
+})();
+
 const LVL={
   _cache:null,
   _deviceId:null,
@@ -1664,28 +1736,43 @@ const LVL={
     }
     return this._deviceId;
   },
-  async _loadFromFirestore(){
+  async _loadProgress(){
+    // 1. Load from IndexedDB first (always works offline)
+    let progress={};
+    try{
+      const all=await IDB.getAll();
+      all.forEach(item=>{
+        const lid=parseInt(item.id);
+        if(!isNaN(lid)){
+          progress[lid]={stars:item.stars||0,moves:item.moves||999,done:!!item.done};
+          if(lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
+        }
+      });
+    }catch(e){console.log('[IDB] Load failed:',e);}
+    // 2. Try Firestore for cloud sync (merge, keep best)
     try{
       const deviceId=this._getDeviceId();
       const snapshot=await db.collection('nour_levels').where('deviceId','==',deviceId).get();
-      const progress={};
       snapshot.forEach(doc=>{
         const data=doc.data();
         if(data.levelId!==undefined){
-          progress[data.levelId]={stars:data.stars||0,moves:data.moves||999,done:true};
+          const existing=progress[data.levelId];
+          const fsStars=data.stars||0;
+          const fsMoves=data.moves||999;
+          progress[data.levelId]={
+            stars:Math.max(existing?.stars||0,fsStars),
+            moves:Math.min(existing?.moves||999,fsMoves),
+            done:true
+          };
           if(data.levelId+1<LEVELS_DEF.length)progress['u'+(data.levelId+1)]=true;
         }
       });
-      this._cache=progress;
-      return progress;
-    }catch(e){
-      console.error('[Firestore] Failed to load levels:',e);
-      this._cache={};
-      return {};
-    }
+    }catch(e){console.log('[Firestore] Cloud sync unavailable:',e);}
+    this._cache=progress;
+    return progress;
   },
   async get(){
-    if(this._cache===null)await this._loadFromFirestore();
+    if(this._cache===null)await this._loadProgress();
     return this._cache||{};
   },
   async save(id,stars,moves){
@@ -1694,7 +1781,13 @@ const LVL={
     p[id]={stars:Math.max(prev.stars,stars),moves:Math.min(prev.moves,moves),done:true};
     if(id+1<LEVELS_DEF.length)p['u'+(id+1)]=true;
     this._cache=p;
-    // Save to Firestore without authentication
+    // 1. Save to IndexedDB first (primary, always works)
+    try{
+      await IDB.set(id+'',{stars:p[id].stars,moves:p[id].moves,done:true,updatedAt:Date.now()});
+      if(id+1<LEVELS_DEF.length)await IDB.set('u'+(id+1),{unlocked:true,updatedAt:Date.now()});
+      console.log('[IDB] Level saved:',id);
+    }catch(e){console.error('[IDB] Save failed:',e);}
+    // 2. Sync to Firestore (cloud backup)
     try{
       const deviceId=this._getDeviceId();
       const levelRef=db.collection('nour_levels').doc(deviceId+'_'+id);
@@ -1706,9 +1799,9 @@ const LVL={
         done:true,
         completedAt:firebase.firestore.FieldValue.serverTimestamp()
       },{merge:true});
-      console.log('[Firestore] Level saved:',id);
+      console.log('[Firestore] Level synced:',id);
     }catch(e){
-      console.error('[Firestore] Failed to save level:',e);
+      console.log('[Firestore] Cloud sync failed (offline?):',e);
     }
   },
   async unlocked(id){
@@ -2189,11 +2282,14 @@ const CHAT={
     };
     const m=document.createElement('div');
     if(isVoice){
+      const durSec=parseInt(text)||0;
+      const durStr=durSec<60?durSec+'"':Math.floor(durSec/60)+':'+String(durSec%60).padStart(2,'0');
       m.className='chat-msg voice '+type;
-      m.innerHTML='<span style="font-size:14px;">🎙️</span> رسالة صوتية ('+text+' ثواني)';
+      m.innerHTML=`<span class="v-play">▶</span><span class="v-bar"></span><span class="v-dur">${durStr}</span>`;
       if(audioData){
         m.dataset.audio=audioData;
-        m.onclick=()=>this._playVoice(audioData);
+        m.dataset.duration=durSec;
+        m.onclick=()=>this._playVoice(audioData,m);
       }
     }else{
       m.className='chat-msg '+type;
@@ -2216,6 +2312,48 @@ const CHAT={
     inp.value='';
     this._addMsg(txt,'me');
     if(S.mode==='online')OL.sendChat(txt);
+    else if(S.mode==='bot'&&S.levelId>=0)this._sendToNour(txt);
+  },
+  async _sendToNour(txt){
+    const pn=Cfg.data.playerName||'اللاعب';
+    const lv=LEVELS_DEF[S.levelId];
+    const prompt=`أنت "نور" مدرب شطرنج في مرحلة ${lv?.name||'التدريب'}. العب ضد ${pn}. رد بجملة واحدة أو جملتين بالعربية الفصحى السهلة والمحفزة. حافظ على شخصية مدرب حكيم ومحفز.
+
+رسالة ${pn}: ${txt}`;
+    try{
+      this._setNourTyping(true);
+      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
+        body:JSON.stringify({
+          model:'meta-llama/llama-4-scout-17b-16e-instruct',
+          messages:[{role:'user',content:prompt}],
+          max_tokens:150,
+          temperature:0.7
+        })
+      });
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const json=await res.json();
+      const reply=json.choices?.[0]?.message?.content?.trim()||'حظاً موفقاً! 💪';
+      this._setNourTyping(false);
+      this._addMsg(reply,'opp');
+    }catch(e){
+      this._setNourTyping(false);
+      this._addMsg('تعذّر الاتصال بنور. تأكد من الإنترنت.','sys');
+    }
+  },
+  _setNourTyping(show){
+    const el=document.getElementById('chat-msgs');
+    if(!el)return;
+    const existing=el.querySelector('.nour-typing');
+    if(existing)existing.remove();
+    if(show){
+      const m=document.createElement('div');
+      m.className='chat-msg opp nour-typing';
+      m.innerHTML='<span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span> <span style="font-size:10px;color:var(--text3)">نور يكتب…</span>';
+      el.prepend(m);
+      requestAnimationFrame(()=>{el.scrollTo({top:0,behavior:'auto'});});
+    }
   },
   recv(text){this._addMsg(text,'opp');},
   recvVoice(audioBase64,durationSec){
@@ -2227,15 +2365,19 @@ const CHAT={
   sys(text){this._addMsg(text,'sys');},
   async toggleVoiceRecord(){
     const micBtn=document.getElementById('chat-mic');
+    const micIcon=document.getElementById('mic-icon');
+    const recTimer=document.getElementById('rec-timer');
     if(this._recording){
       this._stopRecording();
       micBtn.classList.remove('recording');
-      micBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+      if(micIcon)micIcon.style.display='';
+      if(recTimer){recTimer.style.display='none';recTimer.textContent='0:00';}
     }else{
       try{
         await this._startRecording();
         micBtn.classList.add('recording');
-        micBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:pulse 1s infinite"><rect x="6" y="4" width="12" height="16" rx="2"/></svg>';
+        if(micIcon)micIcon.style.display='none';
+        if(recTimer)recTimer.style.display='';
       }catch(e){
         Modal.show('لا يمكن الوصول للميكروفون','تنبيه','✕');
       }
@@ -2283,33 +2425,80 @@ const CHAT={
     
     this._recorder.start(100);
     this._recording=true;
+    // Start timer display
+    this._timerInterval=setInterval(()=>{
+      const sec=Math.floor((Date.now()-this._recordStartTime)/1000);
+      const el=document.getElementById('rec-timer');
+      if(el)el.textContent=sec<60?sec+'"':Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+    },1000);
     // No auto-stop - user controls recording duration (like WhatsApp)
   },
   _stopRecording(){
+    if(this._timerInterval){
+      clearInterval(this._timerInterval);
+      this._timerInterval=null;
+    }
     if(this._recorder&&this._recording){
       this._recorder.stop();
       // Stream tracks are stopped in onstop handler
     }
     this._recording=false;
     const micBtn=document.getElementById('chat-mic');
-    if(micBtn){
-      micBtn.classList.remove('recording');
-      micBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
-    }
+    const micIcon=document.getElementById('mic-icon');
+    const recTimer=document.getElementById('rec-timer');
+    if(micBtn)micBtn.classList.remove('recording');
+    if(micIcon)micIcon.style.display='';
+    if(recTimer){recTimer.style.display='none';recTimer.textContent='0:00';}
   },
-  _playVoice(audioBase64){
+  _playVoice(audioBase64,msgEl){
     try{
+      if(this._currentAudio&&!this._currentAudio.paused){
+        this._currentAudio.pause();
+        this._currentAudio.currentTime=0;
+        if(this._currentBarEl)this._currentBarEl.style.setProperty('--prog','0%');
+      }
       const arrayBuffer=this._base64ToArrayBuffer(audioBase64);
-      const blob=new Blob([arrayBuffer],{type:'audio/webm'});
+      // Detect actual mime type from data, fallback to webm
+      const mimeType=this._detectMimeType(audioBase64)||'audio/webm';
+      const blob=new Blob([arrayBuffer],{type:mimeType});
       const url=URL.createObjectURL(blob);
       const audio=new Audio(url);
-      audio.onended=()=>URL.revokeObjectURL(url);
+      this._currentAudio=audio;
+      // Visual progress
+      const bar=msgEl?.querySelector('.v-bar');
+      const playIcon=msgEl?.querySelector('.v-play');
+      this._currentBarEl=bar;
+      if(playIcon)playIcon.textContent='⏸';
+      audio.ontimeupdate=()=>{
+        const dur=audio.duration||1;
+        const pct=(audio.currentTime/dur)*100;
+        if(bar)bar.style.setProperty('--prog',pct+'%');
+      };
+      audio.onended=()=>{
+        URL.revokeObjectURL(url);
+        if(bar)bar.style.setProperty('--prog','0%');
+        if(playIcon)playIcon.textContent='▶';
+        this._currentAudio=null;
+      };
+      audio.onpause=()=>{
+        if(playIcon)playIcon.textContent='▶';
+      };
       audio.play().catch(()=>{
+        URL.revokeObjectURL(url);
         Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
       });
     }catch(e){
       Modal.show('خطأ في تشغيل الصوت','تنبيه','✕');
     }
+  },
+  _detectMimeType(base64){
+    // Check webm magic bytes
+    try{const bytes=atob(base64.slice(0,8));if(bytes.includes('\x1A\x45\xDF\xA3'))return 'audio/webm';}catch(e){}
+    // Check mp4
+    try{const bytes=atob(base64.slice(0,8));if(bytes.includes('ftyp')||bytes.includes('mp4'))return 'audio/mp4';}catch(e){}
+    // Check ogg
+    try{const bytes=atob(base64.slice(0,4));if(bytes==='OggS')return 'audio/ogg';}catch(e){}
+    return null;
   },
   toggle(){
     SFX.btn();
@@ -2331,6 +2520,13 @@ const CHAT={
     });
     this.unread=0;
     document.getElementById('chat-badge').classList.remove('show');
+    // Show/hide mic based on mode
+    const micBtn=document.getElementById('chat-mic');
+    if(micBtn)micBtn.style.display=(S.mode==='online')?'flex':'none';
+    // Show Nour welcome in levels mode
+    if(S.mode==='bot'&&S.levelId>=0){
+      this._addMsg('مرحباً! أنا نور. تحدث معي anytime 💬','opp');
+    }
   },
   hide(){
     document.getElementById('btn-chat').style.display='none';
@@ -2358,9 +2554,10 @@ const EVALBAR={
   }
 };
 
+const GROQ_KEY='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';
+const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+
 const REV=(()=>{
-  const GROQ_KEY='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';
-  const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
 
   let _data=null;
   let _idx=0;
@@ -2733,12 +2930,23 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
         body:JSON.stringify({
           model:GROQ_MODEL,
           messages:[{role:'user',content:prompt}],
-          max_tokens:130,
+          max_tokens:180,
           temperature:0.65
         })
       });
+      if(!res.ok){
+        console.error('[Nour Coach] HTTP error:',res.status,res.statusText);
+        const errText=await res.text().catch(()=>'');
+        console.error('[Nour Coach] Response:',errText);
+        throw new Error('HTTP '+res.status);
+      }
       const json=await res.json();
-      const txt=json.choices?.[0]?.message?.content?.trim()||'لا تعليق على هذه الحركة.';
+      console.log('[Nour Coach] Response:',json);
+      const txt=json.choices?.[0]?.message?.content?.trim();
+      if(!txt){
+        console.warn('[Nour Coach] Empty response from API');
+        throw new Error('Empty response');
+      }
       _coachCache[idx]=txt;
       const coachEl2=document.getElementById('rv-coach-txt');
       if(coachEl2){
@@ -2746,8 +2954,9 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
         _typeText(document.getElementById('rv-coach-txt'), txt);
       }
     }catch(e){
+      console.error('[Nour Coach] Error:',e);
       const coachEl2=document.getElementById('rv-coach-txt');
-      if(coachEl2)coachEl2.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-txt" id="rv-coach-txt" style="color:var(--text3)">تعذّر تحميل التحليل.</div>`;
+      if(coachEl2)coachEl2.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-txt" id="rv-coach-txt" style="color:var(--text3)">تعذّر تحميل التحليل. تأكد من اتصال الإنترنت.</div>`;
     }
   }
 
@@ -2820,6 +3029,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
   }
 
   return{
+    GROQ_KEY,
     async open(){
       if(S.hist.length<4){Modal.show('المباراة قصيرة جداً للتقييم - يجب 4 حركات على الأقل','تنبيه','✕');return;}
       _coachCache={};
@@ -3153,7 +3363,7 @@ const G={
     S.snapshots=[];
     S.preMove=null;S.preMoveSelFr=null;
     S.undoStack=[];
-    if(S.oppImg) S.oppImg = S.oppImg; // Don't reset oppImg if it's already set (from WebSocket)
+    S.oppImg=null; // Reset opponent image for every new game
     AST.clear();
     R.boardReset();
     CHAT.hide();
@@ -3185,6 +3395,7 @@ const G={
     document.getElementById('gmode').textContent=`◈ المرحلة ${id+1}: ${lv.name}`;
     fixBars('w');
     Nav.game();R.all();updatePlayerImages();
+    CHAT.show();
   },
   click(r,c){
     if(S.over||S.pending)return;
@@ -3867,11 +4078,21 @@ const DRAG=(()=>{
 
   function _sqFromPoint(x,y){
     if(ghost)ghost.style.display='none';
-    const el=document.elementFromPoint(x,y);
+    let el=document.elementFromPoint(x,y);
     if(ghost)ghost.style.display='';
     if(!el)return null;
-    const sq=el.closest?.('.sq');
-    if(!sq)return null;
+    let sq=el.closest?.('.sq');
+    // If not on a square, try finding the board and computing square from position
+    if(!sq){
+      const board=document.getElementById('board');
+      if(!board)return null;
+      const rect=board.getBoundingClientRect();
+      const relX=x-rect.left,relY=y-rect.top;
+      const size=rect.width/8;
+      const c=Math.floor(relX/size),r=Math.floor(relY/size);
+      if(r>=0&&r<8&&c>=0&&c<8)return[r,c];
+      return null;
+    }
     const r=parseInt(sq.dataset.r),c=parseInt(sq.dataset.c);
     return(isNaN(r)||isNaN(c))?null:[r,c];
   }
@@ -4293,35 +4514,54 @@ window.addEventListener('load',async ()=>{
 ══════════════════════════════════════ */
 const Notifications={
   enabled:false,
+  _swReg:null,
   async requestPermission(){
     if(!('Notification' in window))return false;
-    if(Notification.permission==='granted'){this.enabled=true;return true;}
+    if(Notification.permission==='granted'){this.enabled=true;this._registerPush();return true;}
     if(Notification.permission==='denied')return false;
     const permission=await Notification.requestPermission();
     this.enabled=permission==='granted';
+    if(this.enabled)this._registerPush();
     return this.enabled;
+  },
+  async _registerPush(){
+    if(!('serviceWorker' in navigator))return;
+    try{
+      const reg=await navigator.serviceWorker.register('./sw.js');
+      this._swReg=reg;
+    }catch(e){console.log('SW register failed:',e);}
   },
   send(title,options={}){
     if(!this.enabled||Notification.permission!=='granted')return;
     try{
       const defaultOptions={
-        icon:'./icon-192.png',
-        badge:'./icon-192.png',
-        tag:'chess-game',
-        requireInteraction:true,
+        icon:'./icon.png',
+        badge:'./icon.png',
+        tag:'chess-'+Date.now(),
+        requireInteraction:false,
+        silent:false,
         ...options
       };
-      new Notification(title,defaultOptions);
+      // Try service worker notification first (works better on mobile/PWA)
+      if(this._swReg&&this._swReg.showNotification){
+        this._swReg.showNotification(title,defaultOptions);
+      }else{
+        new Notification(title,defaultOptions);
+      }
     }catch(e){console.error('Notification error:',e);}
   },
-  gameStart(){this.send('بدأت المباراة!',{body:'خصمك جاهز للعب'});},
-  yourTurn(){this.send('دورك!',{body:'حان وقت تحريك قطعة'});},
-  gameOver(result){this.send('انتهت المباراة',{body:result});}
+  // Schedule periodic engagement notifications (every 4-8 hours when app is idle)
+  _scheduleNext(){},
+  gameStart(){this.send('بدأت المباراة!',{body:'خصمك جاهز للعب',tag:'game-start'});},
+  yourTurn(){this.send('دورك!',{body:'حان وقت تحريك قطعة',tag:'your-turn'});},
+  gameOver(result){this.send('انتهت المباراة',{body:result,tag:'game-over'});},
+  chatMsg(from){this.send('رسالة جديدة',{body:`${from}: رسالة نصية`,tag:'chat'});},
+  voiceMsg(from){this.send('رسالة صوتية',{body:`${from}: أرسل رسالة صوتية`,tag:'chat-voice'});}
 };
 
 function requestNotificationPermission(){
-  if('Notification' in window&&Notification.permission==='default'){
-    // Auto-request after user interaction
+  if('Notification' in window){
+    // Auto-request after first user interaction
     const requestOnClick=()=>{
       Notifications.requestPermission();
       document.removeEventListener('click',requestOnClick);
