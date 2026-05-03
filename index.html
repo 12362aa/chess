@@ -75,7 +75,34 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .screen{display:none;position:relative;z-index:1;padding-top:36px;}
 .screen.active{display:flex;animation:sfd .35s cubic-bezier(.25,.46,.45,.94);}
 @media(min-width:900px){
-  /* mode-local uses same grid layout as other modes - only hide chat */
+  /* mode-local on desktop - uses flex column like mobile but centered */
+  #s-game.active.mode-local{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    padding:46px 16px 24px;
+    gap:12px;
+    min-height:100dvh;
+  }
+  #s-game.mode-local .gtop{position:static!important;transform:none!important;z-index:auto!important;width:100%;max-width:510px;margin:0 auto;}
+  #s-game.mode-local #bar-b,
+  #s-game.mode-local #bar-w{
+    width:100%!important;
+    max-width:510px!important;
+    align-self:center!important;
+  }
+  #s-game.mode-local #board-container{
+    width:100%!important;
+    max-width:510px!important;
+    align-self:center!important;
+  }
+  #s-game.mode-local .gtbar,
+  #s-game.mode-local .sbar,
+  #s-game.mode-local .mvhist{
+    width:100%!important;
+    max-width:510px!important;
+    align-self:center!important;
+  }
   #s-game.mode-local .chat-wrap{display:none!important;}
 }
 @keyframes sfd{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -240,7 +267,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .chat-badge.show{display:inline-flex;}
 
 /* ══════════ GAME ══════════ */
-#s-game{flex-direction:column;align-items:center;min-height:100dvh;height:auto;padding:46px 8px 24px;gap:10px;overflow-x:hidden;justify-content:flex-start;}
+#s-game{flex-direction:column;align-items:center;min-height:100dvh;padding:46px 0 24px;gap:12px;overflow-x:hidden;justify-content:flex-start;}
 .gtop{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;max-width:510px;margin-inline:auto;text-align:center;}
 .bsm{background:var(--bg2);border:1px solid rgba(201,168,76,.12);color:var(--gold2);padding:7px 11px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;position:relative;overflow:hidden;}
 .bsm:hover{border-color:rgba(201,168,76,.36);background:rgba(201,168,76,.06);transform:scale(1.03);}
@@ -629,14 +656,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 @media(max-width:380px){:root{--board:min(100vw - 2px, 360px);}}
 
 @media (max-width:768px){
-  .screen.active{display:flex;height:auto;min-height:100dvh;overflow-y:auto;}
-  #s-game{padding:40px 8px 20px;gap:8px;}
   .gtop{
     width:100%;
     display:flex;
     justify-content:space-between;
   }
-  .pbar{max-width:min(100vw - 16px, 600px);}
 }
 </style>
 <!-- Firebase SDK for Firestore only (no auth) -->
