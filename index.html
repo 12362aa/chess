@@ -267,7 +267,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .chat-badge.show{display:inline-flex;}
 
 /* ══════════ GAME ══════════ */
-#s-game{flex-direction:column;align-items:center;min-height:100dvh;height:auto;padding:46px 8px 24px;gap:10px;overflow-x:hidden;justify-content:flex-start;}
+#s-game{flex-direction:column;align-items:center;min-height:100dvh;height:auto;padding:46px 0 24px;gap:12px;overflow-x:hidden;justify-content:flex-start;}
 .gtop{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;max-width:510px;margin-inline:auto;text-align:center;}
 .bsm{background:var(--bg2);border:1px solid rgba(201,168,76,.12);color:var(--gold2);padding:7px 11px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;position:relative;overflow:hidden;}
 .bsm:hover{border-color:rgba(201,168,76,.36);background:rgba(201,168,76,.06);transform:scale(1.03);}
@@ -656,11 +656,19 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 @media(max-width:380px){:root{--board:min(100vw - 2px, 360px);}}
 
 @media (max-width:768px){
+  #s-game{padding:38px 0 16px;gap:8px;}
+  :root{--board:min(92vw - 100px, 420px);}
   .gtop{
     width:100%;
     display:flex;
     justify-content:space-between;
+    padding:0 10px;
   }
+  .pbar{max-width:var(--board);}
+  .bwrap{box-shadow:0 0 0 3px var(--bg3),0 0 0 6px rgba(201,168,76,.26),0 14px 30px rgba(0,0,0,.65),0 0 20px rgba(201,168,76,.06);}
+  .gtbar{gap:5px;max-width:var(--board);}
+  .tbb2{padding:5px 4px;font-size:9px;}
+  .sbar{max-width:var(--board);padding:6px 8px;font-size:10px;}
 }
 </style>
 <!-- Firebase SDK for Firestore only (no auth) -->
