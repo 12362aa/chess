@@ -200,6 +200,7 @@ wss.on('connection', (ws, req) => {
       case 'assist':
       case 'resign':
       case 'chat':
+      case 'voice':
       case 'name':
       case 'pimg': {
         // Persist latest name/pimg in the room so late joiners get it.
