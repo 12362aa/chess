@@ -141,6 +141,44 @@ self.addEventListener('fetch', e => {
   );
 });
 
+/* ══ Push Notifications (FCM) ══ */
+self.addEventListener('push', e => {
+  if (!e.data) return;
+  try {
+    const payload = e.data.json();
+    const { title, body, icon, badge, tag, requireInteraction } = payload.notification || payload.data || {};
+    e.waitUntil(
+      self.registration.showNotification(title || 'شطرنج Am-Kh', {
+        body: body || 'تنبيه جديد',
+        icon: icon || './icon.png',
+        badge: badge || './icon.png',
+        tag: tag || 'chess-push',
+        requireInteraction: requireInteraction || false,
+        silent: false,
+        vibrate: [100, 50, 100]
+      })
+    );
+  } catch (err) {
+    console.error('[SW] Push error:', err);
+  }
+});
+
+/* ══ Notification Click ══ */
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      if (clientList.length > 0) {
+        const client = clientList[0];
+        client.focus();
+        client.postMessage({ type: 'notification-click', tag: e.notification.tag });
+        return;
+      }
+      clients.openWindow('./');
+    })
+  );
+});
+
 /* ══ Message: force update ══ */
 self.addEventListener('message', e => {
   if (e.data === 'skipWaiting') self.skipWaiting();
