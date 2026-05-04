@@ -2579,6 +2579,9 @@ ${pn} يقول: "${txt}"
   _playVoice(audioBase64,msgEl){
     try{
       if(this._currentAudio&&!this._currentAudio.paused){
+        try{
+          if(this._currentAudio._objUrl) URL.revokeObjectURL(this._currentAudio._objUrl);
+        }catch(e){}
         this._currentAudio.pause();
         this._currentAudio.currentTime=0;
         if(this._currentBarEl)this._currentBarEl.style.setProperty('--prog','0%');
@@ -2591,6 +2594,7 @@ ${pn} يقول: "${txt}"
       const blob=new Blob([arrayBuffer],{type:mimeType});
       const url=URL.createObjectURL(blob);
       const audio=new Audio(url);
+      audio._objUrl=url;
       this._currentAudio=audio;
       // Visual progress
       const bar=msgEl?.querySelector('.v-bar');
@@ -2603,19 +2607,18 @@ ${pn} يقول: "${txt}"
         if(bar)bar.style.setProperty('--prog',pct+'%');
       };
       audio.onended=()=>{
-        URL.revokeObjectURL(url);
+        try{ URL.revokeObjectURL(url); }catch(e){}
         if(bar)bar.style.setProperty('--prog','0%');
         if(playIcon)playIcon.textContent='▶';
         this._currentAudio=null;
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       };
       audio.onpause=()=>{
-        try{ URL.revokeObjectURL(url); }catch(e){}
         if(playIcon)playIcon.textContent='▶';
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       };
       audio.play().catch(()=>{
-        URL.revokeObjectURL(url);
+        try{ URL.revokeObjectURL(url); }catch(e){}
         Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       });
@@ -4635,6 +4638,8 @@ function loadSettingsProfile(){
     if(display)display.textContent=savedUsername;
     if(input)input.value=savedUsername;
     _originalUsername=savedUsername;
+    Cfg.data.playerName=savedUsername;
+    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
   }else{
     _originalUsername='';
   }
@@ -4654,6 +4659,13 @@ function loadSettingsProfile(){
 }
 
 Cfg.load();
+try{
+  const u=localStorage.getItem('chess_username');
+  if(u&&u.trim().length>=2){
+    Cfg.data.playerName=u.trim();
+    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
+  }
+}catch(e){}
 window.addEventListener('load',async ()=>{
     SFX.init();
     DRAG.init();
@@ -4717,8 +4729,8 @@ const Notifications={
     if(!this.enabled||Notification.permission!=='granted')return;
     try{
       const defaultOptions={
-        icon:'./icon.png',
-        badge:'./icon.png',
+        icon:'./icon_v2.png?v=2',
+        badge:'./icon_v2.png?v=2',
         tag:'chess-'+Date.now(),
         requireInteraction:false,
         silent:false,
