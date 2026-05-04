@@ -11,6 +11,9 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const { WebSocketServer, WebSocket } = require('ws');
+const fs = require('fs');
+const path = require('path');
+const admin = require('firebase-admin');
 
 const PORT = process.env.PORT || 8081;
 
@@ -25,6 +28,101 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const TOKENS_PATH = path.join(__dirname, 'tokens.json');
+
+function safeReadTokens() {
+  try {
+    if (!fs.existsSync(TOKENS_PATH)) return [];
+    const raw = fs.readFileSync(TOKENS_PATH, 'utf8');
+    const data = JSON.parse(raw || '[]');
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function safeWriteTokens(tokens) {
+  try {
+    fs.writeFileSync(TOKENS_PATH, JSON.stringify(tokens, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+let _adminReady = false;
+try {
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  if (projectId && clientEmail && privateKey) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      }),
+    });
+    _adminReady = true;
+  }
+} catch (e) {
+  _adminReady = false;
+}
+
+function getTokensForDeviceId(deviceId) {
+  if (!deviceId) return [];
+  const all = safeReadTokens();
+  return all
+    .filter(t => t && t.deviceId && String(t.deviceId) === String(deviceId) && t.token)
+    .map(t => t.token);
+}
+
+async function sendPushToDevice(deviceId, payload) {
+  if (!_adminReady) return { ok: false, reason: 'admin-not-ready' };
+  const tokens = getTokensForDeviceId(deviceId);
+  if (!tokens.length) return { ok: false, reason: 'no-tokens' };
+
+  const title = String(payload?.title || 'شطرنج Am-Kh');
+  const body = String(payload?.body || 'تنبيه جديد');
+  const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
+
+  const message = {
+    tokens,
+    notification: { title, body },
+    data: Object.fromEntries(Object.entries(data).map(([k, v]) => [String(k), String(v)])),
+    webpush: {
+      headers: { Urgency: 'high' },
+      notification: {
+        title,
+        body,
+        icon: '/icon.png',
+        badge: '/icon.png',
+        tag: payload?.tag ? String(payload.tag) : 'chess-auto',
+        requireInteraction: false,
+      },
+    },
+  };
+
+  try {
+    const resp = await admin.messaging().sendEachForMulticast(message);
+    const badTokens = [];
+    resp.responses.forEach((r, i) => {
+      if (!r.success) {
+        const code = r.error && r.error.code;
+        if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') {
+          badTokens.push(tokens[i]);
+        }
+      }
+    });
+
+    if (badTokens.length) {
+      const all = safeReadTokens();
+      const filtered = all.filter(t => t && !badTokens.includes(t.token));
+      safeWriteTokens(filtered);
+    }
+    return { ok: true, successCount: resp.successCount, failureCount: resp.failureCount };
+  } catch (e) {
+    return { ok: false, reason: 'send-failed', error: String(e && e.message ? e.message : e) };
+  }
+}
 
 // Add ngrok-skip-browser-warning header
 app.use((req, res, next) => {
@@ -48,6 +146,88 @@ app.get('/', (req, res) => {
     clients: wss ? wss.clients.size : 0,
     uptime: Math.floor(process.uptime())
   });
+});
+
+app.post('/save-token', (req, res) => {
+  try {
+    const token = (req.body && req.body.token) ? String(req.body.token).trim() : '';
+    if (!token) return res.status(400).json({ ok: false, error: 'Missing token' });
+
+    const deviceId = req.body && req.body.deviceId ? String(req.body.deviceId).trim() : '';
+    const platform = req.body && req.body.platform ? String(req.body.platform).trim() : '';
+    const userAgent = req.body && req.body.userAgent ? String(req.body.userAgent).trim() : '';
+
+    const tokens = safeReadTokens();
+    const now = new Date().toISOString();
+
+    const idx = tokens.findIndex(t => (t && t.token) === token);
+    const entry = { token, deviceId, platform, userAgent, updatedAt: now };
+    if (idx >= 0) tokens[idx] = { ...tokens[idx], ...entry };
+    else tokens.push({ ...entry, createdAt: now });
+
+    safeWriteTokens(tokens);
+    res.json({ ok: true, count: tokens.length });
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.post('/send-notification', async (req, res) => {
+  if (!_adminReady) return res.status(500).json({ ok: false, error: 'Firebase admin not configured' });
+
+  const tokens = safeReadTokens();
+  const tokenList = tokens.map(t => t && t.token).filter(Boolean);
+  if (!tokenList.length) return res.status(200).json({ ok: true, sent: 0, errorCount: 0 });
+
+  const title = (req.body && req.body.title) ? String(req.body.title) : 'نور يناديك ♟';
+  const body = (req.body && req.body.body) ? String(req.body.body) : 'افتح اللعبة… عندي لك نقلة ذكية ومرحلة جديدة!';
+  const data = (req.body && typeof req.body.data === 'object' && req.body.data) ? req.body.data : { kind: 'nour', vibe: 'coach' };
+
+  const message = {
+    tokens: tokenList,
+    notification: { title, body },
+    data: Object.fromEntries(Object.entries(data).map(([k, v]) => [String(k), String(v)])),
+    android: { priority: 'high', notification: { channelId: 'chess-amkh' } },
+    webpush: {
+      headers: { Urgency: 'high' },
+      notification: {
+        title,
+        body,
+        icon: '/icon.png',
+        badge: '/icon.png',
+        tag: 'nour-push',
+        requireInteraction: false,
+      },
+    },
+  };
+
+  try {
+    const resp = await admin.messaging().sendEachForMulticast(message);
+
+    const badTokens = [];
+    resp.responses.forEach((r, i) => {
+      if (!r.success) {
+        const code = r.error && r.error.code;
+        if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') {
+          badTokens.push(tokenList[i]);
+        }
+      }
+    });
+
+    if (badTokens.length) {
+      const filtered = tokens.filter(t => t && !badTokens.includes(t.token));
+      safeWriteTokens(filtered);
+    }
+
+    res.json({
+      ok: true,
+      sent: resp.successCount,
+      errorCount: resp.failureCount,
+      removed: badTokens.length,
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e && e.message ? e.message : e) });
+  }
 });
 
 /* ══════════════════════════════════════
@@ -133,7 +313,7 @@ wss.on('connection', (ws, req) => {
 
         const room = {
           code,
-          host: { ws, color: hostColor, name: (msg.name || '').slice(0, 20), pimg: null },
+          host: { ws, color: hostColor, name: (msg.name || '').slice(0, 20), pimg: null, deviceId: (msg.deviceId || '').slice(0, 80) || null },
           guest: null,
           guestColor,
           createdAt: Date.now(),
@@ -166,7 +346,7 @@ wss.on('connection', (ws, req) => {
 
         leaveRoom(ws);
 
-        room.guest = { ws, color: room.guestColor, name: (msg.name || '').slice(0, 20), pimg: null };
+        room.guest = { ws, color: room.guestColor, name: (msg.name || '').slice(0, 20), pimg: null, deviceId: (msg.deviceId || '').slice(0, 80) || null };
         clientRoom.set(ws, code);
 
         /* أبلغ الضيف */
@@ -213,6 +393,45 @@ wss.on('connection', (ws, req) => {
           } else if (msg.type === 'pimg') {
             const img = msg.img || null;
             if (room[side]) room[side].pimg = img;
+          } else if (msg.deviceId) {
+            const did = String(msg.deviceId).slice(0, 80);
+            if (room[side]) room[side].deviceId = did;
+          }
+
+          const oppSide = side === 'host' ? 'guest' : 'host';
+          const oppDeviceId = room[oppSide]?.deviceId;
+
+          if (oppDeviceId && (msg.type === 'move' || msg.type === 'chat' || msg.type === 'voice')) {
+            const fromName = (room[side]?.name || (side === 'host' ? 'المضيف' : 'الضيف')).slice(0, 20);
+
+            let title = 'شطرنج Am-Kh';
+            let body = 'حدث جديد في المباراة';
+            let tag = 'chess-online';
+
+            if (msg.type === 'move') {
+              title = 'دورك الآن ♟';
+              body = `${fromName} لعب نقلة. افتح المباراة ورد بسرعة!`;
+              tag = 'your-turn';
+            } else if (msg.type === 'chat') {
+              title = 'رسالة جديدة 💬';
+              body = `${fromName}: ${(msg.text || 'رسالة').toString().slice(0, 70)}`;
+              tag = 'chat';
+            } else if (msg.type === 'voice') {
+              title = 'رسالة صوتية 🎙';
+              body = `${fromName} أرسل لك ريكورد… افتح الشات واسمعها!`;
+              tag = 'voice';
+            }
+
+            sendPushToDevice(oppDeviceId, {
+              title,
+              body,
+              tag,
+              data: {
+                kind: msg.type,
+                room: room.code,
+                from: fromName,
+              },
+            }).catch(() => {});
           }
         }
         relay(ws, msg);
