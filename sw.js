@@ -10,6 +10,7 @@ const STATIC_ASSETS = [
   './index.html',
   './manifest.json',
   './icon_v2.png?v=2',
+  './nour.png',
   // Sound files - critical for offline gameplay
   './move.mp3',
   './capture.mp3',
@@ -148,9 +149,9 @@ try{
     apiKey:"AIzaSyCVFjWtbHdXv7HG8IGyTH0Ogv_rZ4jWIVI",
     authDomain:"chess-85a75.firebaseapp.com",
     projectId:"chess-85a75",
-    storageBucket:"chess-85a75.appspot.com",
-    messagingSenderId:"766925871478",
-    appId:"1:766925871478:web:8ea6f5ce5b7d2c78b1d1b1"
+    storageBucket:"chess-85a75.firebasestorage.app",
+    messagingSenderId:"467677566583",
+    appId:"1:467677566583:web:3ab926b218de5095b31872"
   };
   firebase.initializeApp(firebaseConfig);
   const messaging=firebase.messaging();
