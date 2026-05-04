@@ -141,6 +141,33 @@ self.addEventListener('fetch', e => {
   );
 });
 
+try{
+  importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+  const firebaseConfig={
+    apiKey:"AIzaSyCVFjWtbHdXv7HG8IGyTH0Ogv_rZ4jWIVI",
+    authDomain:"chess-85a75.firebaseapp.com",
+    projectId:"chess-85a75",
+    storageBucket:"chess-85a75.appspot.com",
+    messagingSenderId:"766925871478",
+    appId:"1:766925871478:web:8ea6f5ce5b7d2c78b1d1b1"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const messaging=firebase.messaging();
+  messaging.onBackgroundMessage((payload)=>{
+    try{
+      const n=payload?.notification||{};
+      const d=payload?.data||{};
+      const title=n.title||d.title||'شطرنج Am-Kh';
+      const body=n.body||d.body||'تنبيه جديد';
+      const icon=n.icon||d.icon||'./icon.png';
+      const badge=n.badge||d.badge||'./icon.png';
+      const tag=n.tag||d.tag||'chess-fcm';
+      self.registration.showNotification(title,{body,icon,badge,tag,data:{...d}});
+    }catch(e){}
+  });
+}catch(e){}
+
 /* ══ Push Notifications (FCM) ══ */
 self.addEventListener('push', e => {
   if (!e.data) return;
