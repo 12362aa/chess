@@ -160,8 +160,8 @@ try{
       const d=payload?.data||{};
       const title=n.title||d.title||'شطرنج Am-Kh';
       const body=n.body||d.body||'تنبيه جديد';
-      const icon=n.icon||d.icon||'./icon.png';
-      const badge=n.badge||d.badge||'./icon.png';
+      const icon=n.icon||d.icon||'./icon_v2.png?v=2';
+      const badge=n.badge||d.badge||'./icon_v2.png?v=2';
       const tag=n.tag||d.tag||'chess-fcm';
       self.registration.showNotification(title,{body,icon,badge,tag,data:{...d}});
     }catch(e){}
@@ -177,8 +177,8 @@ self.addEventListener('push', e => {
     e.waitUntil(
       self.registration.showNotification(title || 'شطرنج Am-Kh', {
         body: body || 'تنبيه جديد',
-        icon: icon || './icon.png',
-        badge: badge || './icon.png',
+        icon: icon || './icon_v2.png?v=2',
+        badge: badge || './icon_v2.png?v=2',
         tag: tag || 'chess-push',
         requireInteraction: requireInteraction || false,
         silent: false,
