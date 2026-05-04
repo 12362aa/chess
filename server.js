@@ -67,6 +67,96 @@ try {
   _adminReady = false;
 }
 
+function sendPushToTokens(tokens, payload) {
+  if (!_adminReady) return Promise.resolve({ ok: false, reason: 'admin-not-ready' });
+  if (!tokens || !tokens.length) return Promise.resolve({ ok: false, reason: 'no-tokens' });
+
+  const title = String(payload?.title || 'شطرنج Am-Kh');
+  const body = String(payload?.body || 'تنبيه جديد');
+  const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
+
+  const message = {
+    tokens,
+    notification: { title, body },
+    data: Object.fromEntries(Object.entries(data).map(([k, v]) => [String(k), String(v)])),
+    webpush: {
+      headers: { Urgency: 'high' },
+      notification: {
+        title,
+        body,
+        icon: '/icon_v2.png?v=2',
+        badge: '/icon_v2.png?v=2',
+        tag: payload?.tag ? String(payload.tag) : 'nour-daily',
+        requireInteraction: false,
+      },
+    },
+  };
+
+  return admin.messaging().sendEachForMulticast(message)
+    .then(resp => ({ ok: true, successCount: resp.successCount, failureCount: resp.failureCount, responses: resp.responses }))
+    .catch(e => ({ ok: false, reason: 'send-failed', error: String(e && e.message ? e.message : e) }));
+}
+
+const _dailySent = new Set();
+function _todayKey(token, slot) {
+  const d = new Date();
+  const keyDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  return keyDate + '|' + slot + '|' + token;
+}
+
+function scheduleDailyNourPushes() {
+  const windows = [
+    { slot: 'morning', startHour: 10, endHour: 12, title: 'تحدي نور الصباح ♟', bodies: ['تحدي سريع: حاول تكسب المرحلة اليوم بـ 3 نجوم!', 'نور يقول: افتح اللعبة وخليّنا نتمرّن 5 دقايق بس.', 'جاهز لنقلة ذكية؟ نور ينتظرك 👀'] },
+    { slot: 'afternoon', startHour: 16, endHour: 18, title: 'تحدي نور العصر ♟', bodies: ['معلومة سريعة: ركّز على الأمان قبل الهجوم… وجربها الآن.', 'نور: تعال نعمل مباراة تدريب قصيرة 💬', 'تحدي: افوز على نور بدون ما تخسر وزيرك 😄'] },
+    { slot: 'night', startHour: 21, endHour: 23, title: 'تحدي نور الليلي ♟', bodies: ['قبل النوم… نقلة واحدة صح ممكن تغيّر كل شيء. افتح اللعبة!', 'نور: دقيقة تدريب = فرق كبير بكرة ✨', 'تحدي الليلة: العب أونلاين مباراة واحدة بس!'] },
+  ];
+
+  function msUntil(hourMin) {
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(hourMin.h, hourMin.m, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+    return target.getTime() - now.getTime();
+  }
+
+  function pickTime(startHour, endHour) {
+    const h = startHour + Math.floor(Math.random() * Math.max(1, (endHour - startHour)));
+    const m = Math.floor(Math.random() * 60);
+    return { h, m };
+  }
+
+  async function runSlot(win) {
+    const all = safeReadTokens();
+    const tokens = all.map(t => t && t.token).filter(Boolean);
+    if (!tokens.length) return;
+
+    const body = win.bodies[Math.floor(Math.random() * win.bodies.length)];
+    const toSend = tokens.filter(tk => !_dailySent.has(_todayKey(tk, win.slot)));
+    if (!toSend.length) return;
+
+    const resp = await sendPushToTokens(toSend, {
+      title: win.title,
+      body,
+      tag: 'nour-daily-' + win.slot,
+      data: { kind: 'nour_daily', slot: win.slot },
+    });
+
+    if (resp && resp.ok && Array.isArray(resp.responses)) {
+      resp.responses.forEach((r, i) => {
+        if (r && r.success) _dailySent.add(_todayKey(toSend[i], win.slot));
+      });
+    }
+  }
+
+  windows.forEach(win => {
+    const t = pickTime(win.startHour, win.endHour);
+    setTimeout(() => {
+      runSlot(win).catch(() => {});
+      setInterval(() => runSlot(win).catch(() => {}), 24 * 60 * 60 * 1000);
+    }, msUntil(t));
+  });
+}
+
 function getTokensForDeviceId(deviceId) {
   if (!deviceId) return [];
   const all = safeReadTokens();
@@ -93,8 +183,8 @@ async function sendPushToDevice(deviceId, payload) {
       notification: {
         title,
         body,
-        icon: './icon_v2.png?v=2',
-        badge: './icon_v2.png?v=2',
+        icon: '/icon_v2.png?v=2',
+        badge: '/icon_v2.png?v=2',
         tag: payload?.tag ? String(payload.tag) : 'chess-auto',
         requireInteraction: false,
       },
@@ -193,8 +283,8 @@ app.post('/send-notification', async (req, res) => {
       notification: {
         title,
         body,
-        icon: './icon_v2.png?v=2',
-        badge: './icon_v2.png?v=2',
+        icon: '/icon_v2.png?v=2',
+        badge: '/icon_v2.png?v=2',
         tag: 'nour-push',
         requireInteraction: false,
       },
@@ -507,4 +597,7 @@ wss.on('close', () => clearInterval(heartbeat));
 /* ══ Start ══ */
 server.listen(PORT, () => {
   console.log(`♟ Chess server running on port ${PORT}`);
+  try{
+    if (_adminReady) scheduleDailyNourPushes();
+  }catch(e){}
 });
