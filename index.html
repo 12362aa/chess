@@ -1775,24 +1775,26 @@ const LVL={
       });
     }catch(e){console.log('[IDB] Load failed:',e);}
     // 2. Try Firestore for cloud sync (merge, keep best)
-    try{
-      const deviceId=this._getDeviceId();
-      const snapshot=await db.collection('nour_levels').where('deviceId','==',deviceId).get();
-      snapshot.forEach(doc=>{
-        const data=doc.data();
-        if(data.levelId!==undefined){
-          const existing=progress[data.levelId];
-          const fsStars=data.stars||0;
-          const fsMoves=data.moves||999;
-          progress[data.levelId]={
-            stars:Math.max(existing?.stars||0,fsStars),
-            moves:Math.min(existing?.moves||999,fsMoves),
-            done:true
-          };
-          if(data.levelId+1<LEVELS_DEF.length)progress['u'+(data.levelId+1)]=true;
-        }
-      });
-    }catch(e){console.log('[Firestore] Cloud sync unavailable:',e);}
+    if(false){
+      try{
+        const deviceId=this._getDeviceId();
+        const snapshot=await db.collection('nour_levels').where('deviceId','==',deviceId).get();
+        snapshot.forEach(doc=>{
+          const data=doc.data();
+          if(data.levelId!==undefined){
+            const existing=progress[data.levelId];
+            const fsStars=data.stars||0;
+            const fsMoves=data.moves||999;
+            progress[data.levelId]={
+              stars:Math.max(existing?.stars||0,fsStars),
+              moves:Math.min(existing?.moves||999,fsMoves),
+              done:true
+            };
+            if(data.levelId+1<LEVELS_DEF.length)progress['u'+(data.levelId+1)]=true;
+          }
+        });
+      }catch(e){console.log('[Firestore] Cloud sync unavailable:',e);}
+    }
     this._cache=progress;
     return progress;
   },
@@ -1813,20 +1815,22 @@ const LVL={
       console.log('[IDB] Level saved:',id);
     }catch(e){console.error('[IDB] Save failed:',e);}
     // 2. Sync to Firestore (cloud backup)
-    try{
-      const deviceId=this._getDeviceId();
-      const levelRef=db.collection('nour_levels').doc(deviceId+'_'+id);
-      await levelRef.set({
-        deviceId:deviceId,
-        levelId:id,
-        stars:p[id].stars,
-        moves:p[id].moves,
-        done:true,
-        completedAt:firebase.firestore.FieldValue.serverTimestamp()
-      },{merge:true});
-      console.log('[Firestore] Level synced:',id);
-    }catch(e){
-      console.log('[Firestore] Cloud sync failed (offline?):',e);
+    if(false){
+      try{
+        const deviceId=this._getDeviceId();
+        const levelRef=db.collection('nour_levels').doc(deviceId+'_'+id);
+        await levelRef.set({
+          deviceId:deviceId,
+          levelId:id,
+          stars:p[id].stars,
+          moves:p[id].moves,
+          done:true,
+          completedAt:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true});
+        console.log('[Firestore] Level synced:',id);
+      }catch(e){
+        console.log('[Firestore] Cloud sync failed (offline?):',e);
+      }
     }
   },
   async unlocked(id){
@@ -2279,6 +2283,8 @@ const CHAT={
   _recording:false,
   _audioChunks:[],
   _recordStartTime:0,
+  _recStream:null,
+  _stoppingRec:false,
   _arrayBufferToBase64(buffer){
     const bytes=new Uint8Array(buffer);
     let binary='';
@@ -2388,38 +2394,72 @@ ${pn} يقول: "${txt}"
     }
   },
   nourAutoMsg(type,moveRes,isCheck,isCheckmate,cap,moveCount){
-    if(S.mode!=='bot'||S.levelId<0)return;
+    if(S.mode!=="bot"||S.levelId<0)return;
     if(!this._nourAutoTimes)this._nourAutoTimes=[];
     const now=Date.now();
     // Prevent spam: max 1 auto msg per 10 seconds
     if(this._nourAutoTimes.length&&now-this._nourAutoTimes[this._nourAutoTimes.length-1]<10000)return;
-    const msgs=[];
-    if(type==='playerMove'){
-      if(isCheckmate)msgs.push('كش مات! فزت! 🎉👏','مبروك! إنجاز رائع! ✨');
-      else if(isCheck)msgs.push('انتبه! أنا كاشِك! ردّ بذكاء 😉','كش! هل ترى المخرج؟ 🧩');
-      else if(cap&&Math.random()<0.55){
-        const capName={P:'بيدق',N:'حصان',B:'فيل',R:'رخ',Q:'وزير',K:'ملك'}[E.tp(cap)];
-        msgs.push(`أكلت ${capName||'قطعتي'}! حركة قوية 💪`,`أكلت! أحسنت 👏`,`تبادل جميل! استمر 🎯`);
-      }else if(moveCount>0&&moveCount%7===0&&Math.random()<0.6){
-        msgs.push('أراقبك! فكّر بعمق 🔍','لا تستعجل، خطّط للنهاية 📐','أنا هنا لو احتجت شيء 💬');
-      }
-    }else if(type==='nourMove'){
-      if(isCheckmate)msgs.push('كش مات! هذه المرة لي 😏','انتهت اللعبة! حاول مرة أخرى 💪');
-      else if(isCheck)msgs.push('كش! هل رأيت الحركة؟ 👀','انبه! كش! 🚨');
-      else if(cap&&Math.random()<0.4){
-        msgs.push('أكلتُ قطعة! 😏','هذه لك! تعلّم منها 📖','تبادل! 💥');
-      }else if(moveCount>0&&moveCount%8===0&&Math.random()<0.3){
-        msgs.push('أفكر في خطتي… 🤔','أراقب كل حركة 🔍','خطّط مثلما أفعل 💡');
-      }
-    }else if(type==='levelWin'){
-      msgs.push('رائع! أكملت المرحلة! أنت تتحسن 🌟','ممتاز! جاهز للمرحلة التالية؟ 🚀','أحسنت! أنا فخور بك 😊');
-    }else if(type==='levelLoss'){
-      msgs.push('لا تيأس! حاول مرة أخرى 💪','قريب جداً! استمر 📚','حظاً أوفراً في المحاولة القادمة 🍀');
-    }
-    if(!msgs.length)return;
-    const msg=msgs[Math.floor(Math.random()*msgs.length)];
     this._nourAutoTimes.push(now);
-    setTimeout(()=>this._addMsg(msg,'opp'),Math.random()*600+300);
+    this._sendNourAutoAI(type,moveRes,isCheck,isCheckmate,cap,moveCount);
+  },
+  async _sendNourAutoAI(type,moveRes,isCheck,isCheckmate,cap,moveCount){
+    try{
+      const pn=Cfg.data.playerName||'اللاعب';
+      const lv=LEVELS_DEF[S.levelId];
+      const evalScore=E.eval(S.bd);
+      const evalText=Math.abs(evalScore)<50?'متعادل':evalScore>0?`الأبيض متقدم بـ ${(evalScore/100).toFixed(1)}`:`الأسود متقدم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`;
+      const lastMove=S.hist.length?S.hist[S.hist.length-1]:'لا شيء';
+      const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
+
+      const eventMap={
+        playerMove:'${pn} قام بحركة الآن',
+        nourMove:'نور قام بحركة الآن',
+        levelWin:'${pn} فاز بالمرحلة',
+        levelLoss:'${pn} خسر المرحلة'
+      };
+      const eventText=(type==='playerMove')?`${pn} قام بحركة الآن`:(type==='nourMove')?'نور قام بحركة الآن':(type==='levelWin')?`${pn} فاز بالمرحلة`:`${pn} خسر المرحلة`;
+      const capName=cap?({P:'بيدق',N:'حصان',B:'فيل',R:'رخ',Q:'وزير',K:'ملك'}[E.tp(cap)]||'قطعة'):'';
+      const capText=cap?`تم أكل ${capName}`:'لا يوجد أكل';
+      const checkText=isCheck?'نعم':'لا';
+      const mateText=isCheckmate?'نعم':'لا';
+
+      const prompt=`أنت "نور" — مدرب شطرنج ذكي وحقيقي داخل اللعبة (لا تكتب جمل محفوظة أو ردود فيك). اكتب رسالة قصيرة جداً (جملة أو جملتين) في الشات.
+
+قواعد مهمة:
+- لا تدّعي حقائق غير موجودة.
+- استند فقط للمعلومات المعطاة.
+- لا تقل "أنا كشّيتك" إلا إذا فعلاً خصمك في كش (بحسب المعطيات).
+- خلي الرد طبيعي ومحكي وبسيط.
+
+السياق:
+المرحلة: ${lv?.name||'غير معروفة'}
+الحدث: ${eventText}
+آخر حركة: ${lastMove}
+التقييم: ${evalText}
+عدد الحركات المتاحة الآن: ${legalCount}
+هل يوجد كش الآن؟ ${checkText}
+هل يوجد كش مات؟ ${mateText}
+الأكل: ${capText}
+
+اكتب رسالة نور الآن:`;
+
+      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
+        body:JSON.stringify({
+          model:GROQ_MODEL,
+          messages:[{role:'user',content:prompt}],
+          max_tokens:120,
+          temperature:0.7
+        })
+      });
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const json=await res.json();
+      const reply=json.choices?.[0]?.message?.content?.trim();
+      if(reply&&reply.length>2){
+        setTimeout(()=>this._addMsg(reply,'opp'),Math.random()*600+250);
+      }
+    }catch(e){}
   },
   _setNourTyping(show){
     const el=document.getElementById('chat-msgs');
@@ -2463,6 +2503,7 @@ ${pn} يقول: "${txt}"
     }
   },
   async _startRecording(){
+    if(this._recording||this._stoppingRec)return;
     const stream=await navigator.mediaDevices.getUserMedia({
       audio:{
         echoCancellation:true,
@@ -2471,6 +2512,7 @@ ${pn} يقول: "${txt}"
         channelCount:1
       }
     });
+    this._recStream=stream;
     this._recorder=new MediaRecorder(stream,{mimeType:'audio/webm;codecs=opus'});
     this._audioChunks=[];
     this._recordStartTime=Date.now();
@@ -2498,8 +2540,10 @@ ${pn} يقول: "${txt}"
         Modal.show('فشل في معالجة التسجيل','تنبيه','✕');
       };
       reader.readAsArrayBuffer(blob);
-      
-      stream.getTracks().forEach(t=>t.stop());
+
+      try{ this._recStream?.getTracks?.().forEach(t=>t.stop()); }catch(e){}
+      this._recStream=null;
+      this._stoppingRec=false;
     };
     
     this._recorder.start(100);
@@ -2513,13 +2557,16 @@ ${pn} يقول: "${txt}"
     // No auto-stop - user controls recording duration (like WhatsApp)
   },
   _stopRecording(){
+    if(this._stoppingRec)return;
     if(this._timerInterval){
       clearInterval(this._timerInterval);
       this._timerInterval=null;
     }
     if(this._recorder&&this._recording){
-      this._recorder.stop();
-      // Stream tracks are stopped in onstop handler
+      this._stoppingRec=true;
+      try{ this._recorder.requestData?.(); }catch(e){}
+      try{ this._recorder.stop(); }catch(e){}
+      try{ this._recStream?.getTracks?.().forEach(t=>t.stop()); }catch(e){}
     }
     this._recording=false;
     const micBtn=document.getElementById('chat-mic');
@@ -2536,6 +2583,8 @@ ${pn} يقول: "${txt}"
         this._currentAudio.currentTime=0;
         if(this._currentBarEl)this._currentBarEl.style.setProperty('--prog','0%');
       }
+      if(msgEl&&msgEl.dataset&&msgEl.dataset._playing==='1')return;
+      if(msgEl&&msgEl.dataset)msgEl.dataset._playing='1';
       const arrayBuffer=this._base64ToArrayBuffer(audioBase64);
       // Detect actual mime type from data, fallback to webm
       const mimeType=this._detectMimeType(audioBase64)||'audio/webm';
@@ -2558,16 +2607,21 @@ ${pn} يقول: "${txt}"
         if(bar)bar.style.setProperty('--prog','0%');
         if(playIcon)playIcon.textContent='▶';
         this._currentAudio=null;
+        if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       };
       audio.onpause=()=>{
+        try{ URL.revokeObjectURL(url); }catch(e){}
         if(playIcon)playIcon.textContent='▶';
+        if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       };
       audio.play().catch(()=>{
         URL.revokeObjectURL(url);
         Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
+        if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       });
     }catch(e){
       Modal.show('خطأ في تشغيل الصوت','تنبيه','✕');
+      if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
     }
   },
   _detectMimeType(base64){
@@ -3835,7 +3889,11 @@ const G={
 };
 
 const Nav={
-  show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');},
+  show(id){
+    try{CHAT._stopRecording();}catch(e){}
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  },
   menu(){this.show('s-menu');},
   game(){this.show('s-game');},
   online(){SFX.btn();this.show('s-online');OL.init();},
@@ -3868,13 +3926,16 @@ function fixBars(myCol){
 
 const OL=(()=>{
   let SERVER_URL='';
+  let SERVER_HTTP='';
   async function loadServerUrl(){
     try{
       const r=await fetch('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t='+Date.now());
       const j=await r.json();
+      SERVER_HTTP=j.url||'';
       SERVER_URL=j.url.replace('https://','wss://');
     }catch(e){
       SERVER_URL='';
+      SERVER_HTTP='';
     }
   }
   loadServerUrl();
@@ -4021,7 +4082,7 @@ const OL=(()=>{
 
       case 'voice':
         if(d.audio){
-          CHAT.recvVoice(d.audio,d.duration||3);
+          CHAT.recvVoice(d.audio,typeof d.duration==='number'?d.duration:parseInt(d.duration)||0);
         }
         break;
 
@@ -4075,6 +4136,7 @@ const OL=(()=>{
 
   return{
     pc:'w',
+    getHttpBase(){return SERVER_HTTP||'';},
     init(){
       setSt('c','');setSt('j','');
       document.getElementById('rbox').style.display='none';
@@ -4100,7 +4162,7 @@ const OL=(()=>{
       _myCol=col;
       document.getElementById('btn-create').disabled=true;
       connect(()=>{
-        send({type:'create',color:col,name:Cfg.data.playerName||''});
+        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
         // Send profile image if available
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
@@ -4112,7 +4174,7 @@ const OL=(()=>{
       const code=document.getElementById('jinp').value.trim().toUpperCase();
       if(!code){setSt('j','أدخل الكود أولاً','err');return;}
       connect(()=>{
-        send({type:'join',code,name:Cfg.data.playerName||''});
+        send({type:'join',code,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
         // Send profile image if available
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
@@ -4132,10 +4194,10 @@ const OL=(()=>{
         window.getSelection().removeAllRanges();window.getSelection().addRange(rng);
       });
     },
-    sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo});},
-    sendAssist(on){send({type:'assist',on});},
-    sendChat(txt){send({type:'chat',text:txt});},
-    sendVoice(audioData){send({type:'voice',audio:audioData});},
+    sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo,deviceId:LVL._getDeviceId()});},
+    sendAssist(on){send({type:'assist',on,deviceId:LVL._getDeviceId()});},
+    sendChat(txt){send({type:'chat',text:txt,deviceId:LVL._getDeviceId()});},
+    sendVoice(audioData,durationSec){send({type:'voice',audio:audioData,duration:durationSec,deviceId:LVL._getDeviceId()});},
     sendPimg(img){send({type:'pimg',img});},
     sendResign(){
       send({type:'resign'});
@@ -4630,9 +4692,19 @@ const Notifications={
             const token=await messaging.getToken({vapidKey,serviceWorkerRegistration:reg});
             if(token){
               console.log('[FCM] Token:',token.substring(0,20)+'...');
-              db.collection('fcm_tokens').doc(token).set({
-                token,deviceId:LVL._getDeviceId(),platform:navigator.platform,createdAt:firebase.firestore.FieldValue.serverTimestamp()
-              },{merge:true});
+              const base=OL.getHttpBase&&OL.getHttpBase();
+              if(base){
+                fetch(base.replace(/\/$/,'')+'/save-token',{
+                  method:'POST',
+                  headers:{'Content-Type':'application/json'},
+                  body:JSON.stringify({
+                    token,
+                    deviceId:LVL._getDeviceId(),
+                    platform:navigator.platform,
+                    userAgent:navigator.userAgent
+                  })
+                }).catch(()=>{});
+              }
             }
           }else{
             console.log('[FCM] No VAPID key stored. Set it via: localStorage.setItem("fcm_vapid_key","YOUR_VAPID_KEY")');
@@ -4692,6 +4764,10 @@ function requestNotificationPermission(){
     document.addEventListener('click',requestOnClick,{once:true});
   }
 }
+
+window.addEventListener('beforeunload',()=>{
+  try{CHAT._stopRecording();}catch(e){}
+});
 
 </script>
 </body>
