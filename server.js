@@ -93,8 +93,8 @@ async function sendPushToDevice(deviceId, payload) {
       notification: {
         title,
         body,
-        icon: '/icon.png',
-        badge: '/icon.png',
+        icon: './icon_v2.png?v=2',
+        badge: './icon_v2.png?v=2',
         tag: payload?.tag ? String(payload.tag) : 'chess-auto',
         requireInteraction: false,
       },
@@ -193,8 +193,8 @@ app.post('/send-notification', async (req, res) => {
       notification: {
         title,
         body,
-        icon: '/icon.png',
-        badge: '/icon.png',
+        icon: './icon_v2.png?v=2',
+        badge: './icon_v2.png?v=2',
         tag: 'nour-push',
         requireInteraction: false,
       },
