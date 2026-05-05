@@ -5051,6 +5051,14 @@ const LAN=(()=>{
     }
   }
 
+  function getWSProtocol(){
+    return window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  }
+
+  function getWSPort(){
+    return window.location.protocol === 'https:' ? 8443 : 8082;
+  }
+
   async function create(){
     if(isHost){
       dc();
@@ -5064,9 +5072,11 @@ const LAN=(()=>{
     try{
       roomCode=genRoomCode();
       const localIP=await getLocalIP();
+      const protocol=getWSProtocol();
+      const port=getWSPort();
       
       // Connect to local LAN server as host
-      const wsUrl=`ws://${localIP}:${localServerPort}`;
+      const wsUrl=`${protocol}//${localIP}:${port}`;
       ws=new WebSocket(wsUrl);
       
       ws.onopen=()=>{
@@ -5101,7 +5111,8 @@ const LAN=(()=>{
         type:'lan-chess',
         code:roomCode,
         ip:localIP,
-        port:localServerPort,
+        port:port,
+        protocol:protocol,
         host:hostColor
       });
 
@@ -5147,7 +5158,9 @@ const LAN=(()=>{
 
     try{
       const localIP=await getLocalIP();
-      const wsUrl=`ws://${localIP}:${localServerPort}`;
+      const protocol=getWSProtocol();
+      const port=getWSPort();
+      const wsUrl=`${protocol}//${localIP}:${port}`;
       
       ws=new WebSocket(wsUrl);
       
@@ -5369,6 +5382,10 @@ const LAN=(()=>{
       const parsed=JSON.parse(data);
       if(parsed.type==='lan-chess'&&parsed.code){
         document.getElementById('lan-jinp').value=parsed.code;
+        // Update local server port and protocol if different
+        if(parsed.port && parsed.port !== getWSPort()){
+          localServerPort = parsed.port;
+        }
         join();
       }
     }catch(e){
