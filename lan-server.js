@@ -332,22 +332,60 @@ setInterval(() => {
   }
 }, 30 * 60 * 1000);
 
-// Start servers
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`📶 Chess LAN Server running on port ${PORT}`);
-  console.log(`   Local access: http://localhost:${PORT}`);
-  console.log(`   Network access: http://[your-local-ip]:${PORT}`);
-});
-
-if (httpsServer) {
-  httpsServer.listen(SSL_PORT, '0.0.0.0', () => {
-    console.log(`� Chess LAN Server (SSL) running on port ${SSL_PORT}`);
-    console.log(`   Local access: https://localhost:${SSL_PORT}`);
-    console.log(`   Network access: https://[your-local-ip]:${SSL_PORT}`);
+// Start servers with port conflict handling
+function startServer(server, port, protocol) {
+  return new Promise((resolve, reject) => {
+    server.on('error', (e) => {
+      if (e.code === 'EADDRINUSE') {
+        console.log(`⚠️  Port ${port} is in use, trying next port...`);
+        server.listen(port + 1, '0.0.0.0', () => {
+          resolve(port + 1);
+        });
+      } else {
+        reject(e);
+      }
+    });
+    
+    server.listen(port, '0.0.0.0', () => {
+      resolve(port);
+    });
   });
 }
 
-console.log(`   Ready for LAN multiplayer games!`);
+async function startServers() {
+  try {
+    const actualPort = await startServer(httpServer, PORT, 'HTTP');
+    console.log(`📶 Chess LAN Server running on port ${actualPort}`);
+    console.log(`   Local access: http://localhost:${actualPort}`);
+    console.log(`   Network access: http://[your-local-ip]:${actualPort}`);
+    
+    let actualSSLPort = null;
+    if (httpsServer) {
+      try {
+        actualSSLPort = await startServer(httpsServer, SSL_PORT, 'HTTPS');
+        console.log(`🔒 Chess LAN Server (SSL) running on port ${actualSSLPort}`);
+        console.log(`   Local access: https://localhost:${actualSSLPort}`);
+        console.log(`   Network access: https://[your-local-ip]:${actualSSLPort}`);
+      } catch (e) {
+        console.log(`⚠️  Could not start HTTPS server`);
+      }
+    }
+    
+    console.log(`   Ready for LAN multiplayer games!`);
+    console.log(`   ${actualSSLPort ? `Use ports ${actualPort} (HTTP) and ${actualSSLPort} (HTTPS)` : `Use port ${actualPort} (HTTP only)`}`);
+    
+    // Update client-side port if different
+    if (actualPort !== PORT) {
+      console.log(`   ⚠️  Note: Client will need to use port ${actualPort}`);
+    }
+    
+  } catch (e) {
+    console.error('Failed to start servers:', e);
+    process.exit(1);
+  }
+}
+
+startServers();
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
