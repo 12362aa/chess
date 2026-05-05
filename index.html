@@ -62,7 +62,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .bi{position:relative;z-index:1;display:flex;align-items:center;gap:9px;font-size:12px;}
 .bp{font-size:17px;animation:flt 2.5s ease-in-out infinite;}
 @keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.bd-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);box-shadow:0 0 7px var(--teal);animation:dbt 1.6s ease-in-out infinite;}
+.bd-dot{width:5px;height:5px;border-radius:50%;background:rgba(201,168,76,.55);box-shadow:0 0 7px rgba(201,168,76,.55);animation:dbt 1.6s ease-in-out infinite;}
 @keyframes dbt{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.5}}
 .bby{color:var(--text2);font-size:11px;letter-spacing:2px;}
 .bnm{font-weight:900;font-size:14px;letter-spacing:4px;
@@ -478,7 +478,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .nour-icon{width:18px;height:18px;flex-shrink:0;}
 .rv-coach-txt{font-size:12px;color:var(--text);line-height:1.65;}
 .rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;}
-.rv-dot{width:5px;height:5px;border-radius:50%;background:var(--teal2);animation:dbt .7s ease-in-out infinite;}
+.rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(201,168,76,.55);animation:dbt .7s ease-in-out infinite;}
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
 /* nav bar */
 .rv-nav{flex-shrink:0;display:flex;align-items:center;gap:5px;width:100%;max-width:400px;}
@@ -1250,6 +1250,37 @@ const SFX=(()=>{
     });
   }
 
+  function winSynth(){
+    debouncePlay(()=>{
+      if(!Cfg.data.sound)return;
+      try{
+        const c=getCtx();
+        if(c.state==='suspended')c.resume();
+        const t=c.currentTime;
+        const vol=(Cfg.data.vol/100)*0.14;
+
+        const o1=c.createOscillator();
+        const o2=c.createOscillator();
+        const g=c.createGain();
+
+        o1.type='sine';
+        o2.type='triangle';
+        o1.frequency.setValueAtTime(523.25,t);
+        o2.frequency.setValueAtTime(659.25,t);
+
+        g.gain.setValueAtTime(vol,t);
+        g.gain.exponentialRampToValueAtTime(vol*0.65,t+0.18);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.85);
+
+        o1.connect(g);o2.connect(g);g.connect(c.destination);
+        o1.start(t);o2.start(t);
+        o2.frequency.exponentialRampToValueAtTime(783.99,t+0.22);
+
+        o1.stop(t+0.9);o2.stop(t+0.9);
+      }catch(e){}
+    });
+  }
+
   const api = {
     move()      {play('move');},
     capture()   {play('capture');},
@@ -1260,10 +1291,10 @@ const SFX=(()=>{
     illegal()   {play('error');},
     // Unique external sounds for game outcomes (not repetitive)
     draw()      {if(!playExt('draw'))play('move');},   // Neutral chime
-    win()       {play('checkmate');},  // Victory sound (local)
+    win()       {winSynth();},  // Victory sound (synth)
     loss()      {play('error');},       // Defeat sound (local)
     resign()    {play('error');},      // Same as loss
-    levelDone() {play('checkmate');},   // Level complete sound
+    levelDone() {winSynth();},   // Level complete sound (synth)
     captureCheck(){play('check');},
     select() {uiClick();},
     btn()    {uiClick();},
@@ -1643,6 +1674,14 @@ const Modal={
         g.gain.setValueAtTime(vol,t);
         g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
       }
+      // Confirm sound - distinct from click (two-tone chirp)
+      else if(icon==='؟'||icon==='?'){
+        o.type='triangle';
+        o.frequency.setValueAtTime(520,t);
+        o.frequency.exponentialRampToValueAtTime(780,t+0.08);
+        g.gain.setValueAtTime(vol*0.9,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+      }
       // Default button sound
       else{
         o.type='sine';
@@ -1984,7 +2023,8 @@ const SF=(()=>{
         
         // Set skill level if provided
         if(skillLevel !== null){
-          _worker.postMessage('setoption name Skill Level value '+skillLevel);
+          const sl=Math.max(0,Math.min(20,parseInt(skillLevel)||0));
+          _worker.postMessage('setoption name Skill Level value '+sl);
         }
         
         _pending[id]={
@@ -2019,7 +2059,8 @@ const SF=(()=>{
         
         // Set skill level if provided
         if(skillLevel !== null){
-          _worker.postMessage('setoption name Skill Level value '+skillLevel);
+          const sl=Math.max(0,Math.min(20,parseInt(skillLevel)||0));
+          _worker.postMessage('setoption name Skill Level value '+sl);
         }
         
         _pending[id]={
@@ -2399,17 +2440,27 @@ const CHAT={
     const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
     const isCheck=E.inChk(S.bd,S.turn);
     const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
-    const turnName=S.turn==='w'?'الأبيض':'الأسود (أنا)';
-    const gameState=`المرحلة: ${lv?.name||'غير معروفة'} | دور: ${turnName} | آخر حركة: ${lastMove} | القطع المأكولة (أنا أكلت): ${capsW||'لا شيء'} | القطع التي أكلتها: ${capsB||'لا شيء'} | التقييم: ${evalText} | عدد الحركات المتاحة: ${legalCount} | كش؟ ${isCheck?'نعم':'لا'}`;
+    const turnName=S.turn==='w'?`${pn} (الأبيض)`:'نور (الأسود)';
+    const nourLost=capsW||'لا شيء';
+    const playerLost=capsB||'لا شيء';
+    const gameState=`المرحلة: ${lv?.name||'غير معروفة'} | دور: ${turnName} | آخر حركة: ${lastMove} | قطع نور المفقودة (أكلها ${pn}): ${nourLost} | قطع ${pn} المفقودة (أكلها نور): ${playerLost} | التقييم: ${evalText} | عدد الحركات المتاحة: ${legalCount} | كش؟ ${isCheck?'نعم':'لا'}`;
 
-    const prompt=`أنت "نور" — مدرب شطرنج ذكي وحيوي في مرحلة "${lv?.name||'التدريب'}". أنا (نور) ألعب بالأسود ضد ${pn} (الأبيض).
+    const sys=`أنت "نور" داخل لعبة شطرنج.
 
-حالة اللعبة الحالية:
+قواعد صارمة:
+- نور = الأسود دائماً.
+- اللاعب = الأبيض دائماً واسمه: ${pn}.
+- لا تخمّن. لا تنسب خسارة قطعة للطرف الخطأ.
+- إذا كان هناك تضارب، اتبع المعطيات النصية فقط.
+- رد بجملة أو جملتين فقط، وبأسلوب محكي بسيط.`;
+
+    const user=`[حالة اللعبة]
 ${gameState}
 
-${pn} يقول: "${txt}"
+[رسالة اللاعب]
+${pn}: ${txt}
 
-رد كصديق حميم ومدرب محترف — حواري، طبيعي، غير رسمي. استعمل لغة محكية بسيطة. اربط ردك بحالة اللعبة الحالية (الحركات، القطع المأكولة، التقييم). لا تُعطِ دروساً طويلة. رد بجملة أو جملتين فقط. إذا ${pn} سأل عن نصيحة، اعطِ نصيحة محددة بناءً على الوضع الحالي.`;
+اكتب رد نور الآن:`;
     try{
       this._setNourTyping(true);
       const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
@@ -2417,7 +2468,7 @@ ${pn} يقول: "${txt}"
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
         body:JSON.stringify({
           model:'meta-llama/llama-4-scout-17b-16e-instruct',
-          messages:[{role:'user',content:prompt}],
+          messages:[{role:'system',content:sys},{role:'user',content:user}],
           max_tokens:180,
           temperature:0.75
         })
@@ -2453,6 +2504,9 @@ ${pn} يقول: "${txt}"
       const evalText=Math.abs(evalScore)<50?'متعادل':evalScore>0?`الأبيض متقدم بـ ${(evalScore/100).toFixed(1)}`:`الأسود متقدم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`;
       const lastMove=S.hist.length?S.hist[S.hist.length-1]:'لا شيء';
       const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
+      const capsW=S.capW.map(p=>({p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'}[E.tp(p)?.toLowerCase()]||'')).join('');
+      const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
+      const turnName=S.turn==='w'?`${pn} (الأبيض)`:'نور (الأسود)';
 
       const eventMap={
         playerMove:'${pn} قام بحركة الآن',
@@ -2466,23 +2520,28 @@ ${pn} يقول: "${txt}"
       const checkText=isCheck?'نعم':'لا';
       const mateText=isCheckmate?'نعم':'لا';
 
-      const prompt=`أنت "نور" — مدرب شطرنج ذكي وحقيقي داخل اللعبة (لا تكتب جمل محفوظة أو ردود فيك). اكتب رسالة قصيرة جداً (جملة أو جملتين) في الشات.
+      const sys=`أنت "نور" داخل لعبة شطرنج.
 
-قواعد مهمة:
-- لا تدّعي حقائق غير موجودة.
-- استند فقط للمعلومات المعطاة.
-- لا تقل "أنا كشّيتك" إلا إذا فعلاً خصمك في كش (بحسب المعطيات).
-- خلي الرد طبيعي ومحكي وبسيط.
+قواعد صارمة:
+- نور = الأسود دائماً.
+- اللاعب = الأبيض دائماً واسمه: ${pn}.
+- لا تكتب ردود محفوظة.
+- لا تدّعي أكل قطعة أو خسارة قطعة بدون دليل.
+- لا تقل "كش" إلا إذا المعطيات تقول: هل يوجد كش الآن؟ نعم.
+- رد قصير جداً: جملة أو جملتين.`;
 
-السياق:
+      const user=`[سياق]
 المرحلة: ${lv?.name||'غير معروفة'}
 الحدث: ${eventText}
+الدور الحالي: ${turnName}
 آخر حركة: ${lastMove}
 التقييم: ${evalText}
 عدد الحركات المتاحة الآن: ${legalCount}
 هل يوجد كش الآن؟ ${checkText}
 هل يوجد كش مات؟ ${mateText}
 الأكل: ${capText}
+قطع نور المفقودة (أكلها ${pn}): ${capsW||'لا شيء'}
+قطع ${pn} المفقودة (أكلها نور): ${capsB||'لا شيء'}
 
 اكتب رسالة نور الآن:`;
 
@@ -2491,7 +2550,7 @@ ${pn} يقول: "${txt}"
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
         body:JSON.stringify({
           model:GROQ_MODEL,
-          messages:[{role:'user',content:prompt}],
+          messages:[{role:'system',content:sys},{role:'user',content:user}],
           max_tokens:120,
           temperature:0.7
         })
@@ -2784,7 +2843,7 @@ const REV=(()=>{
     
     // Get current level skill for analysis
     const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
-    const skillLevel = lv ? Math.min(lv.skill, 20) : 8;
+    const skillLevel = lv ? Math.max(0,Math.min(20,Math.round((lv.skill||0)*(20/30)))) : 8;
     
     const evalHistory=[await SF.evaluate(bd,'w',cas,ep,6,skillLevel).catch(()=>E.eval(bd))];
 
@@ -2869,19 +2928,19 @@ const REV=(()=>{
       
       // Detect brilliant moves: sacrifice material but maintain/eval improves
       const pieceValues={p:1,n:3,b:3,r:5,q:9,k:0};
-      const capPiece = isCapture ? capturedPiece : null;
-      const sacrificedMaterial = capPiece ? pieceValues[capPiece[1]?.toLowerCase()]||0 : 0;
-      const isBrilliant = isBestMove && sacrificedMaterial >= 2 && actualVal > -100;
+      const isSacrifice = (!isCapture) && (diffInPawns<=0.2);
+      const isBrilliant = isBestMove && isSacrifice && actualVal > -100;
       
       // Detect missed opportunity: had winning advantage (>3.0) but didn't find best move
       const hadWinningAdvantage = (color==='w' && bestVal > 300) || (color==='b' && bestVal < -300);
-      const isMiss = hadWinningAdvantage && diffInPawns > 1.5;
+      const isMiss = (!isCheckmate) && hadWinningAdvantage && diffInPawns > 1.5;
       
       // Opening moves (first 10 moves) within 0.5 pawns are "Book"
       const isOpening = moveNum <= 10;
       const isBookMove = isOpening && diffInPawns < 0.5;
       
-      if(isBrilliant){rating='brilliant';score=100;}
+      if(isCheckmate){rating='best';score=100;}
+      else if(isBrilliant){rating='brilliant';score=100;}
       else if(isBookMove){rating='book';score=85;}
       else if(isBestMove){rating='best';score=100;}
       else if(diffInPawns<0.5){rating='excellent';score=90;}
@@ -3787,7 +3846,7 @@ const G={
         // Use Stockfish for bot move (depth and skill based on level)
         let bm=null;
         try{
-          const skillLevel = lv ? lv.skill : Math.min(S.diff * 3, 20); // Map difficulty to skill level
+          const skillLevel = lv ? Math.max(0,Math.min(20,Math.round((lv.skill||0)*(20/30)))) : Math.min(S.diff * 3, 20); // Map difficulty to skill level
           
           // For easier levels: sometimes make random moves
           const randomChance = lv && lv.random ? lv.random : 0;
@@ -3902,8 +3961,10 @@ const G={
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   back(){
-    SFX.btn();S.busy=false;AST.clear();
-    if(Cfg.data.confirm&&!S.over&&S.hist.length>0){
+    const mustConfirm=Cfg.data.confirm&&!S.over&&(S.hist.length>0||S.mode==='online');
+    if(!mustConfirm)SFX.btn();
+    S.busy=false;AST.clear();
+    if(mustConfirm){
       Modal.confirm('تريد الخروج من اللعبة؟','تأكيد الخروج','؟',
         ()=>{this._continueBack();},
         ()=>{/* cancel - do nothing */}
