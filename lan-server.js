@@ -7,11 +7,49 @@
 'use strict';
 
 const http = require('http');
+const https = require('https');
 const { WebSocketServer, WebSocket } = require('ws');
 const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.LAN_PORT || 8082;
+const SSL_PORT = process.env.LAN_SSL_PORT || 8443;
+
+// SSL certificate generation (self-signed for local use)
+let sslOptions = null;
+try {
+  // Try to load existing SSL certificates
+  sslOptions = {
+    key: fs.readFileSync(path.join(__dirname, 'server.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'server.crt'))
+  };
+  console.log('🔒 SSL certificates loaded');
+} catch (e) {
+  console.log('⚠️  SSL certificates not found, generating self-signed certificates...');
+  generateSelfSignedCert();
+}
+
+function generateSelfSignedCert() {
+  const { execSync } = require('child_process');
+  try {
+    // Generate self-signed certificate for local development
+    const keyPath = path.join(__dirname, 'server.key');
+    const certPath = path.join(__dirname, 'server.crt');
+    
+    if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+      execSync(`openssl req -x509 -newkey rsa:4096 -keyout "${keyPath}" -out "${certPath}" -days 365 -nodes -subj "/CN=localhost"`, { stdio: 'ignore' });
+      console.log('🔐 Self-signed SSL certificate generated');
+    }
+    
+    sslOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath)
+    };
+  } catch (e) {
+    console.log('⚠️  Could not generate SSL certificates. WSS will not be available.');
+    console.log('   Install OpenSSL and try again, or use HTTP only.');
+  }
+}
 
 // Room management for LAN games
 const rooms = new Map(); /* code → room */
@@ -63,14 +101,39 @@ function leaveRoom(ws) {
 }
 
 // Create HTTP server for WebSocket upgrade
-const server = http.createServer((req, res) => {
+const httpServer = http.createServer((req, res) => {
+  handleRequest(req, res, PORT);
+});
+
+// Create HTTPS server if SSL is available
+let httpsServer = null;
+let wss = null;
+let wsss = null;
+
+if (sslOptions) {
+  httpsServer = https.createServer(sslOptions, (req, res) => {
+    handleRequest(req, res, SSL_PORT);
+  });
+  
+  wsss = new WebSocketServer({ server: httpsServer });
+  wsss.on('connection', (ws, req) => handleConnection(ws, req, 'WSS'));
+}
+
+// Create WebSocket server for HTTP
+wss = new WebSocketServer({ server: httpServer });
+wss.on('connection', (ws, req) => handleConnection(ws, req, 'WS'));
+
+function handleRequest(req, res, port) {
   // Simple health check
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
+    const totalClients = (wss ? wss.clients.size : 0) + (wsss ? wsss.clients.size : 0);
     res.end(JSON.stringify({ 
       status: 'ok', 
       rooms: rooms.size, 
-      clients: wss ? wss.clients.size : 0 
+      clients: totalClients,
+      ws: wss ? wss.clients.size : 0,
+      wss: wsss ? wsss.clients.size : 0
     }));
     return;
   }
@@ -90,28 +153,29 @@ const server = http.createServer((req, res) => {
         h1 { color: #c9a84c; margin-bottom: 20px; }
         .info { background: #10101e; padding: 20px; border-radius: 12px; margin: 20px 0; }
         .stat { display: inline-block; margin: 10px; padding: 10px; background: #181830; border-radius: 8px; }
+        .ssl { color: #4ade80; }
+        .nossl { color: #f87171; }
       </style>
     </head>
     <body>
       <div class="container">
         <h1>📶 شطرنج LAN Server</h1>
         <div class="info">
-          <p>السيرفر يعمل على المنفذ <strong>${PORT}</strong></p>
+          <p>HTTP Server: <strong>localhost:${PORT}</strong> ${sslOptions ? '<span class="ssl">✓</span>' : '<span class="nossl">✗</span>'}</p>
+          ${sslOptions ? `<p>HTTPS Server: <strong>localhost:${SSL_PORT}</strong> <span class="ssl">✓</span></p>` : ''}
           <div class="stat">الغرف النشطة: <strong>${rooms.size}</strong></div>
-          <div class="stat">اللاعبون المتصلون: <strong>${wss ? wss.clients.size : 0}</strong></div>
+          <div class="stat">اللاعبون المتصلون: <strong>${(wss ? wss.clients.size : 0) + (wsss ? wsss.clients.size : 0)}</strong></div>
+          ${sslOptions ? '<p style="color: #4ade80;">🔒 SSL/WSS مدعوم - يعمل مع HTTPS</p>' : '<p style="color: #f87171;">⚠️ SSL غير مدعوم - يعمل مع HTTP فقط</p>'}
           <p style="margin-top: 20px; opacity: 0.7;">يمكن للاعبين الانضمام عبر نفس شبكة Wi-Fi</p>
         </div>
       </div>
     </body>
     </html>
   `);
-});
+}
 
-// Create WebSocket server
-const wss = new WebSocketServer({ server });
-
-wss.on('connection', (ws, req) => {
-  console.log(`[+] LAN client connected | total: ${wss.clients.size}`);
+function handleConnection(ws, req, protocol) {
+  console.log(`[+] LAN client connected via ${protocol} | total: ${(wss ? wss.clients.size : 0) + (wsss ? wsss.clients.size : 0)}`);
 
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
@@ -234,18 +298,28 @@ wss.on('connection', (ws, req) => {
   });
 
   ws.on('error', () => {});
-});
+}
 
 // Heartbeat to detect disconnected clients
 const heartbeat = setInterval(() => {
-  wss.clients.forEach(ws => {
-    if (!ws.isAlive) { ws.terminate(); return; }
-    ws.isAlive = false;
-    ws.ping();
-  });
+  if (wss) {
+    wss.clients.forEach(ws => {
+      if (!ws.isAlive) { ws.terminate(); return; }
+      ws.isAlive = false;
+      ws.ping();
+    });
+  }
+  if (wsss) {
+    wsss.clients.forEach(ws => {
+      if (!ws.isAlive) { ws.terminate(); return; }
+      ws.isAlive = false;
+      ws.ping();
+    });
+  }
 }, 30000);
 
-wss.on('close', () => clearInterval(heartbeat));
+if (wss) wss.on('close', () => clearInterval(heartbeat));
+if (wsss) wsss.on('close', () => clearInterval(heartbeat));
 
 // Clean up old rooms (older than 2 hours)
 setInterval(() => {
@@ -258,19 +332,28 @@ setInterval(() => {
   }
 }, 30 * 60 * 1000);
 
-// Start server
-server.listen(PORT, '0.0.0.0', () => {
+// Start servers
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`📶 Chess LAN Server running on port ${PORT}`);
   console.log(`   Local access: http://localhost:${PORT}`);
   console.log(`   Network access: http://[your-local-ip]:${PORT}`);
-  console.log(`   Ready for LAN multiplayer games!`);
 });
+
+if (httpsServer) {
+  httpsServer.listen(SSL_PORT, '0.0.0.0', () => {
+    console.log(`� Chess LAN Server (SSL) running on port ${SSL_PORT}`);
+    console.log(`   Local access: https://localhost:${SSL_PORT}`);
+    console.log(`   Network access: https://[your-local-ip]:${SSL_PORT}`);
+  });
+}
+
+console.log(`   Ready for LAN multiplayer games!`);
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
   console.log('\n📶 Shutting down LAN server...');
-  server.close(() => {
-    console.log('✓ Server stopped');
-    process.exit(0);
-  });
+  if (httpServer) httpServer.close();
+  if (httpsServer) httpsServer.close();
+  console.log('✓ Server stopped');
+  process.exit(0);
 });
