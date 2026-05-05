@@ -680,6 +680,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
+<!-- QR Code Libraries for LAN Mode -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
 <div id="particles"></div>
@@ -711,6 +714,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mc-t">أونلاين</div>
       <div class="mc-d">العب مع صديق في أي مكان بالعالم</div>
       <span class="mc-b bt">سيرفر WebSocket ◈</span>
+    </div>
+
+    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.lan()">
+      <span class="mc-ic ic-green">📶</span>
+      <div class="mc-t">شبكة محلية</div>
+      <div class="mc-d">لعب لاعبين عبر شبكة Wi-Fi أو Hotspot</div>
+      <span class="mc-b bv">بدون إنترنت ◈</span>
     </div>
 
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
@@ -886,6 +896,59 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <input class="finp" id="jinp" placeholder="الصق الكود هنا" maxlength="36" oninput="this.value=this.value.trim()">
       <div id="st-j" class="ost"></div>
       <button class="btnp" onclick="OL.join()">◈ الانضمام</button>
+    </div>
+    <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
+  </div>
+</div>
+
+<!-- LAN -->
+<div id="s-lan" class="screen">
+  <div class="oc">
+    <h2><span class="ic-green">📶</span> شبكة محلية</h2>
+    <p class="oc-sub">اتصال مباشر عبر شبكة Wi-Fi أو Hotspot — بدون إنترنت</p>
+    <div class="p2p">يستخدم <strong>WebSocket محلي</strong> — اتصال سريع ومباشر ◈<br><span style="font-size:11px;opacity:.8">أنشئ غرفة أو امسح QR للانضمام</span></div>
+    <div class="tabs">
+      <button class="tbb on" id="lan-tb-c" onclick="LAN.tab('c')">إنشاء غرفة</button>
+      <button class="tbb"    id="lan-tb-j" onclick="LAN.tab('j')">الانضمام</button>
+    </div>
+    <div id="lan-tc-c" class="tc on">
+      <p class="flbl">لون قطعك</p>
+      <div class="copts">
+        <div class="copt on" id="lan-co-w" onclick="LAN.col('w')"><span>♔</span>أبيض</div>
+        <div class="copt"    id="lan-co-b" onclick="LAN.col('b')"><span>♚</span>أسود</div>
+        <div class="copt"    id="lan-co-r" onclick="LAN.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
+      </div>
+      <div id="lan-st-c" class="ost"></div>
+      <div id="lan-rbox" class="rbox" style="display:none;">
+        <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
+        <div class="rb-c" id="lan-rcode">—</div>
+        <div class="rb-h">انتظر حتى ينضم صديقك…</div>
+        <button class="rb-cp" onclick="SFX.btn();LAN.copy()">⧉ نسخ الكود</button>
+      </div>
+      <div id="lan-qr-container" class="qr-container" style="display:none;">
+        <div class="rb-l">امسح الكود للانضمام</div>
+        <div id="lan-qr-code" class="qr-code"></div>
+        <div class="rb-h">اطلب من صديقك مسح الكود</div>
+      </div>
+      <button class="btnp" id="lan-btn-create" onclick="LAN.create()">📶 إنشاء غرفة محلية</button>
+    </div>
+    <div id="lan-tc-j" class="tc">
+      <p class="flbl">امسح كود الغرفة</p>
+      <div id="lan-camera-container" class="camera-container">
+        <video id="lan-camera-video" style="width: 100%; height: 200px; border-radius: 8px; background: #000; display: none;"></video>
+        <canvas id="lan-camera-canvas" style="display: none;"></canvas>
+        <div id="lan-camera-placeholder" class="camera-placeholder">
+          <span style="font-size: 48px;">📷</span>
+          <p>اضغط لفتح الكاميرا</p>
+        </div>
+      </div>
+      <button class="btnp" id="lan-btn-scan" onclick="LAN.startScan()">📷 مسح QR Code</button>
+      <div style="margin-top: 16px;">
+        <p class="flbl">أو أدخل الكود يدوياً</p>
+        <input class="finp" id="lan-jinp" placeholder="الصق الكود هنا" maxlength="36" oninput="this.value=this.value.trim()">
+        <div id="lan-st-j" class="ost"></div>
+        <button class="btnp" onclick="LAN.join()">◈ الانضمام</button>
+      </div>
     </div>
     <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
   </div>
@@ -1451,6 +1514,8 @@ const Cfg={
     Modal.show('تم تطبيق صورة الملف الشخصي','تم','◈');
     if(S.mode==='online'){
       OL.sendPimg(this.data.playerImage);
+    }else if(S.mode==='lan'){
+      LAN.sendPimg(this.data.playerImage);
     }
   },
   _updateAvatar(name){
@@ -2427,6 +2492,7 @@ const CHAT={
     inp.value='';
     this._addMsg(txt,'me');
     if(S.mode==='online')OL.sendChat(txt);
+    else if(S.mode==='lan')LAN.send({type:'chat',text:txt});
     else if(S.mode==='bot'&&S.levelId>=0)this._sendToNour(txt);
   },
   async _sendToNour(txt){
@@ -2637,6 +2703,7 @@ ${pn}: ${txt}
         const base64Data=this._arrayBufferToBase64(arrayBuffer);
         this._addMsg(durationSec+'','me',true,base64Data);
         if(S.mode==='online')OL.sendVoice(base64Data,durationSec);
+        else if(S.mode==='lan')LAN.send({type:'voice',data:base64Data,duration:durationSec});
       };
       reader.onerror=()=>{
         Modal.show('فشل في معالجة التسجيل','تنبيه','✕');
@@ -3709,6 +3776,7 @@ const G={
   },
   finish(fr,to,promo){
     if(S.mode==='online')OL.sendMove({fr,to,promo});
+    else if(S.mode==='lan')LAN.sendMove({fr,to,promo});
     this.applyMove(fr,to,promo);
   },
   applyMove(fr,to,promo){
@@ -3952,16 +4020,18 @@ const G={
   restart(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online'){OL.dc();Nav.menu();}
+    else if(S.mode==='lan'){LAN.dc();Nav.menu();}
     else if(S.levelId>=0)this.startLevel(S.levelId);
     else this.start(S.mode,S.diff);
   },
   goMenu(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online')OL.dc();
+    else if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   back(){
-    const mustConfirm=Cfg.data.confirm&&!S.over&&(S.hist.length>0||S.mode==='online');
+    const mustConfirm=Cfg.data.confirm&&!S.over&&(S.hist.length>0||S.mode==='online'||S.mode==='lan');
     if(!mustConfirm)SFX.btn();
     S.busy=false;AST.clear();
     if(mustConfirm){
@@ -3974,18 +4044,21 @@ const G={
     this._continueBack();
   },
   _continueBack(){
-    if(S.mode==='online'&&!S.over){
+    if((S.mode==='online'||S.mode==='lan')&&!S.over){
       S.over=true;
       if(S.mode==='online')OL.sendResign();
+      else if(S.mode==='lan')LAN.sendResign();
       G.showOver('◆','خسرت','انسحبت من اللعبة','#f87171');
       return;
     }
     if(S.mode==='online')OL.dc();
+    else if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   toggleAst(){
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
     if(S.mode==='online')OL.sendAssist(S.assistOn);
+    else if(S.mode==='lan')LAN.sendAssist(S.assistOn);
     if(S.assistOn){SFX.hint();AST.compute();}
     R.all();
   },
@@ -4028,6 +4101,7 @@ const Nav={
   menu(){this.show('s-menu');},
   game(){this.show('s-game');},
   online(){SFX.btn();this.show('s-online');OL.init();},
+  lan(){SFX.btn();this.show('s-lan');LAN.init();},
   levels(){SFX.btn();this.show('s-levels');LVL.buildUI();},
   settings(){SFX.btn();this.show('s-settings');loadSettingsProfile();}
 };
@@ -4618,9 +4692,10 @@ if(typeof OL !== 'undefined' && OL.send && !OL._sendPatched){
 }
 
 window.addEventListener('beforeunload',e=>{
-  if(S.mode==='online'&&!S.over&&S.hist.length>0){
+  if((S.mode==='online'||S.mode==='lan')&&!S.over&&S.hist.length>0){
     try{
       if(S.mode==='online')OL.sendResign();
+      else if(S.mode==='lan')LAN.sendResign();
     }catch(ex){}
     e.preventDefault();
     e.returnValue='اللعبة لا تزال جارية — هل تريد المغادرة؟';
@@ -4749,8 +4824,9 @@ function handleSettingsProfileImage(input){
       try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
       // Update display in active game
       updatePlayerImages();
-      // Send to opponent if in online game
-      if(window.OL&&OL.sendProfileImage)OL.sendProfileImage(imageData);
+      // Send to opponent if in online or LAN game
+      if(S.mode==='online'&&window.OL&&OL.sendProfileImage)OL.sendProfileImage(imageData);
+      else if(S.mode==='lan'&&window.LAN)LAN.sendPimg(imageData);
       if(typeof SFX!=='undefined')SFX.btn();
       if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','◈');
     };
@@ -4909,6 +4985,422 @@ function requestNotificationPermission(){
 window.addEventListener('beforeunload',()=>{
   try{CHAT._stopRecording();}catch(e){}
 });
+
+/* ══════════ LAN MULTIPLAYER ══════════ */
+const LAN=(()=>{
+  let ws=null;
+  let isHost=false;
+  let roomCode='';
+  let hostColor='w';
+  let myColor='w';
+  let localServerPort=8082;
+  let localServer=null;
+  let qrCode=null;
+  let scanInterval=null;
+  let reconnectAttempts=0;
+  let maxReconnectAttempts=5;
+
+  function init(){
+    tab('c');
+    col('w');
+    stopScan();
+    if(ws){ws.close();ws=null;}
+    if(localServer){localServer.close();localServer=null;}
+    isHost=false;
+    roomCode='';
+    reconnectAttempts=0;
+  }
+
+  function tab(t){
+    document.querySelectorAll('#s-lan .tbb').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('#s-lan .tc').forEach(c=>c.classList.remove('on'));
+    document.getElementById('lan-tb-'+t).classList.add('on');
+    document.getElementById('lan-tc-'+t).classList.add('on');
+    if(t==='j')stopScan();
+  }
+
+  function col(c){
+    document.querySelectorAll('#lan-tc-c .copt').forEach(o=>o.classList.remove('on'));
+    document.getElementById('lan-co-'+c).classList.add('on');
+    hostColor=c;
+  }
+
+  function setSt(which,txt,type='ok'){
+    const el=document.getElementById('lan-st-'+which);
+    if(!el)return;
+    el.className='ost';
+    if(type==='err')el.classList.add('err');
+    el.textContent=txt;
+  }
+
+  function genRoomCode(){
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code='';
+    for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+    return code;
+  }
+
+  async function getLocalIP(){
+    try{
+      const response=await fetch('https://api.ipify.org?format=json');
+      const data=await response.json();
+      return data.ip;
+    }catch(e){
+      // Fallback to common local IPs
+      return '192.168.1.100';
+    }
+  }
+
+  async function create(){
+    if(isHost){
+      dc();
+      return;
+    }
+
+    setSt('c','◌ جاري إنشاء الغرفة...','conn');
+    const btn=document.getElementById('lan-btn-create');
+    btn.textContent='⏸ إلغاء';
+
+    try{
+      roomCode=genRoomCode();
+      const localIP=await getLocalIP();
+      
+      // Connect to local LAN server as host
+      const wsUrl=`ws://${localIP}:${localServerPort}`;
+      ws=new WebSocket(wsUrl);
+      
+      ws.onopen=()=>{
+        console.log('Connected to LAN server as host');
+        const playerName=document.getElementById('settings-username-display').textContent||'المضيف';
+        
+        ws.send(JSON.stringify({
+          type:'create',
+          color:hostColor,
+          name:playerName
+        }));
+      };
+
+      ws.onmessage=(event)=>{
+        const msg=JSON.parse(event.data);
+        handleLANMessage(msg);
+      };
+
+      ws.onerror=(e)=>{
+        console.error('LAN server connection error:',e);
+        setSt('c','◆ لا يمكن الاتصال بسيرفر LAN','err');
+        btn.textContent='📶 إنشاء غرفة محلية';
+      };
+
+      ws.onclose=()=>{
+        console.log('LAN server connection closed');
+        if(isHost)setSt('c','◆ انقطع الاتصال بالسيرفر','err');
+      };
+
+      // Create QR code data
+      const qrData=JSON.stringify({
+        type:'lan-chess',
+        code:roomCode,
+        ip:localIP,
+        port:localServerPort,
+        host:hostColor
+      });
+
+      // Generate QR code
+      const qrContainer=document.getElementById('lan-qr-code');
+      qrContainer.innerHTML='';
+      qrCode=new QRCode(qrContainer,{
+        text:qrData,
+        width:200,
+        height:200,
+        colorDark:'#000000',
+        colorLight:'#ffffff',
+        correctLevel:QRCode.CorrectLevel.H
+      });
+
+      // Show room info
+      document.getElementById('lan-rcode').textContent=roomCode;
+      document.getElementById('lan-rbox').style.display='block';
+      document.getElementById('lan-qr-container').style.display='flex';
+
+      isHost=true;
+      myColor=hostColor;
+      
+      btn.textContent='📶 إلغاء الغرفة';
+
+      console.log('LAN Room creating:',{roomCode,wsUrl,qrData});
+
+    }catch(e){
+      console.error('Failed to create LAN room:',e);
+      setSt('c','◆ فشل إنشاء الغرفة','err');
+      btn.textContent='📶 إنشاء غرفة محلية';
+    }
+  }
+
+  async function join(){
+    const code=document.getElementById('lan-jinp').value.trim().toUpperCase();
+    if(!code){
+      setSt('j','◆ أدخل كود الغرفة','err');
+      return;
+    }
+
+    setSt('j','◌ جاري الانضمام...','conn');
+
+    try{
+      const localIP=await getLocalIP();
+      const wsUrl=`ws://${localIP}:${localServerPort}`;
+      
+      ws=new WebSocket(wsUrl);
+      
+      ws.onopen=()=>{
+        console.log('Connected to LAN server as guest');
+        const playerName=document.getElementById('settings-username-display').textContent||'الضيف';
+        
+        setSt('j','◆ جاري الاتصال بالغرفة...','ok');
+        ws.send(JSON.stringify({
+          type:'join',
+          code:code,
+          name:playerName
+        }));
+      };
+
+      ws.onmessage=(event)=>{
+        const msg=JSON.parse(event.data);
+        handleLANMessage(msg);
+      };
+
+      ws.onerror=(e)=>{
+        console.error('LAN connection error:',e);
+        setSt('j','◆ فشل الاتصال بالغرفة','err');
+        attemptReconnect();
+      };
+
+      ws.onclose=()=>{
+        console.log('LAN connection closed');
+        if(!isHost)setSt('j','◆ انقطع الاتصال','err');
+      };
+
+    }catch(e){
+      console.error('Failed to join LAN room:',e);
+      setSt('j','◆ فشل الانضمام للغرفة','err');
+    }
+  }
+
+  function handleLANMessage(msg){
+    switch(msg.type){
+      case 'room-created':
+        roomCode=msg.code;
+        setSt('c','◆ الغرفة أنشئت بنجاح','ok');
+        break;
+      case 'room-joined':
+        setSt('j','◆ تم الانضمام بنجاح','ok');
+        myColor=msg.yourColor;
+        startLANGame(msg.oppName);
+        break;
+      case 'start':
+        myColor=msg.yourColor;
+        startLANGame(msg.oppName);
+        break;
+      case 'move':
+        relayToGame(msg);
+        break;
+      case 'resign':
+        relayToGame(msg);
+        break;
+      case 'chat':
+        if(window.CHAT)CHAT._addMsg(msg.text,'opp');
+        break;
+      case 'voice':
+        if(window.CHAT)CHAT._addMsg(msg.duration+'','opp',true,msg.data);
+        break;
+      case 'name':
+        // Update opponent name display
+        if(msg.name && window.S){
+          const oppBar = myColor === 'w' ? document.getElementById('bar-b') : document.getElementById('bar-w');
+          if(oppBar){
+            const nameEl = oppBar.querySelector('.pb-n');
+            if(nameEl) nameEl.textContent = msg.name;
+          }
+        }
+        break;
+      case 'pimg':
+        // Update opponent image
+        if(msg.img && window.S){
+          const oppBar = myColor === 'w' ? document.getElementById('bar-b') : document.getElementById('bar-w');
+          if(oppBar){
+            const imgEl = oppBar.querySelector('.pb-img');
+            if(imgEl){
+              imgEl.style.backgroundImage = `url(${msg.img})`;
+              imgEl.style.backgroundSize = 'cover';
+              imgEl.style.backgroundPosition = 'center';
+            }
+          }
+        }
+        break;
+      case 'room-error':
+        setSt(isHost?'c':'j','◆ '+msg.msg,'err');
+        break;
+    }
+  }
+
+  function startLANGame(oppName){
+    Nav.game();
+    G.start('lan',0);
+    S.mode='lan';
+    document.getElementById('s-game').classList.add('mode-lan');
+    
+    // Set player info
+    const hostName=document.getElementById('settings-username-display').textContent||'المضيف';
+    const guestName=oppName||'الضيف';
+    
+    if(isHost){
+      document.getElementById('wname').textContent=hostColor==='w'?hostName:guestName;
+      document.getElementById('bname').textContent=hostColor==='b'?hostName:guestName;
+    }else{
+      document.getElementById('wname').textContent=myColor==='w'?hostName:guestName;
+      document.getElementById('bname').textContent=myColor==='b'?hostName:guestName;
+    }
+
+    // Load profile images
+    updatePlayerImages();
+    
+    console.log('LAN game started',{isHost,myColor,oppName});
+  }
+
+  function relayToGame(msg){
+    // Forward LAN messages to game logic
+    if(msg.type==='move'&&window.G){
+      G.applyMove(msg.fr,msg.to,msg.promo);
+    }else if(msg.type==='resign'&&window.G){
+      G.showOver('◆','فزت','استسلم خصمك','#4ade80');
+    }else if(msg.type==='name'&&window.S){
+      // Update opponent name
+    }else if(msg.type==='pimg'&&window.S){
+      // Update opponent image
+    }
+  }
+
+  function send(msg){
+    if(ws&&ws.readyState===WebSocket.OPEN){
+      try{ws.send(JSON.stringify(msg));}catch(e){}
+    }
+  }
+
+  function dc(){
+    if(ws){ws.close();ws=null;}
+    if(localServer){localServer.close();localServer=null;}
+    if(isHost){
+      document.getElementById('lan-rbox').style.display='none';
+      document.getElementById('lan-qr-container').style.display='none';
+      document.getElementById('lan-btn-create').textContent='📶 إنشاء غرفة محلية';
+    }
+    isHost=false;
+    reconnectAttempts=0;
+  }
+
+  function copy(){
+    if(!roomCode)return;
+    navigator.clipboard.writeText(roomCode).then(()=>{
+      const btn=document.querySelector('.rb-cp');
+      const orig=btn.textContent;
+      btn.textContent='✓ تم النسخ';
+      setTimeout(()=>btn.textContent=orig,2000);
+    });
+  }
+
+  async function startScan(){
+    const video=document.getElementById('lan-camera-video');
+    const canvas=document.getElementById('lan-camera-canvas');
+    const ctx=canvas.getContext('2d');
+    const placeholder=document.getElementById('lan-camera-placeholder');
+
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:'environment'}
+      });
+      
+      video.srcObject=stream;
+      video.play();
+      video.style.display='block';
+      placeholder.style.display='none';
+
+      scanInterval=setInterval(()=>{
+        if(video.readyState===video.HAVE_ENOUGH_DATA){
+          canvas.width=video.videoWidth;
+          canvas.height=video.videoHeight;
+          ctx.drawImage(video,0,0,canvas.width,canvas.height);
+          
+          const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+          const code=jsQR(imageData.data,imageData.width,imageData.height);
+          
+          if(code){
+            console.log('QR Code detected:',code.data);
+            processQRCode(code.data);
+            stopScan();
+          }
+        }
+      },100);
+
+    }catch(e){
+      console.error('Camera access denied:',e);
+      setSt('j','◆ لا يمكن الوصول للكاميرا','err');
+    }
+  }
+
+  function stopScan(){
+    if(scanInterval){
+      clearInterval(scanInterval);
+      scanInterval=null;
+    }
+    
+    const video=document.getElementById('lan-camera-video');
+    const placeholder=document.getElementById('lan-camera-placeholder');
+    
+    if(video.srcObject){
+      video.srcObject.getTracks().forEach(track=>track.stop());
+      video.srcObject=null;
+    }
+    
+    video.style.display='none';
+    placeholder.style.display='flex';
+  }
+
+  function processQRCode(data){
+    try{
+      const parsed=JSON.parse(data);
+      if(parsed.type==='lan-chess'&&parsed.code){
+        document.getElementById('lan-jinp').value=parsed.code;
+        join();
+      }
+    }catch(e){
+      console.error('Invalid QR code:',e);
+      setSt('j','◆ كود QR غير صالح','err');
+    }
+  }
+
+  function attemptReconnect(){
+    if(reconnectAttempts>=maxReconnectAttempts){
+      setSt('j','◆ فشل الاتصال النهائي','err');
+      return;
+    }
+    
+    reconnectAttempts++;
+    setSt('j',`◌ محاولة إعادة الاتصال ${reconnectAttempts}/${maxReconnectAttempts}`,'conn');
+    
+    setTimeout(()=>{
+      join();
+    },2000*reconnectAttempts);
+  }
+
+  // Public API
+  return{
+    init,tab,col,create,join,dc,copy,startScan,stopScan,
+    sendMove:(move)=>send({type:'move',...move}),
+    sendResign:()=>send({type:'resign'}),
+    sendName:(name)=>send({type:'name',name}),
+    sendPimg:(img)=>send({type:'pimg',img}),
+    sendAssist:(on)=>send({type:'assist',on})
+  };
+})();
 
 </script>
 </body>
