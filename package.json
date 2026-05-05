@@ -4,8 +4,7 @@
   "description": "WebSocket server for شطرنج Am-Kh",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "lan": "node lan-server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "ws": "^8.17.0",
@@ -20,3 +19,4 @@
     "node": ">=18.0.0"
   }
 }
+
