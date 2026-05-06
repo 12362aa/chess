@@ -359,7 +359,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.PM-FROM{background:rgba(200,30,30,.75)!important;box-shadow:inset 0 0 16px rgba(200,30,30,.4)!important;}
 .sq.PM{background:rgba(220,40,40,.38)!important;box-shadow:inset 0 0 10px rgba(220,40,40,.2)!important;}
 .sq.ast-from{box-shadow:inset 0 0 0 3px rgba(96,165,250,.85);}
-.sq.dot::after{content:'';position:absolute;width:33%;height:33%;border-radius:50%;background:rgba(0,0,0,.16);pointer-events:none;z-index:2;}
+.sq.dot::after{content:'';position:absolute;width:33%;height:33%;border-radius:50%;background:rgba(255,204,0,.4);pointer-events:none;z-index:2;}
 .sq.ring::after{content:'';position:absolute;inset:6%;border-radius:50%;border:5px solid rgba(0,0,0,.16);pointer-events:none;z-index:2;}
 .crd-r,.crd-f{position:absolute;font-size:9px;font-weight:700;opacity:.6;pointer-events:none;z-index:3;line-height:1;}
 .crd-r{bottom:2px;left:3px;}.crd-f{top:2px;right:3px;}
@@ -1043,6 +1043,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <div class="confetti-wrap" id="confetti-wrap"></div>
 
+<script src="config.js"></script>
+<script src="storage.js"></script>
 <script>
 'use strict';
 
@@ -1374,20 +1376,31 @@ function loadBoardImage(imagePath, fallbackTheme) {
 
 const Cfg={
   data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',playerName:'',playerImage:'',customBoardImage:''},
-  load(){
-    try{const s=localStorage.getItem('chess-cfg-v6');if(s)this.data={...this.data,...JSON.parse(s)};}catch(e){}
-    // Sync from old localStorage keys if new keys don't have values
-    if(!this.data.playerName){
-      const oldName=localStorage.getItem('chess_username');
-      if(oldName)this.data.playerName=oldName;
+  async load(){
+    try{
+      // Try IndexedDB first
+      const stored = await Storage.loadDual('userConfig', 'main', 'chess-cfg-v6');
+      if(stored){
+        this.data={...this.data,...stored};
+      }
+      
+      // Sync from old localStorage keys if new keys don't have values
+      if(!this.data.playerName){
+        const oldName=await Storage.loadDual('userProfile', 'username', 'chess_username');
+        if(oldName)this.data.playerName=oldName;
+      }
+      if(!this.data.playerImage){
+        const oldImg=await Storage.loadDual('userProfile', 'profileImage', 'chess_profile_image');
+        if(oldImg)this.data.playerImage=oldImg;
+      }
+      
+      this.apply();
+    }catch(e){
+      console.error('Failed to load config:', e);
+      this.apply();
     }
-    if(!this.data.playerImage){
-      const oldImg=localStorage.getItem('chess_profile_image');
-      if(oldImg)this.data.playerImage=oldImg;
-    }
-    this.apply();
   },
-  save(){
+  async save(){
     this.data.sound   =document.getElementById('set-sound').checked;
     this.data.vol     =+document.getElementById('set-vol').value;
     this.data.coords  =document.getElementById('set-coords').checked;
@@ -1395,20 +1408,19 @@ const Cfg={
     this.data.check   =document.getElementById('set-check').checked;
     this.data.score   =document.getElementById('set-score').checked;
     this.data.confirm =document.getElementById('set-confirm').checked;
-    this._persist();
+    const nameEl=document.getElementById('set-name');if(nameEl)this.data.playerName=nameEl.value.trim().slice(0,20);
+    const themeEl=document.getElementById('set-board-theme');if(themeEl)this.data.boardTheme=themeEl.value;
+    const name=document.getElementById('set-board-theme');
+    if(name){
+      const themeName=name.value;
+      this.data.boardTheme=themeName;
+      const customUpload=document.getElementById('custom-board-upload');
+      if(customUpload)customUpload.style.display=themeName==='custom'?'block':'none';
+    }
+    await this._persist();
     this.apply();
   },
-  // Save data directly without reading from HTML elements
-  saveData(){
-    this._persist();
-    this.apply();
-  },
-  _persist(){
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
-  },
-  apply(){
-    document.getElementById('set-sound').checked   =this.data.sound;
-    document.getElementById('set-vol').value       =this.data.vol;
+  async _persist(){
     document.getElementById('set-coords').checked  =this.data.coords;
     document.getElementById('set-lastmove').checked=this.data.lastmove;
     document.getElementById('set-check').checked   =this.data.check;
@@ -1430,9 +1442,12 @@ const Cfg={
     const customUpload=document.getElementById('custom-board-upload');
     if(customUpload)customUpload.style.display=this.data.boardTheme==='custom'?'block':'none';
   },
-  saveName(val){
+  async saveName(val){
     this.data.playerName=(val||'').trim().slice(0,20);
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+    try{
+      await Storage.saveDual('userConfig', 'main', this.data, 'chess-cfg-v6');
+      await Storage.saveDual('userProfile', 'username', this.data.playerName, 'chess_username');
+    }catch(e){}
     this._updateAvatar(this.data.playerName);
   },
   prepareProfileImage(fileInput){
@@ -2024,30 +2039,44 @@ const SF=(()=>{
         const fen=bdToFen(bd,turn,cas,ep);
         const id=++_msgId;
         let result=null;
+        let timeoutReached=false;
         
         // Set skill level if provided
         if(skillLevel !== null){
           const sl=Math.max(0,Math.min(20,parseInt(skillLevel)||0));
           _worker.postMessage('setoption name Skill Level value '+sl);
+          // Wait a bit for skill level to be applied
+          await new Promise(r=>setTimeout(r,100));
         }
         
         _pending[id]={
           onEval:(cp)=>{
-            result=cp;
+            if(!timeoutReached){
+              result=cp;
+            }
           },
           onBestMove:()=>{
-            resolve(result);
+            if(!timeoutReached){
+              resolve(result);
+            }
           }
         };
+        
+        // Clear any previous position
+        _worker.postMessage('ucinewgame');
         _worker.postMessage('position fen '+fen);
         _worker.postMessage('go depth '+depth);
+        
         setTimeout(()=>{
-          if(_pending[id]){
+          if(_pending[id]&&!timeoutReached){
+            timeoutReached=true;
             delete _pending[id];
-            resolve(result||0);
+            console.warn('Stockfish evaluate timeout, using fallback');
+            resolve(result||E.eval(bd));
           }
         },10000);
       }catch(e){
+        console.error('Stockfish evaluate error:', e);
         // Fallback to local engine
         resolve(E.eval(bd));
       }
@@ -2060,29 +2089,58 @@ const SF=(()=>{
         await init();
         const fen=bdToFen(bd,turn,cas,ep);
         const id=++_msgId;
+        let timeoutReached=false;
         
         // Set skill level if provided
         if(skillLevel !== null){
           const sl=Math.max(0,Math.min(20,parseInt(skillLevel)||0));
           _worker.postMessage('setoption name Skill Level value '+sl);
+          // Wait a bit for skill level to be applied
+          await new Promise(r=>setTimeout(r,100));
         }
         
         _pending[id]={
           onBestMove:(move)=>{
-            resolve(move);
+            if(!timeoutReached){
+              resolve(move);
+            }
           }
         };
+        
+        // Clear any previous position
+        _worker.postMessage('ucinewgame');
         _worker.postMessage('position fen '+fen);
         _worker.postMessage('go depth '+depth);
+        
         setTimeout(()=>{
-          if(_pending[id]){
+          if(_pending[id]&&!timeoutReached){
+            timeoutReached=true;
             delete _pending[id];
-            resolve(null);
+            console.warn('Stockfish bestMove timeout, using fallback');
+            // Use local engine as fallback
+            const fallbackMove=E.botMove(bd,cas,ep,Math.floor(depth/2));
+            if(fallbackMove){
+              const f='abcdefgh';
+              const from=f[fallbackMove.from[1]]+String(8-fallbackMove.from[0]);
+              const to=f[fallbackMove.to[1]]+String(8-fallbackMove.to[0]);
+              resolve(from+to);
+            }else{
+              resolve(null);
+            }
           }
         },8000);
       }catch(e){
-        // Fallback to null (will use local engine)
-        resolve(null);
+        console.error('Stockfish bestMove error:', e);
+        // Fallback to local engine
+        const fallbackMove=E.botMove(bd,cas,ep,Math.floor(depth/2));
+        if(fallbackMove){
+          const f='abcdefgh';
+          const from=f[fallbackMove.from[1]]+String(8-fallbackMove.from[0]);
+          const to=f[fallbackMove.to[1]]+String(8-fallbackMove.to[0]);
+          resolve(from+to);
+        }else{
+          resolve(null);
+        }
       }
     });
   }
@@ -2095,17 +2153,27 @@ const SF=(()=>{
         // اختبار حقيقي: اطلب أفضل حركة من موقف البداية
         const testBoard=INIT_BD.map(r=>[...r]);
         const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
-        const move=await bestMove(testBoard,'w',testCas,null,4);
+        
+        // Test with shorter timeout and multiple attempts
+        let move=null;
+        for(let attempt=0;attempt<3;attempt++){
+            move=await bestMove(testBoard,'w',testCas,null,4);
+            if(move&&move.length>=4)break;
+            await new Promise(r=>setTimeout(r,500));
+        }
+        
         if(move&&move.length>=4){
             el.textContent='SF ◈';
             el.style.background='rgba(74,222,128,.12)';
             el.style.color='var(--green)';
             el.style.borderColor='rgba(74,222,128,.28)';
+            console.log('Stockfish is working properly');
         }else{
             el.textContent='Local ◈';
             el.style.background='rgba(201,168,76,.12)';
             el.style.color='var(--gold2)';
             el.style.borderColor='rgba(201,168,76,.28)';
+            console.log('Using local engine fallback');
         }
     }catch(e){
         console.error('Stockfish check failed:', e);
@@ -2820,9 +2888,10 @@ const EVALBAR={
   }
 };
 
-const GROQ_KEY='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';
-const FCM_VAPID_KEY='BCHoPl4NJ2oqiYV6PP1iyl5buD3FZBCjZNc_jvLqG_7deA0p4YkZcVVReAeEjK4LX6g-vuwDFe08Sm8qlVcKMic';
-const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+// Load configuration from external config file
+const GROQ_KEY = CONFIG.GROQ_KEY;
+const FCM_VAPID_KEY = CONFIG.FCM_VAPID_KEY;
+const GROQ_MODEL = CONFIG.GROQ_MODEL;
 
 const REV=(()=>{
 
@@ -4798,8 +4867,30 @@ try{
   if(u&&u.trim().length>=2){
     Cfg.data.playerName=u.trim();
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
+    try{sessionStorage.setItem('chess-cfg-backup',JSON.stringify(Cfg.data));}catch(e){}
   }
 }catch(e){}
+// Recovery function if localStorage is cleared
+window.recoverUserData=function(){
+  try{
+    const backup=sessionStorage.getItem('chess-cfg-backup');
+    if(backup){
+      const data=JSON.parse(backup);
+      if(data.playerName||data.playerImage){
+        Cfg.data={...Cfg.data,...data};
+        Cfg._persist();
+        Cfg.apply();
+        console.log('User data recovered from sessionStorage backup');
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+};
+// Auto-recover if localStorage seems empty but user data existed before
+if(!Cfg.data.playerName&&!Cfg.data.playerImage){
+  window.recoverUserData();
+}
 window.addEventListener('load',async ()=>{
     SFX.init();
     DRAG.init();
