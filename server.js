@@ -14,6 +14,7 @@ const { WebSocketServer, WebSocket } = require('ws');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
+const { injectConfig } = require('./server-config');
 
 const PORT = process.env.PORT || 8081;
 
@@ -28,6 +29,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(injectConfig);
 
 const TOKENS_PATH = path.join(__dirname, 'tokens.json');
 
