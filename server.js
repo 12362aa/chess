@@ -67,6 +67,27 @@ try {
   _adminReady = false;
 }
 
+const FRONTEND_URL = String(process.env.FRONTEND_URL || '').trim();
+function _absUrl(p) {
+  const pathPart = String(p || '');
+  if (!pathPart) return '';
+  if (/^https?:\/\//i.test(pathPart)) return pathPart;
+  const base = FRONTEND_URL ? FRONTEND_URL.replace(/\/$/, '') : '';
+  if (!base) return pathPart;
+  const pp = pathPart.startsWith('/') ? pathPart : '/' + pathPart;
+  return base + pp;
+}
+
+function _buildLink(payload) {
+  const raw = payload && payload.link ? String(payload.link).trim() : '';
+  if (raw) return raw;
+  const base = FRONTEND_URL ? FRONTEND_URL.replace(/\/$/, '') : '';
+  if (!base) return '';
+  const room = payload && payload.data && payload.data.room ? String(payload.data.room).trim() : '';
+  if (room) return base + '/index.html#online?room=' + encodeURIComponent(room);
+  return base + '/index.html';
+}
+
 function sendPushToTokens(tokens, payload) {
   if (!_adminReady) return Promise.resolve({ ok: false, reason: 'admin-not-ready' });
   if (!tokens || !tokens.length) return Promise.resolve({ ok: false, reason: 'no-tokens' });
@@ -74,21 +95,23 @@ function sendPushToTokens(tokens, payload) {
   const title = String(payload?.title || 'شطرنج Am-Kh');
   const body = String(payload?.body || 'تنبيه جديد');
   const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
+  const link = _buildLink(payload);
 
   const message = {
     tokens,
     notification: { title, body },
-    data: Object.fromEntries(Object.entries(data).map(([k, v]) => [String(k), String(v)])),
+    data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
     webpush: {
       headers: { Urgency: 'high' },
       notification: {
         title,
         body,
-        icon: '/icon_v2.png?v=2',
-        badge: '/icon_v2.png?v=2',
+        icon: _absUrl('/icon_v2.png?v=2'),
+        badge: _absUrl('/icon_v2.png?v=2'),
         tag: payload?.tag ? String(payload.tag) : 'nour-daily',
         requireInteraction: false,
       },
+      fcmOptions: link ? { link } : undefined,
     },
   };
 
@@ -173,26 +196,29 @@ async function sendPushToDevice(deviceId, payload) {
   const title = String(payload?.title || 'شطرنج Am-Kh');
   const body = String(payload?.body || 'تنبيه جديد');
   const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
+  const link = _buildLink(payload);
 
   const message = {
     tokens,
     notification: { title, body },
-    data: Object.fromEntries(Object.entries(data).map(([k, v]) => [String(k), String(v)])),
+    data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
     webpush: {
       headers: { Urgency: 'high' },
       notification: {
         title,
         body,
-        icon: '/icon_v2.png?v=2',
-        badge: '/icon_v2.png?v=2',
+        icon: _absUrl('/icon_v2.png?v=2'),
+        badge: _absUrl('/icon_v2.png?v=2'),
         tag: payload?.tag ? String(payload.tag) : 'chess-auto',
         requireInteraction: false,
       },
+      fcmOptions: link ? { link } : undefined,
     },
   };
 
   try {
     const resp = await admin.messaging().sendEachForMulticast(message);
+
     const badTokens = [];
     resp.responses.forEach((r, i) => {
       if (!r.success) {
@@ -226,6 +252,47 @@ app.use((req, res, next) => {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Groq proxy (keep API key off the frontend)
+app.post('/api/groq/chat', async (req, res) => {
+  try {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
+
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'meta-llama/llama-4-scout-17b-16e-instruct';
+    const messages = Array.isArray(body.messages) ? body.messages : null;
+    const max_tokens = Number.isFinite(body.max_tokens) ? body.max_tokens : undefined;
+    const temperature = Number.isFinite(body.temperature) ? body.temperature : undefined;
+
+    if (!messages || !messages.length) return res.status(400).json({ error: 'Missing messages[]' });
+
+    const payload = {
+      model,
+      messages,
+    };
+    if (typeof max_tokens === 'number') payload.max_tokens = Math.max(1, Math.min(2048, Math.floor(max_tokens)));
+    if (typeof temperature === 'number') payload.temperature = Math.max(0, Math.min(2, temperature));
+
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await resp.text();
+    if (!resp.ok) {
+      return res.status(resp.status).send(text || JSON.stringify({ error: 'Groq request failed' }));
+    }
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).send(text);
+  } catch (e) {
+    return res.status(500).json({ error: 'Groq proxy error', detail: String(e && e.message ? e.message : e) });
+  }
 });
 
 // Root health check (for Back4app)
@@ -272,22 +339,24 @@ app.post('/send-notification', async (req, res) => {
   const title = (req.body && req.body.title) ? String(req.body.title) : 'نور يناديك ♟';
   const body = (req.body && req.body.body) ? String(req.body.body) : 'افتح اللعبة… عندي لك نقلة ذكية ومرحلة جديدة!';
   const data = (req.body && typeof req.body.data === 'object' && req.body.data) ? req.body.data : { kind: 'nour', vibe: 'coach' };
+  const link = _buildLink({ data, link: req.body && req.body.link ? String(req.body.link) : '' });
 
   const message = {
     tokens: tokenList,
     notification: { title, body },
-    data: Object.fromEntries(Object.entries(data).map(([k, v]) => [String(k), String(v)])),
+    data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
     android: { priority: 'high', notification: { channelId: 'chess-amkh' } },
     webpush: {
       headers: { Urgency: 'high' },
       notification: {
         title,
         body,
-        icon: '/icon_v2.png?v=2',
-        badge: '/icon_v2.png?v=2',
+        icon: _absUrl('/icon_v2.png?v=2'),
+        badge: _absUrl('/icon_v2.png?v=2'),
         tag: 'nour-push',
         requireInteraction: false,
       },
+      fcmOptions: link ? { link } : undefined,
     },
   };
 
@@ -334,6 +403,39 @@ app.post('/send-notification', async (req, res) => {
 */
 const rooms = new Map(); /* code → room */
 const clientRoom = new Map(); /* ws → code */
+
+const mmQueue = new Map(); /* ws -> { name, deviceId, createdAt } */
+
+function mmRemove(ws) {
+  try { mmQueue.delete(ws); } catch (e) {}
+}
+
+function mmPickOpponent(ws) {
+  for (const [ows, entry] of mmQueue) {
+    if (ows !== ws) return { ws: ows, entry };
+  }
+  return null;
+}
+
+function mmStartGame(aWs, aInfo, bWs, bInfo) {
+  const code = genCode();
+  const aColor = Math.random() < 0.5 ? 'w' : 'b';
+  const bColor = aColor === 'w' ? 'b' : 'w';
+
+  const room = {
+    code,
+    host: { ws: aWs, color: aColor, name: (aInfo?.name || '').slice(0, 20), pimg: null, deviceId: (aInfo?.deviceId || '').slice(0, 80) || null },
+    guest: { ws: bWs, color: bColor, name: (bInfo?.name || '').slice(0, 20), pimg: null, deviceId: (bInfo?.deviceId || '').slice(0, 80) || null },
+    guestColor: bColor,
+    createdAt: Date.now(),
+  };
+  rooms.set(code, room);
+  clientRoom.set(aWs, code);
+  clientRoom.set(bWs, code);
+
+  send(aWs, { type: 'start', yourColor: aColor, oppName: room.guest.name || 'الخصم', room: code });
+  send(bWs, { type: 'start', yourColor: bColor, oppName: room.host.name || 'الخصم', room: code });
+}
 
 function getRoomAndSide(ws) {
   const code = clientRoom.get(ws);
@@ -391,6 +493,36 @@ wss.on('connection', (ws, req) => {
     try { msg = JSON.parse(raw); } catch { return; }
 
     switch (msg.type) {
+
+      /* ══ Matchmaking ══ */
+      case 'mm-find': {
+        leaveRoom(ws);
+        mmRemove(ws);
+
+        const entry = {
+          name: (msg.name || '').slice(0, 20),
+          deviceId: (msg.deviceId || '').slice(0, 80) || null,
+          createdAt: Date.now(),
+        };
+        mmQueue.set(ws, entry);
+
+        const opp = mmPickOpponent(ws);
+        if (!opp) {
+          send(ws, { type: 'mm-wait' });
+          break;
+        }
+
+        mmQueue.delete(ws);
+        mmQueue.delete(opp.ws);
+        mmStartGame(ws, entry, opp.ws, opp.entry);
+        break;
+      }
+
+      case 'mm-cancel': {
+        mmRemove(ws);
+        send(ws, { type: 'mm-cancelled' });
+        break;
+      }
 
       /* ══ إنشاء غرفة ══ */
       case 'create': {
@@ -541,6 +673,7 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     console.log(`[-] client disconnected | total: ${wss.clients.size - 1}`);
+    mmRemove(ws);
     leaveRoom(ws);
     clientRoom.delete(ws);
   });
