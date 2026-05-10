@@ -62,7 +62,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .bi{position:relative;z-index:1;display:flex;align-items:center;gap:9px;font-size:12px;}
 .bp{font-size:17px;animation:flt 2.5s ease-in-out infinite;}
 @keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.bd-dot{width:5px;height:5px;border-radius:50%;background:rgba(201,168,76,.55);box-shadow:0 0 7px rgba(201,168,76,.55);animation:dbt 1.6s ease-in-out infinite;}
+.bd-dot{width:5px;height:5px;border-radius:50%;background:rgba(45,212,191,.55);box-shadow:0 0 7px rgba(45,212,191,.55);animation:dbt 1.6s ease-in-out infinite;}
 @keyframes dbt{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.5}}
 .bby{color:var(--text2);font-size:11px;letter-spacing:2px;}
 .bnm{font-weight:900;font-size:14px;letter-spacing:4px;
@@ -194,7 +194,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .th-sw{display:flex;gap:3px;justify-content:center;margin-bottom:4px;}
 .sw{width:15px;height:15px;border-radius:3px;}
 .vol-row{display:flex;align-items:center;gap:9px;width:100%;}
-.vsl{flex:1;-webkit-appearance:none;height:4px;border-radius:4px;background:var(--bg3);outline:none;}
+.vsl{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:var(--bg3);outline:none;}
 .vsl::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);cursor:pointer;box-shadow:0 0 6px rgba(201,168,76,.4);transition:transform .2s;}
 .vsl::-webkit-slider-thumb:hover{transform:scale(1.2);}
 
@@ -359,8 +359,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sq.PM-FROM{background:rgba(200,30,30,.75)!important;box-shadow:inset 0 0 16px rgba(200,30,30,.4)!important;}
 .sq.PM{background:rgba(220,40,40,.38)!important;box-shadow:inset 0 0 10px rgba(220,40,40,.2)!important;}
 .sq.ast-from{box-shadow:inset 0 0 0 3px rgba(96,165,250,.85);}
-.sq.dot::after{content:'';position:absolute;width:33%;height:33%;border-radius:50%;background:rgba(0,0,0,.16);pointer-events:none;z-index:2;}
-.sq.ring::after{content:'';position:absolute;inset:6%;border-radius:50%;border:5px solid rgba(0,0,0,.16);pointer-events:none;z-index:2;}
+.sq.dot::after{content:'';position:absolute;width:33%;height:33%;border-radius:50%;background:rgba(45,212,191,.55);box-shadow:0 0 10px rgba(45,212,191,.25);pointer-events:none;z-index:2;}
+.sq.ring::after{content:'';position:absolute;inset:6%;border-radius:50%;border:5px solid rgba(45,212,191,.55);box-shadow:0 0 10px rgba(45,212,191,.18);pointer-events:none;z-index:2;}
 .crd-r,.crd-f{position:absolute;font-size:9px;font-weight:700;opacity:.6;pointer-events:none;z-index:3;line-height:1;}
 .crd-r{bottom:2px;left:3px;}.crd-f{top:2px;right:3px;}
 .sq.D .crd-r,.sq.D .crd-f,.sq.SD .crd-r,.sq.SD .crd-f,.sq.MD .crd-r,.sq.MD .crd-f{color:var(--sq-l);}
@@ -478,7 +478,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .nour-icon{width:18px;height:18px;flex-shrink:0;}
 .rv-coach-txt{font-size:12px;color:var(--text);line-height:1.65;}
 .rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;}
-.rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(201,168,76,.55);animation:dbt .7s ease-in-out infinite;}
+.rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(45,212,191,.55);animation:dbt .7s ease-in-out infinite;}
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
 /* nav bar */
 .rv-nav{flex-shrink:0;display:flex;align-items:center;gap:5px;width:100%;max-width:400px;}
@@ -506,8 +506,17 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .rv-sum-val{font-size:15px;font-weight:700;}
 .rv-sum-sub{font-size:10px;color:var(--text3);margin-top:1px;}
 /* loading */
-.rv-loading{text-align:center;padding:40px;color:var(--teal2);font-size:13px;}
+.rv-loading{text-align:center;padding:32px 18px;color:var(--teal2);font-size:13px;}
 .rv-spinner{display:inline-block;width:28px;height:28px;border:3px solid rgba(45,212,191,.2);border-top-color:var(--teal2);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px;}
+.rv-loadcard{width:100%;max-width:420px;margin:0 auto;background:rgba(255,255,255,.03);border:1px solid rgba(45,212,191,.14);border-radius:16px;padding:18px 16px;box-shadow:0 10px 36px rgba(0,0,0,.35),0 0 0 1px rgba(45,212,191,.06);}
+.rv-loadtitle{font-family:'Amiri',serif;font-size:18px;color:var(--teal2);margin-bottom:8px;}
+.rv-loadsub{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
+.rv-loadrow{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;}
+.rv-loaddots{display:flex;align-items:center;gap:5px;}
+.rv-loaddot{width:7px;height:7px;border-radius:50%;background:rgba(45,212,191,.55);box-shadow:0 0 10px rgba(45,212,191,.18);animation:dbt .9s ease-in-out infinite;}
+.rv-loaddot:nth-child(2){animation-delay:.15s;}
+.rv-loaddot:nth-child(3){animation-delay:.3s;}
+.rv-loadtip{margin-top:12px;font-size:11px;color:var(--text3);}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* badges */
 .badge-brilliant{background:rgba(0,200,255,.15);color:#00c8ff;border:1px solid rgba(0,200,255,.3);}
@@ -865,6 +874,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="tabs">
       <button class="tbb on" id="tb-c" onclick="OL.tab('c')">إنشاء غرفة</button>
       <button class="tbb"    id="tb-j" onclick="OL.tab('j')">الانضمام</button>
+      <button class="tbb"    id="tb-m" onclick="OL.tab('m')">مطابقة</button>
     </div>
     <div id="tc-c" class="tc on">
       <p class="flbl">لون قطعك</p>
@@ -887,6 +897,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <input class="finp" id="jinp" placeholder="الصق الكود هنا" maxlength="36" oninput="this.value=this.value.trim()">
       <div id="st-j" class="ost"></div>
       <button class="btnp" onclick="OL.join()">◈ الانضمام</button>
+    </div>
+    <div id="tc-m" class="tc">
+      <p class="flbl">مطابقة سريعة</p>
+      <div class="p2p" style="margin-top:6px">سيتم إيجاد خصم عشوائي فوراً — بدون كود ◈</div>
+      <div id="st-m" class="ost"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">⊕ ابحث عن خصم</button>
+        <button class="btnb" id="btn-mc" style="flex:1;display:none" onclick="OL.mmCancel()">◆ إلغاء</button>
+      </div>
     </div>
     <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
   </div>
@@ -1037,7 +1056,17 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <button class="rv-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.close()">◆ إغلاق</button>
   </div>
   <div class="rv-main" id="rv-main">
-    <div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>
+    <div class="rv-loading">
+      <div class="rv-loadcard">
+        <div class="rv-loadtitle">تحليل المباراة</div>
+        <div class="rv-loadsub">نور يراجع النقلات ويحسب أفضل البدائل باستخدام Stockfish…</div>
+        <div class="rv-loadrow">
+          <div class="rv-spinner"></div>
+          <div class="rv-loaddots"><span class="rv-loaddot"></span><span class="rv-loaddot"></span><span class="rv-loaddot"></span></div>
+        </div>
+        <div class="rv-loadtip">نصيحة: حتى النقلات الهادئة قد تكون الأفضل إذا حسّنت وضع قطعك.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1374,17 +1403,31 @@ function loadBoardImage(imagePath, fallbackTheme) {
 
 const Cfg={
   data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',playerName:'',playerImage:'',customBoardImage:''},
-  load(){
-    try{const s=localStorage.getItem('chess-cfg-v6');if(s)this.data={...this.data,...JSON.parse(s)};}catch(e){}
+  async load(){
+    try{
+      const kv=await IDB.kget('cfg');
+      if(kv && typeof kv==='object') this.data={...this.data,...kv};
+    }catch(e){}
+    // Backward-compat: migrate from old localStorage if present
+    try{
+      const s=localStorage.getItem('chess-cfg-v6');
+      if(s){
+        const parsed=JSON.parse(s);
+        if(parsed && typeof parsed==='object') this.data={...this.data,...parsed};
+      }
+    }catch(e){}
     // Sync from old localStorage keys if new keys don't have values
-    if(!this.data.playerName){
-      const oldName=localStorage.getItem('chess_username');
-      if(oldName)this.data.playerName=oldName;
-    }
-    if(!this.data.playerImage){
-      const oldImg=localStorage.getItem('chess_profile_image');
-      if(oldImg)this.data.playerImage=oldImg;
-    }
+    try{
+      if(!this.data.playerName){
+        const oldName=localStorage.getItem('chess_username');
+        if(oldName)this.data.playerName=oldName;
+      }
+      if(!this.data.playerImage){
+        const oldImg=localStorage.getItem('chess_profile_image');
+        if(oldImg)this.data.playerImage=oldImg;
+      }
+    }catch(e){}
+    try{ await IDB.kset('cfg',this.data); }catch(e){}
     this.apply();
   },
   save(){
@@ -1404,6 +1447,7 @@ const Cfg={
     this.apply();
   },
   _persist(){
+    try{ IDB.kset('cfg',this.data); }catch(e){}
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
   },
   apply(){
@@ -1432,7 +1476,7 @@ const Cfg={
   },
   saveName(val){
     this.data.playerName=(val||'').trim().slice(0,20);
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+    this._persist();
     this._updateAvatar(this.data.playerName);
   },
   prepareProfileImage(fileInput){
@@ -1441,7 +1485,7 @@ const Cfg={
     const reader=new FileReader();
     reader.onload=(e)=>{
       this.data.playerImage=e.target.result;
-      try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+      this._persist();
       this._updateAvatar(this.data.playerName);
       Modal.show('تم تحميل الصورة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','◈');
     };
@@ -1514,11 +1558,11 @@ const Cfg={
     }
     const customUpload=document.getElementById('custom-board-upload');
     if(customUpload)customUpload.style.display=name==='custom'?'block':'none';
-    if(save){try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}}
+    if(save){this._persist();}
   },
   removeProfileImage(){
     this.data.playerImage='';
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+    this._persist();
     this._updateAvatar(this.data.playerName);
     Modal.show('تم حذف صورة الملف الشخصي','تم','◆');
   },
@@ -1528,7 +1572,7 @@ const Cfg={
     const reader=new FileReader();
     reader.onload=(e)=>{
       this.data.customBoardImage=e.target.result;
-      try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+      this._persist();
       Modal.show('تم تحميل صورة الرقعة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','◈');
     };
     reader.readAsDataURL(file);
@@ -1751,7 +1795,7 @@ const Modal={
    INDEXEDDB STORAGE (Levels fallback)
 ══════════════════════════════════════ */
 const IDB=(()=>{
-  const DB_NAME='NourChessDB',STORE='levels',VER=1;
+  const DB_NAME='NourChessDB',STORE='levels',KV_STORE='kv',VER=2;
   let _db=null;
   async function _open(){
     if(_db)return _db;
@@ -1762,6 +1806,7 @@ const IDB=(()=>{
       req.onupgradeneeded=(e)=>{
         const db=e.target.result;
         if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'id'});
+        if(!db.objectStoreNames.contains(KV_STORE))db.createObjectStore(KV_STORE,{keyPath:'k'});
       };
     });
   }
@@ -1794,6 +1839,26 @@ const IDB=(()=>{
         const req=store.getAll();
         req.onsuccess=()=>res(req.result||[]);
         req.onerror=()=>res([]);
+      });
+    },
+    async kget(k){
+      const db=await _open();
+      return new Promise((res,rej)=>{
+        const tx=db.transaction(KV_STORE,'readonly');
+        const store=tx.objectStore(KV_STORE);
+        const req=store.get(k);
+        req.onsuccess=()=>res(req.result ? (req.result.v ?? null) : null);
+        req.onerror=()=>res(null);
+      });
+    },
+    async kset(k,v){
+      const db=await _open();
+      return new Promise((res,rej)=>{
+        const tx=db.transaction(KV_STORE,'readwrite');
+        const store=tx.objectStore(KV_STORE);
+        store.put({k,v});
+        tx.oncomplete=()=>res();
+        tx.onerror=()=>rej(tx.error);
       });
     }
   };
@@ -2390,7 +2455,7 @@ const CHAT={
       if(S.mode==='bot'&&S.levelId>=0&&type==='opp'){
         av.classList.add('nour');
       }else if(type==='me'){
-        const img=Cfg.data.playerImage||localStorage.getItem('chess_profile_image');
+        const img=Cfg.data.playerImage;
         if(img){
           av.style.backgroundImage=`url(${img})`;
           av.style.borderColor='rgba(201,168,76,.22)';
@@ -2467,18 +2532,12 @@ ${pn}: ${txt}
 اكتب رد نور الآن:`;
     try{
       this._setNourTyping(true);
-      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
-        body:JSON.stringify({
-          model:'meta-llama/llama-4-scout-17b-16e-instruct',
-          messages:[{role:'system',content:sys},{role:'user',content:user}],
-          max_tokens:180,
-          temperature:0.75
-        })
+      const json=await groqChat({
+        model:'meta-llama/llama-4-scout-17b-16e-instruct',
+        messages:[{role:'system',content:sys},{role:'user',content:user}],
+        max_tokens:180,
+        temperature:0.75
       });
-      if(!res.ok)throw new Error('HTTP '+res.status);
-      const json=await res.json();
       const reply=json.choices?.[0]?.message?.content?.trim();
       this._setNourTyping(false);
       if(reply&&reply.length>2){
@@ -2549,18 +2608,12 @@ ${pn}: ${txt}
 
 اكتب رسالة نور الآن:`;
 
-      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
-        body:JSON.stringify({
-          model:GROQ_MODEL,
-          messages:[{role:'system',content:sys},{role:'user',content:user}],
-          max_tokens:120,
-          temperature:0.7
-        })
+      const json=await groqChat({
+        model:GROQ_MODEL,
+        messages:[{role:'system',content:sys},{role:'user',content:user}],
+        max_tokens:120,
+        temperature:0.7
       });
-      if(!res.ok)throw new Error('HTTP '+res.status);
-      const json=await res.json();
       const reply=json.choices?.[0]?.message?.content?.trim();
       if(reply&&reply.length>2){
         setTimeout(()=>this._addMsg(reply,'opp'),Math.random()*600+250);
@@ -2820,9 +2873,20 @@ const EVALBAR={
   }
 };
 
-const GROQ_KEY='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';
 const FCM_VAPID_KEY='BCHoPl4NJ2oqiYV6PP1iyl5buD3FZBCjZNc_jvLqG_7deA0p4YkZcVVReAeEjK4LX6g-vuwDFe08Sm8qlVcKMic';
 const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+
+async function groqChat({ messages, model, max_tokens, temperature }){
+  const base=(OL && OL.getHttpBase && OL.getHttpBase())||'';
+  const url=(base?base.replace(/\/$/,''):'')+'/api/groq/chat';
+  const res=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ messages, model, max_tokens, temperature })
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
+}
 
 const REV=(()=>{
 
@@ -2852,7 +2916,7 @@ const REV=(()=>{
     const evalHistory=[await SF.evaluate(bd,'w',cas,ep,6,skillLevel).catch(()=>E.eval(bd))];
 
     const REVIEW_DEPTH=1; // Reduced from 3 to prevent UI freezing
-    const bestFor=(board,cas2,ep2,color)=>{
+    const bestForLocal=(board,cas2,ep2,color)=>{
       const mvs=E.allLegal(board,color,cas2,ep2);
       if(!mvs.length)return{val:color==='w'?-99999:99999,mv:null};
       const isMax=color==='w';
@@ -2865,6 +2929,29 @@ const REV=(()=>{
       return{val:bv,mv:bm};
     };
 
+    async function bestForStockfish(board,cas2,ep2,color){
+      try{
+        // Primary source of truth: Stockfish best move + resulting eval
+        const depth=10;
+        const bm=await SF.bestMove(board,color,cas2,ep2,depth,skillLevel);
+        if(!bm||bm.length<4)return null;
+        const f='abcdefgh';
+        const fc=f.indexOf(bm[0]),fr=8-parseInt(bm[1]);
+        const tc=f.indexOf(bm[2]),tr=8-parseInt(bm[3]);
+        if(fc<0||tc<0||fr<0||fr>7||tr<0||tr>7)return null;
+        const from=[fr,fc],to=[tr,tc];
+        let promo=null;
+        if(bm.length>=5) promo=bm[4].toUpperCase();
+        const r2=E.apply(board,from,to,cas2,ep2,promo||'Q');
+        // Evaluate from side to move AFTER best move
+        const opp=color==='w'?'b':'w';
+        const bestVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,10,skillLevel).catch(()=>E.eval(r2.bd));
+        return { val: bestVal, mv: { from, to, promo } };
+      }catch(e){
+        return null;
+      }
+    }
+
     const f='abcdefgh';
     // Process moves in chunks to yield to event loop and prevent UI freeze
     const CHUNK_SIZE=10;
@@ -2872,7 +2959,12 @@ const REV=(()=>{
       const snap=snaps[i];
       const color=snap.turn;
       const isMax=color==='w';
-      const {val:bestVal,mv:bestMv}=bestFor(bd,cas,ep,color);
+      let bestPack=await bestForStockfish(bd,cas,ep,color);
+      if(!bestPack){
+        bestPack=bestForLocal(bd,cas,ep,color);
+      }
+      const bestVal=bestPack?.val;
+      const bestMv=bestPack?.mv||null;
       const actualMoveStr=snap.move;
       let actualFrom=null,actualTo=null,promo=null;
       if(actualMoveStr&&actualMoveStr.length>=4){
@@ -2954,7 +3046,7 @@ const REV=(()=>{
       else if(diffInPawns<4.0){rating='mistake';score=25;if(color==='w')wMistakes++;else bMistakes++;}
       else{rating='blunder';score=0;if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
-      if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,null);}catch(e){}
+      if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,bestMv.promo||null);}catch(e){}
       
       moves.push({
         move:actualMoveStr||'—',color,rating,score,
@@ -3296,12 +3388,11 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
   }
 
   return{
-    GROQ_KEY,
     async open(){
       if(S.hist.length<4){Modal.show('المباراة قصيرة جداً للتقييم - يجب 4 حركات على الأقل','تنبيه','✕');return;}
       _coachCache={};
       document.getElementById('review-ov').classList.add('open');
-      document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-spinner"></div><div>جاري التحليل…</div></div>`;
+      document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-loadcard"><div class="rv-loadtitle">تحليل المباراة</div><div class="rv-loadsub">نور يراجع النقلات ويحسب أفضل البدائل باستخدام Stockfish…</div><div class="rv-loadrow"><div class="rv-spinner"></div><div class="rv-loaddots"><span class="rv-loaddot"></span><span class="rv-loaddot"></span><span class="rv-loaddot"></span></div></div><div class="rv-loadtip">نصيحة: حتى النقلات الهادئة قد تكون الأفضل إذا حسّنت وضع قطعك.</div></div></div>`;
       requestAnimationFrame(async ()=>{
         try{
           _data=await _analyze();
@@ -3805,6 +3896,7 @@ const G={
       S.over=true;
       if(insufficient){
         setTimeout(()=>{
+          try{SFX.draw();}catch(e){}
           this.showOver('◎','تعادل!','تعادل لعدم كفاية القطع','#5eead4');
           document.getElementById('go-review').style.display='inline-flex';
         },350);
@@ -3827,6 +3919,7 @@ const G={
         },350);
       }else{
         setTimeout(()=>{
+          try{SFX.draw();}catch(e){}
           this.showOver('◎','تعادل!',isThreefold?'تعادل بالتكرار ثلاث مرات':'جمود — لا توجد حركات متاحة','#5eead4');
           document.getElementById('go-review').style.display='inline-flex';
         },350);
@@ -4156,6 +4249,18 @@ const OL=(()=>{
 
   function handleMsg(d){
     switch(d.type){
+      case 'mm-wait':
+        setSt('m','◎ جاري البحث عن خصم…','wait');
+        try{document.getElementById('btn-mm').style.display='none';}catch(e){}
+        try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
+        break;
+
+      case 'mm-cancelled':
+        setSt('m','◆ تم إلغاء المطابقة','');
+        try{document.getElementById('btn-mm').style.display='inline-flex';}catch(e){}
+        try{document.getElementById('btn-mc').style.display='none';}catch(e){}
+        break;
+
       case 'room-created':
         _roomCode=d.code;
         document.getElementById('rcode').textContent=d.code;
@@ -4274,6 +4379,7 @@ const OL=(()=>{
     getHttpBase(){return SERVER_HTTP||'';},
     init(){
       setSt('c','');setSt('j','');
+      setSt('m','');
       document.getElementById('rbox').style.display='none';
       const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
       document.getElementById('jinp').value='';
@@ -4282,7 +4388,7 @@ const OL=(()=>{
     },
     tab(n){
       SFX.btn();
-      ['c','j'].forEach(t=>{
+      ['c','j','m'].forEach(t=>{
         document.getElementById('tb-'+t).classList.toggle('on',t===n);
         document.getElementById('tc-'+t).classList.toggle('on',t===n);
       });
@@ -4315,6 +4421,19 @@ const OL=(()=>{
           send({type:'pimg',img:Cfg.data.playerImage});
         }
       });
+    },
+    mmFind(){
+      SFX.btn();
+      connect(()=>{
+        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
+      });
+    },
+    mmCancel(){
+      SFX.btn();
+      try{send({type:'mm-cancel'});}catch(e){}
+      try{document.getElementById('btn-mm').style.display='inline-flex';}catch(e){}
+      try{document.getElementById('btn-mc').style.display='none';}catch(e){}
+      setSt('m','◆ تم الإلغاء','');
     },
     copy(){
       SFX.btn();
@@ -4708,14 +4827,12 @@ function saveSettingsUsername(){
     if(typeof Modal!=='undefined')Modal.show('الاسم يجب أن يكون بين 2-20 حرف','تنبيه','✕');
     return;
   }
-  localStorage.setItem('chess_username',newName);
+  Cfg.data.playerName=newName;
+  Cfg.saveData();
   if(display)display.textContent=newName;
   // Update original value so save button hides
   _originalUsername=newName;
   if(saveBtn)saveBtn.style.display='none';
-  // Sync to Cfg for game modes
-  Cfg.data.playerName=newName;
-  try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
   // Update player names in active game if any
   updatePlayerNamesInGame();
   if(typeof SFX!=='undefined')SFX.btn();
@@ -4723,7 +4840,7 @@ function saveSettingsUsername(){
 }
 
 function updatePlayerNamesInGame(){
-  const playerName=Cfg.data.playerName||localStorage.getItem('chess_username')||'أنت';
+  const playerName=Cfg.data.playerName||'أنت';
   // Update level mode name
   if(S.levelId>=0){
     const nmW=document.getElementById('nm-w');
@@ -4742,16 +4859,14 @@ function handleSettingsProfileImage(input){
     const reader=new FileReader();
     reader.onload=function(e){
       const imageData=e.target.result;
-      localStorage.setItem('chess_profile_image',imageData);
+      Cfg.data.playerImage=imageData;
+      Cfg.saveData();
       const settingsImg=document.getElementById('settings-profile-img');
       const fallback=document.getElementById('settings-profile-fallback');
       if(settingsImg){
         settingsImg.style.backgroundImage=`url(${imageData})`;
         if(fallback)fallback.style.display='none';
       }
-      // Sync to Cfg for game modes
-      Cfg.data.playerImage=imageData;
-      try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
       // Update display in active game
       updatePlayerImages();
       // Send to opponent if in online game
@@ -4764,7 +4879,7 @@ function handleSettingsProfileImage(input){
 }
 
 function loadSettingsProfile(){
-  const savedUsername=localStorage.getItem('chess_username');
+  const savedUsername=(Cfg.data.playerName||'').trim();
   const display=document.getElementById('settings-username-display');
   const input=document.getElementById('settings-username-input');
   const saveBtn=document.getElementById('settings-save-btn');
@@ -4772,13 +4887,11 @@ function loadSettingsProfile(){
     if(display)display.textContent=savedUsername;
     if(input)input.value=savedUsername;
     _originalUsername=savedUsername;
-    Cfg.data.playerName=savedUsername;
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
   }else{
     _originalUsername='';
   }
   if(saveBtn)saveBtn.style.display='none';
-  const savedImage=localStorage.getItem('chess_profile_image');
+  const savedImage=Cfg.data.playerImage||'';
   if(savedImage){
     const settingsImg=document.getElementById('settings-profile-img');
     const fallback=document.getElementById('settings-profile-fallback');
@@ -4786,21 +4899,16 @@ function loadSettingsProfile(){
       settingsImg.style.backgroundImage=`url(${savedImage})`;
       if(fallback)fallback.style.display='none';
     }
-    // Sync to Cfg for game modes
-    Cfg.data.playerImage=savedImage;
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
   }
 }
 
-Cfg.load();
-try{
-  const u=localStorage.getItem('chess_username');
-  if(u&&u.trim().length>=2){
-    Cfg.data.playerName=u.trim();
-    try{localStorage.setItem('chess-cfg-v6',JSON.stringify(Cfg.data));}catch(e){}
-  }
-}catch(e){}
 window.addEventListener('load',async ()=>{
+    await Cfg.load();
+    try{
+      if(navigator.storage && navigator.storage.persist){
+        navigator.storage.persist().catch(()=>{});
+      }
+    }catch(e){}
     SFX.init();
     DRAG.init();
     _loadChessPieces();
@@ -4816,6 +4924,29 @@ window.addEventListener('load',async ()=>{
 const Notifications={
   enabled:false,
   _swReg:null,
+  _autoJoinRoom(code){
+    try{
+      const c=(code||'').toString().trim().toUpperCase();
+      if(!c)return;
+      Nav.online();
+      setTimeout(()=>{
+        try{OL.tab('j');}catch(e){}
+        const inp=document.getElementById('jinp');
+        if(inp)inp.value=c;
+        try{OL.join();}catch(e){}
+      },220);
+    }catch(e){}
+  },
+  _handleDeepLink(){
+    try{
+      const h=(location.hash||'').trim();
+      const m=h.match(/#online\?room=([^&]+)/i);
+      if(m&&m[1]){
+        const code=decodeURIComponent(m[1]);
+        this._autoJoinRoom(code);
+      }
+    }catch(e){}
+  },
   async requestPermission(){
     if(!('Notification' in window))return false;
     if(Notification.permission==='granted'){this.enabled=true;this._registerPush();return true;}
@@ -4899,6 +5030,17 @@ const Notifications={
   voiceMsg(from){this.send('رسالة صوتية',{body:`${from}: أرسل رسالة صوتية`,tag:'chat-voice'});}
 };
 
+try{
+  if('serviceWorker' in navigator && navigator.serviceWorker){
+    navigator.serviceWorker.addEventListener('message',(ev)=>{
+      const msg=ev&&ev.data;
+      if(!msg||msg.type!=='notification-click')return;
+      const data=msg.data&&typeof msg.data==='object'?msg.data:{};
+      if(data.room)Notifications._autoJoinRoom(data.room);
+    });
+  }
+}catch(e){}
+
 function requestNotificationPermission(){
   if('Notification' in window){
     const requestOnClick=()=>{
@@ -4910,6 +5052,8 @@ function requestNotificationPermission(){
     document.addEventListener('click',requestOnClick,{once:true});
   }
 }
+
+try{Notifications._handleDeepLink();}catch(e){}
 
 window.addEventListener('beforeunload',()=>{
   try{CHAT._stopRecording();}catch(e){}
