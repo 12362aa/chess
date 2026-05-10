@@ -175,6 +175,7 @@ self.addEventListener('push', e => {
   try {
     const payload = e.data.json();
     const { title, body, icon, badge, tag, requireInteraction } = payload.notification || payload.data || {};
+    const d = payload.data && typeof payload.data === 'object' ? payload.data : {};
     e.waitUntil(
       self.registration.showNotification(title || 'شطرنج Am-Kh', {
         body: body || 'تنبيه جديد',
@@ -183,7 +184,8 @@ self.addEventListener('push', e => {
         tag: tag || 'chess-push',
         requireInteraction: requireInteraction || false,
         silent: false,
-        vibrate: [100, 50, 100]
+        vibrate: [100, 50, 100],
+        data: { ...d }
       })
     );
   } catch (err) {
@@ -194,14 +196,17 @@ self.addEventListener('push', e => {
 /* ══ Notification Click ══ */
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  const data = (e.notification && e.notification.data && typeof e.notification.data === 'object') ? e.notification.data : {};
+  const link = data.link ? String(data.link) : '';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       if (clientList.length > 0) {
         const client = clientList[0];
         client.focus();
-        client.postMessage({ type: 'notification-click', tag: e.notification.tag });
+        client.postMessage({ type: 'notification-click', tag: e.notification.tag, data });
         return;
       }
+      if (link) return clients.openWindow(link);
       clients.openWindow('./');
     })
   );
