@@ -193,6 +193,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .th-opt.on{border-color:var(--gold);color:var(--gold2);background:rgba(201,168,76,.08);box-shadow:0 0 10px rgba(201,168,76,.1);}
 .th-sw{display:flex;gap:3px;justify-content:center;margin-bottom:4px;}
 .sw{width:15px;height:15px;border-radius:3px;}
+.ui-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:9px;}
+.ui-opt{border-radius:9px;padding:8px 5px;text-align:center;cursor:pointer;border:2px solid rgba(255,255,255,.06);transition:all .2s cubic-bezier(.34,1.56,.64,1);font-size:11px;color:var(--text2);}
+.ui-opt:hover{border-color:rgba(45,212,191,.22);transform:scale(1.04);}
+.ui-opt.on{border-color:var(--teal2);color:var(--teal2);background:rgba(45,212,191,.07);box-shadow:0 0 12px rgba(45,212,191,.08);}
+.pc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:9px;}
+.pc-opt{border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;border:2px solid rgba(255,255,255,.06);transition:all .18s cubic-bezier(.34,1.56,.64,1);font-size:12px;color:var(--text2);background:rgba(255,255,255,.02);}
+.pc-opt:hover{border-color:rgba(201,168,76,.22);transform:scale(1.03);}
+.pc-opt.on{border-color:var(--gold);color:var(--gold2);background:rgba(201,168,76,.06);box-shadow:0 0 12px rgba(201,168,76,.1);}
 .vol-row{display:flex;align-items:center;gap:9px;width:100%;}
 .vsl{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:var(--bg3);outline:none;}
 .vsl::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);cursor:pointer;box-shadow:0 0 6px rgba(201,168,76,.4);transition:transform .2s;}
@@ -205,6 +213,25 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .oc-sub{color:var(--text2);font-size:12px;text-align:center;margin-bottom:16px;}
 .p2p{background:rgba(45,212,191,.05);border:1px solid rgba(45,212,191,.13);border-radius:8px;padding:10px 11px;margin-bottom:11px;font-size:12px;color:var(--text2);line-height:1.65;text-align:center;}
 .p2p strong{color:var(--teal2);}
+.learn-wrap{width:100%;max-width:500px;display:flex;flex-direction:column;gap:11px;}
+.learn-card{background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:16px;padding:16px;box-shadow:0 8px 36px rgba(0,0,0,.35);}
+.learn-h{font-family:'Amiri',serif;font-size:22px;color:var(--gold2);text-align:center;margin-bottom:4px;}
+.learn-sub{color:var(--text2);font-size:12px;text-align:center;line-height:1.7;margin-bottom:12px;}
+.learn-search{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid rgba(201,168,76,.16);border-radius:10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:10px;}
+.learn-search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
+.learn-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:10px;overflow:auto;scrollbar-width:none;}
+.learn-tabs::-webkit-scrollbar{display:none;}
+.learn-tab{flex:0 0 auto;padding:8px 10px;background:transparent;border:none;border-radius:8px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .16s;white-space:nowrap;}
+.learn-tab.on{background:var(--bg4);color:var(--gold2);box-shadow:0 2px 10px rgba(0,0,0,.25);}
+.learn-sec{display:none;}
+.learn-sec.on{display:block;}
+.learn-list{display:flex;flex-direction:column;gap:7px;}
+.learn-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;cursor:pointer;transition:transform .12s,border-color .12s,background .12s;}
+.learn-item:hover{transform:translateY(-1px);border-color:rgba(201,168,76,.22);background:rgba(201,168,76,.05);}
+.learn-it{font-size:13px;font-weight:900;color:var(--text);margin-bottom:3px;}
+.learn-id{font-size:11px;color:var(--text2);line-height:1.6;}
+.learn-body{margin-top:10px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:12px;color:var(--text);font-size:13px;line-height:1.9;}
+.learn-meta{margin-top:8px;font-size:11px;color:var(--text3);text-align:center;}
 .tabs{display:flex;gap:4px;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:15px;}
 .tbb{flex:1;padding:8px;background:transparent;border:none;border-radius:7px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
 .tbb.on{background:var(--bg4);color:var(--gold2);box-shadow:0 2px 8px rgba(0,0,0,.3);}
@@ -505,6 +532,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .rv-sum-lbl{font-size:10px;color:var(--text3);margin-bottom:2px;}
 .rv-sum-val{font-size:15px;font-weight:700;}
 .rv-sum-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+.rv-qwrap{width:100%;max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.rv-qcard{background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 36px rgba(0,0,0,.3);}
+.rv-qtitle{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);text-align:center;margin-bottom:8px;}
+.rv-qsub{font-size:12px;color:var(--text2);text-align:center;line-height:1.7;margin-bottom:10px;}
+.rv-qrow{display:flex;gap:8px;}
+.rv-qcol{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 10px 8px;}
+.rv-qnm{font-size:11px;color:var(--text3);margin-bottom:2px;}
+.rv-qacc{font-size:18px;font-weight:900;}
+.rv-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.rv-qitem{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.04);}
+.rv-qlbl{font-size:11px;color:var(--text2);}
+.rv-qval{font-size:11px;font-weight:800;color:var(--text);}
+.rv-qbtn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid rgba(45,212,191,.25);background:linear-gradient(135deg,rgba(45,212,191,.22),rgba(20,184,166,.14));color:var(--teal2);font-family:'Cairo',sans-serif;font-weight:900;cursor:pointer;transition:transform .12s,filter .12s;}
+.rv-qbtn:hover{transform:translateY(-1px);filter:brightness(1.04);}
+.rv-qhint{font-size:11px;color:var(--text3);text-align:center;line-height:1.6;}
 /* loading */
 .rv-loading{text-align:center;padding:32px 18px;color:var(--teal2);font-size:13px;}
 .rv-spinner{display:inline-block;width:28px;height:28px;border:3px solid rgba(45,212,191,.2);border-top-color:var(--teal2);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px;}
@@ -694,6 +736,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <body>
 <div id="particles"></div>
 
+<!-- LEARN -->
+<div id="s-learn" class="screen">
+  <div class="learn-wrap" style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:46px 14px 24px;display:flex;">
+    <div class="learn-card">
+      <div class="learn-h">تعلم الشطرنج</div>
+      <div class="learn-sub">دليل عربي سريع — سيتم حفظ آخر قسم تلقائياً</div>
+      <input class="learn-search" id="learn-search" placeholder="ابحث عن درس… مثل: كش، تبييت، مات" oninput="TUT.search(this.value)">
+      <div class="learn-tabs" id="learn-tabs"></div>
+      <div id="learn-secs"></div>
+      <div class="learn-meta" id="learn-meta"></div>
+    </div>
+    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
+  </div>
+</div>
+
 <!-- BANNER -->
 <div id="banner">
   <div class="bi">
@@ -741,6 +798,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="mc-d">صوت — رقعة — ألوان وأكثر</div>
       <span class="mc-b bb">تخصيص</span>
     </div>
+
+    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.learn()">
+      <span class="mc-ic ic-gold">☰</span>
+      <div class="mc-t">تعلم الشطرنج</div>
+      <div class="mc-d">دروس عربية قصيرة — بدون إنترنت</div>
+      <span class="mc-b bg">اقرأ لتتعلم ◈</span>
+    </div>
   </div>
   <div class="offline-n">◉ مراحل نور ولاعبَان يعملان بدون إنترنت بالكامل</div>
 </div>
@@ -780,6 +844,29 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <button id="settings-save-btn" class="btnp" style="padding:10px 16px;font-size:12px;display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
         </div>
         <input type="file" id="settings-profile-input" accept="image/*" style="display:none;" onchange="handleSettingsProfileImage(this)">
+      </div>
+    </div>
+
+    <div class="sc">
+      <h2><span class="ic-blue">◈</span> الواجهة</h2>
+      <div class="sr" style="flex-direction:column;align-items:flex-start;gap:7px;">
+        <div class="sr-n">ثيم التطبيق</div>
+        <div class="sr-d">يتغير فوراً بدون إعادة تحميل</div>
+        <div class="ui-grid">
+          <div class="ui-opt on" id="ui-amkh" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('amkh')"><div class="th-sw"><div class="sw" style="background:#0a0a14"></div><div class="sw" style="background:#c9a84c"></div></div>Am-Kh</div>
+          <div class="ui-opt" id="ui-emerald" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('emerald')"><div class="th-sw"><div class="sw" style="background:#081410"></div><div class="sw" style="background:#2dd4bf"></div></div>زمرد</div>
+          <div class="ui-opt" id="ui-sapphire" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('sapphire')"><div class="th-sw"><div class="sw" style="background:#070b18"></div><div class="sw" style="background:#60a5fa"></div></div>ياقوت</div>
+          <div class="ui-opt" id="ui-rose" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('rose')"><div class="th-sw"><div class="sw" style="background:#140a12"></div><div class="sw" style="background:#fda4af"></div></div>وردي</div>
+          <div class="ui-opt" id="ui-mono" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('mono')"><div class="th-sw"><div class="sw" style="background:#0b0b0b"></div><div class="sw" style="background:#e5e7eb"></div></div>أحادي</div>
+        </div>
+      </div>
+
+      <div style="padding-top:12px">
+        <div class="sr-n" style="margin-bottom:8px">شكل القطع</div>
+        <div class="pc-grid">
+          <div class="pc-opt on" id="pc-neo" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.pieces('neo')">2D (Chess.com)</div>
+          <div class="pc-opt" id="pc-local3d" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.pieces('local3d')">3D (محلي)</div>
+        </div>
       </div>
     </div>
 
@@ -1401,8 +1488,51 @@ function loadBoardImage(imagePath, fallbackTheme) {
   return imagePath;
 }
 
+const UI_THEMES={
+  amkh:{
+    bg:'#0a0a14',bg2:'#10101e',bg3:'#181830',bg4:'#202040',
+    gold:'#c9a84c',gold2:'#e8d080',gold3:'#fff0a0',
+    teal:'#2dd4bf',teal2:'#5eead4',
+    red:'#f87171',green:'#4ade80',blue:'#60a5fa',
+    text:'#ede8dc',text2:'#9a9080',text3:'#5a5040'
+  },
+  emerald:{
+    bg:'#070f0c',bg2:'#0b1712',bg3:'#10221a',bg4:'#153024',
+    gold:'#34d399',gold2:'#a7f3d0',gold3:'#d1fae5',
+    teal:'#2dd4bf',teal2:'#5eead4',
+    red:'#fb7185',green:'#4ade80',blue:'#38bdf8',
+    text:'#ecfdf5',text2:'#9cc7b5',text3:'#56756a'
+  },
+  sapphire:{
+    bg:'#070b18',bg2:'#0c1226',bg3:'#121b35',bg4:'#182446',
+    gold:'#60a5fa',gold2:'#93c5fd',gold3:'#dbeafe',
+    teal:'#38bdf8',teal2:'#7dd3fc',
+    red:'#f87171',green:'#4ade80',blue:'#60a5fa',
+    text:'#eaf2ff',text2:'#9fb2d6',text3:'#5b6b86'
+  },
+  rose:{
+    bg:'#140a12',bg2:'#1c0f1a',bg3:'#291526',bg4:'#361c33',
+    gold:'#fda4af',gold2:'#fecdd3',gold3:'#fff1f2',
+    teal:'#fb7185',teal2:'#fda4af',
+    red:'#fb7185',green:'#86efac',blue:'#93c5fd',
+    text:'#fff1f2',text2:'#d6a3ae',text3:'#7a4b57'
+  },
+  mono:{
+    bg:'#0b0b0b',bg2:'#101010',bg3:'#161616',bg4:'#1e1e1e',
+    gold:'#e5e7eb',gold2:'#f3f4f6',gold3:'#ffffff',
+    teal:'#a3a3a3',teal2:'#e5e7eb',
+    red:'#fca5a5',green:'#86efac',blue:'#93c5fd',
+    text:'#f3f4f6',text2:'#a3a3a3',text3:'#6b7280'
+  }
+};
+
+const LOCAL_3D_PIECES={
+  wK:'./wk1.png',wQ:'./wq1.png',wR:'./wr1.png',wB:'./wb1.png',wN:'./wn1.png',wP:'./wp1.png',
+  bK:'./bk1.png',bQ:'./bq1.png',bR:'./br1.png',bB:'./bb1.png',bN:'./bn1.png',bP:'./bp1.png'
+};
+
 const Cfg={
-  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',playerName:'',playerImage:'',customBoardImage:''},
+  data:{sound:true,vol:80,coords:true,lastmove:true,check:true,score:true,confirm:true,boardTheme:'classic',uiTheme:'amkh',pieceStyle:'neo',playerName:'',playerImage:'',customBoardImage:''},
   async load(){
     try{
       const kv=await IDB.kget('cfg');
@@ -1461,6 +1591,8 @@ const Cfg={
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
     this._updateAvatar(this.data.playerName||'');
     this._updateProfileImage();
+    this.uiTheme(this.data.uiTheme,false);
+    this.pieces(this.data.pieceStyle,false);
     this.theme(this.data.boardTheme,false);
     // Only apply custom board image if the current theme is 'custom'
     if(this.data.boardTheme==='custom' && this.data.customBoardImage){
@@ -1558,6 +1690,42 @@ const Cfg={
     }
     const customUpload=document.getElementById('custom-board-upload');
     if(customUpload)customUpload.style.display=name==='custom'?'block':'none';
+    if(save){this._persist();}
+  },
+  pieces(style,save=true){
+    const st=(style==='local3d')?'local3d':'neo';
+    this.data.pieceStyle=st;
+    try{document.querySelectorAll('.pc-opt').forEach(e=>e.classList.remove('on'));}catch(e){}
+    const el=document.getElementById('pc-'+(st==='local3d'?'local3d':'neo'));if(el)el.classList.add('on');
+    if(st==='local3d'){
+      _applyPieceCSS(LOCAL_3D_PIECES);
+    }else{
+      _loadChessPieces();
+    }
+    if(save){this._persist();}
+  },
+  uiTheme(name,save=true){
+    const nm=UI_THEMES[name]?name:'amkh';
+    this.data.uiTheme=nm;
+    document.querySelectorAll('.ui-opt').forEach(e=>e.classList.remove('on'));
+    const el=document.getElementById('ui-'+nm);if(el)el.classList.add('on');
+    const t=UI_THEMES[nm]||UI_THEMES.amkh;
+    const r=document.documentElement.style;
+    r.setProperty('--bg',t.bg);
+    r.setProperty('--bg2',t.bg2);
+    r.setProperty('--bg3',t.bg3);
+    r.setProperty('--bg4',t.bg4);
+    r.setProperty('--gold',t.gold);
+    r.setProperty('--gold2',t.gold2);
+    r.setProperty('--gold3',t.gold3);
+    r.setProperty('--teal',t.teal);
+    r.setProperty('--teal2',t.teal2);
+    r.setProperty('--red',t.red);
+    r.setProperty('--green',t.green);
+    r.setProperty('--blue',t.blue);
+    r.setProperty('--text',t.text);
+    r.setProperty('--text2',t.text2);
+    r.setProperty('--text3',t.text3);
     if(save){this._persist();}
   },
   removeProfileImage(){
@@ -2889,11 +3057,66 @@ async function groqChat({ messages, model, max_tokens, temperature }){
 }
 
 const REV=(()=>{
-
   let _data=null;
   let _idx=0;
   let _boards=[];
   let _coachCache={};
+
+  function _countRatings(color){
+    const out={brilliant:0,best:0,excellent:0,good:0,book:0,miss:0,inaccuracy:0,mistake:0,blunder:0};
+    if(!_data||!_data.moves)return out;
+    _data.moves.forEach(m=>{
+      if(!m||m.color!==color)return;
+      const r=m.rating;
+      if(out[r]!==undefined)out[r]++;
+    });
+    return out;
+  }
+
+  function _buildQuickStats(){
+    const d=_data;
+    const s=d.summary;
+    const w=_countRatings('w');
+    const b=_countRatings('b');
+
+    const item=(lbl,val)=>`<div class="rv-qitem"><span class="rv-qlbl">${lbl}</span><span class="rv-qval">${val}</span></div>`;
+    const grid=(c)=>`<div class="rv-qgrid">${
+      item('✦ رائعة',c.brilliant)+
+      item('★ أفضل',c.best)+
+      item('ممتازة',c.excellent)+
+      item('جيدة',c.good)+
+      item('افتتاح',c.book)+
+      item('فاتتك فرصة',c.miss)+
+      item('غير دقيق',c.inaccuracy)+
+      item('خطأ',c.mistake)+
+      item('فادح',c.blunder)
+    }</div>`;
+
+    const html=` 
+      <div class="rv-loading" style="padding-top:18px">
+        <div class="rv-qwrap">
+          <div class="rv-qcard">
+            <div class="rv-qtitle">إحصائيات سريعة</div>
+            <div class="rv-qsub">ملخص سريع للمباراة قبل المراجعة التفصيلية</div>
+            <div class="rv-qrow">
+              <div class="rv-qcol">
+                <div class="rv-qnm">♙ ${s.wName}</div>
+                <div class="rv-qacc" style="color:var(--gold2)">${s.wAcc}%</div>
+                ${grid(w)}
+              </div>
+              <div class="rv-qcol">
+                <div class="rv-qnm">♟ ${s.bName}</div>
+                <div class="rv-qacc" style="color:var(--text)">${s.bAcc}%</div>
+                ${grid(b)}
+              </div>
+            </div>
+          </div>
+          <button class="rv-qbtn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.details()">▶ عرض المراجعة التفصيلية</button>
+          <div class="rv-qhint">يمكنك الضغط على أي نقلة لاحقاً ليشرحها نور.</div>
+        </div>
+      </div>`;
+    document.getElementById('rv-main').innerHTML=html;
+  }
 
   async function _analyze(){
     const snaps=S.snapshots;
@@ -3283,24 +3506,12 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
 
 اشرح سبب هذا التصنيف وما كان يمكن تحسينه باختصار شديد.`;
     try{
-      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
-        body:JSON.stringify({
-          model:GROQ_MODEL,
-          messages:[{role:'user',content:prompt}],
-          max_tokens:180,
-          temperature:0.65
-        })
+      const json=await groqChat({
+        model:GROQ_MODEL,
+        messages:[{role:'user',content:prompt}],
+        max_tokens:180,
+        temperature:0.65
       });
-      if(!res.ok){
-        console.error('[Nour Coach] HTTP error:',res.status,res.statusText);
-        const errText=await res.text().catch(()=>'');
-        console.error('[Nour Coach] Response:',errText);
-        throw new Error('HTTP '+res.status);
-      }
-      const json=await res.json();
-      console.log('[Nour Coach] Response:',json);
       const txt=json.choices?.[0]?.message?.content?.trim();
       if(!txt){
         console.warn('[Nour Coach] Empty response from API');
@@ -3403,12 +3614,15 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
           }
           _idx=0;
           _boards=_data.boards;
-          _buildUI();
+          _buildQuickStats();
         }catch(e){
           console.error('Review analysis error:', e);
           document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذّر التحليل: ${e.message || 'Unknown error'}</div>`;
         }
       });
+    },
+    details(){
+      try{_buildUI();}catch(e){}
     },
     close(){document.getElementById('review-ov').classList.remove('open');},
     goTo(i){goTo(i);},
@@ -4126,8 +4340,107 @@ const Nav={
   game(){this.show('s-game');},
   online(){SFX.btn();this.show('s-online');OL.init();},
   levels(){SFX.btn();this.show('s-levels');LVL.buildUI();},
+  learn(){SFX.btn();this.show('s-learn');TUT.open();},
   settings(){SFX.btn();this.show('s-settings');loadSettingsProfile();}
 };
+
+const TUT=(()=>{
+  const KEY='tut_last';
+  const SECS=[
+    {id:'basics',title:'الأساسيات',items:[
+      {id:'board',t:'الرقعة والإحداثيات',d:'كيف تُقرأ المربعات مثل e4 و d5',b:'الرقعة 8×8.\\nالأعمدة تُسمى a إلى h والصفوف 1 إلى 8.\\nمثال: e4 يعني العمود e والصف 4.\\nالأبيض يبدأ دائماً من الصفين 1 و2.'},
+      {id:'goal',t:'هدف اللعبة',d:'كيف تفوز؟',b:'هدف الشطرنج هو كش مات: وضع ملك الخصم في كش ولا يملك أي حركة قانونية للهروب.\\nلا يمكنك أبداً أن تترك ملكك في كش.'},
+      {id:'turn',t:'الدور والحركات القانونية',d:'متى تكون الحركة غير قانونية؟',b:'الحركة غير قانونية إذا:\\n- تركت ملكك في كش.\\n- كانت القطعة لا تتحرك بهذا الشكل.\\n- أو كانت القطعة محجوبة (مثل الرخ/الفيل/الوزير).'}
+    ]},
+    {id:'pieces',title:'القطع',items:[
+      {id:'pawn',t:'الجندي',d:'التقدم، الأكل، والترقية',b:'الجندي يتحرك للأمام مربعاً واحداً.\\nومن البداية يمكنه مربعين.\\nيأكل قطرياً.\\nعند الوصول لآخر صف يترقى (عادةً إلى وزير).'},
+      {id:'knight',t:'الحصان',d:'حركة L والقفز',b:'الحصان يتحرك على شكل حرف L: (2 ثم 1).\\nيمتاز بأنه يقفز فوق القطع.'},
+      {id:'bishop',t:'الفيل',d:'القطريات',b:'الفيل يتحرك قطرياً أي عدد من المربعات.\\nيبقى دائماً على نفس لون المربعات.'},
+      {id:'rook',t:'القلعة',d:'الخطوط المستقيمة',b:'القلعة تتحرك أفقياً أو عمودياً.\\nمهمة جداً في النهايات.'},
+      {id:'queen',t:'الوزير',d:'أقوى قطعة',b:'الوزير يجمع بين حركة القلعة والفيل.\\nقوي لكن لا تُخرجه مبكراً بدون سبب.'},
+      {id:'king',t:'الملك',d:'الكش والأمان',b:'الملك يتحرك مربعاً واحداً في أي اتجاه.\\nلا يمكنه الدخول إلى مربع مهدد.\\nأمان الملك أهم شيء.'}
+    ]},
+    {id:'rules',title:'قواعد مهمة',items:[
+      {id:'castle',t:'التبييت',d:'حركة حماية للملك',b:'التبييت ينقل الملك مربعين نحو القلعة، والقلعة تقف بجانبه.\\nشروطه:\\n- الملك والقلعة لم يتحركا.\\n- لا توجد قطع بينهما.\\n- الملك ليس في كش ولا يمر بمربعات مهددة.'},
+      {id:'enpassant',t:'الأخذ بالتجاوز',d:'قاعدة خاصة للجندي',b:'إذا تقدم جندي الخصم مربعين وتجاوز مربع أكل جنديك، يمكنك أكله كأنه تحرك مربعاً واحداً.\\nهذه الحركة يجب أن تُلعب فوراً في النقلة التالية.'},
+      {id:'draw',t:'التعادل',d:'كيف يحدث التعادل؟',b:'التعادل يحدث مثلاً عند:\\n- جمود: اللاعب ليس في كش لكن لا يملك أي حركة.\\n- تكرار ثلاث مرات.\\n- عدم كفاية القطع.'}
+    ]},
+    {id:'tactics',title:'تكتيك سريع',items:[
+      {id:'fork',t:'الشوكة',d:'تهديد قطعتين بنقلة واحدة',b:'الشوكة تعني مهاجمة قطعتين أو أكثر بنقلة واحدة.\\nالحصان ممتاز في هذا التكتيك.'},
+      {id:'pin',t:'التثبيت',d:'قطعة لا تستطيع التحرك',b:'التثبيت: قطعة لا تستطيع التحرك لأنها تحمي قطعة أهم خلفها.\\nإذا كان خلفها الملك يسمى تثبيت مطلق.'},
+      {id:'skewer',t:'الشيش',d:'عكس التثبيت',b:'الشيش: تهاجم قطعة قوية أولاً، وبعد تحركها تكسب قطعة خلفها.'}
+    ]},
+    {id:'endgame',title:'النهايات',items:[
+      {id:'basicmate',t:'مات أساسي',d:'كيف تنهي المباراة؟',b:'تعلم نهايات أساسية مثل: ملك + وزير ضد ملك، وملك + قلعة ضد ملك.\\nالفكرة: حاصر الملك ثم قدم ملكك للمساعدة.'},
+      {id:'passpawn',t:'الجندي المار',d:'سلاح قوي',b:'الجندي المار هو الذي لا يستطيع أي جندي للخصم إيقافه مباشرةً.\\nادفعه للأمام أو استخدمه لتشتيت الخصم.'}
+    ]}
+  ];
+
+  let _sec='basics';
+  let _openItem=null;
+  let _q='';
+
+  function _flatText(x){
+    return (x.t+' '+x.d+' '+x.b).toLowerCase();
+  }
+
+  function _render(){
+    const tabs=document.getElementById('learn-tabs');
+    const secs=document.getElementById('learn-secs');
+    const meta=document.getElementById('learn-meta');
+    if(!tabs||!secs||!meta)return;
+
+    tabs.innerHTML=SECS.map(s=>`<button class="learn-tab ${s.id===_sec?'on':''}" onclick="TUT.tab('${s.id}')">${s.title}</button>`).join('');
+
+    const sec=SECS.find(s=>s.id===_sec)||SECS[0];
+    const items=sec.items.filter(it=>!_q||_flatText(it).includes(_q));
+    const list=items.map(it=>{
+      const isOpen=_openItem===it.id;
+      const body=isOpen?`<div class="learn-body">${it.b.replace(/\\n/g,'<br>')}</div>`:'';
+      return `<div class="learn-item" onclick="TUT.toggle('${sec.id}','${it.id}')"><div class="learn-it">${it.t}</div><div class="learn-id">${it.d}</div>${body}</div>`;
+    }).join('')||`<div style="color:var(--text2);text-align:center;padding:10px">لا توجد نتائج</div>`;
+
+    secs.innerHTML=`<div class="learn-sec on"><div class="learn-list">${list}</div></div>`;
+    meta.textContent=_q?`نتائج البحث داخل: ${sec.title}`:`القسم الحالي: ${sec.title}`;
+  }
+
+  async function _loadLast(){
+    try{
+      const v=await IDB.kget(KEY);
+      if(v&&typeof v==='object'){
+        if(v.sec && SECS.some(s=>s.id===v.sec)) _sec=v.sec;
+        if(typeof v.item==='string') _openItem=v.item;
+      }
+    }catch(e){}
+  }
+
+  function _saveLast(){
+    try{IDB.kset(KEY,{sec:_sec,item:_openItem,ts:Date.now()});}catch(e){}
+  }
+
+  return{
+    async open(){
+      await _loadLast();
+      _render();
+    },
+    tab(id){
+      _sec=id;
+      _openItem=null;
+      _saveLast();
+      _render();
+    },
+    toggle(secId,itemId){
+      if(secId!==_sec){_sec=secId;_openItem=null;}
+      _openItem=(_openItem===itemId)?null:itemId;
+      _saveLast();
+      _render();
+    },
+    search(q){
+      _q=(q||'').toString().trim().toLowerCase();
+      _render();
+    }
+  };
+})();
 
 function fixBars(myCol){
   const container=document.getElementById('board-container');
