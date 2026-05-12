@@ -454,7 +454,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   text-shadow: 1px 1px 2px #000;
 }
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
-.piece{--rot:0deg;position:relative;z-index:4;width:85%;height:85%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
+.piece{--rot:0deg;position:relative;z-index:4;width:90%;height:90%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
 /* Local 2-player: flip ALL pieces when black's turn so they appear upright for black player */
 /* Online mode: prevent ALL flipping */
@@ -597,39 +597,112 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 
 /* Anime theme special effects */
 [data-theme="anime"] {
-  --anime-glow: 0 0 20px rgba(255,105,180,0.6);
-  --anime-pulse: 0 0 30px rgba(0,191,255,0.4);
+  --anime-glow: 0 0 30px rgba(255,105,180,0.8);
+  --anime-pulse: 0 0 40px rgba(0,191,255,0.6);
+  --anime-neon: 0 0 50px rgba(255,20,147,0.4);
 }
 [data-theme="anime"] #board {
-  box-shadow: var(--anime-glow), inset 0 0 40px rgba(255,105,180,0.1);
-  border: 2px solid rgba(255,105,180,0.3);
+  box-shadow: var(--anime-glow), inset 0 0 60px rgba(255,105,180,0.15), 0 0 100px rgba(0,191,255,0.1);
+  border: 3px solid rgba(255,105,180,0.5);
+  border-radius: 12px;
+  position: relative;
+}
+[data-theme="anime"] #board::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 12px;
+  background: linear-gradient(45deg, rgba(255,105,180,0.3), rgba(0,191,255,0.3), rgba(255,105,180,0.3));
+  z-index: -1;
+  animation: animeBorderRotate 8s linear infinite;
 }
 [data-theme="anime"] .piece {
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)) drop-shadow(var(--anime-pulse));
-  animation: animePulse 3s ease-in-out infinite;
+  animation: animePulse 2s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+[data-theme="anime"] .piece:hover {
+  animation: animeGlow 0.5s ease-in-out;
+  transform: scale(1.1);
 }
 [data-theme="anime"] .sq:hover {
-  background: radial-gradient(circle, rgba(255,105,180,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,105,180,0.3) 0%, rgba(0,191,255,0.2) 50%, transparent 70%);
+  box-shadow: inset 0 0 20px rgba(255,105,180,0.2);
+}
+[data-theme="anime"] .sq.SL, [data-theme="anime"] .sq.SD {
+  background: radial-gradient(circle, rgba(255,105,180,0.4) 0%, rgba(0,191,255,0.3) 60%, transparent 80%) !important;
 }
 [data-theme="anime"] .pbar {
-  background: linear-gradient(135deg, rgba(255,105,180,0.1), rgba(0,191,255,0.1));
-  border: 1px solid rgba(255,105,180,0.2);
+  background: linear-gradient(135deg, rgba(255,105,180,0.15), rgba(0,191,255,0.15));
+  border: 2px solid rgba(255,105,180,0.3);
+  box-shadow: 0 0 20px rgba(255,105,180,0.2);
+  border-radius: 15px;
 }
 [data-theme="anime"] .btn {
-  background: linear-gradient(135deg, rgba(255,105,180,0.8), rgba(0,191,255,0.8));
-  border: 1px solid rgba(255,105,180,0.4);
-  text-shadow: 0 0 10px rgba(255,105,180,0.5);
+  background: linear-gradient(135deg, rgba(255,105,180,0.9), rgba(0,191,255,0.9));
+  border: 2px solid rgba(255,105,180,0.5);
+  text-shadow: 0 0 15px rgba(255,105,180,0.7);
+  box-shadow: 0 0 25px rgba(255,105,180,0.3);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="anime"] .btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s;
+}
+[data-theme="anime"] .btn:hover::before {
+  animation: animeShine 0.6s ease-in-out;
 }
 [data-theme="anime"] .btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(255,105,180,0.6);
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 0 30px rgba(255,105,180,0.7), 0 5px 20px rgba(0,0,0,0.3);
 }
 [data-theme="anime"] .screen {
-  background: radial-gradient(ellipse at center, rgba(255,105,180,0.05) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(255,105,180,0.08) 0%, transparent 70%);
+  position: relative;
+}
+[data-theme="anime"] .screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255,105,180,0.03) 2px,
+    rgba(255,105,180,0.03) 4px
+  );
+  pointer-events: none;
+  animation: animeScan 20s linear infinite;
 }
 @keyframes animePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
+}
+@keyframes animeGlow {
+  0% { filter: drop-shadow(0 0 10px rgba(255,105,180,0.8)); }
+  50% { filter: drop-shadow(0 0 30px rgba(0,191,255,0.9)); }
+  100% { filter: drop-shadow(0 0 10px rgba(255,105,180,0.8)); }
+}
+@keyframes animeBorderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes animeShine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+@keyframes animeScan {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(20px); }
 }
 [data-theme="anime"]::before {
   content: '';
@@ -638,15 +711,40 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 20% 80%, rgba(255,105,180,0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(0,191,255,0.1) 0%, transparent 50%);
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255,105,180,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0,191,255,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255,20,147,0.05) 0%, transparent 70%);
   pointer-events: none;
   z-index: -1;
-  animation: animeFloat 10s ease-in-out infinite;
+  animation: animeFloat 8s ease-in-out infinite;
+}
+[data-theme="anime"]::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    rgba(255,105,180,0.02) 10deg,
+    transparent 20deg
+  );
+  pointer-events: none;
+  z-index: -1;
+  animation: animeRotate 60s linear infinite;
 }
 @keyframes animeFloat {
   0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(0.5deg); }
   50% { transform: translateY(-10px) rotate(1deg); }
+  75% { transform: translateY(-5px) rotate(0.5deg); }
+}
+@keyframes animeRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 /* summary */
 .rv-sumbar{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
@@ -1133,6 +1231,10 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
             <div class="dot-color-swatch" style="background:linear-gradient(45deg, #ccc 25%, #fff 25%, #fff 50%, #ccc 50%, #ccc 75%, #fff 75%);border:2px solid #999;"></div>
             <span>شفاف</span>
           </div>
+          <div class="dot-color-opt" data-color="rgba(255,255,0,0.5)" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('rgba(255,255,0,0.5)')">
+            <div class="dot-color-swatch" style="background:rgba(255,255,0,0.5);border:2px solid rgba(255,255,0,0.8);"></div>
+            <span>أصفر شفاف</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1613,7 +1715,7 @@ const SFX=(()=>{
     loss()      {play('error');},       // Defeat sound (local)
     resign()    {play('error');},      // Same as loss
     levelDone() {winSynth();},   // Level complete sound (synth)
-    startgame() {if(!playExt('startgame'))play('startgame');}, // Online game start sound
+    startgame() {playExt('startgame');}, // Online game start sound
     captureCheck(){play('check');},
     select() {uiClick();},
     btn()    {uiClick();},
@@ -1751,7 +1853,7 @@ const LOCAL_3D_PIECES={
 };
 
 async function _preprocessLocal3D(){
-  const CACHE_KEY='local3d-pieces-v4';
+  const CACHE_KEY='local3d-pieces-v5';
   try{
     const cached=await IDB.kget(CACHE_KEY);
     if(cached&&typeof cached==='object'&&Object.keys(cached).length===12)return cached;
@@ -1777,10 +1879,10 @@ async function _preprocessLocal3D(){
           if(a===0)continue;
           // Use luminance to detect background - more accurate than simple RGB
           const lum=0.299*r+0.587*g+0.114*b;
-          // Background is very dark (near black) - use much higher threshold to preserve black pieces
-          if(lum<8&&a>200){d[i+3]=0;continue;}
-          // Soften dark halo but preserve black piece details
-          if(lum<20&&a>200){d[i+3]=Math.min(d[i+3],240);}
+          // Background is very dark (near black) - use even higher threshold to preserve black pieces
+          if(lum<5&&a>200){d[i+3]=0;continue;}
+          // Soften dark halo but preserve black piece details - be more conservative
+          if(lum<15&&a>200){d[i+3]=Math.min(d[i+3],250);}
         }
         ctx.putImageData(im,0,0);
         const b64=canvas.toDataURL('image/png');
@@ -1885,8 +1987,16 @@ const Cfg={
     // Apply dot color to CSS variables
     const color=this.data.dotColor||'#2dd4bf';
     if(color==='transparent'){
-      document.documentElement.style.setProperty('--dot-color','transparent');
-      document.documentElement.style.setProperty('--dot-shadow','transparent');
+      document.documentElement.style.setProperty('--dot-color','rgba(255,255,255,0.3)');
+      document.documentElement.style.setProperty('--dot-shadow','rgba(255,255,255,0.15)');
+    }else if(color.startsWith('rgba')){
+      // Handle rgba colors like yellow transparent
+      document.documentElement.style.setProperty('--dot-color',color);
+      const match=color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+      if(match){
+        const r=match[1], g=match[2], b=match[3], a=match[4];
+        document.documentElement.style.setProperty('--dot-shadow',`rgba(${r},${g},${b},${parseFloat(a)*0.5})`);
+      }
     }else{
       // Convert hex to rgba for shadow
       const r=parseInt(color.slice(1,3),16);
@@ -3059,12 +3169,6 @@ ${pn}: ${txt}
       const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
       const turnName=S.turn==='w'?`${pn} (الأبيض)`:'نور (الأسود)';
 
-      const eventMap={
-        playerMove:'${pn} قام بحركة الآن',
-        nourMove:'نور قام بحركة الآن',
-        levelWin:'${pn} فاز بالمرحلة',
-        levelLoss:'${pn} خسر المرحلة'
-      };
       const eventText=(type==='playerMove')?`${pn} قام بحركة الآن`:(type==='nourMove')?'نور قام بحركة الآن':(type==='levelWin')?`${pn} فاز بالمرحلة`:`${pn} خسر المرحلة`;
       const capName=cap?({P:'بيدق',N:'حصان',B:'فيل',R:'رخ',Q:'وزير',K:'ملك'}[E.tp(cap)]||'قطعة'):'';
       const capText=cap?`تم أكل ${capName}`:'لا يوجد أكل';
@@ -4857,23 +4961,13 @@ const Nav={
   settings(){SFX.btn();this.show('s-settings');loadSettingsProfile();}
 };
 
-const TUT = (() => {
+const TUT=(()=>{
   const KEY = 'tut_last';
   const SECS = [
     {id:'basics',title:'الأساسيات',items:[
-      {id:'board',t:'الرقعة والإحداثيات',d:'كيف تُقرأ المربعات مثل e4 و d5',b:'الرقعة 8×8.\nالأعمدة تُسمى a إلى h والصفوف 1 إلى 8.\nمثال: e4 يعني العمود e والصف 4.\nالأبيض يبدأ دائماً من الصفين 1 و2.\n\n💡 **نصيحة:** تذكر دائماً أن الإحداثيات تُقرأ من زاوية البيض!',ex:{type:'board',setup:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',highlight:['e4','d5'],msg:'انظر إلى مربعات e4 و d5',anim:'boardAnim'}},
-      {id:'goal',t:'هدف اللعبة',d:'كيف تفوز؟',b:'هدف الشطرنج هو كش مات: وضع ملك الخصم في كش ولا يملك أي حركة قانونية للهروب.\nلا يمكنك أبداً أن تترك ملكك في كش.\n\n🎯 **الهدف:** حاصر ملك الخصم ثم هجم!',ex:{type:'board',setup:'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',highlight:['e8'],msg:'الملك الأسود في خطر!',anim:'kingAnim'}},
-      {id:'turn',t:'الدور والحركات القانونية',d:'متى تكون الحركة غير قانونية؟',b:'الحركة غير قانونية إذا:\n- تركت ملكك في كش.\n- كانت القطعة لا تتحرك بهذا الشكل.\n- أو كانت القطعة محجوبة (مثل الرخ/الفيل/الوزير).\n\n⚠️ **تنبيه:** حركة غير قانونية تعني الخسارة الفورية!',ex:{type:'board',setup:'rnbqk2nr/pppp1ppp/4pb2/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 3',highlight:['e1'],msg:'الملك الأبيض لا يمكنه التحرك إلى e2 بسبب الفيل الأسود!',anim:'illegalAnim'}}
-    ]},
-    {id:'pieces',title:'القطع',items:[
-      {id:'pawn',t:'الجندي',d:'التقدم، الأكل، والترقية',b:'الجندي يتحرك للأمام مربعاً واحداً.\nومن البداية يمكنه مربعين.\nيأكل قطرياً.\nعند الوصول لآخر صف يترقى (عادةً إلى وزير).\n\n🚀 **قوة:** الجنود الصغار يمكن أن يصبحوا وزراء!',ex:{type:'board',setup:'8/1P6/8/8/8/8/8/8 w - - 0 1',highlight:['b7'],msg:'الجندي على وشك الترقية!',anim:'pawnAnim'}},
-      {id:'knight',t:'الحصان',d:'حركة L والقفز',b:'الحصان يتحرك على شكل حرف L: (2 ثم 1).\nيمتاز بأنه يقفز فوق القطع.\n\n🐴 **ميزة:** الحصان الوحيد الذي يقفز!',ex:{type:'board',setup:'8/8/8/8/4N3/8/8/8 w - - 0 1',highlight:['e4','d6','f6','d2','f2','c3','c5','g3','g5'],msg:'الحصان يمكنه الهجوم على 8 مربعات!',anim:'knightAnim'}},
-      {id:'bishop',t:'الفيل',d:'القطريات',b:'الفيل يتحرك قطرياً أي عدد من المربعات.\nيبقى دائماً على نفس لون المربعات.\n\n⚡ **سرعة:** فيلان متقابلان يسيطرون على الرقعة!',ex:{type:'board',setup:'8/8/8/8/8/8/8/4b3 w - - 0 1',highlight:['e1','h4','a4','d8','g5','b5','c6','f6'],msg:'الفيل يتحكم في 13 مربعاً!',anim:'bishopAnim'}},
-      {id:'rook',t:'القلعة',d:'الخطوط المستقيمة',b:'القلعة تتحرك أفقياً أو عمودياً.\nمهمة جداً في النهايات.\n\n🏰 **قوة:** قلعة مفتوحة = خطر كبير!',ex:{type:'board',setup:'8/8/8/8/8/8/8/4R3 w - - 0 1',highlight:['e1','e8','a4','h4'],msg:'القلعة تسيطر على صف وعمود كامل!',anim:'rookAnim'}},
-      {id:'queen',t:'الوزير',d:'أقوى قطعة',b:'الوزير يجمع بين حركة القلعة والفيل.\nقوي لكن لا تُخرجه مبكراً بدون سبب.\n\n👑 **تحذير:** الوزير المبكر = هدف سهل!',ex:{type:'board',setup:'8/8/8/8/8/8/8/4Q3 w - - 0 1',highlight:['e4'],msg:'الوزير في المركز يسيطر على 27 مربعاً!',anim:'queenAnim'}},
-      {id:'king',t:'الملك',d:'الكش والأمان',b:'الملك يتحرك مربعاً واحداً في أي اتجاه.\nلا يمكنه الدخول إلى مربع مهدد.\nأمان الملك أهم شيء.\n\n🛡️ **أولوية:** حماية الملك أهم من كل شيء!',ex:{type:'board',setup:'8/8/8/8/8/8/8/4K3 w - - 0 1',highlight:['d3','d4','d5','e3','e5','f3','f4','f5'],msg:'الملك يمكنه الهروب إلى 8 اتجاهات!',anim:'kingAnim'}}
-    ]},
-    {id:'rules',title:'قواعد مهمة',items:[
+      {id:'board',t:'الرقعة والإحداثيات',d:'كيف تُقرأ المربعات مثل e4 و d5',b:'الرقعة 8×8 تتكون من 64 مربعاً (32 بيضاء و32 سوداء).\n\n**الإحداثيات:**\n- الأعمدة: a,b,c,d,e,f,g,h (من اليسار إلى اليمين)\n- الصفوف: 1,2,3,4,5,6,7,8 (من الأسفل إلى الأعلى)\n- المربع a1 في الزاوية اليسرى السفلى (للأبيض)\n- المربع h8 في الزاوية اليمنى العليا\n\n**قاعدة مهمة:**\n- الأبيض يبدأ دائماً من الصفوف 1 و2\n- الأسود يبدأ دائماً من الصفوف 7 و8\n- المربع e4 هو العمود e والصف 4\n\n💡 **نصيحة ذهبية:** تذكر دائماً أن الإحداثيات تُقرأ من زاوية اللاعب الأبيض!',ex:{type:'board',setup:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',highlight:['e4','d5','a1','h8'],msg:'انظر إلى مربعات e4 و d5 والأركان a1 و h8',anim:'boardAnim'}},
+      {id:'pieces',t:'القطع وحركاتها',d:'كيف تتحرك كل قطعة؟',b:'**الملك (♔):** مربع واحد في أي اتجاه (8 اتجاهات)\n**الملكة (♕):** أي عدد من المربعات أفقي، عمودي، أو قطري\n**القلعة (♖):** أي عدد من المربعات أفقي أو عمودي فقط\n**الفيل (♗):** أي عدد من المربعات قطري فقط\n**الحصان (♘):** حركة L: مربعين ثم مربع واحد جانباً (يمكنه القفز فوق القطع)\n**الجندي (♙):** مربع واحد للأمام، مربعين في أول نقلة، يأكل قطرياً\n\n🎯 **قيمة القطع (تقريباً):**\n- الجندي: 1 نقطة\n- الحصان: 3 نقاط\n- الفيل: 3 نقاط\n- القلعة: 5 نقاط\n- الملكة: 9 نقاط\n- الملك: لا يقدر بثمن (لخسارته = خسارة المباراة)',ex:{type:'board',setup:'8/8/8/8/8/8/8/8 w - - 0 1',highlight:['e4','f6','g8','c3','b1','a2'],msg:'كل قطعة لها حركاتها الخاصة!',anim:'piecesAnim'}},
+      {id:'goal',t:'هدف اللعبة',d:'كيف تفوز؟',b:'**الكش المات:**\nالهدف الأساسي في الشطرنج هو وضع ملك الخصم في كش مات.\n\n**شروط الكش المات:**\n1. الملك في كش (مهدد)\n2. لا يوجد أي حركة قانونية للهروب\n3. لا يمكن حماية الملك بأي قطعة\n4. لا يمكن أكل القطعة المهددة\n\n**قواعد أساسية:**\n- لا يمكنك أبداً ترك ملكك في كش\n- إذا كان كل حركاتك تضع ملكك في كش، فهذا كش مات\n- إذا لم يكن الملك في كش لكن لا توجد حركات قانونية، فهذا تعادل (جمود)\n\n🎯 **استراتيجية الفوز:**\n1. حاصر ملك الخصم\n2. قلل خيارات الهروب\n3. وجه الهجمة النهائية\n\n⚡ **نصيحة:** الكش المات = الفوز، الكش = الخطر!',ex:{type:'board',setup:'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2',highlight:['e8','d4','e1'],msg:'الملك الأسود في خطر من وزير الأبيض!',anim:'checkmateAnim'}},
       {id:'castle',t:'التبييت',d:'حركة حماية للملك',b:'التبييت ينقل الملك مربعين نحو القلعة، والقلعة تقف بجانبه.\nشروطه:\n- الملك والقلعة لم يتحركا.\n- لا توجد قطع بينهما.\n- الملك ليس في كش ولا يمر بمربعات مهددة.\n\n🏰 **فائدة:** حماية سريعة وتنمية القلعة!',ex:{type:'board',setup:'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1',highlight:['e1','g1','c1'],msg:'التبييت ممكن للجانبين!',anim:'castleAnim'}},
       {id:'enpassant',t:'الأخذ بالتجاوز',d:'قاعدة خاصة بالجندي',b:'إذا تقدم جندي الخصم مربعين وتجاوز مربع أكل جنديك، يمكنك أكله كأنه تحرك مربعاً واحداً.\nهذه الحركة يجب أن تُلعب فوراً في النقلة التالية.\n\n⚡ **فرصة:** لا تفوت هذه الحركة النادرة!',ex:{type:'board',setup:'8/8/4pP3/8/8/8/8/8 w - - 0 1',highlight:['e6','d5'],msg:'الأخذ بالتجاوز متاح الآن!',anim:'enpassantAnim'}},
       {id:'draw',t:'التعادل',d:'كيف يحدث التعادل؟',b:'التعادل يحدث مثلاً عند:\n- جمود: اللاعب ليس في كش لكن لا يملك أي حركة.\n- تكرار ثلاث مرات.\n- عدم كفاية القطع.\n\n🤝 **نصيحة:** التعادل أفضل من الخسارة!',ex:{type:'board',setup:'8/8/8/8/3k4/3K4/8/8 w - - 0 50',highlight:['d6','d4'],msg:'جمود! لا حركات متاحة!',anim:'drawAnim'}}
