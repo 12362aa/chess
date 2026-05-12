@@ -1164,7 +1164,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
       <div class="mc-d">12 مرحلة تدريجية — افتح مرحلة مرحلة</div>
       <span class="mc-b bg">محفوظ أوفلاين ◈</span>
     </div>
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.start('local',0)">
+    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
       <span class="mc-ic ic-green">⚔</span>
       <div class="mc-t">لاعبَان</div>
       <div class="mc-d">على نفس الشاشة بالتناوب</div>
@@ -1402,6 +1402,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <div class="rb-c" id="rcode">—</div>
         <div class="rb-h">انتظر حتى ينضم صديقك…</div>
         <button class="rb-cp" onclick="SFX.btn();OL.copy()">⧉ نسخ الكود</button>
+        <button class="rb-cp" onclick="SFX.btn();OL.leave()" style="margin-top:8px;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171;">⚠ مغادرة الغرفة</button>
       </div>
       <button class="btnp" id="btn-create" onclick="OL.create()">♟ إنشاء غرفة</button>
     </div>
@@ -2017,7 +2018,7 @@ async function _preprocessLocal3D(){
         const im=ctx.getImageData(0,0,w,h);
         const d=im.data;
         
-        // Enhanced background detection and removal
+        // Improved background detection and removal - more conservative for black pieces
         for(let i=0;i<d.length;i+=4){
           const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
           
@@ -2028,27 +2029,29 @@ async function _preprocessLocal3D(){
           const lum=0.299*r+0.587*g+0.114*b;
           const sat=Math.max(r,g,b)-Math.min(r,g,b);
           
-          // Detect and remove dark backgrounds (black, very dark gray)
-          if(lum<8 && a>180){
+          // More conservative background detection - only remove obvious backgrounds
+          if(lum<3 && a>200){
+            // Only remove pure black/transparent backgrounds
             d[i+3]=0;
             continue;
           }
           
-          // Remove medium-dark backgrounds and halos
-          if(lum<25 && a>200 && sat<30){
-            d[i+3]=Math.floor(d[i+3] * 0.3);
+          // Gentle halo removal for very dark pixels
+          if(lum<10 && a>220 && sat<15){
+            d[i+3]=Math.max(200, d[i+3] - 30);
             continue;
           }
           
-          // Remove grayish/low saturation backgrounds
-          if(lum>20 && lum<80 && sat<20 && a>150){
-            d[i+3]=Math.floor(d[i+3] * 0.5);
+          // Preserve black piece details - be very conservative
+          if(lum<35 && sat<25 && a>180){
+            // Don't remove too much opacity from dark areas
+            d[i+3]=Math.max(150, d[i+3] - 20);
             continue;
           }
           
-          // Enhance piece edges by slightly increasing opacity for valid pieces
-          if(a>100 && (sat>25 || lum<20)){
-            d[i+3]=Math.min(255, d[i+3] + 10);
+          // Enhance piece visibility slightly
+          if(a>120 && (sat>20 || lum<40)){
+            d[i+3]=Math.min(255, d[i+3] + 5);
           }
         }
         
@@ -2139,6 +2142,9 @@ const Cfg={
   _persist(){
     try{ IDB.kset('cfg',this.data); }catch(e){}
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
+    // Also save to legacy keys for compatibility
+    try{localStorage.setItem('chess_username',this.data.playerName||'');}catch(e){}
+    try{localStorage.setItem('chess_profile_image',this.data.playerImage||'');}catch(e){}
   },
   setDotColor(color){
     this.data.dotColor=color;
@@ -5523,6 +5529,18 @@ const OL=(()=>{
       try{document.getElementById('btn-mm').style.display='inline-flex';}catch(e){}
       try{document.getElementById('btn-mc').style.display='none';}catch(e){}
       setSt('m','◆ تم الإلغاء','');
+    },
+    leave(){
+      SFX.btn();
+      if(S.mode==='online' && !S.over){
+        // Leave current room/game
+        destroy();
+        Nav.online();
+        setSt('c','◎ تم مغادرة الغرفة','');
+        // Reset room code display
+        document.getElementById('rcode').textContent='—';
+        document.getElementById('rbox').style.display='none';
+      }
     },
     copy(){
       SFX.btn();
