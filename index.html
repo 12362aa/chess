@@ -2018,7 +2018,7 @@ async function _preprocessLocal3D(){
         const im=ctx.getImageData(0,0,w,h);
         const d=im.data;
         
-        // Improved background detection and removal - more conservative for black pieces
+        // Much more conservative background detection - preserve piece integrity
         for(let i=0;i<d.length;i+=4){
           const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
           
@@ -2029,29 +2029,35 @@ async function _preprocessLocal3D(){
           const lum=0.299*r+0.587*g+0.114*b;
           const sat=Math.max(r,g,b)-Math.min(r,g,b);
           
-          // More conservative background detection - only remove obvious backgrounds
-          if(lum<3 && a>200){
-            // Only remove pure black/transparent backgrounds
+          // ONLY remove obvious pure black backgrounds - be extremely conservative
+          if(lum<2 && a>240 && sat<5){
             d[i+3]=0;
             continue;
           }
           
-          // Gentle halo removal for very dark pixels
-          if(lum<10 && a>220 && sat<15){
-            d[i+3]=Math.max(200, d[i+3] - 30);
+          // Very gentle background cleanup for near-black pixels
+          if(lum<5 && a>230 && sat<10){
+            d[i+3]=Math.max(220, d[i+3] - 15);
             continue;
           }
           
-          // Preserve black piece details - be very conservative
-          if(lum<35 && sat<25 && a>180){
-            // Don't remove too much opacity from dark areas
-            d[i+3]=Math.max(150, d[i+3] - 20);
+          // Preserve ALL piece details - minimal opacity reduction
+          if(lum<50 && sat<30 && a>200){
+            // Keep most of the opacity for piece details
+            d[i+3]=Math.max(180, d[i+3] - 10);
             continue;
           }
           
-          // Enhance piece visibility slightly
-          if(a>120 && (sat>20 || lum<40)){
-            d[i+3]=Math.min(255, d[i+3] + 5);
+          // Enhance piece contrast and visibility
+          if(a>100){
+            // Slightly boost opacity for better visibility
+            d[i+3]=Math.min(255, d[i+3] + 8);
+            // Enhance contrast for dark pieces
+            if(lum<80){
+              d[i]=Math.max(0, r - 5);
+              d[i+1]=Math.max(0, g - 5);
+              d[i+2]=Math.max(0, b - 5);
+            }
           }
         }
         
@@ -2164,6 +2170,7 @@ const Cfg={
     document.getElementById('set-score').checked   =this.data.score;
     document.getElementById('set-confirm').checked =this.data.confirm;
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
+    // Update avatar with both name and image
     this._updateAvatar(this.data.playerName||'');
     // Apply dot color to CSS variables
     const color=this.data.dotColor||'#2dd4bf';
@@ -5234,7 +5241,12 @@ function fixBars(myCol){
 
   const gtbar=document.getElementById('s-game').querySelector('.gtbar');
 
-  if(myCol==='b'){
+  if(myCol==='both'){
+    // For local 2-player mode, place bars on both sides of the board
+    gtbar.parentNode.insertBefore(barB, gtbar);
+    gtbar.parentNode.insertBefore(container, gtbar);
+    gtbar.parentNode.insertBefore(barW, gtbar);
+  }else if(myCol==='b'){
     gtbar.parentNode.insertBefore(barW, gtbar);
     gtbar.parentNode.insertBefore(container, gtbar);
     gtbar.parentNode.insertBefore(barB, gtbar);
@@ -5532,14 +5544,19 @@ const OL=(()=>{
     },
     leave(){
       SFX.btn();
-      if(S.mode==='online' && !S.over){
-        // Leave current room/game
-        destroy();
+      // Always disconnect and reset
+      destroy();
+      _roomCode='';
+      // Reset room code display
+      document.getElementById('rcode').textContent='—';
+      document.getElementById('rbox').style.display='none';
+      // Reset create button
+      document.getElementById('btn-create').disabled=false;
+      // If we're in a game, go back to online screen
+      if(S.mode==='online'){
+        S.mode='';
         Nav.online();
         setSt('c','◎ تم مغادرة الغرفة','');
-        // Reset room code display
-        document.getElementById('rcode').textContent='—';
-        document.getElementById('rbox').style.display='none';
       }
     },
     copy(){
