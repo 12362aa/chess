@@ -224,6 +224,83 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .pc-prev .ppc .piece{width:90%;height:90%;filter:drop-shadow(0 2px 4px rgba(0,0,0,.55));}
 .pc-lbl{font-weight:900;color:var(--text);font-size:12px;}
 .pc-sub{font-size:10px;color:var(--text3);line-height:1.4;}
+
+/* Enhanced piece theme grid layout */
+#pc-2d-grid, #pc-3d-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pc-opt {
+  background: var(--bg2);
+  border: 1px solid rgba(201, 168, 76, 0.1);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.pc-opt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(201, 168, 76, 0.08), transparent 70%);
+  transition: opacity 0.3s;
+}
+
+.pc-opt:hover::before {
+  opacity: 1;
+}
+
+.pc-opt:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(201, 168, 76, 0.3);
+  box-shadow: 0 8px 24px rgba(201, 168, 76, 0.1), 0 0 0 1px rgba(201, 168, 76, 0.05);
+}
+
+.pc-opt.on {
+  border-color: var(--gold);
+  color: var(--gold2);
+  background: rgba(201, 168, 76, 0.06);
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.1);
+}
+
+.pc-opt.on .pc-lbl {
+  color: var(--gold2);
+}
+
+/* Section headers styling */
+.pc-section-header {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pc-section-header::before {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+}
+
+.pc-section-header::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+}
 .vol-row{display:flex;align-items:center;gap:9px;width:100%;}
 .vsl{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:var(--bg3);outline:none;}
 .vsl::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);cursor:pointer;box-shadow:0 0 6px rgba(201,168,76,.4);transition:transform .2s;}
@@ -1241,16 +1318,20 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 
       <div style="padding-top:12px">
         <div class="sr-n" style="margin-bottom:8px">شكل القطع</div>
-        <div class="pc-grid">
-          <div class="pc-opt on" id="pc-neo" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.pieces('neo')">
-            <div class="pc-prev"><div class="ppc"><div class="piece" style="background-image:url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png')"></div></div><div class="ppc"><div class="piece" style="background-image:url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png')"></div></div></div>
-            <div class="pc-lbl">2D</div>
-            <div class="pc-sub">سريع وخفيف</div>
+        
+        <!-- 2D Themes Section -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">2D قطع</div>
+          <div class="pc-grid" id="pc-2d-grid">
+            <!-- 2D themes will be generated here -->
           </div>
-          <div class="pc-opt" id="pc-local3d" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.pieces('local3d')">
-            <div class="pc-prev"><div class="ppc"><div class="piece" style="background-image:url('https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wk.png')"></div></div><div class="ppc"><div class="piece" style="background-image:url('https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bq.png')"></div></div></div>
-            <div class="pc-lbl">3D</div>
-            <div class="pc-sub">تأثير ثلاثي الأبعاد</div>
+        </div>
+        
+        <!-- 3D Themes Section -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">3D قطع</div>
+          <div class="pc-grid" id="pc-3d-grid">
+            <!-- 3D themes will be generated here -->
           </div>
         </div>
       </div>
@@ -1990,20 +2071,155 @@ const UI_THEMES={
   }
 };
 
-const LOCAL_3D_PIECES={
-  wK:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wk.png',
-  wQ:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wq.png',
-  wR:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wr.png',
-  wB:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wb.png',
-  wN:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wn.png',
-  wP:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wp.png',
-  bK:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bk.png',
-  bQ:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bq.png',
-  bR:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/br.png',
-  bB:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bb.png',
-  bN:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bn.png',
-  bP:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bp.png'
+// Comprehensive chess.com piece themes
+const CHESS_PIECE_THEMES={
+  // 2D Themes
+  'neo':{
+    name:'Neo',
+    type:'2d',
+    description:'حديث وبسيط',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'
+  },
+  'classic':{
+    name:'Classic',
+    type:'2d',
+    description:'كلاسيكي تقليدي',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/classic/150/'
+  },
+  'alpha':{
+    name:'Alpha',
+    type:'2d',
+    description:'قطع حادة وواضحة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/'
+  },
+  'bases':{
+    name:'Bases',
+    type:'2d',
+    description:'قطع البلاستيك',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/bases/150/'
+  },
+  'icy-sea':{
+    name:'Icy Sea',
+    type:'2d',
+    description:'قطع بحرية جليدية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/icy-sea/150/'
+  },
+  'neo-wood':{
+    name:'Neo-Wood',
+    type:'2d',
+    description:'Neo بملمس خشبي',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neo-wood/150/'
+  },
+  'glass':{
+    name:'Glass',
+    type:'2d',
+    description:'قطع زجاجية شفافة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/glass/150/'
+  },
+  'marble':{
+    name:'Marble',
+    type:'2d',
+    description:'قطع رخامية أنيقة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/marble/150/'
+  },
+  'game-room':{
+    name:'Game Room',
+    type:'2d',
+    description:'قطع غرفة ألعاب',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/game-room/150/'
+  },
+  
+  // 3D Themes (wood has 3D appearance)
+  'wood':{
+    name:'Wood',
+    type:'3d',
+    description:'خشبي ثلاثي الأبعاد',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/'
+  }
 };
+
+// Generate piece URLs for a theme
+function getPieceUrls(theme){
+  const base=CHESS_PIECE_THEMES[theme]?.urlBase;
+  if(!base) return null;
+  
+  return {
+    wK:base+'wk.png',wQ:base+'wq.png',wR:base+'wr.png',wB:base+'wb.png',wN:base+'wn.png',wP:base+'wp.png',
+    bK:base+'bk.png',bQ:base+'bq.png',bR:base+'br.png',bB:base+'bb.png',bN:base+'bn.png',bP:base+'bp.png'
+  };
+}
+
+// Legacy compatibility
+const LOCAL_3D_PIECES=getPieceUrls('wood');
+
+// Generate piece theme options dynamically
+function generatePieceThemeOptions(){
+  const container2d=document.getElementById('pc-2d-grid');
+  const container3d=document.getElementById('pc-3d-grid');
+  
+  if(!container2d||!container3d) return;
+  
+  // Clear existing content
+  container2d.innerHTML='';
+  container3d.innerHTML='';
+  
+  // Get current theme
+  const currentTheme=Cfg.data.pieceStyle||'neo';
+  
+  // Generate options for each theme
+  Object.entries(CHESS_PIECE_THEMES).forEach(([key,theme])=>{
+    const urls=getPieceUrls(key);
+    if(!urls) return;
+    
+    const option=document.createElement('div');
+    option.className='pc-opt';
+    option.id='pc-'+key;
+    if(key===currentTheme) option.classList.add('on');
+    option.onclick=()=>{
+      if(typeof SFX !== 'undefined') SFX.btn();
+      Cfg.pieces(key);
+    };
+    
+    // Create preview with king and queen
+    const preview=document.createElement('div');
+    preview.className='pc-prev';
+    
+    const whiteKing=document.createElement('div');
+    whiteKing.className='ppc';
+    whiteKing.innerHTML=`<div class="piece" style="background-image:url('${urls.wK}')"></div>`;
+    
+    const blackQueen=document.createElement('div');
+    blackQueen.className='ppc';
+    blackQueen.innerHTML=`<div class="piece" style="background-image:url('${urls.bQ}')"></div>`;
+    
+    preview.appendChild(whiteKing);
+    preview.appendChild(blackQueen);
+    
+    const label=document.createElement('div');
+    label.className='pc-lbl';
+    label.textContent=theme.name;
+    
+    const description=document.createElement('div');
+    description.className='pc-sub';
+    description.textContent=theme.description;
+    
+    option.appendChild(preview);
+    option.appendChild(label);
+    option.appendChild(description);
+    
+    // Add to appropriate container
+    if(theme.type==='2d'){
+      container2d.appendChild(option);
+    }else if(theme.type==='3d'){
+      container3d.appendChild(option);
+    }
+  });
+}
+
+// Initialize piece themes when DOM is ready
+document.addEventListener('DOMContentLoaded',()=>{
+  generatePieceThemeOptions();
+});
 
 async function _preprocessLocal3D(){
   const CACHE_KEY='local3d-pieces-v7';
@@ -2316,17 +2532,23 @@ const Cfg={
     if(save){this._persist();}
   },
   pieces(style,save=true){
-    const st=(style==='local3d')?'local3d':'neo';
-    this.data.pieceStyle=st;
+    // Support new theme system with fallback
+    let theme=style;
+    if(style==='local3d') theme='wood'; // Map old 3D to new wood theme
+    if(!CHESS_PIECE_THEMES[theme]) theme='neo'; // Default fallback
+    
+    this.data.pieceStyle=theme;
     try{document.querySelectorAll('.pc-opt').forEach(e=>e.classList.remove('on'));}catch(e){}
-    const el=document.getElementById('pc-'+(st==='local3d'?'local3d':'neo'));if(el)el.classList.add('on');
-    if(st==='local3d'){
-      // Use chess.com URLs directly - no preprocessing needed
-      _applyPieceCSS(LOCAL_3D_PIECES);
+    const el=document.getElementById('pc-'+theme);if(el)el.classList.add('on');
+    
+    // Apply the selected theme
+    const pieceUrls=getPieceUrls(theme);
+    if(pieceUrls){
+      _applyPieceCSS(pieceUrls);
       // warm up layout so pieces appear instantly
       try{R.board();}catch(e){}
     }else{
-      _loadChessPieces();
+      _loadChessPieces(); // Fallback to default
     }
     if(save){this._persist();}
   },
@@ -4514,11 +4736,12 @@ const R={
     capWEl.innerHTML='';
     capBEl.innerHTML='';
     
-    const pieceStyle=Cfg.data.pieceStyle||'neo';
+    const pieceTheme=Cfg.data.pieceStyle||'neo';
+    const pieceUrls=getPieceUrls(pieceTheme);
     
-    // Get processed 3D pieces if available
+    // Get processed 3D pieces if available (legacy support)
     let processed3D = null;
-    if(pieceStyle==='local3d'){
+    if(pieceTheme==='local3d'){
       try{
         processed3D = await IDB.kget('local3d-pieces-v7');
       }catch(e){}
@@ -4528,13 +4751,8 @@ const R={
       const div=document.createElement('div');
       div.className='captured-piece';
       const piece=E.tp(p);
-      if(pieceStyle==='local3d'){
-        div.classList.add('local3d');
-        if(processed3D && processed3D['b'+piece]){
-          div.style.backgroundImage=`url(${processed3D['b'+piece]})`;
-        }else{
-          div.style.backgroundImage=`url(${LOCAL_3D_PIECES['b'+piece]})`;
-        }
+      if(pieceUrls){
+        div.style.backgroundImage=`url(${pieceUrls['b'+piece]})`;
       }else{
         div.style.backgroundImage=`url(https://images.chesscomfiles.com/chess-themes/pieces/neo/150/b${piece.toLowerCase()}.png)`;
       }
@@ -4545,13 +4763,8 @@ const R={
       const div=document.createElement('div');
       div.className='captured-piece';
       const piece=E.tp(p);
-      if(pieceStyle==='local3d'){
-        div.classList.add('local3d');
-        if(processed3D && processed3D['w'+piece]){
-          div.style.backgroundImage=`url(${processed3D['w'+piece]})`;
-        }else{
-          div.style.backgroundImage=`url(${LOCAL_3D_PIECES['w'+piece]})`;
-        }
+      if(pieceUrls){
+        div.style.backgroundImage=`url(${pieceUrls['w'+piece]})`;
       }else{
         div.style.backgroundImage=`url(https://images.chesscomfiles.com/chess-themes/pieces/neo/150/w${piece.toLowerCase()}.png)`;
       }
