@@ -1318,21 +1318,17 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 
       <div style="padding-top:12px">
         <div class="sr-n" style="margin-bottom:8px">شكل القطع</div>
-        
-        <!-- 2D Themes Section -->
-        <div style="margin-bottom:16px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">2D قطع</div>
-          <div class="pc-grid" id="pc-2d-grid">
-            <!-- 2D themes will be generated here -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+          <div id="current-piece-display" style="flex:1;background:var(--bg2);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px;display:flex;align-items:center;gap:8px;">
+            <div class="ppc"><div id="current-piece-preview" class="piece"></div></div>
+            <div style="flex:1;">
+              <div id="current-piece-name" style="font-weight:600;color:var(--text);font-size:13px;">Neo</div>
+              <div id="current-piece-type" style="font-size:11px;color:var(--text3);">2D</div>
+            </div>
           </div>
-        </div>
-        
-        <!-- 3D Themes Section -->
-        <div style="margin-bottom:16px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">3D قطع</div>
-          <div class="pc-grid" id="pc-3d-grid">
-            <!-- 3D themes will be generated here -->
-          </div>
+          <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); openPieceSettings();" style="background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:10px 16px;font-weight:600;font-size:12px;cursor:pointer;transition:all 0.2s;">
+            🔧 جميع القطع
+          </button>
         </div>
       </div>
     </div>
@@ -2102,13 +2098,13 @@ const CHESS_PIECE_THEMES={
     name:'Icy Sea',
     type:'2d',
     description:'قطع بحرية جليدية',
-    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/icy-sea/150/'
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/icy_sea/150/'
   },
   'neo-wood':{
     name:'Neo-Wood',
     type:'2d',
     description:'Neo بملمس خشبي',
-    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neo-wood/150/'
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neo_wood/150/'
   },
   'glass':{
     name:'Glass',
@@ -2126,15 +2122,177 @@ const CHESS_PIECE_THEMES={
     name:'Game Room',
     type:'2d',
     description:'قطع غرفة ألعاب',
-    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/game-room/150/'
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/game_room/150/'
+  },
+  'tournament':{
+    name:'Tournament',
+    type:'2d',
+    description:'قطع بطولات',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/tournament/150/'
+  },
+  'metal':{
+    name:'Metal',
+    type:'2d',
+    description:'قطع معدنية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/metal/150/'
+  },
+  'modern':{
+    name:'Modern',
+    type:'2d',
+    description:'قطع حديثة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/modern/150/'
+  },
+  'vintage':{
+    name:'Vintage',
+    type:'2d',
+    description:'قطع كلاسيكية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/vintage/150/'
+  },
+  'graffiti':{
+    name:'Graffiti',
+    type:'2d',
+    description:'قطع جرافيتي',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/graffiti/150/'
+  },
+  'neon':{
+    name:'Neon',
+    type:'2d',
+    description:'قطع نيون',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neon/150/'
+  },
+  'ocean':{
+    name:'Ocean',
+    type:'2d',
+    description:'قطع بحرية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/ocean/150/'
+  },
+  'sky':{
+    name:'Sky',
+    type:'2d',
+    description:'قطع سمائية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/sky/150/'
+  },
+  'space':{
+    name:'Space',
+    type:'2d',
+    description:'قطع فضائية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/space/150/'
+  },
+  'bubblegum':{
+    name:'Bubblegum',
+    type:'2d',
+    description:'قطع علكية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/bubblegum/150/'
+  },
+  '8-bit':{
+    name:'8-Bit',
+    type:'2d',
+    description:'قطع بكسل قديمة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/8_bit/150/'
+  },
+  'light':{
+    name:'Light',
+    type:'2d',
+    description:'قطع خفيفة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/light/150/'
+  },
+  'newspaper':{
+    name:'Newspaper',
+    type:'2d',
+    description:'قطع جريدة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/newspaper/150/'
+  },
+  'nature':{
+    name:'Nature',
+    type:'2d',
+    description:'قطع طبيعية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/nature/150/'
+  },
+  'maya':{
+    name:'Maya',
+    type:'2d',
+    description:'قطع مايا',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/maya/150/'
+  },
+  'club':{
+    name:'Club',
+    type:'2d',
+    description:'قطع ناد',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/club/150/'
+  },
+  'gothic':{
+    name:'Gothic',
+    type:'2d',
+    description:'قطع قوطية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/gothic/150/'
+  },
+  'condal':{
+    name:'Condal',
+    type:'2d',
+    description:'قطع كوندال',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/condal/150/'
+  },
+  'dash':{
+    name:'Dash',
+    type:'2d',
+    description:'قطع سريعة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/dash/150/'
+  },
+  'lolz':{
+    name:'Lolz',
+    type:'2d',
+    description:'قطع مضحكة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/lolz/150/'
+  },
+  'tigers':{
+    name:'Tigers',
+    type:'2d',
+    description:'قطع نمرية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/tigers/150/'
+  },
+  'book':{
+    name:'Book',
+    type:'2d',
+    description:'قطع كتابية',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/book/150/'
+  },
+  'cases':{
+    name:'Cases',
+    type:'2d',
+    description:'قطع صناديق',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/cases/150/'
+  },
+  'blindfold':{
+    name:'Blindfold',
+    type:'2d',
+    description:'قطع معصوبة',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/blindfold/150/'
   },
   
-  // 3D Themes (wood has 3D appearance)
-  'wood':{
-    name:'Wood',
+  // 3D Themes
+  '3d_wood':{
+    name:'3D Wood',
     type:'3d',
     description:'خشبي ثلاثي الأبعاد',
-    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/'
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_wood/150/'
+  },
+  '3d_staunton':{
+    name:'3D Staunton',
+    type:'3d',
+    description:'ستونتون ثلاثي الأبعاد',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_staunton/150/'
+  },
+  '3d_plastic':{
+    name:'3D Plastic',
+    type:'3d',
+    description:'بلاستيك ثلاثي الأبعاد',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_plastic/150/'
+  },
+  '3d_chesskid':{
+    name:'3D ChessKid',
+    type:'3d',
+    description:'أطفال ثلاثي الأبعاد',
+    urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_chesskid/150/'
   }
 };
 
@@ -2216,9 +2374,115 @@ function generatePieceThemeOptions(){
   });
 }
 
+// Piece settings modal functions
+function openPieceSettings(){
+  const modal=document.getElementById('piece-settings-modal');
+  if(modal){
+    modal.style.display='flex';
+    generatePieceThemeOptionsForModal();
+  }
+}
+
+function closePieceSettings(){
+  const modal=document.getElementById('piece-settings-modal');
+  if(modal){
+    modal.style.display='none';
+  }
+}
+
+function generatePieceThemeOptionsForModal(){
+  const container2d=document.getElementById('pc-2d-grid-modal');
+  const container3d=document.getElementById('pc-3d-grid-modal');
+  
+  if(!container2d||!container3d) return;
+  
+  // Clear existing content
+  container2d.innerHTML='';
+  container3d.innerHTML='';
+  
+  // Get current theme
+  const currentTheme=Cfg.data.pieceStyle||'neo';
+  
+  // Generate options for each theme
+  Object.entries(CHESS_PIECE_THEMES).forEach(([key,theme])=>{
+    const urls=getPieceUrls(key);
+    if(!urls) return;
+    
+    const option=document.createElement('div');
+    option.className='pc-opt';
+    option.id='pc-modal-'+key;
+    if(key===currentTheme) option.classList.add('on');
+    option.onclick=function(){
+      if(typeof SFX !== 'undefined') SFX.btn();
+      Cfg.pieces(key);
+      updateCurrentPieceDisplay(key);
+      closePieceSettings();
+    };
+    
+    // Create preview with king and queen
+    const preview=document.createElement('div');
+    preview.className='pc-prev';
+    
+    const whiteKing=document.createElement('div');
+    whiteKing.className='ppc';
+    whiteKing.innerHTML='<div class="piece" style="background-image:url(\'' + urls.wK + '\')"></div>';
+    
+    const blackQueen=document.createElement('div');
+    blackQueen.className='ppc';
+    blackQueen.innerHTML='<div class="piece" style="background-image:url(\'' + urls.bQ + '\')"></div>';
+    
+    preview.appendChild(whiteKing);
+    preview.appendChild(blackQueen);
+    
+    const label=document.createElement('div');
+    label.className='pc-lbl';
+    label.textContent=theme.name;
+    
+    const description=document.createElement('div');
+    description.className='pc-sub';
+    description.textContent=theme.description;
+    
+    option.appendChild(preview);
+    option.appendChild(label);
+    option.appendChild(description);
+    
+    // Add to appropriate container
+    if(theme.type==='2d'){
+      container2d.appendChild(option);
+    }else if(theme.type==='3d'){
+      container3d.appendChild(option);
+    }
+  });
+}
+
+function updateCurrentPieceDisplay(themeKey){
+  const theme=CHESS_PIECE_THEMES[themeKey];
+  if(!theme) return;
+  
+  const urls=getPieceUrls(themeKey);
+  if(!urls) return;
+  
+  const preview=document.getElementById('current-piece-preview');
+  const name=document.getElementById('current-piece-name');
+  const type=document.getElementById('current-piece-type');
+  
+  if(preview) preview.style.backgroundImage='url(\'' + urls.wK + '\')';
+  if(name) name.textContent=theme.name;
+  if(type) type.textContent=theme.type.toUpperCase();
+}
+
 // Initialize piece themes when DOM is ready
 document.addEventListener('DOMContentLoaded',()=>{
   generatePieceThemeOptions();
+  updateCurrentPieceDisplay(Cfg.data.pieceStyle||'neo');
+});
+
+// Close modal when clicking outside
+document.addEventListener('click',(e)=>{
+  const modal=document.getElementById('piece-settings-modal');
+  if(modal && e.target===modal){
+    closePieceSettings();
+  }
 });
 
 async function _preprocessLocal3D(){
@@ -6420,7 +6684,35 @@ try{Notifications._handleDeepLink();}catch(e){}
 window.addEventListener('beforeunload',()=>{
   try{CHAT._stopRecording();}catch(e){}
 });
-
 </script>
+
+<!-- Piece Settings Modal -->
+<div id="piece-settings-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg);border:1px solid rgba(201,168,76,0.2);border-radius:16px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 20px 0;border-bottom:1px solid rgba(201,168,76,0.1);margin-bottom:20px;">
+      <h3 style="color:var(--gold2);font-size:18px;margin:0;">🎨 جميع قطع الشطرنج</h3>
+      <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;padding:4px;">&times;</button>
+    </div>
+    
+    <div style="padding:0 20px 20px;">
+      <!-- 2D Themes Section -->
+      <div style="margin-bottom:24px;">
+        <div class="pc-section-header">2D قطع</div>
+        <div class="pc-grid" id="pc-2d-grid-modal">
+          <!-- 2D themes will be generated here -->
+        </div>
+      </div>
+      
+      <!-- 3D Themes Section -->
+      <div style="margin-bottom:24px;">
+        <div class="pc-section-header">3D قطع</div>
+        <div class="pc-grid" id="pc-3d-grid-modal">
+          <!-- 3D themes will be generated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
