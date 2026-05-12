@@ -98,34 +98,22 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .screen{display:none;position:relative;z-index:1;padding-top:36px;}
 .screen.active{display:flex;animation:sfd .35s cubic-bezier(.25,.46,.45,.94);}
 @media(min-width:900px){
-  /* mode-local on desktop - uses flex column like mobile but centered */
+  /* mode-local on desktop - use same grid layout as other modes */
   #s-game.active.mode-local{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    padding:46px 16px 24px;
+    display:grid!important;
+    grid-template-columns:minmax(200px, 1fr) var(--board) minmax(200px, 1fr);
+    grid-template-rows:auto auto auto auto auto auto;
     gap:12px;
+    padding:46px 16px 24px;
     min-height:100dvh;
   }
-  #s-game.mode-local .gtop{position:static!important;transform:none!important;z-index:auto!important;width:100%;max-width:510px;margin:0 auto;}
-  #s-game.mode-local #bar-b,
-  #s-game.mode-local #bar-w{
-    width:100%!important;
-    max-width:510px!important;
-    align-self:center!important;
-  }
-  #s-game.mode-local #board-container{
-    width:100%!important;
-    max-width:510px!important;
-    align-self:center!important;
-  }
-  #s-game.mode-local .gtbar,
-  #s-game.mode-local .sbar,
-  #s-game.mode-local .mvhist{
-    width:100%!important;
-    max-width:510px!important;
-    align-self:center!important;
-  }
+  #s-game.mode-local .gtop{grid-column:1 / -1; grid-row:1; position:static!important;transform:none!important;z-index:auto!important;width:100%;max-width:none;margin:0;}
+  #s-game.mode-local #bar-b{grid-column:1; grid-row:2 / 5; width:100%; max-width:170px; justify-self:center;}
+  #s-game.mode-local #board-container{grid-column:2; grid-row:2 / 5; justify-self:center; align-self:center;}
+  #s-game.mode-local #bar-w{grid-column:3; grid-row:2 / 5; width:100%; max-width:170px; justify-self:center;}
+  #s-game.mode-local .gtbar{grid-column:2; grid-row:5; width:var(--board)!important; max-width:var(--board)!important; justify-self:center;}
+  #s-game.mode-local .sbar{grid-column:2; grid-row:6; width:var(--board)!important; max-width:var(--board)!important; justify-self:center;}
+  #s-game.mode-local .mvhist{grid-column:2; grid-row:7; width:var(--board)!important; max-width:var(--board)!important; justify-self:center;}
   #s-game.mode-local .chat-wrap{display:none!important;}
 }
 @keyframes sfd{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -1112,11 +1100,11 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
     display:flex;
     justify-content:space-between;
   }
-  /* Reorder elements in two-player mode - sbar below board */
+  /* Local 2-player mode should have same layout as other modes */
   #s-game.mode-local{flex-direction:column;}
-  #s-game.mode-local .gtbar{order:3;}
-  #s-game.mode-local .sbar{order:5;}
-  #s-game.mode-local .mvhist{order:6;}
+  #s-game.mode-local .gtbar{order:2;}
+  #s-game.mode-local .sbar{order:3;}
+  #s-game.mode-local .mvhist{order:4;}
 }
 </style>
 <!-- Firebase SDK for Firestore only (no auth) -->
@@ -2018,7 +2006,7 @@ async function _preprocessLocal3D(){
         const im=ctx.getImageData(0,0,w,h);
         const d=im.data;
         
-        // Much more conservative background detection - preserve piece integrity
+        // Very conservative processing - preserve black piece integrity
         for(let i=0;i<d.length;i+=4){
           const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
           
@@ -2029,43 +2017,39 @@ async function _preprocessLocal3D(){
           const lum=0.299*r+0.587*g+0.114*b;
           const sat=Math.max(r,g,b)-Math.min(r,g,b);
           
-          // ONLY remove obvious pure black backgrounds - be extremely conservative
-          if(lum<2 && a>240 && sat<5){
+          // ONLY remove pure black background pixels - be extremely conservative
+          // Only remove if it's almost pure black AND very high saturation (indicating background)
+          if(lum<1 && a>250 && sat<2){
             d[i+3]=0;
             continue;
           }
           
-          // Very gentle background cleanup for near-black pixels
-          if(lum<5 && a>230 && sat<10){
-            d[i+3]=Math.max(220, d[i+3] - 15);
+          // For black pieces, preserve almost all opacity
+          // Only slightly reduce obvious background pixels
+          if(lum<3 && a>240 && sat<5){
+            d[i+3]=Math.max(235, d[i+3] - 5);
             continue;
           }
           
-          // Preserve ALL piece details - minimal opacity reduction
-          if(lum<50 && sat<30 && a>200){
-            // Keep most of the opacity for piece details
-            d[i+3]=Math.max(180, d[i+3] - 10);
+          // Preserve ALL dark piece details completely
+          if(lum<60 && sat<40){
+            // Keep full opacity for piece details
+            if(a>200) d[i+3]=Math.min(255, a + 5);
             continue;
           }
           
-          // Enhance piece contrast and visibility
+          // Enhance visibility for all pieces
           if(a>100){
-            // Slightly boost opacity for better visibility
-            d[i+3]=Math.min(255, d[i+3] + 8);
-            // Enhance contrast for dark pieces
-            if(lum<80){
-              d[i]=Math.max(0, r - 5);
-              d[i+1]=Math.max(0, g - 5);
-              d[i+2]=Math.max(0, b - 5);
-            }
+            // Boost opacity slightly for better visibility
+            d[i+3]=Math.min(255, d[i+3] + 3);
           }
         }
         
         ctx.putImageData(im,0,0);
         
-        // Apply subtle edge enhancement
+        // Apply very gentle edge enhancement - preserve black pieces
         ctx.globalCompositeOperation = 'source-over';
-        ctx.filter = 'contrast(1.1) brightness(1.05)';
+        ctx.filter = 'contrast(1.03) brightness(1.02)';
         ctx.drawImage(canvas,0,0,w,h);
         ctx.filter = 'none';
         
@@ -5219,6 +5203,13 @@ const Nav={
     try{CHAT._stopRecording();}catch(e){}
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    
+    // Load profile data when settings screen is opened
+    if(id === 's-settings'){
+      setTimeout(() => {
+        try{loadSettingsProfile();}catch(e){}
+      }, 50);
+    }
   },
   menu(){Nav.show('s-menu');},
   levels(){Nav.show('s-levels');LVL.buildUI();},
@@ -5235,6 +5226,7 @@ function fixBars(myCol){
   const barW=document.getElementById('bar-w');
   const parent=document.getElementById('s-game');
 
+  // Remove existing placements
   if(barB.parentNode===parent)parent.removeChild(barB);
   if(container.parentNode===parent)parent.removeChild(container);
   if(barW.parentNode===parent)parent.removeChild(barW);
@@ -5242,18 +5234,19 @@ function fixBars(myCol){
   const gtbar=document.getElementById('s-game').querySelector('.gtbar');
 
   if(myCol==='both'){
-    // For local 2-player mode, place bars on both sides of the board
-    gtbar.parentNode.insertBefore(barB, gtbar);
-    gtbar.parentNode.insertBefore(container, gtbar);
-    gtbar.parentNode.insertBefore(barW, gtbar);
+    // For local 2-player mode, use consistent layout like other modes
+    // Place bars and container in the correct order for grid layout
+    parent.appendChild(barB);
+    parent.appendChild(container);
+    parent.appendChild(barW);
   }else if(myCol==='b'){
-    gtbar.parentNode.insertBefore(barW, gtbar);
-    gtbar.parentNode.insertBefore(container, gtbar);
-    gtbar.parentNode.insertBefore(barB, gtbar);
+    parent.appendChild(barW);
+    parent.appendChild(container);
+    parent.appendChild(barB);
   }else{
-    gtbar.parentNode.insertBefore(barB, gtbar);
-    gtbar.parentNode.insertBefore(container, gtbar);
-    gtbar.parentNode.insertBefore(barW, gtbar);
+    parent.appendChild(barB);
+    parent.appendChild(container);
+    parent.appendChild(barW);
   }
 }
 
@@ -6033,6 +6026,8 @@ window.addEventListener('load',async ()=>{
         navigator.storage.persist().catch(()=>{});
       }
     }catch(e){}
+    // Load profile data after configuration is loaded
+    try{loadSettingsProfile();}catch(e){}
     SFX.init();
     DRAG.init();
     _loadChessPieces();
