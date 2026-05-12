@@ -4654,16 +4654,17 @@ const G={
     document.getElementById('go-next').style.display='none';
     document.getElementById('go-stars').style.display='none';
   },
-  start(mode,diff){
-    this._reset(mode,diff);
-    if(mode==='local'){
-      document.getElementById('nm-w').textContent='اللاعب الأبيض';
-      document.getElementById('nm-b').textContent='اللاعب الأسود';
-      document.getElementById('gmode').textContent='⚔ لاعبَان';
-      fixBars('both');}
-    Nav.game();R.all();updatePlayerImages();
+  async startLocalGame(){
+    this._reset('local',0);
+    document.getElementById('nm-w').textContent='اللاعب الأبيض';
+    document.getElementById('nm-b').textContent='اللاعب الأسود';
+    document.getElementById('gmode').textContent='⚔ لاعبَان';
+    fixBars('both');
+    Nav.game();
+    await R.all();
+    updatePlayerImages();
   },
-  startLevel(id){
+  async startLevel(id){
     const lv=LEVELS_DEF[id];
     this._reset('bot',lv.depth);
     S.levelId=id;S.myCol='w';
@@ -4672,7 +4673,7 @@ const G={
     document.getElementById('nm-b').textContent=`نور — ${lv.name}`;
     document.getElementById('gmode').textContent=`◈ المرحلة ${id+1}: ${lv.name}`;
     fixBars('w');
-    Nav.game();R.all();updatePlayerImages();
+    Nav.game();await R.all();updatePlayerImages();
     CHAT.show();
   },
   click(r,c){
@@ -4722,11 +4723,11 @@ const G={
     if(tp==='P'&&(to[0]===0||to[0]===7)){S.pending={fr,to};this.showPromo(cl);return;}
     this.finish(fr,to,null);
   },
-  finish(fr,to,promo){
+  async finish(fr,to,promo){
     if(S.mode==='online')OL.sendMove({fr,to,promo});
-    this.applyMove(fr,to,promo);
+    await this.applyMove(fr,to,promo);
   },
-  applyMove(fr,to,promo){
+  async applyMove(fr,to,promo){
     const cl=E.col(S.bd[fr[0]][fr[1]]);
     const isOwnMove=S.mode!=='online'||(S.turn===S.myCol);
     if(isOwnMove){S.preMove=null;S.preMoveSelFr=null;}
@@ -4775,7 +4776,7 @@ const G={
     else if(res.cap)    SFX.capture();
     else if(isCheck)    SFX.check();
     else                SFX.move();
-    R.all();
+    await R.all();
     if(S.mode==='bot'&&S.levelId>=0){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
@@ -5164,23 +5165,23 @@ const G={
     if(S.mode==='online')OL.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
-  toggleAst(){
+  async toggleAst(){
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
     if(S.mode==='online')OL.sendAssist(S.assistOn);
     if(S.assistOn){SFX.hint();AST.compute();}
-    R.all();
+    await R.all();
   },
-  toggleAstFor(col){
+  async toggleAstFor(col){
     SFX.btn();
     if(col==='w'){S.assistW=!S.assistW;}
     else{S.assistB=!S.assistB;}
     S.assistOn=S.turn==='w'?S.assistW:S.assistB;
     AST.clear();
     if(S.assistOn){SFX.hint();AST.compute();}
-    R.all();
+    await R.all();
   },
-  toggleHints(){SFX.btn();S.hintsOn=!S.hintsOn;R.all();},
-  undo(){
+  async toggleHints(){SFX.btn();S.hintsOn=!S.hintsOn;await R.all();},
+  async undo(){
     if(S.mode!=='local'&&S.mode!=='level')return;
     if(S.over){S.over=false;document.getElementById('go-ov').classList.remove('open');}
     if(!S.undoStack.length){SFX.illegal();return;}
@@ -5196,7 +5197,7 @@ const G={
     S.assistOn=S.turn==='w'?S.assistW:S.assistB;
     S.sel=null;S.legal=[];S.pending=null;S.busy=false;
     AST.clear();
-    R.all();
+    await R.all();
   }
 };
 
@@ -5435,7 +5436,7 @@ const OL=(()=>{
     }
   }
 
-  function _go(mc,oppName){
+  async function _go(mc,oppName){
     const normName=(name,fallback)=>{
       const v=(name||'').trim();
       if(!v||v==='أنا')return fallback;
@@ -5455,7 +5456,7 @@ const OL=(()=>{
       send({type:'name',name:myName});
       if(Cfg.data.playerImage) send({type:'pimg',img:Cfg.data.playerImage});
     },300);
-    Nav.game();R.all();updatePlayerImages();
+    Nav.game();await R.all();updatePlayerImages();
     // Play start game sound
     SFX.startgame();
     // Notify game started
