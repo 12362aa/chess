@@ -1248,7 +1248,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
             <div class="pc-sub">سريع وخفيف</div>
           </div>
           <div class="pc-opt" id="pc-local3d" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.pieces('local3d')">
-            <div class="pc-prev"><div class="ppc"><div class="piece" style="background-image:url('./wk1.png')"></div></div><div class="ppc"><div class="piece" style="background-image:url('./bq1.png')"></div></div></div>
+            <div class="pc-prev"><div class="ppc"><div class="piece" style="background-image:url('https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wk.png')"></div></div><div class="ppc"><div class="piece" style="background-image:url('https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bq.png')"></div></div></div>
             <div class="pc-lbl">3D</div>
             <div class="pc-sub">تأثير ثلاثي الأبعاد</div>
           </div>
@@ -1991,8 +1991,18 @@ const UI_THEMES={
 };
 
 const LOCAL_3D_PIECES={
-  wK:'./wk1.png',wQ:'./wq1.png',wR:'./wr1.png',wB:'./wb1.png',wN:'./wn1.png',wP:'./wp1.png',
-  bK:'./bk1.png',bQ:'./bq1.png',bR:'./br1.png',bB:'./bb1.png',bN:'./bn1.png',bP:'./bp1.png'
+  wK:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wk.png',
+  wQ:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wq.png',
+  wR:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wr.png',
+  wB:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wb.png',
+  wN:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wn.png',
+  wP:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/wp.png',
+  bK:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bk.png',
+  bQ:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bq.png',
+  bR:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/br.png',
+  bB:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bb.png',
+  bN:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bn.png',
+  bP:'https://images.chesscomfiles.com/chess-themes/pieces/wood/150/bp.png'
 };
 
 async function _preprocessLocal3D(){
@@ -2311,12 +2321,10 @@ const Cfg={
     try{document.querySelectorAll('.pc-opt').forEach(e=>e.classList.remove('on'));}catch(e){}
     const el=document.getElementById('pc-'+(st==='local3d'?'local3d':'neo'));if(el)el.classList.add('on');
     if(st==='local3d'){
-      // Preprocess once to remove black background, then apply.
-      _preprocessLocal3D().then(map=>{
-        _applyPieceCSS(map);
-        // warm up layout so pieces appear instantly
-        try{R.board();}catch(e){}
-      }).catch(()=>{_applyPieceCSS(LOCAL_3D_PIECES);});
+      // Use chess.com URLs directly - no preprocessing needed
+      _applyPieceCSS(LOCAL_3D_PIECES);
+      // warm up layout so pieces appear instantly
+      try{R.board();}catch(e){}
     }else{
       _loadChessPieces();
     }
