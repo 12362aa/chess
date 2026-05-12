@@ -436,9 +436,12 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .sq.ast-from{box-shadow:inset 0 0 0 3px rgba(96,165,250,.85);}
 .sq.dot::after{content:'';position:absolute;width:33%;height:33%;border-radius:50%;background:var(--dot-color, rgba(45,212,191,.55));box-shadow:0 0 10px var(--dot-shadow, rgba(45,212,191,.25));pointer-events:none;z-index:2;}
 .sq.ring::after{content:'';position:absolute;inset:6%;border-radius:50%;border:5px solid var(--dot-color, rgba(45,212,191,.55));box-shadow:0 0 10px var(--dot-shadow, rgba(45,212,191,.18));pointer-events:none;z-index:2;}
-.dot-color-select{width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
-.dot-color-select:hover{border-color:rgba(201,168,76,.3);}
-.dot-color-select:focus{outline:none;border-color:var(--gold2);box-shadow:0 0 0 2px rgba(201,168,76,.2);}
+.dot-color-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.dot-color-opt{padding:8px;border-radius:8px;border:2px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--text);cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);text-align:center;font-size:11px;display:flex;flex-direction:column;gap:4px;align-items:center;}
+.dot-color-opt:hover{border-color:rgba(201,168,76,.3);transform:scale(1.05);}
+.dot-color-opt.active{border-color:var(--gold2);background:rgba(201,168,76,.1);box-shadow:0 0 8px rgba(201,168,76,.2);}
+.dot-color-swatch{width:24px;height:24px;border-radius:6px;border:1px solid rgba(255,255,255,.2);margin-bottom:2px;}
+.dot-color-opt span{font-weight:600;font-size:10px;}
 .crd-r,.crd-f{position:absolute;font-size:9px;font-weight:700;opacity:.6;pointer-events:none;z-index:3;line-height:1;}
 .crd-r{bottom:2px;left:3px;}.crd-f{top:2px;right:3px;}
 .sq.D .crd-r,.sq.D .crd-f,.sq.SD .crd-r,.sq.SD .crd-f,.sq.MD .crd-r,.sq.MD .crd-f{color:var(--sq-l);}
@@ -451,7 +454,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   text-shadow: 1px 1px 2px #000;
 }
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
-.piece{--rot:0deg;position:relative;z-index:4;width:80%;height:80%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
+.piece{--rot:0deg;position:relative;z-index:4;width:85%;height:85%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
 /* Local 2-player: flip ALL pieces when black's turn so they appear upright for black player */
 /* Online mode: prevent ALL flipping */
@@ -491,7 +494,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .pp:hover{border-color:var(--gold);background-color:rgba(201,168,76,.11);transform:scale(1.1) translateY(-3px);box-shadow:0 8px 20px rgba(201,168,76,.2);}
 
 /* ══════════ GAME OVER ══════════ */
-#go-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);z-index:850;align-items:center;justify-content:center;padding:16px;}
+#go-ov{display:none;position:fixed;inset:0;background:transparent;backdrop-filter:blur(10px);z-index:850;align-items:center;justify-content:center;padding:16px;}
 #go-ov.open{display:flex;}
 .gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:38px 30px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);}
 .go-em{font-size:58px;display:block;margin-bottom:11px;animation:flt 2s ease-in-out infinite;}
@@ -591,6 +594,60 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .rv-chip.inaccuracy{border-color:rgba(255,200,0,.35);color:#ffe000;}
 .rv-chip.mistake{border-color:rgba(248,113,113,.35);color:var(--red);}
 .rv-chip.blunder{border-color:rgba(255,50,50,.4);color:#ff5555;}
+
+/* Anime theme special effects */
+[data-theme="anime"] {
+  --anime-glow: 0 0 20px rgba(255,105,180,0.6);
+  --anime-pulse: 0 0 30px rgba(0,191,255,0.4);
+}
+[data-theme="anime"] #board {
+  box-shadow: var(--anime-glow), inset 0 0 40px rgba(255,105,180,0.1);
+  border: 2px solid rgba(255,105,180,0.3);
+}
+[data-theme="anime"] .piece {
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)) drop-shadow(var(--anime-pulse));
+  animation: animePulse 3s ease-in-out infinite;
+}
+[data-theme="anime"] .sq:hover {
+  background: radial-gradient(circle, rgba(255,105,180,0.2) 0%, transparent 70%);
+}
+[data-theme="anime"] .pbar {
+  background: linear-gradient(135deg, rgba(255,105,180,0.1), rgba(0,191,255,0.1));
+  border: 1px solid rgba(255,105,180,0.2);
+}
+[data-theme="anime"] .btn {
+  background: linear-gradient(135deg, rgba(255,105,180,0.8), rgba(0,191,255,0.8));
+  border: 1px solid rgba(255,105,180,0.4);
+  text-shadow: 0 0 10px rgba(255,105,180,0.5);
+}
+[data-theme="anime"] .btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255,105,180,0.6);
+}
+[data-theme="anime"] .screen {
+  background: radial-gradient(ellipse at center, rgba(255,105,180,0.05) 0%, transparent 70%);
+}
+@keyframes animePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+[data-theme="anime"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 80%, rgba(255,105,180,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(0,191,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+  animation: animeFloat 10s ease-in-out infinite;
+}
+@keyframes animeFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
 /* summary */
 .rv-sumbar{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
 .rv-sum-col{flex:1;text-align:center;}
@@ -1039,17 +1096,44 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
       </div>
       <div class="sr">
         <div class="sr-l"><div class="sr-n">لون النقاط</div><div class="sr-d">اختر لون نقاط التلميح</div></div>
-        <select class="dot-color-select" id="set-dot-color" onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()">
-          <option value="#2dd4bf">سماوي (افتراضي)</option>
-          <option value="#f87171">أحمر</option>
-          <option value="#4ade80">أخضر</option>
-          <option value="#60a5fa">أزرق</option>
-          <option value="#fbbf24">ذهبي</option>
-          <option value="#a78bfa">بنفسجي</option>
-          <option value="#fb923c">برتقالي</option>
-          <option value="#ec4899">وردي</option>
-          <option value="transparent">شفاف</option>
-        </select>
+        <div class="dot-color-picker" id="dot-color-picker">
+          <div class="dot-color-opt active" data-color="#2dd4bf" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#2dd4bf')">
+            <div class="dot-color-swatch" style="background:#2dd4bf"></div>
+            <span>سماوي</span>
+          </div>
+          <div class="dot-color-opt" data-color="#f87171" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#f87171')">
+            <div class="dot-color-swatch" style="background:#f87171"></div>
+            <span>أحمر</span>
+          </div>
+          <div class="dot-color-opt" data-color="#4ade80" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#4ade80')">
+            <div class="dot-color-swatch" style="background:#4ade80"></div>
+            <span>أخضر</span>
+          </div>
+          <div class="dot-color-opt" data-color="#60a5fa" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#60a5fa')">
+            <div class="dot-color-swatch" style="background:#60a5fa"></div>
+            <span>أزرق</span>
+          </div>
+          <div class="dot-color-opt" data-color="#fbbf24" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#fbbf24')">
+            <div class="dot-color-swatch" style="background:#fbbf24"></div>
+            <span>ذهبي</span>
+          </div>
+          <div class="dot-color-opt" data-color="#a78bfa" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#a78bfa')">
+            <div class="dot-color-swatch" style="background:#a78bfa"></div>
+            <span>بنفسجي</span>
+          </div>
+          <div class="dot-color-opt" data-color="#fb923c" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#fb923c')">
+            <div class="dot-color-swatch" style="background:#fb923c"></div>
+            <span>برتقالي</span>
+          </div>
+          <div class="dot-color-opt" data-color="#ec4899" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#ec4899')">
+            <div class="dot-color-swatch" style="background:#ec4899"></div>
+            <span>وردي</span>
+          </div>
+          <div class="dot-color-opt" data-color="transparent" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('transparent')">
+            <div class="dot-color-swatch" style="background:linear-gradient(45deg, #ccc 25%, #fff 25%, #fff 50%, #ccc 50%, #ccc 75%, #fff 75%);border:2px solid #999;"></div>
+            <span>شفاف</span>
+          </div>
+        </div>
       </div>
     </div>
     <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
@@ -1529,7 +1613,7 @@ const SFX=(()=>{
     loss()      {play('error');},       // Defeat sound (local)
     resign()    {play('error');},      // Same as loss
     levelDone() {winSynth();},   // Level complete sound (synth)
-    startgame() {if(!playExt('startgame'))play('move');}, // Online game start sound
+    startgame() {if(!playExt('startgame'))play('startgame');}, // Online game start sound
     captureCheck(){play('check');},
     select() {uiClick();},
     btn()    {uiClick();},
@@ -1652,7 +1736,12 @@ const UI_THEMES={
     teal:'#00bfff',teal2:'#40d0ff',
     red:'#ff4080',green:'#40ff80',blue:'#8080ff',
     text:'#ffe0f0',text2:'#ffb0d0',text3:'#ff80a0',
-    accent:'#ff69b4',accent2:'#00bfff',fxGlow:'rgba(255,105,180,.35)',fxNeon:'rgba(0,191,255,.35)'
+    accent:'#ff69b4',accent2:'#00bfff',fxGlow:'rgba(255,105,180,.35)',fxNeon:'rgba(0,191,255,.35)',
+    // Anime-specific styles
+    animeStyle:true,
+    boardGlow:true,
+    pieceGlow:true,
+    particleEffect:true
   }
 };
 
@@ -1662,7 +1751,7 @@ const LOCAL_3D_PIECES={
 };
 
 async function _preprocessLocal3D(){
-  const CACHE_KEY='local3d-pieces-v3';
+  const CACHE_KEY='local3d-pieces-v4';
   try{
     const cached=await IDB.kget(CACHE_KEY);
     if(cached&&typeof cached==='object'&&Object.keys(cached).length===12)return cached;
@@ -1688,10 +1777,10 @@ async function _preprocessLocal3D(){
           if(a===0)continue;
           // Use luminance to detect background - more accurate than simple RGB
           const lum=0.299*r+0.587*g+0.114*b;
-          // Background is very dark (near black) - use higher threshold to avoid cutting into black pieces
-          if(lum<12&&a>200){d[i+3]=0;continue;}
+          // Background is very dark (near black) - use much higher threshold to preserve black pieces
+          if(lum<8&&a>200){d[i+3]=0;continue;}
           // Soften dark halo but preserve black piece details
-          if(lum<25&&a>200){d[i+3]=Math.min(d[i+3],220);}
+          if(lum<20&&a>200){d[i+3]=Math.min(d[i+3],240);}
         }
         ctx.putImageData(im,0,0);
         const b64=canvas.toDataURL('image/png');
@@ -1774,6 +1863,15 @@ const Cfg={
     try{ IDB.kset('cfg',this.data); }catch(e){}
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
   },
+  setDotColor(color){
+    this.data.dotColor=color;
+    this._persist();
+    this.apply();
+    // Update active state in UI
+    document.querySelectorAll('.dot-color-opt').forEach(el=>{
+      el.classList.toggle('active', el.dataset.color===color);
+    });
+  },
   apply(){
     document.getElementById('set-sound').checked   =this.data.sound;
     document.getElementById('set-vol').value       =this.data.vol;
@@ -1782,7 +1880,6 @@ const Cfg={
     document.getElementById('set-check').checked   =this.data.check;
     document.getElementById('set-score').checked   =this.data.score;
     document.getElementById('set-confirm').checked =this.data.confirm;
-    const dotColorEl=document.getElementById('set-dot-color');if(dotColorEl)dotColorEl.value=this.data.dotColor||'#2dd4bf';
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
     this._updateAvatar(this.data.playerName||'');
     // Apply dot color to CSS variables
@@ -1798,6 +1895,10 @@ const Cfg={
       document.documentElement.style.setProperty('--dot-color',color);
       document.documentElement.style.setProperty('--dot-shadow',`rgba(${r},${g},${b},0.25)`);
     }
+    // Update active state in UI
+    document.querySelectorAll('.dot-color-opt').forEach(el=>{
+      el.classList.toggle('active', el.dataset.color===color);
+    });
     this._updateProfileImage();
     this.uiTheme(this.data.uiTheme,false);
     this.pieces(this.data.pieceStyle,false);
