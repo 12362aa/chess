@@ -241,44 +241,6 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .oc-sub{color:var(--text2);font-size:12px;text-align:center;margin-bottom:16px;}
 .p2p{background:rgba(45,212,191,.05);border:1px solid rgba(45,212,191,.13);border-radius:8px;padding:10px 11px;margin-bottom:11px;font-size:12px;color:var(--text2);line-height:1.65;text-align:center;}
 .p2p strong{color:var(--teal2);}
-.learn-wrap{width:100%;max-width:860px;display:flex;flex-direction:column;gap:11px;}
-.learn-card{background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:18px;padding:16px;box-shadow:0 8px 36px rgba(0,0,0,.35);}
-.learn-h{font-family:'Amiri',serif;font-size:24px;color:var(--gold2);text-align:center;margin-bottom:4px;}
-.learn-sub{color:var(--text2);font-size:12px;text-align:center;line-height:1.7;margin-bottom:12px;}
-.learn-search{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid rgba(201,168,76,.16);border-radius:12px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:12px;}
-.learn-search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
-.learn-layout{display:grid;grid-template-columns:280px 1fr;gap:12px;align-items:start;}
-@media(max-width:820px){.learn-layout{grid-template-columns:1fr;}}
-.learn-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:15px;}
-.learn-tab{flex:1;padding:8px;background:transparent;border:none;border-radius:7px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
-.learn-tab.on{background:var(--bg4);color:var(--gold2);box-shadow:0 2px 8px rgba(0,0,0,.3);}
-.learn-sec{display:none;}
-.learn-sec.on{display:block;}
-.learn-list{display:flex;flex-direction:column;gap:8px;}
-.learn-item{background:var(--bg3);border:1px solid rgba(201,168,76,.16);border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;}
-.learn-item:hover{background:var(--bg4);border-color:rgba(201,168,76,.3);transform:scale(1.02);}
-.learn-it{font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:4px;}
-.learn-id{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.5;}
-.learn-body{margin-top:12px;padding-top:12px;border-top:1px solid rgba(201,168,76,.16);font-size:14px;line-height:1.7;color:var(--text);}
-.learn-ch{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:10px;max-height:min(62vh,520px);overflow:auto;}
-.learn-ch::-webkit-scrollbar{width:8px;}
-.learn-ch::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px;}
-.learn-chh{font-size:11px;color:var(--text3);letter-spacing:2px;font-weight:900;margin-bottom:8px;text-transform:uppercase;text-align:center;}
-.learn-chit{padding:9px 10px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:background .12s,border-color .12s,transform .12s;}
-.learn-chit:hover{background:rgba(201,168,76,.06);border-color:rgba(201,168,76,.16);transform:translateY(-1px);}
-.learn-chit.on{background:rgba(45,212,191,.08);border-color:rgba(45,212,191,.18);}
-.learn-cht{font-size:13px;font-weight:900;color:var(--text);margin-bottom:2px;}
-.learn-chd{font-size:11px;color:var(--text2);line-height:1.5;}
-.learn-reader{background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px;max-height:min(62vh,520px);overflow:auto;}
-.learn-reader::-webkit-scrollbar{width:8px;}
-.learn-reader::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px;}
-.learn-rt{font-family:'Amiri',serif;font-size:20px;color:var(--text);margin-bottom:6px;text-align:right;}
-.learn-rm{font-size:12px;color:var(--text2);line-height:1.85;white-space:pre-line;text-align:right;}
-.learn-call{margin-top:10px;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,rgba(201,168,76,.10),rgba(45,212,191,.08));border:1px solid rgba(201,168,76,.14);}
-.learn-call-h{font-size:11px;color:var(--gold2);font-weight:900;margin-bottom:4px;}
-.learn-call-t{font-size:12px;color:var(--text);line-height:1.8;white-space:pre-line;}
-.learn-ex{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
-.learn-ex-h{font-size:12px;color:var(--teal2);font-weight:900;}
 .mini-board{--msz:220px;width:var(--msz);height:var(--msz);display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35);margin-inline:auto;background:rgba(255,255,255,.02);}
 @media(max-width:420px){.mini-board{--msz:200px;}}
 .mini-sq{position:relative;display:flex;align-items:center;justify-content:center;}
@@ -379,7 +341,8 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .pb-ast.spy{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
 .pb-caps{flex:1;text-align:center;font-size:10px;line-height:1.6;padding:0 3px;display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;}
 #cap-w,#cap-b{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;}
-.captured-piece{width:14px;height:14px;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));}
+.captured-piece{width:14px;height:14px;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));border-radius:2px;}
+.captured-piece.local3d{filter:drop-shadow(0 1px 3px rgba(0,0,0,.3)) brightness(1.1) contrast(1.05);}
 .pb-ast-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text3);font-size:13px;width:25px;height:25px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
 .pb-ast-btn:hover{border-color:rgba(201,168,76,.4);color:var(--gold2);}
 .pb-ast-btn.on{border-color:rgba(201,168,76,.6);color:var(--gold2);background:rgba(201,168,76,.12);box-shadow:0 0 8px rgba(201,168,76,.2);}
@@ -1165,22 +1128,6 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <body>
 <div id="particles"></div>
 
-<!-- LEARN -->
-<div id="s-learn" class="screen">
-  <div class="learn-wrap" style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:46px 14px 24px;display:flex;">
-    <div class="learn-card">
-      <div class="learn-h">تعلم الشطرنج</div>
-      <div class="learn-sub">كتاب تعليمي عربي داخل التطبيق — أمثلة وتطبيقات سريعة (محفوظ أوفلاين)</div>
-      <input class="learn-search" id="learn-search" placeholder="ابحث عن درس… مثل: كش، تبييت، مات" oninput="TUT.search(this.value)">
-      <div class="learn-layout">
-        <div class="learn-tabs" id="learn-tabs"></div>
-        <div class="learn-secs" id="learn-secs"></div>
-        <div class="learn-meta" id="learn-meta"></div>
-      </div>
-    </div>
-    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
-  </div>
-</div>
 
 <!-- BANNER -->
 <div id="banner">
@@ -1230,13 +1177,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
       <span class="mc-b bb">تخصيص</span>
     </div>
 
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.learn()">
-      <span class="mc-ic ic-gold">☰</span>
-      <div class="mc-t">تعلم الشطرنج</div>
-      <div class="mc-d">دروس عربية قصيرة — بدون إنترنت</div>
-      <span class="mc-b bg">اقرأ لتتعلم ◈</span>
-    </div>
-  </div>
+      </div>
   <div class="offline-n">◉ مراحل نور ولاعبَان يعملان بدون إنترنت بالكامل</div>
 </div>
 
@@ -2049,7 +1990,7 @@ const LOCAL_3D_PIECES={
 };
 
 async function _preprocessLocal3D(){
-  const CACHE_KEY='local3d-pieces-v5';
+  const CACHE_KEY='local3d-pieces-v6';
   try{
     const cached=await IDB.kget(CACHE_KEY);
     if(cached&&typeof cached==='object'&&Object.keys(cached).length===12)return cached;
@@ -2066,21 +2007,59 @@ async function _preprocessLocal3D(){
         const h=img.naturalHeight||img.height||120;
         canvas.width=w;canvas.height=h;
         const ctx=canvas.getContext('2d');
+        
+        // Enable better image processing
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Draw original image
         ctx.drawImage(img,0,0,w,h);
         const im=ctx.getImageData(0,0,w,h);
         const d=im.data;
+        
+        // Enhanced background detection and removal
         for(let i=0;i<d.length;i+=4){
           const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
+          
           // Skip fully transparent pixels
           if(a===0)continue;
-          // Use luminance to detect background - more accurate than simple RGB
+          
+          // Enhanced luminance calculation
           const lum=0.299*r+0.587*g+0.114*b;
-          // Background is very dark (near black) - use even higher threshold to preserve black pieces
-          if(lum<5&&a>200){d[i+3]=0;continue;}
-          // Soften dark halo but preserve black piece details - be more conservative
-          if(lum<15&&a>200){d[i+3]=Math.min(d[i+3],250);}
+          const sat=Math.max(r,g,b)-Math.min(r,g,b);
+          
+          // Detect and remove dark backgrounds (black, very dark gray)
+          if(lum<8 && a>180){
+            d[i+3]=0;
+            continue;
+          }
+          
+          // Remove medium-dark backgrounds and halos
+          if(lum<25 && a>200 && sat<30){
+            d[i+3]=Math.floor(d[i+3] * 0.3);
+            continue;
+          }
+          
+          // Remove grayish/low saturation backgrounds
+          if(lum>20 && lum<80 && sat<20 && a>150){
+            d[i+3]=Math.floor(d[i+3] * 0.5);
+            continue;
+          }
+          
+          // Enhance piece edges by slightly increasing opacity for valid pieces
+          if(a>100 && (sat>25 || lum<20)){
+            d[i+3]=Math.min(255, d[i+3] + 10);
+          }
         }
+        
         ctx.putImageData(im,0,0);
+        
+        // Apply subtle edge enhancement
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.filter = 'contrast(1.1) brightness(1.05)';
+        ctx.drawImage(canvas,0,0,w,h);
+        ctx.filter = 'none';
+        
         const b64=canvas.toDataURL('image/png');
         map[k]=b64;
       }catch(e){
@@ -2434,17 +2413,21 @@ function updatePlayerImages(){
     // Set Nour's avatar (try image first, fallback to pawn)
     const nourAv=document.querySelector('.av-b');
     if(nourAv){
+      // Clear text content first
+      nourAv.textContent='';
       // Try to load Nour's image - will use fallback if image doesn't exist
       nourAv.style.backgroundImage='url(./nour.png)';
       nourAv.style.backgroundSize='cover';
       nourAv.style.backgroundPosition='center';
+      nourAv.style.backgroundRepeat='no-repeat';
       nourAv.style.color='transparent';
-      nourAv.textContent='';
-      // Handle image load error by showing pawn
+      nourAv.style.border='1px solid rgba(201,168,76,.22)';
+      // Fallback if image fails to load
       const img=new Image();
       img.onerror=()=>{
         nourAv.style.backgroundImage='';
-        nourAv.style.color='';
+        nourAv.style.color='var(--gold2)';
+        nourAv.style.border='1px solid rgba(255,255,255,.07)';
         nourAv.textContent='♟';
       };
       img.src='./nour.png';
@@ -4492,7 +4475,7 @@ const R={
     if(E.inChk(S.bd,S.turn)){el.classList.add('check');el.textContent=`⚠ ${nm} في الكش!`;}
     else el.textContent=`دور ${nm}`;
   },
-  players(){
+  async players(){
     const w=S.turn==='w';
     document.getElementById('bar-w').classList.toggle('myturn',w);
     document.getElementById('bar-b').classList.toggle('myturn',!w);
@@ -4506,12 +4489,25 @@ const R={
     
     const pieceStyle=Cfg.data.pieceStyle||'neo';
     
+    // Get processed 3D pieces if available
+    let processed3D = null;
+    if(pieceStyle==='local3d'){
+      try{
+        processed3D = await IDB.kget('local3d-pieces-v6');
+      }catch(e){}
+    }
+    
     S.capW.forEach(p=>{
       const div=document.createElement('div');
       div.className='captured-piece';
       const piece=E.tp(p);
       if(pieceStyle==='local3d'){
-        div.style.backgroundImage=`url(${LOCAL_3D_PIECES['b'+piece]})`;
+        div.classList.add('local3d');
+        if(processed3D && processed3D['b'+piece]){
+          div.style.backgroundImage=`url(${processed3D['b'+piece]})`;
+        }else{
+          div.style.backgroundImage=`url(${LOCAL_3D_PIECES['b'+piece]})`;
+        }
       }else{
         div.style.backgroundImage=`url(https://images.chesscomfiles.com/chess-themes/pieces/neo/150/b${piece.toLowerCase()}.png)`;
       }
@@ -4523,7 +4519,12 @@ const R={
       div.className='captured-piece';
       const piece=E.tp(p);
       if(pieceStyle==='local3d'){
-        div.style.backgroundImage=`url(${LOCAL_3D_PIECES['w'+piece]})`;
+        div.classList.add('local3d');
+        if(processed3D && processed3D['w'+piece]){
+          div.style.backgroundImage=`url(${processed3D['w'+piece]})`;
+        }else{
+          div.style.backgroundImage=`url(${LOCAL_3D_PIECES['w'+piece]})`;
+        }
       }else{
         div.style.backgroundImage=`url(https://images.chesscomfiles.com/chess-themes/pieces/neo/150/w${piece.toLowerCase()}.png)`;
       }
@@ -4612,7 +4613,7 @@ const R={
       t.textContent=(i%2===0?`${Math.floor(i/2)+1}.`:'')+m;el.appendChild(t);});
     el.scrollLeft=el.scrollWidth;
   },
-  all(){this.board();this.status();this.players();this.hist();this.toolbar();updatePlayerImages();}
+  async all(){this.board();this.status();await this.players();this.hist();this.toolbar();updatePlayerImages();}
 };
 
 const G={
@@ -5157,6 +5158,7 @@ const G={
       S.over=true;
       OL.sendResign();
       G.showOver('◆','خسرت','انسحبت من اللعبة','#f87171');
+      document.getElementById('go-review').style.display='inline-flex';
       return;
     }
     if(S.mode==='online')OL.dc();
@@ -5205,127 +5207,13 @@ const Nav={
     document.getElementById(id).classList.add('active');
   },
   menu(){Nav.show('s-menu');},
-  levels(){Nav.show('s-levels');},
+  levels(){Nav.show('s-levels');LVL.buildUI();},
   online(){Nav.show('s-online');},
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
-  learn(){Nav.show('s-learn');},
   game(){Nav.show('s-game');},
   back(){history.back();}
 };
-
-const TUT=(()=>{
-  const KEY='tut-last';
-  const SECS=[
-    {id:'basics',title:'الأساسيات',items:[
-      {id:'pieces',t:'القطع وحركاتها',d:'كل قطعة وطريقتها في الحركة',b:'**♔ الملك:**\n- حركة: مربع واحد في أي اتجاه (8 اتجاهات)\n- قيمة: لا تقدر بثمن (خسارته = خسارة المباراة)\n\n**♕ الملكة:**\n- حركة: أي عدد من المربعات أفقي، عمودي، أو قطري\n- قيمة: 9 نقاط (أقوى قطعة)\n\n**♖ القلعة:**\n- حركة: أي عدد من المربعات أفقي أو عمودي فقط\n- قيمة: 5 نقاط\n\n**♗ الفيل:**\n- حركة: أي عدد من المربعات قطري فقط\n- قيمة: 3 نقاط\n\n**♘ الحصان:**\n- حركة: حركة L (مربعين ثم مربع واحد جانباً)\n- ميزة: يمكن القفز فوق القطع\n- قيمة: 3 نقاط\n\n**♙ الجندي:**\n- حركة: مربع واحد للأمام\n- أول نقلة: مربعين للأمام\n- الأكل: قطرياً فقط\n- قيمة: 1 نقطة\n- ترقية: يصبح ملكة عند الوصول للصف الأخير\n\n**🎯 استراتيجية القطع:**\nالجنود = أساس اللعبة\nالحصان + الفيل = قوة متوازنة\nالملكة = القوة الهجومية\nالقلعة = القوة الدفاعية\nالملك = الهدف الأساسي',ex:{type:'board',setup:'8/8/8/8/8/8/8/8/8 w - - 0 1',highlight:['e4','f6','g8','c3','b1','a2'],msg:'🎭 كل قطعة لها حركاتها الخاصة!',anim:'piecesAnim',pieceAnims:[
-  {piece:'wQ',from:'d1',to:'d4',delay:0},
-  {piece:'bQ',from:'d8',to:'d5',delay:200},
-  {piece:'wR',from:'a1',to:'a3',delay:400},
-  {piece:'bR',from:'a8',to:'a6',delay:600}
-]}},
-     {id:'goal',t:'هدف اللعبة',d:'الكش المات وطريق الفوز',b:'**🏆 الكش المات هو الهدف النهائي:**\n\n**📋 شروط الكش المات الأربعة:**\n\n1️⃣ **الملك في كش** (مهدد مباشر)\n2️⃣ **لا يوجد حركة قانونية للهروب**\n3️⃣ **لا يمكن حماية الملك بأي قطعة**\n4️⃣ **لا يمكن أكل القطعة المهددة**\n\n**⚖️ قواعد أساسية:**\n\n❌ **لا يمكنك ترك ملكك في كش أبداً**\n❌ **إذا كانت كل حركاتك تضع ملكك في كش = كش مات**\n✅ **إذا لم يكن الملك في كش لكن لا توجد حركات = تعادل (جمود)**\n\n**🎯 استراتيجيات الفوز:**\n\n🔥 **حاصر الملك**: قلل مساحة تحركه\n⚔️ **قلل خيارات الهروب**: سيطر على المخارج\n⚡ **وجه الهجمة النهائية**: نفذ الكش المات\n\n**💡 نصيحة ذهبية:**\n**الكش المات = الفوز المطلق**\n**الكش العادي = خطر يستدعي رد فعل**',ex:{type:'board',setup:'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2',highlight:['e8','d4','e1'],msg:'⚔️ الملك الأسود في خطر من وزير الأبيض!',anim:'checkmateAnim',pieceAnims:[
-  {piece:'wK',from:'e1',to:'e2',delay:0},
-  {piece:'bK',from:'e8',to:'e7',delay:200},
-  {piece:'wQ',from:'d1',to:'d4',delay:400},
-  {piece:'bQ',from:'d8',to:'d5',delay:600}
-]}},
-      {id:'castle',t:'التبييت',d:'حركة حماية ملكية متقدمة',b:'**🏰 التبييت: حركة استراتيجية وقوية**\n\n**📋 الشروط الكاملة للتبييت:**\n\n✅ **الملك لم يتحرك أبداً**\n✅ **القلعة لم تتحرك أبداً**\n✅ **لا توجد قطع بين الملك والقلعة**\n✅ **الملك ليس في كش حالياً**\n✅ **الملك لا يمر بمربعات مهددة**\n\n**🎯 كيف يتم التبييت:**\n\n**للأبيض:**\n1. الملك يتحرك مربعين نحو القلعة (e1→g1)\n2. القلعة تنتقل إلى مربع الملك (h1→f1)\n3. الملك يقف بجانب القلعة\n\n**للأسود:**\n1. الملك يتحرك مربعين نحو القلعة (e8→g8)\n2. القلعة تنتقل إلى مربع الملك (a8→c8)\n3. الملك يقف بجانب القلعة\n\n**⚡ فوائد التبييت:**\n🛡️ **حماية فائقة**: يحمي الملك من الهجمات\n🚀 **تنمية القلعة**: يخرج القلعة للمشاركة في الهجوم\n⏃️ **توفير الحركات**: ينقل حركتين في نقلة واحدة\n\n**💡 نصيحة استراتيجية:**\n**ق دائماً بالتبييت في بداية اللعبة!**\n**التبييت المبكر يمنع الهجمات المفاجئة**',ex:{type:'board',setup:'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1',highlight:['e1','g1','c1'],msg:'🏰 التبييت ممكن للجانبين!',anim:'castleAnim',pieceAnims:[
-  {piece:'wK',from:'e1',to:'g1',delay:0},
-  {piece:'wR',from:'h1',to:'f1',delay:200},
-  {piece:'bK',from:'e8',to:'g8',delay:400},
-  {piece:'bR',from:'a8',to:'c8',delay:600}
-]}},
-      {id:'enpassant',t:'الأخذ بالتجاوز',d:'قاعدة خاصة ومتقدمة للجنود',b:'**🐴 الأخذ بالتجاوز: حركة نادرة وقوية**\n\n**📋 متى يسمح الأخذ بالتجاوز؟**\n\n1️⃣ **جندي الخصم يتقدم مربعين** من الصف السابع للسادس\n2️⃣ **يجاور مربع جنديك** في الصف الخامس\n3️⃣ **لم يتحرك جنديك بعد ذلك**\n\n**🎯 كيف يتم التنفيذ:**\n\n**للأبيض:**\n- إذا أسود حرك d7→d5، يمكن للأبيض أن يأكل d5×e6\n- يأخذ الجندي الأسود كأنه في d6\n\n**للأسود:**\n- إذا أبيض حرك e2→e4، يمكن للأسود أن يأخذ e4×d3\n- يأخذ الجندي الأبيض كأنه في d3\n\n**⏃️ يجب التنفيذ فوراً:**\n- هذه الحركة تنتهي صلاحيتها في النقلة التالية\n- إذا لم تأخذها، تفوت الفرصة نهائياً\n\n**💡 نصيحة احترافية:**\n**راقب دائماً تقدم جنود الخصم المزدوجة!**\n**الأخذ بالتجاوز يغير مسار اللعبة تماماً**',ex:{type:'board',setup:'8/8/4pP3/8/8/8/8/8/8 w - - 0 1',highlight:['e6','d5'],msg:'🐴 الأخذ بالتجاوز متاح الآن!',anim:'enpassantAnim',pieceAnims:[
-  {piece:'wP',from:'e4',to:'e6',delay:0},
-  {piece:'bP',from:'d7',to:'d5',delay:200},
-  {piece:'wP',from:'d4',to:'d6',delay:400},
-  {piece:'bP',from:'e7',to:'e5',delay:600}
-]}},
-      {id:'draw',t:'التعادل',d:'حالات انتهاء اللعبة بالتعادل',b:'**🤝 التعادل: نتيجة عادلة في الشطرنج**\n\n**📋 أنواع التعادل:**\n\n**1️⃣ 🎯 الجمود (Stalemate):**\n- اللاعب ليس في كش\n- لا توجد أي حركة قانونية\n- الموقف مغلق تماماً\n\n**2️⃣ 🔄 التكرار الثلاثي:**\n- نفس الموقف يتكرر 3 مرات\n- يجب أن يكون دور نفس اللاعب\n- يمكن طلب التعادل\n\n**3️⃣ ⚖️ عدم كفاية القطع:**\n- الملك ضد الملك فقط\n- أو الملك والأسقف ضد الملك\n- لا يمكن الفوز لأي طرف\n\n**4️⃣ ⏱️ الاتفاق على التعادل:**\n- اللاعبون يتفقون على التعادل\n- عادة في المواقف المتعادلة\n\n**5️⃣ 50 نقلة قانونية:**\n- 50 نقلة لكل لاعب بدون أكل أو بيدق\n\n**💡 نصائح التعادل:**\n✅ **التعادل أفضل من الخسارة**\n🎯 **اطلب التعادل عند الخطر**\n⏰ **لا تستعجل بالقبول بالتعادل**\n🔍 **احسب النتائج قبل القبول**',ex:{type:'board',setup:'8/8/8/8/3k4/3K4/8/8/8 w - - 0 50',highlight:['d6','d4'],msg:'🤝 جمود! لا حركات متاحة!',anim:'drawAnim',pieceAnims:[
-  {piece:'wK',from:'d4',to:'d5',delay:0},
-  {piece:'bK',from:'d6',to:'d7',delay:200},
-  {piece:'wK',from:'d5',to:'d4',delay:400},
-  {piece:'bK',from:'d7',to:'d6',delay:600}
-]}}
-    ]},
-    {id:'tactics',title:'تكتيك سريع',items:[
-      {id:'fork',t:'الشوكة',d:'تهديد قطعتين بنقلة واحدة',b:'الشوكة تعني مهاجمة قطعتين أو أكثر بنقلة واحدة.\nالحصان ممتاز في هذا التكتيك.\n\n🍴 **فائدة:** كسب قطعة مجاناً!',ex:{type:'board',setup:'8/8/8/3k4/8/2N5/8/8 w - - 0 1',highlight:['c3','d5','b5'],msg:'شوكة حصان على الملك والقطعة!',anim:'forkAnim'}},
-      {id:'pin',t:'التثبيت',d:'قطعة لا تستطيع التحرك',b:'التثبيت: قطعة لا تستطيع التحرك لأنها تحمي قطعة أهم خلفها.\nإذا كان خلفها الملك يسمى تثبيت مطلق.\n\n📌 **قوة:** قطعة مجمدة = قطعة ضعيفة!',ex:{type:'board',setup:'8/8/8/8/8/8/8/3b4 w - - 0 1',highlight:['d1','d8'],msg:'تثبيت فيل على الملكة!',anim:'pinAnim'}},
-      {id:'skewer',t:'الشيش',d:'عكس التثبيت',b:'الشيش: تهاجم قطعة قوية أولاً، وبعد تحركها تكسب قطعة خلفها.\n\n🔪 **مكسب:** كسب قطعة بعد الأخرى!',ex:{type:'board',setup:'8/8/8/8/8/8/8/3Q4 w - - 0 1',highlight:['d1','d8','d7'],msg:'شيش وزير على الملك والقلعة!',anim:'skewerAnim'}},
-    ]},
-    {id:'endgame',title:'النهايات',items:[
-      {id:'basicmate',t:'مات أساسي',d:'كيف تنهي المباراة؟',b:'تعلم نهايات أساسية مثل: ملك + وزير ضد ملك، وملك + قلعة ضد ملك.\nالفكرة: حاصر الملك ثم قدم ملكك للمساعدة.\n\n🎯 **هدف:** التخطيط للنهاية يفوز المباريات!',ex:{type:'board',setup:'8/8/8/8/8/8/8/4K3 w - - 0 1',highlight:['e1'],msg:'الملك الأبيض يطارد الملك الأسود!',anim:'basicmateAnim'}},
-      {id:'passpawn',t:'الجندي المار',d:'سلاح قوي',b:'الجندي المار هو الذي لا يستطيع أي جندي للخصم إيقافه مباشرةً.\nادفعه للأمام أو استخدمه لتشتيت الخصم.\n\n🚀 **قوة:** جندي مار = وزير مستقبلي!',ex:{type:'board',setup:'8/1P6/8/8/8/8/8/8 w - - 0 1',highlight:['b7'],msg:'الجندي المار لا يُقف!',anim:'passpawnAnim'}}
-    ]}
-
-  ];
-
-  let _sec='basics';
-  let _openItem=null;
-  let _q='';
-
-  function _flatText(x){
-    return (x.t+' '+x.d+' '+x.b).toLowerCase();
-  }
-
-  function _render(){
-    const tabs=document.getElementById('learn-tabs');
-    const secs=document.getElementById('learn-secs');
-    const meta=document.getElementById('learn-meta');
-    if(!tabs||!secs||!meta)return;
-
-    tabs.innerHTML=SECS.map(s=>`<button class="learn-tab ${s.id===_sec?'on':''}" onclick="TUT.tab('${s.id}')">${s.title}</button>`).join('');
-
-    const sec=SECS.find(s=>s.id===_sec)||SECS[0];
-    const items=sec.items.filter(it=>!_q||_flatText(it).includes(_q));
-    const list=items.map(it=>{
-      const isOpen=_openItem===it.id;
-      const body=isOpen?`<div class="learn-body">${it.b.replace(/\\n/g,'<br>')}</div>`:'';
-      return `<div class="learn-item" onclick="TUT.toggle('${sec.id}','${it.id}')"><div class="learn-it">${it.t}</div><div class="learn-id">${it.d}</div>${body}</div>`;
-    }).join('')||`<div style="color:var(--text2);text-align:center;padding:10px">لا توجد نتائج</div>`;
-
-    secs.innerHTML=`<div class="learn-sec on"><div class="learn-list">${list}</div></div>`;
-    meta.textContent=_q?`نتائج البحث داخل: ${sec.title}`:`القسم الحالي: ${sec.title}`;
-  }
-
-  async function _loadLast(){
-    try{
-      const v=await IDB.kget(KEY);
-      if(v&&typeof v==='object'){
-        if(v.sec && SECS.some(s=>s.id===v.sec)) _sec=v.sec;
-        if(typeof v.item==='string') _openItem=v.item;
-      }
-    }catch(e){}
-  }
-
-  function _saveLast(){
-    try{IDB.kset(KEY,{sec:_sec,item:_openItem,ts:Date.now()});}catch(e){}
-  }
-
-  return{
-    async open(){
-      await _loadLast();
-      _render();
-    },
-    tab(id){
-      _sec=id;
-      _openItem=null;
-      _saveLast();
-      _render();
-    },
-    toggle(secId,itemId){
-      if(secId!==_sec){_sec=secId;_openItem=null;}
-      _openItem=(_openItem===itemId)?null:itemId;
-      _saveLast();
-      _render();
-    },
-    search(q){
-      _q=(q||'').toString().trim().toLowerCase();
-      _render();
-    }
-  };
-})();
 
 function fixBars(myCol){
   const container=document.getElementById('board-container');
