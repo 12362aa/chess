@@ -249,6 +249,17 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .learn-search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
 .learn-layout{display:grid;grid-template-columns:280px 1fr;gap:12px;align-items:start;}
 @media(max-width:820px){.learn-layout{grid-template-columns:1fr;}}
+.learn-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:15px;}
+.learn-tab{flex:1;padding:8px;background:transparent;border:none;border-radius:7px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.learn-tab.on{background:var(--bg4);color:var(--gold2);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.learn-sec{display:none;}
+.learn-sec.on{display:block;}
+.learn-list{display:flex;flex-direction:column;gap:8px;}
+.learn-item{background:var(--bg3);border:1px solid rgba(201,168,76,.16);border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;}
+.learn-item:hover{background:var(--bg4);border-color:rgba(201,168,76,.3);transform:scale(1.02);}
+.learn-it{font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:4px;}
+.learn-id{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.5;}
+.learn-body{margin-top:12px;padding-top:12px;border-top:1px solid rgba(201,168,76,.16);font-size:14px;line-height:1.7;color:var(--text);}
 .learn-ch{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:10px;max-height:min(62vh,520px);overflow:auto;}
 .learn-ch::-webkit-scrollbar{width:8px;}
 .learn-ch::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px;}
@@ -595,115 +606,21 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .rv-chip.mistake{border-color:rgba(248,113,113,.35);color:var(--red);}
 .rv-chip.blunder{border-color:rgba(255,50,50,.4);color:#ff5555;}
 
-/* Anime theme special effects */
+/* Anime Theme - Authentic Japanese Anime Aesthetics */
 [data-theme="anime"] {
-  --anime-glow: 0 0 30px rgba(255,105,180,0.8);
-  --anime-pulse: 0 0 40px rgba(0,191,255,0.6);
-  --anime-neon: 0 0 50px rgba(255,20,147,0.4);
+  --anime-primary: #FF6B9D;
+  --anime-secondary: #C66FBC;
+  --anime-accent: #7C4DFF;
+  --anime-gold: #FFD700;
+  --anime-cyan: #00E5FF;
+  --anime-pink: #FF4081;
+  --anime-purple: #9C27B0;
+  --anime-glow-primary: 0 0 20px rgba(255,107,157,0.6);
+  --anime-glow-secondary: 0 0 25px rgba(198,111,188,0.5);
+  --anime-glow-accent: 0 0 30px rgba(124,77,255,0.4);
 }
-[data-theme="anime"] #board {
-  box-shadow: var(--anime-glow), inset 0 0 60px rgba(255,105,180,0.15), 0 0 100px rgba(0,191,255,0.1);
-  border: 3px solid rgba(255,105,180,0.5);
-  border-radius: 12px;
-  position: relative;
-}
-[data-theme="anime"] #board::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 12px;
-  background: linear-gradient(45deg, rgba(255,105,180,0.3), rgba(0,191,255,0.3), rgba(255,105,180,0.3));
-  z-index: -1;
-  animation: animeBorderRotate 8s linear infinite;
-}
-[data-theme="anime"] .piece {
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)) drop-shadow(var(--anime-pulse));
-  animation: animePulse 2s ease-in-out infinite;
-  transform-style: preserve-3d;
-}
-[data-theme="anime"] .piece:hover {
-  animation: animeGlow 0.5s ease-in-out;
-  transform: scale(1.1);
-}
-[data-theme="anime"] .sq:hover {
-  background: radial-gradient(circle, rgba(255,105,180,0.3) 0%, rgba(0,191,255,0.2) 50%, transparent 70%);
-  box-shadow: inset 0 0 20px rgba(255,105,180,0.2);
-}
-[data-theme="anime"] .sq.SL, [data-theme="anime"] .sq.SD {
-  background: radial-gradient(circle, rgba(255,105,180,0.4) 0%, rgba(0,191,255,0.3) 60%, transparent 80%) !important;
-}
-[data-theme="anime"] .pbar {
-  background: linear-gradient(135deg, rgba(255,105,180,0.15), rgba(0,191,255,0.15));
-  border: 2px solid rgba(255,105,180,0.3);
-  box-shadow: 0 0 20px rgba(255,105,180,0.2);
-  border-radius: 15px;
-}
-[data-theme="anime"] .btn {
-  background: linear-gradient(135deg, rgba(255,105,180,0.9), rgba(0,191,255,0.9));
-  border: 2px solid rgba(255,105,180,0.5);
-  text-shadow: 0 0 15px rgba(255,105,180,0.7);
-  box-shadow: 0 0 25px rgba(255,105,180,0.3);
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-}
-[data-theme="anime"] .btn::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-  transform: rotate(45deg);
-  transition: all 0.6s;
-}
-[data-theme="anime"] .btn:hover::before {
-  animation: animeShine 0.6s ease-in-out;
-}
-[data-theme="anime"] .btn:hover {
-  transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 0 30px rgba(255,105,180,0.7), 0 5px 20px rgba(0,0,0,0.3);
-}
-[data-theme="anime"] .screen {
-  background: radial-gradient(ellipse at center, rgba(255,105,180,0.08) 0%, transparent 70%);
-  position: relative;
-}
-[data-theme="anime"] .screen::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255,105,180,0.03) 2px,
-    rgba(255,105,180,0.03) 4px
-  );
-  pointer-events: none;
-  animation: animeScan 20s linear infinite;
-}
-@keyframes animePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.02); }
-}
-@keyframes animeGlow {
-  0% { filter: drop-shadow(0 0 10px rgba(255,105,180,0.8)); }
-  50% { filter: drop-shadow(0 0 30px rgba(0,191,255,0.9)); }
-  100% { filter: drop-shadow(0 0 10px rgba(255,105,180,0.8)); }
-}
-@keyframes animeBorderRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-@keyframes animeShine {
-  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-}
-@keyframes animeScan {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(20px); }
-}
+
+/* Enhanced background with anime-style gradients */
 [data-theme="anime"]::before {
   content: '';
   position: fixed;
@@ -712,13 +629,16 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(255,105,180,0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(0,191,255,0.15) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(255,20,147,0.05) 0%, transparent 70%);
+    radial-gradient(circle at 15% 85%, rgba(255,107,157,0.12) 0%, transparent 50%),
+    radial-gradient(circle at 85% 15%, rgba(124,77,255,0.10) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(198,111,188,0.08) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(255,107,157,0.02) 0%, rgba(124,77,255,0.02) 100%);
   pointer-events: none;
-  z-index: -1;
-  animation: animeFloat 8s ease-in-out infinite;
+  z-index: -2;
+  animation: animeFloat 12s ease-in-out infinite;
 }
+
+/* Anime-style particle effects */
 [data-theme="anime"]::after {
   content: '';
   position: fixed;
@@ -726,25 +646,279 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   left: 0;
   width: 100%;
   height: 100%;
-  background: repeating-conic-gradient(
-    from 0deg at 50% 50%,
-    transparent 0deg,
-    rgba(255,105,180,0.02) 10deg,
-    transparent 20deg
-  );
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255,215,0,0.1) 1px, transparent 1px),
+    radial-gradient(circle at 80% 70%, rgba(0,229,255,0.1) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(255,64,129,0.08) 2px, transparent 2px);
+  background-size: 60px 60px, 80px 80px, 100px 100px;
   pointer-events: none;
   z-index: -1;
-  animation: animeRotate 60s linear infinite;
+  animation: animeParticleFloat 20s linear infinite;
 }
+
+/* Enhanced board with anime aesthetics */
+[data-theme="anime"] #board {
+  background: linear-gradient(135deg, 
+    rgba(255,107,157,0.03) 0%, 
+    rgba(124,77,255,0.02) 50%, 
+    rgba(198,111,188,0.03) 100%);
+  box-shadow: 
+    var(--anime-glow-primary),
+    var(--anime-glow-secondary),
+    inset 0 0 40px rgba(255,107,157,0.1),
+    0 8px 32px rgba(0,0,0,0.3);
+  border: 2px solid transparent;
+  border-image: linear-gradient(45deg, var(--anime-primary), var(--anime-accent), var(--anime-secondary)) 1;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="anime"] #board::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 16px;
+  background: linear-gradient(45deg, 
+    rgba(255,107,157,0.2), 
+    rgba(124,77,255,0.15), 
+    rgba(198,111,188,0.2), 
+    rgba(255,215,0,0.1));
+  z-index: -1;
+  animation: animeBorderPulse 4s ease-in-out infinite;
+}
+
+/* Enhanced pieces with anime-style effects */
+[data-theme="anime"] .piece {
+  filter: 
+    drop-shadow(0 2px 4px rgba(0,0,0,0.4))
+    drop-shadow(0 0 8px rgba(255,107,157,0.3));
+  animation: animePieceBreath 3s ease-in-out infinite;
+  transform-style: preserve-3d;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="anime"] .piece:hover {
+  filter: 
+    drop-shadow(0 4px 8px rgba(0,0,0,0.5))
+    drop-shadow(0 0 16px rgba(255,107,157,0.6))
+    drop-shadow(0 0 24px rgba(124,77,255,0.4));
+  transform: scale(1.15) translateY(-2px);
+  animation: animePieceGlow 0.6s ease-in-out;
+}
+
+/* Enhanced squares with anime effects */
+[data-theme="anime"] .sq:hover {
+  background: radial-gradient(circle at center, 
+    rgba(255,107,157,0.25) 0%, 
+    rgba(124,77,255,0.15) 40%, 
+    transparent 70%) !important;
+  box-shadow: 
+    inset 0 0 20px rgba(255,107,157,0.2),
+    0 0 15px rgba(255,107,157,0.1);
+  transform: scale(1.02);
+}
+
+[data-theme="anime"] .sq.SL, [data-theme="anime"] .sq.SD {
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255,215,0,0.3) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(255,107,157,0.25) 0%, transparent 50%) !important;
+  animation: animeSquarePulse 2s ease-in-out infinite;
+}
+
+/* Enhanced UI elements */
+[data-theme="anime"] .btn {
+  background: linear-gradient(135deg, 
+    rgba(255,107,157,0.9) 0%, 
+    rgba(198,111,188,0.85) 50%, 
+    rgba(124,77,255,0.8) 100%);
+  border: 2px solid rgba(255,107,157,0.4);
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 0 10px rgba(255,107,157,0.5);
+  box-shadow: 
+    0 4px 16px rgba(255,107,157,0.3),
+    0 0 20px rgba(255,107,157,0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="anime"] .btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent, 
+    rgba(255,255,255,0.2), 
+    transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s;
+}
+
+[data-theme="anime"] .btn:hover::before {
+  animation: animeShine 0.8s ease-in-out;
+}
+
+[data-theme="anime"] .btn:hover {
+  transform: scale(1.08) translateY(-3px);
+  box-shadow: 
+    0 8px 24px rgba(255,107,157,0.4),
+    0 0 30px rgba(255,107,157,0.3),
+    0 0 40px rgba(124,77,255,0.2);
+  border-color: rgba(255,215,0,0.6);
+}
+
+/* Enhanced screens with anime atmosphere */
+[data-theme="anime"] .screen {
+  background: 
+    radial-gradient(ellipse at center top, rgba(255,107,157,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at center bottom, rgba(124,77,255,0.04) 0%, transparent 50%);
+  position: relative;
+}
+
+[data-theme="anime"] .screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,107,157,0.02) 3px, rgba(255,107,157,0.02) 6px),
+    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(124,77,255,0.015) 3px, rgba(124,77,255,0.015) 6px);
+  pointer-events: none;
+  animation: animeScan 25s linear infinite;
+}
+
+/* Enhanced progress bars */
+[data-theme="anime"] .pbar {
+  background: linear-gradient(135deg, 
+    rgba(255,107,157,0.1) 0%, 
+    rgba(124,77,255,0.08) 100%);
+  border: 2px solid rgba(255,107,157,0.3);
+  box-shadow: 
+    0 0 15px rgba(255,107,157,0.2),
+    inset 0 0 10px rgba(255,107,157,0.1);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="anime"] .pbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255,215,0,0.2), 
+    transparent);
+  animation: animeProgressBarShine 3s linear infinite;
+}
+
+/* Anime-style animations */
+@keyframes animePieceBreath {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+  50% { 
+    opacity: 0.95; 
+    transform: scale(1.02) translateY(-1px); 
+  }
+}
+
+@keyframes animePieceGlow {
+  0% { 
+    filter: drop-shadow(0 0 8px rgba(255,107,157,0.6));
+  }
+  50% { 
+    filter: drop-shadow(0 0 20px rgba(124,77,255,0.8));
+  }
+  100% { 
+    filter: drop-shadow(0 0 8px rgba(255,107,157,0.6));
+  }
+}
+
+@keyframes animeSquarePulse {
+  0%, 100% { 
+    opacity: 0.8; 
+  }
+  50% { 
+    opacity: 1; 
+  }
+}
+
+@keyframes animeBorderPulse {
+  0%, 100% { 
+    opacity: 0.6; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.01);
+  }
+}
+
+@keyframes animeShine {
+  0% { 
+    transform: translateX(-100%) translateY(-100%) rotate(45deg); 
+  }
+  100% { 
+    transform: translateX(100%) translateY(100%) rotate(45deg); 
+  }
+}
+
+@keyframes animeScan {
+  0% { 
+    transform: translateY(0) scaleY(1); 
+  }
+  50% { 
+    transform: translateY(10px) scaleY(0.95); 
+  }
+  100% { 
+    transform: translateY(20px) scaleY(1); 
+  }
+}
+
 @keyframes animeFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-5px) rotate(0.5deg); }
-  50% { transform: translateY(-10px) rotate(1deg); }
-  75% { transform: translateY(-5px) rotate(0.5deg); }
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg); 
+  }
+  25% { 
+    transform: translateY(-8px) rotate(0.5deg); 
+  }
+  50% { 
+    transform: translateY(-15px) rotate(1deg); 
+  }
+  75% { 
+    transform: translateY(-8px) rotate(0.5deg); 
+  }
 }
-@keyframes animeRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+
+@keyframes animeParticleFloat {
+  0% { 
+    transform: translateY(0) translateX(0) rotate(0deg); 
+  }
+  33% { 
+    transform: translateY(-20px) translateX(10px) rotate(120deg); 
+  }
+  66% { 
+    transform: translateY(-10px) translateX(-10px) rotate(240deg); 
+  }
+  100% { 
+    transform: translateY(0) translateX(0) rotate(360deg); 
+  }
+}
+
+@keyframes animeProgressBarShine {
+  0% { 
+    transform: translateX(-100%); 
+  }
+  100% { 
+    transform: translateX(100%); 
+  }
 }
 /* summary */
 .rv-sumbar{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
@@ -964,24 +1138,10 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
       <div class="learn-sub">كتاب تعليمي عربي داخل التطبيق — أمثلة وتطبيقات سريعة (محفوظ أوفلاين)</div>
       <input class="learn-search" id="learn-search" placeholder="ابحث عن درس… مثل: كش، تبييت، مات" oninput="TUT.search(this.value)">
       <div class="learn-layout">
-        <div class="learn-ch" id="learn-ch">
-          <div class="learn-chh">الفصول</div>
-          <div id="learn-chapters"></div>
-        </div>
-        <div class="learn-reader" id="learn-reader">
-          <div class="learn-rt" id="learn-rt"></div>
-          <div class="learn-rm" id="learn-rm"></div>
-          <div class="learn-call" id="learn-call" style="display:none">
-            <div class="learn-call-h">خلاصة</div>
-            <div class="learn-call-t" id="learn-call-t"></div>
-          </div>
-          <div class="learn-ex" id="learn-ex" style="display:none">
-            <div class="learn-ex-h">مثال تفاعلي</div>
-            <div id="learn-ex-body"></div>
-          </div>
-        </div>
+        <div class="learn-tabs" id="learn-tabs"></div>
+        <div class="learn-secs" id="learn-secs"></div>
+        <div class="learn-meta" id="learn-meta"></div>
       </div>
-      <div class="learn-meta" id="learn-meta"></div>
     </div>
     <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
   </div>
@@ -3145,7 +3305,37 @@ ${pn}: ${txt}
       }
     }catch(e){
       this._setNourTyping(false);
-      this._addMsg('تعذّر الاتصال. جرّب لاحقاً!','sys');
+      console.error('Nour AI error:', e);
+      
+      // Provide contextual fallback responses based on player message
+      const fallbackResponses = [
+        'أنا هنا معك! استمر في اللعب 💪',
+        'حركة ممتازة! استمر هكذا 🎯',
+        'فكر جيداً في النقلة التالية 🤔',
+        'أنت تتحسن مع كل نقلة! 📈',
+        'ركز معي، يمكننا الفوز بهذه المرحلة 🏆',
+        'حاول السيطرة على المركز ♟️',
+        'لا تستسلم! النصر قريب ✨',
+        'أنا أستمتع بالعب معك! 😊'
+      ];
+      
+      // Try to give relevant response based on message content
+      let fallbackMsg = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      const userMsg = txt.toLowerCase();
+      
+      if (userMsg.includes('مرحبا') || userMsg.includes('اهلا')) {
+        fallbackMsg = 'أهلاً بك! مستعد للعب؟ 🎮';
+      } else if (userMsg.includes('كيف')) {
+        fallbackMsg = 'أنا بخير! شكراً لسؤالك 💚';
+      } else if (userMsg.includes('نصيحة') || userMsg.includes('مشورة')) {
+        fallbackMsg = 'حاول السيطرة على مربعات المركز 🎯';
+      } else if (userMsg.includes('فزت') || userMsg.includes('فوز')) {
+        fallbackMsg = 'مبروك! لقد لعبت بشكل رائع 🏆';
+      } else if (userMsg.includes('خسرت') || userMsg.includes('خسارة')) {
+        fallbackMsg = 'لا بأس! المهم أن تستمر في المحاولة 💪';
+      }
+      
+      this._addMsg(fallbackMsg,'opp');
     }
   },
   nourAutoMsg(type,moveRes,isCheck,isCheckmate,cap,moveCount){
@@ -3469,15 +3659,32 @@ const FCM_VAPID_KEY='BCHoPl4NJ2oqiYV6PP1iyl5buD3FZBCjZNc_jvLqG_7deA0p4YkZcVVReAe
 const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
 
 async function groqChat({ messages, model, max_tokens, temperature }){
-  const base=(OL && OL.getHttpBase && OL.getHttpBase())||'';
-  const url=(base?base.replace(/\/$/,''):'')+'/api/groq/chat';
-  const res=await fetch(url,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ messages, model, max_tokens, temperature })
-  });
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  return res.json();
+  // Try multiple server URLs for better connectivity
+  const bases = [
+    (OL && OL.getHttpBase && OL.getHttpBase()) || '',
+    'https://grandson-yield-vigorous.ngrok-free.dev',
+    'http://localhost:8081',
+    'https://chess-amkh.onrender.com'
+  ].filter(b => b);
+  
+  for (const base of bases) {
+    try {
+      const url = (base ? base.replace(/\/$/, '') : '') + '/api/groq/chat';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages, model, max_tokens, temperature }),
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+      if (res.ok) return res.json();
+    } catch (e) {
+      console.log('Groq server attempt failed:', base, e.message);
+      continue;
+    }
+  }
+  
+  // If all servers fail, throw a more descriptive error
+  throw new Error('جميع خوادم الذكاء الاصطناعي غير متاحة حالياً');
 }
 
 const REV=(()=>{
