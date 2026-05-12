@@ -108,13 +108,20 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
     min-height:100dvh;
   }
   #s-game.mode-local .gtop{grid-column:1 / -1; grid-row:1; position:static!important;transform:none!important;z-index:auto!important;width:100%;max-width:none;margin:0;}
-  #s-game.mode-local #bar-b{grid-column:1; grid-row:2 / 5; width:100%; max-width:170px; justify-self:center;}
+  #s-game.mode-local #bar-b{grid-column:1; grid-row:2 / 5; width:100%; max-width:240px; justify-self:center;}
   #s-game.mode-local #board-container{grid-column:2; grid-row:2 / 5; justify-self:center; align-self:center;}
-  #s-game.mode-local #bar-w{grid-column:3; grid-row:2 / 5; width:100%; max-width:170px; justify-self:center;}
+  #s-game.mode-local #bar-w{grid-column:3; grid-row:2 / 5; width:100%; max-width:240px; justify-self:center;}
   #s-game.mode-local .gtbar{grid-column:2; grid-row:5; width:var(--board)!important; max-width:var(--board)!important; justify-self:center;}
   #s-game.mode-local .sbar{grid-column:2; grid-row:6; width:var(--board)!important; max-width:var(--board)!important; justify-self:center;}
   #s-game.mode-local .mvhist{grid-column:2; grid-row:7; width:var(--board)!important; max-width:var(--board)!important; justify-self:center;}
   #s-game.mode-local .chat-wrap{display:none!important;}
+  #s-game.mode-local .pbar-top{padding:10px 14px;}
+  #s-game.mode-local .pb-l{gap:10px;}
+  #s-game.mode-local .pb-av{width:34px;height:34px;font-size:17px;}
+  #s-game.mode-local .pb-nm{font-size:14px;}
+  #s-game.mode-local .pb-caps{font-size:12px;gap:4px;}
+  #s-game.mode-local .captured-piece{width:18px;height:18px;}
+  #s-game.mode-local .pb-timer{font-size:19px;min-width:56px;}
 }
 @keyframes sfd{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 .ic-gold{color:var(--gold2);}.ic-teal{color:var(--teal2);}.ic-green{color:var(--green);}.ic-blue{color:var(--blue);}.ic-t2{color:var(--text2);}
@@ -330,7 +337,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .pb-caps{flex:1;text-align:center;font-size:10px;line-height:1.6;padding:0 3px;display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;}
 #cap-w,#cap-b{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;}
 .captured-piece{width:14px;height:14px;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));border-radius:2px;}
-.captured-piece.local3d{filter:drop-shadow(0 1px 3px rgba(0,0,0,.3)) brightness(1.1) contrast(1.05);}
+.captured-piece.local3d{filter:drop-shadow(0 1px 3px rgba(0,0,0,.35));}
 .pb-ast-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text3);font-size:13px;width:25px;height:25px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
 .pb-ast-btn:hover{border-color:rgba(201,168,76,.4);color:var(--gold2);}
 .pb-ast-btn.on{border-color:rgba(201,168,76,.6);color:var(--gold2);background:rgba(201,168,76,.12);box-shadow:0 0 8px rgba(201,168,76,.2);}
@@ -1105,6 +1112,16 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   #s-game.mode-local .gtbar{order:2;}
   #s-game.mode-local .sbar{order:3;}
   #s-game.mode-local .mvhist{order:4;}
+}
+@media (max-width:768px) and (orientation:portrait){
+  #s-game.mode-bot{flex-direction:column;}
+  #s-game.mode-bot #bar-b{order:0;}
+  #s-game.mode-bot #board-container{order:1;}
+  #s-game.mode-bot #bar-w{order:2;}
+  #s-game.mode-bot .gtbar{order:3;}
+  #s-game.mode-bot .sbar{order:4;}
+  #s-game.mode-bot .mvhist{order:5;}
+  #s-game.mode-bot .chat-wrap{order:6;}
 }
 </style>
 <!-- Firebase SDK for Firestore only (no auth) -->
@@ -1979,7 +1996,7 @@ const LOCAL_3D_PIECES={
 };
 
 async function _preprocessLocal3D(){
-  const CACHE_KEY='local3d-pieces-v6';
+  const CACHE_KEY='local3d-pieces-v7';
   try{
     const cached=await IDB.kget(CACHE_KEY);
     if(cached&&typeof cached==='object'&&Object.keys(cached).length===12)return cached;
@@ -1991,6 +2008,7 @@ async function _preprocessLocal3D(){
     const img=new Image();
     img.onload=()=>{
       try{
+        const isBlackPiece=k[0]==='b';
         const canvas=document.createElement('canvas');
         const w=img.naturalWidth||img.width||120;
         const h=img.naturalHeight||img.height||120;
@@ -2006,7 +2024,14 @@ async function _preprocessLocal3D(){
         const im=ctx.getImageData(0,0,w,h);
         const d=im.data;
         
-        // Very conservative processing - preserve black piece integrity
+        // Keep black pieces untouched to avoid eroding their dark edges/alpha.
+        if(isBlackPiece){
+          map[k]=LOCAL_3D_PIECES[k];
+          resolve(true);
+          return;
+        }
+
+        // Very conservative processing for lighter pieces only
         for(let i=0;i<d.length;i+=4){
           const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
           
@@ -2018,23 +2043,20 @@ async function _preprocessLocal3D(){
           const sat=Math.max(r,g,b)-Math.min(r,g,b);
           
           // ONLY remove pure black background pixels - be extremely conservative
-          // Only remove if it's almost pure black AND very high saturation (indicating background)
           if(lum<1 && a>250 && sat<2){
             d[i+3]=0;
             continue;
           }
           
-          // For black pieces, preserve almost all opacity
-          // Only slightly reduce obvious background pixels
+          // Preserve near-black antialiasing instead of fading it out
           if(lum<3 && a>240 && sat<5){
-            d[i+3]=Math.max(235, d[i+3] - 5);
+            d[i+3]=255;
             continue;
           }
           
-          // Preserve ALL dark piece details completely
+          // Preserve ALL dark detail edges completely
           if(lum<60 && sat<40){
-            // Keep full opacity for piece details
-            if(a>200) d[i+3]=Math.min(255, a + 5);
+            if(a>180) d[i+3]=255;
             continue;
           }
           
@@ -2047,9 +2069,9 @@ async function _preprocessLocal3D(){
         
         ctx.putImageData(im,0,0);
         
-        // Apply very gentle edge enhancement - preserve black pieces
+        // Apply very gentle edge enhancement for light pieces only
         ctx.globalCompositeOperation = 'source-over';
-        ctx.filter = 'contrast(1.03) brightness(1.02)';
+        ctx.filter = 'contrast(1.01) brightness(1.01)';
         ctx.drawImage(canvas,0,0,w,h);
         ctx.filter = 'none';
         
@@ -4490,7 +4512,7 @@ const R={
     let processed3D = null;
     if(pieceStyle==='local3d'){
       try{
-        processed3D = await IDB.kget('local3d-pieces-v6');
+        processed3D = await IDB.kget('local3d-pieces-v7');
       }catch(e){}
     }
     
