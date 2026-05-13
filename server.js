@@ -28,6 +28,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
 
 const TOKENS_PATH = path.join(__dirname, 'tokens.json');
 
@@ -297,12 +298,7 @@ app.post('/api/groq/chat', async (req, res) => {
 
 // Root health check (for Back4app)
 app.get('/', (req, res) => {
-  res.json({
-    status: 'ok',
-    rooms: rooms.size,
-    clients: wss ? wss.clients.size : 0,
-    uptime: Math.floor(process.uptime())
-  });
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.post('/save-token', (req, res) => {
@@ -406,6 +402,102 @@ const clientRoom = new Map(); /* ws → code */
 
 const mmQueue = new Map(); /* ws -> { name, deviceId, createdAt } */
 
+function makeMember(ws, color, name, deviceId) {
+  return {
+    ws,
+    color,
+    name: (name || '').slice(0, 20),
+    pimg: null,
+    deviceId: (deviceId || '').slice(0, 80) || null,
+    connected: true,
+    disconnectTimer: null,
+    lastSeen: Date.now(),
+  };
+}
+
+function clearDisconnectTimer(member) {
+  if (!member || !member.disconnectTimer) return;
+  clearTimeout(member.disconnectTimer);
+  member.disconnectTimer = null;
+}
+
+function cleanupRoom(code) {
+  const room = rooms.get(code);
+  if (!room) return;
+  ['host', 'guest'].forEach((side) => {
+    const member = room[side];
+    if (!member) return;
+    clearDisconnectTimer(member);
+    if (member.ws) clientRoom.delete(member.ws);
+    member.ws = null;
+    member.connected = false;
+  });
+  rooms.delete(code);
+}
+
+function sendStart(room) {
+  if (!room || !room.host || !room.guest) return;
+  room.started = true;
+  room.ended = false;
+  send(room.host.ws, {
+    type: 'start',
+    yourColor: room.host.color,
+    oppName: room.guest.name || 'الخصم',
+    room: room.code,
+  });
+  send(room.guest.ws, {
+    type: 'start',
+    yourColor: room.guest.color,
+    oppName: room.host.name || 'الخصم',
+    room: room.code,
+  });
+}
+
+function finalizeLanDisconnect(code, side) {
+  const room = rooms.get(code);
+  if (!room) return;
+  const member = room[side];
+  if (!member || member.connected) return;
+
+  const oppSide = side === 'host' ? 'guest' : 'host';
+  const opp = room[oppSide];
+  if (opp && opp.connected && opp.ws) {
+    send(opp.ws, { type: 'resign' });
+  }
+  cleanupRoom(code);
+}
+
+function handleLanDisconnect(ws) {
+  const info = getRoomAndSide(ws);
+  if (!info || info.room.kind !== 'lan') return false;
+
+  const { room, code, side } = info;
+  const member = room[side];
+  if (!member) return true;
+
+  clientRoom.delete(ws);
+  member.ws = null;
+  member.connected = false;
+  member.lastSeen = Date.now();
+  clearDisconnectTimer(member);
+
+  if (room.ended) {
+    if (!room.host?.connected && (!room.guest || !room.guest.connected)) {
+      cleanupRoom(code);
+    }
+    return true;
+  }
+
+  const oppSide = side === 'host' ? 'guest' : 'host';
+  const opp = room[oppSide];
+  if (opp && opp.connected && opp.ws) {
+    send(opp.ws, { type: 'peer-disconnected', side });
+  }
+
+  member.disconnectTimer = setTimeout(() => finalizeLanDisconnect(code, side), 45000);
+  return true;
+}
+
 function mmRemove(ws) {
   try { mmQueue.delete(ws); } catch (e) {}
 }
@@ -423,18 +515,21 @@ function mmStartGame(aWs, aInfo, bWs, bInfo) {
   const bColor = aColor === 'w' ? 'b' : 'w';
 
   const room = {
+    kind: 'online',
     code,
-    host: { ws: aWs, color: aColor, name: (aInfo?.name || '').slice(0, 20), pimg: null, deviceId: (aInfo?.deviceId || '').slice(0, 80) || null },
-    guest: { ws: bWs, color: bColor, name: (bInfo?.name || '').slice(0, 20), pimg: null, deviceId: (bInfo?.deviceId || '').slice(0, 80) || null },
+    host: makeMember(aWs, aColor, aInfo?.name || '', aInfo?.deviceId || ''),
+    guest: makeMember(bWs, bColor, bInfo?.name || '', bInfo?.deviceId || ''),
     guestColor: bColor,
     createdAt: Date.now(),
+    started: true,
+    ended: false,
+    state: null,
   };
   rooms.set(code, room);
   clientRoom.set(aWs, code);
   clientRoom.set(bWs, code);
 
-  send(aWs, { type: 'start', yourColor: aColor, oppName: room.guest.name || 'الخصم', room: code });
-  send(bWs, { type: 'start', yourColor: bColor, oppName: room.host.name || 'الخصم', room: code });
+  sendStart(room);
 }
 
 function getRoomAndSide(ws) {
@@ -448,11 +543,15 @@ function getRoomAndSide(ws) {
 }
 
 /* توليد كود 6 حروف عشوائي */
-function genCode() {
+function genCode(kind = 'online') {
+  if (kind === 'lan') {
+    const num = String(1000 + Math.floor(Math.random() * 9000));
+    return rooms.has(num) ? genCode(kind) : num;
+  }
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
   for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return rooms.has(code) ? genCode() : code;
+  return rooms.has(code) ? genCode(kind) : code;
 }
 
 /* إرسال JSON آمن */
@@ -467,7 +566,7 @@ setInterval(() => {
   const now = Date.now();
   for (const [code, room] of rooms) {
     if (now - room.createdAt > 30 * 60 * 1000) {
-      rooms.delete(code);
+      cleanupRoom(code);
     }
   }
 }, 5 * 60 * 1000);
@@ -529,16 +628,21 @@ wss.on('connection', (ws, req) => {
         /* لو العميل عنده غرفة قديمة ننظفها */
         leaveRoom(ws);
 
-        const code = genCode();
+        const roomKind = msg.scope === 'lan' ? 'lan' : 'online';
+        const code = genCode(roomKind);
         const hostColor = msg.color === 'b' ? 'b' : 'w';
         const guestColor = hostColor === 'w' ? 'b' : 'w';
 
         const room = {
+          kind: roomKind,
           code,
-          host: { ws, color: hostColor, name: (msg.name || '').slice(0, 20), pimg: null, deviceId: (msg.deviceId || '').slice(0, 80) || null },
+          host: makeMember(ws, hostColor, msg.name || '', msg.deviceId || ''),
           guest: null,
           guestColor,
           createdAt: Date.now(),
+          started: false,
+          ended: false,
+          state: null,
         };
         rooms.set(code, room);
         clientRoom.set(ws, code);
@@ -552,9 +656,14 @@ wss.on('connection', (ws, req) => {
       case 'join': {
         const code = (msg.code || '').toUpperCase().trim();
         const room = rooms.get(code);
+        const requestedKind = msg.scope === 'lan' ? 'lan' : 'online';
 
         if (!room) {
           send(ws, { type: 'room-error', msg: 'الكود غير صحيح أو انتهت صلاحية الغرفة' });
+          return;
+        }
+        if (room.kind !== requestedKind) {
+          send(ws, { type: 'room-error', msg: 'هذه الغرفة ليست من نفس نوع الاتصال' });
           return;
         }
         if (room.guest) {
@@ -568,32 +677,73 @@ wss.on('connection', (ws, req) => {
 
         leaveRoom(ws);
 
-        room.guest = { ws, color: room.guestColor, name: (msg.name || '').slice(0, 20), pimg: null, deviceId: (msg.deviceId || '').slice(0, 80) || null };
+        room.guest = makeMember(ws, room.guestColor, msg.name || '', msg.deviceId || '');
         clientRoom.set(ws, code);
 
         /* أبلغ الضيف */
         send(ws, { type: 'room-joined', code });
 
         /* ابدأ اللعبة للاثنين */
-        const hostName  = room.host.name  || 'المضيف';
-        const guestName = room.guest.name || 'الضيف';
-
-        send(room.host.ws, {
-          type: 'start',
-          yourColor: room.host.color,
-          oppName: guestName,
-        });
-        send(room.guest.ws, {
-          type: 'start',
-          yourColor: room.guest.color,
-          oppName: hostName,
-        });
+        sendStart(room);
 
         // Replay cached profile images (if they were sent before the opponent connected)
         if (room.host.pimg) send(room.guest.ws, { type: 'pimg', img: room.host.pimg });
         if (room.guest.pimg) send(room.host.ws, { type: 'pimg', img: room.guest.pimg });
 
         console.log(`[room] ${code} started | host=${room.host.color} guest=${room.guest.color}`);
+        break;
+      }
+
+      case 'resume': {
+        const code = (msg.code || '').toUpperCase().trim();
+        const room = rooms.get(code);
+        const deviceId = (msg.deviceId || '').slice(0, 80) || null;
+
+        if (!room || room.kind !== 'lan' || !deviceId) {
+          send(ws, { type: 'resume-failed', msg: 'تعذر استعادة غرفة LAN' });
+          return;
+        }
+
+        let side = null;
+        if (room.host?.deviceId && room.host.deviceId === deviceId) side = 'host';
+        else if (room.guest?.deviceId && room.guest.deviceId === deviceId) side = 'guest';
+
+        if (!side || !room[side]) {
+          send(ws, { type: 'resume-failed', msg: 'لم يتم العثور على جلسة مطابقة' });
+          return;
+        }
+
+        const member = room[side];
+        const oppSide = side === 'host' ? 'guest' : 'host';
+        const opp = room[oppSide];
+
+        clearDisconnectTimer(member);
+        member.ws = ws;
+        member.connected = true;
+        member.lastSeen = Date.now();
+        clientRoom.set(ws, code);
+
+        send(ws, {
+          type: 'resume-ok',
+          code,
+          yourColor: member.color,
+          oppName: opp?.name || 'الخصم',
+          oppImg: opp?.pimg || null,
+          started: !!room.started,
+        });
+
+        if (opp?.name) send(ws, { type: 'name', name: opp.name });
+        if (opp?.pimg) send(ws, { type: 'pimg', img: opp.pimg });
+        if (room.state) send(ws, { type: 'resume-state', state: room.state });
+
+        if (opp && opp.connected && opp.ws) {
+          send(opp.ws, {
+            type: 'peer-reconnected',
+            side,
+            name: member.name || '',
+            pimg: member.pimg || null,
+          });
+        }
         break;
       }
 
@@ -609,6 +759,7 @@ wss.on('connection', (ws, req) => {
         const info = getRoomAndSide(ws);
         if (info) {
           const { room, side } = info;
+          if (msg.type === 'resign') room.ended = true;
           if (msg.type === 'name') {
             const nm = (msg.name || '').slice(0, 20);
             if (room[side]) room[side].name = nm;
@@ -657,6 +808,19 @@ wss.on('connection', (ws, req) => {
           }
         }
         relay(ws, msg);
+        if (msg.type === 'resign' && info?.room?.kind === 'lan') {
+          setTimeout(() => cleanupRoom(info.code), 1000);
+        }
+        break;
+      }
+
+      case 'state-sync': {
+        const info = getRoomAndSide(ws);
+        if (!info || info.room.kind !== 'lan') break;
+        info.room.state = msg.state && typeof msg.state === 'object' ? msg.state : null;
+        if (msg.deviceId && info.room[info.side]) {
+          info.room[info.side].deviceId = String(msg.deviceId).slice(0, 80);
+        }
         break;
       }
 
@@ -674,8 +838,13 @@ wss.on('connection', (ws, req) => {
   ws.on('close', () => {
     console.log(`[-] client disconnected | total: ${wss.clients.size - 1}`);
     mmRemove(ws);
-    leaveRoom(ws);
-    clientRoom.delete(ws);
+    const info = getRoomAndSide(ws);
+    if (info && info.room.kind === 'lan') {
+      handleLanDisconnect(ws);
+    } else {
+      leaveRoom(ws);
+      clientRoom.delete(ws);
+    }
   });
 
   ws.on('error', () => {});
