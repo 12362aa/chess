@@ -303,243 +303,106 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
 }
 
-/* Settings Tabs Navigation */
-.settings-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 24px;
-  background: var(--bg3);
-  padding: 4px;
-  border-radius: 12px;
-  width: fit-content;
+/* Settings */
+.settings-shell{width:100%;max-width:1220px;padding:0 14px 28px;display:flex;flex-direction:column;gap:18px;}
+.settings-hero{position:relative;overflow:hidden;background:
+  radial-gradient(circle at top right,rgba(45,212,191,.14),transparent 36%),
+  radial-gradient(circle at top left,rgba(201,168,76,.18),transparent 42%),
+  linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
+  border:1px solid rgba(201,168,76,.16);border-radius:26px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);}
+.settings-hero::after{content:'';position:absolute;inset:auto -10% -35% auto;width:260px;height:260px;border-radius:50%;background:rgba(201,168,76,.08);filter:blur(12px);pointer-events:none;}
+.settings-hero-main{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.8fr) minmax(260px,.95fr);gap:18px;align-items:stretch;}
+.settings-profile-card{display:flex;align-items:flex-start;gap:16px;}
+.settings-profile-avatar{width:82px;height:82px;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(201,168,76,.26);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;box-shadow:0 10px 24px rgba(0,0,0,.24);}
+.settings-profile-avatar:hover{transform:translateY(-2px);border-color:rgba(201,168,76,.4);box-shadow:0 16px 30px rgba(0,0,0,.28);}
+.settings-profile-fallback{font-size:38px;}
+.settings-profile-body{flex:1;min-width:0;}
+.settings-overline{font-size:11px;letter-spacing:.08em;color:var(--gold2);margin-bottom:6px;font-weight:800;}
+.settings-headline{font-size:28px;line-height:1.15;color:var(--text);margin:0 0 6px;font-family:'Amiri',serif;}
+.settings-subtitle{font-size:13px;color:var(--text2);line-height:1.7;}
+.settings-input-row{display:flex;gap:10px;margin-top:14px;align-items:center;}
+.settings-name-input{flex:1;padding:11px 14px;border-radius:14px;border:1px solid rgba(201,168,76,.18);background:rgba(7,10,16,.48);color:var(--text);font-size:14px;box-sizing:border-box;outline:none;transition:border-color .2s ease,box-shadow .2s ease;}
+.settings-name-input:focus{border-color:rgba(45,212,191,.42);box-shadow:0 0 0 3px rgba(45,212,191,.12);}
+.settings-save-mini{padding:10px 18px!important;font-size:12px!important;white-space:nowrap;border-radius:12px!important;}
+.settings-hero-aside{display:grid;gap:10px;}
+.settings-stat{display:flex;gap:12px;align-items:flex-start;padding:14px 15px;border-radius:18px;background:rgba(10,14,22,.42);border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(8px);}
+.settings-stat-icon{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--gold2);background:rgba(201,168,76,.12);font-size:18px;flex-shrink:0;}
+.settings-stat-title{font-size:13px;color:var(--text);font-weight:700;margin-bottom:3px;}
+.settings-stat-text{font-size:12px;color:var(--text3);line-height:1.55;}
+.settings-tabs-wrap{width:100%;}
+.settings-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:8px;background:rgba(9,12,18,.72);border:1px solid rgba(201,168,76,.12);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,.18);}
+.settings-tab{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 16px;background:transparent;border:none;border-radius:16px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease;white-space:nowrap;}
+.settings-tab:hover{background:rgba(255,255,255,.05);color:var(--text);transform:translateY(-1px);}
+.settings-tab.active{background:linear-gradient(135deg,var(--gold),#f1c766);color:#0b0f15;box-shadow:0 10px 24px rgba(201,168,76,.22);}
+.tab-icon{font-size:17px;line-height:1;}
+.tab-label{font-weight:800;}
+.settings-content{width:100%;}
+.settings-tab-content{display:none;}
+.settings-tab-content.active{display:block;}
+.settings-section{position:relative;overflow:hidden;background:
+  linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.012)),
+  rgba(8,11,18,.88);
+  border:1px solid rgba(201,168,76,.12);border-radius:24px;padding:24px;margin-bottom:18px;box-shadow:0 22px 56px rgba(0,0,0,.22);}
+.settings-section::before{content:'';position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.32),transparent);}
+.section-title{font-size:20px;color:var(--gold2);margin-bottom:18px;display:flex;align-items:center;gap:10px;font-weight:800;}
+.section-icon{font-size:18px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(201,168,76,.11);}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;}
+.setting-item{display:flex;flex-direction:column;gap:8px;padding:18px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));border:1px solid rgba(201,168,76,.09);border-radius:18px;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;min-height:100%;}
+.setting-item:hover{transform:translateY(-2px);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.018));border-color:rgba(201,168,76,.18);box-shadow:0 16px 28px rgba(0,0,0,.16);}
+.setting-item-feature{gap:12px;}
+.setting-label{font-size:15px;color:var(--text);font-weight:700;}
+.setting-description{font-size:12px;color:var(--text3);line-height:1.65;}
+.settings-piece-card{display:flex;gap:12px;align-items:center;background:rgba(10,14,22,.6);border:1px solid rgba(201,168,76,.16);border-radius:18px;padding:14px;}
+.settings-piece-info{flex:1;display:flex;align-items:center;gap:12px;min-width:0;}
+.settings-piece-preview{width:56px;height:56px;flex-shrink:0;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);}
+.settings-piece-name{font-weight:800;color:var(--text);font-size:15px;}
+.settings-piece-type{font-size:12px;color:var(--text3);margin-top:4px;}
+.settings-action-btn{background:linear-gradient(135deg,var(--gold),#f1c766);color:#0b0f15;border:none;border-radius:14px;padding:12px 18px;font-weight:800;font-size:13px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;white-space:nowrap;box-shadow:0 10px 20px rgba(201,168,76,.18);}
+.settings-action-btn:hover{transform:translateY(-1px);box-shadow:0 14px 24px rgba(201,168,76,.24);}
+.settings-quicknote{font-size:12px;color:var(--text3);line-height:1.6;padding:11px 13px;border-radius:14px;background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.12);}
+.settings-footer-actions{padding-top:2px;}
+.board-themes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+.dot-color-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}
+.dot-color-opt{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.12);border-radius:12px;cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease;color:var(--text2);font-size:12px;}
+.dot-color-opt:hover{transform:translateY(-1px);background:rgba(255,255,255,.05);border-color:rgba(201,168,76,.22);}
+.dot-color-opt.active{background:rgba(45,212,191,.1);border-color:var(--teal2);color:var(--teal2);}
+.dot-color-swatch{width:20px;height:20px;border-radius:6px;border:2px solid rgba(255,255,255,.1);}
+.vol-row{display:flex;align-items:center;gap:12px;}
+.vsl{flex:1;height:6px;border-radius:3px;background:rgba(201,168,76,.2);outline:none;-webkit-appearance:none;}
+.vsl::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 2px 8px rgba(201,168,76,.3);transition:all .2s ease;}
+.vsl::-webkit-slider-thumb:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(201,168,76,.4);}
+.vsl::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:none;box-shadow:0 2px 8px rgba(201,168,76,.3);transition:all .2s ease;}
+.vsl::-moz-range-thumb:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(201,168,76,.4);}
+.settings-modal-overlay{display:none;position:fixed;inset:0;background:rgba(2,4,10,.84);backdrop-filter:blur(6px);z-index:10000;align-items:center;justify-content:center;padding:20px;}
+.settings-modal-card{background:linear-gradient(180deg,rgba(16,21,31,.98),rgba(10,14,22,.96));border:1px solid rgba(201,168,76,.18);border-radius:24px;max-width:1120px;width:100%;max-height:94vh;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.48);}
+.settings-modal-header{display:flex;justify-content:space-between;align-items:center;padding:22px 22px 16px;border-bottom:1px solid rgba(201,168,76,.1);}
+.settings-modal-title{color:var(--gold2);font-size:21px;margin:0;display:flex;align-items:center;gap:10px;}
+.settings-modal-close{background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;padding:4px 8px;}
+.settings-modal-body{padding:20px 22px 10px;display:grid;gap:22px;overflow-y:auto;max-height:calc(94vh - 140px);}
+.settings-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 22px 22px;border-top:1px solid rgba(201,168,76,.1);background:rgba(255,255,255,.015);}
+.settings-modal-note{font-size:12px;color:var(--text3);line-height:1.6;}
+.settings-modal-actions{display:flex;gap:10px;flex-shrink:0;}
+.settings-modal-secondary{flex:1;background:var(--bg3);color:var(--text);border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer;transition:all .2s ease;}
+.settings-piece-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;background:rgba(45,212,191,.1);color:var(--teal2);font-size:10px;font-weight:800;}
+@media (max-width: 920px){
+  .settings-hero-main{grid-template-columns:1fr;}
+  .settings-modal-footer{flex-direction:column;align-items:stretch;}
+  .settings-modal-actions{width:100%;}
 }
-
-.settings-tab {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  color: var(--text2);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.settings-tab:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
-}
-
-.settings-tab.active {
-  background: var(--gold);
-  color: var(--bg);
-  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
-}
-
-.tab-icon {
-  font-size: 16px;
-}
-
-.tab-label {
-  font-weight: 600;
-}
-
-/* Settings Content */
-.settings-content {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.settings-tab-content {
-  display: none;
-}
-
-.settings-tab-content.active {
-  display: block;
-}
-
-.settings-section {
-  background: var(--bg2);
-  border: 1px solid rgba(201, 168, 76, 0.1);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-}
-
-.section-title {
-  font-size: 18px;
-  color: var(--gold2);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-}
-
-.section-icon {
-  font-size: 20px;
-}
-
-.settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.setting-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(201, 168, 76, 0.08);
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-.setting-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(201, 168, 76, 0.15);
-}
-
-.setting-label {
-  font-size: 14px;
-  color: var(--text);
-  font-weight: 600;
-}
-
-.setting-description {
-  font-size: 12px;
-  color: var(--text3);
-  line-height: 1.4;
-}
-
-/* Board Themes Grid */
-.board-themes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-}
-
-/* Enhanced dot color picker */
-.dot-color-picker {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-}
-
-.dot-color-opt {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(201, 168, 76, 0.1);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
-  color: var(--text2);
-}
-
-.dot-color-opt:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(201, 168, 76, 0.2);
-}
-
-.dot-color-opt.active {
-  background: rgba(45, 212, 191, 0.1);
-  border-color: var(--teal2);
-  color: var(--teal2);
-}
-
-.dot-color-swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Enhanced volume slider */
-.vol-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.vsl {
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(201, 168, 76, 0.2);
-  outline: none;
-  -webkit-appearance: none;
-}
-
-.vsl::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--gold);
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.3);
-  transition: all 0.2s ease;
-}
-
-.vsl::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.4);
-}
-
-.vsl::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--gold);
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.3);
-  transition: all 0.2s ease;
-}
-
-.vsl::-moz-range-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.4);
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
-  .settings-tabs {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .settings-tab {
-    padding: 10px 16px;
-    font-size: 13px;
-  }
-  
-  .tab-icon {
-    font-size: 14px;
-  }
-  
-  .settings-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .board-themes-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  }
-  
-  .dot-color-picker {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  }
+  .settings-shell{padding-inline:12px;}
+  .settings-hero{padding:18px;}
+  .settings-profile-card{flex-direction:column;align-items:stretch;}
+  .settings-input-row{flex-direction:column;}
+  .settings-save-mini{width:100%;}
+  .settings-tabs{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .settings-tab{padding:12px 10px;font-size:13px;}
+  .tab-icon{font-size:15px;}
+  .settings-grid{grid-template-columns:1fr;}
+  .settings-piece-card{flex-direction:column;align-items:stretch;}
+  .settings-action-btn{width:100%;}
+  .board-themes-grid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));}
+  .dot-color-picker{grid-template-columns:repeat(auto-fit,minmax(100px,1fr));}
 }
 
 /* ══════════ ONLINE / LAN ══════════ */
@@ -1515,57 +1378,70 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 
 <!-- SETTINGS -->
 <div id="s-settings" class="screen">
-  <div style="flex-direction:column;align-items:center;width:100%;gap:0;padding:0 0 24px 0;display:flex;">
-    <!-- Settings Header with Profile -->
-    <div style="background:var(--bg2);border-bottom:1px solid rgba(201,168,76,0.1);width:100%;padding:20px 14px;margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:16px;max-width:1200px;margin:0 auto;width:100%;">
-        <!-- Profile Section -->
-        <div style="display:flex;align-items:center;gap:14px;flex:1;">
-          <div id="settings-profile-img" style="width:64px;height:64px;border-radius:50%;background:var(--bg3);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" onclick="if(typeof SFX!=='undefined')SFX.btn();document.getElementById('settings-profile-input').click()">
-            <span style="font-size:32px;" id="settings-profile-fallback">♙</span>
+  <div class="settings-shell">
+    <div class="settings-hero">
+      <div class="settings-hero-main">
+        <div class="settings-profile-card">
+          <div id="settings-profile-img" class="settings-profile-avatar" onclick="if(typeof SFX!=='undefined')SFX.btn();document.getElementById('settings-profile-input').click()">
+            <span class="settings-profile-fallback" id="settings-profile-fallback">♙</span>
           </div>
-          <div style="flex:1;">
-            <div class="sr-n" id="settings-username-display" style="font-size:18px;color:var(--text);margin-bottom:4px;">لاعب</div>
-            <div class="sr-d" style="font-size:12px;">انقر لتعديل الاسم أو الصورة</div>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-              <input type="text" id="settings-username-input" placeholder="اسم اللاعب" style="flex:1;padding:8px 12px;border-radius:6px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
-              <button id="settings-save-btn" class="btnp" style="padding:8px 16px;font-size:12px;display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
+          <div class="settings-profile-body">
+            <div class="settings-overline">ملف اللاعب</div>
+            <h2 class="settings-headline" id="settings-username-display">لاعب</h2>
+            <div class="settings-subtitle">خصص اسمك وصورتك وستبقى الإعدادات محفوظة محليًا على هذا الجهاز.</div>
+            <div class="settings-input-row">
+              <input type="text" class="settings-name-input" id="settings-username-input" placeholder="اسم اللاعب" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
+              <button id="settings-save-btn" class="btnp settings-save-mini" style="display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
+            </div>
+          </div>
+          <input type="file" id="settings-profile-input" accept="image/*" style="display:none;" onchange="handleSettingsProfileImage(this)">
+        </div>
+        <div class="settings-hero-aside">
+          <div class="settings-stat">
+            <div class="settings-stat-icon">◈</div>
+            <div>
+              <div class="settings-stat-title">حفظ فوري</div>
+              <div class="settings-stat-text">شكل القطع، الثيمات، وتقدم مراحل نور تُحفظ مباشرة بدون إعادة ضبط غير مقصودة.</div>
+            </div>
+          </div>
+          <div class="settings-stat">
+            <div class="settings-stat-icon">▦</div>
+            <div>
+              <div class="settings-stat-title">واجهة أدق</div>
+              <div class="settings-stat-text">تنظيم أوضح للأقسام مع بطاقات أكثر راحة على الهاتف والكمبيوتر.</div>
             </div>
           </div>
         </div>
-        <input type="file" id="settings-profile-input" accept="image/*" style="display:none;" onchange="handleSettingsProfileImage(this)">
       </div>
     </div>
 
-    <!-- Settings Tabs Navigation -->
-    <div style="width:100%;max-width:1200px;margin:0 auto;padding:0 14px;">
+    <div class="settings-tabs-wrap">
       <div class="settings-tabs">
         <button class="settings-tab active" data-tab="appearance" onclick="switchSettingsTab('appearance')">
-          <span class="tab-icon">🎨</span>
+          <span class="tab-icon">◈</span>
           <span class="tab-label">المظهر</span>
         </button>
         <button class="settings-tab" data-tab="board" onclick="switchSettingsTab('board')">
-          <span class="tab-icon">♟</span>
+          <span class="tab-icon">▦</span>
           <span class="tab-label">الرقعة</span>
         </button>
         <button class="settings-tab" data-tab="gameplay" onclick="switchSettingsTab('gameplay')">
-          <span class="tab-icon">🎮</span>
+          <span class="tab-icon">✦</span>
           <span class="tab-label">اللعب</span>
         </button>
         <button class="settings-tab" data-tab="sound" onclick="switchSettingsTab('sound')">
-          <span class="tab-icon">🔊</span>
+          <span class="tab-icon">◉</span>
           <span class="tab-label">الصوت</span>
         </button>
       </div>
 
-      <!-- Settings Content -->
       <div class="settings-content">
         <!-- Appearance Tab -->
         <div class="settings-tab-content active" id="tab-appearance">
           <div class="settings-section">
             <h3 class="section-title"><span class="section-icon">◈</span> واجهة التطبيق</h3>
             <div class="settings-grid">
-              <div class="setting-item">
+              <div class="setting-item setting-item-feature">
                 <div class="setting-label">ثيم التطبيق</div>
                 <div class="setting-description">يتغير فوراً بدون إعادة تحميل</div>
                 <div class="ui-grid">
@@ -1578,21 +1454,22 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
                 </div>
               </div>
 
-              <div class="setting-item">
+              <div class="setting-item setting-item-feature">
                 <div class="setting-label">شكل القطع</div>
-                <div class="setting-description">اختر شكل قطع الشطرنج</div>
-                <div style="display:flex;gap:12px;align-items:center;background:var(--bg2);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px;">
-                  <div id="current-piece-display" style="flex:1;display:flex;align-items:center;gap:12px;">
-                    <div class="ppc" style="width:48px;height:48px;"><div id="current-piece-preview" class="piece"></div></div>
+                <div class="setting-description">اختر الشكل النشط للقطع. لن يتغير بعد الحفظ إلا إذا بدّلته بنفسك.</div>
+                <div class="settings-piece-card">
+                  <div id="current-piece-display" class="settings-piece-info">
+                    <div class="ppc settings-piece-preview"><div id="current-piece-preview" class="piece"></div></div>
                     <div>
-                      <div id="current-piece-name" style="font-weight:600;color:var(--text);font-size:14px;">Neo</div>
-                      <div id="current-piece-type" style="font-size:12px;color:var(--text3);">2D</div>
+                      <div id="current-piece-name" class="settings-piece-name">Neo</div>
+                      <div id="current-piece-type" class="settings-piece-type">2D</div>
                     </div>
                   </div>
-                  <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); openPieceSettings();" style="background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:12px 20px;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s;white-space:nowrap;">
-                    🔧 جميع القطع
+                  <button class="settings-action-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); openPieceSettings();">
+                    ◇ جميع القطع
                   </button>
                 </div>
+                <div class="settings-quicknote">تمت إزالة رقعة المعاينة من الإعدادات لتبقى الشاشة أخف وأسرع، مع الحفاظ على عرض مختصر للشكل الحالي فقط.</div>
               </div>
             </div>
           </div>
@@ -1622,7 +1499,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
           </div>
 
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">🎨</span> ألوان الرقعة</h3>
+            <h3 class="section-title"><span class="section-icon">▣</span> ألوان الرقعة</h3>
             <div class="board-themes-grid">
               <div class="th-opt on" id="th-classic"    onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>خشب ★</div>
               <div class="th-opt"    id="th-burl_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood')"><div class="th-sw"><div class="sw" style="background:#d4a574"></div><div class="sw" style="background:#8b6f47"></div></div>بيرل</div>
@@ -1663,7 +1540,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <!-- Gameplay Tab -->
         <div class="settings-tab-content" id="tab-gameplay">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">🎮</span> إعدادات اللعب</h3>
+            <h3 class="section-title"><span class="section-icon">✦</span> إعدادات اللعب</h3>
             <div class="settings-grid">
               <div class="setting-item">
                 <div class="setting-label">عرض نقاط التقدم</div>
@@ -1728,7 +1605,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <!-- Sound Tab -->
         <div class="settings-tab-content" id="tab-sound">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">🔊</span> إعدادات الصوت</h3>
+            <h3 class="section-title"><span class="section-icon">◉</span> إعدادات الصوت</h3>
             <div class="settings-grid">
               <div class="setting-item">
                 <div class="setting-label">تفعيل الأصوات</div>
@@ -1750,8 +1627,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
       </div>
     </div>
 
-    <!-- Back Button -->
-    <div style="padding:20px 14px 0;">
+    <div class="settings-footer-actions">
       <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
     </div>
   </div>
@@ -2598,8 +2474,18 @@ const OFFLINE_PIECE_THEMES={
   }
 };
 
+function isKnownPieceTheme(theme){
+  return !!(theme && (CHESS_PIECE_THEMES[theme] || OFFLINE_PIECE_THEMES[theme]));
+}
+
+function normalizePieceTheme(theme,fallback='neo'){
+  if(theme==='local3d') theme='3d_wood';
+  return isKnownPieceTheme(theme) ? theme : fallback;
+}
+
 // Generate piece URLs for a theme with offline fallback
 function getPieceUrls(theme){
+  theme=normalizePieceTheme(theme,'local_basic');
   // Try online theme first
   const onlineTheme=CHESS_PIECE_THEMES[theme];
   if(onlineTheme && onlineTheme.urlBase){
@@ -2626,7 +2512,7 @@ function getPieceUrls(theme){
 }
 
 // Legacy compatibility
-const LOCAL_3D_PIECES=getPieceUrls('wood');
+const LOCAL_3D_PIECES=getPieceUrls('3d_wood');
 
 // Generate piece theme options dynamically
 function generatePieceThemeOptions(){
@@ -2640,7 +2526,7 @@ function generatePieceThemeOptions(){
   container3d.innerHTML='';
   
   // Get current theme
-  const currentTheme=Cfg.data.pieceStyle||'neo';
+  const currentTheme=normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo');
   
   // Combine online and offline themes
   const allThemes={...CHESS_PIECE_THEMES, ...OFFLINE_PIECE_THEMES};
@@ -2660,7 +2546,7 @@ function generatePieceThemeOptions(){
     };
     
     // Add offline indicator if applicable
-    const offlineIndicator=theme.isOffline?' <span style="color:var(--teal2);font-size:10px;">📱</span>':'';
+    const offlineIndicator=theme.isOffline?' <span class="settings-piece-chip">◆ محلي</span>':'';
     
     // Create preview with king and queen
     const preview=document.createElement('div');
@@ -2725,7 +2611,7 @@ function generatePieceThemeOptionsForModal(){
   container3d.innerHTML='';
   
   // Get current theme
-  const currentTheme=Cfg.data.pieceStyle||'neo';
+  const currentTheme=normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo');
   
   // Combine online and offline themes
   const allThemes={...CHESS_PIECE_THEMES, ...OFFLINE_PIECE_THEMES};
@@ -2738,14 +2624,14 @@ function generatePieceThemeOptionsForModal(){
     const option=document.createElement('div');
     option.className='pc-opt';
     option.id='pc-'+key+'-modal';
-    if(key===currentTheme) option.classList.add('on');
+    if(key===currentTheme) option.classList.add('on','selected');
     option.onclick=function(){
       if(typeof SFX !== 'undefined') SFX.btn();
       selectPieceForPreview(key);
     };
     
     // Add offline indicator if applicable
-    const offlineIndicator=theme.isOffline?' <span style="color:var(--teal2);font-size:10px;">📱</span>':'';
+    const offlineIndicator=theme.isOffline?' <span class="settings-piece-chip">◆ محلي</span>':'';
     
     // Create preview with king and queen
     const preview=document.createElement('div');
@@ -2784,10 +2670,10 @@ function generatePieceThemeOptionsForModal(){
   
   // Initialize preview with current theme
   selectedPieceTheme = currentTheme;
-  createPreviewBoard();
 }
 
 function updateCurrentPieceDisplay(themeKey){
+  themeKey=normalizePieceTheme(themeKey);
   // Try online themes first, then offline themes
   const theme=CHESS_PIECE_THEMES[themeKey] || OFFLINE_PIECE_THEMES[themeKey];
   if(!theme) return;
@@ -2804,80 +2690,18 @@ function updateCurrentPieceDisplay(themeKey){
   if(type) type.textContent=theme.type.toUpperCase();
 }
 
-// Preview board functionality
+// Piece selection state
 let selectedPieceTheme = null;
 
-function createPreviewBoard(){
-  const board=document.getElementById('piece-preview-board');
-  if(!board) return;
-  
-  board.innerHTML='';
-  
-  // Get current board theme colors
-  const lightColor=getComputedStyle(document.documentElement).getPropertyValue('--sq-l').trim();
-  const darkColor=getComputedStyle(document.documentElement).getPropertyValue('--sq-d').trim();
-  
-  // Create 8x8 board
-  for(let row=0;row<8;row++){
-    for(let col=0;col<8;col++){
-      const square=document.createElement('div');
-      square.style.position='absolute';
-      square.style.width='12.5%';
-      square.style.height='12.5%';
-      square.style.left=(col*12.5)+'%';
-      square.style.top=(row*12.5)+'%';
-      square.style.backgroundColor=(row+col)%2===0?lightColor:darkColor;
-      square.style.display='flex';
-      square.style.alignItems='center';
-      square.style.justifyContent='center';
-      square.style.fontSize='calc(100% / 8)';
-      
-      // Add some pieces for preview
-      if(selectedPieceTheme){
-        const urls=getPieceUrls(selectedPieceTheme);
-        if(urls){
-          // Place key pieces for preview
-          if(row===7 && col===4){ // White king
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wK}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===3){ // White queen
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wQ}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===0){ // White rook
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wR}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===1){ // White knight
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wN}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===2){ // White bishop
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wB}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===6 && col===0 || row===6 && col===1){ // White pawns
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wP}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===4){ // Black king
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bK}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===3){ // Black queen
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bQ}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===0){ // Black rook
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bR}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===1){ // Black knight
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bN}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===2){ // Black bishop
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bB}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===1 && col===0 || row===1 && col===1){ // Black pawns
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bP}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }
-        }
-      }
-      
-      board.appendChild(square);
-    }
-  }
-}
-
 function selectPieceForPreview(themeKey){
-  selectedPieceTheme = themeKey;
-  createPreviewBoard();
+  selectedPieceTheme = normalizePieceTheme(themeKey);
   
   // Update selection UI
-  document.querySelectorAll('.pc-opt').forEach(opt=>opt.classList.remove('selected'));
-  const selectedOpt=document.getElementById('pc-'+themeKey+'-modal');
-  if(selectedOpt) selectedOpt.classList.add('selected');
+  document.querySelectorAll('#piece-settings-modal .pc-opt').forEach(opt=>{
+    opt.classList.remove('selected','on');
+  });
+  const selectedOpt=document.getElementById('pc-'+selectedPieceTheme+'-modal');
+  if(selectedOpt) selectedOpt.classList.add('selected','on');
 }
 
 function applySelectedPiece(){
@@ -2885,7 +2709,8 @@ function applySelectedPiece(){
   
   if(typeof SFX !== 'undefined') SFX.btn();
   Cfg.pieces(selectedPieceTheme);
-  updateCurrentPieceDisplay(selectedPieceTheme);
+  updateCurrentPieceDisplay(normalizePieceTheme(selectedPieceTheme));
+  generatePieceThemeOptions();
   closePieceSettings();
 }
 
@@ -2909,7 +2734,7 @@ function switchSettingsTab(tabName){
 // Initialize piece themes when DOM is ready
 document.addEventListener('DOMContentLoaded',()=>{
   generatePieceThemeOptions();
-  updateCurrentPieceDisplay(Cfg.data.pieceStyle||'neo');
+  updateCurrentPieceDisplay(normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo'));
 });
 
 // Close modal when clicking outside
@@ -3027,7 +2852,7 @@ const Cfg={
     playerName:null,
     playerImage:null,
     uiTheme:'amkh',
-    pieces:'neo',
+    pieceStyle:'neo',
     dotColor:'#2dd4bf',
     boardTheme:'classic',
     customBoardImage:''
@@ -3045,6 +2870,9 @@ const Cfg={
         if(parsed && typeof parsed==='object') this.data={...this.data,...parsed};
       }
     }catch(e){}
+    const migratedPieceTheme=normalizePieceTheme(this.data.pieceStyle||this.data.pieces||'neo');
+    this.data.pieceStyle=migratedPieceTheme;
+    try{delete this.data.pieces;}catch(e){}
     // Sync from old localStorage keys if new keys don't have values
     try{
       if(!this.data.playerName){
@@ -3067,7 +2895,6 @@ const Cfg={
     this.data.check   =document.getElementById('set-check').checked;
     this.data.score   =document.getElementById('set-score').checked;
     this.data.confirm =document.getElementById('set-confirm').checked;
-    this.data.dotColor=document.getElementById('set-dot-color').value;
     this._persist();
     this.apply();
   },
@@ -3077,6 +2904,8 @@ const Cfg={
     this.apply();
   },
   _persist(){
+    this.data.pieceStyle=normalizePieceTheme(this.data.pieceStyle||this.data.pieces||'neo');
+    try{delete this.data.pieces;}catch(e){}
     try{ IDB.kset('cfg',this.data); }catch(e){}
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
     // Also save to legacy keys for compatibility
@@ -3130,7 +2959,7 @@ const Cfg={
     });
     this._updateProfileImage();
     this.uiTheme(this.data.uiTheme,false);
-    this.pieces(this.data.pieceStyle,false);
+    this.pieces(normalizePieceTheme(this.data.pieceStyle||this.data.pieces||'neo'),false);
     this.theme(this.data.boardTheme,false);
     // Only apply custom board image if the current theme is 'custom'
     if(this.data.boardTheme==='custom' && this.data.customBoardImage){
@@ -3232,9 +3061,7 @@ const Cfg={
   },
   pieces(style,save=true){
     // Support new theme system with fallback
-    let theme=style;
-    if(style==='local3d') theme='wood'; // Map old 3D to new wood theme
-    if(!CHESS_PIECE_THEMES[theme]) theme='neo'; // Default fallback
+    const theme=normalizePieceTheme(style||this.data.pieceStyle||'neo');
     
     this.data.pieceStyle=theme;
     try{document.querySelectorAll('.pc-opt').forEach(e=>e.classList.remove('on'));}catch(e){}
@@ -3249,6 +3076,7 @@ const Cfg={
     }else{
       _loadChessPieces(); // Fallback to default
     }
+    updateCurrentPieceDisplay(theme);
     if(save){this._persist();}
   },
   uiTheme(name,save=true){
@@ -3591,6 +3419,7 @@ const IDB=(()=>{
 const LVL={
   _cache:null,
   _deviceId:null,
+  _backupKey:'nour-progress-v2',
   _getDeviceId(){
     if(!this._deviceId){
       this._deviceId=localStorage.getItem('chess_device_id');
@@ -3614,6 +3443,52 @@ const LVL={
         }
       });
     }catch(e){console.log('[IDB] Load failed:',e);}
+    // 1b. Merge backup snapshot saved in IndexedDB/localStorage
+    try{
+      const backup=await IDB.kget(this._backupKey);
+      if(backup && typeof backup==='object'){
+        Object.entries(backup).forEach(([key,val])=>{
+          if(/^u\d+$/.test(key)){
+            progress[key]=progress[key]||!!val;
+            return;
+          }
+          const lid=parseInt(key,10);
+          if(!isNaN(lid) && val && typeof val==='object'){
+            const existing=progress[lid]||{stars:0,moves:999,done:false};
+            progress[lid]={
+              stars:Math.max(existing.stars||0,val.stars||0),
+              moves:Math.min(existing.moves||999,val.moves||999),
+              done:!!(existing.done||val.done)
+            };
+            if(lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
+          }
+        });
+      }
+    }catch(e){console.log('[IDB] Backup load failed:',e);}
+    try{
+      const localBackup=localStorage.getItem(this._backupKey);
+      if(localBackup){
+        const parsed=JSON.parse(localBackup);
+        if(parsed && typeof parsed==='object'){
+          Object.entries(parsed).forEach(([key,val])=>{
+            if(/^u\d+$/.test(key)){
+              progress[key]=progress[key]||!!val;
+              return;
+            }
+            const lid=parseInt(key,10);
+            if(!isNaN(lid) && val && typeof val==='object'){
+              const existing=progress[lid]||{stars:0,moves:999,done:false};
+              progress[lid]={
+                stars:Math.max(existing.stars||0,val.stars||0),
+                moves:Math.min(existing.moves||999,val.moves||999),
+                done:!!(existing.done||val.done)
+              };
+              if(lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
+            }
+          });
+        }
+      }
+    }catch(e){console.log('[localStorage] Backup load failed:',e);}
     // 2. Try Firestore for cloud sync (merge, keep best)
     if(false){
       try{
@@ -3652,6 +3527,8 @@ const LVL={
     try{
       await IDB.set(id+'',{stars:p[id].stars,moves:p[id].moves,done:true,updatedAt:Date.now()});
       if(id+1<LEVELS_DEF.length)await IDB.set('u'+(id+1),{unlocked:true,updatedAt:Date.now()});
+      await IDB.kset(this._backupKey,p);
+      localStorage.setItem(this._backupKey,JSON.stringify(p));
       console.log('[IDB] Level saved:',id);
     }catch(e){console.error('[IDB] Save failed:',e);}
     // 2. Sync to Firestore (cloud backup)
@@ -6942,22 +6819,27 @@ function loadSettingsProfile(){
   const display=document.getElementById('settings-username-display');
   const input=document.getElementById('settings-username-input');
   const saveBtn=document.getElementById('settings-save-btn');
+  const settingsImg=document.getElementById('settings-profile-img');
+  const fallback=document.getElementById('settings-profile-fallback');
   if(savedUsername){
     if(display)display.textContent=savedUsername;
     if(input)input.value=savedUsername;
     _originalUsername=savedUsername;
   }else{
+    if(display)display.textContent='لاعب';
+    if(input)input.value='';
     _originalUsername='';
   }
   if(saveBtn)saveBtn.style.display='none';
   const savedImage=Cfg.data.playerImage||'';
   if(savedImage){
-    const settingsImg=document.getElementById('settings-profile-img');
-    const fallback=document.getElementById('settings-profile-fallback');
     if(settingsImg){
       settingsImg.style.backgroundImage=`url(${savedImage})`;
       if(fallback)fallback.style.display='none';
     }
+  }else if(settingsImg){
+    settingsImg.style.backgroundImage='';
+    if(fallback)fallback.style.display='';
   }
 }
 
@@ -6972,7 +6854,7 @@ window.addEventListener('load',async ()=>{
     try{loadSettingsProfile();}catch(e){}
     SFX.init();
     DRAG.init();
-    _loadChessPieces();
+    if(normalizePieceTheme(Cfg.data.pieceStyle||'neo')==='neo') _loadChessPieces();
     // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
     setTimeout(()=>SF.checkReady(),5000);
     // طلب إذن الإشعارات
@@ -7122,53 +7004,30 @@ window.addEventListener('beforeunload',()=>{
 </script>
 
 <!-- Piece Settings Modal -->
-<div id="piece-settings-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--bg);border:1px solid rgba(201,168,76,0.2);border-radius:16px;max-width:1200px;width:100%;max-height:95vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 20px 0;border-bottom:1px solid rgba(201,168,76,0.1);margin-bottom:20px;">
-      <h3 style="color:var(--gold2);font-size:18px;margin:0;">🎨 جميع قطع الشطرنج</h3>
-      <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;padding:4px;">&times;</button>
+<div id="piece-settings-modal" class="settings-modal-overlay">
+  <div class="settings-modal-card">
+    <div class="settings-modal-header">
+      <h3 class="settings-modal-title"><span class="section-icon">◈</span> جميع قطع الشطرنج</h3>
+      <button class="settings-modal-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();">&times;</button>
     </div>
-    
-    <div style="padding:0 20px 20px;display:grid;grid-template-columns:1fr 400px;gap:30px;align-items:start;">
-      <!-- Left Column: Piece Selection -->
+
+    <div class="settings-modal-body">
       <div>
-        <!-- 2D Themes Section -->
-        <div style="margin-bottom:24px;">
-          <div class="pc-section-header">2D قطع</div>
-          <div class="pc-grid" id="pc-2d-grid-modal">
-            <!-- 2D themes will be generated here -->
-          </div>
-        </div>
-        
-        <!-- 3D Themes Section -->
-        <div style="margin-bottom:24px;">
-          <div class="pc-section-header">3D قطع</div>
-          <div class="pc-grid" id="pc-3d-grid-modal">
-            <!-- 3D themes will be generated here -->
-          </div>
-        </div>
+        <div class="pc-section-header">◈ قطع ثنائية الأبعاد</div>
+        <div class="pc-grid" id="pc-2d-grid-modal"></div>
       </div>
-      
-      <!-- Right Column: Preview Board -->
-      <div style="position:sticky;top:20px;">
-        <div style="background:var(--bg2);border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:20px;">
-          <div style="font-size:14px;color:var(--gold2);margin-bottom:15px;text-align:center;font-weight:600;">معاينة الرقعة</div>
-          
-          <!-- Preview Board -->
-          <div id="piece-preview-board" style="width:100%;aspect-ratio:1;position:relative;border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);background:var(--sq-l);">
-            <!-- Board squares will be generated here -->
-          </div>
-          
-          <!-- Action Buttons -->
-          <div style="display:flex;gap:10px;margin-top:20px;">
-            <button id="apply-piece-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); applySelectedPiece();" style="flex:1;background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">
-              تطبيق
-            </button>
-            <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">
-              إلغاء
-            </button>
-          </div>
-        </div>
+
+      <div>
+        <div class="pc-section-header">◆ قطع ثلاثية الأبعاد</div>
+        <div class="pc-grid" id="pc-3d-grid-modal"></div>
+      </div>
+    </div>
+
+    <div class="settings-modal-footer">
+      <div class="settings-modal-note">اختر الشكل الذي تفضله ثم اضغط تطبيق. سيبقى محفوظًا محليًا ولن يعود إلى الشكل الافتراضي إلا إذا غيّرته أنت.</div>
+      <div class="settings-modal-actions">
+        <button id="apply-piece-btn" class="settings-action-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); applySelectedPiece();">تطبيق</button>
+        <button class="settings-modal-secondary" onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();">إلغاء</button>
       </div>
     </div>
   </div>
