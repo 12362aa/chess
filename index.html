@@ -1854,7 +1854,8 @@ body[data-ui-theme="anime"] .settings-headline{
   <div class="oc">
     <h2><span class="ic-blue">⌘</span> LAN محلي</h2>
     <p class="oc-sub">اتصال محلي فقط بين جهازين على نفس الواي فاي أو الهوتسبوت</p>
-    <div class="p2p">يستخدم نفس سيرفر <strong>Node + WebSocket</strong> على الشبكة المحلية فقط.<br><span style="font-size:11px;opacity:.8">لا رابط ولا QR ولا إدخال IP، فقط كود الغرفة.</span></div>
+    <div class="p2p">يستخدم نفس سيرفر <strong>Node + WebSocket</strong> على الشبكة المحلية فقط.<br><span style="font-size:11px;opacity:.8">لا حاجة للإنترنت - فقط اتصل بنفس الشبكة وأدخل كود الغرفة</span></div>
+    
     <div class="tabs">
       <button class="tbb on" id="lan-tb-c" onclick="LAN.tab('c')">إنشاء غرفة</button>
       <button class="tbb" id="lan-tb-j" onclick="LAN.tab('j')">انضمام</button>
@@ -6239,29 +6240,45 @@ function fixBars(myCol){
   const container=document.getElementById('board-container');
   const barB=document.getElementById('bar-b');
   const barW=document.getElementById('bar-w');
+  const gtbar=document.querySelector('.gtbar');
+  const sbar=document.getElementById('sbar');
+  const mvhist=document.getElementById('mvhist');
   const parent=document.getElementById('s-game');
 
   // Remove existing placements
   if(barB.parentNode===parent)parent.removeChild(barB);
   if(container.parentNode===parent)parent.removeChild(container);
   if(barW.parentNode===parent)parent.removeChild(barW);
-
-  const gtbar=document.getElementById('s-game').querySelector('.gtbar');
+  if(gtbar&&gtbar.parentNode===parent)parent.removeChild(gtbar);
+  if(sbar&&sbar.parentNode===parent)parent.removeChild(sbar);
+  if(mvhist&&mvhist.parentNode===parent)parent.removeChild(mvhist);
 
   if(myCol==='both'){
     // For local 2-player mode, use consistent layout like other modes
-    // Place bars and container in the correct order for grid layout
     parent.appendChild(barB);
     parent.appendChild(container);
     parent.appendChild(barW);
+    if(gtbar)parent.appendChild(gtbar);
+    if(sbar)parent.appendChild(sbar);
+    if(mvhist)parent.appendChild(mvhist);
   }else if(myCol==='b'){
-    parent.appendChild(barW);
-    parent.appendChild(container);
-    parent.appendChild(barB);
+    // اللاعب الأسود - يظهر في الأسفل
+    parent.appendChild(barW); // الخصم في الأعلى
+    parent.appendChild(container); // اللوحة في الوسط
+    parent.appendChild(barB); // أنا في الأسفل
+    // العناصر التفاعلية تظهر تحت اللاعب (barB)
+    if(gtbar)parent.appendChild(gtbar);
+    if(sbar)parent.appendChild(sbar);
+    if(mvhist)parent.appendChild(mvhist);
   }else{
-    parent.appendChild(barB);
-    parent.appendChild(container);
-    parent.appendChild(barW);
+    // اللاعب الأبيض - يظهر في الأسفل
+    parent.appendChild(barB); // الخصم في الأعلى
+    parent.appendChild(container); // اللوحة في الوسط
+    parent.appendChild(barW); // أنا في الأسفل
+    // العناصر التفاعلية تظهر تحت اللاعب (barW)
+    if(gtbar)parent.appendChild(gtbar);
+    if(sbar)parent.appendChild(sbar);
+    if(mvhist)parent.appendChild(mvhist);
   }
 }
 
@@ -6603,11 +6620,120 @@ const LAN=(()=>{
   let _manualClose=false;
 
   function getWsUrl(){
-    // في وضع LAN المحلي، نستخدم localhost مباشرة بدلاً من location.host
-    // لأن الصفحة قد تكون محملة من GitHub Pages أو أي مكان آخر
-    // لكن السيرفر المحلي يعمل على localhost:3000
-    const host = 'localhost:3000';
-    return `ws://${host}`;
+    // في وضع LAN المحلي، نحاول الاتصال بالسيرفر تلقائياً
+    let serverHost = localStorage.getItem('lan_server_host');
+    
+    // إذا لم يكن محفوظاً، نستخدم localhost (للجهاز الذي يشغل السيرفر)
+    if (!serverHost) {
+      serverHost = 'localhost:8081';
+    }
+    
+    return `ws://${serverHost}`;
+  }
+  
+  // دالة لاكتشاف السيرفر تلقائياً على الشبكة المحلية
+  async function discoverServer() {
+    // نحصل على IP الحالي للجهاز
+    const currentIP = await getCurrentDeviceIP();
+    if (!currentIP) return null;
+    
+    // نستخرج الـ subnet (مثل 192.168.1)
+    const subnet = currentIP.substring(0, currentIP.lastIndexOf('.'));
+    const lastOctet = parseInt(currentIP.substring(currentIP.lastIndexOf('.') + 1));
+    
+    // نجرب عناوين IP محتملة بذكاء:
+    // 1. نجرب الأجهزة القريبة من IP الحالي (±10)
+    // 2. نجرب عناوين شائعة (1, 2, 100, 101, etc.)
+    const possibleIPs = [];
+    
+    // الأجهزة القريبة
+    for (let i = Math.max(1, lastOctet - 10); i <= Math.min(254, lastOctet + 10); i++) {
+      if (i !== lastOctet) possibleIPs.push(`${subnet}.${i}:8081`);
+    }
+    
+    // عناوين شائعة للراوتر والأجهزة
+    const commonIPs = [1, 2, 100, 101, 102, 10, 20, 50];
+    for (const ip of commonIPs) {
+      if (!possibleIPs.includes(`${subnet}.${ip}:8081`)) {
+        possibleIPs.unshift(`${subnet}.${ip}:8081`);
+      }
+    }
+    
+    // نجرب الاتصال بكل IP (بالتوازي لتسريع العملية)
+    const promises = possibleIPs.slice(0, 30).map(ip => 
+      new Promise((resolve) => {
+        try {
+          const testWs = new WebSocket(`ws://${ip}`);
+          const timeout = setTimeout(() => {
+            try { testWs.close(); } catch(e) {}
+            resolve(null);
+          }, 1000);
+          
+          testWs.onopen = () => {
+            clearTimeout(timeout);
+            try { testWs.close(); } catch(e) {}
+            resolve(ip);
+          };
+          
+          testWs.onerror = () => {
+            clearTimeout(timeout);
+            resolve(null);
+          };
+        } catch (e) {
+          resolve(null);
+        }
+      })
+    );
+    
+    const results = await Promise.all(promises);
+    const foundIP = results.find(ip => ip !== null);
+    
+    if (foundIP) {
+      localStorage.setItem('lan_server_host', foundIP);
+      return foundIP;
+    }
+    
+    return null;
+  }
+  
+  // دالة للحصول على IP الجهاز الحالي
+  async function getCurrentDeviceIP() {
+    try {
+      // نستخدم WebRTC للحصول على IP المحلي
+      const pc = new RTCPeerConnection({iceServers: []});
+      pc.createDataChannel('');
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      return new Promise((resolve) => {
+        pc.onicecandidate = (ice) => {
+          if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+          const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+          const match = ipRegex.exec(ice.candidate.candidate);
+          if (match && !match[1].startsWith('0.') && !match[1].startsWith('127.')) {
+            pc.close();
+            resolve(match[1]);
+          }
+        };
+        
+        setTimeout(() => {
+          pc.close();
+          resolve(null);
+        }, 3000);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  function setServerHost(host) {
+    if (host && typeof host === 'string') {
+      localStorage.setItem('lan_server_host', host.trim());
+    }
+  }
+  
+  function getServerHost() {
+    return localStorage.getItem('lan_server_host') || 'localhost:8081';
   }
 
   function loadSession(){
@@ -6881,7 +7007,7 @@ const LAN=(()=>{
     }
   }
 
-  function connect(isResume=false,onOpen){
+  async function connect(isResume=false,onOpen){
     resetTimers();
     _manualClose=false;
     if(ws&&ws.readyState===WebSocket.OPEN){
@@ -6892,9 +7018,60 @@ const LAN=(()=>{
       }
       return;
     }
+    
+    // نحاول الاتصال بالعنوان المحفوظ أو localhost
+    let wsUrl = getWsUrl();
+    let connected = false;
+    
     try{
-      ws=new WebSocket(getWsUrl());
+      ws=new WebSocket(wsUrl);
+      
+      // ننتظر لنرى إذا نجح الاتصال
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          if(ws && ws.readyState !== WebSocket.OPEN) {
+            ws.close();
+            reject(new Error('timeout'));
+          }
+        }, 3000);
+        
+        ws.onopen=()=>{
+          clearTimeout(timeout);
+          connected = true;
+          resolve();
+        };
+        
+        ws.onerror=()=>{
+          clearTimeout(timeout);
+          reject(new Error('connection failed'));
+        };
+      });
     }catch(e){
+      // فشل الاتصال - نحاول اكتشاف السيرفر تلقائياً
+      setSt('c','◌ جاري البحث عن السيرفر على الشبكة المحلية...','conn');
+      setSt('j','◌ جاري البحث عن السيرفر على الشبكة المحلية...','conn');
+      
+      const discoveredIP = await discoverServer();
+      
+      if(discoveredIP){
+        // وجدنا السيرفر! نحاول الاتصال مرة أخرى
+        wsUrl = `ws://${discoveredIP}`;
+        try{
+          ws=new WebSocket(wsUrl);
+          connected = true;
+        }catch(e2){
+          setSt('c','◆ تعذر الاتصال بالسيرفر المحلي','err');
+          setSt('j','◆ تعذر الاتصال بالسيرفر المحلي','err');
+          return;
+        }
+      }else{
+        setSt('c','◆ لم يتم العثور على السيرفر على الشبكة المحلية','err');
+        setSt('j','◆ لم يتم العثور على السيرفر على الشبكة المحلية','err');
+        return;
+      }
+    }
+    
+    if(!connected){
       setSt('c','◆ تعذر الاتصال بالسيرفر المحلي','err');
       setSt('j','◆ تعذر الاتصال بالسيرفر المحلي','err');
       return;
