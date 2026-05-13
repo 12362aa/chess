@@ -6603,7 +6603,11 @@ const LAN=(()=>{
   let _manualClose=false;
 
   function getWsUrl(){
-    return `${location.protocol==='https:'?'wss':'ws'}://${location.host}`;
+    // في وضع LAN المحلي، نستخدم localhost مباشرة بدلاً من location.host
+    // لأن الصفحة قد تكون محملة من GitHub Pages أو أي مكان آخر
+    // لكن السيرفر المحلي يعمل على localhost:3000
+    const host = 'localhost:3000';
+    return `ws://${host}`;
   }
 
   function loadSession(){
