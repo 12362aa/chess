@@ -7,16 +7,16 @@
 <meta name="theme-color" content="#0a0a14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="شطرنج">
+<meta name="apple-mobile-web-app-title" content="ط´ط·ط±ظ†ط¬">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon_v2.png?v=2">
 <link rel="icon" type="image/png" href="icon_v2.png?v=2">
-<title>♟ شطرنج — Am-Kh</title>
+<title>â™ں ط´ط·ط±ظ†ط¬ â€” Am-Kh</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
-/* ══════════ VARIABLES ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ VARIABLES â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 :root{
   --bg:#0a0a14; --bg2:#10101e; --bg3:#181830; --bg4:#202040;
   --gold:#c9a84c; --gold2:#e8d080; --gold3:#fff0a0;
@@ -74,7 +74,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .particle{position:fixed;pointer-events:none;z-index:0;border-radius:50%;animation:particleFloat linear infinite;}
 @keyframes particleFloat{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:.4;}100%{transform:translateY(-10vh) rotate(720deg);opacity:0;}}
 
-/* ══════════ BANNER ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ BANNER â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #banner{position:fixed;top:0;left:0;right:0;height:36px;z-index:9999;
   display:flex;align-items:center;justify-content:center;
   background:rgba(10,10,20,.96);backdrop-filter:blur(10px);overflow:hidden;}
@@ -94,7 +94,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   background-clip:text;animation:nsh 4s ease-in-out infinite;}
 @keyframes nsh{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
-/* ══════════ SCREENS ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ SCREENS â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 .screen{display:none;position:relative;z-index:1;padding-top:36px;}
 .screen.active{display:flex;animation:sfd .35s cubic-bezier(.25,.46,.45,.94);}
 @media(min-width:900px){
@@ -126,7 +126,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 @keyframes sfd{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 .ic-gold{color:var(--gold2);}.ic-teal{color:var(--teal2);}.ic-green{color:var(--green);}.ic-blue{color:var(--blue);}.ic-t2{color:var(--text2);}
 
-/* ══════════ MENU ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ MENU â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #s-menu{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 16px 24px;gap:0;}
 .logo{text-align:center;margin-bottom:34px;position:relative;}
 .logo-ic{font-size:70px;display:block;position:relative;filter:drop-shadow(0 0 26px rgba(201,168,76,.55)) drop-shadow(0 0 60px rgba(201,168,76,.2));animation:flt 3s ease-in-out infinite;}
@@ -154,12 +154,12 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .bp2{background:rgba(248,113,113,.11);color:var(--red);border:1px solid rgba(248,113,113,.24);}
 .offline-n{margin-top:16px;padding:9px 15px;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.18);border-radius:10px;font-size:13px;color:var(--green);text-align:center;max-width:500px;}
 
-/* ══════════ SHARED ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ SHARED â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 .back-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:500px;padding:10px;background:transparent;
   border:1px solid rgba(255,255,255,.07);border-radius:10px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);}
 .back-btn:hover{background:rgba(255,255,255,.05);color:var(--text);border-color:rgba(255,255,255,.15);transform:translateX(3px);}
 
-/* ══════════ LEVELS ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ LEVELS â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #s-levels{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:46px 14px 24px;gap:11px;overflow-y:auto;}
 .lvl-hdr{text-align:center;width:100%;max-width:500px;}
 .lvl-hdr h2{font-family:'Amiri',serif;font-size:23px;color:var(--gold2);margin-bottom:3px;}
@@ -190,7 +190,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .star.on{color:var(--gold2);text-shadow:0 0 8px rgba(201,168,76,.6);}
 .lc-right{display:flex;align-items:center;}
 
-/* ══════════ SETTINGS ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ SETTINGS â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #s-settings{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:46px 14px 24px;gap:11px;overflow-y:auto;}
 .sc{background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:17px;padding:21px;width:100%;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,.3);}
 .sc h2{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);margin-bottom:15px;display:flex;align-items:center;gap:8px;}
@@ -305,26 +305,30 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 
 /* Settings Tabs Navigation */
 .settings-tabs {
-  display: flex;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 8px;
   margin-bottom: 24px;
-  background: var(--bg3);
-  padding: 4px;
-  border-radius: 12px;
-  width: fit-content;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border: 1px solid rgba(201,168,76,.18);
+  padding: 8px;
+  border-radius: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .settings-tab {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 20px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,.01);
+  border: 1px solid rgba(201,168,76,.08);
+  border-radius: 10px;
   color: var(--text2);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -337,8 +341,9 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 
 .settings-tab.active {
   background: var(--gold);
-  color: var(--bg);
-  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
+  color: #121212;
+  box-shadow: 0 6px 18px rgba(201, 168, 76, 0.34);
+  transform: translateY(-1px);
 }
 
 .tab-icon {
@@ -364,11 +369,12 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 }
 
 .settings-section {
-  background: var(--bg2);
-  border: 1px solid rgba(201, 168, 76, 0.1);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 18px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
 }
 
 .section-title {
@@ -396,9 +402,9 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   flex-direction: column;
   gap: 8px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(201, 168, 76, 0.08);
-  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border: 1px solid rgba(201,168,76,0.14);
+  border-radius: 10px;
   transition: all 0.2s ease;
 }
 
@@ -516,14 +522,34 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .settings-tabs {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border: 1px solid rgba(201,168,76,.18);
+  padding: 8px;
+  border-radius: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
   
   .settings-tab {
-    padding: 10px 16px;
-    font-size: 13px;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,.01);
+  border: 1px solid rgba(201,168,76,.08);
+  border-radius: 10px;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
   
   .tab-icon {
     font-size: 14px;
@@ -542,7 +568,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   }
 }
 
-/* ══════════ ONLINE / LAN ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ ONLINE / LAN â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #s-online{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 14px 24px;gap:11px;}
 .oc{background:var(--bg2);border:1px solid rgba(201,168,76,.13);border-radius:18px;padding:25px;width:100%;max-width:430px;box-shadow:0 8px 40px rgba(0,0,0,.4);}
 .oc h2{font-family:'Amiri',serif;font-size:22px;color:var(--gold2);text-align:center;margin-bottom:4px;}
@@ -588,7 +614,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .ost.err{background:rgba(248,113,113,.09);color:var(--red);border:1px solid rgba(248,113,113,.18);display:block;}
 .ost.ok{background:rgba(74,222,128,.09);color:var(--green);border:1px solid rgba(74,222,128,.18);display:block;}
 
-/* ══════════ CHAT ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ CHAT â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 .chat-wrap{width:100%;max-width:510px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;display:none!important;flex-direction:column;height:190px;min-height:190px;position:static;z-index:1;}
 .chat-wrap.show{display:flex!important;}
 .chat-msgs{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column-reverse;gap:5px;scroll-behavior:auto;overscroll-behavior:contain;}
@@ -627,7 +653,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .chat-badge{min-width:14px;height:14px;background:var(--red);border-radius:7px;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0 3px;display:none;}
 .chat-badge.show{display:inline-flex;}
 
-/* ══════════ GAME ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ GAME â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #s-game{flex-direction:column;align-items:center;min-height:100dvh;height:auto;padding:46px 0 24px;gap:12px;overflow-x:hidden;justify-content:flex-start;}
 .gtop{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;max-width:510px;margin-inline:auto;text-align:center;}
 .bsm{background:var(--bg2);border:1px solid rgba(201,168,76,.12);color:var(--gold2);padding:7px 11px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;position:relative;overflow:hidden;}
@@ -669,7 +695,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .tbb2.hint-on{border-color:rgba(74,222,128,.44);background:rgba(74,222,128,.08);color:var(--green);box-shadow:0 0 10px rgba(74,222,128,.1);}
 .tbb2-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:dbt 1s infinite;}
 
-/* ══════════ BOARD ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ BOARD â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 .bwrap{border-radius:4px;position:relative;
   box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.26),0 26px 60px rgba(0,0,0,.65),0 0 40px rgba(201,168,76,.06);
   display:inline-block;line-height:0;transition:box-shadow .3s;}
@@ -735,7 +761,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   color: #fff !important;
   text-shadow: 1px 1px 2px #000;
 }
-/* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ PIECES â€” ظٹظڈط­ظ…ظژظ‘ظ„ ط¨ظ€ JS â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 .piece{--rot:0deg;position:relative;z-index:4;width:90%;height:90%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
 /* Local 2-player: flip ALL pieces when black's turn so they appear upright for black player */
@@ -752,9 +778,9 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 @keyframes starPulse{0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
 @keyframes pieceMove{0%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
 .piece.moved{animation:pieceMove .2s cubic-bezier(.34,1.56,.64,1);}
-/* القطع تُضبط بـ JS */
+/* ط§ظ„ظ‚ط·ط¹ طھظڈط¶ط¨ط· ط¨ظ€ JS */
 
-/* ══════════ STATUS + HISTORY ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ STATUS + HISTORY â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 .sbar{width:100%;max-width:min(100vw,600px);padding:6px 13px;background:var(--bg2);border:1px solid rgba(255,255,255,.04);border-radius:10px;text-align:center;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:32px;transition:all .3s;}
 .sbar.check{border-color:var(--red);color:var(--red);box-shadow:0 0 15px rgba(248,113,113,.15),0 0 30px rgba(248,113,113,.05);animation:checkPulse 1s ease-in-out infinite;}
 @keyframes checkPulse{0%,100%{box-shadow:0 0 15px rgba(248,113,113,.15)}50%{box-shadow:0 0 25px rgba(248,113,113,.3)}}
@@ -765,7 +791,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .sq-ripple{position:absolute;inset:0;pointer-events:none;z-index:10;overflow:hidden;}
 .sq-ripple::after{content:'';position:absolute;top:50%;left:50%;width:80%;height:80%;margin-top:-40%;margin-left:-40%;border-radius:50%;background:rgba(201,168,76,.25);animation:ripple .35s ease-out forwards;}
 
-/* ══════════ PROMO ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ PROMO â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #promo-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);z-index:900;align-items:center;justify-content:center;}
 #promo-ov.open{display:flex;}
 .pbox{background:var(--bg2);border:1px solid rgba(201,168,76,.24);border-radius:18px;padding:22px;text-align:center;box-shadow:0 0 60px rgba(201,168,76,.12);animation:pop .2s cubic-bezier(.34,1.56,.64,1);}
@@ -775,7 +801,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .pp{width:66px;height:66px;background-color:var(--bg3);border:2px solid rgba(201,168,76,.13);border-radius:10px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);background-size:78%!important;background-repeat:no-repeat!important;background-position:center!important;filter:drop-shadow(0 2px 5px rgba(0,0,0,.55));}
 .pp:hover{border-color:var(--gold);background-color:rgba(201,168,76,.11);transform:scale(1.1) translateY(-3px);box-shadow:0 8px 20px rgba(201,168,76,.2);}
 
-/* ══════════ GAME OVER ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ GAME OVER â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 #go-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(5px);z-index:850;align-items:center;justify-content:center;padding:16px;}
 #go-ov.open{display:flex;}
 .gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:38px 30px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);}
@@ -805,8 +831,8 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .bgs{padding:11px 17px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:transparent;color:var(--text2);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
 .bgs:hover{background:rgba(255,255,255,.04);color:var(--text);}
 
-/* ══════════ REVIEW OVERLAY ══════════ */
-/* ══════ EVAL BAR ══════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ REVIEW OVERLAY â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
+/* â•گâ•گâ•گâ•گâ•گâ•گ EVAL BAR â•گâ•گâ•گâ•گâ•گâ•گ */
 .eval-bar-wrap{display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0;}
 .eval-bar{width:12px;height:var(--board);border-radius:6px;overflow:hidden;background:#111;box-shadow:0 0 0 1px rgba(255,255,255,.07),0 4px 14px rgba(0,0,0,.5);display:flex;flex-direction:column;flex-shrink:0;}
 .eval-bar-black{background:#2a2a2a;transition:flex .5s cubic-bezier(.4,0,.2,1);}
@@ -814,7 +840,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .eval-score{font-size:8px;font-weight:700;color:var(--text3);text-align:center;margin-top:3px;min-width:16px;}
 
 
-/* ══════ REVIEW OVERLAY ══════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گ REVIEW OVERLAY â•گâ•گâ•گâ•گâ•گâ•گ */
 #review-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);backdrop-filter:blur(14px);z-index:870;flex-direction:column;align-items:center;padding-top:44px;overflow:hidden;}
 #review-ov.open{display:flex;}
 .rv-topbar{width:100%;max-width:680px;display:flex;align-items:center;justify-content:space-between;padding:0 14px 8px;flex-shrink:0;}
@@ -1290,7 +1316,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   width:100%;
 }
 
-/* ══════════ KING CHECK SHAKE ANIMATION ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ KING CHECK SHAKE ANIMATION â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 @keyframes kingCheckShake{
   0%  {transform:translate(0,0) scale(1);}
   10% {transform:translate(-4px,-3px) scale(1.08);}
@@ -1313,10 +1339,10 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
             kingCheckPulse 1s ease-in-out 0.55s infinite;
 }
 
-/* ══════════ LANDSCAPE ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ LANDSCAPE â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 @media (orientation:landscape) and (max-height:520px){
   :root{--board:min(82vh,420px);}
-  /* layout موحد لجميع الأوضاع — نفس الشكل */
+  /* layout ظ…ظˆط­ط¯ ظ„ط¬ظ…ظٹط¹ ط§ظ„ط£ظˆط¶ط§ط¹ â€” ظ†ظپط³ ط§ظ„ط´ظƒظ„ */
   #s-game{flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;padding:40px 4px 6px;gap:4px;}
   #s-game .gtop{width:100%;order:-2;max-width:none;margin-bottom:0;}
   #s-game #board-container{order:0;align-self:flex-start;}
@@ -1333,11 +1359,11 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 }
 @media (orientation:landscape) and (min-height:521px) and (max-height:700px){:root{--board:min(78vh,480px);}}
 
-/* ══════════ DESKTOP LAYOUT ══════════ */
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ DESKTOP LAYOUT â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 @media (min-width:900px){
   :root{--board:min(78vh,580px);}
 
-  /* Grid الأساسي: bar-w | رقعة | bar-b */
+  /* Grid ط§ظ„ط£ط³ط§ط³ظٹ: bar-w | ط±ظ‚ط¹ط© | bar-b */
   #s-game.active{
     display:grid;
     grid-template-columns:minmax(200px, 1fr) var(--board) minmax(200px, 1fr);
@@ -1350,7 +1376,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
     padding:50px 16px 20px;
   }
 
-  /* gtop - زر القائمة يمين، زر جديد يسار */
+  /* gtop - ط²ط± ط§ظ„ظ‚ط§ط¦ظ…ط© ظٹظ…ظٹظ†طŒ ط²ط± ط¬ط¯ظٹط¯ ظٹط³ط§ط± */
   .gtop{
     grid-column:1/-1;
     grid-row:1;
@@ -1365,26 +1391,26 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
     box-shadow:none;
     margin:0;
   }
-  .gtop .bsm:first-child { order:1; } /* جديد على اليسار */
-  .gtop .bsm:last-child { order:2; } /* قائمة على اليمين */
+  .gtop .bsm:first-child { order:1; } /* ط¬ط¯ظٹط¯ ط¹ظ„ظ‰ ط§ظ„ظٹط³ط§ط± */
+  .gtop .bsm:last-child { order:2; } /* ظ‚ط§ط¦ظ…ط© ط¹ظ„ظ‰ ط§ظ„ظٹظ…ظٹظ† */
   .gtop .gmlbl { order:0; flex:1; text-align:center; margin:0 10px; }
 
-  /* nour-bubble — تم إزالته بالكامل */
+  /* nour-bubble â€” طھظ… ط¥ط²ط§ظ„طھظ‡ ط¨ط§ظ„ظƒط§ظ…ظ„ */
   #nour-bubble { display:none!important; }
 
-  /* bars اللاعبين في الجانبين */
+  /* bars ط§ظ„ظ„ط§ط¹ط¨ظٹظ† ظپظٹ ط§ظ„ط¬ط§ظ†ط¨ظٹظ† */
   #bar-w     {grid-column:1; grid-row:3; width:100%; max-width:none; align-self:center;}
   #bar-b     {grid-column:3; grid-row:3; width:100%; max-width:none; align-self:center;}
 
-  /* الرقعة في المنتصف */
+  /* ط§ظ„ط±ظ‚ط¹ط© ظپظٹ ط§ظ„ظ…ظ†طھطµظپ */
   #board-container{grid-column:2; grid-row:3; justify-self:center; align-self:center;}
 
-  /* عناصر تحت الرقعة */
+  /* ط¹ظ†ط§طµط± طھط­طھ ط§ظ„ط±ظ‚ط¹ط© */
   .gtbar {grid-column:2; grid-row:4; width:var(--board)!important; max-width:var(--board)!important;}
   .sbar  {grid-column:2; grid-row:5; width:var(--board)!important; max-width:var(--board)!important;}
   .mvhist{grid-column:2; grid-row:6; width:var(--board)!important; max-width:var(--board)!important;}
 
-  /* chat في العمود الأيسر تحت bar-b — فقط عند الأونلاين */
+  /* chat ظپظٹ ط§ظ„ط¹ظ…ظˆط¯ ط§ظ„ط£ظٹط³ط± طھط­طھ bar-b â€” ظپظ‚ط· ط¹ظ†ط¯ ط§ظ„ط£ظˆظ†ظ„ط§ظٹظ† */
   .chat-wrap{
     grid-column:3;
     grid-row:4/span 3;
@@ -1403,10 +1429,10 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   .chat-inp-row{min-width:0;}
   .chat-inp{min-width:0;}
 
-  /* pbar عرض كامل */
+  /* pbar ط¹ط±ط¶ ظƒط§ظ…ظ„ */
   .pbar{width:100%; max-width:none;}
 
-  /* sc-row يظهر */
+  /* sc-row ظٹط¸ظ‡ط± */
   #s-game .sc-row{display:flex!important;}
 }
 ::-webkit-scrollbar{width:4px;height:4px;}
@@ -1450,65 +1476,65 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- BANNER -->
 <div id="banner">
   <div class="bi">
-    <span class="bp">♟</span>
+    <span class="bp">â™ں</span>
     <span class="bd-dot"></span>
     <span class="bby">Powered by</span>
     <span class="bnm">Am-Kh</span>
     <span class="bd-dot"></span>
     <span id="sf-status" style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.08);color:var(--text3);border:1px solid rgba(255,255,255,.1)">SF ...</span>
     <span class="bd-dot"></span>
-    <span class="bp">♚</span>
+    <span class="bp">â™ڑ</span>
 </div>
 </div>
 
 <!-- MENU -->
 <div id="s-menu" class="screen active">
   <div class="logo">
-    <span class="logo-ic">♟</span>
-    <h1 class="logo-t">شطرنج</h1>
-    <p class="logo-s">Chess · Am-Kh</p>
+    <span class="logo-ic">â™ں</span>
+    <h1 class="logo-t">ط´ط·ط±ظ†ط¬</h1>
+    <p class="logo-s">Chess آ· Am-Kh</p>
   </div>
   <div class="mode-grid">
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.online()">
-      <span class="mc-ic ic-teal">⊕</span>
-      <div class="mc-t">أونلاين</div>
-      <div class="mc-d">العب مع صديق في أي مكان بالعالم</div>
-      <span class="mc-b bt">سيرفر WebSocket ◈</span>
+      <span class="mc-ic ic-teal">âٹ•</span>
+      <div class="mc-t">ط£ظˆظ†ظ„ط§ظٹظ†</div>
+      <div class="mc-d">ط§ظ„ط¹ط¨ ظ…ط¹ طµط¯ظٹظ‚ ظپظٹ ط£ظٹ ظ…ظƒط§ظ† ط¨ط§ظ„ط¹ط§ظ„ظ…</div>
+      <span class="mc-b bt">ط³ظٹط±ظپط± WebSocket â—ˆ</span>
     </div>
 
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
-      <span class="mc-ic ic-gold">◈</span>
-      <div class="mc-t">مراحل نور</div>
-      <div class="mc-d">12 مرحلة تدريجية — افتح مرحلة مرحلة</div>
-      <span class="mc-b bg">محفوظ أوفلاين ◈</span>
+      <span class="mc-ic ic-gold">â—ˆ</span>
+      <div class="mc-t">ظ…ط±ط§ط­ظ„ ظ†ظˆط±</div>
+      <div class="mc-d">12 ظ…ط±ط­ظ„ط© طھط¯ط±ظٹط¬ظٹط© â€” ط§ظپطھط­ ظ…ط±ط­ظ„ط© ظ…ط±ط­ظ„ط©</div>
+      <span class="mc-b bg">ظ…ط­ظپظˆط¸ ط£ظˆظپظ„ط§ظٹظ† â—ˆ</span>
     </div>
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
-      <span class="mc-ic ic-green">⚔</span>
-      <div class="mc-t">لاعبَان</div>
-      <div class="mc-d">على نفس الشاشة بالتناوب</div>
-      <span class="mc-b bv">أوفلاين ◈</span>
+      <span class="mc-ic ic-green">âڑ”</span>
+      <div class="mc-t">ظ„ط§ط¹ط¨ظژط§ظ†</div>
+      <div class="mc-d">ط¹ظ„ظ‰ ظ†ظپط³ ط§ظ„ط´ط§ط´ط© ط¨ط§ظ„طھظ†ط§ظˆط¨</div>
+      <span class="mc-b bv">ط£ظˆظپظ„ط§ظٹظ† â—ˆ</span>
     </div>
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.settings()">
-      <span class="mc-ic ic-blue">⚙</span>
-      <div class="mc-t">الإعدادات</div>
-      <div class="mc-d">صوت — رقعة — ألوان وأكثر</div>
-      <span class="mc-b bb">تخصيص</span>
+      <span class="mc-ic ic-blue">âڑ™</span>
+      <div class="mc-t">ط§ظ„ط¥ط¹ط¯ط§ط¯ط§طھ</div>
+      <div class="mc-d">طµظˆطھ â€” ط±ظ‚ط¹ط© â€” ط£ظ„ظˆط§ظ† ظˆط£ظƒط«ط±</div>
+      <span class="mc-b bb">طھط®طµظٹطµ</span>
     </div>
 
       </div>
-  <div class="offline-n">◉ مراحل نور ولاعبَان يعملان بدون إنترنت بالكامل</div>
+  <div class="offline-n">â—‰ ظ…ط±ط§ط­ظ„ ظ†ظˆط± ظˆظ„ط§ط¹ط¨ظژط§ظ† ظٹط¹ظ…ظ„ط§ظ† ط¨ط¯ظˆظ† ط¥ظ†طھط±ظ†طھ ط¨ط§ظ„ظƒط§ظ…ظ„</div>
 </div>
 
 <!-- LEVELS -->
 <div id="s-levels" class="screen">
   <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
-    <div class="lvl-hdr"><h2>◈ مراحل نور</h2><p>12 مرحلة من المبتدئ إلى الأسطورة</p></div>
+    <div class="lvl-hdr"><h2>â—ˆ ظ…ط±ط§ط­ظ„ ظ†ظˆط±</h2><p>12 ظ…ط±ط­ظ„ط© ظ…ظ† ط§ظ„ظ…ط¨طھط¯ط¦ ط¥ظ„ظ‰ ط§ظ„ط£ط³ط·ظˆط±ط©</p></div>
     <div class="lp-card">
-      <div class="lp-top"><span>التقدم الكلي</span><span id="lp-txt">0 / 12</span></div>
+      <div class="lp-top"><span>ط§ظ„طھظ‚ط¯ظ… ط§ظ„ظƒظ„ظٹ</span><span id="lp-txt">0 / 12</span></div>
       <div class="lp-bar"><div class="lp-fill" id="lp-fill" style="width:0%"></div></div>
     </div>
     <div class="lvl-grid" id="lvl-grid"></div>
-    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
+    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">â†گ ط§ظ„ط¹ظˆط¯ط© ظ„ظ„ظ‚ط§ط¦ظ…ط©</button>
   </div>
 </div>
 
@@ -1522,14 +1548,14 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <!-- Profile Section -->
         <div style="display:flex;align-items:center;gap:14px;flex:1;">
           <div id="settings-profile-img" style="width:64px;height:64px;border-radius:50%;background:var(--bg3);border:2px solid rgba(201,168,76,.3);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" onclick="if(typeof SFX!=='undefined')SFX.btn();document.getElementById('settings-profile-input').click()">
-            <span style="font-size:32px;" id="settings-profile-fallback">♙</span>
+            <span style="font-size:32px;" id="settings-profile-fallback">â™™</span>
           </div>
           <div style="flex:1;">
-            <div class="sr-n" id="settings-username-display" style="font-size:18px;color:var(--text);margin-bottom:4px;">لاعب</div>
-            <div class="sr-d" style="font-size:12px;">انقر لتعديل الاسم أو الصورة</div>
+            <div class="sr-n" id="settings-username-display" style="font-size:18px;color:var(--text);margin-bottom:4px;">ظ„ط§ط¹ط¨</div>
+            <div class="sr-d" style="font-size:12px;">ط§ظ†ظ‚ط± ظ„طھط¹ط¯ظٹظ„ ط§ظ„ط§ط³ظ… ط£ظˆ ط§ظ„طµظˆط±ط©</div>
             <div style="display:flex;gap:8px;margin-top:8px;">
-              <input type="text" id="settings-username-input" placeholder="اسم اللاعب" style="flex:1;padding:8px 12px;border-radius:6px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
-              <button id="settings-save-btn" class="btnp" style="padding:8px 16px;font-size:12px;display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
+              <input type="text" id="settings-username-input" placeholder="ط§ط³ظ… ط§ظ„ظ„ط§ط¹ط¨" style="flex:1;padding:8px 12px;border-radius:6px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
+              <button id="settings-save-btn" class="btnp" style="padding:8px 16px;font-size:12px;display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">ط­ظپط¸</button>
             </div>
           </div>
         </div>
@@ -1541,20 +1567,20 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
     <div style="width:100%;max-width:1200px;margin:0 auto;padding:0 14px;">
       <div class="settings-tabs">
         <button class="settings-tab active" data-tab="appearance" onclick="switchSettingsTab('appearance')">
-          <span class="tab-icon">🎨</span>
-          <span class="tab-label">المظهر</span>
+          <span class="tab-icon">◇</span>
+          <span class="tab-label">ط§ظ„ظ…ط¸ظ‡ط±</span>
         </button>
         <button class="settings-tab" data-tab="board" onclick="switchSettingsTab('board')">
-          <span class="tab-icon">♟</span>
-          <span class="tab-label">الرقعة</span>
+          <span class="tab-icon">▦</span>
+          <span class="tab-label">ط§ظ„ط±ظ‚ط¹ط©</span>
         </button>
         <button class="settings-tab" data-tab="gameplay" onclick="switchSettingsTab('gameplay')">
-          <span class="tab-icon">🎮</span>
-          <span class="tab-label">اللعب</span>
+          <span class="tab-icon">◉</span>
+          <span class="tab-label">ط§ظ„ظ„ط¹ط¨</span>
         </button>
         <button class="settings-tab" data-tab="sound" onclick="switchSettingsTab('sound')">
-          <span class="tab-icon">🔊</span>
-          <span class="tab-label">الصوت</span>
+          <span class="tab-icon">◌</span>
+          <span class="tab-label">ط§ظ„طµظˆطھ</span>
         </button>
       </div>
 
@@ -1563,11 +1589,11 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <!-- Appearance Tab -->
         <div class="settings-tab-content active" id="tab-appearance">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">◈</span> واجهة التطبيق</h3>
+            <h3 class="section-title"><span class="section-icon">◈</span> ظˆط§ط¬ظ‡ط© ط§ظ„طھط·ط¨ظٹظ‚</h3>
             <div class="settings-grid">
               <div class="setting-item">
-                <div class="setting-label">ثيم التطبيق</div>
-                <div class="setting-description">يتغير فوراً بدون إعادة تحميل</div>
+                <div class="setting-label">ط«ظٹظ… ط§ظ„طھط·ط¨ظٹظ‚</div>
+                <div class="setting-description">ظٹطھط؛ظٹط± ظپظˆط±ط§ظ‹ ط¨ط¯ظˆظ† ط¥ط¹ط§ط¯ط© طھط­ظ…ظٹظ„</div>
                 <div class="ui-grid">
                   <div class="ui-opt on" id="ui-amkh" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('amkh')"><div class="th-sw"><div class="sw" style="background:#0a0a14"></div><div class="sw" style="background:#c9a84c"></div></div>Amkh</div>
                   <div class="ui-opt" id="ui-minimal" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('minimal')"><div class="th-sw"><div class="sw" style="background:#0b0f14"></div><div class="sw" style="background:#e5e7eb"></div></div>Minimal</div>
@@ -1579,8 +1605,8 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
               </div>
 
               <div class="setting-item">
-                <div class="setting-label">شكل القطع</div>
-                <div class="setting-description">اختر شكل قطع الشطرنج</div>
+                <div class="setting-label">ط´ظƒظ„ ط§ظ„ظ‚ط·ط¹</div>
+                <div class="setting-description">ط§ط®طھط± ط´ظƒظ„ ظ‚ط·ط¹ ط§ظ„ط´ط·ط±ظ†ط¬</div>
                 <div style="display:flex;gap:12px;align-items:center;background:var(--bg2);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px;">
                   <div id="current-piece-display" style="flex:1;display:flex;align-items:center;gap:12px;">
                     <div class="ppc" style="width:48px;height:48px;"><div id="current-piece-preview" class="piece"></div></div>
@@ -1590,7 +1616,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
                     </div>
                   </div>
                   <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); openPieceSettings();" style="background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:12px 20px;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s;white-space:nowrap;">
-                    🔧 جميع القطع
+                    ًں”§ ط¬ظ…ظٹط¹ ط§ظ„ظ‚ط·ط¹
                   </button>
                 </div>
               </div>
@@ -1601,61 +1627,61 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <!-- Board Tab -->
         <div class="settings-tab-content" id="tab-board">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">⊕</span> إعدادات الرقعة</h3>
+            <h3 class="section-title"><span class="section-icon">◈</span> ط¥ط¹ط¯ط§ط¯ط§طھ ط§ظ„ط±ظ‚ط¹ط©</h3>
             <div class="settings-grid">
               <div class="setting-item">
-                <div class="setting-label">الإحداثيات</div>
-                <div class="setting-description">أرقام وحروف على حواف الرقعة</div>
+                <div class="setting-label">ط§ظ„ط¥ط­ط¯ط§ط«ظٹط§طھ</div>
+                <div class="setting-description">ط£ط±ظ‚ط§ظ… ظˆط­ط±ظˆظپ ط¹ظ„ظ‰ ط­ظˆط§ظپ ط§ظ„ط±ظ‚ط¹ط©</div>
                 <label class="toggle"><input type="checkbox" id="set-coords" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
               </div>
               <div class="setting-item">
-                <div class="setting-label">تمييز آخر حركة</div>
-                <div class="setting-description">تلوين مربعَي آخر حركة</div>
+                <div class="setting-label">طھظ…ظٹظٹط² ط¢ط®ط± ط­ط±ظƒط©</div>
+                <div class="setting-description">طھظ„ظˆظٹظ† ظ…ط±ط¨ط¹ظژظٹ ط¢ط®ط± ط­ط±ظƒط©</div>
                 <label class="toggle"><input type="checkbox" id="set-lastmove" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
               </div>
               <div class="setting-item">
-                <div class="setting-label">تمييز الكش</div>
-                <div class="setting-description">تلوين الملك أحمر عند الكش</div>
+                <div class="setting-label">طھظ…ظٹظٹط² ط§ظ„ظƒط´</div>
+                <div class="setting-description">طھظ„ظˆظٹظ† ط§ظ„ظ…ظ„ظƒ ط£ط­ظ…ط± ط¹ظ†ط¯ ط§ظ„ظƒط´</div>
                 <label class="toggle"><input type="checkbox" id="set-check" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
               </div>
             </div>
           </div>
 
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">🎨</span> ألوان الرقعة</h3>
+            <h3 class="section-title"><span class="section-icon">◈</span> ط£ظ„ظˆط§ظ† ط§ظ„ط±ظ‚ط¹ط©</h3>
             <div class="board-themes-grid">
-              <div class="th-opt on" id="th-classic"    onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>خشب ★</div>
-              <div class="th-opt"    id="th-burl_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood')"><div class="th-sw"><div class="sw" style="background:#d4a574"></div><div class="sw" style="background:#8b6f47"></div></div>بيرل</div>
-              <div class="th-opt"    id="th-dark_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood')"><div class="th-sw"><div class="sw" style="background:#9d8b7e"></div><div class="sw" style="background:#4a3a2a"></div></div>داكن</div>
-              <div class="th-opt"    id="th-dark_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood2')"><div class="th-sw"><div class="sw" style="background:#8b7d6b"></div><div class="sw" style="background:#3a2a1a"></div></div>داكن 2</div>
-              <div class="th-opt"    id="th-burl_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood2')"><div class="th-sw"><div class="sw" style="background:#c9a574"></div><div class="sw" style="background:#7a5a3a"></div></div>بيرل 2</div>
-              <div class="th-opt"    id="th-green"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('green')"><div class="th-sw"><div class="sw" style="background:#eeeed2"></div><div class="sw" style="background:#769656"></div></div>أخضر</div>
-              <div class="th-opt"    id="th-wood_walnut" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_walnut')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>جوز ★</div>
-              <div class="th-opt"    id="th-wood_maple"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_maple')"><div class="th-sw"><div class="sw" style="background:#efc99e"></div><div class="sw" style="background:#c56e3a"></div></div>قيقب ★</div>
-              <div class="th-opt"    id="th-marble"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('marble')"><div class="th-sw"><div class="sw" style="background:#c3bca6"></div><div class="sw" style="background:#716c67"></div></div>رخام ★</div>
-              <div class="th-opt"    id="th-metal"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('metal')"><div class="th-sw"><div class="sw" style="background:#d8d8d8"></div><div class="sw" style="background:#757574"></div></div>معدن ★</div>
-              <div class="th-opt"    id="th-stone"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('stone')"><div class="th-sw"><div class="sw" style="background:#b1aea7"></div><div class="sw" style="background:#4e4d4b"></div></div>حجارة ★</div>
-              <div class="th-opt"    id="th-silver"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('silver')"><div class="th-sw"><div class="sw" style="background:#d9e3e4"></div><div class="sw" style="background:#99a1a0"></div></div>فضي ★</div>
-              <div class="th-opt"    id="th-blue"        onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('blue')"><div class="th-sw"><div class="sw" style="background:#717b8e"></div><div class="sw" style="background:#28303d"></div></div>أزرق</div>
-              <div class="th-opt"    id="th-ocean"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('ocean')"><div class="th-sw"><div class="sw" style="background:#dee3e6"></div><div class="sw" style="background:#8ca2ad"></div></div>أوقيانوس</div>
-              <div class="th-opt"    id="th-night"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('night')"><div class="th-sw"><div class="sw" style="background:#e8e9db"></div><div class="sw" style="background:#4a7c59"></div></div>ليلي</div>
-              <div class="th-opt"    id="th-rose"        onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('rose')"><div class="th-sw"><div class="sw" style="background:#f5e8e0"></div><div class="sw" style="background:#c16b6b"></div></div>وردي</div>
-              <div class="th-opt"    id="th-slate"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('slate')"><div class="th-sw"><div class="sw" style="background:#d6d6d6"></div><div class="sw" style="background:#5a6068"></div></div>رمادي</div>
-              <div class="th-opt"    id="th-gold"        onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('gold')"><div class="th-sw"><div class="sw" style="background:#fdf3c0"></div><div class="sw" style="background:#b8860b"></div></div>ذهبي</div>
-              <div class="th-opt"    id="th-bw"          onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('bw')"><div class="th-sw"><div class="sw" style="background:#fff;border:1px solid #ccc"></div><div class="sw" style="background:#1a1a1a"></div></div>أبيض وأسود</div>
-              <div class="th-opt"    id="th-ice"         onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('ice')"><div class="th-sw"><div class="sw" style="background:#dff0f8"></div><div class="sw" style="background:#3a6090"></div></div>جليدي</div>
-              <div class="th-opt"    id="th-custom"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('custom')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,0.2)"></div><div class="sw" style="background:rgba(0,0,0,0.4)"></div></div>صورة مخصصة</div>
+              <div class="th-opt on" id="th-classic"    onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>ط®ط´ط¨ âک…</div>
+              <div class="th-opt"    id="th-burl_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood')"><div class="th-sw"><div class="sw" style="background:#d4a574"></div><div class="sw" style="background:#8b6f47"></div></div>ط¨ظٹط±ظ„</div>
+              <div class="th-opt"    id="th-dark_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood')"><div class="th-sw"><div class="sw" style="background:#9d8b7e"></div><div class="sw" style="background:#4a3a2a"></div></div>ط¯ط§ظƒظ†</div>
+              <div class="th-opt"    id="th-dark_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood2')"><div class="th-sw"><div class="sw" style="background:#8b7d6b"></div><div class="sw" style="background:#3a2a1a"></div></div>ط¯ط§ظƒظ† 2</div>
+              <div class="th-opt"    id="th-burl_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood2')"><div class="th-sw"><div class="sw" style="background:#c9a574"></div><div class="sw" style="background:#7a5a3a"></div></div>ط¨ظٹط±ظ„ 2</div>
+              <div class="th-opt"    id="th-green"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('green')"><div class="th-sw"><div class="sw" style="background:#eeeed2"></div><div class="sw" style="background:#769656"></div></div>ط£ط®ط¶ط±</div>
+              <div class="th-opt"    id="th-wood_walnut" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_walnut')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>ط¬ظˆط² âک…</div>
+              <div class="th-opt"    id="th-wood_maple"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_maple')"><div class="th-sw"><div class="sw" style="background:#efc99e"></div><div class="sw" style="background:#c56e3a"></div></div>ظ‚ظٹظ‚ط¨ âک…</div>
+              <div class="th-opt"    id="th-marble"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('marble')"><div class="th-sw"><div class="sw" style="background:#c3bca6"></div><div class="sw" style="background:#716c67"></div></div>ط±ط®ط§ظ… âک…</div>
+              <div class="th-opt"    id="th-metal"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('metal')"><div class="th-sw"><div class="sw" style="background:#d8d8d8"></div><div class="sw" style="background:#757574"></div></div>ظ…ط¹ط¯ظ† âک…</div>
+              <div class="th-opt"    id="th-stone"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('stone')"><div class="th-sw"><div class="sw" style="background:#b1aea7"></div><div class="sw" style="background:#4e4d4b"></div></div>ط­ط¬ط§ط±ط© âک…</div>
+              <div class="th-opt"    id="th-silver"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('silver')"><div class="th-sw"><div class="sw" style="background:#d9e3e4"></div><div class="sw" style="background:#99a1a0"></div></div>ظپط¶ظٹ âک…</div>
+              <div class="th-opt"    id="th-blue"        onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('blue')"><div class="th-sw"><div class="sw" style="background:#717b8e"></div><div class="sw" style="background:#28303d"></div></div>ط£ط²ط±ظ‚</div>
+              <div class="th-opt"    id="th-ocean"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('ocean')"><div class="th-sw"><div class="sw" style="background:#dee3e6"></div><div class="sw" style="background:#8ca2ad"></div></div>ط£ظˆظ‚ظٹط§ظ†ظˆط³</div>
+              <div class="th-opt"    id="th-night"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('night')"><div class="th-sw"><div class="sw" style="background:#e8e9db"></div><div class="sw" style="background:#4a7c59"></div></div>ظ„ظٹظ„ظٹ</div>
+              <div class="th-opt"    id="th-rose"        onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('rose')"><div class="th-sw"><div class="sw" style="background:#f5e8e0"></div><div class="sw" style="background:#c16b6b"></div></div>ظˆط±ط¯ظٹ</div>
+              <div class="th-opt"    id="th-slate"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('slate')"><div class="th-sw"><div class="sw" style="background:#d6d6d6"></div><div class="sw" style="background:#5a6068"></div></div>ط±ظ…ط§ط¯ظٹ</div>
+              <div class="th-opt"    id="th-gold"        onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('gold')"><div class="th-sw"><div class="sw" style="background:#fdf3c0"></div><div class="sw" style="background:#b8860b"></div></div>ط°ظ‡ط¨ظٹ</div>
+              <div class="th-opt"    id="th-bw"          onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('bw')"><div class="th-sw"><div class="sw" style="background:#fff;border:1px solid #ccc"></div><div class="sw" style="background:#1a1a1a"></div></div>ط£ط¨ظٹط¶ ظˆط£ط³ظˆط¯</div>
+              <div class="th-opt"    id="th-ice"         onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('ice')"><div class="th-sw"><div class="sw" style="background:#dff0f8"></div><div class="sw" style="background:#3a6090"></div></div>ط¬ظ„ظٹط¯ظٹ</div>
+              <div class="th-opt"    id="th-custom"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('custom')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,0.2)"></div><div class="sw" style="background:rgba(0,0,0,0.4)"></div></div>طµظˆط±ط© ظ…ط®طµطµط©</div>
             </div>
             <div id="custom-board-upload" style="margin-top:20px;display:none;padding:16px;background:var(--bg3);border-radius:10px;border:1px solid rgba(201,168,76,.15);">
-              <label style="font-size:14px;color:var(--gold2);display:block;margin-bottom:12px;font-weight:700;">اختر صورة للرقعة:</label>
+              <label style="font-size:14px;color:var(--gold2);display:block;margin-bottom:12px;font-weight:700;">ط§ط®طھط± طµظˆط±ط© ظ„ظ„ط±ظ‚ط¹ط©:</label>
               <div style="display:flex;gap:12px;">
                 <label style="background:var(--bg2);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;flex:1;text-align:center;transition:all 0.2s;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg2)'">
-                  ◈ اختيار صورة
+                  â—ˆ ط§ط®طھظٹط§ط± طµظˆط±ط©
                   <input type="file" id="board-image-input" accept="image/*" style="display:none;" onchange="Cfg.prepareCustomBoardImage(this)">
                 </label>
-                <button class="btnb" style="flex:1;padding:8px;" onclick="Cfg.applyCustomBoardImage()">تطبيق الصورة</button>
+                <button class="btnb" style="flex:1;padding:8px;" onclick="Cfg.applyCustomBoardImage()">طھط·ط¨ظٹظ‚ ط§ظ„طµظˆط±ط©</button>
               </div>
-              <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4;">ملاحظة: اختر صورة بجودة عالية وحجم مناسب. ستُحفظ محلياً على جهازك.</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4;">ظ…ظ„ط§ط­ط¸ط©: ط§ط®طھط± طµظˆط±ط© ط¨ط¬ظˆط¯ط© ط¹ط§ظ„ظٹط© ظˆط­ط¬ظ… ظ…ظ†ط§ط³ط¨. ط³طھظڈط­ظپط¸ ظ…ط­ظ„ظٹط§ظ‹ ط¹ظ„ظ‰ ط¬ظ‡ط§ط²ظƒ.</div>
             </div>
           </div>
         </div>
@@ -1663,61 +1689,61 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <!-- Gameplay Tab -->
         <div class="settings-tab-content" id="tab-gameplay">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">🎮</span> إعدادات اللعب</h3>
+            <h3 class="section-title"><span class="section-icon">◈</span> ط¥ط¹ط¯ط§ط¯ط§طھ ط§ظ„ظ„ط¹ط¨</h3>
             <div class="settings-grid">
               <div class="setting-item">
-                <div class="setting-label">عرض نقاط التقدم</div>
-                <div class="setting-description">من يتقدم وبكم نقطة</div>
+                <div class="setting-label">ط¹ط±ط¶ ظ†ظ‚ط§ط· ط§ظ„طھظ‚ط¯ظ…</div>
+                <div class="setting-description">ظ…ظ† ظٹطھظ‚ط¯ظ… ظˆط¨ظƒظ… ظ†ظ‚ط·ط©</div>
                 <label class="toggle"><input type="checkbox" id="set-score" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
               </div>
               <div class="setting-item">
-                <div class="setting-label">تأكيد الخروج</div>
-                <div class="setting-description">سؤال قبل الخروج من اللعبة</div>
+                <div class="setting-label">طھط£ظƒظٹط¯ ط§ظ„ط®ط±ظˆط¬</div>
+                <div class="setting-description">ط³ط¤ط§ظ„ ظ‚ط¨ظ„ ط§ظ„ط®ط±ظˆط¬ ظ…ظ† ط§ظ„ظ„ط¹ط¨ط©</div>
                 <label class="toggle"><input type="checkbox" id="set-confirm" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
               </div>
               <div class="setting-item">
-                <div class="setting-label">لون النقاط</div>
-                <div class="setting-description">اختر لون نقاط التلميح</div>
+                <div class="setting-label">ظ„ظˆظ† ط§ظ„ظ†ظ‚ط§ط·</div>
+                <div class="setting-description">ط§ط®طھط± ظ„ظˆظ† ظ†ظ‚ط§ط· ط§ظ„طھظ„ظ…ظٹط­</div>
                 <div class="dot-color-picker" id="dot-color-picker">
                   <div class="dot-color-opt active" data-color="#2dd4bf" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#2dd4bf')">
                     <div class="dot-color-swatch" style="background:#2dd4bf"></div>
-                    <span>سماوي</span>
+                    <span>ط³ظ…ط§ظˆظٹ</span>
                   </div>
                   <div class="dot-color-opt" data-color="#f87171" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#f87171')">
                     <div class="dot-color-swatch" style="background:#f87171"></div>
-                    <span>أحمر</span>
+                    <span>ط£ط­ظ…ط±</span>
                   </div>
                   <div class="dot-color-opt" data-color="#4ade80" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#4ade80')">
                     <div class="dot-color-swatch" style="background:#4ade80"></div>
-                    <span>أخضر</span>
+                    <span>ط£ط®ط¶ط±</span>
                   </div>
                   <div class="dot-color-opt" data-color="#60a5fa" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#60a5fa')">
                     <div class="dot-color-swatch" style="background:#60a5fa"></div>
-                    <span>أزرق</span>
+                    <span>ط£ط²ط±ظ‚</span>
                   </div>
                   <div class="dot-color-opt" data-color="#fbbf24" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#fbbf24')">
                     <div class="dot-color-swatch" style="background:#fbbf24"></div>
-                    <span>ذهبي</span>
+                    <span>ط°ظ‡ط¨ظٹ</span>
                   </div>
                   <div class="dot-color-opt" data-color="#a78bfa" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#a78bfa')">
                     <div class="dot-color-swatch" style="background:#a78bfa"></div>
-                    <span>بنفسجي</span>
+                    <span>ط¨ظ†ظپط³ط¬ظٹ</span>
                   </div>
                   <div class="dot-color-opt" data-color="#fb923c" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#fb923c')">
                     <div class="dot-color-swatch" style="background:#fb923c"></div>
-                    <span>برتقالي</span>
+                    <span>ط¨ط±طھظ‚ط§ظ„ظٹ</span>
                   </div>
                   <div class="dot-color-opt" data-color="#ec4899" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('#ec4899')">
                     <div class="dot-color-swatch" style="background:#ec4899"></div>
-                    <span>وردي</span>
+                    <span>ظˆط±ط¯ظٹ</span>
                   </div>
                   <div class="dot-color-opt" data-color="transparent" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('transparent')">
                     <div class="dot-color-swatch" style="background:linear-gradient(45deg, #ccc 25%, #fff 25%, #fff 50%, #ccc 50%, #ccc 75%, #fff 75%);border:2px solid #999;"></div>
-                    <span>شفاف</span>
+                    <span>ط´ظپط§ظپ</span>
                   </div>
                   <div class="dot-color-opt" data-color="rgba(255,255,0,0.5)" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.setDotColor('rgba(255,255,0,0.5)')">
                     <div class="dot-color-swatch" style="background:rgba(255,255,0,0.5);border:2px solid rgba(255,255,0,0.8);"></div>
-                    <span>أصفر شفاف</span>
+                    <span>ط£طµظپط± ط´ظپط§ظپ</span>
                   </div>
                 </div>
               </div>
@@ -1728,20 +1754,20 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         <!-- Sound Tab -->
         <div class="settings-tab-content" id="tab-sound">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">🔊</span> إعدادات الصوت</h3>
+            <h3 class="section-title"><span class="section-icon">◈</span> ط¥ط¹ط¯ط§ط¯ط§طھ ط§ظ„طµظˆطھ</h3>
             <div class="settings-grid">
               <div class="setting-item">
-                <div class="setting-label">تفعيل الأصوات</div>
-                <div class="setting-description">أصوات الحركات والكش والفوز</div>
+                <div class="setting-label">طھظپط¹ظٹظ„ ط§ظ„ط£طµظˆط§طھ</div>
+                <div class="setting-description">ط£طµظˆط§طھ ط§ظ„ط­ط±ظƒط§طھ ظˆط§ظ„ظƒط´ ظˆط§ظ„ظپظˆط²</div>
                 <label class="toggle"><input type="checkbox" id="set-sound" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
               </div>
               <div class="setting-item">
-                <div class="setting-label">مستوى الصوت</div>
-                <div class="setting-description">اضبط مستوى صوت اللعبة</div>
+                <div class="setting-label">ظ…ط³طھظˆظ‰ ط§ظ„طµظˆطھ</div>
+                <div class="setting-description">ط§ط¶ط¨ط· ظ…ط³طھظˆظ‰ طµظˆطھ ط§ظ„ظ„ط¹ط¨ط©</div>
                 <div class="vol-row">
-                  <span style="font-size:14px;color:var(--text2)">◁</span>
+                  <span style="font-size:14px;color:var(--text2)">â—پ</span>
                   <input type="range" class="vsl" id="set-vol" min="0" max="100" value="80" oninput="Cfg.save()">
-                  <span style="font-size:14px;color:var(--text2)">▷</span>
+                  <span style="font-size:14px;color:var(--text2)">â–·</span>
                 </div>
               </div>
             </div>
@@ -1752,7 +1778,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 
     <!-- Back Button -->
     <div style="padding:20px 14px 0;">
-      <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
+      <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">â†گ ط§ظ„ط¹ظˆط¯ط© ظ„ظ„ظ‚ط§ط¦ظ…ط©</button>
     </div>
   </div>
 </div>
@@ -1760,47 +1786,47 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- ONLINE -->
 <div id="s-online" class="screen">
   <div class="oc">
-    <h2><span class="ic-teal">⊕</span> أونلاين</h2>
-    <p class="oc-sub">اتصال عبر سيرفر مركزي — يعمل مع واي فاي وداتا</p>
-    <div class="p2p">يستخدم <strong>WebSocket Server</strong> — اتصال مستقر ومضمون ◈<br><span style="font-size:11px;opacity:.8">أنشئ غرفة وشارك الكود مع صديقك</span></div>
+    <h2><span class="ic-teal">âٹ•</span> ط£ظˆظ†ظ„ط§ظٹظ†</h2>
+    <p class="oc-sub">ط§طھطµط§ظ„ ط¹ط¨ط± ط³ظٹط±ظپط± ظ…ط±ظƒط²ظٹ â€” ظٹط¹ظ…ظ„ ظ…ط¹ ظˆط§ظٹ ظپط§ظٹ ظˆط¯ط§طھط§</p>
+    <div class="p2p">ظٹط³طھط®ط¯ظ… <strong>WebSocket Server</strong> â€” ط§طھطµط§ظ„ ظ…ط³طھظ‚ط± ظˆظ…ط¶ظ…ظˆظ† â—ˆ<br><span style="font-size:11px;opacity:.8">ط£ظ†ط´ط¦ ط؛ط±ظپط© ظˆط´ط§ط±ظƒ ط§ظ„ظƒظˆط¯ ظ…ط¹ طµط¯ظٹظ‚ظƒ</span></div>
     <div class="tabs">
-      <button class="tbb on" id="tb-c" onclick="OL.tab('c')">إنشاء غرفة</button>
-      <button class="tbb"    id="tb-j" onclick="OL.tab('j')">الانضمام</button>
-      <button class="tbb"    id="tb-m" onclick="OL.tab('m')">مطابقة</button>
+      <button class="tbb on" id="tb-c" onclick="OL.tab('c')">ط¥ظ†ط´ط§ط، ط؛ط±ظپط©</button>
+      <button class="tbb"    id="tb-j" onclick="OL.tab('j')">ط§ظ„ط§ظ†ط¶ظ…ط§ظ…</button>
+      <button class="tbb"    id="tb-m" onclick="OL.tab('m')">ظ…ط·ط§ط¨ظ‚ط©</button>
     </div>
     <div id="tc-c" class="tc on">
-      <p class="flbl">لون قطعك</p>
+      <p class="flbl">ظ„ظˆظ† ظ‚ط·ط¹ظƒ</p>
       <div class="copts">
-        <div class="copt on" id="co-w" onclick="OL.col('w')"><span>♔</span>أبيض</div>
-        <div class="copt"    id="co-b" onclick="OL.col('b')"><span>♚</span>أسود</div>
-        <div class="copt"    id="co-r" onclick="OL.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
+        <div class="copt on" id="co-w" onclick="OL.col('w')"><span>â™”</span>ط£ط¨ظٹط¶</div>
+        <div class="copt"    id="co-b" onclick="OL.col('b')"><span>â™ڑ</span>ط£ط³ظˆط¯</div>
+        <div class="copt"    id="co-r" onclick="OL.col('r')"><span class="ic-t2">â—ژ</span>ط¹ط´ظˆط§ط¦ظٹ</div>
       </div>
       <div id="st-c" class="ost"></div>
       <div id="rbox" class="rbox">
-        <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
-        <div class="rb-c" id="rcode">—</div>
-        <div class="rb-h">انتظر حتى ينضم صديقك…</div>
-        <button class="rb-cp" onclick="SFX.btn();OL.copy()">⧉ نسخ الكود</button>
-        <button class="rb-cp" onclick="SFX.btn();OL.leave()" style="margin-top:8px;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171;">⚠ مغادرة الغرفة</button>
+        <div class="rb-l">ظƒظˆط¯ ط§ظ„ط؛ط±ظپط© â€” ط´ط§ط±ظƒظ‡ ظ…ط¹ طµط¯ظٹظ‚ظƒ</div>
+        <div class="rb-c" id="rcode">â€”</div>
+        <div class="rb-h">ط§ظ†طھط¸ط± ط­طھظ‰ ظٹظ†ط¶ظ… طµط¯ظٹظ‚ظƒâ€¦</div>
+        <button class="rb-cp" onclick="SFX.btn();OL.copy()">â§‰ ظ†ط³ط® ط§ظ„ظƒظˆط¯</button>
+        <button class="rb-cp" onclick="SFX.btn();OL.leave()" style="margin-top:8px;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171;">âڑ  ظ…ط؛ط§ط¯ط±ط© ط§ظ„ط؛ط±ظپط©</button>
       </div>
-      <button class="btnp" id="btn-create" onclick="OL.create()">♟ إنشاء غرفة</button>
+      <button class="btnp" id="btn-create" onclick="OL.create()">â™ں ط¥ظ†ط´ط§ط، ط؛ط±ظپط©</button>
     </div>
     <div id="tc-j" class="tc">
-      <p class="flbl">أدخل كود الغرفة</p>
-      <input class="finp" id="jinp" placeholder="الصق الكود هنا" maxlength="36" oninput="this.value=this.value.trim()">
+      <p class="flbl">ط£ط¯ط®ظ„ ظƒظˆط¯ ط§ظ„ط؛ط±ظپط©</p>
+      <input class="finp" id="jinp" placeholder="ط§ظ„طµظ‚ ط§ظ„ظƒظˆط¯ ظ‡ظ†ط§" maxlength="36" oninput="this.value=this.value.trim()">
       <div id="st-j" class="ost"></div>
-      <button class="btnp" onclick="OL.join()">◈ الانضمام</button>
+      <button class="btnp" onclick="OL.join()">â—ˆ ط§ظ„ط§ظ†ط¶ظ…ط§ظ…</button>
     </div>
     <div id="tc-m" class="tc">
-      <p class="flbl">مطابقة سريعة</p>
-      <div class="p2p" style="margin-top:6px">سيتم إيجاد خصم عشوائي فوراً — بدون كود ◈</div>
+      <p class="flbl">ظ…ط·ط§ط¨ظ‚ط© ط³ط±ظٹط¹ط©</p>
+      <div class="p2p" style="margin-top:6px">ط³ظٹطھظ… ط¥ظٹط¬ط§ط¯ ط®طµظ… ط¹ط´ظˆط§ط¦ظٹ ظپظˆط±ط§ظ‹ â€” ط¨ط¯ظˆظ† ظƒظˆط¯ â—ˆ</div>
       <div id="st-m" class="ost"></div>
       <div style="display:flex;gap:8px">
-        <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">⊕ ابحث عن خصم</button>
-        <button class="btnb" id="btn-mc" style="flex:1;display:none" onclick="OL.mmCancel()">◆ إلغاء</button>
+        <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">âٹ• ط§ط¨ط­ط« ط¹ظ† ط®طµظ…</button>
+        <button class="btnb" id="btn-mc" style="flex:1;display:none" onclick="OL.mmCancel()">â—† ط¥ظ„ط؛ط§ط،</button>
       </div>
     </div>
-    <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
+    <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">â†گ ط§ظ„ط¹ظˆط¯ط©</button>
   </div>
 </div>
 
@@ -1808,26 +1834,26 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- GAME -->
 <div id="s-game" class="screen">
   <div class="gtop">
-    <button class="bsm" onclick="G.restart()">↺ جديدة</button>
-    <span class="gmlbl" id="gmode">—</span>
-    <button class="bsm" onclick="G.back()">← قائمة</button>
+    <button class="bsm" onclick="G.restart()">â†؛ ط¬ط¯ظٹط¯ط©</button>
+    <span class="gmlbl" id="gmode">â€”</span>
+    <button class="bsm" onclick="G.back()">â†گ ظ‚ط§ط¦ظ…ط©</button>
   </div>
   <div class="pbar" id="bar-b">
     <div class="pbar-top">
       <div class="pb-l">
-        <div class="pb-av av-b">♟</div>
+        <div class="pb-av av-b">â™ں</div>
         <div>
-          <div class="pb-nm" id="nm-b">الأسود</div>
-          <div class="pb-turn" id="trn-b">● دوره</div>
+          <div class="pb-nm" id="nm-b">ط§ظ„ط£ط³ظˆط¯</div>
+          <div class="pb-turn" id="trn-b">â—ڈ ط¯ظˆط±ظ‡</div>
           <div class="pb-ast" id="ast-b"></div>
         </div>
       </div>
       <div class="pb-caps" id="cap-b"></div>
-      <button class="pb-ast-btn" id="ast-btn-b" onclick="G.toggleAstFor('b')" style="display:none">◈</button>
-      <div class="pb-timer" id="tmr-b">—</div>
-      <button class="pb-undo" id="pb-undo-b" onclick="G.undo()" style="display:none">↩</button>
+      <button class="pb-ast-btn" id="ast-btn-b" onclick="G.toggleAstFor('b')" style="display:none">â—ˆ</button>
+      <div class="pb-timer" id="tmr-b">â€”</div>
+      <button class="pb-undo" id="pb-undo-b" onclick="G.undo()" style="display:none">â†©</button>
     </div>
-    <div class="sc-row" id="scr-b"><span>التقدم: </span><span id="sc-b-val">—</span></div>
+    <div class="sc-row" id="scr-b"><span>ط§ظ„طھظ‚ط¯ظ…: </span><span id="sc-b-val">â€”</span></div>
   </div>
   <div id="board-container" style="display:flex;align-items:center;gap:6px;">
     <div class="bwrap" id="bwrap"><div id="board"></div></div>
@@ -1835,42 +1861,42 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   <div class="pbar" id="bar-w">
     <div class="pbar-top">
       <div class="pb-l">
-        <div class="pb-av av-w">♙</div>
+        <div class="pb-av av-w">â™™</div>
         <div>
-          <div class="pb-nm" id="nm-w">الأبيض</div>
-          <div class="pb-turn" id="trn-w">● دوره</div>
+          <div class="pb-nm" id="nm-w">ط§ظ„ط£ط¨ظٹط¶</div>
+          <div class="pb-turn" id="trn-w">â—ڈ ط¯ظˆط±ظ‡</div>
           <div class="pb-ast" id="ast-w"></div>
         </div>
       </div>
       <div class="pb-caps" id="cap-w"></div>
-      <button class="pb-ast-btn" id="ast-btn-w" onclick="G.toggleAstFor('w')" style="display:none">◈</button>
-      <div class="pb-timer" id="tmr-w">—</div>
+      <button class="pb-ast-btn" id="ast-btn-w" onclick="G.toggleAstFor('w')" style="display:none">â—ˆ</button>
+      <div class="pb-timer" id="tmr-w">â€”</div>
     </div>
-    <div class="sc-row" id="scr-w"><span>التقدم: </span><span id="sc-w-val">—</span></div>
+    <div class="sc-row" id="scr-w"><span>ط§ظ„طھظ‚ط¯ظ…: </span><span id="sc-w-val">â€”</span></div>
   </div>
   <div class="gtbar">
     <button class="tbb2" id="btn-ast" onclick="G.toggleAst()">
-      <span>◈</span><span id="ast-lbl">المساعد: إيقاف</span>
+      <span>â—ˆ</span><span id="ast-lbl">ط§ظ„ظ…ط³ط§ط¹ط¯: ط¥ظٹظ‚ط§ظپ</span>
       <span class="tbb2-dot" id="ast-dot" style="display:none"></span>
     </button>
     <button class="tbb2" id="btn-undo" onclick="G.undo()" style="display:none">
-      <span>↩</span><span>تراجع</span>
+      <span>â†©</span><span>طھط±ط§ط¬ط¹</span>
     </button>
     <button class="tbb2" id="btn-hint" onclick="G.toggleHints()">
-      <span>◆</span><span id="hint-lbl">النقاط: تشغيل</span>
+      <span>â—†</span><span id="hint-lbl">ط§ظ„ظ†ظ‚ط§ط·: طھط´ط؛ظٹظ„</span>
     </button>
     <button class="tbb2" id="btn-chat" onclick="CHAT.toggle()" style="display:none">
-      <span>◉</span><span>شات</span>
+      <span>â—‰</span><span>ط´ط§طھ</span>
       <span class="chat-badge" id="chat-badge"></span>
     </button>
   </div>
-  <div class="sbar" id="sbar">دور الأبيض</div>
+  <div class="sbar" id="sbar">ط¯ظˆط± ط§ظ„ط£ط¨ظٹط¶</div>
   <div class="mvhist" id="mvhist"></div>
   <!-- Chat Widget -->
   <div class="chat-wrap" id="chat-wrap">
     <div class="chat-msgs" id="chat-msgs"></div>
     <div class="chat-inp-row">
-      <button class="chat-mic" id="chat-mic" onclick="CHAT.toggleVoiceRecord()" title="رسالة صوتية">
+      <button class="chat-mic" id="chat-mic" onclick="CHAT.toggleVoiceRecord()" title="ط±ط³ط§ظ„ط© طµظˆطھظٹط©">
         <span id="mic-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
@@ -1881,9 +1907,9 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
         </span>
         <span id="rec-timer" class="rec-timer" style="display:none">0:00</span>
       </button>
-      <input class="chat-inp" id="chat-inp" placeholder="اكتب رسالة…" maxlength="120"
+      <input class="chat-inp" id="chat-inp" placeholder="ط§ظƒطھط¨ ط±ط³ط§ظ„ط©â€¦" maxlength="120"
              onkeydown="if(event.key==='Enter')CHAT.send()">
-      <button class="chat-send" onclick="if(typeof SFX !== 'undefined') SFX.btn(); CHAT.send()">إرسال</button>
+      <button class="chat-send" onclick="if(typeof SFX !== 'undefined') SFX.btn(); CHAT.send()">ط¥ط±ط³ط§ظ„</button>
     </div>
   </div>
 </div>
@@ -1891,7 +1917,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- PROMO -->
 <div id="promo-ov">
   <div class="pbox">
-    <h3>ترقية البيدق ✦</h3>
+    <h3>طھط±ظ‚ظٹط© ط§ظ„ط¨ظٹط¯ظ‚ âœ¦</h3>
     <div class="prow" id="prow"></div>
   </div>
 </div>
@@ -1899,30 +1925,30 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- GAME OVER -->
 <div id="go-ov">
   <div class="gobox">
-    <span class="go-em" id="go-em">✦</span>
-    <div class="go-ttl" id="go-ttl">نهاية اللعبة</div>
+    <span class="go-em" id="go-em">âœ¦</span>
+    <div class="go-ttl" id="go-ttl">ظ†ظ‡ط§ظٹط© ط§ظ„ظ„ط¹ط¨ط©</div>
     <div class="go-stars" id="go-stars" style="display:none">
-      <span class="go-star" id="gs1">◇</span>
-      <span class="go-star" id="gs2">◇</span>
-      <span class="go-star" id="gs3">◇</span>
+      <span class="go-star" id="gs1">â—‡</span>
+      <span class="go-star" id="gs2">â—‡</span>
+      <span class="go-star" id="gs3">â—‡</span>
     </div>
     <div class="go-msg" id="go-msg"></div>
     <div class="go-quick" id="go-quick">
       <div class="go-qrow" id="go-qload">
-        <span class="go-qsf">Stockfish يحلل…</span>
+        <span class="go-qsf">Stockfish ظٹط­ظ„ظ„â€¦</span>
         <span class="go-qdot"></span><span class="go-qdot"></span><span class="go-qdot"></span>
       </div>
       <div class="go-qgrid" id="go-qgrid"></div>
       <div class="go-nour" id="go-nour" style="display:none">
-        <div class="go-nour-h">نور — تعليق سريع</div>
+        <div class="go-nour-h">ظ†ظˆط± â€” طھط¹ظ„ظٹظ‚ ط³ط±ظٹط¹</div>
         <div class="go-nour-t" id="go-nour-t"></div>
       </div>
     </div>
     <div class="go-bts">
-      <button class="bgp" onclick="G.restart()">↺ مرة أخرى</button>
-      <button id="go-next" class="bgp" style="display:none" onclick="G.nextLevel()">التالي ←</button>
-      <button id="go-review" class="bgp" style="display:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1a18" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.open()">◈ تقييم المباراة</button>
-      <button class="bgs" onclick="G.goMenu()">القائمة</button>
+      <button class="bgp" onclick="G.restart()">â†؛ ظ…ط±ط© ط£ط®ط±ظ‰</button>
+      <button id="go-next" class="bgp" style="display:none" onclick="G.nextLevel()">ط§ظ„طھط§ظ„ظٹ â†گ</button>
+      <button id="go-review" class="bgp" style="display:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1a18" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.open()">â—ˆ طھظ‚ظٹظٹظ… ط§ظ„ظ…ط¨ط§ط±ط§ط©</button>
+      <button class="bgs" onclick="G.goMenu()">ط§ظ„ظ‚ط§ط¦ظ…ط©</button>
     </div>
   </div>
 </div>
@@ -1930,12 +1956,12 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- CUSTOM ALERT/MODAL -->
 <div id="custom-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:950;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 60px rgba(201,168,76,.08),0 20px 60px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
-    <div id="modal-icon" style="font-size:52px;margin-bottom:16px;display:block;">📢</div>
-    <div id="modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">تنبيه</div>
+    <div id="modal-icon" style="font-size:52px;margin-bottom:16px;display:block;">ًں“¢</div>
+    <div id="modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">طھظ†ط¨ظٹظ‡</div>
     <div id="modal-message" style="font-size:15px;color:var(--text);line-height:1.7;margin-bottom:24px;"></div>
     <div id="modal-buttons" style="display:flex;gap:12px;justify-content:center;">
-      <button id="modal-btn-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">موافق</button>
-      <button id="modal-btn-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;display:none;">إلغاء</button>
+      <button id="modal-btn-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">ظ…ظˆط§ظپظ‚</button>
+      <button id="modal-btn-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;display:none;">ط¥ظ„ط؛ط§ط،</button>
     </div>
   </div>
 </div>
@@ -1943,13 +1969,13 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- CUSTOM INPUT MODAL (for forgot password) -->
 <div id="input-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:960;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 60px rgba(201,168,76,.08),0 20px 60px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
-    <div id="input-modal-icon" style="font-size:52px;margin-bottom:16px;display:block;color:var(--gold2);">◈</div>
-    <div id="input-modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">إعادة تعيين كلمة المرور</div>
-    <div id="input-modal-message" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;">أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين</div>
-    <input id="input-modal-field" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:20px;text-align:center;direction:ltr;">
+    <div id="input-modal-icon" style="font-size:52px;margin-bottom:16px;display:block;color:var(--gold2);">â—ˆ</div>
+    <div id="input-modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">ط¥ط¹ط§ط¯ط© طھط¹ظٹظٹظ† ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط±</div>
+    <div id="input-modal-message" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;">ط£ط¯ط®ظ„ ط¨ط±ظٹط¯ظƒ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ ظ„ط¥ط±ط³ط§ظ„ ط±ط§ط¨ط· ط¥ط¹ط§ط¯ط© ط§ظ„طھط¹ظٹظٹظ†</div>
+    <input id="input-modal-field" type="email" placeholder="ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:20px;text-align:center;direction:ltr;">
     <div style="display:flex;gap:12px;justify-content:center;">
-      <button id="input-modal-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">إرسال</button>
-      <button id="input-modal-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;">إلغاء</button>
+      <button id="input-modal-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">ط¥ط±ط³ط§ظ„</button>
+      <button id="input-modal-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;">ط¥ظ„ط؛ط§ط،</button>
     </div>
   </div>
 </div>
@@ -1957,19 +1983,19 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <!-- REVIEW OVERLAY -->
 <div id="review-ov">
   <div class="rv-topbar">
-    <div class="rv-title">◈ مراجعة المباراة</div>
-    <button class="rv-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.close()">◆ إغلاق</button>
+    <div class="rv-title">â—ˆ ظ…ط±ط§ط¬ط¹ط© ط§ظ„ظ…ط¨ط§ط±ط§ط©</div>
+    <button class="rv-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.close()">â—† ط¥ط؛ظ„ط§ظ‚</button>
   </div>
   <div class="rv-main" id="rv-main">
     <div class="rv-loading">
       <div class="rv-loadcard">
-        <div class="rv-loadtitle">تحليل المباراة</div>
-        <div class="rv-loadsub">نور يراجع النقلات ويحسب أفضل البدائل باستخدام Stockfish…</div>
+        <div class="rv-loadtitle">طھط­ظ„ظٹظ„ ط§ظ„ظ…ط¨ط§ط±ط§ط©</div>
+        <div class="rv-loadsub">ظ†ظˆط± ظٹط±ط§ط¬ط¹ ط§ظ„ظ†ظ‚ظ„ط§طھ ظˆظٹط­ط³ط¨ ط£ظپط¶ظ„ ط§ظ„ط¨ط¯ط§ط¦ظ„ ط¨ط§ط³طھط®ط¯ط§ظ… Stockfishâ€¦</div>
         <div class="rv-loadrow">
           <div class="rv-spinner"></div>
           <div class="rv-loaddots"><span class="rv-loaddot"></span><span class="rv-loaddot"></span><span class="rv-loaddot"></span></div>
         </div>
-        <div class="rv-loadtip">نصيحة: حتى النقلات الهادئة قد تكون الأفضل إذا حسّنت وضع قطعك.</div>
+        <div class="rv-loadtip">ظ†طµظٹط­ط©: ط­طھظ‰ ط§ظ„ظ†ظ‚ظ„ط§طھ ط§ظ„ظ‡ط§ط¯ط¦ط© ظ‚ط¯ طھظƒظˆظ† ط§ظ„ط£ظپط¶ظ„ ط¥ط°ط§ ط­ط³ظ‘ظ†طھ ظˆط¶ط¹ ظ‚ط·ط¹ظƒ.</div>
       </div>
     </div>
   </div>
@@ -1980,9 +2006,9 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 <script>
 'use strict';
 
-/* ══════════════════════════════════════
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
    PARTICLES
-══════════════════════════════════════ */
+â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 (function(){
   const wrap=document.getElementById('particles');
   const colors=['rgba(201,168,76,.3)','rgba(45,212,191,.2)','rgba(255,255,255,.1)'];
@@ -1994,9 +2020,9 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   }
 })();
 
-/* ══════════════════════════════════════
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
    AUDIO
-══════════════════════════════════════ */
+â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 const SFX=(()=>{
   // Debounce to prevent double-fire within 120ms
   let _lastSfxTime=0;
@@ -2260,9 +2286,9 @@ function spawnConfetti(){
   setTimeout(()=>wrap.innerHTML='',5000);
 }
 
-/* ══════════════════════════════════════
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
    THEMES
-══════════════════════════════════════ */
+â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 const THEMES={
   burl_wood:  {l:'#d4a574',d:'#8b6f47',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
   dark_wood:  {l:'#9d8b7e',d:'#4a3a2a',sl:'#e8e04a',sd:'#8a7200',ml:'#c8b860',md:'#7a6230',tex:true},
@@ -2370,193 +2396,193 @@ const CHESS_PIECE_THEMES={
   'neo':{
     name:'Neo',
     type:'2d',
-    description:'حديث وبسيط',
+    description:'ط­ط¯ظٹط« ظˆط¨ط³ظٹط·',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'
   },
   'classic':{
     name:'Classic',
     type:'2d',
-    description:'كلاسيكي تقليدي',
+    description:'ظƒظ„ط§ط³ظٹظƒظٹ طھظ‚ظ„ظٹط¯ظٹ',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/classic/150/'
   },
   'alpha':{
     name:'Alpha',
     type:'2d',
-    description:'قطع حادة وواضحة',
+    description:'ظ‚ط·ط¹ ط­ط§ط¯ط© ظˆظˆط§ط¶ط­ط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/'
   },
   'bases':{
     name:'Bases',
     type:'2d',
-    description:'قطع البلاستيك',
+    description:'ظ‚ط·ط¹ ط§ظ„ط¨ظ„ط§ط³طھظٹظƒ',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/bases/150/'
   },
   'icy-sea':{
     name:'Icy Sea',
     type:'2d',
-    description:'قطع بحرية جليدية',
+    description:'ظ‚ط·ط¹ ط¨ط­ط±ظٹط© ط¬ظ„ظٹط¯ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/icy_sea/150/'
   },
   'neo-wood':{
     name:'Neo-Wood',
     type:'2d',
-    description:'Neo بملمس خشبي',
+    description:'Neo ط¨ظ…ظ„ظ…ط³ ط®ط´ط¨ظٹ',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neo_wood/150/'
   },
   'glass':{
     name:'Glass',
     type:'2d',
-    description:'قطع زجاجية شفافة',
+    description:'ظ‚ط·ط¹ ط²ط¬ط§ط¬ظٹط© ط´ظپط§ظپط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/glass/150/'
   },
   'marble':{
     name:'Marble',
     type:'2d',
-    description:'قطع رخامية أنيقة',
+    description:'ظ‚ط·ط¹ ط±ط®ط§ظ…ظٹط© ط£ظ†ظٹظ‚ط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/marble/150/'
   },
   'game-room':{
     name:'Game Room',
     type:'2d',
-    description:'قطع غرفة ألعاب',
+    description:'ظ‚ط·ط¹ ط؛ط±ظپط© ط£ظ„ط¹ط§ط¨',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/game_room/150/'
   },
   'tournament':{
     name:'Tournament',
     type:'2d',
-    description:'قطع بطولات',
+    description:'ظ‚ط·ط¹ ط¨ط·ظˆظ„ط§طھ',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/tournament/150/'
   },
   'metal':{
     name:'Metal',
     type:'2d',
-    description:'قطع معدنية',
+    description:'ظ‚ط·ط¹ ظ…ط¹ط¯ظ†ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/metal/150/'
   },
   'modern':{
     name:'Modern',
     type:'2d',
-    description:'قطع حديثة',
+    description:'ظ‚ط·ط¹ ط­ط¯ظٹط«ط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/modern/150/'
   },
   'vintage':{
     name:'Vintage',
     type:'2d',
-    description:'قطع كلاسيكية',
+    description:'ظ‚ط·ط¹ ظƒظ„ط§ط³ظٹظƒظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/vintage/150/'
   },
   'graffiti':{
     name:'Graffiti',
     type:'2d',
-    description:'قطع جرافيتي',
+    description:'ظ‚ط·ط¹ ط¬ط±ط§ظپظٹطھظٹ',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/graffiti/150/'
   },
   'neon':{
     name:'Neon',
     type:'2d',
-    description:'قطع نيون',
+    description:'ظ‚ط·ط¹ ظ†ظٹظˆظ†',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/neon/150/'
   },
   'ocean':{
     name:'Ocean',
     type:'2d',
-    description:'قطع بحرية',
+    description:'ظ‚ط·ط¹ ط¨ط­ط±ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/ocean/150/'
   },
   'sky':{
     name:'Sky',
     type:'2d',
-    description:'قطع سمائية',
+    description:'ظ‚ط·ط¹ ط³ظ…ط§ط¦ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/sky/150/'
   },
   'space':{
     name:'Space',
     type:'2d',
-    description:'قطع فضائية',
+    description:'ظ‚ط·ط¹ ظپط¶ط§ط¦ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/space/150/'
   },
   'bubblegum':{
     name:'Bubblegum',
     type:'2d',
-    description:'قطع علكية',
+    description:'ظ‚ط·ط¹ ط¹ظ„ظƒظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/bubblegum/150/'
   },
   '8-bit':{
     name:'8-Bit',
     type:'2d',
-    description:'قطع بكسل قديمة',
+    description:'ظ‚ط·ط¹ ط¨ظƒط³ظ„ ظ‚ط¯ظٹظ…ط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/8_bit/150/'
   },
   'light':{
     name:'Light',
     type:'2d',
-    description:'قطع خفيفة',
+    description:'ظ‚ط·ط¹ ط®ظپظٹظپط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/light/150/'
   },
   'newspaper':{
     name:'Newspaper',
     type:'2d',
-    description:'قطع جريدة',
+    description:'ظ‚ط·ط¹ ط¬ط±ظٹط¯ط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/newspaper/150/'
   },
   'nature':{
     name:'Nature',
     type:'2d',
-    description:'قطع طبيعية',
+    description:'ظ‚ط·ط¹ ط·ط¨ظٹط¹ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/nature/150/'
   },
   'maya':{
     name:'Maya',
     type:'2d',
-    description:'قطع مايا',
+    description:'ظ‚ط·ط¹ ظ…ط§ظٹط§',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/maya/150/'
   },
   'club':{
     name:'Club',
     type:'2d',
-    description:'قطع ناد',
+    description:'ظ‚ط·ط¹ ظ†ط§ط¯',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/club/150/'
   },
   'gothic':{
     name:'Gothic',
     type:'2d',
-    description:'قطع قوطية',
+    description:'ظ‚ط·ط¹ ظ‚ظˆط·ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/gothic/150/'
   },
   'condal':{
     name:'Condal',
     type:'2d',
-    description:'قطع كوندال',
+    description:'ظ‚ط·ط¹ ظƒظˆظ†ط¯ط§ظ„',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/condal/150/'
   },
   'dash':{
     name:'Dash',
     type:'2d',
-    description:'قطع سريعة',
+    description:'ظ‚ط·ط¹ ط³ط±ظٹط¹ط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/dash/150/'
   },
   'lolz':{
     name:'Lolz',
     type:'2d',
-    description:'قطع مضحكة',
+    description:'ظ‚ط·ط¹ ظ…ط¶ط­ظƒط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/lolz/150/'
   },
   'tigers':{
     name:'Tigers',
     type:'2d',
-    description:'قطع نمرية',
+    description:'ظ‚ط·ط¹ ظ†ظ…ط±ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/tigers/150/'
   },
   'book':{
     name:'Book',
     type:'2d',
-    description:'قطع كتابية',
+    description:'ظ‚ط·ط¹ ظƒطھط§ط¨ظٹط©',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/book/150/'
   },
   'cases':{
     name:'Cases',
     type:'2d',
-    description:'قطع صناديق',
+    description:'ظ‚ط·ط¹ طµظ†ط§ط¯ظٹظ‚',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/cases/150/'
   },
     
@@ -2564,25 +2590,25 @@ const CHESS_PIECE_THEMES={
   '3d_wood':{
     name:'3D Wood',
     type:'3d',
-    description:'خشبي ثلاثي الأبعاد',
+    description:'ط®ط´ط¨ظٹ ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_wood/150/'
   },
   '3d_staunton':{
     name:'3D Staunton',
     type:'3d',
-    description:'ستونتون ثلاثي الأبعاد',
+    description:'ط³طھظˆظ†طھظˆظ† ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_staunton/150/'
   },
   '3d_plastic':{
     name:'3D Plastic',
     type:'3d',
-    description:'بلاستيك ثلاثي الأبعاد',
+    description:'ط¨ظ„ط§ط³طھظٹظƒ ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_plastic/150/'
   },
   '3d_chesskid':{
     name:'3D ChessKid',
     type:'3d',
-    description:'أطفال ثلاثي الأبعاد',
+    description:'ط£ط·ظپط§ظ„ ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯',
     urlBase:'https://images.chesscomfiles.com/chess-themes/pieces/3d_chesskid/150/'
   }
 };
@@ -2592,7 +2618,7 @@ const OFFLINE_PIECE_THEMES={
   'local_basic':{
     name:'Local Basic',
     type:'2d',
-    description:'قطع محلية أساسية',
+    description:'ظ‚ط·ط¹ ظ…ط­ظ„ظٹط© ط£ط³ط§ط³ظٹط©',
     isOffline:true,
     urlBase:'./'
   }
@@ -2660,7 +2686,7 @@ function generatePieceThemeOptions(){
     };
     
     // Add offline indicator if applicable
-    const offlineIndicator=theme.isOffline?' <span style="color:var(--teal2);font-size:10px;">📱</span>':'';
+    const offlineIndicator=theme.isOffline?' <span style="color:var(--teal2);font-size:10px;">ًں“±</span>':'';
     
     // Create preview with king and queen
     const preview=document.createElement('div');
@@ -2745,7 +2771,7 @@ function generatePieceThemeOptionsForModal(){
     };
     
     // Add offline indicator if applicable
-    const offlineIndicator=theme.isOffline?' <span style="color:var(--teal2);font-size:10px;">📱</span>':'';
+    const offlineIndicator=theme.isOffline?' <span style="color:var(--teal2);font-size:10px;">ًں“±</span>':'';
     
     // Create preview with king and queen
     const preview=document.createElement('div');
@@ -2784,7 +2810,6 @@ function generatePieceThemeOptionsForModal(){
   
   // Initialize preview with current theme
   selectedPieceTheme = currentTheme;
-  createPreviewBoard();
 }
 
 function updateCurrentPieceDisplay(themeKey){
@@ -2804,75 +2829,11 @@ function updateCurrentPieceDisplay(themeKey){
   if(type) type.textContent=theme.type.toUpperCase();
 }
 
-// Preview board functionality
+// Piece selection functionality
 let selectedPieceTheme = null;
-
-function createPreviewBoard(){
-  const board=document.getElementById('piece-preview-board');
-  if(!board) return;
-  
-  board.innerHTML='';
-  
-  // Get current board theme colors
-  const lightColor=getComputedStyle(document.documentElement).getPropertyValue('--sq-l').trim();
-  const darkColor=getComputedStyle(document.documentElement).getPropertyValue('--sq-d').trim();
-  
-  // Create 8x8 board
-  for(let row=0;row<8;row++){
-    for(let col=0;col<8;col++){
-      const square=document.createElement('div');
-      square.style.position='absolute';
-      square.style.width='12.5%';
-      square.style.height='12.5%';
-      square.style.left=(col*12.5)+'%';
-      square.style.top=(row*12.5)+'%';
-      square.style.backgroundColor=(row+col)%2===0?lightColor:darkColor;
-      square.style.display='flex';
-      square.style.alignItems='center';
-      square.style.justifyContent='center';
-      square.style.fontSize='calc(100% / 8)';
-      
-      // Add some pieces for preview
-      if(selectedPieceTheme){
-        const urls=getPieceUrls(selectedPieceTheme);
-        if(urls){
-          // Place key pieces for preview
-          if(row===7 && col===4){ // White king
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wK}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===3){ // White queen
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wQ}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===0){ // White rook
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wR}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===1){ // White knight
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wN}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===7 && col===2){ // White bishop
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wB}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===6 && col===0 || row===6 && col===1){ // White pawns
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.wP}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===4){ // Black king
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bK}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===3){ // Black queen
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bQ}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===0){ // Black rook
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bR}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===1){ // Black knight
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bN}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===0 && col===2){ // Black bishop
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bB}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }else if(row===1 && col===0 || row===1 && col===1){ // Black pawns
-            square.innerHTML=`<div class="piece" style="background-image:url('${urls.bP}');width:80%;height:80%;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>`;
-          }
-        }
-      }
-      
-      board.appendChild(square);
-    }
-  }
-}
 
 function selectPieceForPreview(themeKey){
   selectedPieceTheme = themeKey;
-  createPreviewBoard();
   
   // Update selection UI
   document.querySelectorAll('.pc-opt').forEach(opt=>opt.classList.remove('selected'));
@@ -3027,7 +2988,7 @@ const Cfg={
     playerName:null,
     playerImage:null,
     uiTheme:'amkh',
-    pieces:'neo',
+    pieceStyle:'neo',
     dotColor:'#2dd4bf',
     boardTheme:'classic',
     customBoardImage:''
@@ -3056,6 +3017,9 @@ const Cfg={
         if(oldImg)this.data.playerImage=oldImg;
       }
     }catch(e){}
+    if(!this.data.pieceStyle && this.data.pieces) this.data.pieceStyle=this.data.pieces;
+    if(!this.data.pieceStyle) this.data.pieceStyle='neo';
+    try{ delete this.data.pieces; }catch(e){} 
     try{ await IDB.kset('cfg',this.data); }catch(e){}
     this.apply();
   },
@@ -3078,6 +3042,8 @@ const Cfg={
   },
   _persist(){
     try{ IDB.kset('cfg',this.data); }catch(e){}
+    this.data.pieceStyle=this.data.pieceStyle||'neo';
+    try{ delete this.data.pieces; }catch(e){} 
     try{localStorage.setItem('chess-cfg-v6',JSON.stringify(this.data));}catch(e){}
     // Also save to legacy keys for compatibility
     try{localStorage.setItem('chess_username',this.data.playerName||'');}catch(e){}
@@ -3157,14 +3123,14 @@ const Cfg={
       this.data.playerImage=e.target.result;
       this._persist();
       this._updateAvatar(this.data.playerName);
-      Modal.show('تم تحميل الصورة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','◈');
+      Modal.show('طھظ… طھط­ظ…ظٹظ„ ط§ظ„طµظˆط±ط©طŒ ط§ط¶ط؛ط· "طھط·ط¨ظٹظ‚ ط§ظ„طµظˆط±ط©" ظ„ط­ظپط¸ظ‡ط§.','طھظ… ط§ظ„طھط­ظ…ظٹظ„','â—ˆ');
     };
     reader.readAsDataURL(file);
   },
   applyProfileImage(){
-    if(!this.data.playerImage) return Modal.show('لم تختر صورة بعد','تنبيه','✕');
+    if(!this.data.playerImage) return Modal.show('ظ„ظ… طھط®طھط± طµظˆط±ط© ط¨ط¹ط¯','طھظ†ط¨ظٹظ‡','âœ•');
     this._updateProfileImage();
-    Modal.show('تم تطبيق صورة الملف الشخصي','تم','◈');
+    Modal.show('طھظ… طھط·ط¨ظٹظ‚ طµظˆط±ط© ط§ظ„ظ…ظ„ظپ ط§ظ„ط´ط®طµظٹ','طھظ…','â—ˆ');
     if(S.mode==='online'){
       OL.sendPimg(this.data.playerImage);
     }else if(S.mode==='lan'){
@@ -3181,7 +3147,7 @@ const Cfg={
       av.textContent='';
     }else{
       av.style.backgroundImage='';
-      av.textContent=name?name[0].toUpperCase():'◈';
+      av.textContent=name?name[0].toUpperCase():'â—ˆ';
     }
   },
   _updateProfileImage(){
@@ -3284,7 +3250,7 @@ const Cfg={
     this.data.playerImage='';
     this._persist();
     this._updateAvatar(this.data.playerName);
-    Modal.show('تم حذف صورة الملف الشخصي','تم','◆');
+    Modal.show('طھظ… ط­ط°ظپ طµظˆط±ط© ط§ظ„ظ…ظ„ظپ ط§ظ„ط´ط®طµظٹ','طھظ…','â—†');
   },
   prepareCustomBoardImage(fileInput){
     const file=fileInput.files[0];
@@ -3293,14 +3259,14 @@ const Cfg={
     reader.onload=(e)=>{
       this.data.customBoardImage=e.target.result;
       this._persist();
-      Modal.show('تم تحميل صورة الرقعة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','◈');
+      Modal.show('طھظ… طھط­ظ…ظٹظ„ طµظˆط±ط© ط§ظ„ط±ظ‚ط¹ط©طŒ ط§ط¶ط؛ط· "طھط·ط¨ظٹظ‚ ط§ظ„طµظˆط±ط©" ظ„ط­ظپط¸ظ‡ط§.','طھظ… ط§ظ„طھط­ظ…ظٹظ„','â—ˆ');
     };
     reader.readAsDataURL(file);
   },
   applyCustomBoardImage(){
-    if(!this.data.customBoardImage) return Modal.show('لم تختر صورة بعد','تنبيه','✕');
+    if(!this.data.customBoardImage) return Modal.show('ظ„ظ… طھط®طھط± طµظˆط±ط© ط¨ط¹ط¯','طھظ†ط¨ظٹظ‡','âœ•');
     if(this.data.boardTheme==='custom')this.theme('custom');
-    Modal.show('تم تطبيق صورة الرقعة','تم','◈');
+    Modal.show('طھظ… طھط·ط¨ظٹظ‚ طµظˆط±ط© ط§ظ„ط±ظ‚ط¹ط©','طھظ…','â—ˆ');
   }
 };
 
@@ -3323,7 +3289,7 @@ function updatePlayerImages(){
       }else{
         myAv.style.backgroundImage='';
         myAv.style.color='';
-        myAv.textContent=(myCol==='w')?'♙':'♟';
+        myAv.textContent=(myCol==='w')?'â™™':'â™ں';
       }
     }
     // Set opponent's image from stored state
@@ -3338,7 +3304,7 @@ function updatePlayerImages(){
       }else{
         oppAv.style.backgroundImage='';
         oppAv.style.color='';
-        oppAv.textContent=(oppCol==='w')?'♙':'♟';
+        oppAv.textContent=(oppCol==='w')?'â™™':'â™ں';
       }
     }
   }
@@ -3355,7 +3321,7 @@ function updatePlayerImages(){
       }else{
         av.style.backgroundImage='';
         av.style.color='';
-        av.textContent='♙';
+        av.textContent='â™™';
       }
     }
     // Set Nour's avatar (try image first, fallback to pawn)
@@ -3376,7 +3342,7 @@ function updatePlayerImages(){
         nourAv.style.backgroundImage='';
         nourAv.style.color='var(--gold2)';
         nourAv.style.border='1px solid rgba(255,255,255,.07)';
-        nourAv.textContent='♟';
+        nourAv.textContent='â™ں';
       };
       img.src='./nour.png';
     }
@@ -3389,8 +3355,8 @@ function updatePlayerImages(){
     });
     const bw=document.querySelector('.av-w');
     const bb=document.querySelector('.av-b');
-    if(bw)bw.textContent='♙';
-    if(bb)bb.textContent='♟';
+    if(bw)bw.textContent='â™™';
+    if(bb)bb.textContent='â™ں';
   }
 }
 
@@ -3399,24 +3365,24 @@ function updatePlayerImages(){
 ===================================== */
 const LEVELS_DEF=[
   // Early levels: Very easy with high randomness (70-50% random moves)
-  {id:0,  name:'المبتدئ',      img:'Nour_Beginner.png',depth:1,skill:1,random:0.70,desc:'نور يتعلم معك',                        hint:'حرك القطع وافز',           starReq:[8,6,4]},
-  {id:1,  name:'المتدرب',      img:'Nour_Intern.png',depth:1,skill:2,random:0.55,desc:'نور يبدأ بالتعلم',                      hint:'سيطر على المركز',          starReq:[12,9,7]},
-  {id:2,  name:'المستكشف',     img:'Nour_Explorer.png',depth:2,skill:3,random:0.40,desc:'نور يتعلم استراتيجيات جديدة',           hint:'تعلم تكتيكات الافتتاح',     starReq:[16,12,9]},
-  {id:3,  name:'المحترف',      img:'Nour_Professional.png',depth:3,skill:5,random:0.25,desc:'نور أصبح يفهم الشطرنج',                 hint:'احمِ ملكك دائماً',          starReq:[20,15,11]},
+  {id:0,  name:'ط§ظ„ظ…ط¨طھط¯ط¦',      img:'Nour_Beginner.png',depth:1,skill:1,random:0.70,desc:'ظ†ظˆط± ظٹطھط¹ظ„ظ… ظ…ط¹ظƒ',                        hint:'ط­ط±ظƒ ط§ظ„ظ‚ط·ط¹ ظˆط§ظپط²',           starReq:[8,6,4]},
+  {id:1,  name:'ط§ظ„ظ…طھط¯ط±ط¨',      img:'Nour_Intern.png',depth:1,skill:2,random:0.55,desc:'ظ†ظˆط± ظٹط¨ط¯ط£ ط¨ط§ظ„طھط¹ظ„ظ…',                      hint:'ط³ظٹط·ط± ط¹ظ„ظ‰ ط§ظ„ظ…ط±ظƒط²',          starReq:[12,9,7]},
+  {id:2,  name:'ط§ظ„ظ…ط³طھظƒط´ظپ',     img:'Nour_Explorer.png',depth:2,skill:3,random:0.40,desc:'ظ†ظˆط± ظٹطھط¹ظ„ظ… ط§ط³طھط±ط§طھظٹط¬ظٹط§طھ ط¬ط¯ظٹط¯ط©',           hint:'طھط¹ظ„ظ… طھظƒطھظٹظƒط§طھ ط§ظ„ط§ظپطھطھط§ط­',     starReq:[16,12,9]},
+  {id:3,  name:'ط§ظ„ظ…ط­طھط±ظپ',      img:'Nour_Professional.png',depth:3,skill:5,random:0.25,desc:'ظ†ظˆط± ط£طµط¨ط­ ظٹظپظ‡ظ… ط§ظ„ط´ط·ط±ظ†ط¬',                 hint:'ط§ط­ظ…ظگ ظ…ظ„ظƒظƒ ط¯ط§ط¦ظ…ط§ظ‹',          starReq:[20,15,11]},
   // Medium levels: Balanced randomness (25-10% random moves)
-  {id:4,  name:'القائد',       img:'Nour_Commander.png',depth:4,skill:7,random:0.15,desc:'نور يبدأ بالتخطيط',                      hint:'فكر قبل أن تتحرك',          starReq:[25,18,13]},
-  {id:5,  name:'الحارس',       img:'Nour_The_guard.png',depth:5,skill:10,random:0.10,desc:'نور يحمي ويهاجم بحكمة',                 hint:'دافع ثم اهجم',              starReq:[30,22,16]},
-  {id:6,  name:'المحارب',      img:'Nour_Warrior.png',depth:6,skill:13,random:0.05,desc:'نور يخوض معارك حقيقية',                hint:'لا تستسلم أبداً',           starReq:[35,26,19]},
-  {id:7,  name:'القائد العظيم',img:'Nour_The_Great_Leader.png',depth:8,skill:16,random:0.02,desc:'نور يقود الجيش ببراعة',                 hint:'خطط للنهاية',              starReq:[40,30,22]},
+  {id:4,  name:'ط§ظ„ظ‚ط§ط¦ط¯',       img:'Nour_Commander.png',depth:4,skill:7,random:0.15,desc:'ظ†ظˆط± ظٹط¨ط¯ط£ ط¨ط§ظ„طھط®ط·ظٹط·',                      hint:'ظپظƒط± ظ‚ط¨ظ„ ط£ظ† طھطھط­ط±ظƒ',          starReq:[25,18,13]},
+  {id:5,  name:'ط§ظ„ط­ط§ط±ط³',       img:'Nour_The_guard.png',depth:5,skill:10,random:0.10,desc:'ظ†ظˆط± ظٹط­ظ…ظٹ ظˆظٹظ‡ط§ط¬ظ… ط¨ط­ظƒظ…ط©',                 hint:'ط¯ط§ظپط¹ ط«ظ… ط§ظ‡ط¬ظ…',              starReq:[30,22,16]},
+  {id:6,  name:'ط§ظ„ظ…ط­ط§ط±ط¨',      img:'Nour_Warrior.png',depth:6,skill:13,random:0.05,desc:'ظ†ظˆط± ظٹط®ظˆط¶ ظ…ط¹ط§ط±ظƒ ط­ظ‚ظٹظ‚ظٹط©',                hint:'ظ„ط§ طھط³طھط³ظ„ظ… ط£ط¨ط¯ط§ظ‹',           starReq:[35,26,19]},
+  {id:7,  name:'ط§ظ„ظ‚ط§ط¦ط¯ ط§ظ„ط¹ط¸ظٹظ…',img:'Nour_The_Great_Leader.png',depth:8,skill:16,random:0.02,desc:'ظ†ظˆط± ظٹظ‚ظˆط¯ ط§ظ„ط¬ظٹط´ ط¨ط¨ط±ط§ط¹ط©',                 hint:'ط®ط·ط· ظ„ظ„ظ†ظ‡ط§ظٹط©',              starReq:[40,30,22]},
   // Hard levels: Full strength (0% random, high depth)
-  {id:8,  name:'الأسطورة',     img:'Nour_Legend.png',depth:10,skill:20,random:0.00,desc:'فقط المتمرسون يصلون هنا',              hint:'كل حركة لها ثمن',         starReq:[99,18,12]},
-  {id:9,  name:'البطل',        img:'Nour_The_Hero.png',depth:12,skill:22,random:0.00,desc:'نور في أعلى مستوياته',                  hint:'ابحث عن نقاط ضعف الخصم', starReq:[99,16,11]},
-  {id:10, name:'الإمبراطور',   img:'Nour_Emperor.png',depth:15,skill:25,random:0.00,desc:'المرحلة قبل الأخيرة — لا رحمة',        hint:'الصبر هو سلاحك الأقوى',   starReq:[99,15,10]},
-  {id:11, name:'الخالد',       img:'Nour_The_Immortal.png',depth:20,skill:30,random:0.00,desc:'التحدي الأعظم — قهر نور',              hint:'أنت الآن تحدي الأسطورة',  starReq:[99,14,9]},
+  {id:8,  name:'ط§ظ„ط£ط³ط·ظˆط±ط©',     img:'Nour_Legend.png',depth:10,skill:20,random:0.00,desc:'ظپظ‚ط· ط§ظ„ظ…طھظ…ط±ط³ظˆظ† ظٹطµظ„ظˆظ† ظ‡ظ†ط§',              hint:'ظƒظ„ ط­ط±ظƒط© ظ„ظ‡ط§ ط«ظ…ظ†',         starReq:[99,18,12]},
+  {id:9,  name:'ط§ظ„ط¨ط·ظ„',        img:'Nour_The_Hero.png',depth:12,skill:22,random:0.00,desc:'ظ†ظˆط± ظپظٹ ط£ط¹ظ„ظ‰ ظ…ط³طھظˆظٹط§طھظ‡',                  hint:'ط§ط¨ط­ط« ط¹ظ† ظ†ظ‚ط§ط· ط¶ط¹ظپ ط§ظ„ط®طµظ…', starReq:[99,16,11]},
+  {id:10, name:'ط§ظ„ط¥ظ…ط¨ط±ط§ط·ظˆط±',   img:'Nour_Emperor.png',depth:15,skill:25,random:0.00,desc:'ط§ظ„ظ…ط±ط­ظ„ط© ظ‚ط¨ظ„ ط§ظ„ط£ط®ظٹط±ط© â€” ظ„ط§ ط±ط­ظ…ط©',        hint:'ط§ظ„طµط¨ط± ظ‡ظˆ ط³ظ„ط§ط­ظƒ ط§ظ„ط£ظ‚ظˆظ‰',   starReq:[99,15,10]},
+  {id:11, name:'ط§ظ„ط®ط§ظ„ط¯',       img:'Nour_The_Immortal.png',depth:20,skill:30,random:0.00,desc:'ط§ظ„طھط­ط¯ظٹ ط§ظ„ط£ط¹ط¸ظ… â€” ظ‚ظ‡ط± ظ†ظˆط±',              hint:'ط£ظ†طھ ط§ظ„ط¢ظ† طھط­ط¯ظٹ ط§ظ„ط£ط³ط·ظˆط±ط©',  starReq:[99,14,9]},
 ];
-// ══════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // CUSTOM MODAL SYSTEM (replacing alert/confirm)
-// ══════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const Modal={
   // Play appropriate sound based on icon type using Web Audio API (not mp3 files)
   _playSound(icon){
@@ -3431,7 +3397,7 @@ const Modal={
       const vol=(Cfg.data.vol/100)*0.15;
       
       // Error/warning sounds - lower pitch with quick decay
-      if(icon==='✕'||icon==='◆'||icon==='⚡'||icon==='⚠'){
+      if(icon==='âœ•'||icon==='â—†'||icon==='âڑ،'||icon==='âڑ '){
         o.type='sine';
         o.frequency.setValueAtTime(300,t);
         o.frequency.exponentialRampToValueAtTime(200,t+0.15);
@@ -3439,7 +3405,7 @@ const Modal={
         g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
       }
       // Success sounds - pleasant higher pitch
-      else if(icon==='◈'||icon==='◉'){
+      else if(icon==='â—ˆ'||icon==='â—‰'){
         o.type='sine';
         o.frequency.setValueAtTime(880,t);
         o.frequency.exponentialRampToValueAtTime(1100,t+0.1);
@@ -3447,7 +3413,7 @@ const Modal={
         g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
       }
       // Confirm sound - distinct from click (two-tone chirp)
-      else if(icon==='؟'||icon==='?'){
+      else if(icon==='طں'||icon==='?'){
         o.type='triangle';
         o.frequency.setValueAtTime(520,t);
         o.frequency.exponentialRampToValueAtTime(780,t+0.08);
@@ -3465,7 +3431,7 @@ const Modal={
       setTimeout(()=>ctx.close(),350);
     }catch(e){}
   },
-  show(message,title='تنبيه',icon='◉',onOk=null){
+  show(message,title='طھظ†ط¨ظٹظ‡',icon='â—‰',onOk=null){
     const modal=document.getElementById('custom-modal');
     const titleEl=document.getElementById('modal-title');
     const msgEl=document.getElementById('modal-message');
@@ -3477,7 +3443,7 @@ const Modal={
     msgEl.textContent=message;
     iconEl.textContent=icon;
     cancelBtn.style.display='none';
-    okBtn.textContent='موافق';
+    okBtn.textContent='ظ…ظˆط§ظپظ‚';
     okBtn.onclick=()=>{
       if(typeof SFX!=='undefined')SFX.btn();
       modal.style.display='none';
@@ -3486,7 +3452,7 @@ const Modal={
     modal.style.display='flex';
     this._playSound(icon);
   },
-  confirm(message,title='تأكيد',icon='؟',onOk=null,onCancel=null){
+  confirm(message,title='طھط£ظƒظٹط¯',icon='طں',onOk=null,onCancel=null){
     const modal=document.getElementById('custom-modal');
     const titleEl=document.getElementById('modal-title');
     const msgEl=document.getElementById('modal-message');
@@ -3498,8 +3464,8 @@ const Modal={
     msgEl.textContent=message;
     iconEl.textContent=icon;
     cancelBtn.style.display='inline-block';
-    cancelBtn.textContent='إلغاء';
-    okBtn.textContent='تأكيد';
+    cancelBtn.textContent='ط¥ظ„ط؛ط§ط،';
+    okBtn.textContent='طھط£ظƒظٹط¯';
     okBtn.onclick=()=>{
       if(typeof SFX!=='undefined')SFX.btn();
       modal.style.display='none';
@@ -3515,9 +3481,9 @@ const Modal={
   }
 };
 
-/* ══════════════════════════════════════
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
    INDEXEDDB STORAGE (Levels fallback)
-══════════════════════════════════════ */
+â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 const IDB=(()=>{
   const DB_NAME='NourChessDB',STORE='levels',KV_STORE='kv',VER=2;
   let _db=null;
@@ -3693,23 +3659,23 @@ const LVL={
       const isUnlocked=await this.unlocked(lv.id);
       const starCount=await this.stars(lv.id);
       const isDone=!!p[lv.id]?.done;
-      const secs=[['◆ مبتدئ',0],['◆◆ متوسط',4],['◆◆◆ متقدم',8],['◆◆◆◆ نخبة',10]];
+      const secs=[['â—† ظ…ط¨طھط¯ط¦',0],['â—†â—† ظ…طھظˆط³ط·',4],['â—†â—†â—† ظ…طھظ‚ط¯ظ…',8],['â—†â—†â—†â—† ظ†ط®ط¨ط©',10]];
       secs.forEach(([t,i])=>{if(lv.id===i){const s=document.createElement('div');s.className='lvl-section';s.textContent=t;grid.appendChild(s);}});
       const card=document.createElement('div');
       card.className='lc '+(!isUnlocked?'locked':isDone?'done':'open');
       const bCl=!isUnlocked?'bl':isDone?'bd2':'bo';
-      const bTx=!isUnlocked?'◆ مقفولة':isDone?'◉ مكتملة':'◈ العب الآن';
+      const bTx=!isUnlocked?'â—† ظ…ظ‚ظپظˆظ„ط©':isDone?'â—‰ ظ…ظƒطھظ…ظ„ط©':'â—ˆ ط§ظ„ط¹ط¨ ط§ظ„ط¢ظ†';
       const ibg=isDone?'rgba(74,222,128,.11)':isUnlocked?'rgba(201,168,76,.11)':'rgba(255,255,255,.04)';
-      const sh=isDone?`<div class="lc-stars">${[1,2,3].map(i=>`<span class="star${i<=starCount?' on':''}">${i<=starCount?'✦':'◇'}</span>`).join('')}</div>`:'';
+      const sh=isDone?`<div class="lc-stars">${[1,2,3].map(i=>`<span class="star${i<=starCount?' on':''}">${i<=starCount?'âœ¦':'â—‡'}</span>`).join('')}</div>`:'';
       // Use Nour stage image with fallback to emoji if image fails to load
-      const imgHtml=`<img src="./${lv.img}" style="width:44px;height:44px;object-fit:cover;border-radius:11px;" onerror="this.style.display='none';this.parentElement.textContent='♟';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';" />`;
+      const imgHtml=`<img src="./${lv.img}" style="width:44px;height:44px;object-fit:cover;border-radius:11px;" onerror="this.style.display='none';this.parentElement.textContent='â™ں';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';" />`;
       card.innerHTML=`<div class="lc-ico" style="background:${ibg};padding:0;overflow:hidden;">${imgHtml}</div>
         <div class="lc-info">
-          <div class="lc-name">المرحلة ${lv.id+1} — ${lv.name}</div>
+          <div class="lc-name">ط§ظ„ظ…ط±ط­ظ„ط© ${lv.id+1} â€” ${lv.name}</div>
           <div class="lc-desc">${lv.desc}</div>
           <span class="lc-badge ${bCl}">${bTx}</span>${sh}
         </div>
-        <div class="lc-right">${!isUnlocked?'<span style="color:var(--text3)">◆</span>':'<span style="font-size:20px;color:var(--gold2)">◈</span>'}</div>`;
+        <div class="lc-right">${!isUnlocked?'<span style="color:var(--text3)">â—†</span>':'<span style="font-size:20px;color:var(--gold2)">â—ˆ</span>'}</div>`;
       if(isUnlocked)card.onclick=()=>{SFX.btn();G.startLevel(lv.id);};
       grid.appendChild(card);
     }
@@ -3718,9 +3684,9 @@ const LVL={
   }
 };
 
-/* ══════════════════════════════════════
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
    STOCKFISH WRAPPER (Fallback to Local Engine)
-══════════════════════════════════════ */
+â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 const SF=(()=>{
   let _useLocal=true; // Force local engine due to CDN/CORS issues
   let _worker=null;
@@ -3881,17 +3847,17 @@ const SF=(()=>{
     if(!el)return;
     try{
         await init();
-        // اختبار حقيقي: اطلب أفضل حركة من موقف البداية
+        // ط§ط®طھط¨ط§ط± ط­ظ‚ظٹظ‚ظٹ: ط§ط·ظ„ط¨ ط£ظپط¶ظ„ ط­ط±ظƒط© ظ…ظ† ظ…ظˆظ‚ظپ ط§ظ„ط¨ط¯ط§ظٹط©
         const testBoard=INIT_BD.map(r=>[...r]);
         const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
         const move=await bestMove(testBoard,'w',testCas,null,4);
         if(move&&move.length>=4){
-            el.textContent='SF ◈';
+            el.textContent='SF â—ˆ';
             el.style.background='rgba(74,222,128,.12)';
             el.style.color='var(--green)';
             el.style.borderColor='rgba(74,222,128,.28)';
         }else{
-            el.textContent='Local ◈';
+            el.textContent='Local â—ˆ';
             el.style.background='rgba(201,168,76,.12)';
             el.style.color='var(--gold2)';
             el.style.borderColor='rgba(201,168,76,.28)';
@@ -3900,7 +3866,7 @@ const SF=(()=>{
         console.error('Stockfish check failed:', e);
         const el=document.getElementById('sf-status');
         if(el){
-            el.textContent='Local ◈';
+            el.textContent='Local â—ˆ';
             el.style.background='rgba(201,168,76,.12)';
             el.style.color='var(--gold2)';
             el.style.borderColor='rgba(201,168,76,.28)';
@@ -3916,9 +3882,9 @@ const SF=(()=>{
   };
 })();
 
-/* ══════════════════════════════════════
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
    CHESS ENGINE (LOCAL - FALLBACK)
-══════════════════════════════════════ */
+â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 const PV={P:100,N:320,B:330,R:500,Q:900,K:0};
 const PST={
   P:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
@@ -4161,7 +4127,7 @@ const CHAT={
       const durSec=parseInt(text)||0;
       const durStr=durSec<60?durSec+'"':Math.floor(durSec/60)+':'+String(durSec%60).padStart(2,'0');
       bubble.className='chat-msg voice '+type;
-      bubble.innerHTML=`<span class="v-play">▶</span><span class="v-bar"></span><span class="v-dur">${durStr}</span>`;
+      bubble.innerHTML=`<span class="v-play">â–¶</span><span class="v-bar"></span><span class="v-dur">${durStr}</span>`;
       if(audioData){
         bubble.dataset.audio=audioData;
         bubble.dataset.duration=durSec;
@@ -4223,37 +4189,37 @@ const CHAT={
     else if(S.mode==='bot'&&S.levelId>=0)this._sendToNour(txt);
   },
   async _sendToNour(txt){
-    const pn=Cfg.data.playerName||'اللاعب';
+    const pn=Cfg.data.playerName||'ط§ظ„ظ„ط§ط¹ط¨';
     const lv=LEVELS_DEF[S.levelId];
     // Build rich game state context
     const evalScore=E.eval(S.bd);
-    const evalText=Math.abs(evalScore)<50?'متعادل':evalScore>0?`الأبيض متقدم بـ ${(evalScore/100).toFixed(1)}`:`الأسود متقدم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`;
-    const lastMove=S.hist.length?S.hist[S.hist.length-1]:'لا شيء';
-    const capsW=S.capW.map(p=>({p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'}[E.tp(p)?.toLowerCase()]||'')).join('');
-    const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
+    const evalText=Math.abs(evalScore)<50?'ظ…طھط¹ط§ط¯ظ„':evalScore>0?`ط§ظ„ط£ط¨ظٹط¶ ظ…طھظ‚ط¯ظ… ط¨ظ€ ${(evalScore/100).toFixed(1)}`:`ط§ظ„ط£ط³ظˆط¯ ظ…طھظ‚ط¯ظ… ط¨ظ€ ${(Math.abs(evalScore)/100).toFixed(1)}`;
+    const lastMove=S.hist.length?S.hist[S.hist.length-1]:'ظ„ط§ ط´ظٹط،';
+    const capsW=S.capW.map(p=>({p:'â™ں',n:'â™‍',b:'â™‌',r:'â™œ',q:'â™›'}[E.tp(p)?.toLowerCase()]||'')).join('');
+    const capsB=S.capB.map(p=>({p:'â™™',n:'â™ک',b:'â™—',r:'â™–',q:'â™•'}[E.tp(p)?.toLowerCase()]||'')).join('');
     const isCheck=E.inChk(S.bd,S.turn);
     const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
-    const turnName=S.turn==='w'?`${pn} (الأبيض)`:'نور (الأسود)';
-    const nourLost=capsW||'لا شيء';
-    const playerLost=capsB||'لا شيء';
-    const gameState=`المرحلة: ${lv?.name||'غير معروفة'} | دور: ${turnName} | آخر حركة: ${lastMove} | قطع نور المفقودة (أكلها ${pn}): ${nourLost} | قطع ${pn} المفقودة (أكلها نور): ${playerLost} | التقييم: ${evalText} | عدد الحركات المتاحة: ${legalCount} | كش؟ ${isCheck?'نعم':'لا'}`;
+    const turnName=S.turn==='w'?`${pn} (ط§ظ„ط£ط¨ظٹط¶)`:'ظ†ظˆط± (ط§ظ„ط£ط³ظˆط¯)';
+    const nourLost=capsW||'ظ„ط§ ط´ظٹط،';
+    const playerLost=capsB||'ظ„ط§ ط´ظٹط،';
+    const gameState=`ط§ظ„ظ…ط±ط­ظ„ط©: ${lv?.name||'ط؛ظٹط± ظ…ط¹ط±ظˆظپط©'} | ط¯ظˆط±: ${turnName} | ط¢ط®ط± ط­ط±ظƒط©: ${lastMove} | ظ‚ط·ط¹ ظ†ظˆط± ط§ظ„ظ…ظپظ‚ظˆط¯ط© (ط£ظƒظ„ظ‡ط§ ${pn}): ${nourLost} | ظ‚ط·ط¹ ${pn} ط§ظ„ظ…ظپظ‚ظˆط¯ط© (ط£ظƒظ„ظ‡ط§ ظ†ظˆط±): ${playerLost} | ط§ظ„طھظ‚ظٹظٹظ…: ${evalText} | ط¹ط¯ط¯ ط§ظ„ط­ط±ظƒط§طھ ط§ظ„ظ…طھط§ط­ط©: ${legalCount} | ظƒط´طں ${isCheck?'ظ†ط¹ظ…':'ظ„ط§'}`;
 
-    const sys=`أنت "نور" داخل لعبة شطرنج.
+    const sys=`ط£ظ†طھ "ظ†ظˆط±" ط¯ط§ط®ظ„ ظ„ط¹ط¨ط© ط´ط·ط±ظ†ط¬.
 
-قواعد صارمة:
-- نور = الأسود دائماً.
-- اللاعب = الأبيض دائماً واسمه: ${pn}.
-- لا تخمّن. لا تنسب خسارة قطعة للطرف الخطأ.
-- إذا كان هناك تضارب، اتبع المعطيات النصية فقط.
-- رد بجملة أو جملتين فقط، وبأسلوب محكي بسيط.`;
+ظ‚ظˆط§ط¹ط¯ طµط§ط±ظ…ط©:
+- ظ†ظˆط± = ط§ظ„ط£ط³ظˆط¯ ط¯ط§ط¦ظ…ط§ظ‹.
+- ط§ظ„ظ„ط§ط¹ط¨ = ط§ظ„ط£ط¨ظٹط¶ ط¯ط§ط¦ظ…ط§ظ‹ ظˆط§ط³ظ…ظ‡: ${pn}.
+- ظ„ط§ طھط®ظ…ظ‘ظ†. ظ„ط§ طھظ†ط³ط¨ ط®ط³ط§ط±ط© ظ‚ط·ط¹ط© ظ„ظ„ط·ط±ظپ ط§ظ„ط®ط·ط£.
+- ط¥ط°ط§ ظƒط§ظ† ظ‡ظ†ط§ظƒ طھط¶ط§ط±ط¨طŒ ط§طھط¨ط¹ ط§ظ„ظ…ط¹ط·ظٹط§طھ ط§ظ„ظ†طµظٹط© ظپظ‚ط·.
+- ط±ط¯ ط¨ط¬ظ…ظ„ط© ط£ظˆ ط¬ظ…ظ„طھظٹظ† ظپظ‚ط·طŒ ظˆط¨ط£ط³ظ„ظˆط¨ ظ…ط­ظƒظٹ ط¨ط³ظٹط·.`;
 
-    const user=`[حالة اللعبة]
+    const user=`[ط­ط§ظ„ط© ط§ظ„ظ„ط¹ط¨ط©]
 ${gameState}
 
-[رسالة اللاعب]
+[ط±ط³ط§ظ„ط© ط§ظ„ظ„ط§ط¹ط¨]
 ${pn}: ${txt}
 
-اكتب رد نور الآن:`;
+ط§ظƒطھط¨ ط±ط¯ ظ†ظˆط± ط§ظ„ط¢ظ†:`;
     try{
       this._setNourTyping(true);
       const json=await groqChat({
@@ -4267,7 +4233,7 @@ ${pn}: ${txt}
       if(reply&&reply.length>2){
         this._addMsg(reply,'opp');
       }else{
-        this._addMsg('حاضر! أنا هنا لو احتجت أي شيء 💬','opp');
+        this._addMsg('ط­ط§ط¶ط±! ط£ظ†ط§ ظ‡ظ†ط§ ظ„ظˆ ط§ط­طھط¬طھ ط£ظٹ ط´ظٹط، ًں’¬','opp');
       }
     }catch(e){
       this._setNourTyping(false);
@@ -4275,30 +4241,30 @@ ${pn}: ${txt}
       
       // Provide contextual fallback responses based on player message
       const fallbackResponses = [
-        'أنا هنا معك! استمر في اللعب 💪',
-        'حركة ممتازة! استمر هكذا 🎯',
-        'فكر جيداً في النقلة التالية 🤔',
-        'أنت تتحسن مع كل نقلة! 📈',
-        'ركز معي، يمكننا الفوز بهذه المرحلة 🏆',
-        'حاول السيطرة على المركز ♟️',
-        'لا تستسلم! النصر قريب ✨',
-        'أنا أستمتع بالعب معك! 😊'
+        'ط£ظ†ط§ ظ‡ظ†ط§ ظ…ط¹ظƒ! ط§ط³طھظ…ط± ظپظٹ ط§ظ„ظ„ط¹ط¨ ًں’ھ',
+        'ط­ط±ظƒط© ظ…ظ…طھط§ط²ط©! ط§ط³طھظ…ط± ظ‡ظƒط°ط§ ًںژ¯',
+        'ظپظƒط± ط¬ظٹط¯ط§ظ‹ ظپظٹ ط§ظ„ظ†ظ‚ظ„ط© ط§ظ„طھط§ظ„ظٹط© ًں¤”',
+        'ط£ظ†طھ طھطھط­ط³ظ† ظ…ط¹ ظƒظ„ ظ†ظ‚ظ„ط©! ًں“ˆ',
+        'ط±ظƒط² ظ…ط¹ظٹطŒ ظٹظ…ظƒظ†ظ†ط§ ط§ظ„ظپظˆط² ط¨ظ‡ط°ظ‡ ط§ظ„ظ…ط±ط­ظ„ط© ًںڈ†',
+        'ط­ط§ظˆظ„ ط§ظ„ط³ظٹط·ط±ط© ط¹ظ„ظ‰ ط§ظ„ظ…ط±ظƒط² â™ںï¸ڈ',
+        'ظ„ط§ طھط³طھط³ظ„ظ…! ط§ظ„ظ†طµط± ظ‚ط±ظٹط¨ âœ¨',
+        'ط£ظ†ط§ ط£ط³طھظ…طھط¹ ط¨ط§ظ„ط¹ط¨ ظ…ط¹ظƒ! ًںکٹ'
       ];
       
       // Try to give relevant response based on message content
       let fallbackMsg = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
       const userMsg = txt.toLowerCase();
       
-      if (userMsg.includes('مرحبا') || userMsg.includes('اهلا')) {
-        fallbackMsg = 'أهلاً بك! مستعد للعب؟ 🎮';
-      } else if (userMsg.includes('كيف')) {
-        fallbackMsg = 'أنا بخير! شكراً لسؤالك 💚';
-      } else if (userMsg.includes('نصيحة') || userMsg.includes('مشورة')) {
-        fallbackMsg = 'حاول السيطرة على مربعات المركز 🎯';
-      } else if (userMsg.includes('فزت') || userMsg.includes('فوز')) {
-        fallbackMsg = 'مبروك! لقد لعبت بشكل رائع 🏆';
-      } else if (userMsg.includes('خسرت') || userMsg.includes('خسارة')) {
-        fallbackMsg = 'لا بأس! المهم أن تستمر في المحاولة 💪';
+      if (userMsg.includes('ظ…ط±ط­ط¨ط§') || userMsg.includes('ط§ظ‡ظ„ط§')) {
+        fallbackMsg = 'ط£ظ‡ظ„ط§ظ‹ ط¨ظƒ! ظ…ط³طھط¹ط¯ ظ„ظ„ط¹ط¨طں ًںژ®';
+      } else if (userMsg.includes('ظƒظٹظپ')) {
+        fallbackMsg = 'ط£ظ†ط§ ط¨ط®ظٹط±! ط´ظƒط±ط§ظ‹ ظ„ط³ط¤ط§ظ„ظƒ ًں’ڑ';
+      } else if (userMsg.includes('ظ†طµظٹط­ط©') || userMsg.includes('ظ…ط´ظˆط±ط©')) {
+        fallbackMsg = 'ط­ط§ظˆظ„ ط§ظ„ط³ظٹط·ط±ط© ط¹ظ„ظ‰ ظ…ط±ط¨ط¹ط§طھ ط§ظ„ظ…ط±ظƒط² ًںژ¯';
+      } else if (userMsg.includes('ظپط²طھ') || userMsg.includes('ظپظˆط²')) {
+        fallbackMsg = 'ظ…ط¨ط±ظˆظƒ! ظ„ظ‚ط¯ ظ„ط¹ط¨طھ ط¨ط´ظƒظ„ ط±ط§ط¦ط¹ ًںڈ†';
+      } else if (userMsg.includes('ط®ط³ط±طھ') || userMsg.includes('ط®ط³ط§ط±ط©')) {
+        fallbackMsg = 'ظ„ط§ ط¨ط£ط³! ط§ظ„ظ…ظ‡ظ… ط£ظ† طھط³طھظ…ط± ظپظٹ ط§ظ„ظ…ط­ط§ظˆظ„ط© ًں’ھ';
       }
       
       this._addMsg(fallbackMsg,'opp');
@@ -4315,46 +4281,46 @@ ${pn}: ${txt}
   },
   async _sendNourAutoAI(type,moveRes,isCheck,isCheckmate,cap,moveCount){
     try{
-      const pn=Cfg.data.playerName||'اللاعب';
+      const pn=Cfg.data.playerName||'ط§ظ„ظ„ط§ط¹ط¨';
       const lv=LEVELS_DEF[S.levelId];
       const evalScore=E.eval(S.bd);
-      const evalText=Math.abs(evalScore)<50?'متعادل':evalScore>0?`الأبيض متقدم بـ ${(evalScore/100).toFixed(1)}`:`الأسود متقدم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`;
-      const lastMove=S.hist.length?S.hist[S.hist.length-1]:'لا شيء';
+      const evalText=Math.abs(evalScore)<50?'ظ…طھط¹ط§ط¯ظ„':evalScore>0?`ط§ظ„ط£ط¨ظٹط¶ ظ…طھظ‚ط¯ظ… ط¨ظ€ ${(evalScore/100).toFixed(1)}`:`ط§ظ„ط£ط³ظˆط¯ ظ…طھظ‚ط¯ظ… ط¨ظ€ ${(Math.abs(evalScore)/100).toFixed(1)}`;
+      const lastMove=S.hist.length?S.hist[S.hist.length-1]:'ظ„ط§ ط´ظٹط،';
       const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
-      const capsW=S.capW.map(p=>({p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'}[E.tp(p)?.toLowerCase()]||'')).join('');
-      const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
-      const turnName=S.turn==='w'?`${pn} (الأبيض)`:'نور (الأسود)';
+      const capsW=S.capW.map(p=>({p:'â™ں',n:'â™‍',b:'â™‌',r:'â™œ',q:'â™›'}[E.tp(p)?.toLowerCase()]||'')).join('');
+      const capsB=S.capB.map(p=>({p:'â™™',n:'â™ک',b:'â™—',r:'â™–',q:'â™•'}[E.tp(p)?.toLowerCase()]||'')).join('');
+      const turnName=S.turn==='w'?`${pn} (ط§ظ„ط£ط¨ظٹط¶)`:'ظ†ظˆط± (ط§ظ„ط£ط³ظˆط¯)';
 
-      const eventText=(type==='playerMove')?`${pn} قام بحركة الآن`:(type==='nourMove')?'نور قام بحركة الآن':(type==='levelWin')?`${pn} فاز بالمرحلة`:`${pn} خسر المرحلة`;
-      const capName=cap?({P:'بيدق',N:'حصان',B:'فيل',R:'رخ',Q:'وزير',K:'ملك'}[E.tp(cap)]||'قطعة'):'';
-      const capText=cap?`تم أكل ${capName}`:'لا يوجد أكل';
-      const checkText=isCheck?'نعم':'لا';
-      const mateText=isCheckmate?'نعم':'لا';
+      const eventText=(type==='playerMove')?`${pn} ظ‚ط§ظ… ط¨ط­ط±ظƒط© ط§ظ„ط¢ظ†`:(type==='nourMove')?'ظ†ظˆط± ظ‚ط§ظ… ط¨ط­ط±ظƒط© ط§ظ„ط¢ظ†':(type==='levelWin')?`${pn} ظپط§ط² ط¨ط§ظ„ظ…ط±ط­ظ„ط©`:`${pn} ط®ط³ط± ط§ظ„ظ…ط±ط­ظ„ط©`;
+      const capName=cap?({P:'ط¨ظٹط¯ظ‚',N:'ط­طµط§ظ†',B:'ظپظٹظ„',R:'ط±ط®',Q:'ظˆط²ظٹط±',K:'ظ…ظ„ظƒ'}[E.tp(cap)]||'ظ‚ط·ط¹ط©'):'';
+      const capText=cap?`طھظ… ط£ظƒظ„ ${capName}`:'ظ„ط§ ظٹظˆط¬ط¯ ط£ظƒظ„';
+      const checkText=isCheck?'ظ†ط¹ظ…':'ظ„ط§';
+      const mateText=isCheckmate?'ظ†ط¹ظ…':'ظ„ط§';
 
-      const sys=`أنت "نور" داخل لعبة شطرنج.
+      const sys=`ط£ظ†طھ "ظ†ظˆط±" ط¯ط§ط®ظ„ ظ„ط¹ط¨ط© ط´ط·ط±ظ†ط¬.
 
-قواعد صارمة:
-- نور = الأسود دائماً.
-- اللاعب = الأبيض دائماً واسمه: ${pn}.
-- لا تكتب ردود محفوظة.
-- لا تدّعي أكل قطعة أو خسارة قطعة بدون دليل.
-- لا تقل "كش" إلا إذا المعطيات تقول: هل يوجد كش الآن؟ نعم.
-- رد قصير جداً: جملة أو جملتين.`;
+ظ‚ظˆط§ط¹ط¯ طµط§ط±ظ…ط©:
+- ظ†ظˆط± = ط§ظ„ط£ط³ظˆط¯ ط¯ط§ط¦ظ…ط§ظ‹.
+- ط§ظ„ظ„ط§ط¹ط¨ = ط§ظ„ط£ط¨ظٹط¶ ط¯ط§ط¦ظ…ط§ظ‹ ظˆط§ط³ظ…ظ‡: ${pn}.
+- ظ„ط§ طھظƒطھط¨ ط±ط¯ظˆط¯ ظ…ط­ظپظˆط¸ط©.
+- ظ„ط§ طھط¯ظ‘ط¹ظٹ ط£ظƒظ„ ظ‚ط·ط¹ط© ط£ظˆ ط®ط³ط§ط±ط© ظ‚ط·ط¹ط© ط¨ط¯ظˆظ† ط¯ظ„ظٹظ„.
+- ظ„ط§ طھظ‚ظ„ "ظƒط´" ط¥ظ„ط§ ط¥ط°ط§ ط§ظ„ظ…ط¹ط·ظٹط§طھ طھظ‚ظˆظ„: ظ‡ظ„ ظٹظˆط¬ط¯ ظƒط´ ط§ظ„ط¢ظ†طں ظ†ط¹ظ….
+- ط±ط¯ ظ‚طµظٹط± ط¬ط¯ط§ظ‹: ط¬ظ…ظ„ط© ط£ظˆ ط¬ظ…ظ„طھظٹظ†.`;
 
-      const user=`[سياق]
-المرحلة: ${lv?.name||'غير معروفة'}
-الحدث: ${eventText}
-الدور الحالي: ${turnName}
-آخر حركة: ${lastMove}
-التقييم: ${evalText}
-عدد الحركات المتاحة الآن: ${legalCount}
-هل يوجد كش الآن؟ ${checkText}
-هل يوجد كش مات؟ ${mateText}
-الأكل: ${capText}
-قطع نور المفقودة (أكلها ${pn}): ${capsW||'لا شيء'}
-قطع ${pn} المفقودة (أكلها نور): ${capsB||'لا شيء'}
+      const user=`[ط³ظٹط§ظ‚]
+ط§ظ„ظ…ط±ط­ظ„ط©: ${lv?.name||'ط؛ظٹط± ظ…ط¹ط±ظˆظپط©'}
+ط§ظ„ط­ط¯ط«: ${eventText}
+ط§ظ„ط¯ظˆط± ط§ظ„ط­ط§ظ„ظٹ: ${turnName}
+ط¢ط®ط± ط­ط±ظƒط©: ${lastMove}
+ط§ظ„طھظ‚ظٹظٹظ…: ${evalText}
+ط¹ط¯ط¯ ط§ظ„ط­ط±ظƒط§طھ ط§ظ„ظ…طھط§ط­ط© ط§ظ„ط¢ظ†: ${legalCount}
+ظ‡ظ„ ظٹظˆط¬ط¯ ظƒط´ ط§ظ„ط¢ظ†طں ${checkText}
+ظ‡ظ„ ظٹظˆط¬ط¯ ظƒط´ ظ…ط§طھطں ${mateText}
+ط§ظ„ط£ظƒظ„: ${capText}
+ظ‚ط·ط¹ ظ†ظˆط± ط§ظ„ظ…ظپظ‚ظˆط¯ط© (ط£ظƒظ„ظ‡ط§ ${pn}): ${capsW||'ظ„ط§ ط´ظٹط،'}
+ظ‚ط·ط¹ ${pn} ط§ظ„ظ…ظپظ‚ظˆط¯ط© (ط£ظƒظ„ظ‡ط§ ظ†ظˆط±): ${capsB||'ظ„ط§ ط´ظٹط،'}
 
-اكتب رسالة نور الآن:`;
+ط§ظƒطھط¨ ط±ط³ط§ظ„ط© ظ†ظˆط± ط§ظ„ط¢ظ†:`;
 
       const json=await groqChat({
         model:GROQ_MODEL,
@@ -4376,7 +4342,7 @@ ${pn}: ${txt}
     if(show){
       const m=document.createElement('div');
       m.className='chat-msg opp nour-typing';
-      m.innerHTML='<span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span> <span style="font-size:10px;color:var(--text3)">نور يكتب…</span>';
+      m.innerHTML='<span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span> <span style="font-size:10px;color:var(--text3)">ظ†ظˆط± ظٹظƒطھط¨â€¦</span>';
       el.prepend(m);
       requestAnimationFrame(()=>{el.scrollTo({top:0,behavior:'auto'});});
     }
@@ -4385,7 +4351,7 @@ ${pn}: ${txt}
   recvVoice(audioBase64,durationSec){
     this._addMsg(durationSec+'','opp',true,audioBase64);
     if(document.hidden){
-      Notifications.send('رسالة صوتية',{body:'وصلتك رسالة صوتية من الخصم'});
+      Notifications.send('ط±ط³ط§ظ„ط© طµظˆطھظٹط©',{body:'ظˆطµظ„طھظƒ ط±ط³ط§ظ„ط© طµظˆطھظٹط© ظ…ظ† ط§ظ„ط®طµظ…'});
     }
   },
   sys(text){this._addMsg(text,'sys');},
@@ -4405,7 +4371,7 @@ ${pn}: ${txt}
         if(micIcon)micIcon.style.display='none';
         if(recTimer)recTimer.style.display='';
       }catch(e){
-        Modal.show('لا يمكن الوصول للميكروفون','تنبيه','✕');
+        Modal.show('ظ„ط§ ظٹظ…ظƒظ† ط§ظ„ظˆطµظˆظ„ ظ„ظ„ظ…ظٹظƒط±ظˆظپظˆظ†','طھظ†ط¨ظٹظ‡','âœ•');
       }
     }
   },
@@ -4431,7 +4397,7 @@ ${pn}: ${txt}
     this._recorder.onstop=()=>{
       const durationSec=Math.round((Date.now()-this._recordStartTime)/1000);
       if(durationSec<1){
-        Modal.show('التسجيل قصير جداً','تنبيه','⚠');
+        Modal.show('ط§ظ„طھط³ط¬ظٹظ„ ظ‚طµظٹط± ط¬ط¯ط§ظ‹','طھظ†ط¨ظٹظ‡','âڑ ');
         return;
       }
       
@@ -4444,7 +4410,7 @@ ${pn}: ${txt}
         if(S.mode==='online')OL.sendVoice(base64Data,durationSec);
       };
       reader.onerror=()=>{
-        Modal.show('فشل في معالجة التسجيل','تنبيه','✕');
+        Modal.show('ظپط´ظ„ ظپظٹ ظ…ط¹ط§ظ„ط¬ط© ط§ظ„طھط³ط¬ظٹظ„','طھظ†ط¨ظٹظ‡','âœ•');
       };
       reader.readAsArrayBuffer(blob);
 
@@ -4511,7 +4477,7 @@ ${pn}: ${txt}
       const bar=msgEl?.querySelector('.v-bar');
       const playIcon=msgEl?.querySelector('.v-play');
       this._currentBarEl=bar;
-      if(playIcon)playIcon.textContent='⏸';
+      if(playIcon)playIcon.textContent='âڈ¸';
 
       const storedDur=parseInt(msgEl?.dataset?.duration)||0;
       const getDur=()=>{
@@ -4536,24 +4502,24 @@ ${pn}: ${txt}
       audio.onended=()=>{
         try{ URL.revokeObjectURL(url); }catch(e){}
         if(bar)bar.style.setProperty('--prog','0%');
-        if(playIcon)playIcon.textContent='▶';
+        if(playIcon)playIcon.textContent='â–¶';
         this._currentAudio=null;
         if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       };
       audio.onpause=()=>{
-        if(playIcon)playIcon.textContent='▶';
+        if(playIcon)playIcon.textContent='â–¶';
         if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       };
       audio.play().catch(()=>{
         try{ URL.revokeObjectURL(url); }catch(e){}
-        Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
+        Modal.show('ظ„ط§ ظٹظ…ظƒظ† طھط´ط؛ظٹظ„ ط§ظ„ط±ط³ط§ظ„ط© ط§ظ„طµظˆطھظٹط©','طھظ†ط¨ظٹظ‡','âœ•');
         if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
       });
     }catch(e){
-      Modal.show('خطأ في تشغيل الصوت','تنبيه','✕');
+      Modal.show('ط®ط·ط£ ظپظٹ طھط´ط؛ظٹظ„ ط§ظ„طµظˆطھ','طھظ†ط¨ظٹظ‡','âœ•');
       if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
       if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
     }
@@ -4592,7 +4558,7 @@ ${pn}: ${txt}
     if(micBtn)micBtn.style.display=(S.mode==='online')?'flex':'none';
     // Show Nour welcome in levels mode
     if(S.mode==='bot'&&S.levelId>=0){
-      this._addMsg('مرحباً! أنا نور. تحدث معي anytime 💬','opp');
+      this._addMsg('ظ…ط±ط­ط¨ط§ظ‹! ط£ظ†ط§ ظ†ظˆط±. طھط­ط¯ط« ظ…ط¹ظٹ anytime ًں’¬','opp');
     }
   },
   hide(){
@@ -4650,7 +4616,7 @@ async function groqChat({ messages, model, max_tokens, temperature }){
   }
   
   // If all servers fail, throw a more descriptive error
-  throw new Error('جميع خوادم الذكاء الاصطناعي غير متاحة حالياً');
+  throw new Error('ط¬ظ…ظٹط¹ ط®ظˆط§ط¯ظ… ط§ظ„ط°ظƒط§ط، ط§ظ„ط§طµط·ظ†ط§ط¹ظٹ ط؛ظٹط± ظ…طھط§ط­ط© ط­ط§ظ„ظٹط§ظ‹');
 }
 
 const REV=(()=>{
@@ -4678,38 +4644,38 @@ const REV=(()=>{
 
     const item=(lbl,val)=>`<div class="rv-qitem"><span class="rv-qlbl">${lbl}</span><span class="rv-qval">${val}</span></div>`;
     const grid=(c)=>`<div class="rv-qgrid">${
-      item('✦ رائعة',c.brilliant)+
-      item('★ أفضل',c.best)+
-      item('ممتازة',c.excellent)+
-      item('جيدة',c.good)+
-      item('افتتاح',c.book)+
-      item('فاتتك فرصة',c.miss)+
-      item('غير دقيق',c.inaccuracy)+
-      item('خطأ',c.mistake)+
-      item('فادح',c.blunder)
+      item('âœ¦ ط±ط§ط¦ط¹ط©',c.brilliant)+
+      item('âک… ط£ظپط¶ظ„',c.best)+
+      item('ظ…ظ…طھط§ط²ط©',c.excellent)+
+      item('ط¬ظٹط¯ط©',c.good)+
+      item('ط§ظپطھطھط§ط­',c.book)+
+      item('ظپط§طھطھظƒ ظپط±طµط©',c.miss)+
+      item('ط؛ظٹط± ط¯ظ‚ظٹظ‚',c.inaccuracy)+
+      item('ط®ط·ط£',c.mistake)+
+      item('ظپط§ط¯ط­',c.blunder)
     }</div>`;
 
     const html=` 
       <div class="rv-loading" style="padding-top:18px">
         <div class="rv-qwrap">
           <div class="rv-qcard">
-            <div class="rv-qtitle">إحصائيات سريعة</div>
-            <div class="rv-qsub">ملخص سريع للمباراة قبل المراجعة التفصيلية</div>
+            <div class="rv-qtitle">ط¥ط­طµط§ط¦ظٹط§طھ ط³ط±ظٹط¹ط©</div>
+            <div class="rv-qsub">ظ…ظ„ط®طµ ط³ط±ظٹط¹ ظ„ظ„ظ…ط¨ط§ط±ط§ط© ظ‚ط¨ظ„ ط§ظ„ظ…ط±ط§ط¬ط¹ط© ط§ظ„طھظپطµظٹظ„ظٹط©</div>
             <div class="rv-qrow">
               <div class="rv-qcol">
-                <div class="rv-qnm">♙ ${s.wName}</div>
+                <div class="rv-qnm">â™™ ${s.wName}</div>
                 <div class="rv-qacc" style="color:var(--gold2)">${s.wAcc}%</div>
                 ${grid(w)}
               </div>
               <div class="rv-qcol">
-                <div class="rv-qnm">♟ ${s.bName}</div>
+                <div class="rv-qnm">â™ں ${s.bName}</div>
                 <div class="rv-qacc" style="color:var(--text)">${s.bAcc}%</div>
                 ${grid(b)}
               </div>
             </div>
           </div>
-          <button class="rv-qbtn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.details()">▶ عرض المراجعة التفصيلية</button>
-          <div class="rv-qhint">يمكنك الضغط على أي نقلة لاحقاً ليشرحها نور.</div>
+          <button class="rv-qbtn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.details()">â–¶ ط¹ط±ط¶ ط§ظ„ظ…ط±ط§ط¬ط¹ط© ط§ظ„طھظپطµظٹظ„ظٹط©</button>
+          <div class="rv-qhint">ظٹظ…ظƒظ†ظƒ ط§ظ„ط¶ط؛ط· ط¹ظ„ظ‰ ط£ظٹ ظ†ظ‚ظ„ط© ظ„ط§ط­ظ‚ط§ظ‹ ظ„ظٹط´ط±ط­ظ‡ط§ ظ†ظˆط±.</div>
         </div>
       </div>`;
     document.getElementById('rv-main').innerHTML=html;
@@ -4869,7 +4835,7 @@ const REV=(()=>{
       if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,bestMv.promo||null);}catch(e){}
       
       moves.push({
-        move:actualMoveStr||'—',color,rating,score,
+        move:actualMoveStr||'â€”',color,rating,score,
         evalAfter:actualVal,bestVal,bestMv:bestMvStr,
         from:actualFrom,to:actualTo,
         moveNum:Math.floor(i/2)+1,
@@ -4883,14 +4849,14 @@ const REV=(()=>{
     }
     const wAcc=wCount?Math.round(wTotal/wCount):50;
     const bAcc=bCount?Math.round(bTotal/bCount):50;
-    const wName=document.getElementById('nm-w')?.textContent||'الأبيض';
-    const bName=document.getElementById('nm-b')?.textContent||'الأسود';
-    let highlight='مباراة متوازنة';
-    if(wAcc>=90&&bAcc>=90)highlight='مباراة ممتازة من الطرفين!';
-    else if(wAcc>bAcc+20)highlight=`${wName} تفوّق بوضوح`;
-    else if(bAcc>wAcc+20)highlight=`${bName} تفوّق بوضوح`;
-    else if(wBlunders+bBlunders>=4)highlight='مباراة مليئة بالأخطاء';
-    else if(wMistakes+bMistakes===0&&wBlunders+bBlunders===0)highlight='مباراة دقيقة بدون أخطاء!';
+    const wName=document.getElementById('nm-w')?.textContent||'ط§ظ„ط£ط¨ظٹط¶';
+    const bName=document.getElementById('nm-b')?.textContent||'ط§ظ„ط£ط³ظˆط¯';
+    let highlight='ظ…ط¨ط§ط±ط§ط© ظ…طھظˆط§ط²ظ†ط©';
+    if(wAcc>=90&&bAcc>=90)highlight='ظ…ط¨ط§ط±ط§ط© ظ…ظ…طھط§ط²ط© ظ…ظ† ط§ظ„ط·ط±ظپظٹظ†!';
+    else if(wAcc>bAcc+20)highlight=`${wName} طھظپظˆظ‘ظ‚ ط¨ظˆط¶ظˆط­`;
+    else if(bAcc>wAcc+20)highlight=`${bName} طھظپظˆظ‘ظ‚ ط¨ظˆط¶ظˆط­`;
+    else if(wBlunders+bBlunders>=4)highlight='ظ…ط¨ط§ط±ط§ط© ظ…ظ„ظٹط¦ط© ط¨ط§ظ„ط£ط®ط·ط§ط،';
+    else if(wMistakes+bMistakes===0&&wBlunders+bBlunders===0)highlight='ظ…ط¨ط§ط±ط§ط© ط¯ظ‚ظٹظ‚ط© ط¨ط¯ظˆظ† ط£ط®ط·ط§ط،!';
     return{
       moves,boards,evalHistory,
       summary:{wAcc,bAcc,wBlunders,bBlunders,wMistakes,bMistakes,highlight,
@@ -4960,23 +4926,23 @@ const REV=(()=>{
 
   function _updateCard(mv,idx){
     // Chess.com style ratings with English labels (as requested)
-    // Best → The optimal move according to engine
-    // Excellent → Very close to best
-    // Good → Decent move
-    // Book → Known opening move
-    // Inaccuracy → Slightly weak
-    // Mistake → Clear mistake
-    // Blunder → Catastrophic (loses material or game)
-    // Miss → Missed good opportunity
+    // Best â†’ The optimal move according to engine
+    // Excellent â†’ Very close to best
+    // Good â†’ Decent move
+    // Book â†’ Known opening move
+    // Inaccuracy â†’ Slightly weak
+    // Mistake â†’ Clear mistake
+    // Blunder â†’ Catastrophic (loses material or game)
+    // Miss â†’ Missed good opportunity
     const ratingLabels={
-      brilliant:'Brilliant! ✦',
+      brilliant:'Brilliant! âœ¦',
       best:'Best',
       excellent:'Excellent',
       good:'Good',
       book:'Book',
       inaccuracy:'Inaccuracy',
       mistake:'Mistake',
-      blunder:'Blunder ◆',
+      blunder:'Blunder â—†',
       miss:'Miss'
     };
     const badgeCls={
@@ -5000,12 +4966,12 @@ const REV=(()=>{
     card.innerHTML=`
       <div class="rv-card-badge ${bc}">${rat}</div>
       <div class="rv-card-info">
-        <div class="rv-card-num">${isW?'♙':'♟'} حركة ${mv.moveNum}${isW?' (أبيض)':' (أسود)'}</div>
+        <div class="rv-card-num">${isW?'â™™':'â™ں'} ط­ط±ظƒط© ${mv.moveNum}${isW?' (ط£ط¨ظٹط¶)':' (ط£ط³ظˆط¯)'}</div>
         <div class="rv-card-notation">${mv.move}</div>
       </div>
       <div style="text-align:center;flex-shrink:0">
         <div style="font-size:18px;font-weight:700;color:${mv.evalAfter>=0?'var(--gold2)':'var(--text2)'}">${evalSign}${pawns}</div>
-        <div style="font-size:10px;color:var(--text3)">تقييم</div>
+        <div style="font-size:10px;color:var(--text3)">طھظ‚ظٹظٹظ…</div>
       </div>`;
   }
 
@@ -5054,7 +5020,7 @@ const REV=(()=>{
   // Try to use Nour's image, fallback to SVG
   const NOUR_IMG=`<img src="./nour.png" class="nour-icon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
   <span style="display:none;">${NOUR_SVG}</span>`;
-  const NOUR_LBL=`<div class="rv-coach-lbl">${NOUR_IMG}<span class="rv-coach-name">نور المدرب</span></div>`;
+  const NOUR_LBL=`<div class="rv-coach-lbl">${NOUR_IMG}<span class="rv-coach-name">ظ†ظˆط± ط§ظ„ظ…ط¯ط±ط¨</span></div>`;
 
   function _typeText(el, text, speed=22){
     el.textContent='';
@@ -5064,7 +5030,7 @@ const REV=(()=>{
       el.textContent+=text[i];
       i++;
       const ch=text[i-1];
-      const delay=(ch==='.'||ch==='،'||ch==='؟'||ch==='!')?speed*4:
+      const delay=(ch==='.'||ch==='طŒ'||ch==='طں'||ch==='!')?speed*4:
                   (ch===' ')?speed*0.6:speed;
       setTimeout(typeNext,delay);
     }
@@ -5079,29 +5045,29 @@ const REV=(()=>{
       _typeText(document.getElementById('rv-coach-txt'), _coachCache[idx]);
       return;
     }
-    coachEl.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-right:6px;color:var(--text2)">يُحلِّل…</span></div>`;
+    coachEl.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-right:6px;color:var(--text2)">ظٹظڈط­ظ„ظگظ‘ظ„â€¦</span></div>`;
     const ratingNames={
-      brilliant:'حركة رائعة! ✦',
-      best:'أفضل حركة',
-      excellent:'حركة ممتازة',
-      good:'حركة جيدة',
-      book:'افتتاح معروف',
-      inaccuracy:'غير دقيق',
-      mistake:'خطأ',
-      blunder:'خطأ فادح',
-      miss:'فاتتك فرصة'
+      brilliant:'ط­ط±ظƒط© ط±ط§ط¦ط¹ط©! âœ¦',
+      best:'ط£ظپط¶ظ„ ط­ط±ظƒط©',
+      excellent:'ط­ط±ظƒط© ظ…ظ…طھط§ط²ط©',
+      good:'ط­ط±ظƒط© ط¬ظٹط¯ط©',
+      book:'ط§ظپطھطھط§ط­ ظ…ط¹ط±ظˆظپ',
+      inaccuracy:'ط؛ظٹط± ط¯ظ‚ظٹظ‚',
+      mistake:'ط®ط·ط£',
+      blunder:'ط®ط·ط£ ظپط§ط¯ط­',
+      miss:'ظپط§طھطھظƒ ظپط±طµط©'
     };
     const evalPawns=(mv.evalAfter/100).toFixed(1);
-    const prompt=`أنت "نور المدرب". علّق فقط على الحركة نفسها وما غيّرته على الرقعة، بدون حشو أو تكرار أو كلام مبهم. اكتب جملة واحدة أو جملتين بالعربية الفصحى السهلة.
+    const prompt=`ط£ظ†طھ "ظ†ظˆط± ط§ظ„ظ…ط¯ط±ط¨". ط¹ظ„ظ‘ظ‚ ظپظ‚ط· ط¹ظ„ظ‰ ط§ظ„ط­ط±ظƒط© ظ†ظپط³ظ‡ط§ ظˆظ…ط§ ط؛ظٹظ‘ط±طھظ‡ ط¹ظ„ظ‰ ط§ظ„ط±ظ‚ط¹ط©طŒ ط¨ط¯ظˆظ† ط­ط´ظˆ ط£ظˆ طھظƒط±ط§ط± ط£ظˆ ظƒظ„ط§ظ… ظ…ط¨ظ‡ظ…. ط§ظƒطھط¨ ط¬ظ…ظ„ط© ظˆط§ط­ط¯ط© ط£ظˆ ط¬ظ…ظ„طھظٹظ† ط¨ط§ظ„ط¹ط±ط¨ظٹط© ط§ظ„ظپطµط­ظ‰ ط§ظ„ط³ظ‡ظ„ط©.
 
-الحركة: ${mv.move}
-اللاعب: ${mv.color==='w'?'الأبيض':'الأسود'}
-رقم الحركة: ${mv.moveNum}
-التصنيف: ${ratingNames[mv.rating]}
-قيمة الموقف بعدها: ${evalPawns} بيدق
-${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv}`:''}
+ط§ظ„ط­ط±ظƒط©: ${mv.move}
+ط§ظ„ظ„ط§ط¹ط¨: ${mv.color==='w'?'ط§ظ„ط£ط¨ظٹط¶':'ط§ظ„ط£ط³ظˆط¯'}
+ط±ظ‚ظ… ط§ظ„ط­ط±ظƒط©: ${mv.moveNum}
+ط§ظ„طھطµظ†ظٹظپ: ${ratingNames[mv.rating]}
+ظ‚ظٹظ…ط© ط§ظ„ظ…ظˆظ‚ظپ ط¨ط¹ط¯ظ‡ط§: ${evalPawns} ط¨ظٹط¯ظ‚
+${mv.bestMv&&mv.rating!=='best'?`ط§ظ„ط­ط±ظƒط© ط§ظ„ظ…ط«ظ„ظ‰ ظƒط§ظ†طھ: ${mv.bestMv}`:''}
 
-اشرح سبب هذا التصنيف وما كان يمكن تحسينه باختصار شديد.`;
+ط§ط´ط±ط­ ط³ط¨ط¨ ظ‡ط°ط§ ط§ظ„طھطµظ†ظٹظپ ظˆظ…ط§ ظƒط§ظ† ظٹظ…ظƒظ† طھط­ط³ظٹظ†ظ‡ ط¨ط§ط®طھطµط§ط± ط´ط¯ظٹط¯.`;
     try{
       const json=await groqChat({
         model:GROQ_MODEL,
@@ -5123,7 +5089,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
     }catch(e){
       console.error('[Nour Coach] Error:',e);
       const coachEl2=document.getElementById('rv-coach-txt');
-      if(coachEl2)coachEl2.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-txt" id="rv-coach-txt" style="color:var(--text3)">تعذّر تحميل التحليل. تأكد من اتصال الإنترنت.</div>`;
+      if(coachEl2)coachEl2.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-txt" id="rv-coach-txt" style="color:var(--text3)">طھط¹ط°ظ‘ط± طھط­ظ…ظٹظ„ ط§ظ„طھط­ظ„ظٹظ„. طھط£ظƒط¯ ظ…ظ† ط§طھطµط§ظ„ ط§ظ„ط¥ظ†طھط±ظ†طھ.</div>`;
     }
   }
 
@@ -5145,24 +5111,24 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
       const num=Math.floor(i/2)+1;
       const isW=m.color==='w';
       const cls=badgeCls[m.rating]||'';
-      return `<div class="rv-chip ${cls}" onclick="REV.goTo(${i})" id="rv-chip-${i}">${isW?num+'.':'…'}${m.move}</div>`;
+      return `<div class="rv-chip ${cls}" onclick="REV.goTo(${i})" id="rv-chip-${i}">${isW?num+'.':'â€¦'}${m.move}</div>`;
     }).join('');
 
     const html=`
       <div class="rv-sumbar">
         <div class="rv-sum-col">
-          <div class="rv-sum-lbl">♙ ${s.wName}</div>
+          <div class="rv-sum-lbl">â™™ ${s.wName}</div>
           <div class="rv-sum-val" style="color:var(--gold2)">${s.wAcc}%</div>
-          <div class="rv-sum-sub">${s.wBlunders} فادح · ${s.wMistakes} خطأ</div>
+          <div class="rv-sum-sub">${s.wBlunders} ظپط§ط¯ط­ آ· ${s.wMistakes} ط®ط·ط£</div>
         </div>
         <div class="rv-sum-col" style="border-left:1px solid rgba(255,255,255,.07);border-right:1px solid rgba(255,255,255,.07)">
-          <div class="rv-sum-lbl">خلاصة</div>
+          <div class="rv-sum-lbl">ط®ظ„ط§طµط©</div>
           <div style="font-size:11px;color:var(--text2);line-height:1.5">${s.highlight}</div>
         </div>
         <div class="rv-sum-col">
-          <div class="rv-sum-lbl">♟ ${s.bName}</div>
+          <div class="rv-sum-lbl">â™ں ${s.bName}</div>
           <div class="rv-sum-val" style="color:var(--text)">${s.bAcc}%</div>
-          <div class="rv-sum-sub">${s.bBlunders} فادح · ${s.bMistakes} خطأ</div>
+          <div class="rv-sum-sub">${s.bBlunders} ظپط§ط¯ط­ آ· ${s.bMistakes} ط®ط·ط£</div>
         </div>
       </div>
       <div class="rv-board-row">
@@ -5179,16 +5145,16 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
         <div class="rv-coach-lbl">
           <img src="./nour.png" class="nour-icon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
           <svg class="nour-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;"><circle cx="12" cy="8" r="4" stroke="#c9a84c" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><path d="M16 3l1.5-1.5M18 6h2M16.5 9l1.5 1" stroke="#e8d080" stroke-width="1.2" stroke-linecap="round"/><path d="M9 5.5c-.5.3-1 .8-1.2 1.4" stroke="#e8d080" stroke-width="1" stroke-linecap="round"/><circle cx="18.5" cy="5.5" r="1" fill="#e8d080"/></svg>
-          <span class="rv-coach-name">نور المدرب</span>
+          <span class="rv-coach-name">ظ†ظˆط± ط§ظ„ظ…ط¯ط±ط¨</span>
         </div>
-        <div class="rv-coach-txt" id="rv-coach-txt">اختر حركة لتحليلها</div>
+        <div class="rv-coach-txt" id="rv-coach-txt">ط§ط®طھط± ط­ط±ظƒط© ظ„طھط­ظ„ظٹظ„ظ‡ط§</div>
       </div>
       <div class="rv-nav">
-        <button class="rv-nbtn" id="rv-first" onclick="REV.goTo(0)" title="أول حركة">⏮</button>
-        <button class="rv-nbtn" id="rv-prev" onclick="REV.prev()" title="السابقة">◀</button>
+        <button class="rv-nbtn" id="rv-first" onclick="REV.goTo(0)" title="ط£ظˆظ„ ط­ط±ظƒط©">âڈ®</button>
+        <button class="rv-nbtn" id="rv-prev" onclick="REV.prev()" title="ط§ظ„ط³ط§ط¨ظ‚ط©">â—€</button>
         <div class="rv-strip" id="rv-strip">${chips}</div>
-        <button class="rv-nbtn" id="rv-next" onclick="REV.next()" title="التالية">▶</button>
-        <button class="rv-nbtn" id="rv-last" onclick="REV.goTo(${d.moves.length-1})" title="آخر حركة">⏭</button>
+        <button class="rv-nbtn" id="rv-next" onclick="REV.next()" title="ط§ظ„طھط§ظ„ظٹط©">â–¶</button>
+        <button class="rv-nbtn" id="rv-last" onclick="REV.goTo(${d.moves.length-1})" title="ط¢ط®ط± ط­ط±ظƒط©">âڈ­</button>
       </div>`;
 
     document.getElementById('rv-main').innerHTML=html;
@@ -5197,16 +5163,16 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
 
   return{
     async open(){
-      if(S.hist.length<4){Modal.show('المباراة قصيرة جداً للتقييم - يجب 4 حركات على الأقل','تنبيه','✕');return;}
+      if(S.hist.length<4){Modal.show('ط§ظ„ظ…ط¨ط§ط±ط§ط© ظ‚طµظٹط±ط© ط¬ط¯ط§ظ‹ ظ„ظ„طھظ‚ظٹظٹظ… - ظٹط¬ط¨ 4 ط­ط±ظƒط§طھ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„','طھظ†ط¨ظٹظ‡','âœ•');return;}
       _coachCache={};
       document.getElementById('review-ov').classList.add('open');
-      document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-loadcard"><div class="rv-loadtitle">تحليل المباراة</div><div class="rv-loadsub">نور يراجع النقلات ويحسب أفضل البدائل باستخدام Stockfish…</div><div class="rv-loadrow"><div class="rv-spinner"></div><div class="rv-loaddots"><span class="rv-loaddot"></span><span class="rv-loaddot"></span><span class="rv-loaddot"></span></div></div><div class="rv-loadtip">نصيحة: حتى النقلات الهادئة قد تكون الأفضل إذا حسّنت وضع قطعك.</div></div></div>`;
+      document.getElementById('rv-main').innerHTML=`<div class="rv-loading"><div class="rv-loadcard"><div class="rv-loadtitle">طھط­ظ„ظٹظ„ ط§ظ„ظ…ط¨ط§ط±ط§ط©</div><div class="rv-loadsub">ظ†ظˆط± ظٹط±ط§ط¬ط¹ ط§ظ„ظ†ظ‚ظ„ط§طھ ظˆظٹط­ط³ط¨ ط£ظپط¶ظ„ ط§ظ„ط¨ط¯ط§ط¦ظ„ ط¨ط§ط³طھط®ط¯ط§ظ… Stockfishâ€¦</div><div class="rv-loadrow"><div class="rv-spinner"></div><div class="rv-loaddots"><span class="rv-loaddot"></span><span class="rv-loaddot"></span><span class="rv-loaddot"></span></div></div><div class="rv-loadtip">ظ†طµظٹط­ط©: ط­طھظ‰ ط§ظ„ظ†ظ‚ظ„ط§طھ ط§ظ„ظ‡ط§ط¯ط¦ط© ظ‚ط¯ طھظƒظˆظ† ط§ظ„ط£ظپط¶ظ„ ط¥ط°ط§ ط­ط³ظ‘ظ†طھ ظˆط¶ط¹ ظ‚ط·ط¹ظƒ.</div></div></div>`;
       requestAnimationFrame(async ()=>{
         try{
           _data=await _analyze();
           console.log('Review analysis complete, moves:', _data?.moves?.length);
           if(!_data||!_data.moves.length){
-            document.getElementById('rv-main').innerHTML=`<div style="color:var(--text2);padding:30px;text-align:center">لا توجد بيانات كافية</div>`;
+            document.getElementById('rv-main').innerHTML=`<div style="color:var(--text2);padding:30px;text-align:center">ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظƒط§ظپظٹط©</div>`;
             return;
           }
           _idx=0;
@@ -5214,7 +5180,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
           _buildQuickStats();
         }catch(e){
           console.error('Review analysis error:', e);
-          document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذّر التحليل: ${e.message || 'Unknown error'}</div>`;
+          document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">طھط¹ط°ظ‘ط± ط§ظ„طھط­ظ„ظٹظ„: ${e.message || 'Unknown error'}</div>`;
         }
       });
     },
@@ -5375,21 +5341,21 @@ const R={
           if(piece)piece.remove();
           const p=document.createElement('div');p.className=pieceCls;p.dataset.pc=pieceCode;
           if(wantStar){
-            const star=document.createElement('div');star.className='ast-star';star.textContent='★';p.appendChild(star);
+            const star=document.createElement('div');star.className='ast-star';star.textContent='âک…';p.appendChild(star);
             this._prevStarEl=star;
           }
           sq.appendChild(p);
         }else{
           if(piece.className!==pieceCls)piece.className=pieceCls;
           if(wantStar){
-            const s=document.createElement('div');s.className='ast-star';s.textContent='★';piece.appendChild(s);
+            const s=document.createElement('div');s.className='ast-star';s.textContent='âک…';piece.appendChild(s);
             this._prevStarEl=s;
           }
         }
       }else{
         if(piece)piece.remove();
         if(wantStar){
-          const s=document.createElement('div');s.className='ast-star';s.textContent='★';sq.appendChild(s);
+          const s=document.createElement('div');s.className='ast-star';s.textContent='âک…';sq.appendChild(s);
           this._prevStarEl=s;
         }
       }
@@ -5402,7 +5368,7 @@ const R={
     const r=S.astMove.to[0],c=S.astMove.to[1];
     const sq=document.querySelector(`#board .sq[data-r="${r}"][data-c="${c}"]`);
     if(!sq)return;
-    const s=document.createElement('div');s.className='ast-star';s.textContent='★';
+    const s=document.createElement('div');s.className='ast-star';s.textContent='âک…';
     const piece=sq.querySelector('.piece');
     (piece||sq).appendChild(s);
     this._prevStarEl=s;
@@ -5420,8 +5386,8 @@ const R={
   status(){
     const el=document.getElementById('sbar');el.className='sbar';
     const nm=S.turn==='w'?document.getElementById('nm-w').textContent:document.getElementById('nm-b').textContent;
-    if(E.inChk(S.bd,S.turn)){el.classList.add('check');el.textContent=`⚠ ${nm} في الكش!`;}
-    else el.textContent=`دور ${nm}`;
+    if(E.inChk(S.bd,S.turn)){el.classList.add('check');el.textContent=`âڑ  ${nm} ظپظٹ ط§ظ„ظƒط´!`;}
+    else el.textContent=`ط¯ظˆط± ${nm}`;
   },
   async players(){
     const w=S.turn==='w';
@@ -5479,8 +5445,8 @@ const R={
     document.getElementById('scr-b').classList.add('show');
     const mat=E.material(S.bd),abs=Math.abs(mat),pts=(abs/100).toFixed(1);
     if(abs<50){
-      document.getElementById('sc-w-val').innerHTML='<span>متعادل</span>';
-      document.getElementById('sc-b-val').innerHTML='<span>متعادل</span>';}
+      document.getElementById('sc-w-val').innerHTML='<span>ظ…طھط¹ط§ط¯ظ„</span>';
+      document.getElementById('sc-b-val').innerHTML='<span>ظ…طھط¹ط§ط¯ظ„</span>';}
     else if(mat>0){
       document.getElementById('sc-w-val').innerHTML=`<span class="sc-lead">&#43;${pts} &#9650;</span>`;
       document.getElementById('sc-b-val').innerHTML=`<span class="sc-behind">&#8722;${pts} &#9660;</span>`;}
@@ -5501,15 +5467,15 @@ const R={
     if(S.mode==='online'){
       const myEl=S.myCol==='b'?bEl:wEl;
       const opEl=S.myCol==='b'?wEl:bEl;
-      if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
-      if(S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
+      if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'â—Œ ظٹط­ط³ط¨...':'â—ˆ ط§ظ„ظ…ط³ط§ط¹ط¯ ظ†ط´ط·';}
+      if(S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='â—† ط§ظ„ط®طµظ… ظٹط³طھط®ط¯ظ… ط§ظ„ظ…ط³ط§ط¹ط¯';}
     }else if(S.mode==='bot'){
-      if(S.assistOn){wEl.className='pb-ast on';wEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
+      if(S.assistOn){wEl.className='pb-ast on';wEl.textContent=S.astBusy?'â—Œ ظٹط­ط³ط¨...':'â—ˆ ط§ظ„ظ…ط³ط§ط¹ط¯ ظ†ط´ط·';}
     }else if(S.mode==='local'){
       if(wBtn){wBtn.style.display='flex';wBtn.classList.toggle('on',S.assistW);}
       if(bBtn){bBtn.style.display='flex';bBtn.classList.toggle('on',S.assistB);}
-      if(S.assistW){wEl.className='pb-ast on';wEl.textContent=S.turn==='w'&&S.astBusy?'◌ يحسب...':'◈ نشط';}
-      if(S.assistB){bEl.className='pb-ast on';bEl.textContent=S.turn==='b'&&S.astBusy?'◌ يحسب...':'◈ نشط';}
+      if(S.assistW){wEl.className='pb-ast on';wEl.textContent=S.turn==='w'&&S.astBusy?'â—Œ ظٹط­ط³ط¨...':'â—ˆ ظ†ط´ط·';}
+      if(S.assistB){bEl.className='pb-ast on';bEl.textContent=S.turn==='b'&&S.astBusy?'â—Œ ظٹط­ط³ط¨...':'â—ˆ ظ†ط´ط·';}
     }
   },
   toolbar(){
@@ -5538,12 +5504,12 @@ const R={
       if(S.mode==='local'){ba.style.display='none';}
       else{
         ba.style.display='';
-        if(S.assistOn){ba.classList.add('ast-on');document.getElementById('ast-lbl').textContent=S.astBusy?'المساعد: يحسب...':'المساعد: تشغيل';dot.style.display='inline-block';}
-        else{ba.classList.remove('ast-on');document.getElementById('ast-lbl').textContent='المساعد: إيقاف';dot.style.display='none';}
+        if(S.assistOn){ba.classList.add('ast-on');document.getElementById('ast-lbl').textContent=S.astBusy?'ط§ظ„ظ…ط³ط§ط¹ط¯: ظٹط­ط³ط¨...':'ط§ظ„ظ…ط³ط§ط¹ط¯: طھط´ط؛ظٹظ„';dot.style.display='inline-block';}
+        else{ba.classList.remove('ast-on');document.getElementById('ast-lbl').textContent='ط§ظ„ظ…ط³ط§ط¹ط¯: ط¥ظٹظ‚ط§ظپ';dot.style.display='none';}
       }
     }
-    if(S.hintsOn){bh.classList.add('hint-on');document.getElementById('hint-lbl').textContent='النقاط: تشغيل';}
-    else{bh.classList.remove('hint-on');document.getElementById('hint-lbl').textContent='النقاط: إيقاف';}
+    if(S.hintsOn){bh.classList.add('hint-on');document.getElementById('hint-lbl').textContent='ط§ظ„ظ†ظ‚ط§ط·: طھط´ط؛ظٹظ„';}
+    else{bh.classList.remove('hint-on');document.getElementById('hint-lbl').textContent='ط§ظ„ظ†ظ‚ط§ط·: ط¥ظٹظ‚ط§ظپ';}
   },
   hist(){
     const el=document.getElementById('mvhist');el.innerHTML='';
@@ -5595,9 +5561,9 @@ const G={
   },
   async startLocalGame(){
     this._reset('local',0);
-    document.getElementById('nm-w').textContent='اللاعب الأبيض';
-    document.getElementById('nm-b').textContent='اللاعب الأسود';
-    document.getElementById('gmode').textContent='⚔ لاعبَان';
+    document.getElementById('nm-w').textContent='ط§ظ„ظ„ط§ط¹ط¨ ط§ظ„ط£ط¨ظٹط¶';
+    document.getElementById('nm-b').textContent='ط§ظ„ظ„ط§ط¹ط¨ ط§ظ„ط£ط³ظˆط¯';
+    document.getElementById('gmode').textContent='âڑ” ظ„ط§ط¹ط¨ظژط§ظ†';
     fixBars('both');
     Nav.game();
     await R.all();
@@ -5607,10 +5573,10 @@ const G={
     const lv=LEVELS_DEF[id];
     this._reset('bot',lv.depth);
     S.levelId=id;S.myCol='w';
-    const pn=Cfg.data.playerName||'أنت';
+    const pn=Cfg.data.playerName||'ط£ظ†طھ';
     document.getElementById('nm-w').textContent=pn;
-    document.getElementById('nm-b').textContent=`نور — ${lv.name}`;
-    document.getElementById('gmode').textContent=`◈ المرحلة ${id+1}: ${lv.name}`;
+    document.getElementById('nm-b').textContent=`ظ†ظˆط± â€” ${lv.name}`;
+    document.getElementById('gmode').textContent=`â—ˆ ط§ظ„ظ…ط±ط­ظ„ط© ${id+1}: ${lv.name}`;
     fixBars('w');
     Nav.game();await R.all();updatePlayerImages();
     CHAT.show();
@@ -5757,7 +5723,7 @@ const G={
       if(insufficient){
         setTimeout(()=>{
           try{SFX.draw();}catch(e){}
-          this.showOver('◎','تعادل!','تعادل لعدم كفاية القطع','#5eead4');
+          this.showOver('â—ژ','طھط¹ط§ط¯ظ„!','طھط¹ط§ط¯ظ„ ظ„ط¹ط¯ظ… ظƒظپط§ظٹط© ط§ظ„ظ‚ط·ط¹','#5eead4');
           document.getElementById('go-review').style.display='inline-flex';
         },350);
         return;
@@ -5773,14 +5739,14 @@ const G={
             this._showLevelWin(stars);
           }else{
             if(S.levelId>=0&&w==='b'){CHAT.nourAutoMsg('levelLoss');}
-            this.showOver('✦','كش مات!',`${nm} يفوز!`,'#e8d080');
+            this.showOver('âœ¦','ظƒط´ ظ…ط§طھ!',`${nm} ظٹظپظˆط²!`,'#e8d080');
             document.getElementById('go-review').style.display='inline-flex';
           }
         },350);
       }else{
         setTimeout(()=>{
           try{SFX.draw();}catch(e){}
-          this.showOver('◎','تعادل!',isThreefold?'تعادل بالتكرار ثلاث مرات':'جمود — لا توجد حركات متاحة','#5eead4');
+          this.showOver('â—ژ','طھط¹ط§ط¯ظ„!',isThreefold?'طھط¹ط§ط¯ظ„ ط¨ط§ظ„طھظƒط±ط§ط± ط«ظ„ط§ط« ظ…ط±ط§طھ':'ط¬ظ…ظˆط¯ â€” ظ„ط§ طھظˆط¬ط¯ ط­ط±ظƒط§طھ ظ…طھط§ط­ط©','#5eead4');
           document.getElementById('go-review').style.display='inline-flex';
         },350);
       }
@@ -5870,15 +5836,15 @@ const G={
   _showLevelWin(stars){
     if(S.mode==='bot'&&S.levelId>=0)CHAT.nourAutoMsg('levelWin');
     const lv=LEVELS_DEF[S.levelId];
-    const e=document.getElementById('go-em');e.textContent='✦';
+    const e=document.getElementById('go-em');e.textContent='âœ¦';
     e.style.color='var(--gold2)';e.style.textShadow='0 0 28px rgba(201,168,76,.6)';
-    document.getElementById('go-ttl').textContent=`المرحلة ${S.levelId+1} مكتملة!`;
-    const hint=S.levelId+1<LEVELS_DEF.length?`تلميح: ${LEVELS_DEF[S.levelId+1]?.hint||''}`:' ';
-    document.getElementById('go-msg').textContent=`${lv.name} — فزت في ${S.moveCount} حركة\n${hint}`;
+    document.getElementById('go-ttl').textContent=`ط§ظ„ظ…ط±ط­ظ„ط© ${S.levelId+1} ظ…ظƒطھظ…ظ„ط©!`;
+    const hint=S.levelId+1<LEVELS_DEF.length?`طھظ„ظ…ظٹط­: ${LEVELS_DEF[S.levelId+1]?.hint||''}`:' ';
+    document.getElementById('go-msg').textContent=`${lv.name} â€” ظپط²طھ ظپظٹ ${S.moveCount} ط­ط±ظƒط©\n${hint}`;
     const ss=document.getElementById('go-stars');ss.style.display='flex';
     [1,2,3].forEach(i=>{
       const s=document.getElementById('gs'+i);s.className='go-star';
-      setTimeout(()=>{if(i<=stars){s.classList.add('on');s.textContent='✦';}else s.textContent='◇';},i*200);});
+      setTimeout(()=>{if(i<=stars){s.classList.add('on');s.textContent='âœ¦';}else s.textContent='â—‡';},i*200);});
     document.getElementById('go-next').style.display=S.levelId+1<LEVELS_DEF.length?'inline-flex':'none';
     document.getElementById('go-review').style.display='inline-flex';
     document.getElementById('go-ov').classList.add('open');
@@ -5893,9 +5859,9 @@ const G={
     this._quickPostGame();
     // Play appropriate sound based on outcome
     try{
-      if( ttl.includes('فوز') || ttl.includes('مكتملة') || col==='#e8d080' ){
+      if( ttl.includes('ظپظˆط²') || ttl.includes('ظ…ظƒطھظ…ظ„ط©') || col==='#e8d080' ){
         SFX.win();
-      }else if( ttl.includes('خسرت') || ttl.includes('انسحاب') || col==='#f87171' ){
+      }else if( ttl.includes('ط®ط³ط±طھ') || ttl.includes('ط§ظ†ط³ط­ط§ط¨') || col==='#f87171' ){
         SFX.illegal();
       }else{
         SFX.draw();
@@ -6020,14 +5986,14 @@ const G={
 
       const item=(lbl,val)=>`<div class="go-qit"><span class="go-ql">${lbl}</span><span class="go-qv">${val}</span></div>`;
       qGrid.innerHTML=
-        item('✦ رائعة',counts.brilliant)+
-        item('★ أفضل',counts.best)+
-        item('ممتازة',counts.excellent)+
-        item('جيدة',counts.good)+
-        item('افتتاح',counts.book)+
-        item('غير دقيق',counts.inaccuracy)+
-        item('خطأ',counts.mistake)+
-        item('فادح',counts.blunder);
+        item('âœ¦ ط±ط§ط¦ط¹ط©',counts.brilliant)+
+        item('âک… ط£ظپط¶ظ„',counts.best)+
+        item('ظ…ظ…طھط§ط²ط©',counts.excellent)+
+        item('ط¬ظٹط¯ط©',counts.good)+
+        item('ط§ظپطھطھط§ط­',counts.book)+
+        item('ط؛ظٹط± ط¯ظ‚ظٹظ‚',counts.inaccuracy)+
+        item('ط®ط·ط£',counts.mistake)+
+        item('ظپط§ط¯ط­',counts.blunder);
 
       qLoad.style.display='none';
 
@@ -6035,10 +6001,10 @@ const G={
       try{
         const resultTitle=(document.getElementById('go-ttl')?.textContent||'');
         const prompt=
-          `أنت مدرب شطرنج عربي اسمه نور. اكتب تعليقاً قصيراً (سطرين فقط) للاعب بعد نهاية المباراة. `+
-          `هذه نتائج نقلات اللاعب: أفضل=${counts.best}, ممتازة=${counts.excellent}, جيدة=${counts.good}, غير دقيقة=${counts.inaccuracy}, أخطاء=${counts.mistake}, فادحة=${counts.blunder}, افتتاح=${counts.book}. `+
-          `عنوان النتيجة: ${resultTitle}. `+
-          `أعطِ نصيحة واحدة عملية للنقلة القادمة دون ذكر أرقام كثيرة.`;
+          `ط£ظ†طھ ظ…ط¯ط±ط¨ ط´ط·ط±ظ†ط¬ ط¹ط±ط¨ظٹ ط§ط³ظ…ظ‡ ظ†ظˆط±. ط§ظƒطھط¨ طھط¹ظ„ظٹظ‚ط§ظ‹ ظ‚طµظٹط±ط§ظ‹ (ط³ط·ط±ظٹظ† ظپظ‚ط·) ظ„ظ„ط§ط¹ط¨ ط¨ط¹ط¯ ظ†ظ‡ط§ظٹط© ط§ظ„ظ…ط¨ط§ط±ط§ط©. `+
+          `ظ‡ط°ظ‡ ظ†طھط§ط¦ط¬ ظ†ظ‚ظ„ط§طھ ط§ظ„ظ„ط§ط¹ط¨: ط£ظپط¶ظ„=${counts.best}, ظ…ظ…طھط§ط²ط©=${counts.excellent}, ط¬ظٹط¯ط©=${counts.good}, ط؛ظٹط± ط¯ظ‚ظٹظ‚ط©=${counts.inaccuracy}, ط£ط®ط·ط§ط،=${counts.mistake}, ظپط§ط¯ط­ط©=${counts.blunder}, ط§ظپطھطھط§ط­=${counts.book}. `+
+          `ط¹ظ†ظˆط§ظ† ط§ظ„ظ†طھظٹط¬ط©: ${resultTitle}. `+
+          `ط£ط¹ط·ظگ ظ†طµظٹط­ط© ظˆط§ط­ط¯ط© ط¹ظ…ظ„ظٹط© ظ„ظ„ظ†ظ‚ظ„ط© ط§ظ„ظ‚ط§ط¯ظ…ط© ط¯ظˆظ† ط°ظƒط± ط£ط±ظ‚ط§ظ… ظƒط«ظٹط±ط©.`;
         const json=await groqChat({
           model:GROQ_MODEL,
           messages:[{role:'user',content:prompt}],
@@ -6063,7 +6029,7 @@ const G={
     row.innerHTML='';
     tps.forEach(tp=>{
       const b=document.createElement('div');b.className='pp '+cl+tp;
-      b.title={Q:'وزير',R:'رخ',B:'فيل',N:'حصان'}[tp];
+      b.title={Q:'ظˆط²ظٹط±',R:'ط±ط®',B:'ظپظٹظ„',N:'ط­طµط§ظ†'}[tp];
       b.onclick=()=>{SFX.btn();ov.classList.remove('open');
         const{fr,to}=S.pending;S.pending=null;this.finish(fr,to,tp);};
       row.appendChild(b);});
@@ -6085,7 +6051,7 @@ const G={
     if(!mustConfirm)SFX.btn();
     S.busy=false;AST.clear();
     if(mustConfirm){
-      Modal.confirm('تريد الخروج من اللعبة؟','تأكيد الخروج','؟',
+      Modal.confirm('طھط±ظٹط¯ ط§ظ„ط®ط±ظˆط¬ ظ…ظ† ط§ظ„ظ„ط¹ط¨ط©طں','طھط£ظƒظٹط¯ ط§ظ„ط®ط±ظˆط¬','طں',
         ()=>{this._continueBack();},
         ()=>{/* cancel - do nothing */}
       );
@@ -6097,7 +6063,7 @@ const G={
     if(S.mode==='online'&&!S.over){
       S.over=true;
       OL.sendResign();
-      G.showOver('◆','خسرت','انسحبت من اللعبة','#f87171');
+      G.showOver('â—†','ط®ط³ط±طھ','ط§ظ†ط³ط­ط¨طھ ظ…ظ† ط§ظ„ظ„ط¹ط¨ط©','#f87171');
       document.getElementById('go-review').style.display='inline-flex';
       return;
     }
@@ -6237,25 +6203,25 @@ const OL=(()=>{
   function connect(onOpen){
     destroy();
     if(!SERVER_URL){
-      setSt('c','◌ جاري تحميل بيانات الخادم...','conn');
-      setSt('j','◌ جاري تحميل بيانات الخادم...','conn');
+      setSt('c','â—Œ ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط®ط§ط¯ظ…...','conn');
+      setSt('j','â—Œ ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط®ط§ط¯ظ…...','conn');
       loadServerUrl().then(()=>{
         if(!SERVER_URL){
-          setSt('c','◆ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
-          setSt('j','◆ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
+          setSt('c','â—† ط§ظ„ط³ظٹط±ظپط± ط؛ظٹط± ظ…طھط§ط­ ط­ط§ظ„ظٹط§ظ‹ â€” طھط£ظƒط¯ ط£ظ† ط§ظ„ط¬ظ‡ط§ط² ط´ط؛ظ‘ط§ظ„','err');
+          setSt('j','â—† ط§ظ„ط³ظٹط±ظپط± ط؛ظٹط± ظ…طھط§ط­ ط­ط§ظ„ظٹط§ظ‹ â€” طھط£ظƒط¯ ط£ظ† ط§ظ„ط¬ظ‡ط§ط² ط´ط؛ظ‘ط§ظ„','err');
           return;
         }
         connect(onOpen);
       });
       return;
     }
-    setSt('c','◌ جاري الاتصال بالخادم...','conn');
-    setSt('j','◌ جاري الاتصال بالخادم...','conn');
+    setSt('c','â—Œ ط¬ط§ط±ظٹ ط§ظ„ط§طھطµط§ظ„ ط¨ط§ظ„ط®ط§ط¯ظ…...','conn');
+    setSt('j','â—Œ ط¬ط§ط±ظٹ ط§ظ„ط§طھطµط§ظ„ ط¨ط§ظ„ط®ط§ط¯ظ…...','conn');
     try{
       ws=new WebSocket(SERVER_URL);
     }catch(e){
-      setSt('c','◆ تعذر الاتصال بالخادم','err');
-      setSt('j','◆ تعذر الاتصال بالخادم','err');
+      setSt('c','â—† طھط¹ط°ط± ط§ظ„ط§طھطµط§ظ„ ط¨ط§ظ„ط®ط§ط¯ظ…','err');
+      setSt('j','â—† طھط¹ط°ط± ط§ظ„ط§طھطµط§ظ„ ط¨ط§ظ„ط®ط§ط¯ظ…','err');
       return;
     }
 
@@ -6276,27 +6242,27 @@ const OL=(()=>{
       if(S.mode==='online'&&!S.over&&S.hist.length>0){
         S.over=true;
         SFX.win();
-        G.showOver('✦','فوز!','انقطع الاتصال بالخصم','#e8d080');
+        G.showOver('âœ¦','ظپظˆط²!','ط§ظ†ظ‚ط·ط¹ ط§ظ„ط§طھطµط§ظ„ ط¨ط§ظ„ط®طµظ…','#e8d080');
         document.getElementById('go-review').style.display='inline-flex';
       }
     };
 
     ws.onerror=()=>{
-      setSt('c','◆ خطأ في الاتصال — تحقق من الإنترنت','err');
-      setSt('j','◆ خطأ في الاتصال — تحقق من الإنترنت','err');
+      setSt('c','â—† ط®ط·ط£ ظپظٹ ط§ظ„ط§طھطµط§ظ„ â€” طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط¥ظ†طھط±ظ†طھ','err');
+      setSt('j','â—† ط®ط·ط£ ظپظٹ ط§ظ„ط§طھطµط§ظ„ â€” طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط¥ظ†طھط±ظ†طھ','err');
     };
   }
 
   function handleMsg(d){
     switch(d.type){
       case 'mm-wait':
-        setSt('m','◎ جاري البحث عن خصم…','wait');
+        setSt('m','â—ژ ط¬ط§ط±ظٹ ط§ظ„ط¨ط­ط« ط¹ظ† ط®طµظ…â€¦','wait');
         try{document.getElementById('btn-mm').style.display='none';}catch(e){}
         try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
         break;
 
       case 'mm-cancelled':
-        setSt('m','◆ تم إلغاء المطابقة','');
+        setSt('m','â—† طھظ… ط¥ظ„ط؛ط§ط، ط§ظ„ظ…ط·ط§ط¨ظ‚ط©','');
         try{document.getElementById('btn-mm').style.display='inline-flex';}catch(e){}
         try{document.getElementById('btn-mc').style.display='none';}catch(e){}
         break;
@@ -6305,7 +6271,7 @@ const OL=(()=>{
         _roomCode=d.code;
         document.getElementById('rcode').textContent=d.code;
         document.getElementById('rbox').style.display='block';
-        setSt('c','◎ في انتظار الخصم…','wait');
+        setSt('c','â—ژ ظپظٹ ط§ظ†طھط¸ط§ط± ط§ظ„ط®طµظ…â€¦','wait');
         // Send my name/pimg immediately so server can cache it for the opponent
         try{
           send({type:'name',name:Cfg.data.playerName||''});
@@ -6314,7 +6280,7 @@ const OL=(()=>{
         break;
 
       case 'room-joined':
-        setSt('j','◌ جاري بدء اللعبة…','conn');
+        setSt('j','â—Œ ط¬ط§ط±ظٹ ط¨ط¯ط، ط§ظ„ظ„ط¹ط¨ط©â€¦','conn');
         // Send my name/pimg immediately so server can cache it for the opponent
         try{
           send({type:'name',name:Cfg.data.playerName||''});
@@ -6323,7 +6289,7 @@ const OL=(()=>{
         break;
 
       case 'room-error':
-        setSt('j','◆ '+(d.msg||'الكود غير صحيح أو انتهت صلاحية الغرفة'),'err');
+        setSt('j','â—† '+(d.msg||'ط§ظ„ظƒظˆط¯ ط؛ظٹط± طµط­ظٹط­ ط£ظˆ ط§ظ†طھظ‡طھ طµظ„ط§ط­ظٹط© ط§ظ„ط؛ط±ظپط©'),'err');
         break;
 
       case 'start':
@@ -6351,7 +6317,7 @@ const OL=(()=>{
         if(!S.over){
           S.over=true;
           // Sound is played in showOver now
-          G.showOver('✦','فوز!','استسلم الخصم','#e8d080');
+          G.showOver('âœ¦','ظپظˆط²!','ط§ط³طھط³ظ„ظ… ط§ظ„ط®طµظ…','#e8d080');
           document.getElementById('go-review').style.display='inline-flex';
         }
         break;
@@ -6371,7 +6337,7 @@ const OL=(()=>{
           const oc=E.opp(S.myCol);
           const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
           const nm=(d.name||'').trim();
-          if(oppEl)oppEl.textContent=(!nm||nm==='أنا')?'الخصم':nm;
+          if(oppEl)oppEl.textContent=(!nm||nm==='ط£ظ†ط§')?'ط§ظ„ط®طµظ…':nm;
         }
         break;
 
@@ -6392,15 +6358,15 @@ const OL=(()=>{
   async function _go(mc,oppName){
     const normName=(name,fallback)=>{
       const v=(name||'').trim();
-      if(!v||v==='أنا')return fallback;
+      if(!v||v==='ط£ظ†ط§')return fallback;
       return v;
     };
     const oc=E.opp(mc);
     G._reset('online',0);
     S.mode='online';S.levelId=-1;S.myCol=mc;
-    document.getElementById('gmode').textContent='⊕ أونلاين';
-    const myName=normName(Cfg.data.playerName,'أنا');
-    const oppLabel=normName(oppName,'الخصم');
+    document.getElementById('gmode').textContent='âٹ• ط£ظˆظ†ظ„ط§ظٹظ†';
+    const myName=normName(Cfg.data.playerName,'ط£ظ†ط§');
+    const oppLabel=normName(oppName,'ط§ظ„ط®طµظ…');
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent=myName;
     document.getElementById(oc==='w'?'nm-w':'nm-b').textContent=oppLabel;
     fixBars(mc);
@@ -6423,7 +6389,7 @@ const OL=(()=>{
       setSt('c','');setSt('j','');
       setSt('m','');
       document.getElementById('rbox').style.display='none';
-      const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
+      const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='â™ں ط¥ظ†ط´ط§ط، ط؛ط±ظپط©';
       document.getElementById('jinp').value='';
       _roomCode='';
       destroy();
@@ -6455,7 +6421,7 @@ const OL=(()=>{
     join(){
       SFX.btn();
       const code=document.getElementById('jinp').value.trim().toUpperCase();
-      if(!code){setSt('j','أدخل الكود أولاً','err');return;}
+      if(!code){setSt('j','ط£ط¯ط®ظ„ ط§ظ„ظƒظˆط¯ ط£ظˆظ„ط§ظ‹','err');return;}
       connect(()=>{
         send({type:'join',code,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
         // Send profile image if available
@@ -6475,7 +6441,7 @@ const OL=(()=>{
       try{send({type:'mm-cancel'});}catch(e){}
       try{document.getElementById('btn-mm').style.display='inline-flex';}catch(e){}
       try{document.getElementById('btn-mc').style.display='none';}catch(e){}
-      setSt('m','◆ تم الإلغاء','');
+      setSt('m','â—† طھظ… ط§ظ„ط¥ظ„ط؛ط§ط،','');
     },
     leave(){
       SFX.btn();
@@ -6483,7 +6449,7 @@ const OL=(()=>{
       destroy();
       _roomCode='';
       // Reset room code display
-      document.getElementById('rcode').textContent='—';
+      document.getElementById('rcode').textContent='â€”';
       document.getElementById('rbox').style.display='none';
       // Reset create button
       document.getElementById('btn-create').disabled=false;
@@ -6491,16 +6457,16 @@ const OL=(()=>{
       if(S.mode==='online'){
         S.mode='';
         Nav.online();
-        setSt('c','◎ تم مغادرة الغرفة','');
+        setSt('c','â—ژ طھظ… ظ…ط؛ط§ط¯ط±ط© ط§ظ„ط؛ط±ظپط©','');
       }
     },
     copy(){
       SFX.btn();
       const code=_roomCode||document.getElementById('rcode').textContent;
-      if(!code||code==='—')return;
+      if(!code||code==='â€”')return;
       navigator.clipboard.writeText(code).then(()=>{
-        const b=document.querySelector('.rb-cp');b.textContent='◉ تم النسخ!';
-        setTimeout(()=>b.textContent='⧉ نسخ الكود',2000);
+        const b=document.querySelector('.rb-cp');b.textContent='â—‰ طھظ… ط§ظ„ظ†ط³ط®!';
+        setTimeout(()=>b.textContent='â§‰ ظ†ط³ط® ط§ظ„ظƒظˆط¯',2000);
       }).catch(()=>{
         const el=document.getElementById('rcode');
         const rng=document.createRange();rng.selectNode(el);
@@ -6806,7 +6772,7 @@ window.addEventListener('beforeunload',e=>{
       else if(S.mode==='lan')LAN.sendResign();
     }catch(ex){}
     e.preventDefault();
-    e.returnValue='اللعبة لا تزال جارية — هل تريد المغادرة؟';
+    e.returnValue='ط§ظ„ظ„ط¹ط¨ط© ظ„ط§ طھط²ط§ظ„ ط¬ط§ط±ظٹط© â€” ظ‡ظ„ طھط±ظٹط¯ ط§ظ„ظ…ط؛ط§ط¯ط±ط©طں';
     return e.returnValue;
   }
 });
@@ -6883,7 +6849,7 @@ function saveSettingsUsername(){
   const saveBtn=document.getElementById('settings-save-btn');
   const newName=input.value.trim();
   if(!newName||newName.length<2||newName.length>20){
-    if(typeof Modal!=='undefined')Modal.show('الاسم يجب أن يكون بين 2-20 حرف','تنبيه','✕');
+    if(typeof Modal!=='undefined')Modal.show('ط§ظ„ط§ط³ظ… ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ† ط¨ظٹظ† 2-20 ط­ط±ظپ','طھظ†ط¨ظٹظ‡','âœ•');
     return;
   }
   Cfg.data.playerName=newName;
@@ -6895,11 +6861,11 @@ function saveSettingsUsername(){
   // Update player names in active game if any
   updatePlayerNamesInGame();
   if(typeof SFX!=='undefined')SFX.btn();
-  if(typeof Modal!=='undefined')Modal.show('تم حفظ الاسم بنجاح','تم','◈');
+  if(typeof Modal!=='undefined')Modal.show('طھظ… ط­ظپط¸ ط§ظ„ط§ط³ظ… ط¨ظ†ط¬ط§ط­','طھظ…','â—ˆ');
 }
 
 function updatePlayerNamesInGame(){
-  const playerName=Cfg.data.playerName||'أنت';
+  const playerName=Cfg.data.playerName||'ط£ظ†طھ';
   // Update level mode name
   if(S.levelId>=0){
     const nmW=document.getElementById('nm-w');
@@ -6931,7 +6897,7 @@ function handleSettingsProfileImage(input){
       // Send to opponent if in online game
       if(S.mode==='online'&&window.OL&&OL.sendProfileImage)OL.sendProfileImage(imageData);
       if(typeof SFX!=='undefined')SFX.btn();
-      if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','◈');
+      if(typeof Modal!=='undefined')Modal.show('طھظ… طھط­ط¯ظٹط« ط§ظ„طµظˆط±ط© ط§ظ„ط´ط®طµظٹط©','طھظ…','â—ˆ');
     };
     reader.readAsDataURL(input.files[0]);
   }
@@ -6973,15 +6939,15 @@ window.addEventListener('load',async ()=>{
     SFX.init();
     DRAG.init();
     _loadChessPieces();
-    // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
+    // ط§ط®طھط¨ط§ط± Stockfish ط­ظ‚ظٹظ‚ظٹ ط¨ط¹ط¯ 5 ط«ظˆط§ظ†ظٹ ظ„ظ„ط³ظ…ط§ط­ ط¨طھط­ظ…ظٹظ„ ط§ظ„ط³ظƒط±ظٹط¨طھ
     setTimeout(()=>SF.checkReady(),5000);
-    // طلب إذن الإشعارات
+    // ط·ظ„ط¨ ط¥ط°ظ† ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ
     requestNotificationPermission();
 },{ once:true });
 
-/* ══════════════════════════════════════
+/* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
    PUSH NOTIFICATIONS
-══════════════════════════════════════ */
+â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */
 const Notifications={
   enabled:false,
   _swReg:null,
@@ -7074,9 +7040,9 @@ const Notifications={
     if(this._remindersScheduled)return;
     this._remindersScheduled=true;
     const reminders=[
-      {title:'حان وقت الشطرنج! 🎯',body:'مرحلة نور تنتظرك. تمرّن يومياً! 💪',ms:4*3600000},
-      {title:'لا تنسَ مبارياتك! ♟',body:'خصمك ينتظرك أونلاين. ادخل الآن! ⚡',ms:8*3600000},
-      {title:'نور يفتقدك 💬',body:'استمر في التدريب وافتح مرحلة جديدة! 🌟',ms:24*3600000},
+      {title:'ط­ط§ظ† ظˆظ‚طھ ط§ظ„ط´ط·ط±ظ†ط¬! ًںژ¯',body:'ظ…ط±ط­ظ„ط© ظ†ظˆط± طھظ†طھط¸ط±ظƒ. طھظ…ط±ظ‘ظ† ظٹظˆظ…ظٹط§ظ‹! ًں’ھ',ms:4*3600000},
+      {title:'ظ„ط§ طھظ†ط³ظژ ظ…ط¨ط§ط±ظٹط§طھظƒ! â™ں',body:'ط®طµظ…ظƒ ظٹظ†طھط¸ط±ظƒ ط£ظˆظ†ظ„ط§ظٹظ†. ط§ط¯ط®ظ„ ط§ظ„ط¢ظ†! âڑ،',ms:8*3600000},
+      {title:'ظ†ظˆط± ظٹظپطھظ‚ط¯ظƒ ًں’¬',body:'ط§ط³طھظ…ط± ظپظٹ ط§ظ„طھط¯ط±ظٹط¨ ظˆط§ظپطھط­ ظ…ط±ط­ظ„ط© ط¬ط¯ظٹط¯ط©! ًںŒں',ms:24*3600000},
     ];
     reminders.forEach(r=>{
       setInterval(()=>{
@@ -7084,11 +7050,11 @@ const Notifications={
       },r.ms);
     });
   },
-  gameStart(){this.send('بدأت المباراة!',{body:'خصمك جاهز للعب',tag:'game-start'});},
-  yourTurn(){this.send('دورك!',{body:'حان وقت تحريك قطعة',tag:'your-turn'});},
-  gameOver(result){this.send('انتهت المباراة',{body:result,tag:'game-over'});},
-  chatMsg(from){this.send('رسالة جديدة',{body:`${from}: رسالة نصية`,tag:'chat'});},
-  voiceMsg(from){this.send('رسالة صوتية',{body:`${from}: أرسل رسالة صوتية`,tag:'chat-voice'});}
+  gameStart(){this.send('ط¨ط¯ط£طھ ط§ظ„ظ…ط¨ط§ط±ط§ط©!',{body:'ط®طµظ…ظƒ ط¬ط§ظ‡ط² ظ„ظ„ط¹ط¨',tag:'game-start'});},
+  yourTurn(){this.send('ط¯ظˆط±ظƒ!',{body:'ط­ط§ظ† ظˆظ‚طھ طھط­ط±ظٹظƒ ظ‚ط·ط¹ط©',tag:'your-turn'});},
+  gameOver(result){this.send('ط§ظ†طھظ‡طھ ط§ظ„ظ…ط¨ط§ط±ط§ط©',{body:result,tag:'game-over'});},
+  chatMsg(from){this.send('ط±ط³ط§ظ„ط© ط¬ط¯ظٹط¯ط©',{body:`${from}: ط±ط³ط§ظ„ط© ظ†طµظٹط©`,tag:'chat'});},
+  voiceMsg(from){this.send('ط±ط³ط§ظ„ط© طµظˆطھظٹط©',{body:`${from}: ط£ط±ط³ظ„ ط±ط³ط§ظ„ط© طµظˆطھظٹط©`,tag:'chat-voice'});}
 };
 
 try{
@@ -7125,16 +7091,16 @@ window.addEventListener('beforeunload',()=>{
 <div id="piece-settings-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--bg);border:1px solid rgba(201,168,76,0.2);border-radius:16px;max-width:1200px;width:100%;max-height:95vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 20px 0;border-bottom:1px solid rgba(201,168,76,0.1);margin-bottom:20px;">
-      <h3 style="color:var(--gold2);font-size:18px;margin:0;">🎨 جميع قطع الشطرنج</h3>
+      <h3 style="color:var(--gold2);font-size:18px;margin:0;">ًںژ¨ ط¬ظ…ظٹط¹ ظ‚ط·ط¹ ط§ظ„ط´ط·ط±ظ†ط¬</h3>
       <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;padding:4px;">&times;</button>
     </div>
     
-    <div style="padding:0 20px 20px;display:grid;grid-template-columns:1fr 400px;gap:30px;align-items:start;">
+    <div style="padding:0 20px 20px;display:block;">
       <!-- Left Column: Piece Selection -->
       <div>
         <!-- 2D Themes Section -->
         <div style="margin-bottom:24px;">
-          <div class="pc-section-header">2D قطع</div>
+          <div class="pc-section-header">2D ظ‚ط·ط¹</div>
           <div class="pc-grid" id="pc-2d-grid-modal">
             <!-- 2D themes will be generated here -->
           </div>
@@ -7142,30 +7108,18 @@ window.addEventListener('beforeunload',()=>{
         
         <!-- 3D Themes Section -->
         <div style="margin-bottom:24px;">
-          <div class="pc-section-header">3D قطع</div>
+          <div class="pc-section-header">3D ظ‚ط·ط¹</div>
           <div class="pc-grid" id="pc-3d-grid-modal">
             <!-- 3D themes will be generated here -->
           </div>
         </div>
       </div>
-      
-      <!-- Right Column: Preview Board -->
-      <div style="position:sticky;top:20px;">
-        <div style="background:var(--bg2);border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:20px;">
-          <div style="font-size:14px;color:var(--gold2);margin-bottom:15px;text-align:center;font-weight:600;">معاينة الرقعة</div>
-          
-          <!-- Preview Board -->
-          <div id="piece-preview-board" style="width:100%;aspect-ratio:1;position:relative;border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);background:var(--sq-l);">
-            <!-- Board squares will be generated here -->
-          </div>
-          
-          <!-- Action Buttons -->
-          <div style="display:flex;gap:10px;margin-top:20px;">
+      <div style="display:flex;gap:10px;margin-top:20px;">
             <button id="apply-piece-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); applySelectedPiece();" style="flex:1;background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">
-              تطبيق
+              طھط·ط¨ظٹظ‚
             </button>
             <button onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">
-              إلغاء
+              ط¥ظ„ط؛ط§ط،
             </button>
           </div>
         </div>
