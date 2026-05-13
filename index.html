@@ -69,7 +69,67 @@ body[data-ui-theme="glass"] .gobox{
   border-color:rgba(255,255,255,.12) !important;
 }
 body[data-ui-theme="gaming"] .mc:hover{box-shadow:0 14px 44px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06) !important;}
-body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,220,.28)) drop-shadow(0 0 60px rgba(255,170,220,.12));}
+body[data-ui-theme="anime"]::before{
+  background:
+    radial-gradient(circle at 18% 18%,rgba(255,124,191,.18) 0%,transparent 32%),
+    radial-gradient(circle at 82% 24%,rgba(110,231,255,.16) 0%,transparent 28%),
+    radial-gradient(circle at 50% 75%,rgba(255,214,102,.10) 0%,transparent 30%),
+    linear-gradient(180deg,#07111f 0%,#0d1b2f 36%,#15102f 100%);
+}
+body[data-ui-theme="anime"]::after{
+  background-image:
+    linear-gradient(115deg,transparent 0 42%,rgba(255,255,255,.03) 42% 44%,transparent 44% 100%),
+    linear-gradient(25deg,transparent 0 58%,rgba(110,231,255,.025) 58% 60%,transparent 60% 100%),
+    radial-gradient(circle at 12% 22%,rgba(255,255,255,.12) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 78% 14%,rgba(255,255,255,.10) 0 1.5px,transparent 2px),
+    radial-gradient(circle at 64% 72%,rgba(255,180,220,.10) 0 1.5px,transparent 2px);
+  background-size:100% 100%,100% 100%,140px 140px,170px 170px,160px 160px;
+  opacity:.9;
+  mask-image:none;
+}
+body[data-ui-theme="anime"] .logo-ic{
+  filter:drop-shadow(0 0 22px rgba(255,124,191,.26)) drop-shadow(0 0 52px rgba(110,231,255,.18));
+}
+body[data-ui-theme="anime"] #banner,
+body[data-ui-theme="anime"] .settings-section,
+body[data-ui-theme="anime"] .settings-tabs,
+body[data-ui-theme="anime"] .mc,
+body[data-ui-theme="anime"] .oc,
+body[data-ui-theme="anime"] .gobox,
+body[data-ui-theme="anime"] .learn-card,
+body[data-ui-theme="anime"] .lvl-hdr,
+body[data-ui-theme="anime"] .lp-card{
+  box-shadow:0 18px 48px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.03),0 0 28px rgba(255,124,191,.08);
+}
+body[data-ui-theme="anime"] .settings-section,
+body[data-ui-theme="anime"] .mc,
+body[data-ui-theme="anime"] .oc,
+body[data-ui-theme="anime"] .gobox,
+body[data-ui-theme="anime"] .learn-card{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),
+    linear-gradient(135deg,rgba(12,22,42,.92),rgba(28,17,54,.9)) !important;
+  border-color:rgba(255,151,204,.2) !important;
+}
+body[data-ui-theme="anime"] .settings-tab.active,
+body[data-ui-theme="anime"] .settings-action-btn,
+body[data-ui-theme="anime"] .btnp{
+  background:linear-gradient(135deg,#ff7cbf 0%,#ffc857 48%,#78f0ff 100%) !important;
+  color:#09111c !important;
+  box-shadow:0 12px 26px rgba(255,124,191,.2) !important;
+}
+body[data-ui-theme="anime"] .settings-tab:hover,
+body[data-ui-theme="anime"] .ui-opt:hover,
+body[data-ui-theme="anime"] .pc-opt:hover{
+  box-shadow:0 10px 24px rgba(120,240,255,.1);
+}
+body[data-ui-theme="anime"] .settings-tab,
+body[data-ui-theme="anime"] .setting-label,
+body[data-ui-theme="anime"] .pc-lbl,
+body[data-ui-theme="anime"] .section-title,
+body[data-ui-theme="anime"] .settings-headline{
+  letter-spacing:.01em;
+}
 
 .particle{position:fixed;pointer-events:none;z-index:0;border-radius:50%;animation:particleFloat linear infinite;}
 @keyframes particleFloat{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:.4;}100%{transform:translateY(-10vh) rotate(720deg);opacity:0;}}
@@ -311,7 +371,7 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
   linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
   border:1px solid rgba(201,168,76,.16);border-radius:26px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);}
 .settings-hero::after{content:'';position:absolute;inset:auto -10% -35% auto;width:260px;height:260px;border-radius:50%;background:rgba(201,168,76,.08);filter:blur(12px);pointer-events:none;}
-.settings-hero-main{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.8fr) minmax(260px,.95fr);gap:18px;align-items:stretch;}
+.settings-hero-main{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:stretch;}
 .settings-profile-card{display:flex;align-items:flex-start;gap:16px;}
 .settings-profile-avatar{width:82px;height:82px;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(201,168,76,.26);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;box-shadow:0 10px 24px rgba(0,0,0,.24);}
 .settings-profile-avatar:hover{transform:translateY(-2px);border-color:rgba(201,168,76,.4);box-shadow:0 16px 30px rgba(0,0,0,.28);}
@@ -319,16 +379,11 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .settings-profile-body{flex:1;min-width:0;}
 .settings-overline{font-size:11px;letter-spacing:.08em;color:var(--gold2);margin-bottom:6px;font-weight:800;}
 .settings-headline{font-size:28px;line-height:1.15;color:var(--text);margin:0 0 6px;font-family:'Amiri',serif;}
-.settings-subtitle{font-size:13px;color:var(--text2);line-height:1.7;}
+.settings-subtitle{display:none;}
 .settings-input-row{display:flex;gap:10px;margin-top:14px;align-items:center;}
 .settings-name-input{flex:1;padding:11px 14px;border-radius:14px;border:1px solid rgba(201,168,76,.18);background:rgba(7,10,16,.48);color:var(--text);font-size:14px;box-sizing:border-box;outline:none;transition:border-color .2s ease,box-shadow .2s ease;}
 .settings-name-input:focus{border-color:rgba(45,212,191,.42);box-shadow:0 0 0 3px rgba(45,212,191,.12);}
 .settings-save-mini{padding:10px 18px!important;font-size:12px!important;white-space:nowrap;border-radius:12px!important;}
-.settings-hero-aside{display:grid;gap:10px;}
-.settings-stat{display:flex;gap:12px;align-items:flex-start;padding:14px 15px;border-radius:18px;background:rgba(10,14,22,.42);border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(8px);}
-.settings-stat-icon{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--gold2);background:rgba(201,168,76,.12);font-size:18px;flex-shrink:0;}
-.settings-stat-title{font-size:13px;color:var(--text);font-weight:700;margin-bottom:3px;}
-.settings-stat-text{font-size:12px;color:var(--text3);line-height:1.55;}
 .settings-tabs-wrap{width:100%;}
 .settings-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:8px;background:rgba(9,12,18,.72);border:1px solid rgba(201,168,76,.12);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,.18);}
 .settings-tab{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 16px;background:transparent;border:none;border-radius:16px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease;white-space:nowrap;}
@@ -359,7 +414,6 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .settings-piece-type{font-size:12px;color:var(--text3);margin-top:4px;}
 .settings-action-btn{background:linear-gradient(135deg,var(--gold),#f1c766);color:#0b0f15;border:none;border-radius:14px;padding:12px 18px;font-weight:800;font-size:13px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;white-space:nowrap;box-shadow:0 10px 20px rgba(201,168,76,.18);}
 .settings-action-btn:hover{transform:translateY(-1px);box-shadow:0 14px 24px rgba(201,168,76,.24);}
-.settings-quicknote{font-size:12px;color:var(--text3);line-height:1.6;padding:11px 13px;border-radius:14px;background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.12);}
 .settings-footer-actions{padding-top:2px;}
 .board-themes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
 .dot-color-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}
@@ -379,15 +433,9 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
 .settings-modal-title{color:var(--gold2);font-size:21px;margin:0;display:flex;align-items:center;gap:10px;}
 .settings-modal-close{background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;padding:4px 8px;}
 .settings-modal-body{padding:20px 22px 10px;display:grid;gap:22px;overflow-y:auto;max-height:calc(94vh - 140px);}
-.settings-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 22px 22px;border-top:1px solid rgba(201,168,76,.1);background:rgba(255,255,255,.015);}
-.settings-modal-note{font-size:12px;color:var(--text3);line-height:1.6;}
-.settings-modal-actions{display:flex;gap:10px;flex-shrink:0;}
 .settings-modal-secondary{flex:1;background:var(--bg3);color:var(--text);border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer;transition:all .2s ease;}
-.settings-piece-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;background:rgba(45,212,191,.1);color:var(--teal2);font-size:10px;font-weight:800;}
 @media (max-width: 920px){
   .settings-hero-main{grid-template-columns:1fr;}
-  .settings-modal-footer{flex-direction:column;align-items:stretch;}
-  .settings-modal-actions{width:100%;}
 }
 @media (max-width: 768px) {
   .settings-shell{padding-inline:12px;}
@@ -1388,29 +1436,12 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
           <div class="settings-profile-body">
             <div class="settings-overline">ملف اللاعب</div>
             <h2 class="settings-headline" id="settings-username-display">لاعب</h2>
-            <div class="settings-subtitle">خصص اسمك وصورتك وستبقى الإعدادات محفوظة محليًا على هذا الجهاز.</div>
             <div class="settings-input-row">
               <input type="text" class="settings-name-input" id="settings-username-input" placeholder="اسم اللاعب" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
               <button id="settings-save-btn" class="btnp settings-save-mini" style="display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
             </div>
           </div>
           <input type="file" id="settings-profile-input" accept="image/*" style="display:none;" onchange="handleSettingsProfileImage(this)">
-        </div>
-        <div class="settings-hero-aside">
-          <div class="settings-stat">
-            <div class="settings-stat-icon">◈</div>
-            <div>
-              <div class="settings-stat-title">حفظ فوري</div>
-              <div class="settings-stat-text">شكل القطع، الثيمات، وتقدم مراحل نور تُحفظ مباشرة بدون إعادة ضبط غير مقصودة.</div>
-            </div>
-          </div>
-          <div class="settings-stat">
-            <div class="settings-stat-icon">▦</div>
-            <div>
-              <div class="settings-stat-title">واجهة أدق</div>
-              <div class="settings-stat-text">تنظيم أوضح للأقسام مع بطاقات أكثر راحة على الهاتف والكمبيوتر.</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -1450,13 +1481,13 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
                   <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#070713"></div><div class="sw" style="background:#00fff0"></div></div>Cyber</div>
                   <div class="ui-opt" id="ui-glass" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('glass')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,.10)"></div><div class="sw" style="background:#93c5fd"></div></div>Glass</div>
                   <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#070a10"></div><div class="sw" style="background:#7c3aed"></div></div>Gaming</div>
-                  <div class="ui-opt" id="ui-anime" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('anime')"><div class="th-sw"><div class="sw" style="background:#120912"></div><div class="sw" style="background:#fda4af"></div></div>Anime</div>
+                  <div class="ui-opt" id="ui-anime" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('anime')"><div class="th-sw"><div class="sw" style="background:#07111f"></div><div class="sw" style="background:#78f0ff"></div><div class="sw" style="background:#ff7cbf"></div></div>Anime</div>
                 </div>
               </div>
 
               <div class="setting-item setting-item-feature">
                 <div class="setting-label">شكل القطع</div>
-                <div class="setting-description">اختر الشكل النشط للقطع. لن يتغير بعد الحفظ إلا إذا بدّلته بنفسك.</div>
+                <div class="setting-description">اختر شكل القطع الحالي</div>
                 <div class="settings-piece-card">
                   <div id="current-piece-display" class="settings-piece-info">
                     <div class="ppc settings-piece-preview"><div id="current-piece-preview" class="piece"></div></div>
@@ -1469,7 +1500,6 @@ body[data-ui-theme="anime"] .logo-ic{filter:drop-shadow(0 0 28px rgba(255,170,22
                     ◇ جميع القطع
                   </button>
                 </div>
-                <div class="settings-quicknote">تمت إزالة رقعة المعاينة من الإعدادات لتبقى الشاشة أخف وأسرع، مع الحفاظ على عرض مختصر للشكل الحالي فقط.</div>
               </div>
             </div>
           </div>
@@ -2226,12 +2256,12 @@ const UI_THEMES={
     accent:'#ff6b00',accent2:'#00ff88',fxGlow:'rgba(255,107,0,.35)',fxNeon:'rgba(0,255,136,.35)'
   },
   anime:{
-    bg:'#1a0520',bg2:'#2a0a35',bg3:'#3a1045',bg4:'#4a1555',
-    gold:'#ff69b4',gold2:'#ff85c0',gold3:'#ffa0d0',
-    teal:'#00bfff',teal2:'#40d0ff',
-    red:'#ff4080',green:'#40ff80',blue:'#8080ff',
-    text:'#ffe0f0',text2:'#ffb0d0',text3:'#ff80a0',
-    accent:'#ff69b4',accent2:'#00bfff',fxGlow:'rgba(255,105,180,.35)',fxNeon:'rgba(0,191,255,.35)',
+    bg:'#07111f',bg2:'#101a2f',bg3:'#16233d',bg4:'#1d2d4f',
+    gold:'#ffc857',gold2:'#ffd978',gold3:'#fff1b3',
+    teal:'#78f0ff',teal2:'#a7f7ff',
+    red:'#ff7ca8',green:'#8df7c1',blue:'#8da2ff',
+    text:'#f6f7ff',text2:'#c8d2ee',text3:'#91a1c8',
+    accent:'#ff7cbf',accent2:'#78f0ff',fxGlow:'rgba(255,124,191,.28)',fxNeon:'rgba(120,240,255,.22)',
     // Anime-specific styles
     animeStyle:true,
     boardGlow:true,
@@ -2463,16 +2493,7 @@ const CHESS_PIECE_THEMES={
   }
 };
 
-// Offline piece themes - always available
-const OFFLINE_PIECE_THEMES={
-  'local_basic':{
-    name:'Local Basic',
-    type:'2d',
-    description:'قطع محلية أساسية',
-    isOffline:true,
-    urlBase:'./'
-  }
-};
+const OFFLINE_PIECE_THEMES={};
 
 function isKnownPieceTheme(theme){
   return !!(theme && (CHESS_PIECE_THEMES[theme] || OFFLINE_PIECE_THEMES[theme]));
@@ -2485,7 +2506,7 @@ function normalizePieceTheme(theme,fallback='neo'){
 
 // Generate piece URLs for a theme with offline fallback
 function getPieceUrls(theme){
-  theme=normalizePieceTheme(theme,'local_basic');
+  theme=normalizePieceTheme(theme,'neo');
   // Try online theme first
   const onlineTheme=CHESS_PIECE_THEMES[theme];
   if(onlineTheme && onlineTheme.urlBase){
@@ -2630,9 +2651,6 @@ function generatePieceThemeOptionsForModal(){
       selectPieceForPreview(key);
     };
     
-    // Add offline indicator if applicable
-    const offlineIndicator=theme.isOffline?' <span class="settings-piece-chip">◆ محلي</span>':'';
-    
     // Create preview with king and queen
     const preview=document.createElement('div');
     preview.className='pc-prev';
@@ -2650,7 +2668,7 @@ function generatePieceThemeOptionsForModal(){
     
     const label=document.createElement('div');
     label.className='pc-lbl';
-    label.innerHTML=theme.name + offlineIndicator;
+    label.textContent=theme.name;
     
     const description=document.createElement('div');
     description.className='pc-sub';
@@ -2695,22 +2713,9 @@ let selectedPieceTheme = null;
 
 function selectPieceForPreview(themeKey){
   selectedPieceTheme = normalizePieceTheme(themeKey);
-  
-  // Update selection UI
-  document.querySelectorAll('#piece-settings-modal .pc-opt').forEach(opt=>{
-    opt.classList.remove('selected','on');
-  });
-  const selectedOpt=document.getElementById('pc-'+selectedPieceTheme+'-modal');
-  if(selectedOpt) selectedOpt.classList.add('selected','on');
-}
-
-function applySelectedPiece(){
-  if(!selectedPieceTheme) return;
-  
-  if(typeof SFX !== 'undefined') SFX.btn();
   Cfg.pieces(selectedPieceTheme);
-  updateCurrentPieceDisplay(normalizePieceTheme(selectedPieceTheme));
   generatePieceThemeOptions();
+  generatePieceThemeOptionsForModal();
   closePieceSettings();
 }
 
@@ -7020,14 +7025,6 @@ window.addEventListener('beforeunload',()=>{
       <div>
         <div class="pc-section-header">◆ قطع ثلاثية الأبعاد</div>
         <div class="pc-grid" id="pc-3d-grid-modal"></div>
-      </div>
-    </div>
-
-    <div class="settings-modal-footer">
-      <div class="settings-modal-note">اختر الشكل الذي تفضله ثم اضغط تطبيق. سيبقى محفوظًا محليًا ولن يعود إلى الشكل الافتراضي إلا إذا غيّرته أنت.</div>
-      <div class="settings-modal-actions">
-        <button id="apply-piece-btn" class="settings-action-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); applySelectedPiece();">تطبيق</button>
-        <button class="settings-modal-secondary" onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();">إلغاء</button>
       </div>
     </div>
   </div>
