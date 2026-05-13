@@ -6620,15 +6620,22 @@ const LAN=(()=>{
   let _manualClose=false;
 
   function getWsUrl(){
-    // في وضع LAN المحلي، نحاول الاتصال بالسيرفر تلقائياً
+    // في وضع LAN المحلي، نستخدم نفس البروتوكول الذي فتحت منه الصفحة
     let serverHost = localStorage.getItem('lan_server_host');
     
-    // إذا لم يكن محفوظاً، نستخدم localhost (للجهاز الذي يشغل السيرفر)
+    // إذا لم يكن محفوظاً، نستخدم نفس الـ host الحالي
     if (!serverHost) {
-      serverHost = 'localhost:8081';
+      // إذا الصفحة محملة من السيرفر المحلي، نستخدم نفس العنوان
+      if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1' && !location.hostname.includes('github.io')) {
+        serverHost = location.host; // نفس الـ host والـ port
+      } else {
+        serverHost = 'localhost:8081';
+      }
     }
     
-    return `ws://${serverHost}`;
+    // نستخدم نفس البروتوكول (ws أو wss)
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${protocol}://${serverHost}`;
   }
   
   // دالة لاكتشاف السيرفر تلقائياً على الشبكة المحلية
@@ -7528,16 +7535,19 @@ const firebaseConfig = {
   storageBucket: "chess-85a75.firebasestorage.app",
   messagingSenderId: "467677566583",
   appId: "1:467677566583:web:3ab926b218de5095b31872",
-  measurementId: "G-39JQ9F34J5"
+  measurementId: "G-39JQ9F34J5",
+  databaseURL: "https://chess-85a75-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase only when local bundled scripts are available.
 let db=null;
+let rtdb=null; // Realtime Database for LAN mode
 let messaging=null;
 try{
   if(window.firebase&&firebase.initializeApp){
     firebase.initializeApp(firebaseConfig);
     if(firebase.firestore)db=firebase.firestore();
+    if(firebase.database)rtdb=firebase.database(); // Initialize Realtime Database
     if(firebase.messaging&&firebase.messaging.isSupported&&firebase.messaging.isSupported()){
       messaging=firebase.messaging();
       messaging.onMessage((payload)=>{
