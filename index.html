@@ -589,8 +589,8 @@ body[data-ui-theme="anime"] .settings-headline{
   .dot-color-picker{grid-template-columns:repeat(auto-fit,minmax(100px,1fr));}
 }
 
-/* ══════════ ONLINE / LAN ══════════ */
-#s-online,#s-lan{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 14px 24px;gap:11px;}
+/* ══════════ ONLINE ══════════ */
+#s-online{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 14px 24px;gap:11px;}
 .oc{background:var(--bg2);border:1px solid rgba(201,168,76,.13);border-radius:18px;padding:25px;width:100%;max-width:430px;box-shadow:0 8px 40px rgba(0,0,0,.4);}
 .oc h2{font-family:'Amiri',serif;font-size:22px;color:var(--gold2);text-align:center;margin-bottom:4px;}
 .oc-sub{color:var(--text2);font-size:12px;text-align:center;margin-bottom:16px;}
@@ -1519,13 +1519,6 @@ body[data-ui-theme="anime"] .settings-headline{
       <span class="mc-b bt">سيرفر WebSocket ◈</span>
     </div>
 
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.lan()">
-      <span class="mc-ic ic-blue">⌘</span>
-      <div class="mc-t">LAN محلي</div>
-      <div class="mc-d">غرفة محلية بين جهازين على نفس الشبكة بدون إنترنت</div>
-      <span class="mc-b bb">كود 4 أرقام</span>
-    </div>
-
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
       <span class="mc-ic ic-gold">◈</span>
       <div class="mc-t">مراحل نور</div>
@@ -1848,45 +1841,6 @@ body[data-ui-theme="anime"] .settings-headline{
     <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
   </div>
 </div>
-
-<!-- LAN -->
-<div id="s-lan" class="screen">
-  <div class="oc">
-    <h2><span class="ic-blue">⌘</span> LAN محلي</h2>
-    <p class="oc-sub">العب مع صديق بمجرد إدخال كود من 4 أرقام</p>
-    <div class="p2p">يستخدم <strong>Firebase Realtime Database</strong> — بسيط وسريع ◈<br><span style="font-size:11px;opacity:.8">أنشئ غرفة واحصل على كود، شاركه مع صديقك للانضمام</span></div>
-    
-    <div class="tabs">
-      <button class="tbb on" id="lan-tb-c" onclick="LAN.tab('c')">إنشاء غرفة</button>
-      <button class="tbb" id="lan-tb-j" onclick="LAN.tab('j')">انضمام</button>
-    </div>
-    <div id="lan-tc-c" class="tc on">
-      <p class="flbl">لون قطعك</p>
-      <div class="copts">
-        <div class="copt on" id="lan-co-w" onclick="LAN.col('w')"><span>♔</span>أبيض</div>
-        <div class="copt" id="lan-co-b" onclick="LAN.col('b')"><span>♚</span>أسود</div>
-        <div class="copt" id="lan-co-r" onclick="LAN.col('r')"><span class="ic-t2">◌</span>عشوائي</div>
-      </div>
-      <div id="lan-st-c" class="ost"></div>
-      <div id="lan-rbox" class="rbox">
-        <div class="rb-l">كود غرفة LAN</div>
-        <div class="rb-c" id="lan-rcode">—</div>
-        <div class="rb-h">افتح الجهاز الثاني على نفس الشبكة وأدخل هذا الكود</div>
-        <button class="rb-cp" onclick="SFX.btn();LAN.copy()">⧉ نسخ الكود</button>
-        <button class="rb-cp" onclick="SFX.btn();LAN.leave()" style="margin-top:8px;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171;">◇ مغادرة الغرفة</button>
-      </div>
-      <button class="btnp" id="lan-btn-create" onclick="LAN.create()">⌘ إنشاء غرفة محلية</button>
-    </div>
-    <div id="lan-tc-j" class="tc">
-      <p class="flbl">أدخل كود الغرفة</p>
-      <input class="finp" id="lan-jinp" placeholder="4 أرقام" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
-      <div id="lan-st-j" class="ost"></div>
-      <button class="btnp" onclick="LAN.join()">◈ الانضمام</button>
-    </div>
-    <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
-  </div>
-</div>
-
 
 <!-- GAME -->
 <div id="s-game" class="screen">
@@ -3178,8 +3132,6 @@ const Cfg={
     Modal.show('تم تطبيق صورة الملف الشخصي','تم','◈');
     if(S.mode==='online'){
       OL.sendPimg(this.data.playerImage);
-    }else if(S.mode==='lan'){
-      LAN.sendPimg(this.data.playerImage);
     }
   },
   _updateAvatar(name){
@@ -4279,7 +4231,6 @@ const CHAT={
     inp.value='';
     this._addMsg(txt,'me');
     if(S.mode==='online')OL.sendChat(txt);
-    else if(S.mode==='lan')LAN.sendChat(txt);
     else if(S.mode==='bot'&&S.levelId>=0)this._sendToNour(txt);
   },
   async _sendToNour(txt){
@@ -4502,7 +4453,6 @@ ${pn}: ${txt}
         const base64Data=this._arrayBufferToBase64(arrayBuffer);
         this._addMsg(durationSec+'','me',true,base64Data);
         if(S.mode==='online')OL.sendVoice(base64Data,durationSec);
-        else if(S.mode==='lan')LAN.sendVoice(base64Data,durationSec);
       };
       reader.onerror=()=>{
         Modal.show('فشل في معالجة التسجيل','تنبيه','✕');
@@ -5646,7 +5596,7 @@ const G={
     R.boardReset();
     CHAT.hide();
     const sg=document.getElementById('s-game');
-    sg.classList.remove('mode-local','mode-bot','mode-online','mode-lan');
+    sg.classList.remove('mode-local','mode-bot','mode-online');
     sg.classList.add('mode-'+mode);
     document.getElementById('go-ov').classList.remove('open');
     document.getElementById('promo-ov').classList.remove('open');
@@ -5725,7 +5675,6 @@ const G={
   },
   async finish(fr,to,promo){
     if(S.mode==='online')OL.sendMove({fr,to,promo});
-    else if(S.mode==='lan')LAN.sendMove({fr,to,promo});
     await this.applyMove(fr,to,promo);
   },
   async applyMove(fr,to,promo){
@@ -5778,7 +5727,6 @@ const G={
     else if(isCheck)    SFX.check();
     else                SFX.move();
     await R.all();
-    if(S.mode==='lan')LAN.syncState();
     if(S.mode==='bot'&&S.levelId>=0){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
@@ -5817,7 +5765,6 @@ const G={
     }
     if(!avail.length || insufficient){
       S.over=true;
-      if(S.mode==='lan')LAN.syncState();
       if(insufficient){
         setTimeout(()=>{
           try{SFX.draw();}catch(e){}
@@ -6136,14 +6083,12 @@ const G={
   restart(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online'){OL.dc();Nav.menu();}
-    else if(S.mode==='lan'){LAN.dc();Nav.menu();}
     else if(S.levelId>=0)this.startLevel(S.levelId);
     else this.start(S.mode,S.diff);
   },
   goMenu(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online')OL.dc();
-    else if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   back(){
@@ -6163,19 +6108,16 @@ const G={
     if(isRemoteMatchMode()&&!S.over){
       S.over=true;
       if(S.mode==='online')OL.sendResign();
-      else LAN.sendResign();
       G.showOver('◆','خسرت','انسحبت من اللعبة','#f87171');
       document.getElementById('go-review').style.display='inline-flex';
       return;
     }
     if(S.mode==='online')OL.dc();
-    else if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   async toggleAst(){
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
     if(S.mode==='online')OL.sendAssist(S.assistOn);
-    else if(S.mode==='lan')LAN.sendAssist(S.assistOn);
     if(S.assistOn){SFX.hint();AST.compute();}
     await R.all();
   },
@@ -6225,7 +6167,6 @@ const Nav={
   menu(){Nav.show('s-menu');},
   levels(){Nav.show('s-levels');LVL.buildUI();},
   online(){Nav.show('s-online');try{OL.init();}catch(e){}},
-  lan(){Nav.show('s-lan');try{LAN.init();}catch(e){}},
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
   game(){Nav.show('s-game');},
@@ -6233,7 +6174,7 @@ const Nav={
 };
 
 function isRemoteMatchMode(mode=S.mode){
-  return mode==='online'||mode==='lan';
+  return mode==='online';
 }
 
 function fixBars(myCol){
@@ -6607,357 +6548,6 @@ const OL=(()=>{
       setTimeout(()=>destroy(),400);
     },
     dc(){destroy();}
-  };
-})();
-
-const LAN = (() => {
-  const SESSION_KEY = 'chess-lan-session-v1';
-  let _myCol = 'w';
-  let _roomCode = '';
-  let _roomRef = null;
-  let _messagesRef = null;
-  let _unsubscribe = null;
-
-  function setSt(tab, msg, tp = '') {
-    const el = document.getElementById('lan-st-' + tab);
-    if (el) {
-      el.className = 'ost' + (tp ? ' ' + tp : '');
-      el.textContent = msg;
-    }
-  }
-
-  function loadSession() {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      return data && typeof data === 'object' ? data : null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function saveSession(extra = {}) {
-    try {
-      const next = { code: _roomCode, myCol: _myCol, active: true, ...extra };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    } catch (e) {}
-  }
-
-  function clearSession() {
-    try {
-      localStorage.removeItem(SESSION_KEY);
-    } catch (e) {}
-  }
-
-  function disconnect() {
-    if (_unsubscribe) {
-      _unsubscribe();
-      _unsubscribe = null;
-    }
-    _roomRef = null;
-    _messagesRef = null;
-  }
-
-  function send(obj) {
-    if (!_messagesRef || !rtdb) return;
-    try {
-      _messagesRef.push({
-        ...obj,
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        from: _myCol
-      });
-    } catch (e) {
-      console.error('[LAN] Send error:', e);
-    }
-  }
-
-  function handleMessage(data) {
-    if (!data || data.from === _myCol) return; // تجاهل رسائلي
-
-    switch (data.type) {
-      case 'start':
-        _go(data.yourColor, data.oppName || '', _roomCode, false);
-        break;
-
-      case 'move':
-        if (S.mode === 'lan') {
-          S.sel = [];
-          S.legal = [];
-          SFX.init();
-          G.applyMove(data.fr, data.to, data.promo || null);
-          if (document.hidden) Notifications.yourTurn();
-        }
-        break;
-
-      case 'assist':
-        if (S.mode === 'lan') {
-          S.oppUsingAssist = !!data.on;
-          updateAssistIndicators();
-        }
-        break;
-
-      case 'resign':
-        if (S.mode === 'lan' && !S.over) {
-          S.over = true;
-          const winner = S.myCol === 'w' ? 'الأبيض' : 'الأسود';
-          showGameOver(`${winner} فاز! الخصم استسلم`, S.myCol);
-        }
-        break;
-
-      case 'chat':
-        try {
-          CHAT._addMsg(data.text || '', 'opp');
-        } catch (e) {}
-        break;
-
-      case 'voice':
-        try {
-          CHAT._addVoiceMsg(data.audio, data.duration || 0, 'opp');
-        } catch (e) {}
-        break;
-
-      case 'name':
-        const oc = E.opp(S.myCol || _myCol || 'w');
-        const oppEl = document.getElementById(oc === 'w' ? 'nm-w' : 'nm-b');
-        if (oppEl) oppEl.textContent = normName(data.name, 'الخصم');
-        break;
-
-      case 'pimg':
-        S.oppImg = data.img || null;
-        updatePlayerImages();
-        break;
-    }
-  }
-
-  function _go(myCol, oppName, code, isResume) {
-    S.mode = 'lan';
-    S.myCol = myCol;
-    S.oppName = oppName;
-    _myCol = myCol;
-    _roomCode = code;
-    saveSession({ code, myCol, active: true });
-
-    Nav.game();
-    document.getElementById('s-game').classList.add('mode-lan');
-    fixBars(myCol);
-
-    const myName = normName(Cfg.data.playerName, 'أنا');
-    document.getElementById(myCol === 'w' ? 'nm-w' : 'nm-b').textContent = myName;
-    document.getElementById(E.opp(myCol) === 'w' ? 'nm-w' : 'nm-b').textContent = normName(oppName, 'الخصم');
-
-    document.getElementById('gmode').textContent = `LAN: ${code}`;
-    document.getElementById('btn-chat').style.display = 'flex';
-
-    if (!isResume) {
-      G.newGame();
-      try {
-        send({ type: 'name', name: myName });
-        if (Cfg.data.playerImage) send({ type: 'pimg', img: Cfg.data.playerImage });
-      } catch (e) {}
-    }
-
-    updatePlayerImages();
-  }
-
-  return {
-    pc: 'w',
-    init() {
-      setSt('c', '');
-      setSt('j', '');
-      document.getElementById('lan-rbox').style.display = 'none';
-      document.getElementById('lan-btn-create').disabled = false;
-      document.getElementById('lan-jinp').value = '';
-    },
-    tab(t) {
-      SFX.btn();
-      ['c', 'j'].forEach(x => {
-        document.getElementById('lan-tb-' + x).classList.toggle('on', x === t);
-        document.getElementById('lan-tc-' + x).classList.toggle('on', x === t);
-      });
-    },
-    col(c) {
-      SFX.btn();
-      this.pc = c;
-      ['w', 'b', 'r'].forEach(x => {
-        document.getElementById('lan-co-' + x).classList.toggle('on', x === c);
-      });
-    },
-    async create() {
-      if (!rtdb) {
-        setSt('c', '◆ Firebase غير متاح - تحقق من الاتصال بالإنترنت', 'err');
-        return;
-      }
-
-      SFX.btn();
-      setSt('c', '◌ جاري إنشاء غرفة...', 'conn');
-
-      try {
-        // توليد كود عشوائي
-        const code = String(1000 + Math.floor(Math.random() * 9000));
-        
-        // إنشاء الغرفة في Firebase
-        _roomCode = code;
-        _roomRef = rtdb.ref(`lan_rooms/${code}`);
-        _messagesRef = rtdb.ref(`lan_rooms/${code}/messages`);
-
-        const hostColor = this.pc === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : this.pc;
-        _myCol = hostColor;
-
-        await _roomRef.set({
-          host: {
-            color: hostColor,
-            name: Cfg.data.playerName || 'اللاعب 1',
-            joined: firebase.database.ServerValue.TIMESTAMP
-          },
-          guest: null,
-          createdAt: firebase.database.ServerValue.TIMESTAMP
-        });
-
-        // الاستماع للضيف
-        _unsubscribe = _roomRef.child('guest').on('value', (snapshot) => {
-          const guest = snapshot.val();
-          if (guest && guest.name) {
-            setSt('c', '◉ بدأت المباراة!', 'ok');
-            _go(_myCol, guest.name, code, false);
-            
-            // إرسال رسالة البداية للضيف
-            send({
-              type: 'start',
-              yourColor: guest.color,
-              oppName: Cfg.data.playerName || 'اللاعب 1'
-            });
-          }
-        });
-
-        // الاستماع للرسائل
-        _messagesRef.on('child_added', (snapshot) => {
-          const data = snapshot.val();
-          if (data) handleMessage(data);
-        });
-
-        document.getElementById('lan-rcode').textContent = code;
-        document.getElementById('lan-rbox').style.display = 'block';
-        document.getElementById('lan-btn-create').disabled = true;
-        setSt('c', '◍ في انتظار الجهاز الآخر...', 'wait');
-
-      } catch (e) {
-        console.error('[LAN] Create error:', e);
-        setSt('c', '◆ فشل إنشاء الغرفة: ' + e.message, 'err');
-      }
-    },
-    async join() {
-      if (!rtdb) {
-        setSt('j', '◆ Firebase غير متاح - تحقق من الاتصال بالإنترنت', 'err');
-        return;
-      }
-
-      const code = document.getElementById('lan-jinp').value.trim();
-      if (!code || code.length !== 4) {
-        setSt('j', '◆ أدخل كود صحيح (4 أرقام)', 'err');
-        return;
-      }
-
-      SFX.btn();
-      setSt('j', '◌ جاري الانضمام...', 'conn');
-
-      try {
-        _roomCode = code;
-        _roomRef = rtdb.ref(`lan_rooms/${code}`);
-        _messagesRef = rtdb.ref(`lan_rooms/${code}/messages`);
-
-        // التحقق من وجود الغرفة
-        const snapshot = await _roomRef.once('value');
-        const room = snapshot.val();
-
-        if (!room || !room.host) {
-          setSt('j', '◆ الكود غير صحيح أو انتهت صلاحية الغرفة', 'err');
-          return;
-        }
-
-        if (room.guest) {
-          setSt('j', '◆ الغرفة ممتلئة', 'err');
-          return;
-        }
-
-        const guestColor = room.host.color === 'w' ? 'b' : 'w';
-        _myCol = guestColor;
-
-        // الانضمام كضيف
-        await _roomRef.child('guest').set({
-          color: guestColor,
-          name: Cfg.data.playerName || 'اللاعب 2',
-          joined: firebase.database.ServerValue.TIMESTAMP
-        });
-
-        // الاستماع للرسائل
-        _messagesRef.on('child_added', (snapshot) => {
-          const data = snapshot.val();
-          if (data) handleMessage(data);
-        });
-
-        setSt('j', '◉ تم الانضمام! جاري بدء المباراة...', 'ok');
-        _go(guestColor, room.host.name || 'اللاعب 1', code, false);
-
-      } catch (e) {
-        console.error('[LAN] Join error:', e);
-        setSt('j', '◆ فشل الانضمام: ' + e.message, 'err');
-      }
-    },
-    leave() {
-      SFX.btn();
-      clearSession();
-      disconnect();
-      _roomCode = '';
-      document.getElementById('lan-rcode').textContent = '—';
-      document.getElementById('lan-rbox').style.display = 'none';
-      document.getElementById('lan-btn-create').disabled = false;
-      if (S.mode === 'lan') {
-        S.mode = '';
-        Nav.lan();
-        setSt('c', '◎ تم مغادرة غرفة LAN', '');
-      }
-    },
-    copy() {
-      SFX.btn();
-      const code = _roomCode || document.getElementById('lan-rcode').textContent;
-      if (!code || code === '—') return;
-      navigator.clipboard.writeText(code).then(() => {
-        const b = document.querySelector('#lan-rbox .rb-cp');
-        if (b) {
-          b.textContent = '◉ تم النسخ!';
-          setTimeout(() => (b.textContent = '⧉ نسخ الكود'), 2000);
-        }
-      }).catch(() => {});
-    },
-    sendMove(mv) {
-      send({ type: 'move', fr: mv.fr, to: mv.to, promo: mv.promo });
-    },
-    sendAssist(on) {
-      send({ type: 'assist', on });
-    },
-    sendChat(txt) {
-      send({ type: 'chat', text: txt });
-    },
-    sendVoice(audioData, durationSec) {
-      send({ type: 'voice', audio: audioData, duration: durationSec });
-    },
-    sendPimg(img) {
-      send({ type: 'pimg', img });
-    },
-    sendProfileImage(img) {
-      send({ type: 'pimg', img });
-    },
-    sendResign() {
-      send({ type: 'resign' });
-      clearSession();
-      setTimeout(() => disconnect(), 400);
-    },
-    dc() {
-      clearSession();
-      disconnect();
-    },
-    syncState() {} // لا حاجة له مع Firebase
   };
 })();
 
