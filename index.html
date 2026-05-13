@@ -12,9 +12,6 @@
 <link rel="apple-touch-icon" href="icon_v2.png?v=2">
 <link rel="icon" type="image/png" href="icon_v2.png?v=2">
 <title>♟ شطرنج — Am-Kh</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -55,20 +52,159 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* UI theme effect layers */
 body[data-ui-theme="cyberpunk"]::before{
   background:
-    radial-gradient(ellipse 80% 60% at 10% 20%,rgba(0,255,240,.14) 0%,transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 70%,rgba(255,0,170,.10) 0%,transparent 55%),
-    radial-gradient(ellipse 60% 70% at 50% 50%,rgba(96,165,250,.05) 0%,transparent 60%);
+    radial-gradient(circle at 14% 18%,rgba(0,255,231,.16) 0%,transparent 28%),
+    radial-gradient(circle at 88% 22%,rgba(255,32,154,.18) 0%,transparent 24%),
+    radial-gradient(circle at 72% 78%,rgba(125,89,255,.16) 0%,transparent 26%),
+    linear-gradient(180deg,#060711 0%,#0b1023 48%,#14091d 100%);
+}
+body[data-ui-theme="cyberpunk"]::after{
+  background-image:
+    linear-gradient(rgba(0,255,231,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,32,154,.035) 1px,transparent 1px),
+    linear-gradient(125deg,transparent 0 46%,rgba(255,255,255,.03) 46% 48%,transparent 48% 100%);
+  background-size:52px 52px,52px 52px,100% 100%;
+  opacity:.88;
+  mask-image:none;
+}
+body[data-ui-theme="cyberpunk"] #banner,
+body[data-ui-theme="cyberpunk"] .settings-section,
+body[data-ui-theme="cyberpunk"] .settings-tabs,
+body[data-ui-theme="cyberpunk"] .mc,
+body[data-ui-theme="cyberpunk"] .oc,
+body[data-ui-theme="cyberpunk"] .gobox,
+body[data-ui-theme="cyberpunk"] .learn-card,
+body[data-ui-theme="cyberpunk"] .lvl-hdr,
+body[data-ui-theme="cyberpunk"] .lp-card{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015)),
+    linear-gradient(135deg,rgba(6,10,24,.92),rgba(21,10,30,.9)) !important;
+  border-color:rgba(0,255,231,.18) !important;
+  box-shadow:0 18px 44px rgba(0,0,0,.34),0 0 0 1px rgba(255,32,154,.08),0 0 28px rgba(0,255,231,.08);
+}
+body[data-ui-theme="cyberpunk"] .settings-tab.active,
+body[data-ui-theme="cyberpunk"] .settings-action-btn,
+body[data-ui-theme="cyberpunk"] .btnp{
+  background:linear-gradient(135deg,#00ffe7 0%,#7d59ff 52%,#ff209a 100%) !important;
+  color:#070b14 !important;
+  box-shadow:0 14px 28px rgba(0,255,231,.18) !important;
+}
+body[data-ui-theme="cyberpunk"] .logo-ic,
+body[data-ui-theme="cyberpunk"] .mc-ic{
+  filter:drop-shadow(0 0 16px rgba(0,255,231,.24)) drop-shadow(0 0 26px rgba(255,32,154,.22));
+}
+body[data-ui-theme="gaming"]::before{
+  background:
+    radial-gradient(circle at 18% 18%,rgba(255,122,24,.16) 0%,transparent 30%),
+    radial-gradient(circle at 82% 18%,rgba(0,255,163,.15) 0%,transparent 28%),
+    radial-gradient(circle at 50% 82%,rgba(255,214,74,.10) 0%,transparent 30%),
+    linear-gradient(180deg,#06090f 0%,#101722 44%,#1a1010 100%);
+}
+body[data-ui-theme="gaming"]::after{
+  background-image:
+    linear-gradient(180deg,rgba(255,255,255,.028) 0 1px,transparent 1px),
+    linear-gradient(90deg,transparent 0 58%,rgba(255,255,255,.022) 58% 60%,transparent 60% 100%);
+  background-size:100% 5px,100% 100%;
+  opacity:.52;
+  mask-image:none;
+}
+body[data-ui-theme="gaming"] #banner,
+body[data-ui-theme="gaming"] .settings-section,
+body[data-ui-theme="gaming"] .settings-tabs,
+body[data-ui-theme="gaming"] .mc,
+body[data-ui-theme="gaming"] .oc,
+body[data-ui-theme="gaming"] .gobox,
+body[data-ui-theme="gaming"] .learn-card,
+body[data-ui-theme="gaming"] .lvl-hdr,
+body[data-ui-theme="gaming"] .lp-card{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),
+    linear-gradient(135deg,rgba(10,15,24,.94),rgba(25,14,10,.92)) !important;
+  border-color:rgba(255,122,24,.18) !important;
+  box-shadow:0 18px 48px rgba(0,0,0,.34),0 0 0 1px rgba(0,255,163,.06),0 0 30px rgba(255,122,24,.08);
+}
+body[data-ui-theme="gaming"] .settings-tab.active,
+body[data-ui-theme="gaming"] .settings-action-btn,
+body[data-ui-theme="gaming"] .btnp{
+  background:linear-gradient(135deg,#ff7a18 0%,#ffb347 45%,#00ffa3 100%) !important;
+  color:#08100e !important;
+  box-shadow:0 14px 30px rgba(255,122,24,.2) !important;
+}
+body[data-ui-theme="gaming"] .mc{
+  position:relative;
+  overflow:hidden;
+}
+body[data-ui-theme="gaming"] .mc::after{
+  content:'';
+  position:absolute;
+  inset:auto -18% 18% 42%;
+  height:36px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);
+  transform:rotate(-18deg);
+  pointer-events:none;
+}
+body[data-ui-theme="gaming"] .mc:hover{box-shadow:0 14px 44px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06) !important;}
+body[data-ui-theme="minimal"]::before{
+  background:
+    radial-gradient(circle at 22% 18%,rgba(255,255,255,.08) 0%,transparent 24%),
+    radial-gradient(circle at 84% 82%,rgba(148,163,184,.08) 0%,transparent 25%),
+    linear-gradient(180deg,#0a1017 0%,#111923 100%);
+}
+body[data-ui-theme="minimal"]::after{
+  background-image:linear-gradient(180deg,rgba(255,255,255,.02) 1px,transparent 1px);
+  background-size:100% 30px;
+  opacity:.4;
+  mask-image:none;
+}
+body[data-ui-theme="minimal"] #banner,
+body[data-ui-theme="minimal"] .settings-section,
+body[data-ui-theme="minimal"] .settings-tabs,
+body[data-ui-theme="minimal"] .mc,
+body[data-ui-theme="minimal"] .oc,
+body[data-ui-theme="minimal"] .gobox,
+body[data-ui-theme="minimal"] .learn-card,
+body[data-ui-theme="minimal"] .lvl-hdr,
+body[data-ui-theme="minimal"] .lp-card{
+  background:linear-gradient(180deg,rgba(17,25,35,.96),rgba(15,21,29,.92)) !important;
+  border-color:rgba(255,255,255,.08) !important;
+  box-shadow:0 16px 36px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.03);
+}
+body[data-ui-theme="minimal"] .settings-tab.active,
+body[data-ui-theme="minimal"] .settings-action-btn,
+body[data-ui-theme="minimal"] .btnp{
+  background:linear-gradient(135deg,#f8fafc 0%,#cbd5e1 100%) !important;
+  color:#0f172a !important;
+  box-shadow:0 12px 24px rgba(148,163,184,.16) !important;
+}
+body[data-ui-theme="glass"]::before{
+  background:
+    radial-gradient(circle at 14% 18%,rgba(147,197,253,.18) 0%,transparent 28%),
+    radial-gradient(circle at 84% 18%,rgba(167,243,208,.16) 0%,transparent 26%),
+    radial-gradient(circle at 78% 76%,rgba(255,255,255,.12) 0%,transparent 24%),
+    linear-gradient(180deg,#08111d 0%,#0d1624 100%);
+}
+body[data-ui-theme="glass"]::after{
+  background-image:
+    linear-gradient(120deg,transparent 0 42%,rgba(255,255,255,.05) 42% 45%,transparent 45% 100%),
+    radial-gradient(circle at 20% 28%,rgba(255,255,255,.08) 0 1px,transparent 1.6px),
+    radial-gradient(circle at 68% 74%,rgba(255,255,255,.08) 0 1.2px,transparent 1.8px);
+  background-size:100% 100%,140px 140px,170px 170px;
+  opacity:.86;
+  mask-image:none;
 }
 body[data-ui-theme="glass"] #banner,
 body[data-ui-theme="glass"] .sc,
+body[data-ui-theme="glass"] .settings-section,
+body[data-ui-theme="glass"] .settings-tabs,
 body[data-ui-theme="glass"] .mc,
 body[data-ui-theme="glass"] .oc,
-body[data-ui-theme="glass"] .gobox{
+body[data-ui-theme="glass"] .gobox,
+body[data-ui-theme="glass"] .learn-card,
+body[data-ui-theme="glass"] .lvl-hdr,
+body[data-ui-theme="glass"] .lp-card{
   background:rgba(255,255,255,.06) !important;
   backdrop-filter:blur(14px) saturate(140%) !important;
   border-color:rgba(255,255,255,.12) !important;
 }
-body[data-ui-theme="gaming"] .mc:hover{box-shadow:0 14px 44px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06) !important;}
 body[data-ui-theme="anime"]::before{
   background:
     radial-gradient(circle at 18% 18%,rgba(255,124,191,.18) 0%,transparent 32%),
@@ -454,7 +590,7 @@ body[data-ui-theme="anime"] .settings-headline{
 }
 
 /* ══════════ ONLINE / LAN ══════════ */
-#s-online{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 14px 24px;gap:11px;}
+#s-online,#s-lan{flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:36px 14px 24px;gap:11px;}
 .oc{background:var(--bg2);border:1px solid rgba(201,168,76,.13);border-radius:18px;padding:25px;width:100%;max-width:430px;box-shadow:0 8px 40px rgba(0,0,0,.4);}
 .oc h2{font-family:'Amiri',serif;font-size:22px;color:var(--gold2);text-align:center;margin-bottom:4px;}
 .oc-sub{color:var(--text2);font-size:12px;text-align:center;margin-bottom:16px;}
@@ -1348,10 +1484,6 @@ body[data-ui-theme="anime"] .settings-headline{
   #s-game.mode-bot .chat-wrap{order:6;}
 }
 </style>
-<!-- Firebase SDK for Firestore only (no auth) -->
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
 <!-- QR Code Libraries for LAN Mode -->
 </head>
 <body>
@@ -1387,6 +1519,13 @@ body[data-ui-theme="anime"] .settings-headline{
       <span class="mc-b bt">سيرفر WebSocket ◈</span>
     </div>
 
+    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.lan()">
+      <span class="mc-ic ic-blue">⌘</span>
+      <div class="mc-t">LAN محلي</div>
+      <div class="mc-d">غرفة محلية بين جهازين على نفس الشبكة بدون إنترنت</div>
+      <span class="mc-b bb">كود 4 أرقام</span>
+    </div>
+
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
       <span class="mc-ic ic-gold">◈</span>
       <div class="mc-t">مراحل نور</div>
@@ -1407,7 +1546,7 @@ body[data-ui-theme="anime"] .settings-headline{
     </div>
 
       </div>
-  <div class="offline-n">◉ مراحل نور ولاعبَان يعملان بدون إنترنت بالكامل</div>
+  <div class="offline-n">◉ LAN المحلي ومراحل نور ولاعبَان يعملون بدون إنترنت عند التشغيل المحلي</div>
 </div>
 
 <!-- LEVELS -->
@@ -1705,6 +1844,43 @@ body[data-ui-theme="anime"] .settings-headline{
         <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">⊕ ابحث عن خصم</button>
         <button class="btnb" id="btn-mc" style="flex:1;display:none" onclick="OL.mmCancel()">◆ إلغاء</button>
       </div>
+    </div>
+    <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
+  </div>
+</div>
+
+<!-- LAN -->
+<div id="s-lan" class="screen">
+  <div class="oc">
+    <h2><span class="ic-blue">⌘</span> LAN محلي</h2>
+    <p class="oc-sub">اتصال محلي فقط بين جهازين على نفس الواي فاي أو الهوتسبوت</p>
+    <div class="p2p">يستخدم نفس سيرفر <strong>Node + WebSocket</strong> على الشبكة المحلية فقط.<br><span style="font-size:11px;opacity:.8">لا رابط ولا QR ولا إدخال IP، فقط كود الغرفة.</span></div>
+    <div class="tabs">
+      <button class="tbb on" id="lan-tb-c" onclick="LAN.tab('c')">إنشاء غرفة</button>
+      <button class="tbb" id="lan-tb-j" onclick="LAN.tab('j')">انضمام</button>
+    </div>
+    <div id="lan-tc-c" class="tc on">
+      <p class="flbl">لون قطعك</p>
+      <div class="copts">
+        <div class="copt on" id="lan-co-w" onclick="LAN.col('w')"><span>♔</span>أبيض</div>
+        <div class="copt" id="lan-co-b" onclick="LAN.col('b')"><span>♚</span>أسود</div>
+        <div class="copt" id="lan-co-r" onclick="LAN.col('r')"><span class="ic-t2">◌</span>عشوائي</div>
+      </div>
+      <div id="lan-st-c" class="ost"></div>
+      <div id="lan-rbox" class="rbox">
+        <div class="rb-l">كود غرفة LAN</div>
+        <div class="rb-c" id="lan-rcode">—</div>
+        <div class="rb-h">افتح الجهاز الثاني على نفس الشبكة وأدخل هذا الكود</div>
+        <button class="rb-cp" onclick="SFX.btn();LAN.copy()">⧉ نسخ الكود</button>
+        <button class="rb-cp" onclick="SFX.btn();LAN.leave()" style="margin-top:8px;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171;">◇ مغادرة الغرفة</button>
+      </div>
+      <button class="btnp" id="lan-btn-create" onclick="LAN.create()">⌘ إنشاء غرفة محلية</button>
+    </div>
+    <div id="lan-tc-j" class="tc">
+      <p class="flbl">أدخل كود الغرفة</p>
+      <input class="finp" id="lan-jinp" placeholder="4 أرقام" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
+      <div id="lan-st-j" class="ost"></div>
+      <button class="btnp" onclick="LAN.join()">◈ الانضمام</button>
     </div>
     <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
   </div>
@@ -2224,36 +2400,36 @@ const UI_THEMES={
     accent:'#c9a84c',accent2:'#2dd4bf',fxGlow:'rgba(201,168,76,.28)',fxNeon:'rgba(45,212,191,.22)'
   },
   minimal:{
-    bg:'#0b0f14',bg2:'#10161d',bg3:'#141d26',bg4:'#1a2632',
-    gold:'#e5e7eb',gold2:'#f3f4f6',gold3:'#ffffff',
-    teal:'#94a3b8',teal2:'#cbd5e1',
-    red:'#fca5a5',green:'#86efac',blue:'#93c5fd',
-    text:'#e5e7eb',text2:'#94a3b8',text3:'#64748b',
-    accent:'#e5e7eb',accent2:'#93c5fd',fxGlow:'rgba(203,213,225,.16)',fxNeon:'rgba(147,197,253,.18)'
+    bg:'#0a1017',bg2:'#111923',bg3:'#17212d',bg4:'#1d2937',
+    gold:'#f8fafc',gold2:'#dbe4ef',gold3:'#ffffff',
+    teal:'#8fa3ba',teal2:'#c5d0dc',
+    red:'#fda4af',green:'#a7f3d0',blue:'#bfd7ff',
+    text:'#edf2f7',text2:'#9aa9bc',text3:'#6f8196',
+    accent:'#f8fafc',accent2:'#bfd7ff',fxGlow:'rgba(219,228,239,.14)',fxNeon:'rgba(191,215,255,.14)'
   },
   cyberpunk:{
-    bg:'#050510',bg2:'#0a0a20',bg3:'#0f0f30',bg4:'#151540',
-    gold:'#ff00ff',gold2:'#ff66ff',gold3:'#ffb3ff',
-    teal:'#00ffff',teal2:'#66ffff',
-    red:'#ff0066',green:'#00ff66',blue:'#0066ff',
-    text:'#e0e0ff',text2:'#b0b0ff',text3:'#6060ff',
-    accent:'#00ffff',accent2:'#ff00ff',fxGlow:'rgba(255,0,255,.35)',fxNeon:'rgba(0,255,255,.35)'
+    bg:'#060711',bg2:'#0d1222',bg3:'#15112a',bg4:'#1f1737',
+    gold:'#ff46c7',gold2:'#ff89df',gold3:'#ffd0f0',
+    teal:'#00ffe7',teal2:'#92fff7',
+    red:'#ff5b7f',green:'#2fffa8',blue:'#7d59ff',
+    text:'#eef6ff',text2:'#aab6e8',text3:'#6670a9',
+    accent:'#00ffe7',accent2:'#ff209a',fxGlow:'rgba(255,32,154,.28)',fxNeon:'rgba(0,255,231,.3)'
   },
   glass:{
-    bg:'#0b1220',bg2:'rgba(255,255,255,.06)',bg3:'rgba(255,255,255,.08)',bg4:'rgba(255,255,255,.10)',
-    gold:'#93c5fd',gold2:'#bfdbfe',gold3:'#eff6ff',
-    teal:'#a7f3d0',teal2:'#d1fae5',
-    red:'#fda4af',green:'#86efac',blue:'#93c5fd',
-    text:'#eff6ff',text2:'#bfdbfe',text3:'#93c5fd',
-    accent:'#93c5fd',accent2:'#a7f3d0',fxGlow:'rgba(147,197,253,.18)',fxNeon:'rgba(167,243,208,.16)'
+    bg:'#09111d',bg2:'rgba(255,255,255,.07)',bg3:'rgba(255,255,255,.1)',bg4:'rgba(255,255,255,.13)',
+    gold:'#d8e8ff',gold2:'#eef6ff',gold3:'#ffffff',
+    teal:'#a7ffe1',teal2:'#defef3',
+    red:'#ffb4bf',green:'#b2ffd7',blue:'#9fd0ff',
+    text:'#f4fbff',text2:'#d4e7ff',text3:'#9ebfe0',
+    accent:'#d8e8ff',accent2:'#a7ffe1',fxGlow:'rgba(159,208,255,.18)',fxNeon:'rgba(167,255,225,.16)'
   },
   gaming:{
-    bg:'#05080f',bg2:'#0a0f1a',bg3:'#0f1825',bg4:'#152030',
-    gold:'#ff6b00',gold2:'#ff9500',gold3:'#ffaa33',
-    teal:'#00ff88',teal2:'#66ffaa',
-    red:'#ff3333',green:'#00ff88',blue:'#3388ff',
-    text:'#ffffff',text2:'#cccccc',text3:'#888888',
-    accent:'#ff6b00',accent2:'#00ff88',fxGlow:'rgba(255,107,0,.35)',fxNeon:'rgba(0,255,136,.35)'
+    bg:'#06090f',bg2:'#101722',bg3:'#171f28',bg4:'#241714',
+    gold:'#ff7a18',gold2:'#ffb347',gold3:'#ffe08a',
+    teal:'#00ffa3',teal2:'#8bffd4',
+    red:'#ff5c5c',green:'#00ffa3',blue:'#6cb7ff',
+    text:'#f5fbff',text2:'#c9d3db',text3:'#81909f',
+    accent:'#ff7a18',accent2:'#00ffa3',fxGlow:'rgba(255,122,24,.3)',fxNeon:'rgba(0,255,163,.28)'
   },
   anime:{
     bg:'#07111f',bg2:'#101a2f',bg3:'#16233d',bg4:'#1d2d4f',
@@ -3140,7 +3316,7 @@ const Cfg={
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
   // Determine colors - support both 'online' mode and preview mode (when S.mode not yet set)
-  const isOnlineOrPreview = S.mode==='online' || (S.oppImg !== null && S.oppImg !== undefined);
+  const isOnlineOrPreview = isRemoteMatchMode() || (S.oppImg !== null && S.oppImg !== undefined);
   if(isOnlineOrPreview){
     const myCol=S.myCol||'w';
     const oppCol=myCol==='w'?'b':'w';
@@ -4067,7 +4243,7 @@ const CHAT={
           av.style.borderColor='rgba(201,168,76,.22)';
         }
       }else if(type==='opp'){
-        if(S.mode==='online'&&S.oppImg){
+    if(isRemoteMatchMode()&&S.oppImg){
           av.style.backgroundImage=`url(${S.oppImg})`;
         }else if(S.mode==='bot'&&S.levelId>=0){
           av.classList.add('nour');
@@ -4102,6 +4278,7 @@ const CHAT={
     inp.value='';
     this._addMsg(txt,'me');
     if(S.mode==='online')OL.sendChat(txt);
+    else if(S.mode==='lan')LAN.sendChat(txt);
     else if(S.mode==='bot'&&S.levelId>=0)this._sendToNour(txt);
   },
   async _sendToNour(txt){
@@ -4324,6 +4501,7 @@ ${pn}: ${txt}
         const base64Data=this._arrayBufferToBase64(arrayBuffer);
         this._addMsg(durationSec+'','me',true,base64Data);
         if(S.mode==='online')OL.sendVoice(base64Data,durationSec);
+        else if(S.mode==='lan')LAN.sendVoice(base64Data,durationSec);
       };
       reader.onerror=()=>{
         Modal.show('فشل في معالجة التسجيل','تنبيه','✕');
@@ -4471,7 +4649,7 @@ ${pn}: ${txt}
     document.getElementById('chat-badge').classList.remove('show');
     // Show/hide mic based on mode
     const micBtn=document.getElementById('chat-mic');
-    if(micBtn)micBtn.style.display=(S.mode==='online')?'flex':'none';
+    if(micBtn)micBtn.style.display=(isRemoteMatchMode())?'flex':'none';
     // Show Nour welcome in levels mode
     if(S.mode==='bot'&&S.levelId>=0){
       this._addMsg('مرحباً! أنا نور. تحدث معي anytime 💬','opp');
@@ -5192,7 +5370,7 @@ const R={
     // In local mode, board stays stationary - no square swapping
     // Only pieces rotate via CSS when black's turn
     // In online mode, flip board when player is black so their pieces are at bottom
-    const flip=(S.mode==='online' && S.myCol==='b');
+    const flip=(isRemoteMatchMode() && S.myCol==='b');
     // Apply black-turn class to body/game for piece flipping in local mode
     const sGame=document.getElementById('s-game');
     if(sGame){
@@ -5380,7 +5558,7 @@ const R={
     if(wBtn)wBtn.style.display='none';
     if(bBtn)bBtn.style.display='none';
 
-    if(S.mode==='online'){
+    if(isRemoteMatchMode()){
       const myEl=S.myCol==='b'?bEl:wEl;
       const opEl=S.myCol==='b'?wEl:bEl;
       if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
@@ -5467,7 +5645,7 @@ const G={
     R.boardReset();
     CHAT.hide();
     const sg=document.getElementById('s-game');
-    sg.classList.remove('mode-local','mode-bot','mode-online');
+    sg.classList.remove('mode-local','mode-bot','mode-online','mode-lan');
     sg.classList.add('mode-'+mode);
     document.getElementById('go-ov').classList.remove('open');
     document.getElementById('promo-ov').classList.remove('open');
@@ -5501,7 +5679,7 @@ const G={
     if(S.over||S.pending)return;
 
     const isWaitingTurn=S.mode!=='local'&&(
-                        (S.mode==='online'&&S.turn!==S.myCol)||
+                        (isRemoteMatchMode()&&S.turn!==S.myCol)||
                         (S.mode==='bot'&&S.turn==='b'));
     if(isWaitingTurn){
       const myCol=S.mode==='bot'?'w':S.myCol;
@@ -5530,7 +5708,7 @@ const G={
     }
 
     if(S.busy)return;
-    if(S.mode==='online'&&S.turn!==S.myCol)return;
+    if(isRemoteMatchMode()&&S.turn!==S.myCol)return;
 
     const isLeg=S.legal.some(([lr,lc])=>lr===r&&lc===c);
     if(isLeg){this.exec(S.sel,[r,c]);return;}
@@ -5546,11 +5724,12 @@ const G={
   },
   async finish(fr,to,promo){
     if(S.mode==='online')OL.sendMove({fr,to,promo});
+    else if(S.mode==='lan')LAN.sendMove({fr,to,promo});
     await this.applyMove(fr,to,promo);
   },
   async applyMove(fr,to,promo){
     const cl=E.col(S.bd[fr[0]][fr[1]]);
-    const isOwnMove=S.mode!=='online'||(S.turn===S.myCol);
+    const isOwnMove=!isRemoteMatchMode()||(S.turn===S.myCol);
     if(isOwnMove){S.preMove=null;S.preMoveSelFr=null;}
     if(S.mode==='local'){
       S.undoStack.push({
@@ -5598,6 +5777,7 @@ const G={
     else if(isCheck)    SFX.check();
     else                SFX.move();
     await R.all();
+    if(S.mode==='lan')LAN.syncState();
     if(S.mode==='bot'&&S.levelId>=0){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
@@ -5636,6 +5816,7 @@ const G={
     }
     if(!avail.length || insufficient){
       S.over=true;
+      if(S.mode==='lan')LAN.syncState();
       if(insufficient){
         setTimeout(()=>{
           try{SFX.draw();}catch(e){}
@@ -5733,7 +5914,7 @@ const G={
         }
       },thinkDelay);
     }else{
-      if(S.mode==='online'&&S.preMove&&S.turn===S.myCol){
+      if(isRemoteMatchMode()&&S.preMove&&S.turn===S.myCol){
         const pm=S.preMove;
         S.preMove=null;S.preMoveSelFr=null;
         const stillLegal=E.legal(S.bd,pm.fr[0],pm.fr[1],S.cas,S.ep)
@@ -5801,7 +5982,7 @@ const G={
       qGrid.innerHTML='';
       qLoad.style.display='flex';
 
-      const myCol=(S.mode==='online' ? (S.myCol||'w') : 'w');
+      const myCol=(isRemoteMatchMode() ? (S.myCol||'w') : 'w');
       const snaps=S.snapshots;
       if(!snaps||snaps.length<2){qLoad.style.display='none';return;}
 
@@ -5954,16 +6135,18 @@ const G={
   restart(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online'){OL.dc();Nav.menu();}
+    else if(S.mode==='lan'){LAN.dc();Nav.menu();}
     else if(S.levelId>=0)this.startLevel(S.levelId);
     else this.start(S.mode,S.diff);
   },
   goMenu(){
     SFX.btn();document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online')OL.dc();
+    else if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   back(){
-    const mustConfirm=Cfg.data.confirm&&!S.over&&(S.hist.length>0||S.mode==='online');
+    const mustConfirm=Cfg.data.confirm&&!S.over&&(S.hist.length>0||isRemoteMatchMode());
     if(!mustConfirm)SFX.btn();
     S.busy=false;AST.clear();
     if(mustConfirm){
@@ -5976,19 +6159,22 @@ const G={
     this._continueBack();
   },
   _continueBack(){
-    if(S.mode==='online'&&!S.over){
+    if(isRemoteMatchMode()&&!S.over){
       S.over=true;
-      OL.sendResign();
+      if(S.mode==='online')OL.sendResign();
+      else LAN.sendResign();
       G.showOver('◆','خسرت','انسحبت من اللعبة','#f87171');
       document.getElementById('go-review').style.display='inline-flex';
       return;
     }
     if(S.mode==='online')OL.dc();
+    else if(S.mode==='lan')LAN.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   async toggleAst(){
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
     if(S.mode==='online')OL.sendAssist(S.assistOn);
+    else if(S.mode==='lan')LAN.sendAssist(S.assistOn);
     if(S.assistOn){SFX.hint();AST.compute();}
     await R.all();
   },
@@ -6037,12 +6223,17 @@ const Nav={
   },
   menu(){Nav.show('s-menu');},
   levels(){Nav.show('s-levels');LVL.buildUI();},
-  online(){Nav.show('s-online');},
+  online(){Nav.show('s-online');try{OL.init();}catch(e){}},
+  lan(){Nav.show('s-lan');try{LAN.init();}catch(e){}},
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
   game(){Nav.show('s-game');},
   back(){history.back();}
 };
+
+function isRemoteMatchMode(mode=S.mode){
+  return mode==='online'||mode==='lan';
+}
 
 function fixBars(myCol){
   const container=document.getElementById('board-container');
@@ -6088,7 +6279,6 @@ const OL=(()=>{
       SERVER_HTTP='';
     }
   }
-  loadServerUrl();
 
   let ws=null;
   let _myCol='w';
@@ -6403,6 +6593,437 @@ const OL=(()=>{
   };
 })();
 
+const LAN=(()=>{
+  const SESSION_KEY='chess-lan-session-v1';
+  let ws=null;
+  let _myCol='w';
+  let _roomCode='';
+  let _pingTimer=null;
+  let _reconnectTimer=null;
+  let _manualClose=false;
+
+  function getWsUrl(){
+    return `${location.protocol==='https:'?'wss':'ws'}://${location.host}`;
+  }
+
+  function loadSession(){
+    try{
+      const raw=localStorage.getItem(SESSION_KEY);
+      if(!raw)return null;
+      const data=JSON.parse(raw);
+      return data&&typeof data==='object'?data:null;
+    }catch(e){return null;}
+  }
+
+  function saveSession(extra={}){
+    try{
+      const next={code:_roomCode,myCol:_myCol,active:true,...extra};
+      localStorage.setItem(SESSION_KEY,JSON.stringify(next));
+    }catch(e){}
+  }
+
+  function clearSession(){
+    try{localStorage.removeItem(SESSION_KEY);}catch(e){}
+  }
+
+  function setSt(tab,msg,tp=''){
+    const el=document.getElementById('lan-st-'+tab);
+    if(el){el.className='ost'+(tp?' '+tp:'');el.textContent=msg;}
+  }
+
+  function resetTimers(){
+    clearInterval(_pingTimer);
+    clearTimeout(_reconnectTimer);
+    _pingTimer=null;
+    _reconnectTimer=null;
+  }
+
+  function disconnect(manual=true){
+    resetTimers();
+    _manualClose=manual;
+    if(ws){
+      try{ws.close();}catch(e){}
+      ws=null;
+    }
+  }
+
+  function send(obj){
+    if(ws&&ws.readyState===WebSocket.OPEN){
+      try{ws.send(JSON.stringify({...obj,scope:'lan'}));}catch(e){}
+    }
+  }
+
+  function cloneState(){
+    return JSON.parse(JSON.stringify({
+      bd:S.bd,
+      turn:S.turn,
+      cas:S.cas,
+      ep:S.ep,
+      capW:S.capW,
+      capB:S.capB,
+      hist:S.hist,
+      lastMove:S.lastMove,
+      moveCount:S.moveCount,
+      over:S.over,
+      repMap:S.repMap,
+      snapshots:S.snapshots,
+      assistW:S.assistW,
+      assistB:S.assistB,
+      assistOn:S.assistOn,
+      oppUsingAssist:S.oppUsingAssist
+    }));
+  }
+
+  async function applyState(state){
+    if(!state||typeof state!=='object')return;
+    if(Array.isArray(state.bd))S.bd=state.bd.map(r=>Array.isArray(r)?[...r]:r);
+    S.turn=state.turn||S.turn;
+    S.cas=state.cas||S.cas;
+    S.ep=Array.isArray(state.ep)?[...state.ep]:null;
+    S.capW=Array.isArray(state.capW)?[...state.capW]:[];
+    S.capB=Array.isArray(state.capB)?[...state.capB]:[];
+    S.hist=Array.isArray(state.hist)?[...state.hist]:[];
+    S.lastMove=state.lastMove&&Array.isArray(state.lastMove.from)&&Array.isArray(state.lastMove.to)
+      ?{from:[...state.lastMove.from],to:[...state.lastMove.to]}
+      :null;
+    S.moveCount=Number.isFinite(state.moveCount)?state.moveCount:0;
+    S.over=!!state.over;
+    S.repMap=state.repMap&&typeof state.repMap==='object'?{...state.repMap}:{};
+    S.snapshots=Array.isArray(state.snapshots)?state.snapshots.map(s=>({
+      ...s,
+      bd:Array.isArray(s.bd)?s.bd.map(r=>Array.isArray(r)?[...r]:r):[]
+    })):[];
+    S.assistW=!!state.assistW;
+    S.assistB=!!state.assistB;
+    S.assistOn=!!state.assistOn;
+    S.oppUsingAssist=!!state.oppUsingAssist;
+    S.sel=null;
+    S.legal=[];
+    S.pending=null;
+    AST.clear();
+    await R.all();
+    updatePlayerImages();
+  }
+
+  function syncState(){
+    if(S.mode!=='lan'||!_roomCode)return;
+    send({type:'state-sync',deviceId:LVL._getDeviceId(),state:cloneState()});
+  }
+
+  function scheduleReconnect(){
+    if(_manualClose||!_roomCode||S.over)return;
+    resetTimers();
+    setSt('c','◌ جارٍ إعادة الاتصال بغرفة LAN...','conn');
+    setSt('j','◌ جارٍ إعادة الاتصال بغرفة LAN...','conn');
+    try{CHAT._addMsg('انقطع الاتصال محليًا، نحاول الاستعادة تلقائيًا...','sys');}catch(e){}
+    _reconnectTimer=setTimeout(()=>connect(true),1800);
+  }
+
+  async function _go(mc,oppName='',code=_roomCode,resume=false){
+    const oc=E.opp(mc);
+    G._reset('lan',0);
+    S.mode='lan';S.levelId=-1;S.myCol=mc;
+    _myCol=mc;
+    _roomCode=code||_roomCode;
+    saveSession({code:_roomCode,myCol:mc,active:true});
+    document.getElementById('gmode').textContent='⌘ LAN محلي';
+    const myName=normName(Cfg.data.playerName,'أنا');
+    const oppLabel=normName(oppName,'الخصم');
+    document.getElementById(mc==='w'?'nm-w':'nm-b').textContent=myName;
+    document.getElementById(oc==='w'?'nm-w':'nm-b').textContent=oppLabel;
+    fixBars(mc);
+    CHAT.show();
+    Nav.game();
+    await R.all();
+    updatePlayerImages();
+    setTimeout(()=>{
+      send({type:'name',name:myName,deviceId:LVL._getDeviceId()});
+      if(Cfg.data.playerImage) send({type:'pimg',img:Cfg.data.playerImage,deviceId:LVL._getDeviceId()});
+      syncState();
+    },220);
+    if(!resume)SFX.startgame();
+  }
+
+  function handleMsg(d){
+    switch(d.type){
+      case 'room-created':
+        _roomCode=d.code||'';
+        saveSession({code:_roomCode,active:true});
+        document.getElementById('lan-rcode').textContent=_roomCode||'—';
+        document.getElementById('lan-rbox').style.display='block';
+        setSt('c','◍ في انتظار الجهاز الآخر...','wait');
+        try{
+          send({type:'name',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
+          if(Cfg.data.playerImage)send({type:'pimg',img:Cfg.data.playerImage,deviceId:LVL._getDeviceId()});
+        }catch(e){}
+        break;
+
+      case 'room-joined':
+        setSt('j','◌ جارٍ بدء المباراة المحلية...','conn');
+        break;
+
+      case 'room-error':
+        setSt('j','◆ '+(d.msg||'تعذر الانضمام إلى الغرفة'),'err');
+        break;
+
+      case 'start':
+        _go(d.yourColor,d.oppName||'',d.room||_roomCode,false);
+        break;
+
+      case 'resume-ok':
+        _roomCode=d.code||_roomCode;
+        _myCol=d.yourColor||_myCol;
+        saveSession({code:_roomCode,myCol:_myCol,active:true});
+        setSt('c','◉ تمت استعادة الجلسة المحلية','ok');
+        setSt('j','◉ تمت استعادة الجلسة المحلية','ok');
+        if(!d.started){
+          Nav.show('s-lan');
+          document.getElementById('lan-rbox').style.display='block';
+          document.getElementById('lan-rcode').textContent=_roomCode||'—';
+          document.getElementById('lan-btn-create').disabled=true;
+          setSt('c','◍ تمت استعادة غرفة الانتظار المحلية','wait');
+        }else if(S.mode!=='lan'){
+          _go(_myCol,d.oppName||'',_roomCode,true);
+        }else{
+          S.myCol=_myCol;
+          fixBars(_myCol);
+          const myName=normName(Cfg.data.playerName,'أنا');
+          const oppName=normName(d.oppName||'','الخصم');
+          document.getElementById(_myCol==='w'?'nm-w':'nm-b').textContent=myName;
+          document.getElementById(E.opp(_myCol)==='w'?'nm-w':'nm-b').textContent=oppName;
+          if(d.oppImg)S.oppImg=d.oppImg;
+          updatePlayerImages();
+        }
+        break;
+
+      case 'resume-state':
+        applyState(d.state);
+        break;
+
+      case 'resume-failed':
+        clearSession();
+        setSt('c','◆ انتهت جلسة LAN أو لم تعد قابلة للاستعادة','err');
+        setSt('j','◆ انتهت جلسة LAN أو لم تعد قابلة للاستعادة','err');
+        break;
+
+      case 'peer-disconnected':
+        try{CHAT._addMsg('انقطع اتصال الخصم مؤقتًا، ننتظر عودته...','sys');}catch(e){}
+        break;
+
+      case 'peer-reconnected':
+        try{CHAT._addMsg('عاد الخصم إلى الغرفة المحلية','sys');}catch(e){}
+        if(d.name){
+          const oc=E.opp(S.myCol||_myCol||'w');
+          const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
+          if(oppEl)oppEl.textContent=normName(d.name,'الخصم');
+        }
+        if(d.pimg){
+          S.oppImg=d.pimg;
+          updatePlayerImages();
+        }
+        break;
+
+      case 'move':
+        if(S.mode==='lan'){
+          S.sel=[];S.legal=[];
+          SFX.init();
+          G.applyMove(d.fr,d.to,d.promo||null);
+          if(document.hidden)Notifications.yourTurn();
+        }
+        break;
+
+      case 'assist':
+        S.oppUsingAssist=d.on;
+        R.astLbls();
+        break;
+
+      case 'resign':
+        if(!S.over){
+          clearSession();
+          S.over=true;
+          G.showOver('✦','فوز!','انسحب الخصم من غرفة LAN','#e8d080');
+          document.getElementById('go-review').style.display='inline-flex';
+        }
+        break;
+
+      case 'chat':
+        CHAT.recv(d.text);
+        break;
+
+      case 'voice':
+        if(d.audio){
+          CHAT.recvVoice(d.audio,typeof d.duration==='number'?d.duration:parseInt(d.duration)||0);
+        }
+        break;
+
+      case 'name':
+        {
+          const oc=E.opp(S.myCol||_myCol||'w');
+          const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
+          const nm=(d.name||'').trim();
+          if(oppEl)oppEl.textContent=(!nm||nm==='أنا')?'الخصم':nm;
+        }
+        break;
+
+      case 'pimg':
+        if(d.img){
+          S.oppImg=d.img;
+          updatePlayerImages();
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  function connect(isResume=false,onOpen){
+    resetTimers();
+    _manualClose=false;
+    if(ws&&ws.readyState===WebSocket.OPEN){
+      if(isResume){
+        send({type:'resume',code:_roomCode,deviceId:LVL._getDeviceId()});
+      }else if(onOpen){
+        onOpen();
+      }
+      return;
+    }
+    try{
+      ws=new WebSocket(getWsUrl());
+    }catch(e){
+      setSt('c','◆ تعذر الاتصال بالسيرفر المحلي','err');
+      setSt('j','◆ تعذر الاتصال بالسيرفر المحلي','err');
+      return;
+    }
+
+    ws.onopen=()=>{
+      _pingTimer=setInterval(()=>send({type:'ping'}),25000);
+      if(isResume){
+        send({type:'resume',code:_roomCode,deviceId:LVL._getDeviceId()});
+      }else if(onOpen){
+        onOpen();
+      }
+    };
+
+    ws.onmessage=(ev)=>{
+      try{handleMsg(JSON.parse(ev.data));}catch(e){}
+    };
+
+    ws.onclose=()=>{
+      clearInterval(_pingTimer);
+      _pingTimer=null;
+      ws=null;
+      if(_manualClose)return;
+      if(S.mode==='lan'&&!S.over)scheduleReconnect();
+    };
+
+    ws.onerror=()=>{
+      setSt('c','◆ تعذر الوصول إلى السيرفر المحلي','err');
+      setSt('j','◆ تعذر الوصول إلى السيرفر المحلي','err');
+    };
+  }
+
+  return{
+    pc:'w',
+    init(){
+      setSt('c','');
+      setSt('j','');
+      document.getElementById('lan-rbox').style.display='none';
+      document.getElementById('lan-btn-create').disabled=false;
+      document.getElementById('lan-jinp').value='';
+      const saved=loadSession();
+      if(saved&&saved.code){
+        _roomCode=saved.code;
+        _myCol=saved.myCol||'w';
+      }
+      disconnect(true);
+    },
+    tab(n){
+      SFX.btn();
+      ['c','j'].forEach(t=>{
+        document.getElementById('lan-tb-'+t).classList.toggle('on',t===n);
+        document.getElementById('lan-tc-'+t).classList.toggle('on',t===n);
+      });
+    },
+    col(c){
+      SFX.btn();
+      this.pc=c;
+      ['w','b','r'].forEach(x=>document.getElementById('lan-co-'+x).classList.toggle('on',x===c));
+    },
+    create(){
+      SFX.btn();
+      let col=this.pc;
+      if(col==='r')col=Math.random()<.5?'w':'b';
+      _myCol=col;
+      document.getElementById('lan-btn-create').disabled=true;
+      setSt('c','◌ جارٍ إنشاء غرفة LAN...','conn');
+      connect(false,()=>{
+        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
+      });
+    },
+    join(){
+      SFX.btn();
+      const code=document.getElementById('lan-jinp').value.trim();
+      if(code.length!==4){setSt('j','أدخل كودًا من 4 أرقام','err');return;}
+      _roomCode=code;
+      saveSession({code:_roomCode,active:true});
+      setSt('j','◌ جارٍ الاتصال بالغرفة المحلية...','conn');
+      connect(false,()=>{
+        send({type:'join',code,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
+      });
+    },
+    restoreSession(){
+      const saved=loadSession();
+      if(!saved||!saved.active||!saved.code)return;
+      _roomCode=saved.code;
+      _myCol=saved.myCol||'w';
+      connect(true);
+    },
+    leave(){
+      SFX.btn();
+      clearSession();
+      disconnect(true);
+      _roomCode='';
+      document.getElementById('lan-rcode').textContent='—';
+      document.getElementById('lan-rbox').style.display='none';
+      document.getElementById('lan-btn-create').disabled=false;
+      if(S.mode==='lan'){
+        S.mode='';
+        Nav.lan();
+        setSt('c','◎ تم مغادرة غرفة LAN','');
+      }
+    },
+    copy(){
+      SFX.btn();
+      const code=_roomCode||document.getElementById('lan-rcode').textContent;
+      if(!code||code==='—')return;
+      navigator.clipboard.writeText(code).then(()=>{
+        const b=document.querySelector('#lan-rbox .rb-cp');
+        if(b){
+          b.textContent='◉ تم النسخ!';
+          setTimeout(()=>b.textContent='⧉ نسخ الكود',2000);
+        }
+      }).catch(()=>{});
+    },
+    sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo,deviceId:LVL._getDeviceId()});},
+    sendAssist(on){send({type:'assist',on,deviceId:LVL._getDeviceId()});},
+    sendChat(txt){send({type:'chat',text:txt,deviceId:LVL._getDeviceId()});},
+    sendVoice(audioData,durationSec){send({type:'voice',audio:audioData,duration:durationSec,deviceId:LVL._getDeviceId()});},
+    sendPimg(img){send({type:'pimg',img,deviceId:LVL._getDeviceId()});},
+    sendProfileImage(img){send({type:'pimg',img,deviceId:LVL._getDeviceId()});},
+    sendResign(){
+      send({type:'resign'});
+      clearSession();
+      setTimeout(()=>disconnect(true),400);
+    },
+    dc(){
+      clearSession();
+      disconnect(true);
+    },
+    syncState
+  };
+})();
+
 const DRAG=(()=>{
   let ghost=null;
   let dragActive=false;
@@ -6441,7 +7062,7 @@ const DRAG=(()=>{
     if(S.over||S.pending)return false;
     const pc=S.bd[r][c]; if(!pc)return false;
     const col=E.col(pc);
-    if(S.mode==='online'){
+    if(isRemoteMatchMode()){
       return col===S.myCol;
     }
     if(S.mode==='bot'){
@@ -6552,7 +7173,7 @@ const DRAG=(()=>{
     if(to[0]===fr[0]&&to[1]===fr[1]){S.sel=null;S.legal=[];R.board();return;}
     const myCol=S.mode==='bot'?'w':S.myCol;
     const isPreMoveTurn=(S.mode==='bot'&&S.turn==='b')||
-                        (S.mode==='online'&&S.turn!==S.myCol);
+                        (isRemoteMatchMode()&&S.turn!==S.myCol);
     if(isPreMoveTurn){
       const fakeLegal=E.legal(S.bd,fr[0],fr[1],S.cas,S.ep);
       if(fakeLegal.some(([lr,lc])=>lr===to[0]&&lc===to[1])){
@@ -6729,20 +7350,23 @@ const firebaseConfig = {
   measurementId: "G-39JQ9F34J5"
 };
 
-// Initialize Firebase (Firestore + Messaging - no auth)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Initialize Firebase only when local bundled scripts are available.
+let db=null;
 let messaging=null;
 try{
-  if(firebase.messaging && firebase.messaging.isSupported && firebase.messaging.isSupported()){
-    messaging=firebase.messaging();
-    messaging.onMessage((payload)=>{
-      console.log('[FCM] Foreground message:',payload);
-      const{title,body,icon}=payload.notification||{};
-      if(title)Notifications.send(title,{body,icon});
-    });
+  if(window.firebase&&firebase.initializeApp){
+    firebase.initializeApp(firebaseConfig);
+    if(firebase.firestore)db=firebase.firestore();
+    if(firebase.messaging&&firebase.messaging.isSupported&&firebase.messaging.isSupported()){
+      messaging=firebase.messaging();
+      messaging.onMessage((payload)=>{
+        console.log('[FCM] Foreground message:',payload);
+        const{title,body,icon}=payload.notification||{};
+        if(title)Notifications.send(title,{body,icon});
+      });
+    }
   }
-}catch(e){console.log('[FCM] Messaging not supported:',e);}
+}catch(e){console.log('[Firebase] Local initialization skipped:',e);}
 
 // Settings Profile Functions
 let _originalUsername='';
@@ -6787,8 +7411,8 @@ function updatePlayerNamesInGame(){
     const nmW=document.getElementById('nm-w');
     if(nmW)nmW.textContent=playerName; // Always update nm-w in levels mode
   }
-  // Update online mode name
-  if(S.mode==='online'){
+  // Update remote mode name
+  if(isRemoteMatchMode()){
     const myCol=S.myCol||'w';
     const myNameEl=document.getElementById(myCol==='w'?'nm-w':'nm-b');
     if(myNameEl)myNameEl.textContent=playerName;
@@ -6810,8 +7434,9 @@ function handleSettingsProfileImage(input){
       }
       // Update display in active game
       updatePlayerImages();
-      // Send to opponent if in online game
+      // Send to opponent if in remote game
       if(S.mode==='online'&&window.OL&&OL.sendProfileImage)OL.sendProfileImage(imageData);
+      else if(S.mode==='lan'&&window.LAN&&LAN.sendProfileImage)LAN.sendProfileImage(imageData);
       if(typeof SFX!=='undefined')SFX.btn();
       if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','◈');
     };
@@ -7002,6 +7627,7 @@ function requestNotificationPermission(){
 }
 
 try{Notifications._handleDeepLink();}catch(e){}
+try{LAN.restoreSession();}catch(e){}
 
 window.addEventListener('beforeunload',()=>{
   try{CHAT._stopRecording();}catch(e){}
