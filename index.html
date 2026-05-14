@@ -1056,52 +1056,25 @@ body[data-ui-theme="anime"] .settings-headline{
 }
 
 .go-msg{color:var(--text2);font-size:13px;margin-bottom:22px;line-height:1.6;position:relative;z-index:1;}
-.go-quick{margin-top:-10px;margin-bottom:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:12px 12px 10px;display:none;position:relative;z-index:1;overflow:hidden;}
+.go-quick{margin-top:-10px;margin-bottom:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:12px 12px 10px;display:none;position:relative;z-index:1;}
 .go-quick.on{display:block;animation:slideUp .4s ease-out;}
-
-/* Enhanced animation for game over analysis */
-.go-quick::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(201,168,76,.08) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(45,212,191,.06) 0%, transparent 40%);
-  animation:analysisGlow 4s ease-in-out infinite alternate;
-  pointer-events:none;
-}
-
-@keyframes analysisGlow{
-  0%{opacity:.5;}
-  100%{opacity:1;}
-}
 
 @keyframes slideUp{
   from{opacity:0;transform:translateY(20px);}
   to{opacity:1;transform:translateY(0);}
 }
 
-.go-qrow{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;position:relative;z-index:1;}
+.go-qrow{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;}
 .go-qsf{font-size:11px;color:var(--text2);}
 .go-qdot{width:7px;height:7px;border-radius:50%;background:rgba(45,212,191,.55);box-shadow:0 0 10px rgba(45,212,191,.18);animation:dbt .9s ease-in-out infinite;}
 .go-qdot:nth-child(2){animation-delay:.15s;}
 .go-qdot:nth-child(3){animation-delay:.3s;}
-.go-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;position:relative;z-index:1;}
-.go-qit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border-radius:12px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.05);transition:all .2s;position:relative;overflow:hidden;}
-.go-qit::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(90deg, transparent 0%, rgba(201,168,76,.08) 50%, transparent 100%);
-  transform:translateX(-100%);
-  opacity:0;
-  transition:all .3s;
-}
+.go-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.go-qit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border-radius:12px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.05);transition:all .2s;}
 .go-qit:hover{background:rgba(0,0,0,.2);border-color:rgba(201,168,76,.15);}
-.go-qit:hover::before{opacity:1;transform:translateX(100%);}
-.go-ql{font-size:11px;color:var(--text2);position:relative;z-index:1;}
-.go-qv{font-size:11px;font-weight:900;color:var(--text);position:relative;z-index:1;}
-.go-nour{margin-top:10px;padding:10px 10px 9px;border-radius:14px;background:linear-gradient(135deg,rgba(201,168,76,.10),rgba(45,212,191,.08));border:1px solid rgba(201,168,76,.14);text-align:right;position:relative;overflow:hidden;z-index:1;}
+.go-ql{font-size:11px;color:var(--text2);}
+.go-qv{font-size:11px;font-weight:900;color:var(--text);}
+.go-nour{margin-top:10px;padding:10px 10px 9px;border-radius:14px;background:linear-gradient(135deg,rgba(201,168,76,.10),rgba(45,212,191,.08));border:1px solid rgba(201,168,76,.14);text-align:right;position:relative;overflow:hidden;}
 .go-nour::before{
   content:'';
   position:absolute;
@@ -1115,7 +1088,7 @@ body[data-ui-theme="anime"] .settings-headline{
   100%{transform:translateX(100%);}
 }
 
-.go-nour-h{font-size:11px;color:var(--gold2);font-weight:900;margin-bottom:4px;position:relative;z-index:1;display:flex;align-items:center;gap:6px;justify-content:flex-end;}
+.go-nour-h{font-size:11px;color:var(--gold2);font-weight:900;margin-bottom:4px;position:relative;z-index:1;}
 .go-nour-t{font-size:12px;color:var(--text);line-height:1.75;position:relative;z-index:1;}
 .go-bts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
 .bgp{padding:11px 17px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a14;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
@@ -1143,145 +1116,22 @@ body[data-ui-theme="anime"] .settings-headline{
 
 /* ══════ REVIEW OVERLAY ══════ */
 #review-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);backdrop-filter:blur(14px);z-index:870;flex-direction:column;align-items:center;padding-top:44px;overflow:hidden;}
-#review-ov.open{display:flex;animation:reviewFadeIn .5s ease-out;}
-
-@keyframes reviewFadeIn{
-  from{opacity:0;transform:scale(.95);}
-  to{opacity:1;transform:scale(1);}
-}
-
+#review-ov.open{display:flex;}
 .rv-topbar{width:100%;max-width:680px;display:flex;align-items:center;justify-content:space-between;padding:0 14px 8px;flex-shrink:0;}
-.rv-title{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);text-shadow:0 0 12px rgba(201,168,76,.4);}
-.rv-close{padding:7px 16px;background:var(--bg3);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
-.rv-close::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.1) 50%, transparent 100%);
-  transform:translateX(-100%);
-  transition:transform .5s;
-}
-.rv-close:hover::before{transform:translateX(100%);}
+.rv-title{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);}
+.rv-close{padding:7px 16px;background:var(--bg3);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
 .rv-close:hover{background:var(--bg4);color:var(--text);}
-
 /* scroll area */
 .rv-main{display:flex;flex-direction:column;align-items:center;width:100%;flex:1;overflow-y:auto;gap:8px;padding:0 10px 14px;}
-
-/* Enhanced loading animation with chess pieces */
-.rv-loading{display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;}
-.rv-loadcard{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:18px;padding:32px 28px;text-align:center;max-width:380px;width:100%;box-shadow:0 0 60px rgba(201,168,76,.12),0 20px 60px rgba(0,0,0,.5);position:relative;overflow:hidden;}
-
-/* Animated chess pieces background */
-.rv-loadcard::before{
-  content:'♔ ♕ ♖ ♗ ♘ ♙';
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%, -50%);
-  font-size:80px;
-  color:rgba(201,168,76,.08);
-  white-space:nowrap;
-  animation:chessFloat 8s ease-in-out infinite;
-  pointer-events:none;
-  letter-spacing:20px;
-}
-
-@keyframes chessFloat{
-  0%, 100%{transform:translate(-50%, -50%) rotate(0deg) scale(1);opacity:.6;}
-  25%{transform:translate(-50%, -55%) rotate(5deg) scale(1.05);opacity:.8;}
-  50%{transform:translate(-50%, -50%) rotate(-5deg) scale(1.1);opacity:1;}
-  75%{transform:translate(-50%, -45%) rotate(3deg) scale(1.05);opacity:.8;}
-}
-
-.rv-loadcard::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:radial-gradient(circle at center, rgba(201,168,76,.15) 0%, transparent 70%);
-  animation:pulseGlow 3s ease-in-out infinite;
-  pointer-events:none;
-}
-
-@keyframes pulseGlow{
-  0%, 100%{opacity:.5;}
-  50%{opacity:1;}
-}
-
-.rv-loadtitle{font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:8px;position:relative;z-index:1;text-shadow:0 2px 12px rgba(201,168,76,.4);}
-.rv-loadsub{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px;position:relative;z-index:1;}
-.rv-loadrow{display:flex;align-items:center;justify-content:center;gap:12px;position:relative;z-index:1;}
-.rv-spinner{width:32px;height:32px;border:3px solid rgba(201,168,76,.2);border-top-color:var(--gold2);border-radius:50%;animation:spin 1s linear infinite;}
-
-@keyframes spin{
-  to{transform:rotate(360deg);}
-}
-
-.rv-loaddots{display:flex;gap:6px;}
-.rv-loaddot{width:8px;height:8px;border-radius:50%;background:rgba(45,212,191,.6);box-shadow:0 0 12px rgba(45,212,191,.3);animation:dbt 1s ease-in-out infinite;}
-.rv-loaddot:nth-child(2){animation-delay:.2s;}
-.rv-loaddot:nth-child(3){animation-delay:.4s;}
-
 /* board */
 :root{--rv-sz:min(52vw,280px);--rv-sq:calc(var(--rv-sz)/8);}
 @media(max-width:440px){:root{--rv-sz:min(66vw,250px);}}
-.rv-board-row{display:flex;align-items:center;gap:7px;flex-shrink:0;animation:boardSlideIn .6s ease-out;}
-
-@keyframes boardSlideIn{
-  from{opacity:0;transform:translateY(20px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-.rv-board-wrap{border-radius:3px;box-shadow:0 0 0 3px var(--bg3),0 0 0 6px rgba(201,168,76,.2),0 14px 36px rgba(0,0,0,.6);line-height:0;position:relative;overflow:hidden;}
-
-/* Animated border glow */
-.rv-board-wrap::before{
-  content:'';
-  position:absolute;
-  inset:-6px;
-  background:linear-gradient(45deg, 
-    rgba(201,168,76,.4) 0%, 
-    rgba(45,212,191,.3) 25%, 
-    rgba(201,168,76,.4) 50%,
-    rgba(45,212,191,.3) 75%,
-    rgba(201,168,76,.4) 100%);
-  border-radius:3px;
-  z-index:-1;
-  animation:borderRotate 4s linear infinite;
-  opacity:0;
-  transition:opacity .3s;
-}
-
-.rv-board-wrap:hover::before{opacity:1;}
-
-@keyframes borderRotate{
-  to{transform:rotate(360deg);}
-}
-
-#rv-board{display:grid;grid-template-columns:repeat(8,var(--rv-sq));grid-template-rows:repeat(8,var(--rv-sq));direction:ltr;width:var(--rv-sz);height:var(--rv-sz);position:relative;}
-
-/* Animated pieces on review board */
-#rv-board .piece{
-  animation:pieceAppear .4s cubic-bezier(.34,1.56,.64,1);
-  transition:transform .2s;
-}
-
-#rv-board .piece:hover{
-  transform:scale(1.1) rotate(5deg);
-}
-
-@keyframes pieceAppear{
-  from{opacity:0;transform:scale(0) rotate(-180deg);}
-  to{opacity:1;transform:scale(1) rotate(0deg);}
-}
-
-#rv-board .sq{width:var(--rv-sq);height:var(--rv-sq);position:relative;display:flex;align-items:center;justify-content:center;font-size:calc(var(--rv-sq)*.72);transition:all .2s;}
-#rv-board .sq.rv-from{box-shadow:inset 0 0 0 3px rgba(255,200,0,.75)!important;animation:highlightPulse 1.5s ease-in-out infinite;}
-#rv-board .sq.rv-to{background:rgba(255,200,0,.32)!important;animation:highlightPulse 1.5s ease-in-out infinite .3s;}
-
-@keyframes highlightPulse{
-  0%, 100%{opacity:1;}
-  50%{opacity:.6;}
-}
+.rv-board-row{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.rv-board-wrap{border-radius:3px;box-shadow:0 0 0 3px var(--bg3),0 0 0 6px rgba(201,168,76,.2),0 14px 36px rgba(0,0,0,.6);line-height:0;}
+#rv-board{display:grid;grid-template-columns:repeat(8,var(--rv-sq));grid-template-rows:repeat(8,var(--rv-sq));direction:ltr;width:var(--rv-sz);height:var(--rv-sz);}
+#rv-board .sq{width:var(--rv-sq);height:var(--rv-sq);position:relative;display:flex;align-items:center;justify-content:center;font-size:calc(var(--rv-sq)*.72);}
+#rv-board .sq.rv-from{box-shadow:inset 0 0 0 3px rgba(255,200,0,.75)!important;}
+#rv-board .sq.rv-to{background:rgba(255,200,0,.32)!important;}
 
 /* Transparency for evaluation board image boards */
 #rv-board[style*="background-image"] .sq.L,
@@ -1293,54 +1143,18 @@ body[data-ui-theme="anime"] .settings-headline{
 .rv-ebar-b{background:#2d2d2d;transition:flex .4s ease;}
 .rv-ebar-w{background:#e8e8e8;transition:flex .4s ease;}
 /* move info card */
-.rv-card{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;position:relative;overflow:hidden;animation:cardSlideIn .5s ease-out;}
-
-@keyframes cardSlideIn{
-  from{opacity:0;transform:translateX(-20px);}
-  to{opacity:1;transform:translateX(0);}
-}
-
-.rv-card::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(90deg, transparent 0%, rgba(201,168,76,.05) 50%, transparent 100%);
-  transform:translateX(-100%);
-  opacity:0;
-  transition:all .3s;
-}
-.rv-card:hover::before{opacity:1;transform:translateX(100%);}
-
+.rv-card{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
 .rv-card-badge{font-size:11px;padding:3px 10px;border-radius:8px;font-weight:700;white-space:nowrap;flex-shrink:0;}
 .rv-card-info{flex:1;}
 .rv-card-notation{font-family:monospace;font-size:15px;font-weight:700;color:var(--text);}
 .rv-card-num{font-size:11px;color:var(--text3);margin-bottom:2px;}
 /* coach */
-.rv-coach{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(45,212,191,.16);border-radius:12px;padding:10px 14px;min-height:54px;position:relative;overflow:hidden;animation:coachSlideIn .6s ease-out;}
-
-@keyframes coachSlideIn{
-  from{opacity:0;transform:translateY(20px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-.rv-coach::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, rgba(45,212,191,.08) 0%, rgba(201,168,76,.06) 100%);
-  animation:coachGlow 3s ease-in-out infinite;
-}
-
-@keyframes coachGlow{
-  0%, 100%{opacity:.5;}
-  50%{opacity:1;}
-}
-
-.rv-coach-lbl{font-size:10px;color:var(--teal2);letter-spacing:1.5px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:6px;position:relative;z-index:1;}
+.rv-coach{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(45,212,191,.16);border-radius:12px;padding:10px 14px;min-height:54px;}
+.rv-coach-lbl{font-size:10px;color:var(--teal2);letter-spacing:1.5px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
 .rv-coach-name{color:var(--gold2);font-weight:900;}
-.nour-icon{width:18px;height:18px;flex-shrink:0;border-radius:50%;box-shadow:0 0 8px rgba(201,168,76,.3);}
-.rv-coach-txt{font-size:12px;color:var(--text);line-height:1.65;position:relative;z-index:1;}
-.rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;position:relative;z-index:1;}
+.nour-icon{width:18px;height:18px;flex-shrink:0;}
+.rv-coach-txt{font-size:12px;color:var(--text);line-height:1.65;}
+.rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;}
 .rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(45,212,191,.55);animation:dbt .7s ease-in-out infinite;}
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
 /* nav bar */
@@ -2729,10 +2543,7 @@ body[data-ui-theme="anime"] .settings-headline{
       </div>
       <div class="go-qgrid" id="go-qgrid"></div>
       <div class="go-nour" id="go-nour" style="display:none">
-        <div class="go-nour-h">
-          <img src="nour.png" style="width:20px;height:20px;border-radius:50%;object-fit:cover;box-shadow:0 0 8px rgba(201,168,76,.3);" onerror="this.style.display='none';">
-          نور — تعليق سريع
-        </div>
+        <div class="go-nour-h">نور — تعليق سريع</div>
         <div class="go-nour-t" id="go-nour-t"></div>
       </div>
     </div>
@@ -5507,68 +5318,6 @@ const REV=(()=>{
     document.getElementById('rv-main').innerHTML=html;
   }
 
-  // Unified rating function used by both _analyze and _quickPostGame
-  function _rateMove(bestVal, actualVal, color, moveNum, isCheckmate, isCapture){
-    const isMax = color === 'w';
-    const diff = isMax ? (bestVal - actualVal) : (actualVal - bestVal);
-    const diffInPawns = diff / 100;
-    const isOpening = moveNum <= 10;
-    
-    let rating = 'good';
-    let score = 75;
-    
-    // Unified rating criteria (same for both analysis modes)
-    if(isCheckmate){
-      rating = 'best';
-      score = 100;
-    }
-    else if(isOpening && diffInPawns < 0.5){
-      rating = 'book';
-      score = 85;
-    }
-    else if(diff <= 20 || diffInPawns <= 0.2){
-      // Check for brilliant moves (best move with sacrifice or complex position)
-      const isBrilliant = isCapture && actualVal > 50;
-      if(isBrilliant){
-        rating = 'brilliant';
-        score = 100;
-      }else{
-        rating = 'best';
-        score = 100;
-      }
-    }
-    else if(diffInPawns < 0.5){
-      rating = 'excellent';
-      score = 90;
-    }
-    else if(diffInPawns < 1.0){
-      rating = 'good';
-      score = 75;
-    }
-    else if(diffInPawns < 2.0){
-      rating = 'inaccuracy';
-      score = 50;
-    }
-    else if(diffInPawns < 4.0){
-      rating = 'mistake';
-      score = 25;
-    }
-    else{
-      rating = 'blunder';
-      score = 0;
-    }
-    
-    // Check for missed opportunities
-    const hadWinningAdvantage = (color === 'w' && bestVal > 300) || (color === 'b' && bestVal < -300);
-    const isMiss = (!isCheckmate) && hadWinningAdvantage && diffInPawns > 1.5;
-    if(isMiss){
-      rating = 'miss';
-      score = 40;
-    }
-    
-    return { rating, score };
-  }
-
   async function _analyze(){
     const snaps=S.snapshots;
     if(!snaps||!snaps.length)return null;
@@ -5666,7 +5415,7 @@ const REV=(()=>{
         const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
         // Use Stockfish for evaluation (depth 8 for accuracy, fallback to local eval)
         const opp=color==='w'?'b':'w';
-        actualVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,8,skillLevel).catch(()=>E.eval(r2.bd));
+        actualVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,8).catch(()=>E.eval(r2.bd));
         // Detect check and checkmate after the move
         isCheck=E.inChk(r2.bd,opp);
         const oppLegal=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
@@ -5677,23 +5426,49 @@ const REV=(()=>{
       if(!appliedOk)continue;
       boards.push(bd.map(r=>[...r]));
       evalHistory.push(actualVal);
+      const diff=isMax?(bestVal-actualVal):(actualVal-bestVal);
+      const posScale=Math.max(200,Math.abs(bestVal)+100);
+      const relativeDiff=diff/posScale;
+      let rating,score,bestMvStr='';
       
-      // Use unified rating function
-      const moveNum = i + 1;
-      const ratingResult = _rateMove(bestVal, actualVal, color, moveNum, isCheckmate, isCapture);
-      const rating = ratingResult.rating;
-      const score = ratingResult.score;
+      // Chess.com style evaluation with StockFish:
+      // Book: First 10 moves (opening theory) - within 0.5 pawns
+      // Brilliant: Sacrificial move that leads to advantage
+      // Best: The engine's top choice (within 0.0-0.2 pawns)
+      // Excellent: Within 0.2-0.5 pawns of best
+      // Good: Within 0.5-1.0 pawns of best
+      // Inaccuracy: 1.0-2.0 pawns worse than best
+      // Mistake: 2.0-4.0 pawns worse than best
+      // Blunder: > 4.0 pawns worse than best
+      // Miss: Didn't capitalize on a winning advantage (>3.0 pawns lost)
+      const diffInPawns=diff/100;
+      const isBestMove = diff<=20||diffInPawns<=0.2;
+      const moveNum=i+1; // Move number in the game
       
-      // Track mistakes and blunders
-      if(rating === 'mistake' || rating === 'miss'){
-        if(color === 'w') wMistakes++; else bMistakes++;
-      }
-      if(rating === 'blunder'){
-        if(color === 'w') wBlunders++; else bBlunders++;
-      }
+      // Detect brilliant moves: sacrifice material but maintain/eval improves
+      const pieceValues={p:1,n:3,b:3.25,r:5,q:9,k:0};
+      const isSacrifice = (!isCapture) && (diffInPawns<=0.2);
+      const isBrilliant = isBestMove && isSacrifice && actualVal > -100;
       
+      // Detect missed opportunity: had winning advantage (>3.0) but didn't find best move
+      const hadWinningAdvantage = (color==='w' && bestVal > 300) || (color==='b' && bestVal < -300);
+      const isMiss = (!isCheckmate) && hadWinningAdvantage && diffInPawns > 1.5;
+      
+      // Opening moves (first 10 moves) within 0.5 pawns are "Book"
+      const isOpening = moveNum <= 10;
+      const isBookMove = isOpening && diffInPawns < 0.5;
+      
+      if(isCheckmate){rating='best';score=100;}
+      else if(isBrilliant){rating='brilliant';score=100;}
+      else if(isBookMove){rating='book';score=85;}
+      else if(isBestMove){rating='best';score=100;}
+      else if(diffInPawns<0.5){rating='excellent';score=90;}
+      else if(diffInPawns<1.0){rating='good';score=75;}
+      else if(isMiss){rating='miss';score=40;if(color==='w')wMistakes++;else bMistakes++;}
+      else if(diffInPawns<2.0){rating='inaccuracy';score=50;}
+      else if(diffInPawns<4.0){rating='mistake';score=25;if(color==='w')wMistakes++;else bMistakes++;}
+      else{rating='blunder';score=0;if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
-      let bestMvStr='';
       if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,bestMv.promo||null);}catch(e){}
       
       moves.push({
@@ -6896,10 +6671,29 @@ const G={
 
         // score only for player's moves
         if(mover===myCol){
+          const isMax=mover==='w';
+          const diff=isMax?(bestVal-actualVal):(actualVal-bestVal);
+          const diffInPawns=diff/100;
           const moveNum=i+1;
-          // Use unified rating function
-          const ratingResult = _rateMove(bestVal, actualVal, mover, moveNum, isCheckmate, isCapture);
-          const rating = ratingResult.rating;
+          const isOpening=moveNum<=10;
+          let rating='good';
+          // More sophisticated move classification
+          if(isCheckmate) rating='best';
+          else if(isOpening && diffInPawns<0.5) rating='book';
+          else if(diff<=20||diffInPawns<=0.2) rating='best';
+          else if(diffInPawns<0.5) rating='excellent';
+          else if(diffInPawns<1.0) rating='good';
+          else if(diffInPawns<2.0) rating='inaccuracy';
+          else if(diffInPawns<4.0) rating='mistake';
+          else rating='blunder';
+          
+          // Check for brilliant moves (sacrifices that maintain advantage)
+          if(rating==='best' && isCapture && actualVal > 50) rating='brilliant';
+          
+          // Check for missed opportunities (had advantage but didn't find best move)
+          const hadAdvantage = (mover==='w' && bestVal > 200) || (mover==='b' && bestVal < -200);
+          const isMiss = hadAdvantage && diffInPawns > 1.0 && rating!=='blunder';
+          if(isMiss) rating='miss';
           if(counts[rating]!==undefined)counts[rating]++;
         }
 
@@ -6921,35 +6715,26 @@ const G={
 
       qLoad.style.display='none';
 
-      // Nour quick comment (short, player-only) - works in online AND level modes
-      // Check if online before making API call
-      const isOnline = navigator.onLine;
-      const isLevelMode = S.levelId >= 0;
-      
-      // Show Nour comment for online mode OR level mode (if online)
-      if(isOnline && (isRemoteMatchMode() || isLevelMode)){
-        try{
-          const resultTitle=(document.getElementById('go-ttl')?.textContent||'');
-          const prompt=
-            `أنت مدرب شطرنج عربي اسمه نور. اكتب تعليقاً قصيراً (سطرين فقط) للاعب بعد نهاية المباراة. `+
-            `هذه نتائج نقلات اللاعب: أفضل=${counts.best}, ممتازة=${counts.excellent}, جيدة=${counts.good}, غير دقيقة=${counts.inaccuracy}, أخطاء=${counts.mistake}, فادحة=${counts.blunder}, افتتاح=${counts.book}. `+
-            `عنوان النتيجة: ${resultTitle}. `+
-            `أعطِ نصيحة واحدة عملية للنقلة القادمة دون ذكر أرقام كثيرة.`;
-          const json=await groqChat({
-            model:GROQ_MODEL,
-            messages:[{role:'user',content:prompt}],
-            max_tokens:90,
-            temperature:0.6
-          });
-          const txt=json.choices?.[0]?.message?.content?.trim();
-          if(txt){
-            nourTxt.textContent=txt;
-            nourBox.style.display='block';
-          }
-        }catch(e){
-          // Silently fail if API call fails (offline or error)
+      // Nour quick comment (short, player-only)
+      try{
+        const resultTitle=(document.getElementById('go-ttl')?.textContent||'');
+        const prompt=
+          `أنت مدرب شطرنج عربي اسمه نور. اكتب تعليقاً قصيراً (سطرين فقط) للاعب بعد نهاية المباراة. `+
+          `هذه نتائج نقلات اللاعب: أفضل=${counts.best}, ممتازة=${counts.excellent}, جيدة=${counts.good}, غير دقيقة=${counts.inaccuracy}, أخطاء=${counts.mistake}, فادحة=${counts.blunder}, افتتاح=${counts.book}. `+
+          `عنوان النتيجة: ${resultTitle}. `+
+          `أعطِ نصيحة واحدة عملية للنقلة القادمة دون ذكر أرقام كثيرة.`;
+        const json=await groqChat({
+          model:GROQ_MODEL,
+          messages:[{role:'user',content:prompt}],
+          max_tokens:90,
+          temperature:0.6
+        });
+        const txt=json.choices?.[0]?.message?.content?.trim();
+        if(txt){
+          nourTxt.textContent=txt;
+          nourBox.style.display='block';
         }
-      }
+      }catch(e){}
     }catch(e){}
   },
   nextLevel(){
