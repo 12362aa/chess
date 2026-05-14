@@ -2646,6 +2646,22 @@ body[data-ui-theme="anime"] .settings-headline{
 #s-game.mode-puzzle #board-container{
   box-shadow:0 20px 60px rgba(0,0,0,.4), 0 0 0 1px rgba(59,130,246,.1);
 }
+
+/* Hide unnecessary elements in puzzle mode */
+#s-game.mode-puzzle #bar-b,
+#s-game.mode-puzzle #bar-w,
+#s-game.mode-puzzle .chat-wrap,
+#s-game.mode-puzzle .gtbar{
+  display:none !important;
+}
+
+#s-game.mode-puzzle .sbar{
+  display:none !important;
+}
+
+#s-game.mode-puzzle .mvhist{
+  display:none !important;
+}
 </style>
 <!-- QR Code Libraries for LAN Mode -->
 </head>
@@ -7550,7 +7566,21 @@ const Nav={
   },
   menu(){Nav.show('s-menu');},
   levels(){Nav.show('s-levels');LVL.buildUI();},
-  puzzle(){Nav.show('s-puzzle');try{PUZZLE.init();}catch(e){console.error('Puzzle init error:',e);}},
+  puzzle(){
+    Nav.show('s-puzzle');
+    // Wait for PUZZLE to be loaded
+    setTimeout(() => {
+      try{
+        if(typeof PUZZLE !== 'undefined' && PUZZLE.init){
+          PUZZLE.init();
+        } else {
+          console.error('PUZZLE module not loaded');
+        }
+      }catch(e){
+        console.error('Puzzle init error:',e);
+      }
+    }, 100);
+  },
   online(){Nav.show('s-online');try{OL.init();}catch(e){}},
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
