@@ -512,44 +512,6 @@ body[data-ui-theme="anime"] .settings-headline{
 .star.on{color:var(--gold2);text-shadow:0 0 8px rgba(201,168,76,.6);}
 .lc-right{display:flex;align-items:center;}
 
-/* ══════════ PUZZLES ══════════ */
-#s-puzzles{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:46px 14px 24px;gap:11px;overflow-y:auto;background:radial-gradient(circle at 20% 30%,rgba(96,165,250,.08) 0%,transparent 40%),radial-gradient(circle at 80% 70%,rgba(201,168,76,.06) 0%,transparent 40%);}
-.puzzle-hdr{text-align:center;width:100%;max-width:500px;padding:16px;background:linear-gradient(135deg,rgba(96,165,250,.12),rgba(201,168,76,.08));border:1px solid rgba(96,165,250,.2);border-radius:17px;box-shadow:0 8px 32px rgba(96,165,250,.15);}
-.puzzle-hdr h2{font-family:'Amiri',serif;font-size:26px;background:linear-gradient(135deg,var(--blue),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;filter:drop-shadow(0 2px 8px rgba(96,165,250,.3));}
-.puzzle-hdr p{font-size:13px;color:var(--text2);}
-.puzzle-progress-card{width:100%;max-width:500px;background:var(--bg2);border:1px solid rgba(96,165,250,.15);border-radius:13px;padding:16px;box-shadow:0 4px 20px rgba(96,165,250,.1);}
-.puzzle-stats{display:flex;justify-content:space-between;margin-bottom:12px;}
-.puzzle-stat{display:flex;flex-direction:column;gap:4px;}
-.puzzle-stat-label{font-size:11px;color:var(--text2);letter-spacing:1px;}
-.puzzle-stat-value{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--blue),var(--teal2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.puzzle-fill{background:linear-gradient(90deg,var(--blue),var(--teal2))!important;box-shadow:0 0 12px rgba(96,165,250,.5)!important;}
-.puzzle-grid{display:flex;flex-direction:column;gap:9px;width:100%;max-width:500px;}
-.puzzle-card{background:var(--bg2);border:1px solid rgba(96,165,250,.1);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;display:flex;align-items:center;gap:13px;}
-.puzzle-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 0%,rgba(96,165,250,.05) 50%,transparent 100%);opacity:0;transition:opacity .3s;}
-.puzzle-card:hover::before{opacity:1;}
-.puzzle-card.open{border-color:rgba(96,165,250,.3);}
-.puzzle-card.open:hover{transform:translateX(-4px);box-shadow:0 8px 28px rgba(96,165,250,.2);}
-.puzzle-card.solved{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.03);}
-.puzzle-card.solved::after{content:'✓';position:absolute;top:8px;right:8px;width:24px;height:24px;background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--green);font-weight:900;}
-.puzzle-card.locked{opacity:.5;cursor:not-allowed;}
-.puzzle-ico{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(45,212,191,.1));display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;transition:transform .3s;}
-.puzzle-card.open:hover .puzzle-ico{transform:scale(1.1) rotate(-5deg);}
-.puzzle-info{flex:1;}
-.puzzle-name{font-size:14px;font-weight:700;color:var(--text);}
-.puzzle-desc{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5;}
-.puzzle-difficulty{font-size:10px;padding:3px 9px;border-radius:10px;margin-top:4px;display:inline-block;font-weight:700;}
-.diff-easy{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25);}
-.diff-medium{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25);}
-.diff-hard{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25);}
-.puzzle-rating{font-size:11px;color:var(--text3);margin-top:3px;}
-.mc-puzzle{position:relative;overflow:hidden;}
-.mc-puzzle::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(96,165,250,.12),transparent 70%);opacity:0;transition:opacity .3s;}
-.mc-puzzle:hover::before{opacity:1;}
-.mc-puzzle:hover{border-color:rgba(96,165,250,.35);box-shadow:0 14px 44px rgba(96,165,250,.15);}
-.ic-puzzle{background:linear-gradient(135deg,var(--blue),var(--teal2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 8px rgba(96,165,250,.4));}
-.bp{background:rgba(96,165,250,.12);color:var(--blue);border:1px solid rgba(96,165,250,.28);transition:all .2s;}
-.bp:hover{background:rgba(96,165,250,.2);transform:scale(1.05);box-shadow:0 4px 12px rgba(96,165,250,.25);}
-
 /* ══════════ SETTINGS ══════════ */
 #s-settings{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:46px 14px 24px;gap:11px;overflow-y:auto;}
 .sc{background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:17px;padding:21px;width:100%;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,.3);}
@@ -2113,6 +2075,558 @@ body[data-ui-theme="anime"] .settings-headline{
   #s-game.mode-bot .mvhist{order:5;}
   #s-game.mode-bot .chat-wrap{order:6;}
 }
+
+/* ══════════ PUZZLE MODE ══════════ */
+#s-puzzle{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:46px 14px 24px;gap:14px;overflow-y:auto;position:relative;}
+
+/* Puzzle Mode Theme - Forest Chess / Blue-Gold Elegant */
+#s-puzzle::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(59,130,246,.14) 0%, transparent 32%),
+    radial-gradient(circle at 82% 18%, rgba(234,179,8,.12) 0%, transparent 28%),
+    radial-gradient(circle at 50% 78%, rgba(16,185,129,.10) 0%, transparent 30%),
+    linear-gradient(180deg, #0a1628 0%, #0f1e3a 48%, #1a2847 100%);
+  animation:puzzleGlow 10s ease-in-out infinite alternate;
+  pointer-events:none;
+  z-index:0;
+}
+
+@keyframes puzzleGlow{
+  0%{opacity:.85;}
+  50%{opacity:1;}
+  100%{opacity:.85;}
+}
+
+#s-puzzle::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(59,130,246,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234,179,8,.025) 1px, transparent 1px),
+    radial-gradient(circle at 24% 28%, rgba(255,255,255,.08) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 72% 68%, rgba(16,185,129,.08) 0 1.2px, transparent 1.8px);
+  background-size:48px 48px, 48px 48px, 120px 120px, 140px 140px;
+  opacity:.7;
+  mask-image:radial-gradient(ellipse at center, black 40%, transparent 85%);
+  pointer-events:none;
+  z-index:0;
+}
+
+.puzzle-container{position:relative;z-index:1;width:100%;max-width:600px;display:flex;flex-direction:column;gap:14px;}
+
+/* Nour Coach Section */
+.puzzle-coach{
+  background:linear-gradient(135deg, rgba(15,30,58,.94), rgba(26,40,71,.92));
+  border:1px solid rgba(59,130,246,.22);
+  border-radius:18px;
+  padding:18px 20px;
+  box-shadow:0 18px 48px rgba(0,0,0,.32), 0 0 0 1px rgba(234,179,8,.08), 0 0 32px rgba(59,130,246,.1);
+  position:relative;
+  overflow:hidden;
+  animation:coachEntrance .6s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes coachEntrance{
+  from{opacity:0;transform:translateY(-20px) scale(.95);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+
+.puzzle-coach::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 50% 50%, rgba(59,130,246,.08), transparent 70%);
+  opacity:0;
+  transition:opacity .4s;
+}
+
+.puzzle-coach:hover::before{opacity:1;}
+
+.coach-header{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+
+.coach-avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  border:3px solid rgba(234,179,8,.3);
+  box-shadow:0 0 20px rgba(59,130,246,.3), 0 4px 12px rgba(0,0,0,.3);
+  object-fit:cover;
+  animation:avatarPulse 3s ease-in-out infinite;
+}
+
+@keyframes avatarPulse{
+  0%, 100%{transform:scale(1);box-shadow:0 0 20px rgba(59,130,246,.3), 0 4px 12px rgba(0,0,0,.3);}
+  50%{transform:scale(1.05);box-shadow:0 0 28px rgba(234,179,8,.4), 0 6px 16px rgba(0,0,0,.4);}
+}
+
+.coach-info{flex:1;}
+
+.coach-name{
+  font-size:17px;
+  font-weight:700;
+  color:var(--gold2);
+  margin-bottom:3px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.coach-status{
+  font-size:12px;
+  color:rgba(16,185,129,.9);
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+.status-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:rgba(16,185,129,.9);
+  box-shadow:0 0 10px rgba(16,185,129,.6);
+  animation:statusBlink 2s ease-in-out infinite;
+}
+
+@keyframes statusBlink{
+  0%, 100%{opacity:1;}
+  50%{opacity:.4;}
+}
+
+.coach-hint{
+  background:rgba(59,130,246,.08);
+  border:1px solid rgba(59,130,246,.18);
+  border-radius:12px;
+  padding:12px 15px;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--text);
+  position:relative;
+  overflow:hidden;
+}
+
+.coach-hint::before{
+  content:'💡';
+  position:absolute;
+  top:8px;
+  right:12px;
+  font-size:20px;
+  opacity:.3;
+}
+
+.coach-offline{
+  background:rgba(248,113,113,.08);
+  border-color:rgba(248,113,113,.18);
+  padding:10px 14px;
+  text-align:center;
+  color:var(--red);
+  font-size:13px;
+}
+
+/* Puzzle Progress Bar */
+.puzzle-progress{
+  background:linear-gradient(135deg, rgba(15,30,58,.94), rgba(26,40,71,.92));
+  border:1px solid rgba(234,179,8,.18);
+  border-radius:16px;
+  padding:16px 18px;
+  box-shadow:0 12px 36px rgba(0,0,0,.28), 0 0 0 1px rgba(59,130,246,.06);
+}
+
+.progress-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.progress-title{
+  font-size:14px;
+  font-weight:600;
+  color:var(--gold2);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.progress-stats{
+  font-size:13px;
+  color:var(--text2);
+}
+
+.progress-bar-container{
+  height:8px;
+  background:rgba(15,30,58,.6);
+  border-radius:8px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.3);
+}
+
+.progress-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg, #3b82f6 0%, #eab308 50%, #10b981 100%);
+  border-radius:8px;
+  transition:width .6s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 12px rgba(59,130,246,.5);
+  position:relative;
+  overflow:hidden;
+}
+
+.progress-bar-fill::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.3) 50%, transparent 100%);
+  animation:progressShimmer 2s ease-in-out infinite;
+}
+
+@keyframes progressShimmer{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(200%);}
+}
+
+/* Puzzle Card */
+.puzzle-card{
+  background:linear-gradient(135deg, rgba(15,30,58,.94), rgba(26,40,71,.92));
+  border:1px solid rgba(59,130,246,.18);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 18px 48px rgba(0,0,0,.32), 0 0 0 1px rgba(234,179,8,.06);
+  animation:cardEntrance .5s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes cardEntrance{
+  from{opacity:0;transform:translateY(20px) scale(.98);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+
+.puzzle-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.puzzle-number{
+  font-size:16px;
+  font-weight:700;
+  color:var(--gold2);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.puzzle-difficulty{
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.diff-easy{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3);}
+.diff-medium{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.3);}
+.diff-hard{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);}
+
+.puzzle-objective{
+  background:rgba(234,179,8,.08);
+  border:1px solid rgba(234,179,8,.15);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:16px;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--text);
+  text-align:center;
+}
+
+.puzzle-actions{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  margin-top:16px;
+}
+
+.puzzle-btn{
+  padding:11px 16px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  border:1px solid;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  position:relative;
+  overflow:hidden;
+}
+
+.puzzle-btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.1) 50%, transparent 100%);
+  transform:translateX(-100%);
+  transition:transform .5s;
+}
+
+.puzzle-btn:hover::before{transform:translateX(100%);}
+
+.btn-hint{
+  background:rgba(59,130,246,.12);
+  border-color:rgba(59,130,246,.3);
+  color:#60a5fa;
+}
+
+.btn-hint:hover{
+  background:rgba(59,130,246,.2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(59,130,246,.2);
+}
+
+.btn-solution{
+  background:rgba(234,179,8,.12);
+  border-color:rgba(234,179,8,.3);
+  color:#eab308;
+}
+
+.btn-solution:hover{
+  background:rgba(234,179,8,.2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(234,179,8,.2);
+}
+
+.btn-next{
+  background:rgba(16,185,129,.12);
+  border-color:rgba(16,185,129,.3);
+  color:#10b981;
+}
+
+.btn-next:hover{
+  background:rgba(16,185,129,.2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(16,185,129,.2);
+}
+
+.btn-disabled{
+  opacity:.4;
+  cursor:not-allowed;
+  pointer-events:none;
+}
+
+/* Puzzle Stats */
+.puzzle-stats{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+
+.stat-item{
+  text-align:center;
+}
+
+.stat-value{
+  font-size:20px;
+  font-weight:700;
+  color:var(--gold2);
+  margin-bottom:4px;
+}
+
+.stat-label{
+  font-size:11px;
+  color:var(--text2);
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+/* Puzzle Result Modal */
+.puzzle-result-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(10,10,20,.92);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  animation:modalFadeIn .3s ease;
+}
+
+.puzzle-result-modal.active{display:flex;}
+
+@keyframes modalFadeIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+
+.result-card{
+  background:linear-gradient(135deg, rgba(15,30,58,.98), rgba(26,40,71,.96));
+  border:2px solid;
+  border-radius:24px;
+  padding:32px 28px;
+  max-width:420px;
+  width:90%;
+  text-align:center;
+  box-shadow:0 24px 64px rgba(0,0,0,.5);
+  animation:resultPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes resultPop{
+  from{opacity:0;transform:scale(.8) translateY(30px);}
+  to{opacity:1;transform:scale(1) translateY(0);}
+}
+
+.result-card.success{border-color:rgba(16,185,129,.4);}
+.result-card.failure{border-color:rgba(239,68,68,.4);}
+
+.result-icon{
+  font-size:64px;
+  margin-bottom:16px;
+  animation:iconBounce .6s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes iconBounce{
+  0%{transform:scale(0) rotate(-180deg);}
+  60%{transform:scale(1.2) rotate(10deg);}
+  100%{transform:scale(1) rotate(0);}
+}
+
+.result-title{
+  font-size:28px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.result-card.success .result-title{color:#10b981;}
+.result-card.failure .result-title{color:#ef4444;}
+
+.result-message{
+  font-size:15px;
+  color:var(--text2);
+  margin-bottom:20px;
+  line-height:1.6;
+}
+
+.result-stats{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:12px;
+  margin-bottom:24px;
+  padding:16px;
+  background:rgba(0,0,0,.2);
+  border-radius:12px;
+}
+
+.result-stat{
+  text-align:center;
+}
+
+.result-stat-value{
+  font-size:24px;
+  font-weight:700;
+  color:var(--gold2);
+  margin-bottom:4px;
+}
+
+.result-stat-label{
+  font-size:12px;
+  color:var(--text2);
+}
+
+.result-actions{
+  display:flex;
+  gap:10px;
+}
+
+.result-btn{
+  flex:1;
+  padding:13px 20px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  border:none;
+}
+
+.result-btn-primary{
+  background:linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color:#fff;
+  box-shadow:0 8px 20px rgba(16,185,129,.3);
+}
+
+.result-btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(16,185,129,.4);
+}
+
+.result-btn-secondary{
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.result-btn-secondary:hover{
+  background:rgba(255,255,255,.12);
+  transform:translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px){
+  .puzzle-actions{
+    grid-template-columns:1fr;
+  }
+  
+  .puzzle-stats{
+    grid-template-columns:1fr;
+  }
+  
+  .result-card{
+    padding:24px 20px;
+  }
+  
+  .result-icon{
+    font-size:52px;
+  }
+  
+  .result-title{
+    font-size:24px;
+  }
+}
+
+/* Puzzle Mode Game Screen Adjustments */
+#s-game.mode-puzzle{
+  background:linear-gradient(180deg, #0a1628 0%, #0f1e3a 48%, #1a2847 100%);
+}
+
+#s-game.mode-puzzle .gtop{
+  background:linear-gradient(135deg, rgba(15,30,58,.94), rgba(26,40,71,.92));
+  border:1px solid rgba(59,130,246,.18);
+  border-radius:14px;
+  padding:12px 16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}
+
+#s-game.mode-puzzle .pbar{
+  background:linear-gradient(135deg, rgba(15,30,58,.94), rgba(26,40,71,.92));
+  border:1px solid rgba(234,179,8,.15);
+}
+
+#s-game.mode-puzzle #board-container{
+  box-shadow:0 20px 60px rgba(0,0,0,.4), 0 0 0 1px rgba(59,130,246,.1);
+}
 </style>
 <!-- QR Code Libraries for LAN Mode -->
 </head>
@@ -2155,18 +2669,19 @@ body[data-ui-theme="anime"] .settings-headline{
       <div class="mc-d">12 مرحلة تدريجية — افتح مرحلة مرحلة</div>
       <span class="mc-b bg">محفوظ أوفلاين ◈</span>
     </div>
-    <div class="mc mc-puzzle" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.puzzles()">
-      <span class="mc-ic ic-puzzle">🧩</span>
-      <div class="mc-t">وضع الألغاز</div>
-      <div class="mc-d">أكثر من 50 لغز شطرنجي مع المدرب نور</div>
-      <span class="mc-b bp">StockFish + AI ◈</span>
-    </div>
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
       <span class="mc-ic ic-green">⚔</span>
       <div class="mc-t">لاعبَان</div>
       <div class="mc-d">على نفس الشاشة بالتناوب</div>
       <span class="mc-b bv">أوفلاين ◈</span>
     </div>
+    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.puzzle()">
+      <span class="mc-ic" style="color:#3b82f6;">🧩</span>
+      <div class="mc-t">وضع الألغاز</div>
+      <div class="mc-d">+50 لغز شطرنجي مع المدرب نور</div>
+      <span class="mc-b" style="background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.24);">أوفلاين ◈ StockFish</span>
+    </div>
+
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.settings()">
       <span class="mc-ic ic-blue">⚙</span>
       <div class="mc-t">الإعدادات</div>
@@ -2191,28 +2706,125 @@ body[data-ui-theme="anime"] .settings-headline{
   </div>
 </div>
 
-<!-- PUZZLES -->
-<div id="s-puzzles" class="screen">
-  <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
-    <div class="puzzle-hdr">
-      <h2>🧩 وضع الألغاز</h2>
-      <p>حل الألغاز وطور مهاراتك مع المدرب نور</p>
-    </div>
-    <div class="puzzle-progress-card">
-      <div class="puzzle-stats">
-        <div class="puzzle-stat">
-          <span class="puzzle-stat-label">الألغاز المحلولة</span>
-          <span class="puzzle-stat-value" id="puzzles-solved">0 / 50</span>
-        </div>
-        <div class="puzzle-stat">
-          <span class="puzzle-stat-label">نسبة النجاح</span>
-          <span class="puzzle-stat-value" id="puzzles-accuracy">0%</span>
+<!-- PUZZLE MODE -->
+<div id="s-puzzle" class="screen">
+  <div class="puzzle-container">
+    <!-- Nour Coach Section -->
+    <div class="puzzle-coach">
+      <div class="coach-header">
+        <img src="nour.png" alt="المدرب نور" class="coach-avatar" id="puzzle-coach-avatar">
+        <div class="coach-info">
+          <div class="coach-name">
+            <span>🎓</span>
+            <span>المدرب نور</span>
+          </div>
+          <div class="coach-status" id="coach-status">
+            <span class="status-dot"></span>
+            <span>جاهز لمساعدتك</span>
+          </div>
         </div>
       </div>
-      <div class="lp-bar"><div class="lp-fill puzzle-fill" id="puzzle-progress-fill" style="width:0%"></div></div>
+      <div class="coach-hint" id="coach-hint">
+        مرحباً بك في وضع الألغاز! سأكون معك في كل خطوة. استعد لتحدي عقلك! 🧩
+      </div>
+      <div class="coach-offline" id="coach-offline" style="display:none;">
+        ⚠️ المدرب نور غير متاح حالياً بدون إنترنت
+      </div>
     </div>
-    <div class="puzzle-grid" id="puzzle-grid"></div>
-    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
+
+    <!-- Progress Bar -->
+    <div class="puzzle-progress">
+      <div class="progress-header">
+        <div class="progress-title">
+          <span>📊</span>
+          <span>تقدمك</span>
+        </div>
+        <div class="progress-stats">
+          <span id="puzzle-progress-text">0 / 50</span>
+        </div>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="puzzle-progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Puzzle Card -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <div class="puzzle-number">
+          <span>🧩</span>
+          <span id="puzzle-number">اللغز #1</span>
+        </div>
+        <div class="puzzle-difficulty" id="puzzle-difficulty">
+          سهل
+        </div>
+      </div>
+
+      <div class="puzzle-objective" id="puzzle-objective">
+        ابحث عن أفضل حركة للفوز في هذا الموقف
+      </div>
+
+      <div class="puzzle-actions">
+        <button class="puzzle-btn btn-hint" id="btn-puzzle-hint" onclick="PUZZLE.showHint()">
+          <span>💡</span>
+          <span>تلميح</span>
+        </button>
+        <button class="puzzle-btn btn-solution" id="btn-puzzle-solution" onclick="PUZZLE.showSolution()">
+          <span>👁️</span>
+          <span>الحل</span>
+        </button>
+        <button class="puzzle-btn btn-next btn-disabled" id="btn-puzzle-next" onclick="PUZZLE.nextPuzzle()">
+          <span>➡️</span>
+          <span>التالي</span>
+        </button>
+      </div>
+
+      <div class="puzzle-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="puzzle-attempts">0</div>
+          <div class="stat-label">المحاولات</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="puzzle-time">00:00</div>
+          <div class="stat-label">الوقت</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="puzzle-accuracy">100%</div>
+          <div class="stat-label">الدقة</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();PUZZLE.exit()">← العودة للقائمة</button>
+  </div>
+</div>
+
+<!-- Puzzle Result Modal -->
+<div class="puzzle-result-modal" id="puzzle-result-modal">
+  <div class="result-card" id="result-card">
+    <div class="result-icon" id="result-icon">🎉</div>
+    <div class="result-title" id="result-title">ممتاز!</div>
+    <div class="result-message" id="result-message">
+      لقد حللت اللغز بنجاح!
+    </div>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="result-stat-value" id="result-attempts">3</div>
+        <div class="result-stat-label">المحاولات</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-value" id="result-time">01:24</div>
+        <div class="result-stat-label">الوقت</div>
+      </div>
+    </div>
+    <div class="result-actions">
+      <button class="result-btn result-btn-primary" onclick="PUZZLE.nextPuzzle()">
+        اللغز التالي ➡️
+      </button>
+      <button class="result-btn result-btn-secondary" onclick="PUZZLE.closeResultModal()">
+        إغلاق
+      </button>
+    </div>
   </div>
 </div>
 
@@ -4391,183 +5003,6 @@ const LVL={
 };
 
 /* ══════════════════════════════════════
-   PUZZLE MODE SYSTEM
-══════════════════════════════════════ */
-const PUZZLE={
-  _cache:null,
-  _backupKey:'chess_puzzle_progress_v1',
-  
-  // 50+ puzzles with increasing difficulty
-  puzzles:[
-    // Easy (1-15)
-    {id:0,name:'كش مات في حركة',desc:'ابحث عن كش مات سريع',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1',solution:['h5f7'],difficulty:'easy',rating:800,hint:'الملكة يمكنها الوصول للملك'},
-    {id:1,name:'فوز القطعة',desc:'اكسب قطعة مجانية',fen:'rnbqkbnr/ppp2ppp/8/3pp3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1',solution:['f3e5'],difficulty:'easy',rating:850,hint:'البيدق غير محمي'},
-    {id:2,name:'شوكة الحصان',desc:'استخدم الحصان لمهاجمة قطعتين',fen:'r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3e5'],difficulty:'easy',rating:900,hint:'الحصان يمكنه مهاجمة الملك والوزير'},
-    {id:3,name:'كش مات الممر',desc:'استخدم الوزير والقلعة',fen:'6k1/5ppp/8/8/8/8/5PPP/R3R1K1 w - - 0 1',solution:['e1e8','a1a8'],difficulty:'easy',rating:950,hint:'السطر الثامن مفتوح'},
-    {id:4,name:'كش مات الظهر',desc:'كش مات على السطر الأخير',fen:'6k1/5ppp/8/8/8/8/5PPP/4R1K1 w - - 0 1',solution:['e1e8'],difficulty:'easy',rating:1000,hint:'الملك محاصر بالبيادق'},
-    {id:5,name:'دفاع البيدق',desc:'احمِ ملكك',fen:'r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1',solution:['d8f7'],difficulty:'easy',rating:1050,hint:'الوزير يهدد بكش مات'},
-    {id:6,name:'تبادل القطع',desc:'تبادل مفيد',fen:'rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1',solution:['f3e5'],difficulty:'easy',rating:1100,hint:'خذ البيدق المركزي'},
-    {id:7,name:'السيطرة المركزية',desc:'سيطر على المركز',fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',solution:['e2e4'],difficulty:'easy',rating:1150,hint:'البيدق e4 يسيطر على المركز'},
-    {id:8,name:'تطوير القطع',desc:'أخرج قطعك',fen:'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',solution:['g8f6'],difficulty:'easy',rating:1200,hint:'طور الحصان'},
-    {id:9,name:'التبييت',desc:'حافظ على سلامة ملكك',fen:'rnbqk2r/pppp1ppp/5n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['e1g1'],difficulty:'easy',rating:1250,hint:'بيّت للجانب الملكي'},
-    {id:10,name:'هجوم مزدوج',desc:'هاجم قطعتين',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['c4f7'],difficulty:'easy',rating:1300,hint:'الفيل يهاجم الملك والقلعة'},
-    {id:11,name:'كسب الوقت',desc:'هاجم مع التطوير',fen:'rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1',solution:['f1c4'],difficulty:'easy',rating:1350,hint:'طور الفيل مع تهديد'},
-    {id:12,name:'الدفاع النشط',desc:'دافع بهجوم مضاد',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 1',solution:['f6e4'],difficulty:'easy',rating:1400,hint:'هاجم المركز'},
-    {id:13,name:'فتح الخطوط',desc:'افتح خطوط للقطع',fen:'rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1',solution:['e4e5'],difficulty:'easy',rating:1450,hint:'ادفع البيدق'},
-    {id:14,name:'نقطة الضعف',desc:'استغل نقطة ضعيفة',fen:'rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1',solution:['f1c4'],difficulty:'easy',rating:1500,hint:'f7 نقطة ضعف'},
-    
-    // Medium (15-35)
-    {id:15,name:'تضحية البيدق',desc:'ضحِّ للهجوم',fen:'rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1',solution:['e4e5','f3g5'],difficulty:'medium',rating:1550,hint:'ضحِّ بيدق للتطوير السريع'},
-    {id:16,name:'كش مات في حركتين',desc:'ابحث عن التسلسل',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1',solution:['h5f7','c4f7'],difficulty:'medium',rating:1600,hint:'الملكة والفيل يعملان معاً'},
-    {id:17,name:'الدبوس',desc:'استخدم الدبوس',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f1g5'],difficulty:'medium',rating:1650,hint:'دبّس الحصان للوزير'},
-    {id:18,name:'إزالة المدافع',desc:'أزل القطعة المدافعة',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['c4f7'],difficulty:'medium',rating:1700,hint:'أزل الفيل المدافع'},
-    {id:19,name:'الهجوم المكشوف',desc:'استخدم الكشف',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3g5'],difficulty:'medium',rating:1750,hint:'حرك الحصان لكشف الفيل'},
-    {id:20,name:'السيطرة على العمود',desc:'سيطر على عمود مفتوح',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1 w kq - 0 1',solution:['f1e1'],difficulty:'medium',rating:1800,hint:'ضع القلعة على العمود e'},
-    {id:21,name:'نقطة الاختراق',desc:'اخترق دفاع الخصم',fen:'r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1 w - - 0 1',solution:['d1d5'],difficulty:'medium',rating:1850,hint:'الوزير يخترق'},
-    {id:22,name:'الشوكة الملكية',desc:'شوكة الملك والوزير',fen:'r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3e5'],difficulty:'medium',rating:1900,hint:'الحصان يشوك الملك والوزير'},
-    {id:23,name:'تبادل القطع الثقيلة',desc:'تبادل مفيد',fen:'r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1 w - - 0 1',solution:['c4f7'],difficulty:'medium',rating:1950,hint:'تبادل الفيل بالحصان'},
-    {id:24,name:'الضغط على النقطة',desc:'اضغط على نقطة واحدة',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['d1e2'],difficulty:'medium',rating:2000,hint:'ضع ضغطاً على e5'},
-    {id:25,name:'الهجوم على الملك',desc:'هاجم الملك المكشوف',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3g5'],difficulty:'medium',rating:2050,hint:'الملك في المركز'},
-    {id:26,name:'البيدق المار',desc:'ادفع البيدق المار',fen:'8/8/8/3k4/8/3K4/3P4/8 w - - 0 1',solution:['d2d4'],difficulty:'medium',rating:2100,hint:'البيدق قريب من الترقية'},
-    {id:27,name:'المربعات الضعيفة',desc:'استغل المربعات الضعيفة',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3d4'],difficulty:'medium',rating:2150,hint:'d5 مربع ضعيف'},
-    {id:28,name:'الأغلبية في الجناح',desc:'استخدم أغلبية البيادق',fen:'8/pp3ppp/8/8/8/8/PPP2PPP/8 w - - 0 1',solution:['b2b4'],difficulty:'medium',rating:2200,hint:'ادفع بيادق الجناح'},
-    {id:29,name:'القطعة السيئة',desc:'حسّن قطعتك السيئة',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['c1g5'],difficulty:'medium',rating:2250,hint:'الفيل محاصر'},
-    {id:30,name:'السيطرة على القطر',desc:'سيطر على القطر الطويل',fen:'rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',solution:['g2g3','f1g2'],difficulty:'medium',rating:2300,hint:'فيانكيتو'},
-    {id:31,name:'الهجوم الأقلية',desc:'هجوم بيادق الأقلية',fen:'8/pp3ppp/8/8/8/8/PPP2PPP/8 w - - 0 1',solution:['b2b4','b4b5'],difficulty:'medium',rating:2350,hint:'اخلق نقاط ضعف'},
-    {id:32,name:'الملك النشط',desc:'استخدم ملكك في النهاية',fen:'8/8/8/3k4/8/3K4/8/8 w - - 0 1',solution:['d3e4'],difficulty:'medium',rating:2400,hint:'الملك قطعة قوية في النهاية'},
-    {id:33,name:'المعارضة',desc:'خذ المعارضة',fen:'8/8/8/3k4/8/3K4/8/8 w - - 0 1',solution:['d3d4'],difficulty:'medium',rating:2450,hint:'واجه الملك مباشرة'},
-    {id:34,name:'المربع الحرج',desc:'ادخل المربع الحرج',fen:'8/8/8/3k4/8/3K4/3P4/8 w - - 0 1',solution:['d3e4'],difficulty:'medium',rating:2500,hint:'ادخل مربع البيدق'},
-    {id:35,name:'الترقية',desc:'رقِّ البيدق',fen:'8/3P4/8/3k4/8/3K4/8/8 w - - 0 1',solution:['d7d8q'],difficulty:'medium',rating:2550,hint:'رقِّ لوزير'},
-    
-    // Hard (36-50)
-    {id:36,name:'تضحية الوزير',desc:'ضحِّ بالوزير للكش مات',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1',solution:['h5f7','c4f7'],difficulty:'hard',rating:2600,hint:'الوزير تفتح الطريق'},
-    {id:37,name:'كش مات في ثلاث حركات',desc:'ابحث عن التسلسل الطويل',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1',solution:['h5f7','e1g1','f7g8'],difficulty:'hard',rating:2650,hint:'ابدأ بتضحية'},
-    {id:38,name:'الهجوم اليوناني',desc:'هجوم كلاسيكي',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3g5','d1f3','c1g5'],difficulty:'hard',rating:2700,hint:'هاجم f7'},
-    {id:39,name:'تضحية التبادل',desc:'ضحِّ بالقلعة',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1 w kq - 0 1',solution:['f1e1','e1e5'],difficulty:'hard',rating:2750,hint:'القلعة للهجوم'},
-    {id:40,name:'الكومبو التكتيكي',desc:'سلسلة تكتيكات',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3e5','c4f7','e5c6'],difficulty:'hard',rating:2800,hint:'عدة تكتيكات متتالية'},
-    {id:41,name:'الهجوم الصامت',desc:'حركة هادئة قوية',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['d1e2'],difficulty:'hard',rating:2850,hint:'حضّر للهجوم'},
-    {id:42,name:'الدفاع الوحيد',desc:'ابحث عن الدفاع الوحيد',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1',solution:['d8e7'],difficulty:'hard',rating:2900,hint:'احمِ f7'},
-    {id:43,name:'الزوجفانج',desc:'كلا الخيارين سيئان',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3g5'],difficulty:'hard',rating:2950,hint:'الخصم في مأزق'},
-    {id:44,name:'الحركة الوسيطة',desc:'حركة بينية مفاجئة',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3e5','d1f3'],difficulty:'hard',rating:3000,hint:'لا تأخذ مباشرة'},
-    {id:45,name:'الكش المزدوج',desc:'كش من قطعتين',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3g5','c4f7'],difficulty:'hard',rating:3050,hint:'كش من اتجاهين'},
-    {id:46,name:'الكش الأبدي',desc:'اجبر التعادل',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3g5','g5f7','f7g5'],difficulty:'hard',rating:3100,hint:'كرر الحركات'},
-    {id:47,name:'الملك المحاصر',desc:'احصر الملك',fen:'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1',solution:['f3g5','d1f3'],difficulty:'hard',rating:3150,hint:'امنع التبييت'},
-    {id:48,name:'النهاية الفنية',desc:'نهاية معقدة',fen:'8/8/8/3k4/8/3K4/3P4/8 w - - 0 1',solution:['d3e4','d2d4','e4f5'],difficulty:'hard',rating:3200,hint:'تقنية دقيقة'},
-    {id:49,name:'الماستر بازل',desc:'اللغز النهائي',fen:'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1',solution:['h5f7','e1g1','f7g8','c4f7'],difficulty:'hard',rating:3250,hint:'كش مات في 4 حركات'}
-  ],
-  
-  async _loadProgress(){
-    let progress={};
-    try{
-      const stored=await IDB.kget(this._backupKey);
-      if(stored)progress=stored;
-      else{
-        const ls=localStorage.getItem(this._backupKey);
-        if(ls)progress=JSON.parse(ls);
-      }
-    }catch(e){console.error('[PUZZLE] Load failed:',e);}
-    this._cache=progress;
-    return progress;
-  },
-  
-  async get(){
-    if(this._cache===null)await this._loadProgress();
-    return this._cache||{};
-  },
-  
-  async save(id,solved,attempts,time){
-    const p=await this.get();
-    const prev=p[id]||{solved:false,attempts:0,bestTime:999999};
-    p[id]={
-      solved:solved||prev.solved,
-      attempts:(prev.attempts||0)+attempts,
-      bestTime:solved?Math.min(prev.bestTime,time):prev.bestTime,
-      lastPlayed:Date.now()
-    };
-    this._cache=p;
-    try{
-      await IDB.set('puzzle_'+id,p[id]);
-      await IDB.kset(this._backupKey,p);
-      localStorage.setItem(this._backupKey,JSON.stringify(p));
-    }catch(e){console.error('[PUZZLE] Save failed:',e);}
-  },
-  
-  async unlocked(id){
-    if(id===0)return true;
-    const p=await this.get();
-    return !!p[id-1]?.solved;
-  },
-  
-  async buildUI(){
-    const grid=document.getElementById('puzzle-grid');
-    grid.innerHTML='';
-    const p=await this.get();
-    let solved=0,totalAttempts=0,successfulAttempts=0;
-    
-    this.puzzles.forEach(pz=>{
-      if(p[pz.id]?.solved){
-        solved++;
-        successfulAttempts++;
-      }
-      totalAttempts+=p[pz.id]?.attempts||0;
-    });
-    
-    const accuracy=totalAttempts>0?Math.round((successfulAttempts/totalAttempts)*100):0;
-    
-    for(const pz of this.puzzles){
-      const isUnlocked=await this.unlocked(pz.id);
-      const isSolved=!!p[pz.id]?.solved;
-      
-      const card=document.createElement('div');
-      card.className='puzzle-card '+(!isUnlocked?'locked':isSolved?'solved':'open');
-      
-      const diffClass=pz.difficulty==='easy'?'diff-easy':pz.difficulty==='medium'?'diff-medium':'diff-hard';
-      const diffText=pz.difficulty==='easy'?'سهل':pz.difficulty==='medium'?'متوسط':'صعب';
-      
-      card.innerHTML=`
-        <div class="puzzle-ico">🧩</div>
-        <div class="puzzle-info">
-          <div class="puzzle-name">لغز ${pz.id+1} — ${pz.name}</div>
-          <div class="puzzle-desc">${pz.desc}</div>
-          <span class="puzzle-difficulty ${diffClass}">${diffText}</span>
-          <div class="puzzle-rating">التقييم: ${pz.rating}</div>
-        </div>
-      `;
-      
-      if(isUnlocked){
-        card.onclick=()=>{
-          SFX.btn();
-          this.startPuzzle(pz.id);
-        };
-      }
-      
-      grid.appendChild(card);
-    }
-    
-    document.getElementById('puzzles-solved').textContent=solved+' / 50';
-    document.getElementById('puzzles-accuracy').textContent=accuracy+'%';
-    document.getElementById('puzzle-progress-fill').style.width=(solved/50*100)+'%';
-  },
-  
-  startPuzzle(id){
-    const puzzle=this.puzzles[id];
-    if(!puzzle)return;
-    
-    S.puzzleId=id;
-    S.puzzleStartTime=Date.now();
-    S.puzzleAttempts=0;
-    S.puzzleHintsUsed=0;
-    
-    // Initialize game with puzzle position
-    G.start('puzzle','medium');
-    
-    // Load FEN position
-    // This will be implemented in the game logic
-    console.log('[PUZZLE] Starting puzzle:',puzzle);
-  }
-};
-
-/* ══════════════════════════════════════
    STOCKFISH WRAPPER (Fallback to Local Engine)
 ══════════════════════════════════════ */
 const SF=(()=>{
@@ -6588,6 +7023,17 @@ const G={
     R.board();
   },
   exec(fr,to){
+    // Check if in puzzle mode
+    if(S.mode==='puzzle' && typeof PUZZLE !== 'undefined'){
+      const moveStr = String.fromCharCode(97 + fr[1]) + (8 - fr[0]) + 
+                      String.fromCharCode(97 + to[1]) + (8 - to[0]);
+      const isCorrect = PUZZLE.checkMove({from: moveStr.substring(0,2), to: moveStr.substring(2,4)});
+      if(!isCorrect){
+        S.sel=null;S.legal=[];R.board();
+        return;
+      }
+    }
+    
     const tp=E.tp(S.bd[fr[0]][fr[1]]),cl=E.col(S.bd[fr[0]][fr[1]]);
     if(tp==='P'&&(to[0]===0||to[0]===7)){S.pending={fr,to};this.showPromo(cl);return;}
     this.finish(fr,to,null);
@@ -7085,7 +7531,7 @@ const Nav={
   },
   menu(){Nav.show('s-menu');},
   levels(){Nav.show('s-levels');LVL.buildUI();},
-  puzzles(){Nav.show('s-puzzles');PUZZLE.buildUI();},
+  puzzle(){Nav.show('s-puzzle');try{PUZZLE.init();}catch(e){console.error('Puzzle init error:',e);}},
   online(){Nav.show('s-online');try{OL.init();}catch(e){}},
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
@@ -8083,6 +8529,10 @@ window.addEventListener('beforeunload',()=>{
   try{CHAT._stopRecording();}catch(e){}
 });
 </script>
+
+<!-- Load Puzzle Mode -->
+<script src="puzzle-sounds.js"></script>
+<script src="puzzle-mode.js"></script>
 
 <!-- Piece Settings Modal -->
 <div id="piece-settings-modal" class="settings-modal-overlay">
