@@ -2643,7 +2643,7 @@ body[data-ui-theme="anime"] .settings-headline{
   border:1px solid rgba(234,179,8,.15);
 }
 
-#s-game.mode-puzzle #board-container{
+#s-puzzle.mode-puzzle #board-container{
   box-shadow:0 20px 60px rgba(0,0,0,.4), 0 0 0 1px rgba(59,130,246,.1);
 }
 
@@ -2661,6 +2661,54 @@ body[data-ui-theme="anime"] .settings-headline{
 
 #s-game.mode-puzzle .mvhist{
   display:none !important;
+}
+
+/* Puzzle board styling */
+#puzzle-board-wrapper{
+  display:flex;
+  justify-content:center;
+  margin:20px 0;
+}
+
+#puzzle-board-container{
+  position:relative;
+}
+
+#puzzle-board{
+  width:var(--board);
+  height:var(--board);
+  position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.4), 0 0 0 1px rgba(59,130,246,.1);
+  border-radius:8px;
+  overflow:hidden;
+}
+
+#puzzle-board .sq{
+  position:absolute;
+  width:calc(var(--board) / 8);
+  height:calc(var(--board) / 8);
+  transition:background-color .2s;
+}
+
+#puzzle-board .sq.L{background:var(--sq-l);}
+#puzzle-board .sq.D{background:var(--sq-d);}
+#puzzle-board .sq.SL{background:var(--sq-sl);}
+#puzzle-board .sq.SD{background:var(--sq-sd);}
+#puzzle-board .sq.ML{background:var(--sq-ml);}
+#puzzle-board .sq.MD{background:var(--sq-md);}
+
+#puzzle-board .piece{
+  position:absolute;
+  inset:0;
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  cursor:pointer;
+  transition:transform .2s;
+}
+
+#puzzle-board .piece:hover{
+  transform:scale(1.1);
 }
 </style>
 <!-- QR Code Libraries for LAN Mode -->
@@ -2783,6 +2831,11 @@ body[data-ui-theme="anime"] .settings-headline{
       </div>
     </div>
 
+    <!-- Board Container for Puzzle -->
+    <div id="puzzle-board-wrapper" style="display:flex;justify-content:center;margin:20px 0;">
+      <div id="puzzle-board-container"></div>
+    </div>
+
     <!-- Puzzle Card -->
     <div class="puzzle-card">
       <div class="puzzle-header">
@@ -2800,15 +2853,15 @@ body[data-ui-theme="anime"] .settings-headline{
       </div>
 
       <div class="puzzle-actions">
-        <button class="puzzle-btn btn-hint" id="btn-puzzle-hint" onclick="PUZZLE.showHint()">
+        <button class="puzzle-btn btn-hint" id="btn-puzzle-hint" onclick="if(typeof PUZZLE !== 'undefined') PUZZLE.showHint()">
           <span class="btn-icon">◈</span>
           <span>تلميح</span>
         </button>
-        <button class="puzzle-btn btn-solution" id="btn-puzzle-solution" onclick="PUZZLE.showSolution()">
+        <button class="puzzle-btn btn-solution" id="btn-puzzle-solution" onclick="if(typeof PUZZLE !== 'undefined') PUZZLE.showSolution()">
           <span class="btn-icon">◆</span>
           <span>الحل</span>
         </button>
-        <button class="puzzle-btn btn-next btn-disabled" id="btn-puzzle-next" onclick="PUZZLE.nextPuzzle()">
+        <button class="puzzle-btn btn-next btn-disabled" id="btn-puzzle-next" onclick="if(typeof PUZZLE !== 'undefined') PUZZLE.nextPuzzle()">
           <span class="btn-icon">→</span>
           <span>التالي</span>
         </button>
