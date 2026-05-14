@@ -2175,6 +2175,11 @@ body[data-ui-theme="anime"] .settings-headline{
   gap:6px;
 }
 
+.coach-icon{
+  font-size:20px;
+  color:var(--gold2);
+}
+
 .coach-status{
   font-size:12px;
   color:rgba(16,185,129,.9);
@@ -2252,6 +2257,11 @@ body[data-ui-theme="anime"] .settings-headline{
   gap:6px;
 }
 
+.progress-icon{
+  font-size:16px;
+  color:var(--gold2);
+}
+
 .progress-stats{
   font-size:13px;
   color:var(--text2);
@@ -2322,6 +2332,11 @@ body[data-ui-theme="anime"] .settings-headline{
   gap:8px;
 }
 
+.puzzle-icon{
+  font-size:18px;
+  color:var(--gold2);
+}
+
 .puzzle-difficulty{
   padding:4px 12px;
   border-radius:20px;
@@ -2368,6 +2383,10 @@ body[data-ui-theme="anime"] .settings-headline{
   gap:6px;
   position:relative;
   overflow:hidden;
+}
+
+.btn-icon{
+  font-size:16px;
 }
 
 .puzzle-btn::before{
@@ -2676,7 +2695,7 @@ body[data-ui-theme="anime"] .settings-headline{
       <span class="mc-b bv">أوفلاين ◈</span>
     </div>
     <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.puzzle()">
-      <span class="mc-ic" style="color:#3b82f6;">🧩</span>
+      <span class="mc-ic" style="color:#3b82f6;">◆</span>
       <div class="mc-t">وضع الألغاز</div>
       <div class="mc-d">+50 لغز شطرنجي مع المدرب نور</div>
       <span class="mc-b" style="background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.24);">أوفلاين ◈ StockFish</span>
@@ -2715,7 +2734,7 @@ body[data-ui-theme="anime"] .settings-headline{
         <img src="nour.png" alt="المدرب نور" class="coach-avatar" id="puzzle-coach-avatar">
         <div class="coach-info">
           <div class="coach-name">
-            <span>🎓</span>
+            <span class="coach-icon">◈</span>
             <span>المدرب نور</span>
           </div>
           <div class="coach-status" id="coach-status">
@@ -2725,10 +2744,10 @@ body[data-ui-theme="anime"] .settings-headline{
         </div>
       </div>
       <div class="coach-hint" id="coach-hint">
-        مرحباً بك في وضع الألغاز! سأكون معك في كل خطوة. استعد لتحدي عقلك! 🧩
+        مرحباً بك في وضع الألغاز! سأكون معك في كل خطوة. استعد لتحدي عقلك!
       </div>
       <div class="coach-offline" id="coach-offline" style="display:none;">
-        ⚠️ المدرب نور غير متاح حالياً بدون إنترنت
+        ◆ المدرب نور غير متاح حالياً بدون إنترنت
       </div>
     </div>
 
@@ -2736,7 +2755,7 @@ body[data-ui-theme="anime"] .settings-headline{
     <div class="puzzle-progress">
       <div class="progress-header">
         <div class="progress-title">
-          <span>📊</span>
+          <span class="progress-icon">◈</span>
           <span>تقدمك</span>
         </div>
         <div class="progress-stats">
@@ -2752,7 +2771,7 @@ body[data-ui-theme="anime"] .settings-headline{
     <div class="puzzle-card">
       <div class="puzzle-header">
         <div class="puzzle-number">
-          <span>🧩</span>
+          <span class="puzzle-icon">◆</span>
           <span id="puzzle-number">اللغز #1</span>
         </div>
         <div class="puzzle-difficulty" id="puzzle-difficulty">
@@ -2766,15 +2785,15 @@ body[data-ui-theme="anime"] .settings-headline{
 
       <div class="puzzle-actions">
         <button class="puzzle-btn btn-hint" id="btn-puzzle-hint" onclick="PUZZLE.showHint()">
-          <span>💡</span>
+          <span class="btn-icon">◈</span>
           <span>تلميح</span>
         </button>
         <button class="puzzle-btn btn-solution" id="btn-puzzle-solution" onclick="PUZZLE.showSolution()">
-          <span>👁️</span>
+          <span class="btn-icon">◆</span>
           <span>الحل</span>
         </button>
         <button class="puzzle-btn btn-next btn-disabled" id="btn-puzzle-next" onclick="PUZZLE.nextPuzzle()">
-          <span>➡️</span>
+          <span class="btn-icon">→</span>
           <span>التالي</span>
         </button>
       </div>
@@ -2795,14 +2814,14 @@ body[data-ui-theme="anime"] .settings-headline{
       </div>
     </div>
 
-    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();PUZZLE.exit()">← العودة للقائمة</button>
+    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();if(typeof PUZZLE !== 'undefined' && PUZZLE.exit) PUZZLE.exit(); else Nav.menu();">← العودة للقائمة</button>
   </div>
 </div>
 
 <!-- Puzzle Result Modal -->
 <div class="puzzle-result-modal" id="puzzle-result-modal">
   <div class="result-card" id="result-card">
-    <div class="result-icon" id="result-icon">🎉</div>
+    <div class="result-icon" id="result-icon">◈</div>
     <div class="result-title" id="result-title">ممتاز!</div>
     <div class="result-message" id="result-message">
       لقد حللت اللغز بنجاح!
@@ -2818,10 +2837,10 @@ body[data-ui-theme="anime"] .settings-headline{
       </div>
     </div>
     <div class="result-actions">
-      <button class="result-btn result-btn-primary" onclick="PUZZLE.nextPuzzle()">
-        اللغز التالي ➡️
+      <button class="result-btn result-btn-primary" onclick="if(typeof PUZZLE !== 'undefined') PUZZLE.nextPuzzle()">
+        اللغز التالي →
       </button>
-      <button class="result-btn result-btn-secondary" onclick="PUZZLE.closeResultModal()">
+      <button class="result-btn result-btn-secondary" onclick="if(typeof PUZZLE !== 'undefined') PUZZLE.closeResultModal()">
         إغلاق
       </button>
     </div>
