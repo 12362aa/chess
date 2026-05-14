@@ -351,7 +351,6 @@ const PUZZLE = (() => {
     const puzzle = puzzles[currentPuzzleIndex];
     if (!puzzle) return;
 
-    // Load FEN position
     try {
       // Reset game state
       if (typeof G !== 'undefined' && G._reset) {
@@ -363,38 +362,170 @@ const PUZZLE = (() => {
           E.loadFEN(puzzle.fen);
         }
         
-        // Update UI first
+        // Create board in puzzle screen if not exists
+        const puzzleBoardContainer = document.getElementById('puzzle-board-container');
+        if (puzzleBoardContainer && !document.getElementById('puzzle-board')) {
+          // Clone the board structure
+          const board = document.createElement('div');
+          board.id = 'puzzle-board';
+          board.className = 'board';
+          board.style.cssText = 'width:var(--board);height:var(--board);position:relative;';
+          
+          // Create squares
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              const sq = document.createElement('div');
+              sq.className = 'sq ' + ((r + c) % 2 === 0 ? 'L' : 'D');
+              sq.dataset.r = r;
+              sq.dataset.c = c;
+              sq.style.cssText = 'position:absolute;width:calc(var(--board)/8);height:calc(var(--board)/8);';
+              sq.style.left = `calc(${c} * var(--board) / 8)`;
+              sq.style.top = `calc(${r} * var(--board) / 8)`;
+              board.appendChild(sq);
+            }
+          }
+          
+          puzzleBoardContainer.appendChild(board);
+        }
+        
+        // Update UI
         updateUI();
         
-        // Navigate to game screen
-        Nav.game();
-        
-        // Add puzzle mode class and hide unnecessary elements
+        // Render pieces on puzzle board
         setTimeout(() => {
-          const gameScreen = document.getElementById('s-game');
-          if (gameScreen) {
-            gameScreen.classList.add('mode-puzzle');
-          }
-          
-          // Hide player bars, chat, and other elements
-          const barB = document.getElementById('bar-b');
-          const barW = document.getElementById('bar-w');
-          const chatWrap = document.querySelector('.chat-wrap');
-          const gtbar = document.querySelector('.gtbar');
-          
-          if (barB) barB.style.display = 'none';
-          if (barW) barW.style.display = 'none';
-          if (chatWrap) chatWrap.style.display = 'none';
-          if (gtbar) gtbar.style.display = 'none';
-          
-          // Render board
-          if (typeof R !== 'undefined' && R.all) {
-            R.all();
-          }
+          renderPuzzleBoard();
         }, 50);
       }
     } catch (e) {
       console.error('Failed to load puzzle:', e);
+    }
+  }
+  
+  function renderPuzzleBoard() {
+    const board = document.getElementById('puzzle-board');
+    if (!board) return;
+    
+    // Clear all pieces
+    board.querySelectorAll('.piece').forEach(p => p.remove());
+    
+    // Render pieces from S.bd
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const pc = S.bd[r][c];
+        if (pc) {
+          const sq = board.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+          if (sq) {
+            const piece = document.createElement('div');
+            piece.className = 'piece ' + pc;
+            piece.style.cssText = 'position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center;cursor:pointer;';
+            
+            // Add click handler
+            piece.addEventListener('click', () => handlePuzzlePieceClick(r, c));
+            
+            sq.appendChild(piece);
+          }
+        }
+      }
+    }
+    
+    // Apply piece images based on settings
+    if (typeof Cfg !== 'undefined' && Cfg.data && Cfg.data.pieceSet) {
+      applyPieceSet(Cfg.data.pieceSet);
+    }
+  }
+  
+  function applyPieceSet(setName) {
+    // Apply the selected piece set to puzzle board
+    const board = document.getElementById('puzzle-board');
+    if (!board) return;
+    
+    // Use the same piece set logic as the main game
+    board.querySelectorAll('.piece').forEach(piece => {
+      const classes = piece.className.split(' ');
+      const pcClass = classes.find(c => c.length === 2);
+      if (pcClass) {
+        // Apply background image based on piece set
+        // This will use the CSS classes already defined in the main stylesheet
+        piece.className = 'piece ' + pcClass;
+      }
+    });
+  }
+  
+  function handlePuzzlePieceClick(r, c) {
+    if (S.over || S.pending) return;
+    
+    const pc = S.bd[r][c];
+    if (!pc) return;
+    
+    // Only allow white pieces to move (puzzles are always from white's perspective)
+    const col = E.col(pc);
+    if (col !== 'w') return;
+    
+    // Select piece and show legal moves
+    S.sel = [r, c];
+    S.legal = E.legal(S.bd, r, c, S.cas, S.ep);
+    
+    // Highlight selected square and legal moves
+    highlightPuzzleSquares();
+  }
+  
+  function highlightPuzzleSquares() {
+    const board = document.getElementById('puzzle-board');
+    if (!board) return;
+    
+    // Clear previous highlights
+    board.querySelectorAll('.sq').forEach(sq => {
+      sq.classList.remove('SL', 'SD', 'ML', 'MD');
+    });
+    
+    // Highlight selected square
+    if (S.sel) {
+      const [r, c] = S.sel;
+      const sq = board.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+      if (sq) {
+        sq.classList.add((r + c) % 2 === 0 ? 'SL' : 'SD');
+      }
+    }
+    
+    // Highlight legal moves
+    S.legal.forEach(([r, c]) => {
+      const sq = board.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+      if (sq) {
+        sq.classList.add((r + c) % 2 === 0 ? 'ML' : 'MD');
+        
+        // Add click handler for legal move
+        sq.addEventListener('click', () => handlePuzzleSquareClick(r, c), { once: true });
+      }
+    });
+  }
+  
+  function handlePuzzleSquareClick(r, c) {
+    if (!S.sel) return;
+    
+    const [fr, fc] = S.sel;
+    const moveStr = String.fromCharCode(97 + fc) + (8 - fr) + 
+                    String.fromCharCode(97 + c) + (8 - r);
+    
+    // Check if this is the correct move
+    const isCorrect = checkMove({from: moveStr.substring(0,2), to: moveStr.substring(2,4)});
+    
+    if (isCorrect) {
+      // Apply the move
+      const tp = E.tp(S.bd[fr][fc]);
+      if (tp === 'P' && (r === 0 || r === 7)) {
+        // Pawn promotion - auto-promote to Queen for puzzles
+        E.move(S.bd, fr, fc, r, c, 'Q', S.cas, S.ep);
+      } else {
+        E.move(S.bd, fr, fc, r, c, null, S.cas, S.ep);
+      }
+      
+      S.sel = null;
+      S.legal = [];
+      renderPuzzleBoard();
+    } else {
+      S.sel = null;
+      S.legal = [];
+      renderPuzzleBoard();
     }
   }
 
