@@ -35,15 +35,19 @@ const PUZZLE = (() => {
 
   // Initialize StockFish Engine
   function initStockfish() {
-    if (typeof STOCKFISH === 'function') {
-      stockfishEngine = STOCKFISH();
-      stockfishEngine.onmessage = handleStockfishMessage;
-      stockfishEngine.postMessage('uci');
-      stockfishEngine.postMessage('setoption name Skill Level value 20');
-      stockfishEngine.postMessage('isready');
-      console.log('✅ StockFish Engine initialized');
-    } else {
-      console.error('❌ StockFish not loaded');
+    try {
+      if (typeof STOCKFISH === 'function') {
+        stockfishEngine = STOCKFISH();
+        stockfishEngine.onmessage = handleStockfishMessage;
+        stockfishEngine.postMessage('uci');
+        stockfishEngine.postMessage('setoption name Skill Level value 20');
+        stockfishEngine.postMessage('isready');
+        console.log('✅ StockFish Engine initialized');
+      } else {
+        console.warn('⚠️ StockFish not available, puzzles will work without engine analysis');
+      }
+    } catch (e) {
+      console.warn('⚠️ StockFish initialization failed:', e);
     }
   }
 
@@ -276,7 +280,7 @@ const PUZZLE = (() => {
       } else {
         document.getElementById('coach-hint').textContent = 
           '◇ حاول مرة أخرى! فكر أكثر...';
-        if (typeof SFX !== 'undefined') SFX.error();
+        if (typeof SFX !== 'undefined' && SFX.illegal) SFX.illegal();
       }
       
       return false;
@@ -315,9 +319,9 @@ const PUZZLE = (() => {
     // Play sound
     if (typeof SFX !== 'undefined') {
       if (success) {
-        SFX.checkmate();
+        if (SFX.checkmate) SFX.checkmate();
       } else {
-        SFX.error();
+        if (SFX.illegal) SFX.illegal();
       }
     }
   }
@@ -359,24 +363,35 @@ const PUZZLE = (() => {
           E.loadFEN(puzzle.fen);
         }
         
-        // Update UI
+        // Update UI first
         updateUI();
         
         // Navigate to game screen
         Nav.game();
         
-        // Add puzzle mode class
-        const gameScreen = document.getElementById('s-game');
-        if (gameScreen) {
-          gameScreen.classList.add('mode-puzzle');
-        }
-        
-        // Render board
-        if (typeof R !== 'undefined' && R.all) {
-          setTimeout(() => {
+        // Add puzzle mode class and hide unnecessary elements
+        setTimeout(() => {
+          const gameScreen = document.getElementById('s-game');
+          if (gameScreen) {
+            gameScreen.classList.add('mode-puzzle');
+          }
+          
+          // Hide player bars, chat, and other elements
+          const barB = document.getElementById('bar-b');
+          const barW = document.getElementById('bar-w');
+          const chatWrap = document.querySelector('.chat-wrap');
+          const gtbar = document.querySelector('.gtbar');
+          
+          if (barB) barB.style.display = 'none';
+          if (barW) barW.style.display = 'none';
+          if (chatWrap) chatWrap.style.display = 'none';
+          if (gtbar) gtbar.style.display = 'none';
+          
+          // Render board
+          if (typeof R !== 'undefined' && R.all) {
             R.all();
-          }, 100);
-        }
+          }
+        }, 50);
       }
     } catch (e) {
       console.error('Failed to load puzzle:', e);
@@ -384,7 +399,7 @@ const PUZZLE = (() => {
   }
 
   function exit() {
-    if (typeof SFX !== 'undefined') SFX.btn();
+    if (typeof SFX !== 'undefined' && SFX.btn) SFX.btn();
     stopTimer();
     
     // Remove puzzle mode class
@@ -392,6 +407,17 @@ const PUZZLE = (() => {
     if (gameScreen) {
       gameScreen.classList.remove('mode-puzzle');
     }
+    
+    // Show hidden elements again
+    const barB = document.getElementById('bar-b');
+    const barW = document.getElementById('bar-w');
+    const chatWrap = document.querySelector('.chat-wrap');
+    const gtbar = document.querySelector('.gtbar');
+    
+    if (barB) barB.style.display = '';
+    if (barW) barW.style.display = '';
+    if (chatWrap) chatWrap.style.display = '';
+    if (gtbar) gtbar.style.display = '';
     
     Nav.menu();
   }
