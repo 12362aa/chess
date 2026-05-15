@@ -1005,7 +1005,7 @@ body[data-ui-theme="anime"] .settings-headline{
 .pp:hover{border-color:var(--gold);background-color:rgba(201,168,76,.11);transform:scale(1.1) translateY(-3px);box-shadow:0 8px 20px rgba(201,168,76,.2);}
 
 /* ══════════ GAME OVER ══════════ */
-#go-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(5px);z-index:850;align-items:center;justify-content:center;padding:16px;}
+#go-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(5px);z-index:850;align-items:center;justify-content:center;padding:14px;overflow:auto;overscroll-behavior:contain;}
 #go-ov.open{display:flex;animation:fadeIn .4s ease-out;}
 
 @keyframes fadeIn{
@@ -1013,7 +1013,7 @@ body[data-ui-theme="anime"] .settings-headline{
   to{opacity:1;}
 }
 
-.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:38px 30px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(94vw,480px);width:100%;max-height:min(88vh,760px);box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:auto;overscroll-behavior:contain;}
 
 /* Enhanced background glow for game over */
 .gobox::before{
@@ -1043,8 +1043,8 @@ body[data-ui-theme="anime"] .settings-headline{
   50%{opacity:1;}
 }
 
-.go-em{font-size:58px;display:block;margin-bottom:11px;animation:flt 2s ease-in-out infinite;position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(201,168,76,.3));}
-.go-ttl{font-family:'Amiri',serif;font-size:25px;font-weight:700;color:var(--gold2);margin-bottom:5px;position:relative;z-index:1;text-shadow:0 2px 12px rgba(201,168,76,.4);}
+.go-em{font-size:52px;display:block;margin-bottom:8px;animation:flt 2s ease-in-out infinite;position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(201,168,76,.3));}
+.go-ttl{font-family:'Amiri',serif;font-size:23px;font-weight:700;color:var(--gold2);margin-bottom:5px;position:relative;z-index:1;text-shadow:0 2px 12px rgba(201,168,76,.4);}
 .go-stars{display:flex;gap:6px;justify-content:center;margin-bottom:10px;position:relative;z-index:1;}
 .go-star{font-size:30px;color:var(--text3);transition:all .4s cubic-bezier(.34,1.56,.64,1);}
 .go-star.on{color:var(--gold2);text-shadow:0 0 16px rgba(201,168,76,.7);transform:scale(1.15);animation:starPop .5s cubic-bezier(.34,1.56,.64,1);}
@@ -1055,8 +1055,8 @@ body[data-ui-theme="anime"] .settings-headline{
   100%{transform:scale(1.15) rotate(0deg);opacity:1;}
 }
 
-.go-msg{color:var(--text2);font-size:13px;margin-bottom:22px;line-height:1.6;position:relative;z-index:1;}
-.go-quick{margin-top:-10px;margin-bottom:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:12px 12px 10px;display:none;position:relative;z-index:1;}
+.go-msg{color:var(--text2);font-size:13px;margin-bottom:14px;line-height:1.7;white-space:pre-line;position:relative;z-index:1;}
+.go-quick{margin-top:0;margin-bottom:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:12px 12px 10px;display:none;position:relative;z-index:1;}
 .go-quick.on{display:block;animation:slideUp .4s ease-out;}
 
 @keyframes slideUp{
@@ -1069,15 +1069,14 @@ body[data-ui-theme="anime"] .settings-headline{
 .go-qdot{width:7px;height:7px;border-radius:50%;background:rgba(45,212,191,.55);box-shadow:0 0 10px rgba(45,212,191,.18);animation:dbt .9s ease-in-out infinite;}
 .go-qdot:nth-child(2){animation-delay:.15s;}
 .go-qdot:nth-child(3){animation-delay:.3s;}
-.go-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.go-analysis-hero{display:flex;align-items:center;gap:14px;margin:12px 0 10px;flex-wrap:wrap;}
-.go-analysis-board-wrap{display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
-.go-rating-line{display:grid;grid-template-columns:repeat(2,minmax(92px,1fr));gap:8px;flex:1;min-width:190px;}
-.go-rate-card{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}
+.go-qgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+.go-analysis-hero{display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:10px;margin:8px 0 10px;text-align:center;width:100%;}
+.go-analysis-board-wrap{display:flex;align-items:center;justify-content:center;width:100%;margin-inline:auto;}
+.go-rating-line{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;max-width:230px;min-width:0;margin-inline:auto;}
+.go-rate-card{padding:11px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}
 .go-rate-card.me{border-color:rgba(45,212,191,.28);background:linear-gradient(145deg,rgba(45,212,191,.18),rgba(45,212,191,.05));}
-.go-rate-card.opp{border-color:rgba(201,168,76,.22);}
 .go-rate-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
-.go-rate-value{font-size:24px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.12);}
+.go-rate-value{font-size:26px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.12);}
 .go-rate-name{font-size:12px;color:var(--text);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .go-qit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border-radius:12px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.05);transition:all .2s;}
 .go-qit:hover{background:rgba(0,0,0,.2);border-color:rgba(201,168,76,.15);}
@@ -1103,8 +1102,32 @@ body[data-ui-theme="anime"] .settings-headline{
 .go-nour-avatar{width:42px;height:42px;border-radius:14px;object-fit:cover;flex-shrink:0;position:relative;z-index:1;border:1px solid rgba(201,168,76,.28);box-shadow:0 8px 18px rgba(0,0,0,.28);}
 .go-nour-body{position:relative;z-index:1;min-width:0;flex:1;}
 @media(max-width:520px){
-  .go-analysis-hero{flex-direction:column;align-items:stretch;}
-  .go-rating-line{min-width:0;width:100%;}
+  #go-ov{padding:8px;align-items:flex-start;}
+  .gobox{width:100%;max-width:100%;max-height:92vh;padding:16px 12px 12px;border-radius:18px;}
+  .go-em{font-size:42px;margin-bottom:4px;}
+  .go-ttl{font-size:20px;}
+  .go-msg{font-size:12px;margin-bottom:10px;}
+  .go-quick{padding:9px 9px 8px;margin-bottom:8px;}
+  .go-analysis-hero{gap:10px;margin:8px 0 10px;}
+  .go-rating-line{max-width:none;width:100%;}
+  .go-rate-value{font-size:22px;}
+  .go-qgrid{grid-template-columns:1fr 1fr;gap:6px;}
+  .go-qit{padding:6px 8px;border-radius:10px;}
+  .go-ql,.go-qv{font-size:10px;}
+  .go-bts{display:grid;grid-template-columns:1fr;gap:7px;}
+  .bgp,.bgs{width:100%;}
+  .go-nour-avatar{width:36px;height:36px;border-radius:12px;}
+  .go-nour-t{font-size:11px;line-height:1.65;}
+}
+@media(max-height:720px){
+  #go-ov{align-items:flex-start;padding:8px;}
+  .gobox{max-height:92vh;padding:16px 12px 12px;}
+  .go-em{font-size:40px;margin-bottom:4px;}
+  .go-msg{margin-bottom:8px;}
+  .go-quick{padding:8px;margin-bottom:8px;}
+  .go-qgrid{gap:5px;}
+  .go-qit{padding:6px 7px;}
+  .analysis-mini-board.gameover{--mini-size:96px;}
 }
 .go-bts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
 .bgp{padding:11px 17px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a14;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
@@ -1638,7 +1661,12 @@ body[data-ui-theme="anime"] .settings-headline{
   isolation:isolate;
 }
 .analysis-mini-board.review{--mini-size:126px;}
-.analysis-mini-board.gameover{--mini-size:138px;}
+.analysis-mini-board.gameover{
+  --mini-size:clamp(102px,20vw,138px);
+  margin-inline:auto;
+  transform-origin:center center;
+  animation:gameoverBoardFloat 4.2s ease-in-out infinite;
+}
 .analysis-mini-board::before{
   content:'';
   position:absolute;
@@ -1665,6 +1693,22 @@ body[data-ui-theme="anime"] .settings-headline{
   background:radial-gradient(circle at 50% 30%,rgba(148,163,184,.28),transparent 54%),
              radial-gradient(circle at 26% 74%,rgba(201,168,76,.14),transparent 40%);
 }
+.analysis-mini-board.gameover::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(120deg,transparent 8%,rgba(255,255,255,.08) 48%,transparent 74%);
+  transform:translateX(-135%);
+  animation:gameoverSweep 4.8s ease-in-out infinite;
+  pointer-events:none;
+  z-index:4;
+  mix-blend-mode:screen;
+  opacity:.52;
+}
+.analysis-mini-board.gameover[data-tone="win"]{border-color:rgba(250,204,21,.26);}
+.analysis-mini-board.gameover[data-tone="loss"]{border-color:rgba(248,113,113,.24);}
+.analysis-mini-board.gameover[data-tone="draw"]{border-color:rgba(148,163,184,.22);}
 .analysis-mini-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);z-index:1;}
 .analysis-mini-sq{position:relative;transition:transform .2s ease,box-shadow .24s ease,background .24s ease;}
 .analysis-mini-sq.light{background:var(--mini-light);}
@@ -1730,6 +1774,14 @@ body[data-ui-theme="anime"] .settings-headline{
 @keyframes miniBurst{
   0%{opacity:.95;transform:translate(-50%,-50%) scale(.2);}
   100%{opacity:0;transform:translate(-50%,-50%) scale(1.9);}
+}
+@keyframes gameoverBoardFloat{
+  0%,100%{transform:translateY(0) scale(1);}
+  50%{transform:translateY(-3px) scale(1.015);}
+}
+@keyframes gameoverSweep{
+  0%,70%,100%{transform:translateX(-135%);}
+  38%{transform:translateX(135%);}
 }
 
 .rv-analysis-stats{
@@ -5494,6 +5546,13 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
   const pieceEls=new Map();
   let stopped=false;
   let timer=null;
+  const timing=variant==='review'
+    ? {flash:320,move:420,gap:120,loop:420,promo:220,burst:420}
+    : (tone==='win'
+      ? {flash:460,move:610,gap:220,loop:920,promo:250,burst:460}
+      : (tone==='loss'
+        ? {flash:420,move:570,gap:190,loop:780,promo:220,burst:430}
+        : {flash:440,move:590,gap:205,loop:840,promo:230,burst:440}));
 
   const sqKey=(r,c)=>`${r}_${c}`;
   const pos=(row,col)=>({
@@ -5527,7 +5586,7 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
     const el=squareEls.get(sqKey(coords[0],coords[1]));
     if(!el)return;
     el.classList.add(kind);
-    setTimeout(()=>{try{el.classList.remove(kind);}catch(e){};},variant==='review'?320:420);
+    setTimeout(()=>{try{el.classList.remove(kind);}catch(e){};},timing.flash);
   }
 
   function burst(coords,kind='capture'){
@@ -5538,7 +5597,7 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
     el.style.left=`calc(${p.left} + 6.25%)`;
     el.style.top=`calc(${p.top} + 6.25%)`;
     fx.appendChild(el);
-    setTimeout(()=>{try{el.remove();}catch(e){};},420);
+    setTimeout(()=>{try{el.remove();}catch(e){};},timing.burst);
   }
 
   function createPiece(piece,row,col){
@@ -5627,9 +5686,9 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
           mover.className=`analysis-mini-piece ${promoted} promoting`;
           if(pieceUrls[promoted])mover.style.backgroundImage=`url("${pieceUrls[promoted]}")`;
         }catch(e){}
-      },220);
+      },timing.promo);
     }
-    await schedule(variant==='review'?420:560);
+    await schedule(timing.move);
     if(stopped)return;
     rebuild(frame.after);
     if(frame.isCheck||frame.isCheckmate){
@@ -5645,12 +5704,12 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
     while(!stopped){
       await animateFrame(frames[idx]);
       if(stopped)break;
-      await schedule(variant==='review'?120:180);
+      await schedule(timing.gap);
       if(stopped)break;
       idx++;
       if(idx>=frames.length){
         idx=0;
-        await schedule(variant==='review'?420:720);
+        await schedule(timing.loop);
         if(stopped)break;
         rebuild(INIT_BD);
       }
@@ -7092,20 +7151,14 @@ const G={
       });
 
       const summary=analysis.summary||{};
-      const myName=myCol==='b'?(summary.bName||'الأسود'):(summary.wName||'الأبيض');
-      const oppName=myCol==='b'?(summary.wName||'الأبيض'):(summary.bName||'الأسود');
+      const boardName=(document.getElementById(myCol==='b'?'nm-b':'nm-w')?.textContent||'').trim();
+      const myName=boardName||(myCol==='b'?(summary.bName||'الأسود'):(summary.wName||'اللاعب'));
       const myAcc=myCol==='b'?(summary.bAcc??50):(summary.wAcc??50);
-      const oppAcc=myCol==='b'?(summary.wAcc??50):(summary.bAcc??50);
       ratingLine.innerHTML=`
         <div class="go-rate-card me">
-          <div class="go-rate-label">التقييم نفسه المستخدم في التحليل</div>
+          <div class="go-rate-label">نفس تقييم "تقييم المباراة"</div>
           <div class="go-rate-value">${myAcc}%</div>
           <div class="go-rate-name">${myName}</div>
-        </div>
-        <div class="go-rate-card opp">
-          <div class="go-rate-label">الخصم</div>
-          <div class="go-rate-value">${oppAcc}%</div>
-          <div class="go-rate-name">${oppName}</div>
         </div>`;
 
       const item=(lbl,val)=>`<div class="go-qit"><span class="go-ql">${lbl}</span><span class="go-qv">${val}</span></div>`;
@@ -7400,6 +7453,22 @@ const OL=(()=>{
 
   function handleMsg(d){
     switch(d.type){
+      case 'mm-color-required':
+        {
+          const forced=d.color==='b'?'b':'w';
+          try{OL.col(forced,true);}catch(e){}
+          setSt('m',`◎ تم ضبط لونك إلى ${forced==='w'?'الأبيض':'الأسود'} لأن اللون الآخر محجوز حالياً…`,'wait');
+          try{document.getElementById('btn-mm').style.display='none';}catch(e){}
+          try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
+          try{
+            send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced});
+          }catch(e){
+            try{document.getElementById('btn-mm').style.display='inline-flex';}catch(err){}
+            try{document.getElementById('btn-mc').style.display='none';}catch(err){}
+          }
+        }
+        break;
+
       case 'mm-wait':
         setSt('m','◎ جاري البحث عن خصم…','wait');
         try{document.getElementById('btn-mm').style.display='none';}catch(e){}
