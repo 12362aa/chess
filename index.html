@@ -1005,6 +1005,39 @@ body[data-ui-theme="anime"] .settings-headline{
 .pp:hover{border-color:var(--gold);background-color:rgba(201,168,76,.11);transform:scale(1.1) translateY(-3px);box-shadow:0 8px 20px rgba(201,168,76,.2);}
 
 /* ══════════ GAME OVER ══════════ */
+/* Game result display on board */
+.game-result-overlay{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  z-index:100;
+  text-align:center;
+  pointer-events:none;
+  animation:resultFadeIn 0.6s ease-out;
+}
+.game-result-score{
+  font-size:clamp(48px, 8vw, 72px);
+  font-weight:900;
+  font-family:'Amiri',serif;
+  text-shadow:0 4px 20px rgba(0,0,0,0.8), 0 0 40px currentColor;
+  margin-bottom:8px;
+  letter-spacing:8px;
+}
+.game-result-winner{
+  font-size:clamp(18px, 3vw, 24px);
+  font-weight:700;
+  text-shadow:0 2px 12px rgba(0,0,0,0.7);
+  opacity:0.95;
+}
+.game-result-overlay.win .game-result-score{color:#fbbf24;}
+.game-result-overlay.loss .game-result-score{color:#f87171;}
+.game-result-overlay.draw .game-result-score{color:#94a3b8;}
+@keyframes resultFadeIn{
+  0%{opacity:0;transform:translate(-50%, -50%) scale(0.8);}
+  100%{opacity:1;transform:translate(-50%, -50%) scale(1);}
+}
+
 #go-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(5px);z-index:850;align-items:center;justify-content:center;padding:14px;overflow:hidden;}
 #go-ov.open{display:flex;animation:fadeIn .4s ease-out;}
 
@@ -1014,28 +1047,13 @@ body[data-ui-theme="anime"] .settings-headline{
 }
 
 .gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(92vw,460px);width:100%;max-height:min(86vh,720px);box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
-.gobox.go-compact{max-width:min(94vw,420px);padding:16px 14px 14px;}
-.gobox.go-compact::before,
-.gobox.go-compact::after{animation:none;opacity:.28;}
-.gobox.go-compact .go-em{animation:none;}
-.gobox.go-compact .go-nour::before{animation:none;}
-.gobox.go-compact .go-quick.on{display:block;animation:none;}
-.gobox.go-compact:not(.go-quick-open) .go-quick{display:none;}
-.gobox.go-compact:not(.go-quick-open) .go-quick.on{padding:0;margin:0 0 10px;background:none;border:none;}
-.gobox.go-compact:not(.go-quick-open) .go-qrow,
-.gobox.go-compact:not(.go-quick-open) .go-analysis-hero,
-.gobox.go-compact:not(.go-quick-open) .go-qgrid{display:none;}
-.gobox.go-compact.go-quick-open .go-quick{padding:10px 10px 8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);}
-.gobox.go-quick-open .go-em,
-.gobox.go-quick-open .go-stars,
-.gobox.go-quick-open .go-msg,
-.gobox.go-quick-open .go-nour{display:none!important;}
-.gobox.go-quick-open .go-ttl{margin-bottom:10px;}
-.gobox.go-quick-open .go-bts > *{display:none!important;}
-.gobox.go-quick-open #go-review,
-.gobox.go-quick-open .go-bts .bgs:last-child{display:inline-flex!important;}
-.gobox.go-quick-open .go-quick{margin-bottom:10px;}
-.gobox.go-quick-open .go-bts .bgs:last-child{grid-column:1 / -1;}
+/* Hide title, emoji, stars, and message in quick review mode */
+.gobox .go-em,
+.gobox .go-stars,
+.gobox .go-msg,
+.gobox .go-ttl{display:none;}
+.gobox .go-quick{display:block;margin-bottom:16px;}
+.gobox .go-bts{margin-top:16px;}
 
 /* Enhanced background glow for game over */
 .gobox::before{
@@ -2740,7 +2758,7 @@ body[data-ui-theme="anime"] .settings-headline{
     <div class="go-bts">
       <button class="bgp" onclick="G.restart()">↺ مرة أخرى</button>
       <button id="go-next" class="bgp" style="display:none" onclick="G.nextLevel()">التالي ←</button>
-      <button id="go-review" class="bgp" style="display:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1a18" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.open()">◈ تقييم المباراة</button>
+      <button id="go-review" class="bgp" style="display:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1a18" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.open()">◈ مراجعة المباراة</button>
       <button class="bgs" onclick="G.goMenu()">القائمة</button>
     </div>
   </div>
@@ -6831,6 +6849,11 @@ const G={
     AST.clear();
     R.boardReset();
     CHAT.hide();
+    
+    // Remove result overlay from board
+    const resultOverlay = document.querySelector('.game-result-overlay');
+    if(resultOverlay) resultOverlay.remove();
+    
     const sg=document.getElementById('s-game');
     sg.classList.remove('mode-local','mode-bot','mode-online');
     sg.classList.add('mode-'+mode);
@@ -6849,7 +6872,7 @@ const G={
       const {review,menu}=this._postGameButtons();
       if(review){
         review.disabled=false;
-        review.textContent='◈ تقييم المباراة';
+        review.textContent='◈ مراجعة المباراة';
         review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
       }
       if(menu){
@@ -7151,22 +7174,69 @@ const G={
     // Note: Win sound is already played by SFX.levelDone() before this function is called
   },
   showOver(em,ttl,msg,col){
-    document.getElementById('go-stars').style.display='none';
-    const e=document.getElementById('go-em');e.textContent=em;
-    e.style.color=col||'var(--gold2)';e.style.textShadow='0 0 26px '+(col||'var(--gold2)')+'88';
-    document.getElementById('go-ttl').textContent=ttl;document.getElementById('go-msg').textContent=msg;
-    document.getElementById('go-ov').classList.add('open');
-    this._quickPostGame();
-    // Play appropriate sound based on outcome
+    // Don't show popup immediately - show result on board first
+    const resultType = ttl.includes('فوز') || ttl.includes('مكتملة') ? 'win' : 
+                       ttl.includes('خسرت') || ttl.includes('انسحاب') ? 'loss' : 'draw';
+    
+    // Determine chess notation result
+    let scoreText = '½-½';
+    let winnerText = msg;
+    
+    if(resultType === 'win'){
+      // Check who won
+      const isWhiteWin = S.turn === 'b'; // If black's turn and checkmate, white won
+      scoreText = isWhiteWin ? '1-0' : '0-1';
+    } else if(resultType === 'loss'){
+      const isWhiteLoss = S.turn === 'w';
+      scoreText = isWhiteLoss ? '0-1' : '1-0';
+    }
+    
+    // Show result on board
+    this._showResultOnBoard(scoreText, winnerText, resultType);
+    
+    // Play appropriate sound
     try{
-      if( ttl.includes('فوز') || ttl.includes('مكتملة') || col==='#e8d080' ){
+      if(resultType === 'win'){
         SFX.win();
-      }else if( ttl.includes('خسرت') || ttl.includes('انسحاب') || col==='#f87171' ){
+      }else if(resultType === 'loss'){
         SFX.illegal();
       }else{
         SFX.draw();
       }
     }catch(e){}
+    
+    // Show quick review after delay
+    setTimeout(() => {
+      this._showQuickReview(em, ttl, msg, col);
+    }, 2500);
+  },
+  
+  _showResultOnBoard(scoreText, winnerText, resultType){
+    // Remove any existing result overlay
+    const existing = document.querySelector('.game-result-overlay');
+    if(existing) existing.remove();
+    
+    // Create result overlay on board
+    const boardContainer = document.getElementById('board-container');
+    if(!boardContainer) return;
+    
+    const overlay = document.createElement('div');
+    overlay.className = `game-result-overlay ${resultType}`;
+    overlay.innerHTML = `
+      <div class="game-result-score">${scoreText}</div>
+      <div class="game-result-winner">${winnerText}</div>
+    `;
+    boardContainer.appendChild(overlay);
+  },
+  
+  _showQuickReview(em, ttl, msg, col){
+    document.getElementById('go-stars').style.display='none';
+    const e=document.getElementById('go-em');e.textContent=em;
+    e.style.color=col||'var(--gold2)';e.style.textShadow='0 0 26px '+(col||'var(--gold2)')+'88';
+    document.getElementById('go-ttl').textContent=ttl;
+    document.getElementById('go-msg').textContent=msg;
+    document.getElementById('go-ov').classList.add('open');
+    this._quickPostGame();
   },
   _postGameMiniState:null,
   _postGameCompact:false,
@@ -7190,11 +7260,9 @@ const G={
     }
     if(qWrap)qWrap.classList.toggle('on',!compact);
     if(review){
-      review.disabled=!!compact;
-      review.textContent=compact?'◌ التحليل...':'◈ تقييم المباراة';
-      review.onclick=compact
-        ? ()=>{}
-        : ()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
+      review.disabled=false;
+      review.textContent='◈ مراجعة المباراة';
+      review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
     }
     if(menu){
       menu.textContent='القائمة';
@@ -7207,32 +7275,6 @@ const G={
     const miniBoard=document.getElementById('go-mini-board');
     if(!miniBoard||!this._postGameMiniState)return null;
     return setMiniAnimator('gameover',createMiniBoardReplay(miniBoard,this._postGameMiniState));
-  },
-  togglePostGameQuick(force){
-    const box=document.querySelector('#go-ov .gobox');
-    const qWrap=document.getElementById('go-quick');
-    const nourBox=document.getElementById('go-nour');
-    const {review,menu}=this._postGameButtons();
-    if(!box||!qWrap||!this._postGameCompact)return;
-    if(review&&review.disabled)return;
-    const open=typeof force==='boolean'?force:!box.classList.contains('go-quick-open');
-    box.classList.toggle('go-quick-open',open);
-    if(open)qWrap.classList.add('on');
-    else qWrap.classList.toggle('on',!!nourBox&&nourBox.style.display==='flex');
-    if(review){
-      review.textContent=open?'◈ تقييم المباراة':'◈ إحصائيات سريعة';
-      review.onclick=open
-        ? ()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();}
-        : ()=>{if(typeof SFX!=='undefined')SFX.btn();this.togglePostGameQuick(true);};
-    }
-    if(menu){
-      menu.textContent=open?'↩ النتيجة':'القائمة';
-      menu.onclick=open
-        ? ()=>{if(typeof SFX!=='undefined')SFX.btn();this.togglePostGameQuick(false);}
-        : ()=>this.goMenu();
-    }
-    if(open)this._ensurePostGameMini();
-    else stopMiniAnimator('gameover');
   },
   async _quickPostGame(){
     try{
@@ -7265,7 +7307,7 @@ const G={
         const {review}=this._postGameButtons();
         if(review){
           review.disabled=false;
-          review.textContent='◈ تقييم المباراة';
+          review.textContent='◈ مراجعة المباراة';
           review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
         }
         return;
@@ -7305,7 +7347,7 @@ const G={
         const {review}=this._postGameButtons();
         if(review){
           review.disabled=false;
-          review.textContent='◈ تقييم المباراة';
+          review.textContent='◈ مراجعة المباراة';
           review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
         }
         if(compactView)qWrap.classList.remove('on');
@@ -7325,7 +7367,7 @@ const G={
       const myAcc=myCol==='b'?(summary.bAcc??50):(summary.wAcc??50);
       ratingLine.innerHTML=`
         <div class="go-rate-card me">
-          <div class="go-rate-label">نفس تقييم "تقييم المباراة"</div>
+          <div class="go-rate-label">دقة النقلات</div>
           <div class="go-rate-value">${myAcc}%</div>
           <div class="go-rate-name">${myName}</div>
         </div>`;
@@ -7343,13 +7385,13 @@ const G={
         item('فادح',counts.blunder);
 
       qLoad.style.display='none';
-      if(compactView){
-        const {review}=this._postGameButtons();
-        if(review){
-          review.disabled=false;
-          review.textContent='◈ إحصائيات سريعة';
-          review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();this.togglePostGameQuick(true);};
-        }
+      
+      // Always enable full review button
+      const {review}=this._postGameButtons();
+      if(review){
+        review.disabled=false;
+        review.textContent='◈ مراجعة المباراة';
+        review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
       }
 
       if(navigator.onLine&&(S.mode==='online'||(S.mode==='bot'&&S.levelId>=0))){
@@ -7360,19 +7402,46 @@ const G={
             `هذه نتائج نقلات اللاعب: أفضل=${counts.best}, ممتازة=${counts.excellent}, جيدة=${counts.good}, غير دقيقة=${counts.inaccuracy}, أخطاء=${counts.mistake}, فادحة=${counts.blunder}, افتتاح=${counts.book}. `+
             `عنوان النتيجة: ${resultTitle}. `+
             `أعطِ نصيحة واحدة عملية للنقلة القادمة دون ذكر أرقام كثيرة.`;
+          
+          // Show typing animation
+          nourBox.style.display='flex';
+          nourTxt.textContent='';
+          if(!compactView)qWrap.classList.add('on');
+          
+          // Simulate typing animation
+          const typingDots = ['', '.', '..', '...'];
+          let dotIndex = 0;
+          const typingInterval = setInterval(() => {
+            nourTxt.textContent = 'نور يكتب' + typingDots[dotIndex];
+            dotIndex = (dotIndex + 1) % typingDots.length;
+          }, 400);
+          
           const json=await groqChat({
             model:GROQ_MODEL,
             messages:[{role:'user',content:prompt}],
             max_tokens:90,
             temperature:0.6
           });
+          
+          clearInterval(typingInterval);
+          
           const txt=json.choices?.[0]?.message?.content?.trim();
           if(txt){
-            nourTxt.textContent=txt;
-            nourBox.style.display='flex';
-            if(compactView)qWrap.classList.add('on');
+            // Animate text typing
+            nourTxt.textContent='';
+            let charIndex = 0;
+            const typeChar = () => {
+              if(charIndex < txt.length){
+                nourTxt.textContent += txt[charIndex];
+                charIndex++;
+                setTimeout(typeChar, 30);
+              }
+            };
+            typeChar();
           }
-        }catch(e){}
+        }catch(e){
+          nourBox.style.display='none';
+        }
       }
     }catch(e){}
   },
@@ -7393,13 +7462,23 @@ const G={
     ov.classList.add('open');
   },
   restart(){
-    SFX.btn();stopMiniAnimator('gameover');document.getElementById('go-ov').classList.remove('open');
+    SFX.btn();stopMiniAnimator('gameover');
+    document.getElementById('go-ov').classList.remove('open');
+    // Remove result overlay from board
+    const resultOverlay = document.querySelector('.game-result-overlay');
+    if(resultOverlay) resultOverlay.remove();
+    
     if(S.mode==='online'){OL.dc();Nav.menu();}
     else if(S.levelId>=0)this.startLevel(S.levelId);
     else this.start(S.mode,S.diff);
   },
   goMenu(){
-    SFX.btn();stopMiniAnimator('gameover');document.getElementById('go-ov').classList.remove('open');
+    SFX.btn();stopMiniAnimator('gameover');
+    document.getElementById('go-ov').classList.remove('open');
+    // Remove result overlay from board
+    const resultOverlay = document.querySelector('.game-result-overlay');
+    if(resultOverlay) resultOverlay.remove();
+    
     if(S.mode==='online')OL.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
