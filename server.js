@@ -535,6 +535,21 @@ function mmPickOpponent(ws, selfEntry) {
   return null;
 }
 
+function mmRequiredColor(ws, selfEntry) {
+  const selfColor = normalizeMatchColor(selfEntry?.color);
+  if (selfColor === 'r') return null;
+  let hasConflict = false;
+  for (const [ows, entry] of mmQueue) {
+    if (ows === ws) continue;
+    const oppColor = normalizeMatchColor(entry?.color);
+    if (oppColor === 'r') return null;
+    if (oppColor !== selfColor) return null;
+    hasConflict = true;
+  }
+  if (!hasConflict) return null;
+  return selfColor === 'w' ? 'b' : 'w';
+}
+
 function mmStartGame(aWs, aInfo, aColor, bWs, bInfo, bColor) {
   const code = genCode();
 
@@ -632,6 +647,12 @@ wss.on('connection', (ws, req) => {
 
         const opp = mmPickOpponent(ws, entry);
         if (!opp) {
+          const requiredColor = mmRequiredColor(ws, entry);
+          if (requiredColor && requiredColor !== entry.color) {
+            mmQueue.delete(ws);
+            send(ws, { type: 'mm-color-required', color: requiredColor });
+            break;
+          }
           send(ws, { type: 'mm-wait' });
           break;
         }
