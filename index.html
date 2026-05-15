@@ -1070,6 +1070,15 @@ body[data-ui-theme="anime"] .settings-headline{
 .go-qdot:nth-child(2){animation-delay:.15s;}
 .go-qdot:nth-child(3){animation-delay:.3s;}
 .go-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.go-analysis-hero{display:flex;align-items:center;gap:14px;margin:12px 0 10px;flex-wrap:wrap;}
+.go-analysis-board-wrap{display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.go-rating-line{display:grid;grid-template-columns:repeat(2,minmax(92px,1fr));gap:8px;flex:1;min-width:190px;}
+.go-rate-card{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}
+.go-rate-card.me{border-color:rgba(45,212,191,.28);background:linear-gradient(145deg,rgba(45,212,191,.18),rgba(45,212,191,.05));}
+.go-rate-card.opp{border-color:rgba(201,168,76,.22);}
+.go-rate-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.go-rate-value{font-size:24px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.12);}
+.go-rate-name{font-size:12px;color:var(--text);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .go-qit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border-radius:12px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.05);transition:all .2s;}
 .go-qit:hover{background:rgba(0,0,0,.2);border-color:rgba(201,168,76,.15);}
 .go-ql{font-size:11px;color:var(--text2);}
@@ -1090,6 +1099,13 @@ body[data-ui-theme="anime"] .settings-headline{
 
 .go-nour-h{font-size:11px;color:var(--gold2);font-weight:900;margin-bottom:4px;position:relative;z-index:1;}
 .go-nour-t{font-size:12px;color:var(--text);line-height:1.75;position:relative;z-index:1;}
+.go-nour{display:flex;gap:10px;align-items:flex-start;}
+.go-nour-avatar{width:42px;height:42px;border-radius:14px;object-fit:cover;flex-shrink:0;position:relative;z-index:1;border:1px solid rgba(201,168,76,.28);box-shadow:0 8px 18px rgba(0,0,0,.28);}
+.go-nour-body{position:relative;z-index:1;min-width:0;flex:1;}
+@media(max-width:520px){
+  .go-analysis-hero{flex-direction:column;align-items:stretch;}
+  .go-rating-line{min-width:0;width:100%;}
+}
 .go-bts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
 .bgp{padding:11px 17px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a14;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
 .bgp::before{
@@ -1606,41 +1622,114 @@ body[data-ui-theme="anime"] .settings-headline{
   100%{background-position:100% 0;}
 }
 
-.rv-mini-board{
-  width:120px;
-  height:120px;
-  margin:0 auto 12px;
-  display:grid;
-  grid-template-columns:repeat(8, 1fr);
-  grid-template-rows:repeat(8, 1fr);
-  border-radius:8px;
+.rv-mini-board{margin:0 auto 12px;}
+.analysis-mini-board{
+  --mini-size:126px;
+  --mini-light:var(--sq-l);
+  --mini-dark:var(--sq-d);
+  width:var(--mini-size);
+  height:var(--mini-size);
+  border-radius:18px;
   overflow:hidden;
-  box-shadow:0 8px 24px rgba(0,0,0,.4);
   position:relative;
-  z-index:1;
+  border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+  box-shadow:0 18px 40px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
+  isolation:isolate;
 }
-
-.rv-mini-sq{
-  width:100%;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:10px;
-  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+.analysis-mini-board.review{--mini-size:126px;}
+.analysis-mini-board.gameover{--mini-size:138px;}
+.analysis-mini-board::before{
+  content:'';
+  position:absolute;
+  inset:-12%;
+  border-radius:24px;
+  z-index:0;
+  opacity:.9;
+  filter:blur(16px);
+  pointer-events:none;
 }
-
-.rv-mini-sq.light{background:var(--sq-l);}
-.rv-mini-sq.dark{background:var(--sq-d);}
-
-.rv-mini-sq.highlight{
-  animation:pulseSquare 1.2s ease-in-out infinite;
-  box-shadow:inset 0 0 0 2px rgba(201,168,76,.6);
+.analysis-mini-board.review::before{
+  background:radial-gradient(circle at 50% 28%,rgba(45,212,191,.26),transparent 56%),
+             radial-gradient(circle at 72% 72%,rgba(96,165,250,.18),transparent 46%);
 }
-
-@keyframes pulseSquare{
-  0%, 100%{transform:scale(1);opacity:1;}
-  50%{transform:scale(1.05);opacity:.8;}
+.analysis-mini-board.gameover[data-tone="win"]::before{
+  background:radial-gradient(circle at 50% 24%,rgba(250,204,21,.34),transparent 54%),
+             radial-gradient(circle at 24% 76%,rgba(45,212,191,.18),transparent 40%);
+}
+.analysis-mini-board.gameover[data-tone="loss"]::before{
+  background:radial-gradient(circle at 50% 28%,rgba(248,113,113,.34),transparent 54%),
+             radial-gradient(circle at 74% 76%,rgba(249,115,22,.16),transparent 40%);
+}
+.analysis-mini-board.gameover[data-tone="draw"]::before{
+  background:radial-gradient(circle at 50% 30%,rgba(148,163,184,.28),transparent 54%),
+             radial-gradient(circle at 26% 74%,rgba(201,168,76,.14),transparent 40%);
+}
+.analysis-mini-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);z-index:1;}
+.analysis-mini-sq{position:relative;transition:transform .2s ease,box-shadow .24s ease,background .24s ease;}
+.analysis-mini-sq.light{background:var(--mini-light);}
+.analysis-mini-sq.dark{background:var(--mini-dark);}
+.analysis-mini-sq.from::after,
+.analysis-mini-sq.to::after,
+.analysis-mini-sq.check::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.analysis-mini-sq.from::after{
+  background:rgba(96,165,250,.22);
+  box-shadow:inset 0 0 0 2px rgba(96,165,250,.55);
+}
+.analysis-mini-sq.to::after{
+  background:rgba(45,212,191,.22);
+  box-shadow:inset 0 0 0 2px rgba(45,212,191,.55),0 0 14px rgba(45,212,191,.18);
+}
+.analysis-mini-board.gameover[data-tone="win"] .analysis-mini-sq.to::after{
+  background:rgba(250,204,21,.24);
+  box-shadow:inset 0 0 0 2px rgba(250,204,21,.6),0 0 16px rgba(250,204,21,.2);
+}
+.analysis-mini-board.gameover[data-tone="loss"] .analysis-mini-sq.to::after{
+  background:rgba(248,113,113,.22);
+  box-shadow:inset 0 0 0 2px rgba(248,113,113,.58),0 0 16px rgba(248,113,113,.2);
+}
+.analysis-mini-sq.check::after{
+  background:rgba(248,113,113,.2);
+  box-shadow:inset 0 0 0 2px rgba(248,113,113,.58);
+}
+.analysis-mini-piece-layer{position:absolute;inset:0;z-index:2;pointer-events:none;}
+.analysis-mini-piece{
+  position:absolute;
+  width:12.5%;
+  height:12.5%;
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.42)) drop-shadow(0 0 8px rgba(255,255,255,.06));
+  transition:left .46s cubic-bezier(.22,1,.36,1),top .46s cubic-bezier(.22,1,.36,1),transform .46s cubic-bezier(.22,1,.36,1),opacity .22s ease;
+  will-change:left,top,transform,opacity;
+}
+.analysis-mini-piece.moving{transform:scale(1.14);}
+.analysis-mini-piece.captured{opacity:0;transform:scale(.38) rotate(14deg);}
+.analysis-mini-piece.promoting{transform:scale(1.24);filter:drop-shadow(0 0 16px rgba(250,204,21,.36)) drop-shadow(0 6px 12px rgba(0,0,0,.42));}
+.analysis-mini-board.gameover[data-tone="win"] .analysis-mini-piece.moving{filter:drop-shadow(0 0 18px rgba(250,204,21,.34)) drop-shadow(0 5px 10px rgba(0,0,0,.42));}
+.analysis-mini-board.gameover[data-tone="loss"] .analysis-mini-piece.moving{filter:drop-shadow(0 0 18px rgba(248,113,113,.28)) drop-shadow(0 5px 10px rgba(0,0,0,.42));}
+.analysis-mini-fx{position:absolute;inset:0;pointer-events:none;z-index:3;}
+.analysis-mini-burst{
+  position:absolute;
+  width:18%;
+  height:18%;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.9),rgba(255,255,255,.08) 60%,transparent 72%);
+  transform:translate(-50%,-50%) scale(.25);
+  animation:miniBurst .42s ease-out forwards;
+}
+.analysis-mini-burst.capture{background:radial-gradient(circle,rgba(45,212,191,.8),rgba(45,212,191,.14) 60%,transparent 72%);}
+.analysis-mini-board.gameover[data-tone="win"] .analysis-mini-burst.capture{background:radial-gradient(circle,rgba(250,204,21,.9),rgba(250,204,21,.14) 60%,transparent 72%);}
+.analysis-mini-board.gameover[data-tone="loss"] .analysis-mini-burst.capture{background:radial-gradient(circle,rgba(248,113,113,.9),rgba(248,113,113,.16) 60%,transparent 72%);}
+@keyframes miniBurst{
+  0%{opacity:.95;transform:translate(-50%,-50%) scale(.2);}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.9);}
 }
 
 .rv-analysis-stats{
@@ -2424,6 +2513,12 @@ body[data-ui-theme="anime"] .settings-headline{
     <div id="tc-m" class="tc">
       <p class="flbl">مطابقة سريعة</p>
       <div class="p2p" style="margin-top:6px">سيتم إيجاد خصم عشوائي فوراً — بدون كود ◈</div>
+      <p class="flbl" style="margin-top:12px">لون قطعك</p>
+      <div class="copts">
+        <div class="copt on" id="mco-w" onclick="OL.col('w')"><span>♔</span>أبيض</div>
+        <div class="copt" id="mco-b" onclick="OL.col('b')"><span>♚</span>أسود</div>
+        <div class="copt" id="mco-r" onclick="OL.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
+      </div>
       <div id="st-m" class="ost"></div>
       <div style="display:flex;gap:8px">
         <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">⊕ ابحث عن خصم</button>
@@ -2541,10 +2636,19 @@ body[data-ui-theme="anime"] .settings-headline{
         <span class="go-qsf">Stockfish يحلل…</span>
         <span class="go-qdot"></span><span class="go-qdot"></span><span class="go-qdot"></span>
       </div>
+      <div class="go-analysis-hero">
+        <div class="go-analysis-board-wrap">
+          <div id="go-mini-board" class="analysis-mini-board gameover" data-tone="draw"></div>
+        </div>
+        <div class="go-rating-line" id="go-rating-line"></div>
+      </div>
       <div class="go-qgrid" id="go-qgrid"></div>
       <div class="go-nour" id="go-nour" style="display:none">
-        <div class="go-nour-h">نور — تعليق سريع</div>
-        <div class="go-nour-t" id="go-nour-t"></div>
+        <img src="./nour.png" alt="Nour" class="go-nour-avatar" />
+        <div class="go-nour-body">
+          <div class="go-nour-h">نور — تعليق سريع</div>
+          <div class="go-nour-t" id="go-nour-t"></div>
+        </div>
       </div>
     </div>
     <div class="go-bts">
@@ -5256,21 +5360,339 @@ async function groqChat({ messages, model, max_tokens, temperature }){
   throw new Error('جميع خوادم الذكاء الاصطناعي غير متاحة حالياً');
 }
 
+const MINI_ANIMATORS={review:null,gameover:null};
+
+function setMiniAnimator(slot,ctrl){
+  try{if(MINI_ANIMATORS[slot]&&MINI_ANIMATORS[slot].stop)MINI_ANIMATORS[slot].stop();}catch(e){}
+  MINI_ANIMATORS[slot]=ctrl||null;
+  return ctrl;
+}
+
+function stopMiniAnimator(slot){
+  try{if(MINI_ANIMATORS[slot]&&MINI_ANIMATORS[slot].stop)MINI_ANIMATORS[slot].stop();}catch(e){}
+  MINI_ANIMATORS[slot]=null;
+}
+
+function parseReplayMove(moveStr){
+  if(!moveStr||moveStr.length<4)return null;
+  const files='abcdefgh';
+  try{
+    const fc=files.indexOf(moveStr[0]);
+    const fr=8-parseInt(moveStr[1],10);
+    const hasPromo=moveStr.includes('=');
+    const toStr=hasPromo?moveStr.slice(moveStr.indexOf('=')-2,moveStr.indexOf('=')):moveStr.slice(-2);
+    const tc=files.indexOf(toStr[0]);
+    const tr=8-parseInt(toStr[1],10);
+    if(fc<0||tc<0||Number.isNaN(fr)||Number.isNaN(tr)||fr<0||fr>7||tr<0||tr>7)return null;
+    return{
+      from:[fr,fc],
+      to:[tr,tc],
+      promo:hasPromo?(moveStr[moveStr.length-1]||'Q').toUpperCase():null,
+      raw:moveStr
+    };
+  }catch(e){
+    return null;
+  }
+}
+
+function findKingSquare(board,color){
+  const king=(color==='w'?'w':'b')+'K';
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      if(board[r][c]===king)return[r,c];
+    }
+  }
+  return null;
+}
+
+function buildReplayFrames(snaps){
+  if(!Array.isArray(snaps)||!snaps.length)return[];
+  let bd=INIT_BD.map(r=>[...r]);
+  let cas={w:{K:true,Q:true},b:{K:true,Q:true}};
+  let ep=null;
+  const frames=[];
+  for(let i=0;i<snaps.length;i++){
+    const snap=snaps[i];
+    const parsed=parseReplayMove(snap?.move);
+    if(!parsed)continue;
+    const movingPiece=bd[parsed.from[0]]?.[parsed.from[1]]||null;
+    if(!movingPiece)continue;
+    let captureSquare=[parsed.to[0],parsed.to[1]];
+    let targetPiece=bd[parsed.to[0]]?.[parsed.to[1]]||null;
+    const isPawn=(movingPiece[1]||'').toUpperCase()==='P';
+    const isEnPassant=isPawn&&parsed.from[1]!==parsed.to[1]&&!targetPiece;
+    if(isEnPassant){
+      captureSquare=[parsed.from[0],parsed.to[1]];
+      targetPiece=bd[captureSquare[0]]?.[captureSquare[1]]||null;
+    }
+    const isCastle=(movingPiece[1]||'').toUpperCase()==='K'&&Math.abs(parsed.to[1]-parsed.from[1])===2;
+    let rookMove=null;
+    if(isCastle){
+      const row=parsed.from[0];
+      rookMove=parsed.to[1]>parsed.from[1]
+        ? {from:[row,7],to:[row,5]}
+        : {from:[row,0],to:[row,3]};
+    }
+    let result=null;
+    try{
+      result=E.apply(bd,parsed.from,parsed.to,cas,ep,parsed.promo||'Q');
+    }catch(e){
+      result=null;
+    }
+    if(!result)continue;
+    const opp=snap.turn==='w'?'b':'w';
+    const isCheck=E.inChk(result.bd,opp);
+    const oppLegal=E.allLegal(result.bd,opp,result.cas,result.ep);
+    const isCheckmate=isCheck&&oppLegal.length===0;
+    frames.push({
+      index:i,
+      move:snap.move,
+      color:snap.turn,
+      from:parsed.from,
+      to:parsed.to,
+      promo:parsed.promo,
+      before:bd.map(r=>[...r]),
+      after:result.bd.map(r=>[...r]),
+      movingPiece,
+      targetPiece,
+      captureSquare,
+      isCapture:!!targetPiece,
+      isEnPassant,
+      isCastle,
+      rookMove,
+      isPromo:!!parsed.promo,
+      isCheck,
+      isCheckmate,
+    });
+    bd=result.bd;
+    cas=result.cas;
+    ep=result.ep;
+  }
+  return frames;
+}
+
+function createMiniBoardReplay(container,{slot='review',variant='review',tone='draw',frames=[],orientation='w'}={}){
+  if(!container)return null;
+  const pieceUrls=getPieceUrls(normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo'));
+  const boardTheme=THEMES[Cfg.data.boardTheme]||THEMES.classic;
+  container.className=`analysis-mini-board ${variant}`;
+  container.dataset.tone=tone;
+  container.style.setProperty('--mini-light',boardTheme.l||'var(--sq-l)');
+  container.style.setProperty('--mini-dark',boardTheme.d||'var(--sq-d)');
+  container.innerHTML='';
+  const grid=document.createElement('div');
+  grid.className='analysis-mini-grid';
+  const layer=document.createElement('div');
+  layer.className='analysis-mini-piece-layer';
+  const fx=document.createElement('div');
+  fx.className='analysis-mini-fx';
+  container.appendChild(grid);
+  container.appendChild(layer);
+  container.appendChild(fx);
+
+  const squareEls=new Map();
+  const pieceEls=new Map();
+  let stopped=false;
+  let timer=null;
+
+  const sqKey=(r,c)=>`${r}_${c}`;
+  const pos=(row,col)=>({
+    left:`${(orientation==='b'?(7-col):col)*12.5}%`,
+    top:`${(orientation==='b'?(7-row):row)*12.5}%`
+  });
+
+  function clearTimer(){
+    if(timer){clearTimeout(timer);timer=null;}
+  }
+
+  function schedule(ms){
+    return new Promise(resolve=>{
+      clearTimer();
+      timer=setTimeout(()=>{
+        timer=null;
+        resolve();
+      },ms);
+    });
+  }
+
+  function pieceKey(piece){
+    if(!piece)return null;
+    const color=(piece[0]||'w').toLowerCase()==='b'?'b':'w';
+    const type=(piece[1]||piece[piece.length-1]||'P').toUpperCase();
+    return color+type;
+  }
+
+  function setSquareClass(kind,coords){
+    if(!coords)return;
+    const el=squareEls.get(sqKey(coords[0],coords[1]));
+    if(!el)return;
+    el.classList.add(kind);
+    setTimeout(()=>{try{el.classList.remove(kind);}catch(e){};},variant==='review'?320:420);
+  }
+
+  function burst(coords,kind='capture'){
+    if(!coords)return;
+    const p=pos(coords[0],coords[1]);
+    const el=document.createElement('div');
+    el.className=`analysis-mini-burst ${kind}`;
+    el.style.left=`calc(${p.left} + 6.25%)`;
+    el.style.top=`calc(${p.top} + 6.25%)`;
+    fx.appendChild(el);
+    setTimeout(()=>{try{el.remove();}catch(e){};},420);
+  }
+
+  function createPiece(piece,row,col){
+    const key=pieceKey(piece);
+    if(!key)return null;
+    const el=document.createElement('div');
+    el.className=`analysis-mini-piece ${key}`;
+    if(pieceUrls[key])el.style.backgroundImage=`url("${pieceUrls[key]}")`;
+    const p=pos(row,col);
+    el.style.left=p.left;
+    el.style.top=p.top;
+    el.dataset.row=row;
+    el.dataset.col=col;
+    layer.appendChild(el);
+    pieceEls.set(sqKey(row,col),el);
+    return el;
+  }
+
+  function rebuild(board){
+    pieceEls.clear();
+    layer.innerHTML='';
+    if(!Array.isArray(board))return;
+    for(let r=0;r<8;r++){
+      for(let c=0;c<8;c++){
+        const piece=board[r]?.[c];
+        if(piece)createPiece(piece,r,c);
+      }
+    }
+  }
+
+  function movePieceEl(el,row,col){
+    if(!el)return;
+    const p=pos(row,col);
+    el.style.left=p.left;
+    el.style.top=p.top;
+    el.dataset.row=row;
+    el.dataset.col=col;
+  }
+
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const sq=document.createElement('div');
+      sq.className=`analysis-mini-sq ${(r+c)%2===0?'light':'dark'}`;
+      squareEls.set(sqKey(r,c),sq);
+      grid.appendChild(sq);
+    }
+  }
+
+  async function animateFrame(frame){
+    if(stopped||!frame)return;
+    const fromKey=sqKey(frame.from[0],frame.from[1]);
+    let mover=pieceEls.get(fromKey);
+    if(!mover){
+      rebuild(frame.before);
+      mover=pieceEls.get(fromKey);
+    }
+    if(!mover)return;
+    const captureKey=sqKey(frame.captureSquare[0],frame.captureSquare[1]);
+    const targetEl=pieceEls.get(captureKey);
+    setSquareClass('from',frame.from);
+    setSquareClass('to',frame.to);
+    if(frame.isCapture&&targetEl){
+      targetEl.classList.add('captured');
+      burst(frame.captureSquare,'capture');
+      pieceEls.delete(captureKey);
+      setTimeout(()=>{try{targetEl.remove();}catch(e){};},180);
+    }
+    pieceEls.delete(fromKey);
+    pieceEls.set(sqKey(frame.to[0],frame.to[1]),mover);
+    mover.classList.add('moving');
+    movePieceEl(mover,frame.to[0],frame.to[1]);
+    if(frame.isCastle&&frame.rookMove){
+      const rookKey=sqKey(frame.rookMove.from[0],frame.rookMove.from[1]);
+      const rookEl=pieceEls.get(rookKey);
+      if(rookEl){
+        pieceEls.delete(rookKey);
+        pieceEls.set(sqKey(frame.rookMove.to[0],frame.rookMove.to[1]),rookEl);
+        movePieceEl(rookEl,frame.rookMove.to[0],frame.rookMove.to[1]);
+      }
+    }
+    if(frame.isPromo){
+      setTimeout(()=>{
+        try{
+          mover.classList.add('promoting');
+          const promoted=`${frame.color}${frame.promo||'Q'}`;
+          mover.className=`analysis-mini-piece ${promoted} promoting`;
+          if(pieceUrls[promoted])mover.style.backgroundImage=`url("${pieceUrls[promoted]}")`;
+        }catch(e){}
+      },220);
+    }
+    await schedule(variant==='review'?420:560);
+    if(stopped)return;
+    rebuild(frame.after);
+    if(frame.isCheck||frame.isCheckmate){
+      const kingSq=findKingSquare(frame.after,frame.color==='w'?'b':'w');
+      setSquareClass('check',kingSq);
+    }
+  }
+
+  async function play(){
+    rebuild(INIT_BD);
+    if(!frames.length)return;
+    let idx=0;
+    while(!stopped){
+      await animateFrame(frames[idx]);
+      if(stopped)break;
+      await schedule(variant==='review'?120:180);
+      if(stopped)break;
+      idx++;
+      if(idx>=frames.length){
+        idx=0;
+        await schedule(variant==='review'?420:720);
+        if(stopped)break;
+        rebuild(INIT_BD);
+      }
+    }
+  }
+
+  play();
+
+  return{
+    stop(){
+      stopped=true;
+      clearTimer();
+    },
+    rebuild,
+  };
+}
+
 const REV=(()=>{
   let _data=null;
   let _idx=0;
   let _boards=[];
   let _coachCache={};
+  let _analysisKey='';
+  let _analysisPromise=null;
 
-  function _countRatings(color){
+  function _currentAnalysisKey(){
+    return `${S.mode}|${S.levelId}|${S.myCol||'w'}|${(S.snapshots||[]).map(s=>`${s?.turn||''}:${s?.move||''}`).join('|')}`;
+  }
+
+  function _ratingsForMoves(moves,color){
     const out={brilliant:0,best:0,excellent:0,good:0,book:0,miss:0,inaccuracy:0,mistake:0,blunder:0};
-    if(!_data||!_data.moves)return out;
-    _data.moves.forEach(m=>{
+    if(!Array.isArray(moves))return out;
+    moves.forEach(m=>{
       if(!m||m.color!==color)return;
       const r=m.rating;
       if(out[r]!==undefined)out[r]++;
     });
     return out;
+  }
+
+  function _countRatings(color){
+    return _ratingsForMoves(_data?.moves,color);
   }
 
   function _buildQuickStats(){
@@ -5318,7 +5740,8 @@ const REV=(()=>{
     document.getElementById('rv-main').innerHTML=html;
   }
 
-  async function _analyze(){
+  async function _analyze(options={}){
+    const onProgress=typeof options.onProgress==='function'?options.onProgress:null;
     const snaps=S.snapshots;
     if(!snaps||!snaps.length)return null;
     let bd=INIT_BD.map(r=>[...r]);
@@ -5378,6 +5801,7 @@ const REV=(()=>{
     const f='abcdefgh';
     // Process moves in chunks to yield to event loop and prevent UI freeze
     const CHUNK_SIZE=10;
+    if(onProgress)onProgress({processed:0,total:snaps.length});
     for(let i=0;i<snaps.length;i++){
       const snap=snaps[i];
       const color=snap.turn;
@@ -5478,6 +5902,7 @@ const REV=(()=>{
         moveNum:Math.floor(i/2)+1,
         isCapture,isCastle,isPromo,isCheck,isCheckmate
       });
+      if(onProgress)onProgress({processed:i+1,total:snaps.length});
       
       // Yield to event loop every CHUNK_SIZE moves to prevent UI freeze
       if(i>0 && i%CHUNK_SIZE===0){
@@ -5499,6 +5924,29 @@ const REV=(()=>{
       summary:{wAcc,bAcc,wBlunders,bBlunders,wMistakes,bMistakes,highlight,
                wName,bName}
     };
+  }
+
+  async function ensureAnalysis({force=false,onProgress}={}){
+    const key=_currentAnalysisKey();
+    if(!force&&_data&&_analysisKey===key){
+      if(typeof onProgress==='function')onProgress({processed:(S.snapshots||[]).length,total:(S.snapshots||[]).length});
+      return _data;
+    }
+    if(!force&&_analysisPromise&&_analysisKey===key){
+      return _analysisPromise;
+    }
+    _analysisKey=key;
+    _analysisPromise=(async()=>{
+      const data=await _analyze({onProgress});
+      _data=data;
+      _boards=data?.boards||[];
+      return data;
+    })();
+    try{
+      return await _analysisPromise;
+    }finally{
+      _analysisPromise=null;
+    }
   }
 
   function _drawBoard(bd,fromSq,toSq){
@@ -5802,6 +6250,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
     async open(){
       if(S.hist.length<4){Modal.show('المباراة قصيرة جداً للتقييم - يجب 4 حركات على الأقل','تنبيه','✕');return;}
       _coachCache={};
+      stopMiniAnimator('gameover');
       document.getElementById('review-ov').classList.add('open');
       
       // Enhanced loading screen with chess animation
@@ -5838,56 +6287,38 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
             <div class="rv-loadtip">نصيحة: حتى النقلات الهادئة قد تكون الأفضل إذا حسّنت وضع قطعك.</div>
           </div>
         </div>`;
-      
-      // Initialize mini board animation
-      const miniBoard = document.getElementById('rv-mini-board');
+      const frames=buildReplayFrames(S.snapshots||[]);
+      const orientation=(isRemoteMatchMode()&&(S.myCol||'w')==='b')?'b':'w';
+      const miniBoard=document.getElementById('rv-mini-board');
       if(miniBoard){
-        for(let r=0; r<8; r++){
-          for(let c=0; c<8; c++){
-            const sq = document.createElement('div');
-            sq.className = `rv-mini-sq ${(r+c)%2===0?'light':'dark'}`;
-            sq.dataset.row = r;
-            sq.dataset.col = c;
-            miniBoard.appendChild(sq);
-          }
-        }
-        
-        // Animate random squares during analysis
-        let animInterval = setInterval(()=>{
-          const squares = miniBoard.querySelectorAll('.rv-mini-sq');
-          squares.forEach(sq => sq.classList.remove('highlight'));
-          const randomSq = squares[Math.floor(Math.random() * squares.length)];
-          if(randomSq) randomSq.classList.add('highlight');
-        }, 800);
-        
-        // Store interval to clear later
-        miniBoard.dataset.interval = animInterval;
+        setMiniAnimator('review',createMiniBoardReplay(miniBoard,{
+          slot:'review',
+          variant:'review',
+          tone:'draw',
+          frames,
+          orientation
+        }));
       }
       
       requestAnimationFrame(async ()=>{
         try{
-          const totalMoves = S.hist.length;
-          let processedMoves = 0;
-          
-          // Update progress during analysis
-          const progressInterval = setInterval(()=>{
-            processedMoves = Math.min(processedMoves + 1, totalMoves);
-            const progress = Math.round((processedMoves / totalMoves) * 100);
-            const progressEl = document.getElementById('rv-stat-progress');
-            const movesEl = document.getElementById('rv-stat-moves');
-            if(progressEl) progressEl.textContent = progress + '%';
-            if(movesEl) movesEl.textContent = processedMoves;
-          }, 300);
-          
-          _data=await _analyze();
-          
-          // Clear intervals
-          clearInterval(progressInterval);
-          const miniBoard = document.getElementById('rv-mini-board');
-          if(miniBoard && miniBoard.dataset.interval){
-            clearInterval(parseInt(miniBoard.dataset.interval));
-          }
-          
+          const progressEl=document.getElementById('rv-stat-progress');
+          const movesEl=document.getElementById('rv-stat-moves');
+          const hasCached=!!(_data&&_analysisKey===_currentAnalysisKey());
+          const startedAt=performance.now();
+          _data=await ensureAnalysis({
+            onProgress:({processed,total})=>{
+              const safeTotal=Math.max(total||1,1);
+              const safeProcessed=Math.min(processed||0,safeTotal);
+              const progress=Math.round((safeProcessed/safeTotal)*100);
+              if(progressEl)progressEl.textContent=progress+'%';
+              if(movesEl)movesEl.textContent=safeProcessed;
+            }
+          });
+          const minDelay=hasCached?850:0;
+          const elapsed=performance.now()-startedAt;
+          if(elapsed<minDelay)await new Promise(r=>setTimeout(r,minDelay-elapsed));
+          stopMiniAnimator('review');
           console.log('Review analysis complete, moves:', _data?.moves?.length);
           if(!_data||!_data.moves.length){
             document.getElementById('rv-main').innerHTML=`<div style="color:var(--text2);padding:30px;text-align:center">لا توجد بيانات كافية</div>`;
@@ -5897,6 +6328,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
           _boards=_data.boards;
           _buildQuickStats();
         }catch(e){
+          stopMiniAnimator('review');
           console.error('Review analysis error:', e);
           document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذّر التحليل: ${e.message || 'Unknown error'}</div>`;
         }
@@ -5905,7 +6337,17 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
     details(){
       try{_buildUI();}catch(e){}
     },
-    close(){document.getElementById('review-ov').classList.remove('open');},
+    close(){stopMiniAnimator('review');document.getElementById('review-ov').classList.remove('open');},
+    reset(){
+      stopMiniAnimator('review');
+      _data=null;
+      _idx=0;
+      _boards=[];
+      _coachCache={};
+      _analysisKey='';
+      _analysisPromise=null;
+    },
+    ensureAnalysis,
     goTo(i){goTo(i);},
     prev(){if(_idx>0)goTo(_idx-1);},
     next(){if(_data&&_idx<_data.moves.length-1)goTo(_idx+1);}
@@ -6262,9 +6704,12 @@ const G={
     S.assistOn=false;S.oppUsingAssist=false;S.astMove=null;S.astBusy=false;
     S.assistW=false;S.assistB=false;
     S.snapshots=[];
+    S._quickDone=false;
     S.preMove=null;S.preMoveSelFr=null;
     S.undoStack=[];
     S.oppImg=null; // Reset opponent image for every new game
+    stopMiniAnimator('gameover');
+    if(typeof REV!=='undefined'&&REV.reset)REV.reset();
     AST.clear();
     R.boardReset();
     CHAT.hide();
@@ -6566,6 +7011,7 @@ const G={
     document.getElementById('go-next').style.display=S.levelId+1<LEVELS_DEF.length?'inline-flex':'none';
     document.getElementById('go-review').style.display='inline-flex';
     document.getElementById('go-ov').classList.add('open');
+    this._quickPostGame();
     // Note: Win sound is already played by SFX.levelDone() before this function is called
   },
   showOver(em,ttl,msg,col){
@@ -6593,114 +7039,74 @@ const G={
       const qWrap=document.getElementById('go-quick');
       const qGrid=document.getElementById('go-qgrid');
       const qLoad=document.getElementById('go-qload');
+      const ratingLine=document.getElementById('go-rating-line');
+      const miniBoard=document.getElementById('go-mini-board');
       const nourBox=document.getElementById('go-nour');
       const nourTxt=document.getElementById('go-nour-t');
-      if(!qWrap||!qGrid||!qLoad||!nourBox||!nourTxt)return;
+      if(!qWrap||!qGrid||!qLoad||!nourBox||!nourTxt||!ratingLine||!miniBoard)return;
 
       qWrap.classList.add('on');
       nourBox.style.display='none';
       nourTxt.textContent='';
       qGrid.innerHTML='';
+      ratingLine.innerHTML='';
       qLoad.style.display='flex';
+      const loadLabel=qLoad.querySelector('.go-qsf');
+      if(loadLabel)loadLabel.textContent='Stockfish يحلل…';
 
       const myCol=(isRemoteMatchMode() ? (S.myCol||'w') : 'w');
       const snaps=S.snapshots;
       if(!snaps||snaps.length<2){qLoad.style.display='none';return;}
+      const tone=((document.getElementById('go-ttl')?.textContent||'').includes('خسرت')||(document.getElementById('go-ttl')?.textContent||'').includes('انسحاب'))
+        ?'loss'
+        :((document.getElementById('go-ttl')?.textContent||'').includes('تعادل')?'draw':'win');
+      const orientation=(isRemoteMatchMode()&&(S.myCol||'w')==='b')?'b':'w';
+      const frames=buildReplayFrames(snaps);
+      setMiniAnimator('gameover',createMiniBoardReplay(miniBoard,{
+        slot:'gameover',
+        variant:'gameover',
+        tone,
+        frames,
+        orientation
+      }));
 
-      // Lightweight analysis: Stockfish best eval vs played eval for player moves only.
-      try{await SF.init();}catch(e){}
-      let bd=INIT_BD.map(r=>[...r]);
-      let cas={w:{K:true,Q:true},b:{K:true,Q:true}};
-      let ep=null;
+      const startedAt=performance.now();
+      const analysis=await REV.ensureAnalysis({
+        onProgress:({processed,total})=>{
+          if(!loadLabel)return;
+          const safeTotal=Math.max(total||1,1);
+          const progress=Math.round((Math.min(processed||0,safeTotal)/safeTotal)*100);
+          loadLabel.textContent=`Stockfish يحلل… ${progress}%`;
+        }
+      });
+      const minDelay=analysis?650:0;
+      const elapsed=performance.now()-startedAt;
+      if(elapsed<minDelay)await new Promise(r=>setTimeout(r,minDelay-elapsed));
+      if(!analysis||!analysis.moves||!analysis.moves.length){qLoad.style.display='none';return;}
+      if(loadLabel)loadLabel.textContent='Stockfish أكمل التحليل';
 
       const counts={brilliant:0,best:0,excellent:0,good:0,book:0,miss:0,inaccuracy:0,mistake:0,blunder:0};
-      const f='abcdefgh';
+      analysis.moves.forEach(m=>{
+        if(!m||m.color!==myCol)return;
+        if(counts[m.rating]!==undefined)counts[m.rating]++;
+      });
 
-      // Map difficulty to a stable skill for quick post-game.
-      const skillLevel=8;
-      const depthBest=9;
-      const depthEval=8;
-
-      for(let i=0;i<snaps.length;i++){
-        const snap=snaps[i];
-        const mover=snap.turn;
-        const moveStr=snap.move;
-        if(!moveStr||moveStr.length<4)continue;
-
-        // parse move like e2e4, also supports promotions with '='
-        let fc=f.indexOf(moveStr[0]),fr=8-parseInt(moveStr[1]);
-        const hasPromo=moveStr.includes('=');
-        const toStr=hasPromo?moveStr.slice(moveStr.indexOf('=')-2,moveStr.indexOf('=')):moveStr.slice(-2);
-        let tc=f.indexOf(toStr[0]),tr=8-parseInt(toStr[1]);
-        if(fc<0||tc<0||fr<0||fr>7||tr<0||tr>7)continue;
-        const from=[fr,fc],to=[tr,tc];
-        let promo=null;
-        if(hasPromo)promo=moveStr[moveStr.length-1];
-
-        let bestVal=0, actualVal=0;
-        // best eval for mover side
-        try{
-          const bestMove=await SF.bestMove(bd,mover,cas,ep,depthBest,skillLevel);
-          if(bestMove&&bestMove.length>=4){
-            // apply best move and eval resulting position for opposite
-            const bfc=f.indexOf(bestMove[0]),bfr=8-parseInt(bestMove[1]);
-            const btc=f.indexOf(bestMove[2]),btr=8-parseInt(bestMove[3]);
-            if(bfc>=0&&btc>=0&&bfr>=0&&bfr<8&&btr>=0&&btr<8){
-              const rBest=E.apply(bd,[bfr,bfc],[btr,btc],cas,ep,(bestMove.length>=5?bestMove[4].toUpperCase():'Q'));
-              const opp=mover==='w'?'b':'w';
-              bestVal=await SF.evaluate(rBest.bd,opp,rBest.cas,rBest.ep,depthEval,skillLevel).catch(()=>E.eval(rBest.bd));
-            }
-          }
-        }catch(e){}
-
-        // apply actual move
-        let r2=null;
-        try{r2=E.apply(bd,from,to,cas,ep,(promo||'Q'));}catch(e){r2=null;}
-        if(!r2)continue;
-        const opp=mover==='w'?'b':'w';
-        actualVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,depthEval,skillLevel).catch(()=>E.eval(r2.bd));
-
-        // Detect check and checkmate after the move
-        const isCheck=E.inChk(r2.bd,opp);
-        const oppLegal=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
-        const isCheckmate=isCheck&&oppLegal.length===0;
-        
-        // Check for capture
-        const capturedPiece = bd[to[0]][to[1]];
-        const isCapture = !!capturedPiece;
-
-        // score only for player's moves
-        if(mover===myCol){
-          const isMax=mover==='w';
-          const diff=isMax?(bestVal-actualVal):(actualVal-bestVal);
-          const diffInPawns=diff/100;
-          const moveNum=i+1;
-          const isOpening=moveNum<=10;
-          let rating='good';
-          // More sophisticated move classification
-          if(isCheckmate) rating='best';
-          else if(isOpening && diffInPawns<0.5) rating='book';
-          else if(diff<=20||diffInPawns<=0.2) rating='best';
-          else if(diffInPawns<0.5) rating='excellent';
-          else if(diffInPawns<1.0) rating='good';
-          else if(diffInPawns<2.0) rating='inaccuracy';
-          else if(diffInPawns<4.0) rating='mistake';
-          else rating='blunder';
-          
-          // Check for brilliant moves (sacrifices that maintain advantage)
-          if(rating==='best' && isCapture && actualVal > 50) rating='brilliant';
-          
-          // Check for missed opportunities (had advantage but didn't find best move)
-          const hadAdvantage = (mover==='w' && bestVal > 200) || (mover==='b' && bestVal < -200);
-          const isMiss = hadAdvantage && diffInPawns > 1.0 && rating!=='blunder';
-          if(isMiss) rating='miss';
-          if(counts[rating]!==undefined)counts[rating]++;
-        }
-
-        bd=r2.bd;cas=r2.cas;ep=r2.ep;
-
-        if(i>0 && i%8===0) await new Promise(r=>setTimeout(r,0));
-      }
+      const summary=analysis.summary||{};
+      const myName=myCol==='b'?(summary.bName||'الأسود'):(summary.wName||'الأبيض');
+      const oppName=myCol==='b'?(summary.wName||'الأبيض'):(summary.bName||'الأسود');
+      const myAcc=myCol==='b'?(summary.bAcc??50):(summary.wAcc??50);
+      const oppAcc=myCol==='b'?(summary.wAcc??50):(summary.bAcc??50);
+      ratingLine.innerHTML=`
+        <div class="go-rate-card me">
+          <div class="go-rate-label">التقييم نفسه المستخدم في التحليل</div>
+          <div class="go-rate-value">${myAcc}%</div>
+          <div class="go-rate-name">${myName}</div>
+        </div>
+        <div class="go-rate-card opp">
+          <div class="go-rate-label">الخصم</div>
+          <div class="go-rate-value">${oppAcc}%</div>
+          <div class="go-rate-name">${oppName}</div>
+        </div>`;
 
       const item=(lbl,val)=>`<div class="go-qit"><span class="go-ql">${lbl}</span><span class="go-qv">${val}</span></div>`;
       qGrid.innerHTML=
@@ -6709,32 +7115,34 @@ const G={
         item('ممتازة',counts.excellent)+
         item('جيدة',counts.good)+
         item('افتتاح',counts.book)+
+        item('فاتتك فرصة',counts.miss)+
         item('غير دقيق',counts.inaccuracy)+
         item('خطأ',counts.mistake)+
         item('فادح',counts.blunder);
 
       qLoad.style.display='none';
 
-      // Nour quick comment (short, player-only)
-      try{
-        const resultTitle=(document.getElementById('go-ttl')?.textContent||'');
-        const prompt=
-          `أنت مدرب شطرنج عربي اسمه نور. اكتب تعليقاً قصيراً (سطرين فقط) للاعب بعد نهاية المباراة. `+
-          `هذه نتائج نقلات اللاعب: أفضل=${counts.best}, ممتازة=${counts.excellent}, جيدة=${counts.good}, غير دقيقة=${counts.inaccuracy}, أخطاء=${counts.mistake}, فادحة=${counts.blunder}, افتتاح=${counts.book}. `+
-          `عنوان النتيجة: ${resultTitle}. `+
-          `أعطِ نصيحة واحدة عملية للنقلة القادمة دون ذكر أرقام كثيرة.`;
-        const json=await groqChat({
-          model:GROQ_MODEL,
-          messages:[{role:'user',content:prompt}],
-          max_tokens:90,
-          temperature:0.6
-        });
-        const txt=json.choices?.[0]?.message?.content?.trim();
-        if(txt){
-          nourTxt.textContent=txt;
-          nourBox.style.display='block';
-        }
-      }catch(e){}
+      if(S.mode==='bot'&&S.levelId>=0&&navigator.onLine){
+        try{
+          const resultTitle=(document.getElementById('go-ttl')?.textContent||'');
+          const prompt=
+            `أنت مدرب شطرنج عربي اسمه نور. اكتب تعليقاً قصيراً (سطرين فقط) للاعب بعد نهاية المباراة. `+
+            `هذه نتائج نقلات اللاعب: أفضل=${counts.best}, ممتازة=${counts.excellent}, جيدة=${counts.good}, غير دقيقة=${counts.inaccuracy}, أخطاء=${counts.mistake}, فادحة=${counts.blunder}, افتتاح=${counts.book}. `+
+            `عنوان النتيجة: ${resultTitle}. `+
+            `أعطِ نصيحة واحدة عملية للنقلة القادمة دون ذكر أرقام كثيرة.`;
+          const json=await groqChat({
+            model:GROQ_MODEL,
+            messages:[{role:'user',content:prompt}],
+            max_tokens:90,
+            temperature:0.6
+          });
+          const txt=json.choices?.[0]?.message?.content?.trim();
+          if(txt){
+            nourTxt.textContent=txt;
+            nourBox.style.display='flex';
+          }
+        }catch(e){}
+      }
     }catch(e){}
   },
   nextLevel(){
@@ -6754,13 +7162,13 @@ const G={
     ov.classList.add('open');
   },
   restart(){
-    SFX.btn();document.getElementById('go-ov').classList.remove('open');
+    SFX.btn();stopMiniAnimator('gameover');document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online'){OL.dc();Nav.menu();}
     else if(S.levelId>=0)this.startLevel(S.levelId);
     else this.start(S.mode,S.diff);
   },
   goMenu(){
-    SFX.btn();document.getElementById('go-ov').classList.remove('open');
+    SFX.btn();stopMiniAnimator('gameover');document.getElementById('go-ov').classList.remove('open');
     if(S.mode==='online')OL.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
@@ -7130,6 +7538,7 @@ const OL=(()=>{
       document.getElementById('jinp').value='';
       _roomCode='';
       destroy();
+      this.col(this.pc||'w',true);
     },
     tab(n){
       SFX.btn();
@@ -7138,9 +7547,15 @@ const OL=(()=>{
         document.getElementById('tc-'+t).classList.toggle('on',t===n);
       });
     },
-    col(c){
-      SFX.btn();this.pc=c;
-      ['w','b','r'].forEach(x=>document.getElementById('co-'+x).classList.toggle('on',x===c));
+    col(c,silent=false){
+      if(!silent)SFX.btn();
+      this.pc=c;
+      ['w','b','r'].forEach(x=>{
+        const roomEl=document.getElementById('co-'+x);
+        const matchEl=document.getElementById('mco-'+x);
+        if(roomEl)roomEl.classList.toggle('on',x===c);
+        if(matchEl)matchEl.classList.toggle('on',x===c);
+      });
     },
     create(){
       SFX.btn();
@@ -7170,7 +7585,7 @@ const OL=(()=>{
     mmFind(){
       SFX.btn();
       connect(()=>{
-        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
+        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w'});
       });
     },
     mmCancel(){
