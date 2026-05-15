@@ -1,3 +1,4 @@
+
 /**
  * ♟ شطرنج Am-Kh — WebSocket Game Server with API
  * Node.js + ws + Express + SQLite
@@ -400,7 +401,30 @@ app.post('/send-notification', async (req, res) => {
 const rooms = new Map(); /* code → room */
 const clientRoom = new Map(); /* ws → code */
 
-const mmQueue = new Map(); /* ws -> { name, deviceId, createdAt } */
+const mmQueue = new Map(); /* ws -> { name, deviceId, color, createdAt } */
+
+function normalizeMatchColor(color) {
+  if (color === 'b') return 'b';
+  if (color === 'r') return 'r';
+  return 'w';
+}
+
+function resolveMatchColors(aPref, bPref) {
+  const a = normalizeMatchColor(aPref);
+  const b = normalizeMatchColor(bPref);
+  if (a === 'r' && b === 'r') {
+    const aColor = Math.random() < 0.5 ? 'w' : 'b';
+    return { aColor, bColor: aColor === 'w' ? 'b' : 'w' };
+  }
+  if (a === 'r') {
+    return { aColor: b === 'w' ? 'b' : 'w', bColor: b };
+  }
+  if (b === 'r') {
+    return { aColor: a, bColor: a === 'w' ? 'b' : 'w' };
+  }
+  if (a === b) return null;
+  return { aColor: a, bColor: b };
+}
 
 function makeMember(ws, color, name, deviceId) {
   return {
@@ -502,17 +526,17 @@ function mmRemove(ws) {
   try { mmQueue.delete(ws); } catch (e) {}
 }
 
-function mmPickOpponent(ws) {
+function mmPickOpponent(ws, selfEntry) {
   for (const [ows, entry] of mmQueue) {
-    if (ows !== ws) return { ws: ows, entry };
+    if (ows === ws) continue;
+    const colors = resolveMatchColors(selfEntry?.color, entry?.color);
+    if (colors) return { ws: ows, entry, colors };
   }
   return null;
 }
 
-function mmStartGame(aWs, aInfo, bWs, bInfo) {
+function mmStartGame(aWs, aInfo, aColor, bWs, bInfo, bColor) {
   const code = genCode();
-  const aColor = Math.random() < 0.5 ? 'w' : 'b';
-  const bColor = aColor === 'w' ? 'b' : 'w';
 
   const room = {
     kind: 'online',
@@ -601,11 +625,12 @@ wss.on('connection', (ws, req) => {
         const entry = {
           name: (msg.name || '').slice(0, 20),
           deviceId: (msg.deviceId || '').slice(0, 80) || null,
+          color: normalizeMatchColor(msg.color),
           createdAt: Date.now(),
         };
         mmQueue.set(ws, entry);
 
-        const opp = mmPickOpponent(ws);
+        const opp = mmPickOpponent(ws, entry);
         if (!opp) {
           send(ws, { type: 'mm-wait' });
           break;
@@ -613,7 +638,7 @@ wss.on('connection', (ws, req) => {
 
         mmQueue.delete(ws);
         mmQueue.delete(opp.ws);
-        mmStartGame(ws, entry, opp.ws, opp.entry);
+        mmStartGame(ws, entry, opp.colors.aColor, opp.ws, opp.entry, opp.colors.bColor);
         break;
       }
 
