@@ -1059,7 +1059,12 @@ body[data-ui-theme="anime"] .settings-headline{
   to{opacity:1;}
 }
 
-.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(92vw,460px);width:100%;max-height:min(86vh,720px);overflow-y:auto;box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;}
+.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(92vw,460px);width:100%;max-height:min(86vh,720px);overflow-y:auto;overflow-x:hidden;box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;}
+/* Hide scrollbar but keep functionality */
+.gobox::-webkit-scrollbar{width:6px;}
+.gobox::-webkit-scrollbar-track{background:transparent;}
+.gobox::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:3px;}
+.gobox::-webkit-scrollbar-thumb:hover{background:rgba(201,168,76,.5);}
 /* Hide title, emoji, stars, and message in quick review mode */
 .gobox .go-em,
 .gobox .go-stars,
@@ -1162,15 +1167,19 @@ body[data-ui-theme="anime"] .settings-headline{
   .go-msg{font-size:12px;margin-bottom:9px;}
   .go-quick{padding:9px 9px 8px;margin-bottom:8px;}
   .go-analysis-hero{gap:10px;margin:8px 0 10px;}
-  .go-analysis-board-wrap{min-height:100px;}
-  .analysis-mini-board.gameover{--mini-size:100px !important;display:block !important;opacity:1 !important;visibility:visible !important;}
+  .go-analysis-board-wrap{min-height:110px;display:flex;align-items:center;justify-content:center;}
+  .analysis-mini-board{display:block !important;visibility:visible !important;opacity:1 !important;}
+  .analysis-mini-board.gameover{--mini-size:110px !important;width:110px !important;height:110px !important;min-width:110px !important;min-height:110px !important;}
+  .analysis-mini-grid{display:grid !important;}
+  .analysis-mini-piece-layer{display:block !important;}
+  .analysis-mini-piece{display:block !important;opacity:1 !important;}
   .go-rating-line{max-width:none;width:100%;}
   .go-rate-value{font-size:22px;}
   .go-qgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
   .go-qit{padding:6px 8px;border-radius:10px;}
   .go-ql,.go-qv{font-size:10px;}
   .go-bts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
-  .bgp,.bgs{width:100%;padding:8px 12px;font-size:12px;}
+  .bgp,.bgs{width:100%;padding:7px 10px;font-size:11px;}
   #go-review,#go-next{grid-column:1 / -1;}
   .go-nour{padding:9px 9px 8px;}
   .go-nour-t{font-size:11px;line-height:1.6;}
@@ -1728,6 +1737,8 @@ body[data-ui-theme="anime"] .settings-headline{
   background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
   box-shadow:0 18px 40px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
   isolation:isolate;
+  display:block;
+  flex-shrink:0;
 }
 .analysis-mini-board.review{--mini-size:126px;display:block;margin-inline:auto;}
 .analysis-mini-board.gameover{
@@ -7254,17 +7265,20 @@ const G={
       winIndicator.innerHTML = '✓ فوز';
       winIndicator.style.cssText = `
         position:absolute;
-        top:8px;
-        right:8px;
-        background:rgba(74,222,128,0.2);
-        border:1px solid rgba(74,222,128,0.5);
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%);
+        background:rgba(74,222,128,0.25);
+        border:2px solid rgba(74,222,128,0.6);
         color:#4ade80;
-        padding:4px 10px;
-        border-radius:8px;
-        font-size:11px;
+        padding:6px 16px;
+        border-radius:12px;
+        font-size:13px;
         font-weight:900;
         z-index:10;
+        box-shadow:0 4px 12px rgba(74,222,128,0.3);
         animation:winPulse 1.5s ease-in-out infinite;
+        pointer-events:none;
       `;
       winnerBar.style.position = 'relative';
       winnerBar.appendChild(winIndicator);
@@ -7276,17 +7290,20 @@ const G={
       lossIndicator.innerHTML = '✕ خسارة';
       lossIndicator.style.cssText = `
         position:absolute;
-        top:8px;
-        right:8px;
-        background:rgba(248,113,113,0.2);
-        border:1px solid rgba(248,113,113,0.5);
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%);
+        background:rgba(248,113,113,0.25);
+        border:2px solid rgba(248,113,113,0.6);
         color:#f87171;
-        padding:4px 10px;
-        border-radius:8px;
-        font-size:11px;
+        padding:6px 16px;
+        border-radius:12px;
+        font-size:13px;
         font-weight:900;
         z-index:10;
-        opacity:0.8;
+        box-shadow:0 4px 12px rgba(248,113,113,0.3);
+        opacity:0.9;
+        pointer-events:none;
       `;
       loserBar.style.position = 'relative';
       loserBar.appendChild(lossIndicator);
