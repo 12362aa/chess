@@ -1005,7 +1005,7 @@ body[data-ui-theme="anime"] .settings-headline{
 .pp:hover{border-color:var(--gold);background-color:rgba(201,168,76,.11);transform:scale(1.1) translateY(-3px);box-shadow:0 8px 20px rgba(201,168,76,.2);}
 
 /* ══════════ GAME OVER ══════════ */
-#go-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(5px);z-index:850;align-items:center;justify-content:center;padding:14px;overflow:auto;overscroll-behavior:contain;}
+#go-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(5px);z-index:850;align-items:center;justify-content:center;padding:14px;overflow:hidden;}
 #go-ov.open{display:flex;animation:fadeIn .4s ease-out;}
 
 @keyframes fadeIn{
@@ -1013,7 +1013,29 @@ body[data-ui-theme="anime"] .settings-headline{
   to{opacity:1;}
 }
 
-.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(94vw,480px);width:100%;max-height:min(88vh,760px);box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:auto;overscroll-behavior:contain;}
+.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(92vw,460px);width:100%;max-height:min(86vh,720px);box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+.gobox.go-compact{max-width:min(94vw,420px);padding:16px 14px 14px;}
+.gobox.go-compact::before,
+.gobox.go-compact::after{animation:none;opacity:.28;}
+.gobox.go-compact .go-em{animation:none;}
+.gobox.go-compact .go-nour::before{animation:none;}
+.gobox.go-compact .go-quick.on{display:block;animation:none;}
+.gobox.go-compact:not(.go-quick-open) .go-quick{display:none;}
+.gobox.go-compact:not(.go-quick-open) .go-quick.on{padding:0;margin:0 0 10px;background:none;border:none;}
+.gobox.go-compact:not(.go-quick-open) .go-qrow,
+.gobox.go-compact:not(.go-quick-open) .go-analysis-hero,
+.gobox.go-compact:not(.go-quick-open) .go-qgrid{display:none;}
+.gobox.go-compact.go-quick-open .go-quick{padding:10px 10px 8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);}
+.gobox.go-quick-open .go-em,
+.gobox.go-quick-open .go-stars,
+.gobox.go-quick-open .go-msg,
+.gobox.go-quick-open .go-nour{display:none!important;}
+.gobox.go-quick-open .go-ttl{margin-bottom:10px;}
+.gobox.go-quick-open .go-bts > *{display:none!important;}
+.gobox.go-quick-open #go-review,
+.gobox.go-quick-open .go-bts .bgs:last-child{display:inline-flex!important;}
+.gobox.go-quick-open .go-quick{margin-bottom:10px;}
+.gobox.go-quick-open .go-bts .bgs:last-child{grid-column:1 / -1;}
 
 /* Enhanced background glow for game over */
 .gobox::before{
@@ -1102,34 +1124,43 @@ body[data-ui-theme="anime"] .settings-headline{
 .go-nour-avatar{width:42px;height:42px;border-radius:14px;object-fit:cover;flex-shrink:0;position:relative;z-index:1;border:1px solid rgba(201,168,76,.28);box-shadow:0 8px 18px rgba(0,0,0,.28);}
 .go-nour-body{position:relative;z-index:1;min-width:0;flex:1;}
 @media(max-width:520px){
-  #go-ov{padding:8px;align-items:flex-start;}
-  .gobox{width:100%;max-width:100%;max-height:92vh;padding:16px 12px 12px;border-radius:18px;}
-  .go-em{font-size:42px;margin-bottom:4px;}
+  #go-ov{padding:10px;align-items:center;backdrop-filter:none;background:rgba(0,0,0,.92);}
+  .gobox{width:min(100%,420px);max-width:420px;max-height:none;padding:16px 13px 13px;border-radius:18px;}
+  .go-em{font-size:40px;margin-bottom:4px;}
   .go-ttl{font-size:20px;}
-  .go-msg{font-size:12px;margin-bottom:10px;}
+  .go-msg{font-size:12px;margin-bottom:9px;}
   .go-quick{padding:9px 9px 8px;margin-bottom:8px;}
   .go-analysis-hero{gap:10px;margin:8px 0 10px;}
   .go-rating-line{max-width:none;width:100%;}
   .go-rate-value{font-size:22px;}
-  .go-qgrid{grid-template-columns:1fr 1fr;gap:6px;}
+  .go-qgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
   .go-qit{padding:6px 8px;border-radius:10px;}
   .go-ql,.go-qv{font-size:10px;}
-  .go-bts{display:grid;grid-template-columns:1fr;gap:7px;}
+  .go-bts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
   .bgp,.bgs{width:100%;}
+  #go-review,#go-next{grid-column:1 / -1;}
+  .gobox.go-compact .go-nour{padding:9px 9px 8px;}
+  .gobox.go-compact .go-nour-t{font-size:11px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .gobox.go-quick-open .go-analysis-hero{gap:8px;margin:6px 0 8px;}
+  .gobox.go-quick-open .go-qgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+  .gobox.go-quick-open .go-qit{padding:6px 5px;border-radius:10px;flex-direction:column;gap:3px;justify-content:center;min-height:54px;}
+  .gobox.go-quick-open .go-ql,.gobox.go-quick-open .go-qv{text-align:center;font-size:10px;}
+  .gobox.go-quick-open .analysis-mini-board.gameover{--mini-size:92px;animation:none;}
   .go-nour-avatar{width:36px;height:36px;border-radius:12px;}
   .go-nour-t{font-size:11px;line-height:1.65;}
 }
 @media(max-height:720px){
-  #go-ov{align-items:flex-start;padding:8px;}
-  .gobox{max-height:92vh;padding:16px 12px 12px;}
+  #go-ov{align-items:center;padding:8px;}
+  .gobox{padding:14px 12px 12px;max-height:none;}
   .go-em{font-size:40px;margin-bottom:4px;}
   .go-msg{margin-bottom:8px;}
   .go-quick{padding:8px;margin-bottom:8px;}
-  .go-qgrid{gap:5px;}
+  .go-qgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
   .go-qit{padding:6px 7px;}
-  .analysis-mini-board.gameover{--mini-size:96px;}
+  .gobox.go-quick-open .analysis-mini-board.gameover{--mini-size:88px;animation:none;}
 }
 .go-bts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
+.go-bts button:disabled{opacity:.62;pointer-events:none;filter:saturate(.7);}
 .bgp{padding:11px 17px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a14;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
 .bgp::before{
   content:'';
@@ -1628,6 +1659,9 @@ body[data-ui-theme="anime"] .settings-headline{
   border:1px solid rgba(201,168,76,.15);
   position:relative;
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 .rv-chess-animation::before{
@@ -1660,7 +1694,7 @@ body[data-ui-theme="anime"] .settings-headline{
   box-shadow:0 18px 40px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
   isolation:isolate;
 }
-.analysis-mini-board.review{--mini-size:126px;}
+.analysis-mini-board.review{--mini-size:126px;display:block;margin-inline:auto;}
 .analysis-mini-board.gameover{
   --mini-size:clamp(102px,20vw,138px);
   margin-inline:auto;
@@ -5523,11 +5557,32 @@ function buildReplayFrames(snaps){
   return frames;
 }
 
-function createMiniBoardReplay(container,{slot='review',variant='review',tone='draw',frames=[],orientation='w'}={}){
+function playReplayFrameSound(frame,soundProfile='silent'){
+  if(soundProfile!=='review'||!frame||typeof SFX==='undefined')return;
+  try{
+    if(frame.isCheckmate)SFX.checkmate();
+    else if(frame.isPromo&&frame.isCheck){SFX.promote();SFX.check();}
+    else if(frame.isPromo)SFX.promote();
+    else if(frame.isCastle)SFX.castle();
+    else if(frame.isCapture&&frame.isCheck)SFX.captureCheck();
+    else if(frame.isCapture)SFX.capture();
+    else if(frame.isCheck)SFX.check();
+    else SFX.move();
+  }catch(e){}
+}
+
+function createMiniBoardReplay(container,{slot='review',variant='review',tone='draw',frames=[],orientation='w',soundProfile='silent'}={}){
   if(!container)return null;
   const pieceUrls=getPieceUrls(normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo'));
   const boardTheme=THEMES[Cfg.data.boardTheme]||THEMES.classic;
-  container.className=`analysis-mini-board ${variant}`;
+  if(!container.dataset.baseMiniClass){
+    container.dataset.baseMiniClass=(container.className||'')
+      .split(/\s+/)
+      .filter(c=>c&&c!=='analysis-mini-board'&&c!=='review'&&c!=='gameover')
+      .join(' ');
+  }
+  const baseMiniClasses=(container.dataset.baseMiniClass||'').split(/\s+/).filter(Boolean);
+  container.className=[...baseMiniClasses,'analysis-mini-board',variant].join(' ');
   container.dataset.tone=tone;
   container.style.setProperty('--mini-light',boardTheme.l||'var(--sq-l)');
   container.style.setProperty('--mini-dark',boardTheme.d||'var(--sq-d)');
@@ -5688,6 +5743,7 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
         }catch(e){}
       },timing.promo);
     }
+    playReplayFrameSound(frame,soundProfile);
     await schedule(timing.move);
     if(stopped)return;
     rebuild(frame.after);
@@ -6355,7 +6411,8 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
           variant:'review',
           tone:'draw',
           frames,
-          orientation
+          orientation,
+          soundProfile:'review'
         }));
       }
       
@@ -6767,6 +6824,8 @@ const G={
     S.preMove=null;S.preMoveSelFr=null;
     S.undoStack=[];
     S.oppImg=null; // Reset opponent image for every new game
+    this._postGameMiniState=null;
+    this._postGameCompact=false;
     stopMiniAnimator('gameover');
     if(typeof REV!=='undefined'&&REV.reset)REV.reset();
     AST.clear();
@@ -6780,6 +6839,24 @@ const G={
     document.getElementById('go-review').style.display='none';
     document.getElementById('go-next').style.display='none';
     document.getElementById('go-stars').style.display='none';
+    try{
+      const box=document.querySelector('#go-ov .gobox');
+      const qWrap=document.getElementById('go-quick');
+      const nour=document.getElementById('go-nour');
+      if(box)box.classList.remove('go-compact','go-quick-open');
+      if(qWrap)qWrap.classList.remove('on');
+      if(nour)nour.style.display='none';
+      const {review,menu}=this._postGameButtons();
+      if(review){
+        review.disabled=false;
+        review.textContent='◈ تقييم المباراة';
+        review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
+      }
+      if(menu){
+        menu.textContent='القائمة';
+        menu.onclick=()=>this.goMenu();
+      }
+    }catch(e){}
   },
   async startLocalGame(){
     this._reset('local',0);
@@ -7091,6 +7168,72 @@ const G={
       }
     }catch(e){}
   },
+  _postGameMiniState:null,
+  _postGameCompact:false,
+  _compactPostGame(){
+    return window.innerWidth<=520||window.innerHeight<=720;
+  },
+  _postGameButtons(){
+    return{
+      review:document.getElementById('go-review'),
+      menu:document.querySelector('#go-ov .go-bts .bgs:last-child')
+    };
+  },
+  _applyPostGameLayout(compact){
+    this._postGameCompact=!!compact;
+    const box=document.querySelector('#go-ov .gobox');
+    const qWrap=document.getElementById('go-quick');
+    const {review,menu}=this._postGameButtons();
+    if(box){
+      box.classList.toggle('go-compact',!!compact);
+      box.classList.remove('go-quick-open');
+    }
+    if(qWrap)qWrap.classList.toggle('on',!compact);
+    if(review){
+      review.disabled=!!compact;
+      review.textContent=compact?'◌ التحليل...':'◈ تقييم المباراة';
+      review.onclick=compact
+        ? ()=>{}
+        : ()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
+    }
+    if(menu){
+      menu.textContent='القائمة';
+      menu.onclick=()=>this.goMenu();
+    }
+    if(compact)stopMiniAnimator('gameover');
+  },
+  _ensurePostGameMini(){
+    if(MINI_ANIMATORS.gameover)return MINI_ANIMATORS.gameover;
+    const miniBoard=document.getElementById('go-mini-board');
+    if(!miniBoard||!this._postGameMiniState)return null;
+    return setMiniAnimator('gameover',createMiniBoardReplay(miniBoard,this._postGameMiniState));
+  },
+  togglePostGameQuick(force){
+    const box=document.querySelector('#go-ov .gobox');
+    const qWrap=document.getElementById('go-quick');
+    const nourBox=document.getElementById('go-nour');
+    const {review,menu}=this._postGameButtons();
+    if(!box||!qWrap||!this._postGameCompact)return;
+    if(review&&review.disabled)return;
+    const open=typeof force==='boolean'?force:!box.classList.contains('go-quick-open');
+    box.classList.toggle('go-quick-open',open);
+    if(open)qWrap.classList.add('on');
+    else qWrap.classList.toggle('on',!!nourBox&&nourBox.style.display==='flex');
+    if(review){
+      review.textContent=open?'◈ تقييم المباراة':'◈ إحصائيات سريعة';
+      review.onclick=open
+        ? ()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();}
+        : ()=>{if(typeof SFX!=='undefined')SFX.btn();this.togglePostGameQuick(true);};
+    }
+    if(menu){
+      menu.textContent=open?'↩ النتيجة':'القائمة';
+      menu.onclick=open
+        ? ()=>{if(typeof SFX!=='undefined')SFX.btn();this.togglePostGameQuick(false);}
+        : ()=>this.goMenu();
+    }
+    if(open)this._ensurePostGameMini();
+    else stopMiniAnimator('gameover');
+  },
   async _quickPostGame(){
     try{
       if(S._quickDone)return;
@@ -7103,8 +7246,10 @@ const G={
       const nourBox=document.getElementById('go-nour');
       const nourTxt=document.getElementById('go-nour-t');
       if(!qWrap||!qGrid||!qLoad||!nourBox||!nourTxt||!ratingLine||!miniBoard)return;
+      const compactView=this._compactPostGame();
+      this._postGameMiniState=null;
+      this._applyPostGameLayout(compactView);
 
-      qWrap.classList.add('on');
       nourBox.style.display='none';
       nourTxt.textContent='';
       qGrid.innerHTML='';
@@ -7115,19 +7260,33 @@ const G={
 
       const myCol=(isRemoteMatchMode() ? (S.myCol||'w') : 'w');
       const snaps=S.snapshots;
-      if(!snaps||snaps.length<2){qLoad.style.display='none';return;}
+      if(!snaps||snaps.length<2){
+        qLoad.style.display='none';
+        const {review}=this._postGameButtons();
+        if(review){
+          review.disabled=false;
+          review.textContent='◈ تقييم المباراة';
+          review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
+        }
+        return;
+      }
       const tone=((document.getElementById('go-ttl')?.textContent||'').includes('خسرت')||(document.getElementById('go-ttl')?.textContent||'').includes('انسحاب'))
         ?'loss'
         :((document.getElementById('go-ttl')?.textContent||'').includes('تعادل')?'draw':'win');
       const orientation=(isRemoteMatchMode()&&(S.myCol||'w')==='b')?'b':'w';
       const frames=buildReplayFrames(snaps);
-      setMiniAnimator('gameover',createMiniBoardReplay(miniBoard,{
+      this._postGameMiniState={
         slot:'gameover',
         variant:'gameover',
         tone,
         frames,
-        orientation
-      }));
+        orientation,
+        soundProfile:'silent'
+      };
+      if(!compactView){
+        qWrap.classList.add('on');
+        this._ensurePostGameMini();
+      }
 
       const startedAt=performance.now();
       const analysis=await REV.ensureAnalysis({
@@ -7141,7 +7300,17 @@ const G={
       const minDelay=analysis?650:0;
       const elapsed=performance.now()-startedAt;
       if(elapsed<minDelay)await new Promise(r=>setTimeout(r,minDelay-elapsed));
-      if(!analysis||!analysis.moves||!analysis.moves.length){qLoad.style.display='none';return;}
+      if(!analysis||!analysis.moves||!analysis.moves.length){
+        qLoad.style.display='none';
+        const {review}=this._postGameButtons();
+        if(review){
+          review.disabled=false;
+          review.textContent='◈ تقييم المباراة';
+          review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
+        }
+        if(compactView)qWrap.classList.remove('on');
+        return;
+      }
       if(loadLabel)loadLabel.textContent='Stockfish أكمل التحليل';
 
       const counts={brilliant:0,best:0,excellent:0,good:0,book:0,miss:0,inaccuracy:0,mistake:0,blunder:0};
@@ -7174,8 +7343,16 @@ const G={
         item('فادح',counts.blunder);
 
       qLoad.style.display='none';
+      if(compactView){
+        const {review}=this._postGameButtons();
+        if(review){
+          review.disabled=false;
+          review.textContent='◈ إحصائيات سريعة';
+          review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();this.togglePostGameQuick(true);};
+        }
+      }
 
-      if(S.mode==='bot'&&S.levelId>=0&&navigator.onLine){
+      if(navigator.onLine&&(S.mode==='online'||(S.mode==='bot'&&S.levelId>=0))){
         try{
           const resultTitle=(document.getElementById('go-ttl')?.textContent||'');
           const prompt=
@@ -7193,6 +7370,7 @@ const G={
           if(txt){
             nourTxt.textContent=txt;
             nourBox.style.display='flex';
+            if(compactView)qWrap.classList.add('on');
           }
         }catch(e){}
       }
