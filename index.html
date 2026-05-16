@@ -1013,7 +1013,15 @@ body[data-ui-theme="anime"] .settings-headline{
   to{opacity:1;}
 }
 
-.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(92vw,460px);width:100%;max-height:min(86vh,720px);box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+/* Noor popup - separate window */
+.go-nour-popup{max-width:min(90vw,380px);max-height:min(80vh,400px);padding:20px 18px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(45,212,191,.08));border:2px solid rgba(201,168,76,.3);box-shadow:0 0 60px rgba(201,168,76,.2),0 20px 60px rgba(0,0,0,.5);animation:pop .3s cubic-bezier(.34,1.56,.64,1);overflow-y:auto;}
+.go-nour-content{display:flex;gap:14px;align-items:flex-start;text-align:right;}
+.go-nour-avatar-large{width:56px;height:56px;border-radius:18px;object-fit:cover;border:2px solid rgba(201,168,76,.4);box-shadow:0 8px 20px rgba(0,0,0,.4);flex-shrink:0;}
+.go-nour-body-large{flex:1;min-width:0;}
+.go-nour-h-large{font-size:14px;color:var(--gold2);font-weight:900;margin-bottom:6px;}
+.go-nour-t-large{font-size:14px;color:var(--text);line-height:1.8;white-space:pre-line;}
+
+.gobox{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:24px 20px 18px;text-align:center;max-width:min(92vw,460px);width:100%;max-height:min(86vh,720px);box-shadow:0 0 80px rgba(201,168,76,.08),0 30px 80px rgba(0,0,0,.5);animation:pop .27s cubic-bezier(.34,1.56,.64,1);position:relative;overflow-y:auto;}
 .gobox.go-compact{max-width:min(94vw,420px);padding:16px 14px 14px;}
 .gobox.go-compact::before,
 .gobox.go-compact::after{animation:none;opacity:.28;}
@@ -1159,9 +1167,9 @@ body[data-ui-theme="anime"] .settings-headline{
   .go-qit{padding:6px 7px;}
   .gobox.go-quick-open .analysis-mini-board.gameover{--mini-size:88px;animation:none;}
 }
-.go-bts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
+.go-bts{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
 .go-bts button:disabled{opacity:.62;pointer-events:none;filter:saturate(.7);}
-.bgp{padding:11px 17px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a14;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+.bgp{padding:8px 12px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a14;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;min-width:44px;min-height:44px;}
 .bgp::before{
   content:'';
   position:absolute;
@@ -1172,7 +1180,7 @@ body[data-ui-theme="anime"] .settings-headline{
 }
 .bgp:hover::before{transform:translateX(100%);}
 .bgp:hover{transform:scale(1.06);box-shadow:0 6px 20px rgba(201,168,76,.3);}
-.bgs{padding:9px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
+.bgs{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
 .bgs:hover{background:rgba(255,255,255,.04);color:var(--text);border-color:rgba(255,255,255,.15);}
 
 /* ══════════ REVIEW OVERLAY ══════════ */
@@ -1228,13 +1236,13 @@ body[data-ui-theme="anime"] .settings-headline{
 .rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(45,212,191,.55);animation:dbt .7s ease-in-out infinite;}
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
 /* nav bar */
-.rv-nav{flex-shrink:0;display:flex;align-items:center;gap:5px;width:100%;max-width:400px;}
-.rv-nbtn{width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
+.rv-nav{flex-shrink:0;display:flex;align-items:center;gap:4px;width:100%;max-width:400px;}
+.rv-nbtn{width:32px;height:32px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
 .rv-nbtn:hover:not(:disabled){background:var(--bg3);color:var(--text);border-color:rgba(201,168,76,.3);transform:scale(1.07);}
 .rv-nbtn:disabled{opacity:.28;cursor:not-allowed;}
 .rv-strip{flex:1;overflow-x:auto;display:flex;gap:3px;padding:1px 0;scrollbar-width:none;}
 .rv-strip::-webkit-scrollbar{display:none;}
-.rv-chip{font-size:10px;padding:4px 7px;background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:6px;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .14s;flex-shrink:0;font-family:monospace;}
+.rv-chip{font-size:10px;padding:3px 6px;background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:6px;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .14s;flex-shrink:0;font-family:monospace;}
 .rv-chip:hover{background:var(--bg4);color:var(--text);}
 .rv-chip.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold2);}
 .rv-chip.brilliant{border-color:rgba(0,200,255,.4);color:#00c8ff;}
@@ -2708,7 +2716,19 @@ body[data-ui-theme="anime"] .settings-headline{
 
 <!-- GAME OVER -->
 <div id="go-ov">
-  <div class="gobox">
+  <!-- Noor comment popup (separate, shows first) -->
+  <div class="gobox go-nour-popup" id="go-nour-popup" style="display:none">
+    <div class="go-nour-content">
+      <img src="./nour.png" alt="Nour" class="go-nour-avatar-large" />
+      <div class="go-nour-body-large">
+        <div class="go-nour-h-large">نور — تعليق سريع</div>
+        <div class="go-nour-t-large" id="go-nour-t-popup"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main game over popup (shows after Noor comment) -->
+  <div class="gobox" id="go-main-box" style="display:none">
     <span class="go-em" id="go-em">✦</span>
     <div class="go-ttl" id="go-ttl">نهاية اللعبة</div>
     <div class="go-stars" id="go-stars" style="display:none">
@@ -2729,13 +2749,6 @@ body[data-ui-theme="anime"] .settings-headline{
         <div class="go-rating-line" id="go-rating-line"></div>
       </div>
       <div class="go-qgrid" id="go-qgrid"></div>
-      <div class="go-nour" id="go-nour" style="display:none">
-        <img src="./nour.png" alt="Nour" class="go-nour-avatar" />
-        <div class="go-nour-body">
-          <div class="go-nour-h">نور — تعليق سريع</div>
-          <div class="go-nour-t" id="go-nour-t"></div>
-        </div>
-      </div>
     </div>
     <div class="go-bts">
       <button class="bgp" onclick="G.restart()">↺ مرة أخرى</button>
@@ -5811,48 +5824,9 @@ const REV=(()=>{
   }
 
   function _buildQuickStats(){
-    const d=_data;
-    const s=d.summary;
-    const w=_countRatings('w');
-    const b=_countRatings('b');
-
-    const item=(lbl,val)=>`<div class="rv-qitem"><span class="rv-qlbl">${lbl}</span><span class="rv-qval">${val}</span></div>`;
-    const grid=(c)=>`<div class="rv-qgrid">${
-      item('✦ رائعة',c.brilliant)+
-      item('★ أفضل',c.best)+
-      item('ممتازة',c.excellent)+
-      item('جيدة',c.good)+
-      item('افتتاح',c.book)+
-      item('فاتتك فرصة',c.miss)+
-      item('غير دقيق',c.inaccuracy)+
-      item('خطأ',c.mistake)+
-      item('فادح',c.blunder)
-    }</div>`;
-
-    const html=` 
-      <div class="rv-loading" style="padding-top:18px">
-        <div class="rv-qwrap">
-          <div class="rv-qcard">
-            <div class="rv-qtitle">إحصائيات سريعة</div>
-            <div class="rv-qsub">ملخص سريع للمباراة قبل المراجعة التفصيلية</div>
-            <div class="rv-qrow">
-              <div class="rv-qcol">
-                <div class="rv-qnm">♙ ${s.wName}</div>
-                <div class="rv-qacc" style="color:var(--gold2)">${s.wAcc}%</div>
-                ${grid(w)}
-              </div>
-              <div class="rv-qcol">
-                <div class="rv-qnm">♟ ${s.bName}</div>
-                <div class="rv-qacc" style="color:var(--text)">${s.bAcc}%</div>
-                ${grid(b)}
-              </div>
-            </div>
-          </div>
-          <button class="rv-qbtn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.details()">▶ عرض المراجعة التفصيلية</button>
-          <div class="rv-qhint">يمكنك الضغط على أي نقلة لاحقاً ليشرحها نور.</div>
-        </div>
-      </div>`;
-    document.getElementById('rv-main').innerHTML=html;
+    // Quick stats removed - now shown in game over window instead
+    document.getElementById('rv-main').innerHTML='';
+    REV.details();
   }
 
   async function _analyze(options={}){
@@ -7200,8 +7174,9 @@ const G={
     }
   },
   _showQuickReview(){
-    // Show quick review window with mini board and Noor comment
+    // Show game over overlay
     document.getElementById('go-ov').classList.add('open');
+    // Start analysis and show Noor comment first
     this._quickPostGame();
   },
   _postGameMiniState:null,
@@ -7248,20 +7223,27 @@ const G={
     try{
       if(S._quickDone)return;
       S._quickDone=true;
+      
+      const nourPopup=document.getElementById('go-nour-popup');
+      const nourTxtPopup=document.getElementById('go-nour-t-popup');
+      const mainBox=document.getElementById('go-main-box');
       const qWrap=document.getElementById('go-quick');
       const qGrid=document.getElementById('go-qgrid');
       const qLoad=document.getElementById('go-qload');
       const ratingLine=document.getElementById('go-rating-line');
       const miniBoard=document.getElementById('go-mini-board');
-      const nourBox=document.getElementById('go-nour');
-      const nourTxt=document.getElementById('go-nour-t');
-      if(!qWrap||!qGrid||!qLoad||!nourBox||!nourTxt||!ratingLine||!miniBoard)return;
+      
+      if(!qWrap||!qGrid||!qLoad||!ratingLine||!miniBoard)return;
+      
+      // Hide main box initially, show Noor popup
+      mainBox.style.display='none';
+      nourPopup.style.display='block';
+      nourTxtPopup.textContent='جاري التحليل...';
+      
       const compactView=this._compactPostGame();
       this._postGameMiniState=null;
       this._applyPostGameLayout(compactView);
 
-      nourBox.style.display='none';
-      nourTxt.textContent='';
       qGrid.innerHTML='';
       ratingLine.innerHTML='';
       qLoad.style.display='flex';
@@ -7271,15 +7253,21 @@ const G={
       const myCol=(isRemoteMatchMode() ? (S.myCol||'w') : 'w');
       const snaps=S.snapshots;
       if(!snaps||snaps.length<2){
-        qLoad.style.display='none';
-        const {review}=this._postGameButtons();
-        if(review){
-          review.disabled=false;
-          review.textContent='◈ مراجعة المباراة';
-          review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
-        }
+        // No snapshots - show main box without analysis
+        setTimeout(()=>{
+          nourPopup.style.display='none';
+          mainBox.style.display='block';
+          qLoad.style.display='none';
+          const {review}=this._postGameButtons();
+          if(review){
+            review.disabled=false;
+            review.textContent='◈ مراجعة المباراة';
+            review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
+          }
+        }, 1500);
         return;
       }
+      
       const tone=((document.getElementById('go-ttl')?.textContent||'').includes('خسرت')||(document.getElementById('go-ttl')?.textContent||'').includes('انسحاب'))
         ?'loss'
         :((document.getElementById('go-ttl')?.textContent||'').includes('تعادل')?'draw':'win');
@@ -7293,10 +7281,6 @@ const G={
         orientation,
         soundProfile:'silent'
       };
-      if(!compactView){
-        qWrap.classList.add('on');
-        this._ensurePostGameMini();
-      }
 
       const startedAt=performance.now();
       const analysis=await REV.ensureAnalysis({
@@ -7310,15 +7294,20 @@ const G={
       const minDelay=analysis?650:0;
       const elapsed=performance.now()-startedAt;
       if(elapsed<minDelay)await new Promise(r=>setTimeout(r,minDelay-elapsed));
+      
       if(!analysis||!analysis.moves||!analysis.moves.length){
-        qLoad.style.display='none';
-        const {review}=this._postGameButtons();
-        if(review){
-          review.disabled=false;
-          review.textContent='◈ مراجعة المباراة';
-          review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
-        }
-        if(compactView)qWrap.classList.remove('on');
+        // No analysis - show main box
+        setTimeout(()=>{
+          nourPopup.style.display='none';
+          mainBox.style.display='block';
+          qLoad.style.display='none';
+          const {review}=this._postGameButtons();
+          if(review){
+            review.disabled=false;
+            review.textContent='◈ مراجعة المباراة';
+            review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
+          }
+        }, 1500);
         return;
       }
       if(loadLabel)loadLabel.textContent='Stockfish أكمل التحليل';
@@ -7353,7 +7342,6 @@ const G={
         item('فادح',counts.blunder);
 
       qLoad.style.display='none';
-      // Compact view logic removed - always show review button
       const {review}=this._postGameButtons();
       if(review){
         review.disabled=false;
@@ -7361,6 +7349,8 @@ const G={
         review.onclick=()=>{if(typeof SFX!=='undefined')SFX.btn();REV.open();};
       }
 
+      // Get Noor comment
+      let noorComment=null;
       if(navigator.onLine&&(S.mode==='online'||(S.mode==='bot'&&S.levelId>=0))){
         try{
           const resultTitle=(document.getElementById('go-ttl')?.textContent||'');
@@ -7375,23 +7365,41 @@ const G={
             max_tokens:90,
             temperature:0.6
           });
-          const txt=json.choices?.[0]?.message?.content?.trim();
-          if(txt){
-            // Typing animation for Noor's comment
-            nourTxt.textContent='';
-            nourBox.style.display='flex';
-            qWrap.classList.add('on');
-            let i=0;
-            const typeInterval=setInterval(()=>{
-              if(i<txt.length){
-                nourTxt.textContent+=txt[i];
-                i++;
-              }else{
-                clearInterval(typeInterval);
-              }
-            },30);
-          }
+          noorComment=json.choices?.[0]?.message?.content?.trim();
         }catch(e){}
+      }
+
+      // Show Noor comment in separate popup with typing animation
+      if(noorComment){
+        nourTxtPopup.textContent='';
+        let i=0;
+        const typeInterval=setInterval(()=>{
+          if(i<noorComment.length){
+            nourTxtPopup.textContent+=noorComment[i];
+            i++;
+          }else{
+            clearInterval(typeInterval);
+            // After typing is done, wait 2 seconds then switch to main box
+            setTimeout(()=>{
+              nourPopup.style.display='none';
+              mainBox.style.display='block';
+              if(!compactView){
+                qWrap.classList.add('on');
+                this._ensurePostGameMini();
+              }
+            }, 2000);
+          }
+        },30);
+      }else{
+        // No comment - switch to main box immediately
+        setTimeout(()=>{
+          nourPopup.style.display='none';
+          mainBox.style.display='block';
+          if(!compactView){
+            qWrap.classList.add('on');
+            this._ensurePostGameMini();
+          }
+        }, 1000);
       }
     }catch(e){}
   },
