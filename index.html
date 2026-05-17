@@ -370,6 +370,164 @@ body[data-ui-theme="anime"] .pbar.myturn{
   34%{transform:translateX(130%);}
 }
 
+/* Clearer high-identity theme polish */
+body[data-ui-theme="gaming"] .logo-t{
+  background:linear-gradient(90deg,#ff7a18 0%,#ffd166 36%,#00ffa3 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-shadow:none;
+}
+body[data-ui-theme="gaming"] .mc,
+body[data-ui-theme="gaming"] .oc,
+body[data-ui-theme="gaming"] .settings-section,
+body[data-ui-theme="gaming"] .gobox,
+body[data-ui-theme="gaming"] .rv-loadcard,
+body[data-ui-theme="gaming"] .rv-card,
+body[data-ui-theme="gaming"] .rv-coach{
+  position:relative;
+  overflow:hidden;
+  border-radius:22px !important;
+}
+body[data-ui-theme="gaming"] .mc::before,
+body[data-ui-theme="gaming"] .oc::before,
+body[data-ui-theme="gaming"] .settings-section::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.06) 0 1px,transparent 1px),
+    linear-gradient(90deg,transparent 0 58%,rgba(255,255,255,.025) 58% 60%,transparent 60% 100%);
+  background-size:100% 8px,100% 100%;
+  opacity:.38;
+  pointer-events:none;
+}
+body[data-ui-theme="gaming"] .mc::after{
+  content:'READY';
+  position:absolute;
+  top:12px;
+  left:14px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(0,255,163,.12);
+  color:#9cffd8;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.18em;
+  border:1px solid rgba(0,255,163,.16);
+  pointer-events:none;
+}
+body[data-ui-theme="gaming"] .mc-t,
+body[data-ui-theme="gaming"] .gmlbl{
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+body[data-ui-theme="gaming"] .mc-ic{
+  filter:drop-shadow(0 0 18px rgba(255,122,24,.3)) drop-shadow(0 0 28px rgba(0,255,163,.18));
+}
+body[data-ui-theme="gaming"] .gtbar .tbb2,
+body[data-ui-theme="gaming"] .bgp,
+body[data-ui-theme="gaming"] .bgs,
+body[data-ui-theme="gaming"] .rv-close{
+  border-radius:16px !important;
+  font-weight:900;
+  box-shadow:0 10px 22px rgba(0,0,0,.24);
+}
+body[data-ui-theme="gaming"] .gtbar .tbb2{
+  background:linear-gradient(135deg,rgba(255,122,24,.16),rgba(0,255,163,.08)) !important;
+  border-color:rgba(255,179,71,.18) !important;
+  color:#f8fafc;
+}
+body[data-ui-theme="gaming"] .pbar{
+  position:relative;
+  overflow:hidden;
+}
+body[data-ui-theme="gaming"] .pbar::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent 10%,rgba(255,255,255,.07) 46%,transparent 72%);
+  transform:translateX(-130%);
+  animation:animePanelSweep 5.6s ease-in-out infinite;
+  pointer-events:none;
+}
+
+body[data-ui-theme="anime"] .logo-t{
+  background:linear-gradient(90deg,#ff8cc6 0%,#ffd166 42%,#78f0ff 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-shadow:none;
+}
+body[data-ui-theme="anime"] .mc,
+body[data-ui-theme="anime"] .oc,
+body[data-ui-theme="anime"] .settings-section,
+body[data-ui-theme="anime"] .gobox,
+body[data-ui-theme="anime"] .rv-loadcard,
+body[data-ui-theme="anime"] .rv-card,
+body[data-ui-theme="anime"] .rv-coach{
+  position:relative;
+  overflow:hidden;
+  border-radius:24px !important;
+}
+body[data-ui-theme="anime"] .mc::before,
+body[data-ui-theme="anime"] .oc::before,
+body[data-ui-theme="anime"] .settings-section::before{
+  content:'';
+  position:absolute;
+  inset:-18%;
+  background:
+    radial-gradient(circle at 18% 20%,rgba(255,166,207,.22),transparent 22%),
+    radial-gradient(circle at 82% 22%,rgba(120,240,255,.22),transparent 24%),
+    radial-gradient(circle at 54% 86%,rgba(255,209,102,.18),transparent 22%);
+  pointer-events:none;
+  filter:blur(2px);
+}
+body[data-ui-theme="anime"] .mc::after{
+  content:'';
+  position:absolute;
+  inset:auto -18% 12% 46%;
+  height:44px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);
+  transform:rotate(-18deg);
+  pointer-events:none;
+}
+body[data-ui-theme="anime"] .mc-ic{
+  filter:drop-shadow(0 0 18px rgba(255,140,198,.3)) drop-shadow(0 0 24px rgba(120,240,255,.2));
+}
+body[data-ui-theme="anime"] .mc-t{
+  letter-spacing:.05em;
+}
+body[data-ui-theme="anime"] .mc-d{
+  color:#f4d9ea;
+}
+body[data-ui-theme="anime"] .gtbar .tbb2,
+body[data-ui-theme="anime"] .bgp,
+body[data-ui-theme="anime"] .bgs,
+body[data-ui-theme="anime"] .rv-close{
+  border-radius:18px !important;
+  box-shadow:0 10px 24px rgba(16,18,40,.28);
+}
+body[data-ui-theme="anime"] .gtbar .tbb2{
+  background:linear-gradient(135deg,rgba(255,124,191,.14),rgba(120,240,255,.1)) !important;
+  border-color:rgba(255,151,204,.18) !important;
+  color:#fff6fb;
+}
+
+body[data-ui-theme="cyberpunk"] .mc,
+body[data-ui-theme="cyberpunk"] .oc,
+body[data-ui-theme="cyberpunk"] .settings-section,
+body[data-ui-theme="cyberpunk"] .gobox{
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));
+}
+body[data-ui-theme="cyberpunk"] .gtbar .tbb2,
+body[data-ui-theme="cyberpunk"] .bgp,
+body[data-ui-theme="cyberpunk"] .bgs,
+body[data-ui-theme="cyberpunk"] .rv-close{
+  border-radius:14px !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.26),0 0 18px rgba(0,255,231,.08);
+}
+
 .particle{position:fixed;pointer-events:none;z-index:0;border-radius:50%;animation:particleFloat linear infinite;}
 @keyframes particleFloat{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:.4;}100%{transform:translateY(-10vh) rotate(720deg);opacity:0;}}
 
@@ -1088,44 +1246,22 @@ body[data-ui-theme="anime"] .pbar.myturn{
   text-shadow: 1px 1px 2px #000;
 }
 /* ══════════ PIECES — يُحمَّل بـ JS ══════════ */
-.piece{--rot:0deg;position:relative;z-index:4;width:90%;height:90%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .18s cubic-bezier(.22,1,.36,1),opacity .18s ease,filter .24s ease;pointer-events:none;transform:translateZ(0) rotate(var(--rot));will-change:transform,opacity,filter;backface-visibility:hidden;}
+.piece{--rot:0deg;position:relative;z-index:4;width:90%;height:90%;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));transition:transform .15s cubic-bezier(.34,1.56,.64,1);pointer-events:none;transform:rotate(var(--rot));}
 .piece.turn-flipped{--rot:180deg;}
 /* Local 2-player: flip ALL pieces when black's turn so they appear upright for black player */
 /* Online mode: prevent ALL flipping */
 #s-game.mode-local.black-turn .piece{--rot:180deg;}
 #s-game:not(.mode-local) .piece{--rot:0deg !important;}
 #s-game:not(.mode-local) .piece.turn-flipped{--rot:0deg !important;}
-.sq.SL .piece,.sq.SD .piece{transform:translateZ(0) rotate(var(--rot)) scale(1.08);}
-.sq:hover .piece{transform:translateZ(0) rotate(var(--rot)) scale(1.05);}
-.sq.SL:hover .piece,.sq.SD:hover .piece{transform:translateZ(0) rotate(var(--rot)) scale(1.12);}
+.sq.SL .piece,.sq.SD .piece{transform:rotate(var(--rot)) scale(1.1);}
+.sq:hover .piece{transform:rotate(var(--rot)) scale(1.06);}
+.sq.SL:hover .piece,.sq.SD:hover .piece{transform:rotate(var(--rot)) scale(1.16);}
 .piece.dragging{opacity:0!important;}
-.piece.anim-hidden{opacity:0!important;}
-.board-fly-piece{
-  position:fixed!important;
-  left:0;
-  top:0;
-  width:0;
-  height:0;
-  margin:0!important;
-  z-index:10040!important;
-  pointer-events:none!important;
-  transform:translate3d(0,0,0) scale(1);
-  transform-origin:center center;
-  transition:transform var(--fly-dur,380ms) cubic-bezier(.2,.82,.24,1),opacity 220ms ease,filter var(--fly-dur,380ms) cubic-bezier(.2,.82,.24,1);
-  will-change:transform,opacity,filter;
-}
-.board-fly-piece.moving{
-  filter:drop-shadow(0 12px 24px rgba(0,0,0,.34)) drop-shadow(0 2px 8px rgba(255,255,255,.06));
-}
-.board-fly-piece.fade-capture{
-  transition:transform 220ms cubic-bezier(.2,.82,.24,1),opacity 220ms ease,filter 220ms ease;
-}
 .drag-ghost{position:fixed;pointer-events:none;z-index:9999;width:calc(var(--sq)*1.15);height:calc(var(--sq)*1.15);background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 8px 20px rgba(0,0,0,.7));transform:translate(-50%,-50%);will-change:transform;left:0;top:0;}
 .ast-star{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:calc(var(--sq)*.38);color:rgba(96,165,250,.9);text-shadow:0 0 10px rgba(96,165,250,.7);pointer-events:none;z-index:5;animation:starPulse 1s ease-in-out infinite;}
 @keyframes starPulse{0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
-@keyframes pieceLand{0%{transform:translateZ(0) rotate(var(--rot)) scale(.96);}65%{transform:translateZ(0) rotate(var(--rot)) scale(1.045);}100%{transform:translateZ(0) rotate(var(--rot)) scale(1);}}
-.piece.landed{animation:pieceLand .16s cubic-bezier(.22,1,.36,1);}
-.piece.moved{animation:none;}
+@keyframes pieceMove{0%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
+.piece.moved{animation:pieceMove .2s cubic-bezier(.34,1.56,.64,1);}
 /* القطع تُضبط بـ JS */
 
 /* ══════════ STATUS + HISTORY ══════════ */
@@ -2356,6 +2492,79 @@ body[data-ui-theme="anime"] .pbar.myturn{
     grid-template-columns:minmax(180px, 1fr) var(--board) minmax(180px, 1fr);
     padding:48px 20px 24px;
   }
+}
+
+/* Tablet / iPad game layout: larger board, larger UI, no desktop shrinkage */
+@media (min-width:768px) and (max-width:1366px) and (pointer:coarse){
+  #s-game.active,
+  #s-game.active.mode-local{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start;
+    gap:10px;
+    min-height:calc(100dvh - 36px);
+    padding:calc(54px + env(safe-area-inset-top,0px)) 18px calc(26px + env(safe-area-inset-bottom,0px));
+  }
+  #s-game.active .gtop,
+  #s-game.active.mode-local .gtop{
+    order:0;
+    width:100%;
+    max-width:var(--board);
+    position:static!important;
+    transform:none!important;
+    margin:0;
+  }
+  #s-game.active #bar-b{order:1;}
+  #s-game.active #board-container{order:2;align-self:center;}
+  #s-game.active #bar-w{order:3;}
+  #s-game.active .gtbar{order:4;}
+  #s-game.active .sbar{order:5;}
+  #s-game.active .mvhist{order:6;}
+  #s-game.active .chat-wrap{order:7;}
+
+  #bar-w,#bar-b,#board-container,
+  .gtbar,.sbar,.mvhist,.chat-wrap{
+    width:var(--board)!important;
+    max-width:var(--board)!important;
+  }
+  .pbar{width:100%!important;max-width:none!important;border-radius:16px;}
+  .pbar-top{padding:14px 16px;}
+  .pb-l{gap:10px;}
+  .pb-av{width:44px;height:44px;font-size:20px;}
+  .pb-nm{font-size:17px;}
+  .pb-timer{font-size:24px;min-width:74px;}
+  .captured-piece{width:22px;height:22px;}
+  .gtop .bsm{min-width:46px;min-height:42px;font-size:18px;}
+  .gmlbl{font-size:14px;}
+  .gtbar{gap:10px;}
+  .tb{width:50px;height:50px;font-size:20px;}
+  .tbb2{min-height:50px;font-size:13px;border-radius:14px;padding:10px 8px;}
+  .sbar{padding:12px 16px;font-size:15px;min-height:42px;}
+  .mvhist{padding:8px 12px;max-height:52px;}
+  .chat-wrap{height:250px;min-height:250px;}
+  .chat-msg{font-size:14px;padding:9px 12px;}
+  .chat-inp,.chat-send{font-size:15px;}
+  #board .piece{width:92%;height:92%;}
+  .gobox{max-width:min(92vw,560px);}
+  .go-stage-title{font-size:32px;}
+  .bgp,.bgs{min-height:48px;font-size:14px;}
+  .rv-topbar{max-width:var(--board);padding:8px 2px 10px;}
+  .rv-title{font-size:24px;}
+  .rv-close{min-height:42px;font-size:15px;padding:0 16px;}
+}
+
+@media (min-width:768px) and (max-width:1366px) and (pointer:coarse) and (orientation:portrait){
+  :root{
+    --board:min(90vw,82dvh,760px);
+  }
+}
+
+@media (min-width:768px) and (max-width:1366px) and (pointer:coarse) and (orientation:landscape){
+  :root{
+    --board:min(82dvh,92vw,660px);
+  }
+  .chat-wrap{max-height:230px;}
 }
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -5911,158 +6120,6 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
   };
 }
 
-function boardSquareSelector(coords){
-  return coords?`#board .sq[data-r="${coords[0]}"][data-c="${coords[1]}"]`:null;
-}
-
-function boardPieceElement(coords){
-  const sqSel=boardSquareSelector(coords);
-  return sqSel?document.querySelector(`${sqSel} .piece`):null;
-}
-
-function pieceRectFromSquareRect(rect){
-  if(!rect)return null;
-  const insetX=rect.width*0.05;
-  const insetY=rect.height*0.05;
-  return{
-    left:rect.left+insetX,
-    top:rect.top+insetY,
-    width:rect.width*0.9,
-    height:rect.height*0.9
-  };
-}
-
-function cloneFlightPiece(pieceEl,rect,duration){
-  if(!pieceEl||!rect)return null;
-  const clone=pieceEl.cloneNode(true);
-  clone.querySelectorAll('.ast-star').forEach(el=>el.remove());
-  clone.classList.remove('dragging','king-check','anim-hidden','landed','moved');
-  clone.classList.add('board-fly-piece');
-  clone.style.left=`${rect.left}px`;
-  clone.style.top=`${rect.top}px`;
-  clone.style.width=`${rect.width}px`;
-  clone.style.height=`${rect.height}px`;
-  clone.style.opacity='1';
-  clone.style.setProperty('--fly-dur',`${duration}ms`);
-  return clone;
-}
-
-function castleRookMove(from,to){
-  if(!from||!to||Math.abs(to[1]-from[1])!==2)return null;
-  const row=from[0];
-  return to[1]>from[1]
-    ? {from:[row,7],to:[row,5]}
-    : {from:[row,0],to:[row,3]};
-}
-
-function buildBoardMoveAnimationState(fr,to,res,promo){
-  const sourcePiece=boardPieceElement(fr);
-  const sourceRect=sourcePiece?.getBoundingClientRect();
-  if(!sourcePiece||!sourceRect?.width||!sourceRect?.height)return null;
-  const duration=res?.isCas?430:(res?.cap?390:360);
-  const state={
-    fr:[...fr],
-    to:[...to],
-    promo:promo||null,
-    res,
-    duration,
-    sourceRect,
-    sourceClone:cloneFlightPiece(sourcePiece,sourceRect,duration)
-  };
-  if(res?.cap){
-    const captureCoords=res.isEP?[fr[0],to[1]]:[to[0],to[1]];
-    const capturePiece=boardPieceElement(captureCoords);
-    const captureRect=capturePiece?.getBoundingClientRect();
-    state.captureCoords=captureCoords;
-    if(capturePiece&&captureRect?.width&&captureRect?.height){
-      state.captureClone=cloneFlightPiece(capturePiece,captureRect,220);
-    }
-  }
-  if(res?.isCas){
-    const rookMove=castleRookMove(fr,to);
-    if(rookMove){
-      const rookPiece=boardPieceElement(rookMove.from);
-      const rookRect=rookPiece?.getBoundingClientRect();
-      if(rookPiece&&rookRect?.width&&rookRect?.height){
-        state.rook={
-          ...rookMove,
-          rect:rookRect,
-          clone:cloneFlightPiece(rookPiece,rookRect,duration)
-        };
-      }
-    }
-  }
-  return state;
-}
-
-function runBoardMoveAnimation(state){
-  if(!state?.sourceClone)return Promise.resolve();
-  const destPiece=boardPieceElement(state.to);
-  const destSquare=document.querySelector(boardSquareSelector(state.to));
-  const destRect=destPiece?.getBoundingClientRect()||pieceRectFromSquareRect(destSquare?.getBoundingClientRect());
-  if(!destRect)return Promise.resolve();
-
-  const appended=[];
-  const revealers=[];
-  const appendNode=node=>{
-    if(!node)return;
-    document.body.appendChild(node);
-    appended.push(node);
-  };
-  const hideActualPiece=pieceEl=>{
-    if(!pieceEl)return;
-    pieceEl.classList.add('anim-hidden');
-    revealers.push(()=>{
-      pieceEl.classList.remove('anim-hidden');
-      pieceEl.classList.remove('landed');
-      void pieceEl.offsetWidth;
-      pieceEl.classList.add('landed');
-      setTimeout(()=>{try{pieceEl.classList.remove('landed');}catch(e){};},170);
-    });
-  };
-
-  hideActualPiece(destPiece);
-  appendNode(state.sourceClone);
-  appendNode(state.captureClone);
-
-  let rookDestRect=null;
-  if(state.rook?.clone){
-    const rookDestPiece=boardPieceElement(state.rook.to);
-    const rookDestSquare=document.querySelector(boardSquareSelector(state.rook.to));
-    rookDestRect=rookDestPiece?.getBoundingClientRect()||pieceRectFromSquareRect(rookDestSquare?.getBoundingClientRect());
-    hideActualPiece(rookDestPiece);
-    appendNode(state.rook.clone);
-  }
-
-  return new Promise(resolve=>{
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        const dx=destRect.left-state.sourceRect.left;
-        const dy=destRect.top-state.sourceRect.top;
-        state.sourceClone.classList.add('moving');
-        state.sourceClone.style.transform=`translate3d(${dx}px,${dy}px,0) scale(1.03)`;
-        if(state.captureClone){
-          state.captureClone.classList.add('fade-capture');
-          state.captureClone.style.opacity='0';
-          state.captureClone.style.transform='translate3d(0,6px,0) scale(.82)';
-        }
-        if(state.rook?.clone&&rookDestRect){
-          const rdx=rookDestRect.left-state.rook.rect.left;
-          const rdy=rookDestRect.top-state.rook.rect.top;
-          state.rook.clone.classList.add('moving');
-          state.rook.clone.style.transform=`translate3d(${rdx}px,${rdy}px,0) scale(1.01)`;
-        }
-      });
-    });
-
-    setTimeout(()=>{
-      appended.forEach(node=>{try{node.remove();}catch(e){};});
-      revealers.forEach(fn=>{try{fn();}catch(e){};});
-      resolve();
-    },state.duration+40);
-  });
-}
-
 const REV=(()=>{
   let _data=null;
   let _idx=0;
@@ -7403,7 +7460,6 @@ const G={
     }
     S.snapshots.push({bd:S.bd.map(r=>[...r]),turn:S.turn,move:E.notation(S.bd,fr,to,promo)});
     const res=E.apply(S.bd,fr,to,S.cas,S.ep,promo);
-    const moveAnimState=buildBoardMoveAnimationState(fr,to,res,promo);
     if(res.cap)(S.turn==='w'?S.capW:S.capB).push(res.cap);
     S.hist.push(E.notation(S.bd,fr,to,promo));
     S.bd=res.bd;S.cas=res.cas;S.ep=res.ep;
@@ -7433,9 +7489,18 @@ const G={
     else if(isCheck)    SFX.check();
     else                SFX.move();
     await R.all();
-    await runBoardMoveAnimation(moveAnimState);
     if(S.mode==='bot'&&S.levelId>=0){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
     R.ripple(to[0],to[1]);
+    setTimeout(()=>{
+      const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
+      if(sq){const piece=sq.querySelector('.piece');if(piece){piece.classList.remove('moved');void piece.offsetWidth;piece.classList.add('moved');}}
+      if(false && S.mode==='local' && S.turn !== cl){
+        const movedPiece=sq.querySelector('.piece');
+        if(movedPiece && E.col(S.bd[to[0]][to[1]]) === S.turn){
+          movedPiece.classList.add('turn-flipped');
+        }
+      }
+    },10);
     if(Cfg.data.check&&(isCheck||isCheckmate)){
       setTimeout(()=>{
         const turnColor=S.turn;
