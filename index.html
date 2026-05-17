@@ -886,6 +886,7 @@ body[data-ui-theme="anime"] .settings-headline{
   border:1px solid transparent;
 }
 .pb-result.show{display:inline-flex;}
+.pb-result::before{display:block;line-height:1;}
 .pb-result.win{background:rgba(250,204,21,.16);border-color:rgba(250,204,21,.3);color:#fde68a;box-shadow:0 0 14px rgba(250,204,21,.14);}
 .pb-result.loss{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.22);color:#fca5a5;}
 .pb-result.draw{background:rgba(148,163,184,.14);border-color:rgba(148,163,184,.22);color:#e2e8f0;}
@@ -1055,6 +1056,13 @@ body[data-ui-theme="anime"] .settings-headline{
   position:relative;
   overflow:hidden;
 }
+.gobox.comment-mode{
+  width:min(100%,338px);
+  min-height:auto;
+  max-height:min(58dvh,360px);
+  padding:14px 12px 12px;
+  gap:10px;
+}
 
 /* Enhanced background glow for game over */
 .gobox::before{
@@ -1144,7 +1152,7 @@ body[data-ui-theme="anime"] .settings-headline{
 .go-analysis-hero{display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:12px;margin:2px 0;text-align:center;width:100%;}
 .go-analysis-board-wrap{display:flex;align-items:center;justify-content:center;width:100%;margin-inline:auto;}
 .go-nour{padding:12px;border-radius:18px;background:linear-gradient(135deg,rgba(201,168,76,.10),rgba(45,212,191,.08));border:1px solid rgba(201,168,76,.14);text-align:right;position:relative;overflow:hidden;width:100%;}
-.go-nour.comment{padding:14px 13px 13px;min-height:132px;justify-content:flex-start;}
+.go-nour.comment{padding:12px 11px 11px;min-height:104px;justify-content:flex-start;}
 .go-nour::before{
   content:'';
   position:absolute;
@@ -1158,8 +1166,8 @@ body[data-ui-theme="anime"] .settings-headline{
   100%{transform:translateX(100%);}
 }
 
-.go-nour-h{font-size:12px;color:var(--gold2);font-weight:900;margin-bottom:6px;position:relative;z-index:1;}
-.go-nour-t{font-size:13px;color:var(--text);line-height:1.85;position:relative;z-index:1;min-height:72px;}
+.go-nour-h{font-size:11px;color:var(--gold2);font-weight:900;margin-bottom:5px;position:relative;z-index:1;}
+.go-nour-t{font-size:12px;color:var(--text);line-height:1.78;position:relative;z-index:1;min-height:54px;}
 .go-nour-t.typing::after{content:'|';display:inline-block;margin-inline-start:2px;color:var(--gold2);animation:caretBlink .8s steps(1,end) infinite;}
 @keyframes caretBlink{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
 .go-nour{display:flex;gap:10px;align-items:flex-start;}
@@ -1168,18 +1176,20 @@ body[data-ui-theme="anime"] .settings-headline{
 @media(max-width:520px){
   #go-ov{padding:8px;}
   .gobox{width:min(100%,372px);min-height:min(72dvh,490px);max-height:92dvh;padding:14px 12px 12px;border-radius:20px;gap:10px;}
+  .gobox.comment-mode{width:min(100%,320px);max-height:min(56dvh,330px);padding:12px 11px;}
   .go-stage{gap:10px;}
   .go-stage-title{font-size:24px;}
   .go-stage-sub{font-size:12px;max-width:28ch;}
-  .go-nour.comment{padding:12px 11px 11px;min-height:118px;}
+  .go-nour.comment{min-height:96px;}
   .go-nour-avatar{width:42px;height:42px;border-radius:14px;}
-  .go-nour-t{font-size:12px;line-height:1.72;min-height:58px;}
+  .go-nour-t{font-size:11px;line-height:1.7;min-height:48px;}
   .go-review-note{font-size:11px;min-height:34px;}
 }
 @media(max-height:720px){
   .gobox{min-height:min(74dvh,500px);max-height:92dvh;padding:14px 12px;}
-  .go-nour.comment{min-height:112px;}
-  .go-nour-t{min-height:52px;}
+  .gobox.comment-mode{max-height:min(58dvh,320px);}
+  .go-nour.comment{min-height:92px;}
+  .go-nour-t{min-height:44px;}
   .analysis-mini-board.gameover{--mini-size:96px;}
 }
 .go-bts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;position:relative;z-index:1;}
@@ -1683,6 +1693,10 @@ body[data-ui-theme="anime"] .settings-headline{
   border:1px solid rgba(201,168,76,.15);
   position:relative;
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
 }
 
 .rv-chess-animation::before{
@@ -1715,7 +1729,7 @@ body[data-ui-theme="anime"] .settings-headline{
   box-shadow:0 18px 40px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
   isolation:isolate;
 }
-.analysis-mini-board.review{--mini-size:126px;}
+.analysis-mini-board.review{--mini-size:126px;margin-inline:auto;}
 .analysis-mini-board.gameover{
   --mini-size:clamp(102px,20vw,138px);
   margin-inline:auto;
@@ -2732,7 +2746,7 @@ body[data-ui-theme="anime"] .settings-headline{
 
 <!-- GAME OVER -->
 <div id="go-ov">
-  <div class="gobox">
+  <div class="gobox" id="go-box">
     <div class="go-stage active" id="go-stage-comment">
       <div class="go-kicker-row">
         <span class="go-score-pill" id="go-score-pill">1-0</span>
@@ -5590,7 +5604,7 @@ function buildReplayFrames(snaps){
   return frames;
 }
 
-function createMiniBoardReplay(container,{slot='review',variant='review',tone='draw',frames=[],orientation='w'}={}){
+function createMiniBoardReplay(container,{slot='review',variant='review',tone='draw',frames=[],orientation='w',sound=false}={}){
   if(!container)return null;
   const pieceUrls=getPieceUrls(normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo'));
   const boardTheme=THEMES[Cfg.data.boardTheme]||THEMES.classic;
@@ -5626,6 +5640,20 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
     left:`${(orientation==='b'?(7-col):col)*12.5}%`,
     top:`${(orientation==='b'?(7-row):row)*12.5}%`
   });
+
+  function playFrameSfx(frame){
+    if(!sound||stopped||typeof SFX==='undefined'||!frame)return;
+    try{
+      if(frame.isCheckmate)        SFX.checkmate();
+      else if(frame.isPromo&&frame.isCheck){SFX.promote();SFX.check();}
+      else if(frame.isPromo)       SFX.promote();
+      else if(frame.isCastle)      SFX.castle();
+      else if(frame.isCapture&&frame.isCheck) SFX.captureCheck();
+      else if(frame.isCapture)     SFX.capture();
+      else if(frame.isCheck)       SFX.check();
+      else                         SFX.move();
+    }catch(e){}
+  }
 
   function clearTimer(){
     if(timer){clearTimeout(timer);timer=null;}
@@ -5736,6 +5764,7 @@ function createMiniBoardReplay(container,{slot='review',variant='review',tone='d
     pieceEls.set(sqKey(frame.to[0],frame.to[1]),mover);
     mover.classList.add('moving');
     movePieceEl(mover,frame.to[0],frame.to[1]);
+    playFrameSfx(frame);
     if(frame.isCastle&&frame.rookMove){
       const rookKey=sqKey(frame.rookMove.from[0],frame.rookMove.from[1]);
       const rookEl=pieceEls.get(rookKey);
@@ -6408,7 +6437,8 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
           variant:'review',
           tone:'draw',
           frames,
-          orientation
+          orientation,
+          sound:true
         }));
       }
       
@@ -6449,7 +6479,13 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
     details(){
       try{_buildUI();}catch(e){}
     },
-    close(){stopMiniAnimator('review');document.getElementById('review-ov').classList.remove('open');},
+    close(){
+      stopMiniAnimator('review');
+      document.getElementById('review-ov').classList.remove('open');
+      if(S.over&&S.endState&&typeof G!=='undefined'&&G.restoreQuickReview){
+        G.restoreQuickReview();
+      }
+    },
     reset(){
       stopMiniAnimator('review');
       _data=null;
@@ -6700,18 +6736,18 @@ const R={
       if(S.endState.winner==='w'){
         barW.classList.add('is-win');
         barB.classList.add('is-loss');
-        if(resW){resW.className='pb-result show win';resW.textContent='🏆';resW.title='فائز';}
+        if(resW){resW.className='pb-result show win';resW.textContent='✦';resW.title='فائز';}
         if(resB){resB.className='pb-result show loss';resB.textContent='✕';resB.title='خاسر';}
       }else if(S.endState.winner==='b'){
         barB.classList.add('is-win');
         barW.classList.add('is-loss');
-        if(resB){resB.className='pb-result show win';resB.textContent='🏆';resB.title='فائز';}
+        if(resB){resB.className='pb-result show win';resB.textContent='✦';resB.title='فائز';}
         if(resW){resW.className='pb-result show loss';resW.textContent='✕';resW.title='خاسر';}
       }else{
         barW.classList.add('is-draw');
         barB.classList.add('is-draw');
-        if(resW){resW.className='pb-result show draw';resW.textContent='½';resW.title='تعادل';}
-        if(resB){resB.className='pb-result show draw';resB.textContent='½';resB.title='تعادل';}
+        if(resW){resW.className='pb-result show draw';resW.textContent='≡';resW.title='تعادل';}
+        if(resB){resB.className='pb-result show draw';resB.textContent='≡';resB.title='تعادل';}
       }
     }
     // Render captured pieces with actual images
@@ -6921,6 +6957,7 @@ const G={
   _setQuickStage(stage){
     document.getElementById('go-stage-comment').classList.toggle('active',stage==='comment');
     document.getElementById('go-stage-review').classList.toggle('active',stage==='review');
+    document.getElementById('go-box')?.classList.toggle('comment-mode',stage==='comment');
   },
   _primeQuickReview(result){
     const score=result.score||this._scoreForWinner(result.winner);
@@ -6981,6 +7018,35 @@ const G={
     }else{
       const label=document.getElementById('go-qload')?.querySelector('.go-qsf');
       if(label)label.textContent='المراجعة الكاملة تصبح أفضل بعد مباراة أطول';
+    }
+  },
+  restoreQuickReview(){
+    if(!S.over||!S.endState)return;
+    this._clearQuickReviewTimers();
+    this._primeQuickReview(S.endState);
+    this._setQuickStage('review');
+    document.getElementById('go-ov').classList.add('open');
+    const miniBoard=document.getElementById('go-mini-board');
+    if(miniBoard){
+      const frames=buildReplayFrames(S.snapshots||[]);
+      const orientation=(isRemoteMatchMode()&&(S.myCol||'w')==='b')?'b':'w';
+      setMiniAnimator('gameover',createMiniBoardReplay(miniBoard,{
+        slot:'gameover',
+        variant:'gameover',
+        tone:S.endState.tone||'draw',
+        frames,
+        orientation
+      }));
+    }
+    const reviewNote=document.getElementById('go-review-note');
+    if(reviewNote)reviewNote.textContent=S.endState.detail||this._buildQuickComment(S.endState);
+    const label=document.getElementById('go-qload')?.querySelector('.go-qsf');
+    if(label){
+      if(S.hist.length>=4){
+        label.textContent='يمكنك متابعة مراجعة المباراة أو فتحها بالكامل';
+      }else{
+        label.textContent='المراجعة الكاملة تصبح أفضل بعد مباراة أطول';
+      }
     }
   },
   showOver(result){
