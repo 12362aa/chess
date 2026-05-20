@@ -690,6 +690,358 @@ body[data-ui-theme="cyberpunk"] .rv-close{
 .bp2{background:rgba(248,113,113,.11);color:var(--red);border:1px solid rgba(248,113,113,.24);transition:all .2s;}
 .bp2:hover{background:rgba(248,113,113,.18);transform:scale(1.05);box-shadow:0 4px 12px rgba(248,113,113,.2);}
 .offline-n{margin-top:16px;padding:9px 15px;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.18);border-radius:10px;font-size:13px;color:var(--green);text-align:center;max-width:500px;}
+.mc-tag{
+  position:absolute;
+  top:12px;
+  inset-inline-start:12px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  color:var(--text2);
+  z-index:2;
+}
+.mode-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;max-width:920px;}
+.mc{min-height:208px;padding:24px 18px 18px;display:flex;flex-direction:column;justify-content:center;gap:6px;}
+.mc[data-mode="engine"] .mc-ic{font-size:44px;}
+.mc[data-mode="settings"] .mc-ic{font-size:38px;}
+
+/* Theme Identity Rebuild */
+body[data-ui-theme="amkh"] #banner,
+body[data-ui-theme="amkh"] .settings-hero,
+body[data-ui-theme="amkh"] .settings-section,
+body[data-ui-theme="amkh"] .lvl-hdr,
+body[data-ui-theme="amkh"] .lp-card,
+body[data-ui-theme="amkh"] .mc,
+body[data-ui-theme="amkh"] .oc,
+body[data-ui-theme="amkh"] .gobox,
+body[data-ui-theme="amkh"] .rv-loadcard,
+body[data-ui-theme="amkh"] .rv-card,
+body[data-ui-theme="amkh"] .rv-coach{
+  background:
+    radial-gradient(circle at top right,rgba(201,168,76,.16),transparent 32%),
+    radial-gradient(circle at bottom left,rgba(45,212,191,.08),transparent 26%),
+    linear-gradient(145deg,rgba(16,10,5,.94),rgba(25,18,11,.92)) !important;
+  border-color:rgba(201,168,76,.18) !important;
+  box-shadow:0 22px 52px rgba(0,0,0,.34),0 0 0 1px rgba(255,214,153,.04),inset 0 1px 0 rgba(255,234,192,.05);
+}
+body[data-ui-theme="amkh"] .mc::before{
+  opacity:1;
+  background:
+    linear-gradient(115deg,transparent 0 35%,rgba(255,214,153,.08) 35% 38%,transparent 38% 100%),
+    radial-gradient(circle at 20% 18%,rgba(255,243,204,.08),transparent 24%);
+}
+body[data-ui-theme="amkh"] .mc::after{
+  content:'';
+  inset:12px;
+  width:auto;
+  height:auto;
+  top:12px;
+  left:12px;
+  background:none;
+  border:1px solid rgba(201,168,76,.12);
+  border-radius:20px;
+  opacity:1;
+  transform:none;
+}
+body[data-ui-theme="amkh"] .mc-tag{
+  background:linear-gradient(135deg,rgba(201,168,76,.24),rgba(255,240,180,.14));
+  border-color:rgba(255,226,154,.3);
+  color:#fff4cb;
+}
+body[data-ui-theme="amkh"] .bwrap{
+  box-shadow:0 0 0 4px rgba(34,21,12,.96),0 0 0 9px rgba(201,168,76,.32),0 32px 70px rgba(0,0,0,.66),0 0 40px rgba(201,168,76,.12);
+}
+
+body[data-ui-theme="gaming"] #banner,
+body[data-ui-theme="gaming"] .settings-hero,
+body[data-ui-theme="gaming"] .settings-section,
+body[data-ui-theme="gaming"] .lvl-hdr,
+body[data-ui-theme="gaming"] .lp-card,
+body[data-ui-theme="gaming"] .mc,
+body[data-ui-theme="gaming"] .oc,
+body[data-ui-theme="gaming"] .gobox,
+body[data-ui-theme="gaming"] .rv-loadcard,
+body[data-ui-theme="gaming"] .rv-card,
+body[data-ui-theme="gaming"] .rv-coach{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)),
+    linear-gradient(135deg,#0a121b 0%,#14120e 45%,#1f160d 100%) !important;
+  border-color:rgba(255,156,62,.24) !important;
+  box-shadow:0 20px 46px rgba(0,0,0,.38),0 0 0 1px rgba(0,255,163,.08),0 0 30px rgba(255,122,24,.12);
+}
+body[data-ui-theme="gaming"] .mc{
+  border-radius:28px !important;
+  overflow:hidden;
+}
+body[data-ui-theme="gaming"] .mc::before{
+  opacity:1;
+  background:
+    repeating-linear-gradient(180deg,rgba(255,255,255,.04) 0 2px,transparent 2px 9px),
+    linear-gradient(130deg,transparent 0 52%,rgba(0,255,163,.08) 52% 54%,transparent 54% 100%);
+}
+body[data-ui-theme="gaming"] .mc::after{
+  content:'';
+  position:absolute;
+  inset:10px;
+  width:auto;
+  height:auto;
+  top:10px;
+  left:10px;
+  border:1px solid rgba(255,179,71,.18);
+  border-radius:22px;
+  background:none;
+  opacity:1;
+  transform:none;
+}
+body[data-ui-theme="gaming"] .mc-tag{
+  background:linear-gradient(135deg,#ff7a18,#00ffa3);
+  color:#07120f;
+  border-color:transparent;
+  box-shadow:0 8px 20px rgba(255,122,24,.18);
+}
+body[data-ui-theme="gaming"] .gmlbl,
+body[data-ui-theme="gaming"] .mc-t{letter-spacing:.12em;text-transform:uppercase;}
+body[data-ui-theme="gaming"] .bwrap{
+  box-shadow:0 0 0 4px rgba(8,13,18,.98),0 0 0 9px rgba(255,122,24,.3),0 0 0 13px rgba(0,255,163,.08),0 30px 70px rgba(0,0,0,.66);
+}
+
+body[data-ui-theme="anime"] #banner,
+body[data-ui-theme="anime"] .settings-hero,
+body[data-ui-theme="anime"] .settings-section,
+body[data-ui-theme="anime"] .lvl-hdr,
+body[data-ui-theme="anime"] .lp-card,
+body[data-ui-theme="anime"] .mc,
+body[data-ui-theme="anime"] .oc,
+body[data-ui-theme="anime"] .gobox,
+body[data-ui-theme="anime"] .rv-loadcard,
+body[data-ui-theme="anime"] .rv-card,
+body[data-ui-theme="anime"] .rv-coach{
+  background:
+    radial-gradient(circle at top right,rgba(255,140,198,.18),transparent 34%),
+    radial-gradient(circle at bottom left,rgba(120,240,255,.16),transparent 24%),
+    linear-gradient(145deg,rgba(12,23,43,.95),rgba(33,19,58,.92)) !important;
+  border-color:rgba(255,171,214,.24) !important;
+  box-shadow:0 22px 50px rgba(13,18,43,.42),0 0 0 1px rgba(255,255,255,.04),0 0 26px rgba(120,240,255,.1);
+}
+body[data-ui-theme="anime"] .mc{
+  border-radius:30px !important;
+  overflow:hidden;
+}
+body[data-ui-theme="anime"] .mc::before{
+  opacity:1;
+  background:
+    radial-gradient(rgba(255,255,255,.11) 1px,transparent 1px),
+    linear-gradient(115deg,transparent 0 46%,rgba(255,255,255,.14) 46% 48%,transparent 48% 100%);
+  background-size:12px 12px,100% 100%;
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent 88%);
+}
+body[data-ui-theme="anime"] .mc::after{
+  content:'';
+  position:absolute;
+  inset:auto -16% 18px 48%;
+  width:auto;
+  height:54px;
+  top:auto;
+  left:48%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+  border:none;
+  border-radius:0;
+  opacity:.55;
+  transform:skewX(-28deg);
+}
+body[data-ui-theme="anime"] .mc-tag{
+  background:linear-gradient(135deg,#ff8cc6,#ffd166,#78f0ff);
+  color:#0b1022;
+  border-color:transparent;
+  box-shadow:0 8px 20px rgba(255,124,191,.2);
+}
+body[data-ui-theme="anime"] .logo-s,
+body[data-ui-theme="anime"] .mc-d{color:#f3d9ea;}
+body[data-ui-theme="anime"] .bwrap{
+  box-shadow:0 0 0 4px rgba(15,22,43,.96),0 0 0 9px rgba(255,153,214,.26),0 0 0 13px rgba(120,240,255,.08),0 30px 68px rgba(0,0,0,.64);
+}
+
+body[data-ui-theme="cyberpunk"] #banner,
+body[data-ui-theme="cyberpunk"] .settings-hero,
+body[data-ui-theme="cyberpunk"] .settings-section,
+body[data-ui-theme="cyberpunk"] .lvl-hdr,
+body[data-ui-theme="cyberpunk"] .lp-card,
+body[data-ui-theme="cyberpunk"] .mc,
+body[data-ui-theme="cyberpunk"] .oc,
+body[data-ui-theme="cyberpunk"] .gobox,
+body[data-ui-theme="cyberpunk"] .rv-loadcard,
+body[data-ui-theme="cyberpunk"] .rv-card,
+body[data-ui-theme="cyberpunk"] .rv-coach{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),
+    linear-gradient(135deg,#08121c 0%,#0b1f27 38%,#190d2a 100%) !important;
+  border-color:rgba(0,255,231,.24) !important;
+  box-shadow:0 20px 48px rgba(0,0,0,.4),0 0 0 1px rgba(255,32,154,.08),0 0 30px rgba(0,255,231,.12);
+}
+body[data-ui-theme="cyberpunk"] .mc{
+  border-radius:0 !important;
+  clip-path:polygon(0 0,calc(100% - 26px) 0,100% 26px,100% 100%,28px 100%,0 calc(100% - 28px));
+}
+body[data-ui-theme="cyberpunk"] .mc::before{
+  opacity:1;
+  background:
+    linear-gradient(rgba(0,255,231,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,32,154,.05) 1px,transparent 1px),
+    linear-gradient(135deg,transparent 0 58%,rgba(255,255,255,.08) 58% 60%,transparent 60% 100%);
+  background-size:22px 22px,22px 22px,100% 100%;
+}
+body[data-ui-theme="cyberpunk"] .mc::after{
+  content:'';
+  position:absolute;
+  inset:10px;
+  width:auto;
+  height:auto;
+  top:10px;
+  left:10px;
+  border:1px solid rgba(0,255,231,.18);
+  background:none;
+  opacity:1;
+  transform:none;
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
+}
+body[data-ui-theme="cyberpunk"] .mc-tag{
+  background:rgba(5,16,20,.84);
+  border-color:rgba(0,255,231,.26);
+  color:#93fff7;
+  box-shadow:0 0 18px rgba(0,255,231,.14);
+}
+body[data-ui-theme="cyberpunk"] .gmlbl,
+body[data-ui-theme="cyberpunk"] .mc-t{letter-spacing:.14em;text-transform:uppercase;}
+body[data-ui-theme="cyberpunk"] .bwrap{
+  box-shadow:0 0 0 4px rgba(5,12,18,.96),0 0 0 9px rgba(0,255,231,.28),0 0 0 13px rgba(255,32,154,.08),0 30px 70px rgba(0,0,0,.7);
+}
+
+body[data-ui-theme="minimal"] .mc,
+body[data-ui-theme="minimal"] .settings-section,
+body[data-ui-theme="minimal"] .lvl-hdr,
+body[data-ui-theme="minimal"] .lp-card{
+  border-radius:20px !important;
+}
+body[data-ui-theme="minimal"] .mc-tag{
+  background:rgba(255,255,255,.06);
+  color:#dfe6ee;
+}
+body[data-ui-theme="glass"] .mc,
+body[data-ui-theme="glass"] .settings-section,
+body[data-ui-theme="glass"] .lvl-hdr,
+body[data-ui-theme="glass"] .lp-card{
+  box-shadow:0 20px 44px rgba(6,16,30,.28),inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+body[data-ui-theme="glass"] .mc-tag{
+  background:rgba(255,255,255,.12);
+  color:#eff9ff;
+}
+
+/* Engine picker */
+#engine-ov{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:965;
+  padding:18px;
+  background:rgba(2,6,16,.9);
+  backdrop-filter:blur(18px);
+  align-items:center;
+  justify-content:center;
+}
+#engine-ov.open{display:flex;}
+.engine-card{
+  width:min(94vw,760px);
+  max-height:min(92vh,760px);
+  overflow:auto;
+  border-radius:28px;
+  border:1px solid rgba(120,240,255,.18);
+  background:
+    radial-gradient(circle at top right,rgba(120,240,255,.12),transparent 30%),
+    radial-gradient(circle at bottom left,rgba(255,124,191,.12),transparent 24%),
+    linear-gradient(145deg,rgba(8,15,26,.96),rgba(16,24,36,.94));
+  box-shadow:0 26px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.03);
+  padding:24px;
+}
+.engine-card-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px;}
+.engine-kicker{font-size:11px;letter-spacing:.18em;color:var(--teal2);font-weight:900;margin-bottom:6px;}
+.engine-title{font-size:30px;font-family:'Amiri',serif;color:var(--text);line-height:1.1;}
+.engine-subtitle{margin-top:8px;color:var(--text2);font-size:13px;line-height:1.7;max-width:460px;}
+.engine-close{
+  width:42px;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);color:var(--text2);cursor:pointer;font-size:16px;flex-shrink:0;
+}
+.engine-close:hover{color:var(--text);border-color:rgba(120,240,255,.24);}
+.engine-versus{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-bottom:22px;}
+.engine-side{
+  border-radius:24px;
+  padding:18px 16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
+}
+.engine-avatar{
+  width:84px;height:84px;border-radius:24px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.1);font-size:36px;color:var(--gold2);overflow:hidden;
+}
+.engine-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.engine-avatar.ai.fallback{font-size:34px;color:#9afbf5;}
+.engine-name{font-size:18px;font-weight:800;color:var(--text);}
+.engine-role{font-size:12px;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;}
+.engine-vs-badge{
+  width:60px;height:60px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#07111a;font-weight:900;letter-spacing:.12em;
+  box-shadow:0 12px 30px rgba(0,0,0,.22);
+}
+.engine-picker-body{display:grid;gap:18px;}
+.engine-slider-wrap{
+  border-radius:22px;
+  padding:18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.012));
+  border:1px solid rgba(255,255,255,.08);
+}
+.engine-slider-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px;color:var(--text);}
+.engine-skill-value{font-size:18px;font-weight:900;color:var(--gold2);}
+.engine-skill-input{width:100%;margin:18px 0 10px;accent-color:var(--accent2);}
+.engine-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
+.engine-meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.engine-meta-card{
+  border-radius:20px;
+  padding:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.08);
+}
+.engine-meta-label{font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.engine-meta-value{font-size:20px;font-weight:800;color:var(--text);}
+.engine-desc{
+  border-radius:18px;
+  padding:14px 16px;
+  background:rgba(120,240,255,.07);
+  border:1px solid rgba(120,240,255,.16);
+  color:#e9fbff;
+  line-height:1.8;
+  font-size:13px;
+}
+.engine-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
+@media(max-width:700px){
+  .engine-card{padding:18px;}
+  .engine-title{font-size:24px;}
+  .engine-versus{grid-template-columns:1fr;justify-items:center;}
+  .engine-vs-badge{width:46px;height:46px;font-size:12px;}
+  .engine-meta-grid{grid-template-columns:1fr;}
+  .engine-actions{flex-direction:column-reverse;}
+}
 
 /* ══════════ SHARED ══════════ */
 .back-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:500px;padding:10px;background:transparent;
@@ -2130,6 +2482,65 @@ body[data-ui-theme="cyberpunk"] .rv-close{
   animation:countUp .5s ease-out;
 }
 
+.rv-engine-panel{
+  margin-top:14px;
+  padding:12px;
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(9,17,25,.76),rgba(4,8,15,.92));
+  border:1px solid rgba(45,212,191,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 28px rgba(0,0,0,.22);
+  position:relative;
+  z-index:1;
+}
+
+.rv-engine-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  font-size:11px;
+  color:var(--text2);
+  text-align:right;
+}
+
+.rv-engine-line strong{
+  color:var(--text);
+  font-size:12px;
+  font-weight:800;
+}
+
+.rv-engine-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+
+.rv-engine-cell{
+  padding:9px 10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.05);
+  text-align:right;
+}
+
+.rv-engine-cell span{
+  display:block;
+  font-size:10px;
+  color:var(--text3);
+  margin-bottom:4px;
+}
+
+.rv-engine-cell strong{
+  display:block;
+  color:var(--teal2);
+  font-size:12px;
+  line-height:1.45;
+  word-break:break-word;
+}
+
+.rv-engine-cell.full{grid-column:1 / -1;}
+
 @keyframes countUp{
   from{opacity:0;transform:translateY(10px);}
   to{opacity:1;transform:translateY(0);}
@@ -2584,14 +2995,22 @@ body[data-ui-theme="cyberpunk"] .rv-close{
   #s-game.mode-local .mvhist{order:4;}
 }
 @media (max-width:768px) and (orientation:portrait){
-  #s-game.mode-bot{flex-direction:column;}
-  #s-game.mode-bot #bar-b{order:0;}
-  #s-game.mode-bot #board-container{order:1;}
-  #s-game.mode-bot #bar-w{order:2;}
-  #s-game.mode-bot .gtbar{order:3;}
-  #s-game.mode-bot .sbar{order:4;}
-  #s-game.mode-bot .mvhist{order:5;}
-  #s-game.mode-bot .chat-wrap{order:6;}
+  #s-game.mode-bot,
+  #s-game.mode-engine{flex-direction:column;}
+  #s-game.mode-bot #bar-b,
+  #s-game.mode-engine #bar-b{order:0;}
+  #s-game.mode-bot #board-container,
+  #s-game.mode-engine #board-container{order:1;}
+  #s-game.mode-bot #bar-w,
+  #s-game.mode-engine #bar-w{order:2;}
+  #s-game.mode-bot .gtbar,
+  #s-game.mode-engine .gtbar{order:3;}
+  #s-game.mode-bot .sbar,
+  #s-game.mode-engine .sbar{order:4;}
+  #s-game.mode-bot .mvhist,
+  #s-game.mode-engine .mvhist{order:5;}
+  #s-game.mode-bot .chat-wrap,
+  #s-game.mode-engine .chat-wrap{order:6;}
 }
 </style>
 <!-- QR Code Libraries for LAN Mode -->
@@ -2622,26 +3041,37 @@ body[data-ui-theme="cyberpunk"] .rv-close{
     <p class="logo-s">Chess · Am-Kh</p>
   </div>
   <div class="mode-grid">
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.online()">
+    <div class="mc" data-mode="online" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.online()">
+      <span class="mc-tag">LIVE</span>
       <span class="mc-ic ic-teal">⊕</span>
       <div class="mc-t">أونلاين</div>
       <div class="mc-d">العب مع صديق في أي مكان بالعالم</div>
       <span class="mc-b bt">سيرفر WebSocket ◈</span>
     </div>
 
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
+    <div class="mc" data-mode="levels" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
+      <span class="mc-tag">NOUR</span>
       <span class="mc-ic ic-gold">◈</span>
       <div class="mc-t">مراحل نور</div>
       <div class="mc-d">12 مرحلة تدريجية — افتح مرحلة مرحلة</div>
       <span class="mc-b bg">محفوظ أوفلاين ◈</span>
     </div>
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
+    <div class="mc" data-mode="engine" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.open()">
+      <span class="mc-tag">STOCKFISH</span>
+      <span class="mc-ic ic-blue">â™ں</span>
+      <div class="mc-t">ط¶ط¯ ط§ظ„ظ…ط­ط±ظƒ</div>
+      <div class="mc-d">ط§ط®طھط± ظ‚ظˆط© Stockfish ظˆط®ط¶ ظ…ظˆط§ط¬ظ‡ط© AI ظƒط§ظ…ظ„ط© ط£ظˆظپظ„ط§ظٹظ†</div>
+      <span class="mc-b bb">AI Match â—ˆ</span>
+    </div>
+    <div class="mc" data-mode="local" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
+      <span class="mc-tag">LOCAL</span>
       <span class="mc-ic ic-green">⚔</span>
       <div class="mc-t">لاعبَان</div>
       <div class="mc-d">على نفس الشاشة بالتناوب</div>
       <span class="mc-b bv">أوفلاين ◈</span>
     </div>
-    <div class="mc" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.settings()">
+    <div class="mc" data-mode="settings" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.settings()">
+      <span class="mc-tag">LAB</span>
       <span class="mc-ic ic-blue">⚙</span>
       <div class="mc-t">الإعدادات</div>
       <div class="mc-d">صوت — رقعة — ألوان وأكثر</div>
@@ -3057,7 +3487,7 @@ body[data-ui-theme="cyberpunk"] .rv-close{
     <div class="go-stage active" id="go-stage-comment">
       <div class="go-kicker-row">
         <span class="go-score-pill" id="go-score-pill">1-0</span>
-        <span class="go-kicker">تعليق نور</span>
+        <span class="go-kicker" id="go-comment-kicker">تعليق نور</span>
       </div>
       <div class="go-stage-sub" id="go-result-line">انتهت المباراة</div>
       <div class="go-nour comment">
@@ -3071,9 +3501,9 @@ body[data-ui-theme="cyberpunk"] .rv-close{
     <div class="go-stage" id="go-stage-review">
       <div class="go-kicker-row">
         <span class="go-score-pill" id="go-score-pill-review">1-0</span>
-        <span class="go-kicker">مراجعة سريعة</span>
+        <span class="go-kicker" id="go-review-kicker">مراجعة سريعة</span>
       </div>
-      <div class="go-stage-title">المباراة انتهت</div>
+      <div class="go-stage-title" id="go-stage-title">المباراة انتهت</div>
       <div class="go-stage-sub" id="go-review-sub">Stockfish يجهّز المراجعة الكاملة…</div>
       <div class="go-analysis-hero">
         <div class="go-analysis-board-wrap">
@@ -3091,6 +3521,79 @@ body[data-ui-theme="cyberpunk"] .rv-close{
         <button id="go-review" class="bgp review" onclick="G.openReview()">◈ مراجعة المباراة</button>
         <button class="bgs" onclick="G.goMenu()">القائمة</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ENGINE PICKER -->
+<div id="engine-ov">
+  <div class="engine-card">
+    <div class="engine-card-head">
+      <div>
+        <div class="engine-kicker">STOCKFISH OFFLINE</div>
+        <div class="engine-title">ط§ط®طھط± ظ‚ظˆط© ط§ظ„ظ…ط­ط±ظƒ</div>
+        <div class="engine-subtitle">ظˆط¶ط¹ ط£ظˆظپظ„ط§ظٹظ† ظƒط§ظ…ظ„ ظ…ط¹ Stockfish ظˆط¯ط¹ظ… ظƒط§ظ…ظ„ ظ„ظ„ظ…ط³ط§ط¹ط¯ ظˆط§ظ„ظ…ط±ط§ط¬ط¹ط©</div>
+      </div>
+      <button class="engine-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">âœ•</button>
+    </div>
+
+    <div class="engine-versus">
+      <div class="engine-side player">
+        <div class="engine-avatar player" id="engine-player-avatar">â™™</div>
+        <div class="engine-name" id="engine-player-name">ط£ظ†طھ</div>
+        <div class="engine-role">ط§ظ„ظ„ط§ط¹ط¨</div>
+      </div>
+      <div class="engine-vs-badge">VS</div>
+      <div class="engine-side ai">
+        <div class="engine-avatar ai" id="engine-ai-avatar">
+          <img src="./StockFish.png" alt="Stockfish" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent='â™ں';">
+        </div>
+        <div class="engine-name">Stockfish</div>
+        <div class="engine-role" id="engine-skill-badge">Skill 10</div>
+      </div>
+    </div>
+
+    <div class="engine-picker-body">
+      <div class="engine-slider-wrap">
+        <div class="engine-slider-head">
+          <span>ظ‚ظˆط© ط§ظ„ظ…ط­ط±ظƒ</span>
+          <span class="engine-skill-value" id="engine-skill-value">10 / 20</span>
+        </div>
+        <input id="engine-skill-input" class="engine-skill-input" type="range" min="0" max="20" step="1" value="10" oninput="ENGINE_PICKER.preview(this.value)">
+        <div class="engine-scale">
+          <span>0</span>
+          <span>5</span>
+          <span>10</span>
+          <span>15</span>
+          <span>20</span>
+        </div>
+      </div>
+
+      <div class="engine-meta-grid">
+        <div class="engine-meta-card">
+          <div class="engine-meta-label">ط§ظ„ط¨ط±ظˆظپط§ظٹظ„</div>
+          <div class="engine-meta-value" id="engine-skill-name">ظ…طھظˆط§ط²ظ†</div>
+        </div>
+        <div class="engine-meta-card">
+          <div class="engine-meta-label">Skill Level</div>
+          <div class="engine-meta-value" id="engine-skill-level">10</div>
+        </div>
+        <div class="engine-meta-card">
+          <div class="engine-meta-label">ط¹ظ…ظ‚ ط§ظ„ط¨ط­ط«</div>
+          <div class="engine-meta-value" id="engine-skill-depth">8</div>
+        </div>
+        <div class="engine-meta-card">
+          <div class="engine-meta-label">ط²ظ…ظ† ط§ظ„طھظپظƒظٹط±</div>
+          <div class="engine-meta-value" id="engine-skill-think">900ms</div>
+        </div>
+      </div>
+
+      <div class="engine-desc" id="engine-skill-desc">ظ…ط³طھظˆظ‰ ظ…طھظˆط§ط²ظ† ظ„ظ…ظˆط§ط¬ظ‡ط© طھط¯ط±ظٹط¨ظٹط© ظ‚ظˆظٹط©.</div>
+    </div>
+
+    <div class="engine-actions">
+      <button class="bgs" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">ط¥ظ„ط؛ط§ط،</button>
+      <button class="bgp review" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.start()">â—ˆ ط§ط¨ط¯ط£ ط§ظ„ظ…ظˆط§ط¬ظ‡ط©</button>
     </div>
   </div>
 </div>
@@ -4157,6 +4660,7 @@ const Cfg={
     confirm:true,
     playerName:null,
     playerImage:null,
+    engineSkill:10,
     uiTheme:'amkh',
     pieceStyle:'neo',
     dotColor:'#2dd4bf',
@@ -4417,92 +4921,66 @@ const Cfg={
 
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
-  // Determine colors - support both 'online' mode and preview mode (when S.mode not yet set)
-  const isOnlineOrPreview = isRemoteMatchMode() || (S.oppImg !== null && S.oppImg !== undefined);
+  const setAvatar=(el,src,fallbackText,fallbackColor='')=>{
+    if(!el)return;
+    el.style.backgroundSize='cover';
+    el.style.backgroundPosition='center';
+    el.style.backgroundRepeat='no-repeat';
+    el.style.border='';
+    if(src){
+      const img=new Image();
+      img.onload=()=>{
+        el.style.backgroundImage=`url(${src})`;
+        el.style.color='transparent';
+        el.textContent='';
+      };
+      img.onerror=()=>{
+        el.style.backgroundImage='';
+        el.style.color=fallbackColor||'';
+        el.textContent=fallbackText;
+      };
+      img.src=src;
+      return;
+    }
+    el.style.backgroundImage='';
+    el.style.color=fallbackColor||'';
+    el.textContent=fallbackText;
+  };
+
+  const isOnlineOrPreview=isRemoteMatchMode()||(S.oppImg!==null&&S.oppImg!==undefined);
   if(isOnlineOrPreview){
     const myCol=S.myCol||'w';
     const oppCol=myCol==='w'?'b':'w';
-    // Set player's own image
-    const myAv=document.querySelector('.av-'+myCol);
-    if(myAv){
-      if(playerImg){
-        myAv.style.backgroundImage=`url(${playerImg})`;
-        myAv.style.backgroundSize='cover';
-        myAv.style.backgroundPosition='center';
-        myAv.style.color='transparent';
-        myAv.textContent='';
-      }else{
-        myAv.style.backgroundImage='';
-        myAv.style.color='';
-        myAv.textContent=(myCol==='w')?'♙':'♟';
-      }
-    }
-    // Set opponent's image from stored state
-    const oppAv=document.querySelector('.av-'+oppCol);
-    if(oppAv){
-      if(S.oppImg){
-        oppAv.style.backgroundImage=`url(${S.oppImg})`;
-        oppAv.style.backgroundSize='cover';
-        oppAv.style.backgroundPosition='center';
-        oppAv.style.color='transparent';
-        oppAv.textContent='';
-      }else{
-        oppAv.style.backgroundImage='';
-        oppAv.style.color='';
-        oppAv.textContent=(oppCol==='w')?'♙':'♟';
-      }
-    }
+    setAvatar(document.querySelector('.av-'+myCol),playerImg,myCol==='w'?'♙':'♟');
+    setAvatar(document.querySelector('.av-'+oppCol),S.oppImg,oppCol==='w'?'♙':'♟');
+    return;
   }
-  // In bot mode, apply only to white (player), not black (Nour)
-  else if(S.mode==='bot'){
-    const av=document.querySelector('.av-w');
-    if(av){
-      if(playerImg){
-        av.style.backgroundImage=`url(${playerImg})`;
-        av.style.backgroundSize='cover';
-        av.style.backgroundPosition='center';
-        av.style.color='transparent';
-        av.textContent='';
-      }else{
-        av.style.backgroundImage='';
-        av.style.color='';
-        av.textContent='♙';
-      }
-    }
-    // Set Nour's avatar (try image first, fallback to pawn)
+
+  if(isNourLevelMode()){
+    setAvatar(document.querySelector('.av-w'),playerImg,'♙');
     const nourAv=document.querySelector('.av-b');
-    if(nourAv){
-      // Clear text content first
-      nourAv.textContent='';
-      // Try to load Nour's image - will use fallback if image doesn't exist
-      nourAv.style.backgroundImage='url(./nour.png)';
-      nourAv.style.backgroundSize='cover';
-      nourAv.style.backgroundPosition='center';
-      nourAv.style.backgroundRepeat='no-repeat';
-      nourAv.style.color='transparent';
-      nourAv.style.border='1px solid rgba(201,168,76,.22)';
-      // Fallback if image fails to load
-      const img=new Image();
-      img.onerror=()=>{
-        nourAv.style.backgroundImage='';
-        nourAv.style.color='var(--gold2)';
-        nourAv.style.border='1px solid rgba(255,255,255,.07)';
-        nourAv.textContent='♟';
-      };
-      img.src='./nour.png';
-    }
+    setAvatar(nourAv,'./nour.png','♟','var(--gold2)');
+    if(nourAv)nourAv.style.border='1px solid rgba(201,168,76,.22)';
+    return;
   }
-  // In local mode, clear all avatars
-  else{
-    document.querySelectorAll('.av-w,.av-b').forEach(av=>{
-      av.style.backgroundImage='';
-      av.style.color='';
-    });
-    const bw=document.querySelector('.av-w');
-    const bb=document.querySelector('.av-b');
-    if(bw)bw.textContent='♙';
-    if(bb)bb.textContent='♟';
+
+  if(isStockfishMode()){
+    setAvatar(document.querySelector('.av-w'),playerImg,'♙');
+    const engineAv=document.querySelector('.av-b');
+    setAvatar(engineAv,'./'+ENGINE_AVATAR_FILE,'♞','#9afbf5');
+    if(engineAv)engineAv.style.border='1px solid rgba(67,217,173,.28)';
+    return;
   }
+
+  document.querySelectorAll('.av-w,.av-b').forEach(av=>{
+    av.style.backgroundImage='';
+    av.style.color='';
+    av.style.border='';
+  });
+  const bw=document.querySelector('.av-w');
+  const bb=document.querySelector('.av-b');
+  if(bw)bw.textContent='♙';
+  if(bb)bb.textContent='♟';
 }
 
 /* =====================================
@@ -4528,6 +5006,55 @@ const LEVELS_DEF=[
 // ══════════════════════════════════════
 // CUSTOM MODAL SYSTEM (replacing alert/confirm)
 // ══════════════════════════════════════
+const ENGINE_AVATAR_FILE='StockFish.png';
+const ENGINE_TIER_RULES=[
+  {min:0,max:2,title:'متساهل',description:'يرتكب أخطاء كثيرة ومناسب للتجربة الأولى مع المحرك.'},
+  {min:3,max:6,title:'تدريبي',description:'يبدأ في العقاب على الأخطاء الواضحة لكنه ما زال صالحاً للتعلّم.'},
+  {min:7,max:10,title:'متوازن',description:'مواجهة قوية ومستقرة لمعظم اللاعبين مع نقلات منطقية باستمرار.'},
+  {min:11,max:14,title:'قوي',description:'يعاقب التسرع بسرعة ويقرأ التبديلات بشكل أعمق.'},
+  {min:15,max:17,title:'خبير',description:'محرك صلب يضغط تكتيكياً وموضعياً طوال المباراة.'},
+  {min:18,max:20,title:'وحشي',description:'أعلى قوة متاحة في هذا الوضع ومناسبة للتحدي الكامل.'}
+];
+
+function engineDepthForSkill(skill){
+  const depths=[1,1,2,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20];
+  return depths[Math.max(0,Math.min(20,skill|0))];
+}
+
+function engineThinkForSkill(skill){
+  const clamped=Math.max(0,Math.min(20,skill|0));
+  return 260+(clamped*70);
+}
+
+function getEnginePreset(skill){
+  const clamped=Math.max(0,Math.min(20,parseInt(skill,10)||0));
+  const tier=ENGINE_TIER_RULES.find(t=>clamped>=t.min&&clamped<=t.max)||ENGINE_TIER_RULES[2];
+  return{
+    skill:clamped,
+    depth:engineDepthForSkill(clamped),
+    thinkMs:engineThinkForSkill(clamped),
+    title:tier.title,
+    badge:`Skill ${clamped}`,
+    description:tier.description
+  };
+}
+
+function isNourLevelMode(mode=S.mode){
+  return mode==='bot'&&S.levelId>=0;
+}
+
+function isStockfishMode(mode=S.mode){
+  return mode==='engine';
+}
+
+function isSingleEngineMode(mode=S.mode){
+  return mode==='bot'||mode==='engine';
+}
+
+function getPlayerDisplayName(){
+  return (Cfg?.data?.playerName||'أنت').trim()||'أنت';
+}
+
 const Modal={
   // Play appropriate sound based on icon type using Web Audio API (not mp3 files)
   _playSound(icon){
@@ -4629,6 +5156,63 @@ const Modal={
 /* ══════════════════════════════════════
    INDEXEDDB STORAGE (Levels fallback)
 ══════════════════════════════════════ */
+const ENGINE_PICKER={
+  _setPlayerPreview(){
+    const avatar=document.getElementById('engine-player-avatar');
+    const nameEl=document.getElementById('engine-player-name');
+    if(nameEl)nameEl.textContent=getPlayerDisplayName();
+    if(!avatar)return;
+    const img=Cfg?.data?.playerImage||'';
+    if(img){
+      avatar.style.backgroundImage=`url(${img})`;
+      avatar.style.backgroundSize='cover';
+      avatar.style.backgroundPosition='center';
+      avatar.style.color='transparent';
+      avatar.textContent='';
+    }else{
+      avatar.style.backgroundImage='';
+      avatar.style.color='';
+      avatar.textContent=(getPlayerDisplayName()[0]||'أ').toUpperCase();
+    }
+  },
+  preview(skill){
+    const preset=getEnginePreset(skill);
+    const slider=document.getElementById('engine-skill-input');
+    if(slider)slider.value=String(preset.skill);
+    const skillValue=document.getElementById('engine-skill-value');
+    const badge=document.getElementById('engine-skill-badge');
+    const name=document.getElementById('engine-skill-name');
+    const level=document.getElementById('engine-skill-level');
+    const depth=document.getElementById('engine-skill-depth');
+    const think=document.getElementById('engine-skill-think');
+    const desc=document.getElementById('engine-skill-desc');
+    if(skillValue)skillValue.textContent=String(preset.skill);
+    if(badge)badge.textContent=preset.badge;
+    if(name)name.textContent=preset.title;
+    if(level)level.textContent=`القوة ${preset.skill} من 20`;
+    if(depth)depth.textContent=`Depth ${preset.depth}`;
+    if(think)think.textContent=`~ ${preset.thinkMs}ms`;
+    if(desc)desc.textContent=preset.description;
+  },
+  open(){
+    this._setPlayerPreview();
+    this.preview(S.engineSkill??Cfg.data.engineSkill??10);
+    document.getElementById('engine-ov')?.classList.add('open');
+  },
+  close(){
+    document.getElementById('engine-ov')?.classList.remove('open');
+  },
+  start(){
+    const slider=document.getElementById('engine-skill-input');
+    const skill=Math.max(0,Math.min(20,parseInt(slider?.value,10)||Cfg.data.engineSkill||10));
+    Cfg.data.engineSkill=skill;
+    Cfg.saveData();
+    S.engineSkill=skill;
+    this.close();
+    G.startEngineGame(skill);
+  }
+};
+
 const IDB=(()=>{
   const DB_NAME='NourChessDB',STORE='levels',KV_STORE='kv',VER=2;
   let _db=null;
@@ -4882,11 +5466,12 @@ const LVL={
    STOCKFISH WRAPPER (Fallback to Local Engine)
 ══════════════════════════════════════ */
 const SF=(()=>{
-  let _useLocal=true; // Force local engine due to CDN/CORS issues
   let _worker=null;
-  let _pending={};
-  let _msgId=0;
   let _ready=false;
+  let _initPromise=null;
+  let _queue=[];
+  let _active=null;
+  let _jobId=0;
 
   function bdToFen(bd,turn,cas,ep){
     const pMap={
@@ -4901,7 +5486,9 @@ const SF=(()=>{
         if(p){
           if(empty>0){fen+=empty;empty=0;}
           fen+=pMap[p]||'';
-        }else{empty++;}
+        }else{
+          empty++;
+        }
       }
       if(empty>0)fen+=empty;
       if(r<7)fen+='/';
@@ -4914,125 +5501,196 @@ const SF=(()=>{
     return fen;
   }
 
+  function _normalizeSkill(skillLevel){
+    if(skillLevel===null||skillLevel===undefined||skillLevel==='')return null;
+    return Math.max(0,Math.min(20,parseInt(skillLevel,10)||0));
+  }
+
+  function _scoreToWhiteCp(turn,type,value){
+    const raw=type==='mate'?(value>0?99999:-99999):value;
+    return turn==='w'?raw:-raw;
+  }
+
+  function _parseInfo(msg,turn){
+    const info={raw:msg};
+    const takeInt=(re,key)=>{
+      const match=msg.match(re);
+      if(match)info[key]=parseInt(match[1],10);
+    };
+    takeInt(/\bdepth (\d+)/,'depth');
+    takeInt(/\bseldepth (\d+)/,'selDepth');
+    takeInt(/\bnodes (\d+)/,'nodes');
+    takeInt(/\bnps (\d+)/,'nps');
+    takeInt(/\btime (\d+)/,'timeMs');
+    const score=msg.match(/\bscore (cp|mate) (-?\d+)/);
+    if(score){
+      info.scoreType=score[1];
+      if(score[1]==='mate')info.scoreMate=parseInt(score[2],10);
+      info.scoreCp=_scoreToWhiteCp(turn,score[1],parseInt(score[2],10));
+    }
+    const pv=msg.match(/\bpv (.+)$/);
+    if(pv)info.pv=pv[1].trim();
+    return info;
+  }
+
+  function _resetWorker(){
+    try{_worker?.terminate?.();}catch(e){}
+    _worker=null;
+    _ready=false;
+    _initPromise=null;
+  }
+
+  function _resolveActiveFromFallback(job){
+    if(!job)return;
+    try{clearTimeout(job.timeoutId);}catch(e){}
+    job.resolve(job.fallback);
+  }
+
+  function _handleMessage(rawMsg){
+    const msg=String(rawMsg||'').trim();
+    if(msg==='readyok'){
+      _ready=true;
+      _pumpQueue();
+      return;
+    }
+    if(!_active)return;
+    if(msg.startsWith('info ')){
+      const info=_parseInfo(msg,_active.turn);
+      _active.lastInfo=info;
+      if(Number.isFinite(info.scoreCp))_active.lastEval=info.scoreCp;
+      if(typeof _active.onInfo==='function'){
+        try{_active.onInfo(info);}catch(e){}
+      }
+      return;
+    }
+    if(msg.startsWith('bestmove')){
+      const moveMatch=msg.match(/bestmove\s+(\S+)/);
+      const move=moveMatch&&moveMatch[1]&&moveMatch[1]!=='(none)'?moveMatch[1]:null;
+      const job=_active;
+      _active=null;
+      clearTimeout(job.timeoutId);
+      if(job.kind==='evaluate'){
+        job.resolve(Number.isFinite(job.lastEval)?job.lastEval:job.fallback);
+      }else{
+        job.resolve(move||job.fallback);
+      }
+      _pumpQueue();
+    }
+  }
+
+  function _pumpQueue(){
+    if(!_ready||_active||!_queue.length||!_worker)return;
+    const job=_queue.shift();
+    _active=job;
+    try{
+      const skill=_normalizeSkill(job.skillLevel);
+      _worker.postMessage('ucinewgame');
+      _worker.postMessage('setoption name MultiPV value 1');
+      _worker.postMessage('setoption name UCI_LimitStrength value false');
+      _worker.postMessage('setoption name Skill Level value '+(skill===null?20:skill));
+      _worker.postMessage('position fen '+job.fen);
+      job.timeoutId=setTimeout(()=>{
+        const timedOut=_active===job?job:null;
+        if(!timedOut)return;
+        _active=null;
+        _resetWorker();
+        job.resolve(job.fallback);
+        init().catch(()=>{}).finally(()=>_pumpQueue());
+      },job.timeoutMs);
+      _worker.postMessage('go depth '+job.depth);
+    }catch(e){
+      console.error('Stockfish queue error:',e);
+      const failed=_active;
+      _active=null;
+      _resetWorker();
+      _resolveActiveFromFallback(failed);
+      init().catch(()=>{}).finally(()=>_pumpQueue());
+    }
+  }
+
   function init(){
-    if(_worker)return Promise.resolve(_worker);
-    return new Promise((resolve,reject)=>{
+    if(_worker&&_ready)return Promise.resolve(_worker);
+    if(_initPromise)return _initPromise;
+    _initPromise=new Promise((resolve,reject)=>{
       try{
-        // Create worker directly from JS file to avoid WASM loading issues
-        _worker = new Worker('stockfish-18-lite-single.js');
-        setupWorker(_worker, resolve, reject);
+        let settled=false;
+        _worker=new Worker('stockfish-18-lite-single.js');
+        _ready=false;
+        _worker.onmessage=(e)=>{
+          const msg=String(e.data||'');
+          if(msg.trim()==='readyok'&&!settled){
+            settled=true;
+            resolve(_worker);
+          }
+          _handleMessage(msg);
+        };
+        _worker.onerror=(e)=>{
+          console.error('Stockfish worker error:',e);
+          const active=_active;
+          _active=null;
+          _resetWorker();
+          if(active)_resolveActiveFromFallback(active);
+          if(!settled){
+            settled=true;
+            reject(new Error('Stockfish worker failed'));
+          }
+        };
+        _worker.postMessage('uci');
+        _worker.postMessage('isready');
       }catch(e){
-        console.error('Failed to create Stockfish worker:', e);
+        _resetWorker();
         reject(e);
       }
+    }).finally(()=>{
+      if(!_ready)_initPromise=null;
+    });
+    return _initPromise;
+  }
+
+  async function evaluate(bd,turn,cas,ep,depth=8,skillLevel=null,onInfo=null){
+    try{
+      await init();
+    }catch(e){
+      return E.eval(bd);
+    }
+    return new Promise(resolve=>{
+      _queue.push({
+        id:++_jobId,
+        kind:'evaluate',
+        fen:bdToFen(bd,turn,cas,ep),
+        turn,
+        depth:Math.max(1,parseInt(depth,10)||1),
+        skillLevel,
+        onInfo,
+        lastEval:null,
+        fallback:E.eval(bd),
+        timeoutMs:Math.max(7000,(parseInt(depth,10)||1)*950),
+        resolve
+      });
+      _pumpQueue();
     });
   }
 
-  function setupWorker(worker, resolve, reject){
-    worker.onmessage=(e)=>{
-      const msg=e.data;
-      if(msg.startsWith('info depth')&&msg.includes('score')){
-        const scoreMatch=msg.match(/score (cp|mate) (-?\d+)/);
-        if(scoreMatch){
-          const type=scoreMatch[1],val=parseInt(scoreMatch[2]);
-          const cp=type==='mate'?(val>0?99999:-99999):val;
-          for(const id in _pending){
-            if(_pending[id].onEval)_pending[id].onEval(cp);
-          }
-        }
-      }
-      if(msg.startsWith('bestmove')){
-        const match=msg.match(/bestmove (\w+)/);
-        if(match){
-          const move=match[1];
-          for(const id in _pending){
-            if(_pending[id].onBestMove){
-              _pending[id].onBestMove(move);
-              delete _pending[id];
-            }
-          }
-        }
-      }
-      if(msg.startsWith('readyok')){
-        _ready=true;
-      }
-    };
-    worker.onerror=(e)=>{
-      console.error('Stockfish worker error:', e);
-      reject(new Error('Stockfish worker failed'));
-    };
-    worker.postMessage('uci');
-    worker.postMessage('isready');
-    resolve(worker);
-  }
-
-  function evaluate(bd,turn,cas,ep,depth=8,skillLevel=null){
-    return new Promise(async(resolve,reject)=>{
-      try{
-        await init();
-        const fen=bdToFen(bd,turn,cas,ep);
-        const id=++_msgId;
-        let result=null;
-        
-        // Set skill level if provided
-        if(skillLevel !== null){
-          const sl=Math.max(0,Math.min(20,parseInt(skillLevel)||0));
-          _worker.postMessage('setoption name Skill Level value '+sl);
-        }
-        
-        _pending[id]={
-          onEval:(cp)=>{
-            result=cp;
-          },
-          onBestMove:()=>{
-            resolve(result);
-          }
-        };
-        _worker.postMessage('position fen '+fen);
-        _worker.postMessage('go depth '+depth);
-        setTimeout(()=>{
-          if(_pending[id]){
-            delete _pending[id];
-            resolve(result||0);
-          }
-        },10000);
-      }catch(e){
-        // Fallback to local engine
-        resolve(E.eval(bd));
-      }
-    });
-  }
-
-  function bestMove(bd,turn,cas,ep,depth=6,skillLevel=null){
-    return new Promise(async(resolve,reject)=>{
-      try{
-        await init();
-        const fen=bdToFen(bd,turn,cas,ep);
-        const id=++_msgId;
-        
-        // Set skill level if provided
-        if(skillLevel !== null){
-          const sl=Math.max(0,Math.min(20,parseInt(skillLevel)||0));
-          _worker.postMessage('setoption name Skill Level value '+sl);
-        }
-        
-        _pending[id]={
-          onBestMove:(move)=>{
-            resolve(move);
-          }
-        };
-        _worker.postMessage('position fen '+fen);
-        _worker.postMessage('go depth '+depth);
-        setTimeout(()=>{
-          if(_pending[id]){
-            delete _pending[id];
-            resolve(null);
-          }
-        },8000);
-      }catch(e){
-        // Fallback to null (will use local engine)
-        resolve(null);
-      }
+  async function bestMove(bd,turn,cas,ep,depth=6,skillLevel=null,onInfo=null){
+    try{
+      await init();
+    }catch(e){
+      return null;
+    }
+    return new Promise(resolve=>{
+      _queue.push({
+        id:++_jobId,
+        kind:'bestmove',
+        fen:bdToFen(bd,turn,cas,ep),
+        turn,
+        depth:Math.max(1,parseInt(depth,10)||1),
+        skillLevel,
+        onInfo,
+        fallback:null,
+        timeoutMs:Math.max(6500,(parseInt(depth,10)||1)*900),
+        resolve
+      });
+      _pumpQueue();
     });
   }
 
@@ -5040,31 +5698,27 @@ const SF=(()=>{
     const el=document.getElementById('sf-status');
     if(!el)return;
     try{
-        await init();
-        // اختبار حقيقي: اطلب أفضل حركة من موقف البداية
-        const testBoard=INIT_BD.map(r=>[...r]);
-        const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
-        const move=await bestMove(testBoard,'w',testCas,null,4);
-        if(move&&move.length>=4){
-            el.textContent='SF ◈';
-            el.style.background='rgba(74,222,128,.12)';
-            el.style.color='var(--green)';
-            el.style.borderColor='rgba(74,222,128,.28)';
-        }else{
-            el.textContent='Local ◈';
-            el.style.background='rgba(201,168,76,.12)';
-            el.style.color='var(--gold2)';
-            el.style.borderColor='rgba(201,168,76,.28)';
-        }
+      await init();
+      const testBoard=INIT_BD.map(r=>[...r]);
+      const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
+      const move=await bestMove(testBoard,'w',testCas,null,4,10);
+      if(move&&move.length>=4){
+        el.textContent='SF ◈';
+        el.style.background='rgba(74,222,128,.12)';
+        el.style.color='var(--green)';
+        el.style.borderColor='rgba(74,222,128,.28)';
+      }else{
+        el.textContent='Local ◈';
+        el.style.background='rgba(201,168,76,.12)';
+        el.style.color='var(--gold2)';
+        el.style.borderColor='rgba(201,168,76,.28)';
+      }
     }catch(e){
-        console.error('Stockfish check failed:', e);
-        const el=document.getElementById('sf-status');
-        if(el){
-            el.textContent='Local ◈';
-            el.style.background='rgba(201,168,76,.12)';
-            el.style.color='var(--gold2)';
-            el.style.borderColor='rgba(201,168,76,.28)';
-        }
+      console.error('Stockfish check failed:',e);
+      el.textContent='Local ◈';
+      el.style.background='rgba(201,168,76,.12)';
+      el.style.color='var(--gold2)';
+      el.style.borderColor='rgba(201,168,76,.28)';
     }
   }
 
@@ -5270,6 +5924,7 @@ const S={
   assistOn:false,hintsOn:true,oppUsingAssist:false,
   astMove:null,astBusy:false,_astSnap:null,
   levelId:-1,moveCount:0,
+  engineSkill:10,
   assistW:false, assistB:false,
   snapshots:[],
   preMove:null,
@@ -5278,6 +5933,8 @@ const S={
   undoStack:[],
   oppImg:null,
   endState:null,
+  _engineTimer:null,
+  _engineJob:0,
   _goTimer:null,
   _goStageTimer:null,
   _goTypeTimer:null,
@@ -6192,8 +6849,28 @@ const REV=(()=>{
     document.getElementById('rv-main').innerHTML=html;
   }
 
+  function _formatEngineScore(info){
+    if(!info||!Number.isFinite(info.scoreCp))return '—';
+    if(info.scoreType==='mate'&&Number.isFinite(info.scoreMate)){
+      return info.scoreMate>0?`#${info.scoreMate}`:`#-${Math.abs(info.scoreMate)}`;
+    }
+    const pawns=(info.scoreCp/100).toFixed(2);
+    return `${info.scoreCp>0?'+':''}${pawns}`;
+  }
+
+  function _formatEnginePv(pv){
+    if(!pv)return '—';
+    return pv.split(/\s+/).slice(0,6).join(' ');
+  }
+
+  function _emitEngineInfo(onEngineInfo,payload){
+    if(typeof onEngineInfo!=='function')return;
+    try{onEngineInfo(payload||{});}catch(e){}
+  }
+
   async function _analyze(options={}){
     const onProgress=typeof options.onProgress==='function'?options.onProgress:null;
+    const onEngineInfo=typeof options.onEngineInfo==='function'?options.onEngineInfo:null;
     const snaps=S.snapshots;
     if(!snaps||!snaps.length)return null;
     let bd=INIT_BD.map(r=>[...r]);
@@ -6204,16 +6881,19 @@ const REV=(()=>{
     let wTotal=0,bTotal=0,wCount=0,bCount=0;
     let wBlunders=0,bBlunders=0,wMistakes=0,bMistakes=0;
     
-    // Initialize Stockfish
     try{await SF.init();}catch(e){console.error('Stockfish init failed, using fallback:',e);}
-    
-    // Get current level skill for analysis
-    const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
-    const skillLevel = lv ? Math.max(0,Math.min(20,Math.round((lv.skill||0)*(20/30)))) : 8;
-    
-    const evalHistory=[await SF.evaluate(bd,'w',cas,ep,6,skillLevel).catch(()=>E.eval(bd))];
+    const skillLevel=20;
+    _emitEngineInfo(onEngineInfo,{phase:'تهيئة المحرك',processed:0,total:snaps.length});
+    const evalHistory=[await SF.evaluate(bd,'w',cas,ep,8,skillLevel,(info)=>{
+      _emitEngineInfo(onEngineInfo,{
+        phase:'فحص الوضعية الافتتاحية',
+        processed:0,
+        total:snaps.length,
+        info
+      });
+    }).catch(()=>E.eval(bd))];
 
-    const REVIEW_DEPTH=1; // Reduced from 3 to prevent UI freezing
+    const REVIEW_DEPTH=1;
     const bestForLocal=(board,cas2,ep2,color)=>{
       const mvs=E.allLegal(board,color,cas2,ep2);
       if(!mvs.length)return{val:color==='w'?-99999:99999,mv:null};
@@ -6227,11 +6907,19 @@ const REV=(()=>{
       return{val:bv,mv:bm};
     };
 
-    async function bestForStockfish(board,cas2,ep2,color){
+    async function bestForStockfish(board,cas2,ep2,color,meta){
       try{
-        // Primary source of truth: Stockfish best move + resulting eval
         const depth=10;
-        const bm=await SF.bestMove(board,color,cas2,ep2,depth,skillLevel);
+        const bm=await SF.bestMove(board,color,cas2,ep2,depth,skillLevel,(info)=>{
+          _emitEngineInfo(onEngineInfo,{
+            phase:'استخراج أفضل بديل',
+            processed:meta.processed,
+            total:meta.total,
+            move:meta.move,
+            color,
+            info
+          });
+        });
         if(!bm||bm.length<4)return null;
         const f='abcdefgh';
         const fc=f.indexOf(bm[0]),fr=8-parseInt(bm[1]);
@@ -6241,10 +6929,18 @@ const REV=(()=>{
         let promo=null;
         if(bm.length>=5) promo=bm[4].toUpperCase();
         const r2=E.apply(board,from,to,cas2,ep2,promo||'Q');
-        // Evaluate from side to move AFTER best move
         const opp=color==='w'?'b':'w';
-        const bestVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,10,skillLevel).catch(()=>E.eval(r2.bd));
-        return { val: bestVal, mv: { from, to, promo } };
+        const bestVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,10,skillLevel,(info)=>{
+          _emitEngineInfo(onEngineInfo,{
+            phase:'تقييم أفضل استجابة للمحرك',
+            processed:meta.processed,
+            total:meta.total,
+            move:meta.move,
+            color,
+            info
+          });
+        }).catch(()=>E.eval(r2.bd));
+        return{val:bestVal,mv:{from,to,promo}};
       }catch(e){
         return null;
       }
@@ -6258,9 +6954,16 @@ const REV=(()=>{
       const snap=snaps[i];
       const color=snap.turn;
       const isMax=color==='w';
-      let bestPack=await bestForStockfish(bd,cas,ep,color);
+      const boardBefore=bd.map(r=>[...r]);
+      const casBefore=JSON.parse(JSON.stringify(cas));
+      const epBefore=ep?[...ep]:null;
+      let bestPack=await bestForStockfish(boardBefore,casBefore,epBefore,color,{
+        processed:i,
+        total:snaps.length,
+        move:snap.move
+      });
       if(!bestPack){
-        bestPack=bestForLocal(bd,cas,ep,color);
+        bestPack=bestForLocal(boardBefore,casBefore,epBefore,color);
       }
       const bestVal=bestPack?.val;
       const bestMv=bestPack?.mv||null;
@@ -6279,20 +6982,26 @@ const REV=(()=>{
         }catch(ex){}
       }
       if(!actualFrom||!actualTo)continue;
-      // Check for capture BEFORE applying the move
-      const capturedPiece = bd[actualTo[0]][actualTo[1]];
-      const isCapture = !!capturedPiece;
-      const isCastle = actualMoveStr && actualMoveStr.includes('O-O');
-      const isPromo = !!promo;
+      const capturedPiece=boardBefore[actualTo[0]][actualTo[1]];
+      const isCapture=!!capturedPiece;
+      const isCastle=actualMoveStr&&actualMoveStr.includes('O-O');
+      const isPromo=!!promo;
       
       let actualVal=bestVal,appliedOk=false;
       let isCheck=false, isCheckmate=false;
       try{
-        const r2=E.apply(bd,actualFrom,actualTo,cas,ep,promo||'Q');
-        // Use Stockfish for evaluation (depth 8 for accuracy, fallback to local eval)
+        const r2=E.apply(boardBefore,actualFrom,actualTo,casBefore,epBefore,promo||'Q');
         const opp=color==='w'?'b':'w';
-        actualVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,8).catch(()=>E.eval(r2.bd));
-        // Detect check and checkmate after the move
+        actualVal=await SF.evaluate(r2.bd,opp,r2.cas,r2.ep,8,skillLevel,(info)=>{
+          _emitEngineInfo(onEngineInfo,{
+            phase:'تقييم النقلة المنفذة',
+            processed:i,
+            total:snaps.length,
+            move:snap.move,
+            color,
+            info
+          });
+        }).catch(()=>E.eval(r2.bd));
         isCheck=E.inChk(r2.bd,opp);
         const oppLegal=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
         isCheckmate=isCheck&&oppLegal.length===0;
@@ -6345,7 +7054,7 @@ const REV=(()=>{
       else if(diffInPawns<4.0){rating='mistake';score=25;if(color==='w')wMistakes++;else bMistakes++;}
       else{rating='blunder';score=0;if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
-      if(bestMv)try{bestMvStr=E.notation(bd,bestMv.from,bestMv.to,bestMv.promo||null);}catch(e){}
+      if(bestMv)try{bestMvStr=E.notation(boardBefore,bestMv.from,bestMv.to,bestMv.promo||null);}catch(e){}
       
       moves.push({
         move:actualMoveStr||'—',color,rating,score,
@@ -6355,8 +7064,13 @@ const REV=(()=>{
         isCapture,isCastle,isPromo,isCheck,isCheckmate
       });
       if(onProgress)onProgress({processed:i+1,total:snaps.length});
-      
-      // Yield to event loop every CHUNK_SIZE moves to prevent UI freeze
+      _emitEngineInfo(onEngineInfo,{
+        phase:'اكتمل تحليل نقلة',
+        processed:i+1,
+        total:snaps.length,
+        move:snap.move
+      });
+
       if(i>0 && i%CHUNK_SIZE===0){
         await new Promise(r=>setTimeout(r,0));
       }
@@ -6378,10 +7092,15 @@ const REV=(()=>{
     };
   }
 
-  async function ensureAnalysis({force=false,onProgress}={}){
+  async function ensureAnalysis({force=false,onProgress,onEngineInfo}={}){
     const key=_currentAnalysisKey();
     if(!force&&_data&&_analysisKey===key){
       if(typeof onProgress==='function')onProgress({processed:(S.snapshots||[]).length,total:(S.snapshots||[]).length});
+      _emitEngineInfo(onEngineInfo,{
+        phase:'تم استخدام تحليل محفوظ',
+        processed:(S.snapshots||[]).length,
+        total:(S.snapshots||[]).length
+      });
       return _data;
     }
     if(!force&&_analysisPromise&&_analysisKey===key){
@@ -6389,7 +7108,7 @@ const REV=(()=>{
     }
     _analysisKey=key;
     _analysisPromise=(async()=>{
-      const data=await _analyze({onProgress});
+      const data=await _analyze({onProgress,onEngineInfo});
       _data=data;
       _boards=data?.boards||[];
       return data;
@@ -6699,6 +7418,48 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
             <div class="rv-chess-animation">
               <div class="rv-mini-board" id="rv-mini-board"></div>
             </div>
+            <div class="rv-analysis-stats">
+              <div class="rv-stat-item">
+                <div class="rv-stat-label">التقدم</div>
+                <div class="rv-stat-value" id="rv-stat-progress">0%</div>
+              </div>
+              <div class="rv-stat-item">
+                <div class="rv-stat-label">النقلات</div>
+                <div class="rv-stat-value" id="rv-stat-moves">0 / 0</div>
+              </div>
+              <div class="rv-stat-item">
+                <div class="rv-stat-label">Depth</div>
+                <div class="rv-stat-value" id="rv-engine-depth">--</div>
+              </div>
+            </div>
+            <div class="rv-engine-panel">
+              <div class="rv-engine-line">
+                <span>المرحلة</span>
+                <strong id="rv-engine-phase">تهيئة Stockfish</strong>
+              </div>
+              <div class="rv-engine-grid">
+                <div class="rv-engine-cell">
+                  <span>التقييم</span>
+                  <strong id="rv-engine-score">--</strong>
+                </div>
+                <div class="rv-engine-cell">
+                  <span>السرعة</span>
+                  <strong id="rv-engine-speed">--</strong>
+                </div>
+                <div class="rv-engine-cell">
+                  <span>العقد</span>
+                  <strong id="rv-engine-nodes">--</strong>
+                </div>
+                <div class="rv-engine-cell">
+                  <span>الوقت</span>
+                  <strong id="rv-engine-time">--</strong>
+                </div>
+                <div class="rv-engine-cell full">
+                  <span>PV</span>
+                  <strong id="rv-engine-pv">--</strong>
+                </div>
+              </div>
+            </div>
             <div class="rv-loadtip">نصيحة: حتى النقلات الهادئة قد تكون الأفضل إذا حسّنت وضع قطعك.</div>
           </div>
         </div>`;
@@ -6720,6 +7481,13 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
         try{
           const progressEl=document.getElementById('rv-stat-progress');
           const movesEl=document.getElementById('rv-stat-moves');
+          const depthEl=document.getElementById('rv-engine-depth');
+          const phaseEl=document.getElementById('rv-engine-phase');
+          const scoreEl=document.getElementById('rv-engine-score');
+          const speedEl=document.getElementById('rv-engine-speed');
+          const nodesEl=document.getElementById('rv-engine-nodes');
+          const timeEl=document.getElementById('rv-engine-time');
+          const pvEl=document.getElementById('rv-engine-pv');
           const hasCached=!!(_data&&_analysisKey===_currentAnalysisKey());
           const startedAt=performance.now();
           _data=await ensureAnalysis({
@@ -6728,7 +7496,20 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
               const safeProcessed=Math.min(processed||0,safeTotal);
               const progress=Math.round((safeProcessed/safeTotal)*100);
               if(progressEl)progressEl.textContent=progress+'%';
-              if(movesEl)movesEl.textContent=safeProcessed;
+              if(movesEl)movesEl.textContent=`${safeProcessed} / ${safeTotal}`;
+            },
+            onEngineInfo:({phase,processed,total,info})=>{
+              if(phaseEl&&phase)phaseEl.textContent=phase;
+              if(movesEl&&Number.isFinite(processed)&&Number.isFinite(total)){
+                movesEl.textContent=`${processed} / ${total}`;
+              }
+              if(!info)return;
+              if(depthEl&&Number.isFinite(info.depth))depthEl.textContent=`${info.depth}${Number.isFinite(info.selDepth)?`/${info.selDepth}`:''}`;
+              if(scoreEl)scoreEl.textContent=_formatEngineScore(info);
+              if(speedEl)speedEl.textContent=Number.isFinite(info.nps)?`${Math.round(info.nps/1000)}k n/s`:'--';
+              if(nodesEl)nodesEl.textContent=Number.isFinite(info.nodes)?info.nodes.toLocaleString('en-US'):'--';
+              if(timeEl)timeEl.textContent=Number.isFinite(info.timeMs)?`${info.timeMs} ms`:'--';
+              if(pvEl&&info.pv)pvEl.textContent=_formatEnginePv(info.pv);
             }
           });
           const minDelay=hasCached?850:0;
@@ -6797,7 +7578,7 @@ const AST=(()=>{
           // Use Stockfish for best move (depth 6 for faster response)
           const col=S.myCol==='both'?S.turn:S.myCol;
           // Assistant always uses maximum skill level (30) to be the strongest
-          const skillLevel = 30; // Always maximum strength for assistant
+          const skillLevel = 20; // Always maximum available strength for assistant
           const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,6, skillLevel);
           
           // Convert Stockfish move format to internal format
@@ -7096,7 +7877,7 @@ const R={
       const opEl=S.myCol==='b'?wEl:bEl;
       if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
       if(S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
-    }else if(S.mode==='bot'){
+    }else if(isSingleEngineMode()){
       if(S.assistOn){wEl.className='pb-ast on';wEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
     }else if(S.mode==='local'){
       if(wBtn){wBtn.style.display='flex';wBtn.classList.toggle('on',S.assistW);}
@@ -7119,7 +7900,7 @@ const R={
       }
     }
     if(pbUndoB){
-      if(S.mode==='local'||S.mode==='level'){
+      if(S.mode==='local'||isSingleEngineMode()){
         pbUndoB.style.display='';
         pbUndoB.disabled=S.undoStack.length===0;
         pbUndoB.style.opacity=S.undoStack.length===0?'0.3':'1';
@@ -7160,6 +7941,14 @@ const G={
     S.repMap[key]=(S.repMap[key]||0)+1;
     return S.repMap[key];
   },
+  _cancelEngineThink(){
+    if(S._engineTimer){
+      clearTimeout(S._engineTimer);
+      S._engineTimer=null;
+    }
+    S._engineJob=(S._engineJob||0)+1;
+    S.busy=false;
+  },
   _clearQuickReviewTimers(){
     if(S._goTimer){clearTimeout(S._goTimer);S._goTimer=null;}
     if(S._goStageTimer){clearTimeout(S._goStageTimer);S._goStageTimer=null;}
@@ -7194,6 +7983,13 @@ const G={
   },
   _buildQuickComment(result){
     const lastMove=S.hist.length?S.hist[S.hist.length-1]:'';
+    if(isStockfishMode()){
+      if(result.reason==='checkmate'&&result.tone==='win')return `هزمت Stockfish${lastMove?` بعد النقلة ${lastMove}`:''}. راقب في المراجعة كيف تحوّل الضغط التدريجي إلى إنهاء كامل للموقف.`;
+      if(result.reason==='checkmate'&&result.tone==='loss')return `المحرك استغل أدق ثغرة${lastMove?` بعد النقلة ${lastMove}`:''}. المراجعة ستوضح أين بدأ الخلل قبل الضربة الأخيرة.`;
+      if(result.reason==='stalemate'||result.reason==='threefold'||result.reason==='insufficient')return 'المواجهة مع Stockfish انتهت بلا حسم. القيمة هنا في معرفة اللحظة التي كان يمكن فيها كسر التوازن قبل أن يغلق المحرك الوضعية.';
+      if(result.winner==='w')return 'تفوقت على المحرك في هذه المواجهة. راجع أين ربحت المساحة أو المبادرة لأن هذه اللحظات هي مفتاح تكرار الفوز.';
+      if(result.winner==='b')return 'Stockfish أخذ المباراة في المراحل الأخيرة. ركز في المراجعة على التحولات الصغيرة التي سمحت له بتثبيت أفضلية مستقرة.';
+    }
     if(result.reason==='insufficient')return 'المادة المتبقية لم تعد تسمح بالحسم. عندما تختفي القطع الثقيلة يصبح الضغط الموضعي أهم من البحث عن هجوم غير موجود.';
     if(result.reason==='threefold')return 'تكررت الوضعية أكثر من مرة حتى أُغلقت المباراة على تعادل. لو أردت الحسم لاحقاً فابحث مبكراً عن كسر آمن للتكرار.';
     if(result.reason==='stalemate')return 'الموقف تجمّد تماماً ولم يبق للخصم أي نقلة قانونية. قبل دفع الملك إلى الزاوية راقب دائماً إن كانت هناك خانة هروب واحدة على الأقل.';
@@ -7233,12 +8029,20 @@ const G={
   },
   _primeQuickReview(result){
     const score=result.score||this._scoreForWinner(result.winner);
+    const isEngine=isStockfishMode();
+    const commentKicker=document.getElementById('go-comment-kicker');
+    const reviewKicker=document.getElementById('go-review-kicker');
+    const stageTitle=document.getElementById('go-stage-title');
+    const loadLabel=document.getElementById('go-qload').querySelector('.go-qsf');
     document.getElementById('go-score-pill').textContent=score;
     document.getElementById('go-score-pill-review').textContent=score;
+    if(commentKicker)commentKicker.textContent=isEngine?'تعليق نور بعد مواجهة المحرك':'تعليق نور';
+    if(reviewKicker)reviewKicker.textContent=isEngine?'تفكيك مواجهة Stockfish':'مراجعة سريعة';
+    if(stageTitle)stageTitle.textContent=isEngine?'انتهت مواجهة Stockfish':'المباراة انتهت';
     document.getElementById('go-result-line').textContent=result.statusLine||result.message||'انتهت المباراة';
     document.getElementById('go-review-sub').textContent=result.message||result.statusLine||'انتهت المباراة';
     document.getElementById('go-qload').style.display='flex';
-    document.getElementById('go-qload').querySelector('.go-qsf').textContent='Stockfish يجهّز مراجعة المباراة…';
+    if(loadLabel)loadLabel.textContent=isEngine?'Stockfish يجهّز تفكيك المواجهة…':'Stockfish يجهّز مراجعة المباراة…';
     document.getElementById('go-next').style.display=result.allowNext?'inline-flex':'none';
   },
   _openQuickReview(){
@@ -7275,21 +8079,25 @@ const G={
         const label=load?.querySelector('.go-qsf');
         if(!load||!label)return;
         if(data&&data.moves&&data.moves.length){
-          label.textContent='المراجعة الكاملة أصبحت جاهزة';
+          label.textContent=isStockfishMode()?'تفكيك مواجهة Stockfish أصبح جاهزاً':'المراجعة الكاملة أصبحت جاهزة';
           S._goStageTimer=setTimeout(()=>{
-            try{if(label.textContent==='المراجعة الكاملة أصبحت جاهزة')load.style.display='none';}catch(e){}
+            try{
+              if(label.textContent==='المراجعة الكاملة أصبحت جاهزة'||label.textContent==='تفكيك مواجهة Stockfish أصبح جاهزاً'){
+                load.style.display='none';
+              }
+            }catch(e){}
           },1300);
         }else{
-          label.textContent='المباراة قصيرة والمراجعة الكاملة قد تكون محدودة';
+          label.textContent=isStockfishMode()?'المواجهة قصيرة لذلك قد يكون تفكيك Stockfish محدوداً':'المباراة قصيرة والمراجعة الكاملة قد تكون محدودة';
         }
       }).catch(()=>{
         if(token!==S._resultToken||!S.endState)return;
         const label=document.getElementById('go-qload')?.querySelector('.go-qsf');
-        if(label)label.textContent='يمكنك فتح مراجعة المباراة عند الحاجة';
+        if(label)label.textContent=isStockfishMode()?'يمكنك فتح تفكيك مواجهة Stockfish عند الحاجة':'يمكنك فتح مراجعة المباراة عند الحاجة';
       });
     }else{
       const label=document.getElementById('go-qload')?.querySelector('.go-qsf');
-      if(label)label.textContent='المراجعة الكاملة تصبح أفضل بعد مباراة أطول';
+      if(label)label.textContent=isStockfishMode()?'تفكيك Stockfish يصبح أدق بعد مواجهة أطول':'المراجعة الكاملة تصبح أفضل بعد مباراة أطول';
     }
   },
   restoreQuickReview(){
@@ -7315,9 +8123,9 @@ const G={
     const label=document.getElementById('go-qload')?.querySelector('.go-qsf');
     if(label){
       if(S.hist.length>=4){
-        label.textContent='يمكنك متابعة مراجعة المباراة أو فتحها بالكامل';
+        label.textContent=isStockfishMode()?'يمكنك متابعة تفكيك مواجهة Stockfish أو فتحه بالكامل':'يمكنك متابعة مراجعة المباراة أو فتحها بالكامل';
       }else{
-        label.textContent='المراجعة الكاملة تصبح أفضل بعد مباراة أطول';
+        label.textContent=isStockfishMode()?'تفكيك Stockfish يصبح أدق بعد مواجهة أطول':'المراجعة الكاملة تصبح أفضل بعد مباراة أطول';
       }
     }
   },
@@ -7339,6 +8147,7 @@ const G={
     },2400);
   },
   _reset(mode,diff){
+    this._cancelEngineThink();
     S.mode=mode;S.diff=diff;S.myCol='both';S.levelId=-1;S.moveCount=0;
     S.bd=INIT_BD.map(r=>[...r]);S.turn='w';S.sel=null;S.legal=[];
     S.cas={w:{K:true,Q:true},b:{K:true,Q:true}};S.ep=null;
@@ -7354,6 +8163,8 @@ const G={
     S.preMove=null;S.preMoveSelFr=null;
     S.undoStack=[];
     S.oppImg=null; // Reset opponent image for every new game
+    S._engineTimer=null;
+    S._engineJob=0;
     S._resultToken=0;
     this._hideQuickReview();
     if(typeof REV!=='undefined'&&REV.reset)REV.reset();
@@ -7361,7 +8172,7 @@ const G={
     R.boardReset();
     CHAT.hide();
     const sg=document.getElementById('s-game');
-    sg.classList.remove('mode-local','mode-bot','mode-online');
+    sg.classList.remove('mode-local','mode-bot','mode-online','mode-engine');
     sg.classList.add('mode-'+mode);
     document.getElementById('promo-ov').classList.remove('open');
     document.getElementById('go-next').style.display='none';
@@ -7388,14 +8199,29 @@ const G={
     Nav.game();await R.all();updatePlayerImages();
     CHAT.show();
   },
+  async startEngineGame(skill){
+    const preset=getEnginePreset(skill??Cfg.data.engineSkill??10);
+    this._reset('engine',preset.depth);
+    S.engineSkill=preset.skill;
+    S.myCol='w';
+    Cfg.data.engineSkill=preset.skill;
+    Cfg.saveData();
+    document.getElementById('nm-w').textContent=getPlayerDisplayName();
+    document.getElementById('nm-b').textContent=`Stockfish — ${preset.title}`;
+    document.getElementById('gmode').textContent=`♞ ضد Stockfish · ${preset.badge}`;
+    fixBars('w');
+    Nav.game();
+    await R.all();
+    updatePlayerImages();
+  },
   click(r,c){
     if(S.over||S.pending)return;
 
     const isWaitingTurn=S.mode!=='local'&&(
                         (isRemoteMatchMode()&&S.turn!==S.myCol)||
-                        (S.mode==='bot'&&S.turn==='b'));
+                        (isSingleEngineMode()&&S.turn==='b'));
     if(isWaitingTurn){
-      const myCol=S.mode==='bot'?'w':S.myCol;
+      const myCol=isSingleEngineMode()?'w':S.myCol;
       if(S.bd[r][c]&&E.col(S.bd[r][c])===myCol){
         S.preMoveSelFr=[r,c];
         S.preMove=null;
@@ -7443,7 +8269,8 @@ const G={
     const cl=E.col(S.bd[fr[0]][fr[1]]);
     const isOwnMove=!isRemoteMatchMode()||(S.turn===S.myCol);
     if(isOwnMove){S.preMove=null;S.preMoveSelFr=null;}
-    if(S.mode==='local'){
+    const shouldStoreUndo=S.mode==='local'||(isSingleEngineMode()&&S.turn==='w');
+    if(shouldStoreUndo){
       S.undoStack.push({
         bd:S.bd.map(r=>[...r]),
         turn:S.turn,
@@ -7455,6 +8282,7 @@ const G={
         moveCount:S.moveCount,
         snapshots:S.snapshots.map(s=>({...s,bd:s.bd.map(r=>[...r])})),
         repMap:{...S.repMap},
+        assistOn:S.assistOn,
         assistW:S.assistW,assistB:S.assistB,
       });
     }
@@ -7489,7 +8317,7 @@ const G={
     else if(isCheck)    SFX.check();
     else                SFX.move();
     await R.all();
-    if(S.mode==='bot'&&S.levelId>=0){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
+    if(isNourLevelMode()){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
@@ -7571,36 +8399,41 @@ const G={
       }
       return;
     }
-    if(S.mode==='bot'&&S.turn==='b'&&!S.over){
+    if(isSingleEngineMode()&&S.turn==='b'&&!S.over){
       AST.clear();
       S.astMove=null;S.astBusy=false;
       R.boardOverlay();R.toolbar();
       S.busy=true;
-      const lv=S.levelId>=0?LEVELS_DEF[S.levelId]:null;
-      const depth=lv?lv.depth:S.diff;
-      const thinkDelay=depth<=1?300:depth===2?480:depth===3?720:980;
-      setTimeout(async()=>{
-        if(S.over){S.busy=false;return;}
+      const isLevelMode=isNourLevelMode();
+      const lv=isLevelMode?LEVELS_DEF[S.levelId]:null;
+      const preset=isStockfishMode()?getEnginePreset(S.engineSkill||Cfg.data.engineSkill||10):null;
+      const depth=isLevelMode?(lv?lv.depth:S.diff):(preset?.depth||S.diff||8);
+      const thinkDelay=isLevelMode
+        ?(depth<=1?300:depth===2?480:depth===3?720:980)
+        :(preset?.thinkMs||680);
+      const engineJob=++S._engineJob;
+      S._engineTimer=setTimeout(async()=>{
+        S._engineTimer=null;
+        if(S.over||engineJob!==S._engineJob){S.busy=false;return;}
         const bd=S.bd.map(r=>[...r]);
         const cas=JSON.parse(JSON.stringify(S.cas));
         const ep=S.ep?[...S.ep]:null;
-        
-        // Use Stockfish for bot move (depth and skill based on level)
+
         let bm=null;
         try{
-          const skillLevel = lv ? Math.max(0,Math.min(20,Math.round((lv.skill||0)*(20/30)))) : Math.min(S.diff * 3, 20); // Map difficulty to skill level
-          
-          // For easier levels: sometimes make random moves
-          const randomChance = lv && lv.random ? lv.random : 0;
-          const legalMoves = E.allLegal(bd,'b',cas,ep);
-          
-          if(legalMoves.length > 0 && Math.random() < randomChance){
-            // Make a completely random move (for easier levels)
-            const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+          const skillLevel=isLevelMode
+            ?Math.max(0,Math.min(20,Math.round((lv.skill||0)*(20/30))))
+            :(preset?.skill??10);
+          const randomChance=isLevelMode&&lv&&lv.random?lv.random:0;
+          const legalMoves=E.allLegal(bd,'b',cas,ep);
+
+          if(legalMoves.length>0&&Math.random()<randomChance){
+            const randomMove=legalMoves[Math.floor(Math.random()*legalMoves.length)];
             bm={from:randomMove.from,to:randomMove.to};
           }else{
-            // Use Stockfish for best move
-            const sfMove=await SF.bestMove(bd,'b',cas,ep,depth+5, skillLevel);
+            const sfDepth=isLevelMode?depth+5:Math.max(depth,6);
+            const sfMove=await SF.bestMove(bd,'b',cas,ep,sfDepth,skillLevel);
+            if(engineJob!==S._engineJob)return;
             if(sfMove){
               const f='abcdefgh';
               const fromCol=f.indexOf(sfMove[0]);
@@ -7613,17 +8446,17 @@ const G={
             }
           }
         }catch(e){
-          console.error('Stockfish bot error, using fallback:', e);
+          console.error('Stockfish bot error, using fallback:',e);
           bm=E.botMove(bd,cas,ep,depth);
         }
-        
+
+        if(engineJob!==S._engineJob)return;
         S.busy=false;
         if(bm){
           S.sel=null;S.legal=[];
           const isPromo=S.bd[bm.from[0]]&&S.bd[bm.from[0]][bm.from[1]]&&E.tp(S.bd[bm.from[0]][bm.from[1]])==='P'&&(bm.to[0]===0||bm.to[0]===7);
           this.applyMove(bm.from,bm.to,isPromo?'Q':null);
         }else{
-          // Fallback: make any legal move if Stockfish fails completely
           console.warn('Stockfish returned no move, using random legal move');
           const legalMoves=E.allLegal(bd,'b',cas,ep);
           if(legalMoves.length>0){
@@ -7653,7 +8486,7 @@ const G={
     }
   },
   _showLevelWin(stars){
-    if(S.mode==='bot'&&S.levelId>=0)CHAT.nourAutoMsg('levelWin');
+    if(isNourLevelMode())CHAT.nourAutoMsg('levelWin');
     const lv=LEVELS_DEF[S.levelId];
     this.showOver({
       winner:'w',
@@ -7692,20 +8525,21 @@ const G={
     ov.classList.add('open');
   },
   restart(){
-    SFX.btn();this._hideQuickReview();
+    SFX.btn();this._hideQuickReview();this._cancelEngineThink();
     if(S.mode==='online'){OL.dc();Nav.menu();}
+    else if(isStockfishMode())this.startEngineGame(S.engineSkill||Cfg.data.engineSkill||10);
     else if(S.levelId>=0)this.startLevel(S.levelId);
-    else this.start(S.mode,S.diff);
+    else this.startLocalGame();
   },
   goMenu(){
-    SFX.btn();this._hideQuickReview();
+    SFX.btn();this._hideQuickReview();this._cancelEngineThink();
     if(S.mode==='online')OL.dc();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   back(){
     const mustConfirm=Cfg.data.confirm&&!S.over&&(S.hist.length>0||isRemoteMatchMode());
     if(!mustConfirm)SFX.btn();
-    S.busy=false;AST.clear();
+    this._cancelEngineThink();AST.clear();
     if(mustConfirm){
       Modal.confirm('تريد الخروج من اللعبة؟','تأكيد الخروج','؟',
         ()=>{this._continueBack();},
@@ -7748,7 +8582,7 @@ const G={
   },
   async toggleHints(){SFX.btn();S.hintsOn=!S.hintsOn;await R.all();},
   async undo(){
-    if(S.mode!=='local'&&S.mode!=='level')return;
+    if(S.mode!=='local'&&!isSingleEngineMode())return;
     if(S.over){
       S.over=false;
       S.endState=null;
@@ -7756,6 +8590,7 @@ const G={
       this._hideQuickReview();
     }
     if(!S.undoStack.length){SFX.illegal();return;}
+    this._cancelEngineThink();
     const snap=S.undoStack.pop();
     if(!snap)return;
     SFX.undo();  // Play undo sound
@@ -7765,10 +8600,11 @@ const G={
     S.snapshots=snap.snapshots;
     S.repMap=snap.repMap||{};
     S.assistW=snap.assistW;S.assistB=snap.assistB;
-    S.assistOn=S.turn==='w'?S.assistW:S.assistB;
+    S.assistOn=isSingleEngineMode()?!!snap.assistOn:(S.turn==='w'?S.assistW:S.assistB);
     S.sel=null;S.legal=[];S.pending=null;S.busy=false;
     AST.clear();
     await R.all();
+    if(S.assistOn)AST.compute();
   }
 };
 
@@ -8246,7 +9082,7 @@ const DRAG=(()=>{
     if(isRemoteMatchMode()){
       return col===S.myCol;
     }
-    if(S.mode==='bot'){
+    if(isSingleEngineMode()){
       return col==='w';
     }
     if(S.mode==='local'){
@@ -8267,7 +9103,7 @@ const DRAG=(()=>{
     ghost.style.top='0';
     ghost.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;
     document.body.appendChild(ghost);
-    const myCol=S.mode==='bot'?'w':S.myCol;
+    const myCol=isSingleEngineMode()?'w':S.myCol;
     const isLocal=S.mode==='local';
     if((isLocal || S.turn===myCol)&&!S.busy){
       S.sel=[r,c];
@@ -8352,8 +9188,8 @@ const DRAG=(()=>{
     _cancelDrag();
     if(!to){S.sel=null;S.legal=[];S.preMoveSelFr=null;R.board();return;}
     if(to[0]===fr[0]&&to[1]===fr[1]){S.sel=null;S.legal=[];R.board();return;}
-    const myCol=S.mode==='bot'?'w':S.myCol;
-    const isPreMoveTurn=(S.mode==='bot'&&S.turn==='b')||
+    const myCol=isSingleEngineMode()?'w':S.myCol;
+    const isPreMoveTurn=(isSingleEngineMode()&&S.turn==='b')||
                         (isRemoteMatchMode()&&S.turn!==S.myCol);
     if(isPreMoveTurn){
       const fakeLegal=E.legal(S.bd,fr[0],fr[1],S.cas,S.ep);
@@ -8590,10 +9426,10 @@ function saveSettingsUsername(){
 
 function updatePlayerNamesInGame(){
   const playerName=Cfg.data.playerName||'أنت';
-  // Update level mode name
-  if(S.levelId>=0){
+  // Update player-facing offline modes
+  if(S.levelId>=0||isStockfishMode()){
     const nmW=document.getElementById('nm-w');
-    if(nmW)nmW.textContent=playerName; // Always update nm-w in levels mode
+    if(nmW)nmW.textContent=playerName;
   }
   // Update remote mode name
   if(isRemoteMatchMode()){
