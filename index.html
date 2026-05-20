@@ -3059,8 +3059,8 @@ body[data-ui-theme="glass"] .mc-tag{
     <div class="mc" data-mode="engine" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.open()">
       <span class="mc-tag">STOCKFISH</span>
       <span class="mc-ic ic-blue">â™ں</span>
-      <div class="mc-t">ط¶ط¯ ط§ظ„ظ…ط­ط±ظƒ</div>
-      <div class="mc-d">ط§ط®طھط± ظ‚ظˆط© Stockfish ظˆط®ط¶ ظ…ظˆط§ط¬ظ‡ط© AI ظƒط§ظ…ظ„ط© ط£ظˆظپظ„ط§ظٹظ†</div>
+      <div class="mc-t">ضد المحرك</div>
+      <div class="mc-d">اختر قوة Stockfish وخض مواجهة AI كاملة أوفلاين</div>
       <span class="mc-b bb">AI Match â—ˆ</span>
     </div>
     <div class="mc" data-mode="local" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
@@ -3531,8 +3531,8 @@ body[data-ui-theme="glass"] .mc-tag{
     <div class="engine-card-head">
       <div>
         <div class="engine-kicker">STOCKFISH OFFLINE</div>
-        <div class="engine-title">ط§ط®طھط± ظ‚ظˆط© ط§ظ„ظ…ط­ط±ظƒ</div>
-        <div class="engine-subtitle">ظˆط¶ط¹ ط£ظˆظپظ„ط§ظٹظ† ظƒط§ظ…ظ„ ظ…ط¹ Stockfish ظˆط¯ط¹ظ… ظƒط§ظ…ظ„ ظ„ظ„ظ…ط³ط§ط¹ط¯ ظˆط§ظ„ظ…ط±ط§ط¬ط¹ط©</div>
+        <div class="engine-title">اختر قوة المحرك</div>
+        <div class="engine-subtitle">وضع أوفلاين كامل مع Stockfish ودعم كامل للمساعد والمراجعة</div>
       </div>
       <button class="engine-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">âœ•</button>
     </div>
@@ -3540,8 +3540,8 @@ body[data-ui-theme="glass"] .mc-tag{
     <div class="engine-versus">
       <div class="engine-side player">
         <div class="engine-avatar player" id="engine-player-avatar">â™™</div>
-        <div class="engine-name" id="engine-player-name">ط£ظ†طھ</div>
-        <div class="engine-role">ط§ظ„ظ„ط§ط¹ط¨</div>
+        <div class="engine-name" id="engine-player-name">أنت</div>
+        <div class="engine-role">اللاعب</div>
       </div>
       <div class="engine-vs-badge">VS</div>
       <div class="engine-side ai">
@@ -3556,7 +3556,7 @@ body[data-ui-theme="glass"] .mc-tag{
     <div class="engine-picker-body">
       <div class="engine-slider-wrap">
         <div class="engine-slider-head">
-          <span>ظ‚ظˆط© ط§ظ„ظ…ط­ط±ظƒ</span>
+          <span>قوة المحرك</span>
           <span class="engine-skill-value" id="engine-skill-value">10 / 20</span>
         </div>
         <input id="engine-skill-input" class="engine-skill-input" type="range" min="0" max="20" step="1" value="10" oninput="ENGINE_PICKER.preview(this.value)">
@@ -3571,29 +3571,29 @@ body[data-ui-theme="glass"] .mc-tag{
 
       <div class="engine-meta-grid">
         <div class="engine-meta-card">
-          <div class="engine-meta-label">ط§ظ„ط¨ط±ظˆظپط§ظٹظ„</div>
-          <div class="engine-meta-value" id="engine-skill-name">ظ…طھظˆط§ط²ظ†</div>
+          <div class="engine-meta-label">البروفايل</div>
+          <div class="engine-meta-value" id="engine-skill-name">متوازن</div>
         </div>
         <div class="engine-meta-card">
           <div class="engine-meta-label">Skill Level</div>
           <div class="engine-meta-value" id="engine-skill-level">10</div>
         </div>
         <div class="engine-meta-card">
-          <div class="engine-meta-label">ط¹ظ…ظ‚ ط§ظ„ط¨ط­ط«</div>
+          <div class="engine-meta-label">عمق البحث</div>
           <div class="engine-meta-value" id="engine-skill-depth">8</div>
         </div>
         <div class="engine-meta-card">
-          <div class="engine-meta-label">ط²ظ…ظ† ط§ظ„طھظپظƒظٹط±</div>
+          <div class="engine-meta-label">زمن التفكير</div>
           <div class="engine-meta-value" id="engine-skill-think">900ms</div>
         </div>
       </div>
 
-      <div class="engine-desc" id="engine-skill-desc">ظ…ط³طھظˆظ‰ ظ…طھظˆط§ط²ظ† ظ„ظ…ظˆط§ط¬ظ‡ط© طھط¯ط±ظٹط¨ظٹط© ظ‚ظˆظٹط©.</div>
+      <div class="engine-desc" id="engine-skill-desc">مستوى متوازن لمواجهة تدريبية قوية.</div>
     </div>
 
     <div class="engine-actions">
-      <button class="bgs" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">ط¥ظ„ط؛ط§ط،</button>
-      <button class="bgp review" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.start()">â—ˆ ط§ط¨ط¯ط£ ط§ظ„ظ…ظˆط§ط¬ظ‡ط©</button>
+      <button class="bgs" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">إلغاء</button>
+      <button class="bgp review" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.start()">◈ ابدأ المواجهة</button>
     </div>
   </div>
 </div>
