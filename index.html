@@ -712,6 +712,34 @@ body[data-ui-theme="cyberpunk"] .rv-close{
 .mc{min-height:208px;padding:24px 18px 18px;display:flex;flex-direction:column;justify-content:center;gap:6px;}
 .mc[data-mode="engine"] .mc-ic{font-size:44px;}
 .mc[data-mode="settings"] .mc-ic{font-size:38px;}
+.mc-engine-ic{
+  width:62px;
+  height:62px;
+  margin-inline:auto;
+  margin-bottom:10px;
+  display:grid;
+  place-items:center;
+  padding:8px;
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 30% 28%,rgba(255,255,255,.16),transparent 38%),
+    linear-gradient(145deg,rgba(9,19,33,.96),rgba(12,38,56,.92));
+  border:1px solid rgba(120,240,255,.24);
+  box-shadow:0 14px 26px rgba(0,0,0,.28),0 0 20px rgba(45,212,191,.12);
+}
+.mc-engine-ic img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.32));
+}
+.mc-engine-ic.fallback{
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.14em;
+  color:#b8fff8;
+}
 
 /* Theme Identity Rebuild */
 body[data-ui-theme="amkh"] #banner,
@@ -924,6 +952,48 @@ body[data-ui-theme="cyberpunk"] .bwrap{
   box-shadow:0 0 0 4px rgba(5,12,18,.96),0 0 0 9px rgba(0,255,231,.28),0 0 0 13px rgba(255,32,154,.08),0 30px 70px rgba(0,0,0,.7);
 }
 
+/* Card comfort refinements for high-identity themes */
+body[data-ui-theme="gaming"] .mc{
+  background:
+    radial-gradient(circle at 14% 18%,rgba(0,255,163,.16),transparent 32%),
+    radial-gradient(circle at 86% 84%,rgba(255,122,24,.16),transparent 28%),
+    linear-gradient(145deg,#0c1118 0%,#131a23 44%,#171610 100%) !important;
+  border-color:rgba(255,156,62,.2) !important;
+  box-shadow:0 20px 40px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.03),0 16px 30px rgba(0,255,163,.06);
+}
+body[data-ui-theme="gaming"] .mc::before{
+  background:
+    radial-gradient(circle at 22% 22%,rgba(255,255,255,.09),transparent 18%),
+    linear-gradient(120deg,transparent 0 58%,rgba(255,255,255,.05) 58% 61%,transparent 61% 100%);
+  opacity:.7;
+}
+body[data-ui-theme="gaming"] .mc::after{
+  border-color:rgba(255,179,71,.14);
+  box-shadow:inset 0 0 0 1px rgba(0,255,163,.05);
+}
+body[data-ui-theme="gaming"] .mc-d{color:#d8e6f3;}
+body[data-ui-theme="cyberpunk"] .mc{
+  background:
+    radial-gradient(circle at 14% 18%,rgba(0,255,231,.16),transparent 30%),
+    radial-gradient(circle at 88% 12%,rgba(255,32,154,.14),transparent 26%),
+    linear-gradient(150deg,#081118 0%,#0b1820 42%,#150f22 100%) !important;
+  border-color:rgba(0,255,231,.18) !important;
+  box-shadow:0 20px 46px rgba(0,0,0,.36),0 0 0 1px rgba(147,255,247,.04),0 0 20px rgba(0,255,231,.08);
+}
+body[data-ui-theme="cyberpunk"] .mc::before{
+  background:
+    linear-gradient(rgba(0,255,231,.034) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,32,154,.028) 1px,transparent 1px),
+    radial-gradient(circle at 84% 18%,rgba(255,255,255,.08),transparent 26%);
+  background-size:30px 30px,30px 30px,100% 100%;
+  opacity:.56;
+}
+body[data-ui-theme="cyberpunk"] .mc::after{
+  border-color:rgba(0,255,231,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,32,154,.04);
+}
+body[data-ui-theme="cyberpunk"] .mc-d{color:#d8ebf5;}
+
 body[data-ui-theme="minimal"] .mc,
 body[data-ui-theme="minimal"] .settings-section,
 body[data-ui-theme="minimal"] .lvl-hdr,
@@ -976,8 +1046,20 @@ body[data-ui-theme="glass"] .mc-tag{
 .engine-title{font-size:30px;font-family:'Amiri',serif;color:var(--text);line-height:1.1;}
 .engine-subtitle{margin-top:8px;color:var(--text2);font-size:13px;line-height:1.7;max-width:460px;}
 .engine-close{
-  width:42px;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.1);
-  background:rgba(255,255,255,.04);color:var(--text2);cursor:pointer;font-size:16px;flex-shrink:0;
+  min-height:42px;
+  padding:0 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);
+  color:var(--text2);
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  flex-shrink:0;
 }
 .engine-close:hover{color:var(--text);border-color:rgba(120,240,255,.24);}
 .engine-versus{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-bottom:22px;}
@@ -1609,6 +1691,14 @@ body[data-ui-theme="glass"] .mc-tag{
 .sq:hover .piece{transform:rotate(var(--rot)) scale(1.06);}
 .sq.SL:hover .piece,.sq.SD:hover .piece{transform:rotate(var(--rot)) scale(1.16);}
 .piece.dragging{opacity:0!important;}
+.piece.premove-piece{
+  transition:transform .22s cubic-bezier(.22,.8,.22,1),opacity .18s ease,filter .22s ease;
+  opacity:.92;
+  filter:drop-shadow(0 6px 16px rgba(0,0,0,.34)) drop-shadow(0 0 14px rgba(45,212,191,.16));
+}
+.piece.premove-piece.premove-enter{
+  transform:translate(var(--pm-dx,0px),var(--pm-dy,0px)) rotate(var(--rot)) scale(1.04);
+}
 .drag-ghost{position:fixed;pointer-events:none;z-index:9999;width:calc(var(--sq)*1.15);height:calc(var(--sq)*1.15);background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 8px 20px rgba(0,0,0,.7));transform:translate(-50%,-50%);will-change:transform;left:0;top:0;}
 .ast-star{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:calc(var(--sq)*.38);color:rgba(96,165,250,.9);text-shadow:0 0 10px rgba(96,165,250,.7);pointer-events:none;z-index:5;animation:starPulse 1s ease-in-out infinite;}
 @keyframes starPulse{0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
@@ -1764,6 +1854,29 @@ body[data-ui-theme="glass"] .mc-tag{
 .go-qdot:nth-child(3){animation-delay:.3s;}
 .go-analysis-hero{display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:12px;margin:2px 0;text-align:center;width:100%;}
 .go-analysis-board-wrap{display:flex;align-items:center;justify-content:center;width:100%;margin-inline:auto;}
+.go-analysis-stats{
+  width:min(100%,340px);
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.go-analysis-stats .rv-stat-item{
+  min-width:0;
+  padding:8px 6px;
+}
+.go-analysis-stats .rv-stat-value{
+  font-size:13px;
+}
+.go-engine-phase{
+  width:min(100%,340px);
+  padding:8px 12px;
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06);
+  color:var(--text2);
+  font-size:11px;
+  line-height:1.7;
+}
 .go-nour{padding:12px;border-radius:18px;background:linear-gradient(135deg,rgba(201,168,76,.10),rgba(45,212,191,.08));border:1px solid rgba(201,168,76,.14);text-align:right;position:relative;overflow:hidden;width:100%;}
 .go-nour.comment{padding:12px 11px 11px;min-height:104px;justify-content:flex-start;}
 .go-nour::before{
@@ -2578,8 +2691,12 @@ body[data-ui-theme="glass"] .mc-tag{
 
 /* ══════════ KING CHECK GLOW ══════════ */
 @keyframes kingCheckPulse{
-  0%,100%{transform:translateZ(0) rotate(var(--rot)) scale(1);filter:drop-shadow(0 0 6px rgba(248,113,113,.58)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
-  50%{transform:translateZ(0) rotate(var(--rot)) scale(1.035);filter:drop-shadow(0 0 12px rgba(248,113,113,.9)) drop-shadow(0 0 24px rgba(248,113,113,.34)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  0%,100%{transform:translate3d(0,0,0) rotate(var(--rot)) scale(1);filter:drop-shadow(0 0 6px rgba(248,113,113,.58)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  18%{transform:translate3d(-4%,0,0) rotate(var(--rot)) scale(1.02);}
+  36%{transform:translate3d(4%,0,0) rotate(var(--rot)) scale(1.03);}
+  54%{transform:translate3d(-3%,0,0) rotate(var(--rot)) scale(1.035);}
+  72%{transform:translate3d(3%,0,0) rotate(var(--rot)) scale(1.02);}
+  50%{filter:drop-shadow(0 0 12px rgba(248,113,113,.9)) drop-shadow(0 0 24px rgba(248,113,113,.34)) drop-shadow(0 2px 3px rgba(0,0,0,.5));}
 }
 .piece.king-check{
   animation:kingCheckPulse 1.05s ease-in-out infinite;
@@ -3058,10 +3175,12 @@ body[data-ui-theme="glass"] .mc-tag{
     </div>
     <div class="mc" data-mode="engine" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.open()">
       <span class="mc-tag">STOCKFISH</span>
-      <span class="mc-ic ic-blue">â™ں</span>
+      <span class="mc-ic ic-blue mc-engine-ic">
+        <img src="./StockFish.png" alt="Stockfish" onerror="this.remove();this.parentElement.classList.add('fallback');this.parentElement.textContent='SF';">
+      </span>
       <div class="mc-t">ضد المحرك</div>
       <div class="mc-d">اختر قوة Stockfish وخض مواجهة AI كاملة أوفلاين</div>
-      <span class="mc-b bb">AI Match â—ˆ</span>
+      <span class="mc-b bb">AI Match</span>
     </div>
     <div class="mc" data-mode="local" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
       <span class="mc-tag">LOCAL</span>
@@ -3079,7 +3198,7 @@ body[data-ui-theme="glass"] .mc-tag{
     </div>
 
       </div>
-  <div class="offline-n">◉ LAN المحلي ومراحل نور ولاعبَان يعملون بدون إنترنت عند التشغيل المحلي</div>
+  <div class="offline-n">◉ مراحل نور و لاعبان واللعب ضد المحرك يعملان بالكامل بدون إتصال بالإنترنت</div>
 </div>
 
 <!-- LEVELS -->
@@ -3416,7 +3535,7 @@ body[data-ui-theme="glass"] .mc-tag{
   <div id="board-container" style="display:flex;align-items:center;gap:6px;">
     <div class="bwrap" id="bwrap"><div id="board"></div></div>
   </div>
-  <div class="pbar" id="bar-w">
+<div class="pbar" id="bar-w">
     <div class="pbar-top">
       <div class="pb-l">
         <div class="pb-av av-w">♙</div>
@@ -3430,6 +3549,7 @@ body[data-ui-theme="glass"] .mc-tag{
       <div class="pb-caps" id="cap-w"></div>
       <button class="pb-ast-btn" id="ast-btn-w" onclick="G.toggleAstFor('w')" style="display:none">◈</button>
       <div class="pb-timer" id="tmr-w">—</div>
+      <button class="pb-undo" id="pb-undo-w" onclick="G.undo()" style="display:none">↩</button>
     </div>
     <div class="sc-row" id="scr-w"><span>التقدم: </span><span id="sc-w-val">—</span></div>
   </div>
@@ -3498,7 +3618,7 @@ body[data-ui-theme="glass"] .mc-tag{
         </div>
       </div>
     </div>
-    <div class="go-stage" id="go-stage-review">
+<div class="go-stage" id="go-stage-review">
       <div class="go-kicker-row">
         <span class="go-score-pill" id="go-score-pill-review">1-0</span>
         <span class="go-kicker" id="go-review-kicker">مراجعة سريعة</span>
@@ -3509,6 +3629,25 @@ body[data-ui-theme="glass"] .mc-tag{
         <div class="go-analysis-board-wrap">
           <div id="go-mini-board" class="analysis-mini-board gameover" data-tone="draw"></div>
         </div>
+        <div class="rv-analysis-stats go-analysis-stats">
+          <div class="rv-stat-item">
+            <div class="rv-stat-label">التقدم</div>
+            <div class="rv-stat-value" id="go-stat-progress">0%</div>
+          </div>
+          <div class="rv-stat-item">
+            <div class="rv-stat-label">النقلات</div>
+            <div class="rv-stat-value" id="go-stat-moves">0 / 0</div>
+          </div>
+          <div class="rv-stat-item">
+            <div class="rv-stat-label">Depth</div>
+            <div class="rv-stat-value" id="go-engine-depth">--</div>
+          </div>
+          <div class="rv-stat-item">
+            <div class="rv-stat-label">التقييم</div>
+            <div class="rv-stat-value" id="go-engine-score">--</div>
+          </div>
+        </div>
+        <div class="go-engine-phase" id="go-engine-phase">تهيئة Stockfish</div>
       </div>
       <div class="go-review-note" id="go-review-note"></div>
       <div class="go-qrow" id="go-qload">
@@ -3534,19 +3673,19 @@ body[data-ui-theme="glass"] .mc-tag{
         <div class="engine-title">اختر قوة المحرك</div>
         <div class="engine-subtitle">وضع أوفلاين كامل مع Stockfish ودعم كامل للمساعد والمراجعة</div>
       </div>
-      <button class="engine-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">âœ•</button>
+      <button class="engine-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">← القائمة</button>
     </div>
 
     <div class="engine-versus">
       <div class="engine-side player">
-        <div class="engine-avatar player" id="engine-player-avatar">â™™</div>
+        <div class="engine-avatar player" id="engine-player-avatar">أ</div>
         <div class="engine-name" id="engine-player-name">أنت</div>
         <div class="engine-role">اللاعب</div>
       </div>
       <div class="engine-vs-badge">VS</div>
       <div class="engine-side ai">
         <div class="engine-avatar ai" id="engine-ai-avatar">
-          <img src="./StockFish.png" alt="Stockfish" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent='â™ں';">
+          <img src="./StockFish.png" alt="Stockfish" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent='♞';">
         </div>
         <div class="engine-name">Stockfish</div>
         <div class="engine-role" id="engine-skill-badge">Skill 10</div>
@@ -5929,6 +6068,7 @@ const S={
   snapshots:[],
   preMove:null,
   preMoveSelFr:null,
+  preMovePreview:null,
   dragFrom:null,
   undoStack:[],
   oppImg:null,
@@ -5940,6 +6080,46 @@ const S={
   _goTypeTimer:null,
   _resultToken:0,
 };
+
+function sqEq(a,b){
+  return !!a&&!!b&&a[0]===b[0]&&a[1]===b[1];
+}
+function preMoveEq(move,fr,to){
+  return !!move&&sqEq(move.fr,fr)&&sqEq(move.to,to);
+}
+function clearPreMoveState(){
+  S.preMove=null;
+  S.preMoveSelFr=null;
+  S.preMovePreview=null;
+}
+function setPreMoveOrigin(fr){
+  const piece=S.bd?.[fr[0]]?.[fr[1]];
+  if(!piece){
+    clearPreMoveState();
+    return false;
+  }
+  S.preMoveSelFr=[...fr];
+  S.preMove=null;
+  S.preMovePreview=null;
+  return true;
+}
+function queuePreMove(fr,to,{animate=true}={}){
+  const piece=S.bd?.[fr[0]]?.[fr[1]];
+  if(!piece){
+    clearPreMoveState();
+    return false;
+  }
+  S.preMove={fr:[...fr],to:[...to]};
+  S.preMoveSelFr=null;
+  S.preMovePreview={
+    fr:[...fr],
+    to:[...to],
+    piece,
+    animate:!!animate,
+    animId:(S.preMovePreview?.animId||0)+1
+  };
+  return true;
+}
 
 const CHAT={
   unread:0,
@@ -6784,9 +6964,45 @@ const REV=(()=>{
   let _coachCache={};
   let _analysisKey='';
   let _analysisPromise=null;
+  let _analysisRunId=0;
+  let _analysisObservers=new Set();
+  let _analysisProgressState=null;
+  let _analysisEngineState=null;
 
   function _currentAnalysisKey(){
     return `${S.mode}|${S.levelId}|${S.myCol||'w'}|${(S.snapshots||[]).map(s=>`${s?.turn||''}:${s?.move||''}`).join('|')}`;
+  }
+  function _notifyProgress(observer,payload){
+    if(typeof observer?.onProgress!=='function')return;
+    try{observer.onProgress(payload);}catch(e){}
+  }
+  function _notifyEngine(observer,payload){
+    if(typeof observer?.onEngineInfo!=='function')return;
+    try{observer.onEngineInfo(payload);}catch(e){}
+  }
+  function _addAnalysisObserver({onProgress,onEngineInfo}={}){
+    const observer={
+      onProgress:typeof onProgress==='function'?onProgress:null,
+      onEngineInfo:typeof onEngineInfo==='function'?onEngineInfo:null
+    };
+    if(!observer.onProgress&&!observer.onEngineInfo)return null;
+    _analysisObservers.add(observer);
+    if(_analysisProgressState)_notifyProgress(observer,_analysisProgressState);
+    if(_analysisEngineState)_notifyEngine(observer,_analysisEngineState);
+    return()=>_analysisObservers.delete(observer);
+  }
+  function _broadcastAnalysisProgress(payload){
+    _analysisProgressState=payload?{...payload}:null;
+    _analysisObservers.forEach(observer=>_notifyProgress(observer,_analysisProgressState));
+  }
+  function _broadcastAnalysisEngine(payload){
+    if(!payload){
+      _analysisEngineState=null;
+    }else{
+      const info=(payload.info!==undefined)?payload.info:(_analysisEngineState?.info||null);
+      _analysisEngineState={...payload,info};
+    }
+    _analysisObservers.forEach(observer=>_notifyEngine(observer,_analysisEngineState));
   }
 
   function _ratingsForMoves(moves,color){
@@ -7099,24 +7315,48 @@ const REV=(()=>{
       _emitEngineInfo(onEngineInfo,{
         phase:'تم استخدام تحليل محفوظ',
         processed:(S.snapshots||[]).length,
-        total:(S.snapshots||[]).length
+        total:(S.snapshots||[]).length,
+        info:_analysisEngineState?.info||null
       });
       return _data;
     }
+    const detachObserver=_addAnalysisObserver({onProgress,onEngineInfo});
     if(!force&&_analysisPromise&&_analysisKey===key){
-      return _analysisPromise;
+      try{
+        return await _analysisPromise;
+      }finally{
+        if(detachObserver)detachObserver();
+      }
     }
     _analysisKey=key;
+    _analysisRunId++;
+    const runId=_analysisRunId;
+    const currentObserver=detachObserver?[..._analysisObservers].slice(-1)[0]:null;
+    _analysisObservers=currentObserver?new Set([currentObserver]):new Set();
+    _analysisProgressState=null;
+    _analysisEngineState=null;
     _analysisPromise=(async()=>{
-      const data=await _analyze({onProgress,onEngineInfo});
-      _data=data;
-      _boards=data?.boards||[];
+      const emitProgress=payload=>{
+        if(runId===_analysisRunId)_broadcastAnalysisProgress(payload);
+      };
+      const emitEngine=payload=>{
+        if(runId===_analysisRunId)_broadcastAnalysisEngine(payload);
+      };
+      const data=await _analyze({
+        onProgress:emitProgress,
+        onEngineInfo:emitEngine
+      });
+      if(runId===_analysisRunId&&_analysisKey===key){
+        _data=data;
+        _boards=data?.boards||[];
+      }
       return data;
     })();
     try{
       return await _analysisPromise;
     }finally{
-      _analysisPromise=null;
+      if(detachObserver)detachObserver();
+      if(runId===_analysisRunId)_analysisPromise=null;
     }
   }
 
@@ -7549,6 +7789,10 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
       _coachCache={};
       _analysisKey='';
       _analysisPromise=null;
+      _analysisRunId=0;
+      _analysisObservers.clear();
+      _analysisProgressState=null;
+      _analysisEngineState=null;
     },
     ensureAnalysis,
     goTo(i){goTo(i);},
@@ -7575,11 +7819,10 @@ const AST=(()=>{
       
       setTimeout(async()=>{
         try{
-          // Use Stockfish for best move (depth 6 for faster response)
           const col=S.myCol==='both'?S.turn:S.myCol;
-          // Assistant always uses maximum skill level (30) to be the strongest
-          const skillLevel = 20; // Always maximum available strength for assistant
-          const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,6, skillLevel);
+          const skillLevel=20;
+          const assistDepth=Math.max(20,engineDepthForSkill(skillLevel));
+          const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,assistDepth,skillLevel);
           
           // Convert Stockfish move format to internal format
           let mv=null;
@@ -7678,6 +7921,7 @@ const R={
       this._prevStarEl=null;
     }
     const squares=this._squares;
+    const preMovePreview=S.preMovePreview;
     squares.forEach(sq=>{
       const r=+sq.dataset.r,c=+sq.dataset.c;
       const isL=(r+c)%2===0;
@@ -7692,11 +7936,15 @@ const R={
       if(S.assistOn&&S.astMove&&S.astMove.from[0]===r&&S.astMove.from[1]===c) cls+=' ast-from';
       if(sq.className!==cls) sq.className=cls;
       const piece=sq.querySelector('.piece');
-      const pieceCode=S.bd[r][c];
+      const isPreMoveFrom=!!(preMovePreview&&sqEq(preMovePreview.fr,[r,c]));
+      const isPreMoveTo=!!(preMovePreview&&sqEq(preMovePreview.to,[r,c]));
+      let pieceCode=S.bd[r][c];
+      if(isPreMoveFrom) pieceCode=null;
+      else if(isPreMoveTo) pieceCode=preMovePreview.piece;
       const wantStar=S.assistOn&&S.astMove&&S.astMove.to[0]===r&&S.astMove.to[1]===c;
       const shouldFlipPiece=!!(flip && pieceCode);
       const isDragged=!!(S.dragFrom&&S.dragFrom[0]===r&&S.dragFrom[1]===c);
-      const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'')+(isDragged?' dragging':'');
+      const pieceCls='piece '+pieceCode+(shouldFlipPiece?' turn-flipped':'')+(isDragged?' dragging':'')+(isPreMoveTo?' premove-piece':'');
       if(pieceCode){
         if(!piece||piece.dataset.pc!==pieceCode){
           if(piece)piece.remove();
@@ -7721,8 +7969,28 @@ const R={
         }
       }
     });
+    if(preMovePreview?.animate){
+      requestAnimationFrame(()=>this.animatePreMove());
+    }
   },
   boardReset(){this._boardBuilt=false;this._boardFlip=null;this._prevStarEl=null;this._squares=[];},
+  animatePreMove(){
+    const preview=S.preMovePreview;
+    if(!preview||!preview.animate)return;
+    preview.animate=false;
+    const fromSq=document.querySelector(`#board .sq[data-r="${preview.fr[0]}"][data-c="${preview.fr[1]}"]`);
+    const toSq=document.querySelector(`#board .sq[data-r="${preview.to[0]}"][data-c="${preview.to[1]}"]`);
+    const piece=toSq?.querySelector('.piece.premove-piece');
+    if(!fromSq||!toSq||!piece)return;
+    const fromRect=fromSq.getBoundingClientRect();
+    const toRect=toSq.getBoundingClientRect();
+    piece.style.setProperty('--pm-dx',`${fromRect.left-toRect.left}px`);
+    piece.style.setProperty('--pm-dy',`${fromRect.top-toRect.top}px`);
+    piece.classList.add('premove-enter');
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>piece.classList.remove('premove-enter'));
+    });
+  },
   updateStar(){
     if(this._prevStarEl){try{this._prevStarEl.remove();}catch(e){}this._prevStarEl=null;}
     if(!S.assistOn||!S.astMove)return;
@@ -7890,6 +8158,7 @@ const R={
     const ba=document.getElementById('btn-ast'),dot=document.getElementById('ast-dot'),bh=document.getElementById('btn-hint');
     const bu=document.getElementById('btn-undo');
     const pbUndoB=document.getElementById('pb-undo-b');
+    const pbUndoW=document.getElementById('pb-undo-w');
     if(bu){
       if(S.mode==='local'){
         bu.style.display='';
@@ -7900,12 +8169,21 @@ const R={
       }
     }
     if(pbUndoB){
-      if(S.mode==='local'||isSingleEngineMode()){
+      if(S.mode==='local'){
         pbUndoB.style.display='';
         pbUndoB.disabled=S.undoStack.length===0;
         pbUndoB.style.opacity=S.undoStack.length===0?'0.3':'1';
       }else{
         pbUndoB.style.display='none';
+      }
+    }
+    if(pbUndoW){
+      if(isSingleEngineMode()){
+        pbUndoW.style.display='';
+        pbUndoW.disabled=S.undoStack.length===0;
+        pbUndoW.style.opacity=S.undoStack.length===0?'0.3':'1';
+      }else{
+        pbUndoW.style.display='none';
       }
     }
     if(ba){
@@ -8034,6 +8312,11 @@ const G={
     const reviewKicker=document.getElementById('go-review-kicker');
     const stageTitle=document.getElementById('go-stage-title');
     const loadLabel=document.getElementById('go-qload').querySelector('.go-qsf');
+    const progressEl=document.getElementById('go-stat-progress');
+    const movesEl=document.getElementById('go-stat-moves');
+    const depthEl=document.getElementById('go-engine-depth');
+    const scoreEl=document.getElementById('go-engine-score');
+    const phaseEl=document.getElementById('go-engine-phase');
     document.getElementById('go-score-pill').textContent=score;
     document.getElementById('go-score-pill-review').textContent=score;
     if(commentKicker)commentKicker.textContent=isEngine?'تعليق نور بعد مواجهة المحرك':'تعليق نور';
@@ -8043,6 +8326,11 @@ const G={
     document.getElementById('go-review-sub').textContent=result.message||result.statusLine||'انتهت المباراة';
     document.getElementById('go-qload').style.display='flex';
     if(loadLabel)loadLabel.textContent=isEngine?'Stockfish يجهّز تفكيك المواجهة…':'Stockfish يجهّز مراجعة المباراة…';
+    if(progressEl)progressEl.textContent='0%';
+    if(movesEl)movesEl.textContent='0 / 0';
+    if(depthEl)depthEl.textContent='--';
+    if(scoreEl)scoreEl.textContent='--';
+    if(phaseEl)phaseEl.textContent='تهيئة Stockfish';
     document.getElementById('go-next').style.display=result.allowNext?'inline-flex':'none';
   },
   _openQuickReview(){
@@ -8051,6 +8339,11 @@ const G={
     const token=S._resultToken;
     const comment=this._buildQuickComment(result);
     const reviewNote=document.getElementById('go-review-note');
+    const progressEl=document.getElementById('go-stat-progress');
+    const movesEl=document.getElementById('go-stat-moves');
+    const depthEl=document.getElementById('go-engine-depth');
+    const scoreEl=document.getElementById('go-engine-score');
+    const phaseEl=document.getElementById('go-engine-phase');
     if(reviewNote)reviewNote.textContent=result.detail||comment;
     this._primeQuickReview(result);
     this._setQuickStage('comment');
@@ -8073,7 +8366,24 @@ const G={
       },700);
     });
     if(S.hist.length>=4){
-      REV.ensureAnalysis().then(data=>{
+      REV.ensureAnalysis({
+        onProgress:({processed,total})=>{
+          const safeTotal=Math.max(total||1,1);
+          const safeProcessed=Math.min(processed||0,safeTotal);
+          if(progressEl)progressEl.textContent=`${Math.round((safeProcessed/safeTotal)*100)}%`;
+          if(movesEl)movesEl.textContent=`${safeProcessed} / ${safeTotal}`;
+        },
+        onEngineInfo:({phase,processed,total,info})=>{
+          if(phaseEl&&phase)phaseEl.textContent=phase;
+          if(movesEl&&Number.isFinite(processed)&&Number.isFinite(total)){
+            movesEl.textContent=`${processed} / ${total}`;
+          }
+          if(depthEl&&Number.isFinite(info?.depth)){
+            depthEl.textContent=`${info.depth}${Number.isFinite(info.selDepth)?`/${info.selDepth}`:''}`;
+          }
+          if(scoreEl&&info)scoreEl.textContent=_formatEngineScore(info);
+        }
+      }).then(data=>{
         if(token!==S._resultToken||!S.endState)return;
         const load=document.getElementById('go-qload');
         const label=load?.querySelector('.go-qsf');
@@ -8119,11 +8429,34 @@ const G={
       }));
     }
     const reviewNote=document.getElementById('go-review-note');
+    const progressEl=document.getElementById('go-stat-progress');
+    const movesEl=document.getElementById('go-stat-moves');
+    const depthEl=document.getElementById('go-engine-depth');
+    const scoreEl=document.getElementById('go-engine-score');
+    const phaseEl=document.getElementById('go-engine-phase');
     if(reviewNote)reviewNote.textContent=S.endState.detail||this._buildQuickComment(S.endState);
     const label=document.getElementById('go-qload')?.querySelector('.go-qsf');
     if(label){
       if(S.hist.length>=4){
         label.textContent=isStockfishMode()?'يمكنك متابعة تفكيك مواجهة Stockfish أو فتحه بالكامل':'يمكنك متابعة مراجعة المباراة أو فتحها بالكامل';
+        REV.ensureAnalysis({
+          onProgress:({processed,total})=>{
+            const safeTotal=Math.max(total||1,1);
+            const safeProcessed=Math.min(processed||0,safeTotal);
+            if(progressEl)progressEl.textContent=`${Math.round((safeProcessed/safeTotal)*100)}%`;
+            if(movesEl)movesEl.textContent=`${safeProcessed} / ${safeTotal}`;
+          },
+          onEngineInfo:({phase,processed,total,info})=>{
+            if(phaseEl&&phase)phaseEl.textContent=phase;
+            if(movesEl&&Number.isFinite(processed)&&Number.isFinite(total)){
+              movesEl.textContent=`${processed} / ${total}`;
+            }
+            if(depthEl&&Number.isFinite(info?.depth)){
+              depthEl.textContent=`${info.depth}${Number.isFinite(info.selDepth)?`/${info.selDepth}`:''}`;
+            }
+            if(scoreEl&&info)scoreEl.textContent=_formatEngineScore(info);
+          }
+        }).catch(()=>{});
       }else{
         label.textContent=isStockfishMode()?'تفكيك Stockfish يصبح أدق بعد مواجهة أطول':'المراجعة الكاملة تصبح أفضل بعد مباراة أطول';
       }
@@ -8160,7 +8493,7 @@ const G={
     S.snapshots=[];
     S._quickDone=false;
     S.endState=null;
-    S.preMove=null;S.preMoveSelFr=null;
+    clearPreMoveState();
     S.undoStack=[];
     S.oppImg=null; // Reset opponent image for every new game
     S._engineTimer=null;
@@ -8223,8 +8556,7 @@ const G={
     if(isWaitingTurn){
       const myCol=isSingleEngineMode()?'w':S.myCol;
       if(S.bd[r][c]&&E.col(S.bd[r][c])===myCol){
-        S.preMoveSelFr=[r,c];
-        S.preMove=null;
+        setPreMoveOrigin([r,c]);
         R.board();
         return;
       }
@@ -8232,16 +8564,15 @@ const G={
         const fr=S.preMoveSelFr;
         const fakeLegal=E.legal(S.bd,fr[0],fr[1],S.cas,S.ep);
         if(fakeLegal.some(([lr,lc])=>lr===r&&lc===c)){
-          S.preMove={fr,to:[r,c]};
-          S.preMoveSelFr=null;
+          queuePreMove(fr,[r,c]);
           R.board();
         }else{
-          S.preMove=null;S.preMoveSelFr=null;
+          clearPreMoveState();
           R.board();
         }
         return;
       }
-      S.preMove=null;S.preMoveSelFr=null;
+      clearPreMoveState();
       R.board();
       return;
     }
@@ -8268,7 +8599,8 @@ const G={
   async applyMove(fr,to,promo){
     const cl=E.col(S.bd[fr[0]][fr[1]]);
     const isOwnMove=!isRemoteMatchMode()||(S.turn===S.myCol);
-    if(isOwnMove){S.preMove=null;S.preMoveSelFr=null;}
+    const usingQueuedPreMove=isOwnMove&&preMoveEq(S.preMove,fr,to);
+    if(isOwnMove&&!usingQueuedPreMove)clearPreMoveState();
     const shouldStoreUndo=S.mode==='local'||(isSingleEngineMode()&&S.turn==='w');
     if(shouldStoreUndo){
       S.undoStack.push({
@@ -8292,6 +8624,7 @@ const G={
     S.hist.push(E.notation(S.bd,fr,to,promo));
     S.bd=res.bd;S.cas=res.cas;S.ep=res.ep;
     S.lastMove={from:fr,to};S.sel=null;S.legal=[];
+    if(usingQueuedPreMove)clearPreMoveState();
     AST.clear();
     if(S.turn==='w')S.moveCount++;
     S.turn=E.opp(S.turn);
@@ -8469,14 +8802,18 @@ const G={
         }
       },thinkDelay);
     }else{
-      if(isRemoteMatchMode()&&S.preMove&&S.turn===S.myCol){
+      const canAutoRunPreMove=S.preMove&&(
+        (isRemoteMatchMode()&&S.turn===S.myCol)||
+        (isSingleEngineMode()&&S.turn==='w')
+      );
+      if(canAutoRunPreMove){
         const pm=S.preMove;
-        S.preMove=null;S.preMoveSelFr=null;
         const stillLegal=E.legal(S.bd,pm.fr[0],pm.fr[1],S.cas,S.ep)
           .some(([lr,lc])=>lr===pm.to[0]&&lc===pm.to[1]);
         if(stillLegal){
           setTimeout(()=>{this.exec(pm.fr,pm.to);},80);
         }else{
+          clearPreMoveState();
           R.board();
           AST.compute();
         }
@@ -9109,8 +9446,7 @@ const DRAG=(()=>{
       S.sel=[r,c];
       S.legal=E.legal(S.bd,r,c,S.cas,S.ep);
     }else{
-      S.preMoveSelFr=[r,c];
-      S.preMove=null;
+      setPreMoveOrigin([r,c]);
       S.sel=null; S.legal=[];
     }
     R.board();
@@ -9186,17 +9522,16 @@ const DRAG=(()=>{
   function _dropAt(x,y,fr){
     const to=_sqFromPoint(x,y);
     _cancelDrag();
-    if(!to){S.sel=null;S.legal=[];S.preMoveSelFr=null;R.board();return;}
-    if(to[0]===fr[0]&&to[1]===fr[1]){S.sel=null;S.legal=[];R.board();return;}
-    const myCol=isSingleEngineMode()?'w':S.myCol;
+    if(!to){S.sel=null;S.legal=[];clearPreMoveState();R.board();return;}
+    if(to[0]===fr[0]&&to[1]===fr[1]){S.sel=null;S.legal=[];clearPreMoveState();R.board();return;}
     const isPreMoveTurn=(isSingleEngineMode()&&S.turn==='b')||
                         (isRemoteMatchMode()&&S.turn!==S.myCol);
     if(isPreMoveTurn){
       const fakeLegal=E.legal(S.bd,fr[0],fr[1],S.cas,S.ep);
       if(fakeLegal.some(([lr,lc])=>lr===to[0]&&lc===to[1])){
-        S.preMove={fr,to};S.preMoveSelFr=null;
+        queuePreMove(fr,to);
       }else{
-        S.preMove=null;S.preMoveSelFr=null;
+        clearPreMoveState();
       }
       R.board();return;
     }
