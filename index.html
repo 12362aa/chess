@@ -293,7 +293,7 @@ body[data-ui-theme="cyberpunk"] .rv-loadcard{
   box-shadow:0 14px 32px rgba(0,0,0,.28),0 0 0 1px rgba(255,32,154,.06),0 0 26px rgba(0,255,231,.07);
 }
 body[data-ui-theme="cyberpunk"] .pbar.myturn{
-  box-shadow:0 0 0 1px rgba(255,32,154,.16),0 0 26px rgba(0,255,231,.12),0 14px 28px rgba(0,0,0,.28);
+  box-shadow:none;
 }
 body[data-ui-theme="gaming"] #banner{
   background:linear-gradient(90deg,rgba(9,12,18,.96),rgba(26,16,10,.94)) !important;
@@ -320,7 +320,7 @@ body[data-ui-theme="gaming"] .rv-loadcard{
   box-shadow:0 14px 32px rgba(0,0,0,.28),0 0 0 1px rgba(0,255,163,.05),0 0 24px rgba(255,122,24,.08);
 }
 body[data-ui-theme="gaming"] .pbar.myturn{
-  box-shadow:0 0 0 1px rgba(255,179,71,.16),0 0 22px rgba(0,255,163,.12),0 14px 28px rgba(0,0,0,.28);
+  box-shadow:none;
 }
 body[data-ui-theme="anime"] #banner{
   background:
@@ -354,16 +354,11 @@ body[data-ui-theme="anime"] .pbar{
   overflow:hidden;
 }
 body[data-ui-theme="anime"] .pbar::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(120deg,transparent 8%,rgba(255,255,255,.08) 46%,transparent 74%);
-  transform:translateX(-130%);
-  animation:animePanelSweep 5.2s ease-in-out infinite;
-  pointer-events:none;
+  content:none;
+  animation:none;
 }
 body[data-ui-theme="anime"] .pbar.myturn{
-  box-shadow:0 0 0 1px rgba(255,151,204,.16),0 0 22px rgba(120,240,255,.12),0 14px 28px rgba(0,0,0,.28);
+  box-shadow:none;
 }
 @keyframes animePanelSweep{
   0%,74%,100%{transform:translateX(-130%);}
@@ -403,19 +398,8 @@ body[data-ui-theme="gaming"] .settings-section::before{
   pointer-events:none;
 }
 body[data-ui-theme="gaming"] .mc::after{
-  content:'READY';
-  position:absolute;
-  top:12px;
-  left:14px;
-  padding:4px 10px;
-  border-radius:999px;
-  background:rgba(0,255,163,.12);
-  color:#9cffd8;
-  font-size:10px;
-  font-weight:900;
-  letter-spacing:.18em;
-  border:1px solid rgba(0,255,163,.16);
-  pointer-events:none;
+  content:none;
+  display:none;
 }
 body[data-ui-theme="gaming"] .mc-t,
 body[data-ui-theme="gaming"] .gmlbl{
@@ -443,13 +427,8 @@ body[data-ui-theme="gaming"] .pbar{
   overflow:hidden;
 }
 body[data-ui-theme="gaming"] .pbar::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(120deg,transparent 10%,rgba(255,255,255,.07) 46%,transparent 72%);
-  transform:translateX(-130%);
-  animation:animePanelSweep 5.6s ease-in-out infinite;
-  pointer-events:none;
+  content:none;
+  animation:none;
 }
 
 body[data-ui-theme="anime"] .logo-t{
@@ -707,6 +686,7 @@ body[data-ui-theme="cyberpunk"] .rv-close{
   border:1px solid rgba(255,255,255,.08);
   color:var(--text2);
   z-index:2;
+  display:none!important;
 }
 .mode-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;max-width:920px;}
 .mc{min-height:208px;padding:24px 18px 18px;display:flex;flex-direction:column;justify-content:center;gap:6px;}
@@ -1558,7 +1538,7 @@ body[data-ui-theme="glass"] .mc-tag{
 .bsm:hover{border-color:rgba(201,168,76,.36);background:rgba(201,168,76,.06);transform:scale(1.03);}
 .gmlbl{flex:1;text-align:center;font-size:11px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-inline-end:auto;}
 .pbar{width:var(--board);max-width:var(--board);background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:11px;overflow:hidden;transition:border-color .3s,background .3s,box-shadow .3s;}
-.pbar.myturn{border-color:rgba(201,168,76,.38);background:rgba(201,168,76,.04);box-shadow:0 0 20px rgba(201,168,76,.08),0 0 0 1px rgba(201,168,76,.05);}
+.pbar.myturn{border-color:rgba(201,168,76,.38);background:rgba(201,168,76,.04);box-shadow:none;}
 .pbar-top{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;}
 .pb-l{display:flex;align-items:center;gap:6px;}
 .pb-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;transition:transform .3s;}
@@ -1570,21 +1550,26 @@ body[data-ui-theme="glass"] .mc-tag{
 .pb-turn.show{visibility:visible;}
 .pb-result{
   display:none;
-  width:24px;
-  height:24px;
-  margin-top:3px;
-  border-radius:8px;
+  min-width:20px;
+  height:auto;
+  margin-top:0;
+  padding:0;
+  border-radius:0;
   align-items:center;
   justify-content:center;
-  font-size:13px;
+  font-size:17px;
   font-weight:900;
-  border:1px solid transparent;
+  line-height:1;
+  border:none;
+  background:transparent;
+  box-shadow:none;
+  text-shadow:0 2px 8px rgba(0,0,0,.28);
 }
 .pb-result.show{display:inline-flex;}
 .pb-result::before{display:block;line-height:1;}
-.pb-result.win{background:rgba(250,204,21,.16);border-color:rgba(250,204,21,.3);color:#fde68a;box-shadow:0 0 14px rgba(250,204,21,.14);}
-.pb-result.loss{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.22);color:#fca5a5;}
-.pb-result.draw{background:rgba(148,163,184,.14);border-color:rgba(148,163,184,.22);color:#e2e8f0;}
+.pb-result.win{color:#facc15;text-shadow:0 0 10px rgba(250,204,21,.2),0 2px 8px rgba(0,0,0,.28);}
+.pb-result.loss{color:#f87171;text-shadow:0 0 10px rgba(248,113,113,.16),0 2px 8px rgba(0,0,0,.28);}
+.pb-result.draw{color:#e2e8f0;text-shadow:0 0 10px rgba(148,163,184,.14),0 2px 8px rgba(0,0,0,.28);}
 .pb-ast{font-size:9px;padding:1px 6px;border-radius:10px;margin-top:1px;display:inline-block;background:transparent;border:1px solid transparent;color:transparent;min-height:14px;}
 .pb-ast.on{background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
 .pb-ast.spy{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
@@ -1599,14 +1584,14 @@ body[data-ui-theme="glass"] .mc-tag{
 .pb-undo:hover{border-color:rgba(201,168,76,.4);color:var(--gold2);}
 .pb-undo:disabled{opacity:.3;cursor:not-allowed;}
 .pb-timer{font-family:'Amiri',serif;font-size:16px;font-weight:700;color:var(--gold2);min-width:42px;text-align:center;}
-.pbar.is-win{border-color:rgba(250,204,21,.34);box-shadow:0 0 24px rgba(250,204,21,.08),0 0 0 1px rgba(250,204,21,.08);}
+.pbar.is-win{border-color:rgba(250,204,21,.34);box-shadow:none;}
 .pbar.is-loss{border-color:rgba(248,113,113,.24);background:rgba(248,113,113,.03);}
 .pbar.is-draw{border-color:rgba(148,163,184,.22);background:rgba(148,163,184,.04);}
 .sc-row{padding:1px 10px 4px;font-size:10px;color:var(--text2);display:none;}
 .sc-row.show{display:flex;align-items:center;gap:5px;}
 .sc-lead{color:var(--green);font-weight:700;}
 .sc-behind{color:var(--red);font-weight:700;}
-.gtbar{display:flex;gap:7px;width:100%;max-width:min(100vw,600px);}
+.gtbar{display:flex;gap:7px;width:100%;max-width:min(100vw,600px);margin-top:4px;}
 .tbb2{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 6px;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:var(--bg2);font-family:'Cairo',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text2);}
 .tbb2:hover{background:var(--bg3);transform:scale(1.02);}
 .tbb2.ast-on{border-color:rgba(96,165,250,.44);background:rgba(96,165,250,.08);color:var(--blue);box-shadow:0 0 10px rgba(96,165,250,.1);}
@@ -2240,14 +2225,8 @@ body[data-ui-theme="glass"] .mc-tag{
 }
 
 [data-theme="anime"] .pbar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.4), 
-    transparent);
-  animation: animeBarShine 4s linear infinite;
+  content:none;
+  animation:none;
 }
 
 /* Japanese anime animations */
@@ -2769,7 +2748,7 @@ body[data-ui-theme="glass"] .mc-tag{
   #board-container{grid-column:2; grid-row:3; justify-self:center; align-self:center;}
 
   /* عناصر تحت الرقعة */
-  .gtbar {grid-column:2; grid-row:4; width:var(--board)!important; max-width:var(--board)!important;}
+  .gtbar {grid-column:2; grid-row:4; width:var(--board)!important; max-width:var(--board)!important; margin-top:12px;}
   .sbar  {grid-column:2; grid-row:5; width:var(--board)!important; max-width:var(--board)!important;}
   .mvhist{grid-column:2; grid-row:6; width:var(--board)!important; max-width:var(--board)!important;}
 
@@ -5145,6 +5124,11 @@ const LEVELS_DEF=[
 // ══════════════════════════════════════
 // CUSTOM MODAL SYSTEM (replacing alert/confirm)
 // ══════════════════════════════════════
+LEVELS_DEF[7]={...LEVELS_DEF[7],depth:9,skill:16,random:0.01};
+LEVELS_DEF[8]={...LEVELS_DEF[8],depth:12,skill:18,random:0};
+LEVELS_DEF[9]={...LEVELS_DEF[9],depth:14,skill:19,random:0};
+LEVELS_DEF[10]={...LEVELS_DEF[10],depth:17,skill:20,random:0};
+LEVELS_DEF[11]={...LEVELS_DEF[11],depth:20,skill:20,random:0};
 const ENGINE_AVATAR_FILE='StockFish.png';
 const ENGINE_TIER_RULES=[
   {min:0,max:2,title:'متساهل',description:'يرتكب أخطاء كثيرة ومناسب للتجربة الأولى مع المحرك.'},
@@ -5725,6 +5709,7 @@ const SF=(()=>{
       const skill=_normalizeSkill(job.skillLevel);
       _worker.postMessage('ucinewgame');
       _worker.postMessage('setoption name MultiPV value 1');
+      _worker.postMessage('setoption name Hash value 64');
       _worker.postMessage('setoption name UCI_LimitStrength value false');
       _worker.postMessage('setoption name Skill Level value '+(skill===null?20:skill));
       _worker.postMessage('position fen '+job.fen);
@@ -6148,7 +6133,7 @@ const CHAT={
     }
     return bytes.buffer;
   },
-  _addMsg(text,type,isVoice=false,audioData=null){
+  _addMsg(text,type,isVoice=false,audioData=null,audioMime=''){
     const el=document.getElementById('chat-msgs');
     if(!el)return;
     const _snapToLatest=()=>{
@@ -6167,7 +6152,8 @@ const CHAT={
       if(audioData){
         bubble.dataset.audio=audioData;
         bubble.dataset.duration=durSec;
-        bubble.onclick=()=>this._playVoice(audioData,bubble);
+        if(audioMime)bubble.dataset.mime=audioMime;
+        bubble.onclick=()=>this._playVoice(audioData,bubble,audioMime||bubble.dataset.mime||'');
       }
     }else{
       bubble.className='chat-msg '+type;
@@ -6384,8 +6370,8 @@ ${pn}: ${txt}
     }
   },
   recv(text){this._addMsg(text,'opp');},
-  recvVoice(audioBase64,durationSec){
-    this._addMsg(durationSec+'','opp',true,audioBase64);
+  recvVoice(audioBase64,durationSec,audioMime=''){
+    this._addMsg(durationSec+'','opp',true,audioBase64,audioMime);
     if(document.hidden){
       Notifications.send('رسالة صوتية',{body:'وصلتك رسالة صوتية من الخصم'});
     }
@@ -6422,7 +6408,12 @@ ${pn}: ${txt}
       }
     });
     this._recStream=stream;
-    this._recorder=new MediaRecorder(stream,{mimeType:'audio/webm;codecs=opus'});
+    const preferredMimes=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus','audio/ogg'];
+    const supportsMime=(mime)=>{
+      try{return typeof MediaRecorder!=='undefined'&&typeof MediaRecorder.isTypeSupported==='function'&&MediaRecorder.isTypeSupported(mime);}catch(e){return false;}
+    };
+    const chosenMime=preferredMimes.find(supportsMime)||'';
+    this._recorder=new MediaRecorder(stream,chosenMime?{mimeType:chosenMime}:{});
     this._audioChunks=[];
     this._recordStartTime=Date.now();
     
@@ -6437,13 +6428,14 @@ ${pn}: ${txt}
         return;
       }
       
-      const blob=new Blob(this._audioChunks,{type:'audio/webm'});
+      const audioMime=this._recorder?.mimeType||chosenMime||'audio/webm';
+      const blob=new Blob(this._audioChunks,{type:audioMime});
       const reader=new FileReader();
       reader.onloadend=()=>{
         const arrayBuffer=reader.result;
         const base64Data=this._arrayBufferToBase64(arrayBuffer);
-        this._addMsg(durationSec+'','me',true,base64Data);
-        if(S.mode==='online')OL.sendVoice(base64Data,durationSec);
+        this._addMsg(durationSec+'','me',true,base64Data,audioMime);
+        if(S.mode==='online')OL.sendVoice(base64Data,durationSec,audioMime);
       };
       reader.onerror=()=>{
         Modal.show('فشل في معالجة التسجيل','تنبيه','✕');
@@ -6485,7 +6477,8 @@ ${pn}: ${txt}
     if(micIcon)micIcon.style.display='';
     if(recTimer){recTimer.style.display='none';recTimer.textContent='0:00';}
   },
-  _playVoice(audioBase64,msgEl){
+  _playVoice(audioBase64,msgEl,audioMime=''){
+    return this._playVoiceCompat(audioBase64,msgEl,audioMime);
     try{
       if(this._playRaf){
         cancelAnimationFrame(this._playRaf);
@@ -6558,6 +6551,108 @@ ${pn}: ${txt}
       Modal.show('خطأ في تشغيل الصوت','تنبيه','✕');
       if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
       if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
+    }
+  },
+  _playVoiceCompat(audioBase64,msgEl,audioMime=''){
+    try{
+      if(this._playRaf){
+        cancelAnimationFrame(this._playRaf);
+        this._playRaf=0;
+      }
+      if(this._currentAudio&&!this._currentAudio.paused){
+        try{
+          if(this._currentAudio._objUrl) URL.revokeObjectURL(this._currentAudio._objUrl);
+        }catch(e){}
+        this._currentAudio.pause();
+        this._currentAudio.currentTime=0;
+      }
+      const bar=msgEl?.querySelector('.v-bar');
+      const playIcon=msgEl?.querySelector('.v-play');
+      if(this._currentBarEl)this._currentBarEl.style.setProperty('--prog','0%');
+      this._currentBarEl=bar||null;
+      if(msgEl&&msgEl.dataset&&msgEl.dataset._playing==='1')return;
+      if(msgEl&&msgEl.dataset)msgEl.dataset._playing='1';
+      if(playIcon)playIcon.textContent='âڈ¸';
+      if(bar)bar.style.setProperty('--prog','0%');
+      const arrayBuffer=this._base64ToArrayBuffer(audioBase64);
+      const mimeCandidates=[
+        audioMime,
+        msgEl?.dataset?.mime||'',
+        this._detectMimeType(audioBase64)||'',
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/ogg;codecs=opus',
+        'audio/ogg'
+      ].filter((mime,idx,list)=>mime&&list.indexOf(mime)===idx);
+      const storedDur=parseInt(msgEl?.dataset?.duration)||0;
+      const fail=()=>{
+        if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
+        if(bar)bar.style.setProperty('--prog','0%');
+        if(playIcon)playIcon.textContent='â–¶';
+        this._currentAudio=null;
+        if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
+        Modal.show('ظ„ط§ ظٹظ…ظƒظ† طھط´ط؛ظٹظ„ ط§ظ„ط±ط³ط§ظ„ط© ط§ظ„طµظˆطھظٹط©','طھظ†ط¨ظٹظ‡','âœ•');
+      };
+      const tick=()=>{
+        const audio=this._currentAudio;
+        if(!audio||audio.paused||audio.ended){
+          this._playRaf=0;
+          return;
+        }
+        const dur=storedDur>0?storedDur:((typeof audio.duration==='number'&&isFinite(audio.duration)&&audio.duration>0)?audio.duration:0);
+        if(dur>0&&bar){
+          const pct=Math.max(0,Math.min(100,(audio.currentTime/dur)*100));
+          bar.style.setProperty('--prog',pct+'%');
+        }
+        this._playRaf=requestAnimationFrame(tick);
+      };
+      const tryMime=(idx=0)=>{
+        const mimeType=mimeCandidates[idx];
+        if(!mimeType){
+          fail();
+          return;
+        }
+        const blob=new Blob([arrayBuffer],{type:mimeType});
+        const url=URL.createObjectURL(blob);
+        const audio=new Audio(url);
+        audio.preload='metadata';
+        audio._objUrl=url;
+        this._currentAudio=audio;
+        audio.onplaying=()=>{ this._playRaf=requestAnimationFrame(tick); };
+        audio.onloadedmetadata=()=>{ if(bar)bar.style.setProperty('--prog','0%'); };
+        audio.onended=()=>{
+          try{ URL.revokeObjectURL(url); }catch(e){}
+          if(bar)bar.style.setProperty('--prog','0%');
+          if(playIcon)playIcon.textContent='â–¶';
+          this._currentAudio=null;
+          if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
+          if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
+        };
+        audio.onpause=()=>{
+          if(playIcon)playIcon.textContent='â–¶';
+          if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
+          if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
+        };
+        let movedOn=false;
+        const next=()=>{
+          if(movedOn)return;
+          movedOn=true;
+          try{ URL.revokeObjectURL(url); }catch(e){}
+          if(idx+1<mimeCandidates.length){
+            tryMime(idx+1);
+            return;
+          }
+          fail();
+        };
+        audio.onerror=next;
+        audio.play().catch(next);
+      };
+      tryMime();
+    }catch(e){
+      if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
+      if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
+      Modal.show('ط®ط·ط£ ظپظٹ طھط´ط؛ظٹظ„ ط§ظ„طµظˆطھ','طھظ†ط¨ظٹظ‡','âœ•');
     }
   },
   _detectMimeType(base64){
@@ -7821,7 +7916,7 @@ const AST=(()=>{
         try{
           const col=S.myCol==='both'?S.turn:S.myCol;
           const skillLevel=20;
-          const assistDepth=Math.max(20,engineDepthForSkill(skillLevel));
+          const assistDepth=Math.max(10,Math.min(12,engineDepthForSkill(skillLevel)));
           const sfMove=await SF.bestMove(S.bd,col,S.cas,S.ep,assistDepth,skillLevel);
           
           // Convert Stockfish move format to internal format
@@ -8057,18 +8152,18 @@ const R={
       if(S.endState.winner==='w'){
         barW.classList.add('is-win');
         barB.classList.add('is-loss');
-        if(resW){resW.className='pb-result show win';resW.textContent='✦';resW.title='فائز';}
-        if(resB){resB.className='pb-result show loss';resB.textContent='✕';resB.title='خاسر';}
+        if(resW){resW.className='pb-result show win';resW.textContent='👍';resW.title='فائز';}
+        if(resB){resB.className='pb-result show loss';resB.textContent='👎';resB.title='خاسر';}
       }else if(S.endState.winner==='b'){
         barB.classList.add('is-win');
         barW.classList.add('is-loss');
-        if(resB){resB.className='pb-result show win';resB.textContent='✦';resB.title='فائز';}
-        if(resW){resW.className='pb-result show loss';resW.textContent='✕';resW.title='خاسر';}
+        if(resB){resB.className='pb-result show win';resB.textContent='👍';resB.title='فائز';}
+        if(resW){resW.className='pb-result show loss';resW.textContent='👎';resW.title='خاسر';}
       }else{
         barW.classList.add('is-draw');
         barB.classList.add('is-draw');
-        if(resW){resW.className='pb-result show draw';resW.textContent='≡';resW.title='تعادل';}
-        if(resB){resB.className='pb-result show draw';resB.textContent='≡';resB.title='تعادل';}
+        if(resW){resW.className='pb-result show draw';resW.textContent='≈';resW.title='تعادل';}
+        if(resB){resB.className='pb-result show draw';resB.textContent='≈';resB.title='تعادل';}
       }
     }
     // Render captured pieces with actual images
@@ -8755,7 +8850,7 @@ const G={
         let bm=null;
         try{
           const skillLevel=isLevelMode
-            ?Math.max(0,Math.min(20,Math.round((lv.skill||0)*(20/30))))
+            ?Math.max(0,Math.min(20,Math.round(lv?.skill||0)))
             :(preset?.skill??10);
           const randomChance=isLevelMode&&lv&&lv.random?lv.random:0;
           const legalMoves=E.allLegal(bd,'b',cas,ep);
@@ -9212,7 +9307,7 @@ const OL=(()=>{
 
       case 'voice':
         if(d.audio){
-          CHAT.recvVoice(d.audio,typeof d.duration==='number'?d.duration:parseInt(d.duration)||0);
+          CHAT.recvVoice(d.audio,typeof d.duration==='number'?d.duration:parseInt(d.duration)||0,d.mime||'');
         }
         break;
 
@@ -9367,7 +9462,7 @@ const OL=(()=>{
     sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo,deviceId:LVL._getDeviceId()});},
     sendAssist(on){send({type:'assist',on,deviceId:LVL._getDeviceId()});},
     sendChat(txt){send({type:'chat',text:txt,deviceId:LVL._getDeviceId()});},
-    sendVoice(audioData,durationSec){send({type:'voice',audio:audioData,duration:durationSec,deviceId:LVL._getDeviceId()});},
+    sendVoice(audioData,durationSec,mime){send({type:'voice',audio:audioData,duration:durationSec,mime:mime||'',deviceId:LVL._getDeviceId()});},
     sendPimg(img){send({type:'pimg',img});},
     sendProfileImage(img){send({type:'pimg',img});},
     sendResign(){
