@@ -1,8 +1,10 @@
 // auth-client.js
 // يعالج تسجيل الدخول والاتصال بالـ API
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-  ? 'http://localhost:8081/api' 
-  : '/api'; // Assuming same domain/ngrok
+window.getApiBase = () => {
+  if (window.SERVER_HTTP) return window.SERVER_HTTP + '/api';
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:8081/api';
+  return '/api';
+};
 
 const amkhAuth = {
   token: localStorage.getItem('amkh_auth_token') || null,
@@ -29,7 +31,7 @@ const amkhAuth = {
 
   async fetchMe() {
     try {
-      const res = await fetch(`${API_BASE}/me`, {
+      const res = await fetch(`${window.getApiBase()}/me`, {
         headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' }
       });
       if (res.ok) {
@@ -43,7 +45,7 @@ const amkhAuth = {
   },
 
   async login(email, password) {
-    const res = await fetch(`${API_BASE}/login`, {
+    const res = await fetch(`${window.getApiBase()}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ email, password })
@@ -57,7 +59,7 @@ const amkhAuth = {
   },
 
   async register(email, password, displayName) {
-    const res = await fetch(`${API_BASE}/register`, {
+    const res = await fetch(`${window.getApiBase()}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ email, password, display_name: displayName })
@@ -126,7 +128,7 @@ const amkhAuth = {
     } catch(e) {}
 
     try {
-      await fetch(`${API_BASE}/sync-local`, {
+      await fetch(`${window.getApiBase()}/sync-local`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 
@@ -148,7 +150,7 @@ const amkhAuth = {
   async startAutoSync() {
     // Pull server data and overwrite local on startup
     try {
-      const resSet = await fetch(`${API_BASE}/settings`, { headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' } });
+      const resSet = await fetch(`${window.getApiBase()}/settings`, { headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' } });
       if (resSet.ok) {
         const s = await resSet.json();
         if (Object.keys(s).length > 0) {
@@ -157,7 +159,7 @@ const amkhAuth = {
         }
       }
 
-      const resProg = await fetch(`${API_BASE}/progress`, { headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' } });
+      const resProg = await fetch(`${window.getApiBase()}/progress`, { headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' } });
       if (resProg.ok) {
         const serverProg = await resProg.json();
         if (serverProg.length > 0) {

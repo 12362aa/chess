@@ -14,7 +14,7 @@ const amkhFriends = {
     const headers = await this.getAuthHeader();
     if (!headers) return;
     try {
-      const res = await fetch(`${API_BASE}/friends`, { headers });
+      const res = await fetch(`${window.getApiBase()}/friends`, { headers });
       if (res.ok) {
         this.friends = await res.json();
       }
@@ -25,7 +25,7 @@ const amkhFriends = {
     const headers = await this.getAuthHeader();
     if (!headers) return;
     try {
-      const res = await fetch(`${API_BASE}/friends/requests`, { headers });
+      const res = await fetch(`${window.getApiBase()}/friends/requests`, { headers });
       if (res.ok) {
         this.requests = await res.json();
       }
@@ -36,7 +36,7 @@ const amkhFriends = {
     const headers = await this.getAuthHeader();
     if (!headers) return;
     try {
-      await fetch(`${API_BASE}/friends/request`, {
+      await fetch(`${window.getApiBase()}/friends/request`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ receiver_id })
@@ -50,7 +50,7 @@ const amkhFriends = {
     const headers = await this.getAuthHeader();
     if (!headers) return;
     try {
-      await fetch(`${API_BASE}/friends/respond`, {
+      await fetch(`${window.getApiBase()}/friends/respond`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_id, action })
@@ -65,7 +65,7 @@ const amkhFriends = {
     const headers = await this.getAuthHeader();
     if (!headers) return [];
     try {
-      const res = await fetch(`${API_BASE}/friends/search?q=${encodeURIComponent(query)}`, { headers });
+      const res = await fetch(`${window.getApiBase()}/friends/search?q=${encodeURIComponent(query)}`, { headers });
       if (res.ok) return await res.json();
     } catch (e) {}
     return [];
