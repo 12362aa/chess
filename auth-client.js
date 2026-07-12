@@ -209,7 +209,7 @@ const amkhAuth = {
     if (!btn) {
       btn = document.createElement('div');
       btn.id = 'amkh-auth-btn';
-      btn.style.cssText = 'position:fixed;top:10px;left:10px;z-index:9999;background:rgba(0,0,0,0.7);color:#fff;padding:8px 15px;border-radius:20px;cursor:pointer;font-family:sans-serif;font-size:14px;';
+      btn.style.cssText = 'position:fixed;top:50px;left:20px;z-index:10005;background:#FF9800;color:#fff;padding:10px 20px;border-radius:30px;cursor:pointer;font-family:sans-serif;font-size:15px;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.5);border:2px solid #fff;display:flex;align-items:center;gap:8px;';
       document.body.appendChild(btn);
     }
     
