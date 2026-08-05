@@ -9779,7 +9779,10 @@ window.addEventListener('beforeunload',e=>{
   }
 });
 
-if('serviceWorker' in navigator){
+// Capacitor packages these files locally. Skipping the PWA worker only in the
+// native shell avoids a second cache layer while leaving the website unchanged.
+const IS_CAPACITOR_NATIVE=Boolean(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform());
+if(!IS_CAPACITOR_NATIVE&&'serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
   });
@@ -9998,7 +10001,7 @@ const Notifications={
     return this.enabled;
   },
   async _registerPush(){
-    if(!('serviceWorker' in navigator))return;
+    if(IS_CAPACITOR_NATIVE||!('serviceWorker' in navigator))return;
     try{
       const reg=await navigator.serviceWorker.register('./sw.js');
       this._swReg=reg;
@@ -10072,7 +10075,7 @@ const Notifications={
 };
 
 try{
-  if('serviceWorker' in navigator && navigator.serviceWorker){
+  if(!IS_CAPACITOR_NATIVE&&'serviceWorker' in navigator && navigator.serviceWorker){
     navigator.serviceWorker.addEventListener('message',(ev)=>{
       const msg=ev&&ev.data;
       if(!msg||msg.type!=='notification-click')return;
