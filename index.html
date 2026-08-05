@@ -10154,6 +10154,7 @@ window.addEventListener('beforeunload',()=>{
 </div>
 
   <!-- Auth & Friends Scripts -->
+  <script src="ble-bundle.js"></script>
   <script src="auth-client.js"></script>
   <script src="friends-client.js"></script>
 <script>
@@ -10168,12 +10169,12 @@ const BLEManager = {
   ackTimeout: null,
 
   async init() {
-    if (!window.Capacitor || !window.Capacitor.Plugins.BleClient) {
+    if (!window.Capacitor || !window.BleClient) {
       alert("البلوتوث مدعوم فقط داخل التطبيق الأصلي على الموبايل.");
       return false;
     }
     try {
-      await window.Capacitor.Plugins.BleClient.initialize();
+      await window.BleClient.initialize();
       return true;
     } catch(e) {
       alert("فشل تهيئة البلوتوث. هل أعطيت الصلاحيات اللازمة؟");
@@ -10196,7 +10197,7 @@ const BLEManager = {
     this.myColor = Math.random() < 0.5 ? 'w' : 'b';
     
     try {
-      const BleClient = window.Capacitor.Plugins.BleClient;
+      const BleClient = window.BleClient;
       if (BleClient.startAdvertising) {
           this.setStatus("جاري إعداد الاستضافة...");
           await BleClient.startAdvertising({
@@ -10223,7 +10224,7 @@ const BLEManager = {
     list.innerHTML = '';
 
     try {
-      const BleClient = window.Capacitor.Plugins.BleClient;
+      const BleClient = window.BleClient;
       await BleClient.requestLEScan(
         { services: [this.SERVICE_UUID] },
         (result) => {
@@ -10250,7 +10251,7 @@ const BLEManager = {
   },
 
   async connectToDevice(deviceId) {
-    const BleClient = window.Capacitor.Plugins.BleClient;
+    const BleClient = window.BleClient;
     this.setStatus("جاري الاتصال...");
     try {
       await BleClient.stopLEScan();
@@ -10275,7 +10276,7 @@ const BLEManager = {
   async disconnect() {
     if (this.deviceId && this.connected) {
       try {
-        await window.Capacitor.Plugins.BleClient.disconnect(this.deviceId);
+        await window.BleClient.disconnect(this.deviceId);
       } catch(e) {}
     }
     this.connected = false;
@@ -10354,7 +10355,7 @@ const BLEManager = {
     const encoder = new TextEncoder();
     const data = encoder.encode(msg);
     try {
-       const BleClient = window.Capacitor.Plugins.BleClient;
+       const BleClient = window.BleClient;
        if(!this.isHost) {
            await BleClient.write(this.deviceId, this.SERVICE_UUID, this.MOVE_CHAR_UUID, data);
        }
