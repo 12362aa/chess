@@ -10186,44 +10186,18 @@ const BLEManager = {
   myColor: 'w',
   ackTimeout: null,
 
-  // Request location permission via browser API (triggers Android native dialog on Android ≤11)
-  requestLocationPermission() {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) { resolve(true); return; }
-      navigator.geolocation.getCurrentPosition(
-        () => resolve(true),
-        (err) => resolve(err.code !== err.PERMISSION_DENIED),
-        { timeout: 8000, maximumAge: Infinity, enableHighAccuracy: false }
-      );
-    });
-  },
-
   async init() {
     if (!window.Capacitor || !window.BleClient) {
       window.showCustomModal("عذراً", "ميزة البلوتوث تعمل فقط داخل التطبيق المثبت على الموبايل.", "error");
       return false;
     }
     try {
-      // Step 1: Request location permission (needed for BLE on Android 11 and below)
-      this.setStatus("جاري طلب صلاحيات الموقع...");
-      const locOk = await this.requestLocationPermission();
-      if (!locOk) {
-        window.showCustomModal("صلاحية الموقع مرفوضة", "يلزم السماح بصلاحية الموقع لاستخدام البلوتوث على هذا الجهاز. اضغط مرة أخرى واسمح.", "error");
-        return false;
-      }
-
-      // Step 2: Initialize BLE (requests Bluetooth permissions internally)
       this.setStatus("جاري تهيئة البلوتوث...");
       await window.BleClient.initialize();
       this.setStatus("");
       return true;
     } catch(e) {
-      const msg = (e.message || String(e)).toLowerCase();
-      if (msg.includes('bluetooth') || msg.includes('enable') || msg.includes('disabled')) {
-        window.showCustomModal("البلوتوث مُعطَّل", "يرجى تشغيل البلوتوث من شريط الإشعارات، ثم اضغط الزر مرة أخرى.", "error");
-      } else {
-        window.showCustomModal("تعذّر التهيئة", "الخطأ: " + (e.message || e), "error");
-      }
+      window.showCustomModal("تعذّر التهيئة", "الخطأ: " + (e.message || e), "error");
       return false;
     }
   },
