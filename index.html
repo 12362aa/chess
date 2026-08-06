@@ -10193,37 +10193,19 @@ const BLEManager = {
     }
     const BleClient = window.BleClient;
     try {
-      // Step 1: Check & request permissions automatically
-      const perms = await BleClient.checkPermissions();
-      const needRequest = Object.values(perms).some(v => v !== 'granted');
-      if (needRequest) {
-        this.setStatus("جاري طلب صلاحيات البلوتوث...");
-        const result = await BleClient.requestPermissions();
-        const denied = Object.values(result).some(v => v === 'denied');
-        if (denied) {
-          window.showCustomModal("صلاحيات مرفوضة", "لم تُمنح صلاحيات البلوتوث. يرجى السماح بها عند الطلب.", "error");
-          return false;
-        }
-      }
-
-      // Step 2: Check if BT is enabled & try to enable it
-      try {
-        const enabled = await BleClient.isEnabled();
-        if (!enabled) {
-          this.setStatus("جاري تشغيل البلوتوث...");
-          await BleClient.enable();
-        }
-      } catch(enableErr) {
-        // Android 12+ doesn't allow enabling BT programmatically — show a friendly prompt
-        window.showCustomModal("البلوتوث مُعطَّل", "يرجى تشغيل البلوتوث من شريط الإشعارات ثم المحاولة مجدداً.", "error");
-        return false;
-      }
-
-      // Step 3: Initialize
+      // initialize() handles permission requests internally
+      this.setStatus("جاري تهيئة البلوتوث...");
       await BleClient.initialize();
       return true;
     } catch(e) {
-      window.showCustomModal("فشل التهيئة", "حدث خطأ أثناء تهيئة البلوتوث: " + (e.message || e), "error");
+      const msg = e.message || String(e);
+      if (msg.toLowerCase().includes('bluetooth')) {
+        window.showCustomModal("البلوتوث مُعطَّل", "يرجى تشغيل البلوتوث من شريط الإشعارات ثم المحاولة مجدداً.", "error");
+      } else if (msg.toLowerCase().includes('permission')) {
+        window.showCustomModal("صلاحيات مرفوضة", "يرجى السماح بصلاحيات البلوتوث عند الطلب.", "error");
+      } else {
+        window.showCustomModal("فشل التهيئة", "تأكد من تشغيل البلوتوث والـ GPS وإعطاء التطبيق الصلاحيات اللازمة.", "error");
+      }
       return false;
     }
   },
