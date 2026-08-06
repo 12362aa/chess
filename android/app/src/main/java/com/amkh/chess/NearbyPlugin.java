@@ -136,6 +136,8 @@ public class NearbyPlugin extends Plugin {
     }
     
     private void doStartAdvertising(PluginCall call, String name) {
+        stopAdvertisingInternal();
+        
         AdvertisingOptions options = new AdvertisingOptions.Builder()
                 .setStrategy(STRATEGY)
                 .build();
@@ -165,6 +167,7 @@ public class NearbyPlugin extends Plugin {
     }
     
     private void doStartDiscovering(PluginCall call) {
+        stopDiscoveringInternal();
         discoveredEndpoints.clear();
         
         EndpointDiscoveryCallback discoveryCallback = new EndpointDiscoveryCallback() {
