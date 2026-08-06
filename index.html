@@ -10191,32 +10191,25 @@ const BLEManager = {
       window.showCustomModal("عذراً", "ميزة البلوتوث تعمل فقط داخل التطبيق المثبت على الموبايل.", "error");
       return false;
     }
-    const BleClient = window.BleClient;
-    // Try up to 2 times — first call triggers permission dialog and may throw,
-    // second call succeeds after user grants permissions.
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        this.setStatus(attempt === 1 ? "جاري تهيئة البلوتوث..." : "جاري إعادة الاتصال...");
-        await BleClient.initialize();
-        this.setStatus("");
-        return true;
-      } catch(e) {
-        if (attempt < 2) {
-          // Wait a moment then retry (user may have just granted permissions)
-          await new Promise(r => setTimeout(r, 800));
-          continue;
-        }
-        // Second attempt also failed — show helpful message
-        const msg = (e.message || String(e)).toLowerCase();
-        if (msg.includes('bluetooth') || msg.includes('enable')) {
-          window.showCustomModal("البلوتوث مُعطَّل", "يرجى تشغيل البلوتوث من شريط الإشعارات ثم اضغط 'استضافة' أو 'بحث' مرة أخرى.", "error");
-        } else {
-          window.showCustomModal("فشل الاتصال", "تأكد من:\n• تشغيل البلوتوث\n• تفعيل خدمة الموقع (GPS)\nثم اضغط مرة أخرى.", "error");
-        }
-        return false;
+    try {
+      this.setStatus("جاري تهيئة البلوتوث...");
+      // initialize() waits for permission dialog response internally
+      await window.BleClient.initialize();
+      this.setStatus("");
+      return true;
+    } catch(e) {
+      const msg = (e.message || String(e)).toLowerCase();
+      if (msg.includes('bluetooth') || msg.includes('enable') || msg.includes('disabled')) {
+        window.showCustomModal("البلوتوث مُعطَّل", "يرجى تشغيل البلوتوث من شريط الإشعارات، ثم اضغط الزر مرة أخرى.", "error");
+      } else if (msg.includes('location') || msg.includes('gps')) {
+        window.showCustomModal("الموقع مُعطَّل", "بعض أجهزة الأندرويد تحتاج لتشغيل خدمة الموقع (GPS) لاستخدام البلوتوث. شغّله ثم اضغط مجدداً.", "error");
+      } else if (msg.includes('permission') || msg.includes('denied')) {
+        window.showCustomModal("الصلاحيات", "اضغط 'استضافة' أو 'بحث' مرة أخرى واسمح بالصلاحيات عند الطلب.", "error");
+      } else {
+        window.showCustomModal("تعذّر التهيئة", "الخطأ: " + (e.message || e) + "\n\nتأكد من تشغيل البلوتوث ثم حاول مجدداً.", "error");
       }
+      return false;
     }
-    return false;
   },
 
   setStatus(msg) {
