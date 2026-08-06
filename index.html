@@ -10346,43 +10346,34 @@ const BLEManager = {
     }
   },
 
-  startGameUI() {
+  async startGameUI() {
     G._reset('bluetooth', 0);
     S.myCol = this.myColor;
-    B.init();
-    UI.updateBoard();
-    UI.updateTurn();
-    if (S.turn !== this.myColor) {
-      document.getElementById('bwrap').style.pointerEvents = 'none';
-    } else {
-      document.getElementById('bwrap').style.pointerEvents = 'auto';
-    }
     Nav.game();
+    await R.all();
+    if (typeof updatePlayerImages === 'function') {
+      updatePlayerImages();
+    }
   },
 
-  applyOpponentMove(moveStr) {
+  async applyOpponentMove(moveStr) {
     if (moveStr && moveStr.length >= 4) {
-      const from = moveStr.substring(0, 2);
-      const to = moveStr.substring(2, 4);
+      const fr = [parseInt(moveStr[0]), parseInt(moveStr[1])];
+      const to = [parseInt(moveStr[2]), parseInt(moveStr[3])];
       const promo = moveStr.length > 4 ? moveStr[4] : '';
 
-      const res = B.move({ from, to, promo }, false);
-      if (res) {
-        G.onMoveCompleted({ from, to, promo }, 'opp');
-        if (S.turn === this.myColor) {
-          document.getElementById('bwrap').style.pointerEvents = 'auto';
-        }
-      }
+      await G.applyMove(fr, to, promo);
       this.sendRaw("ACK");
     }
   },
 
   async sendMove(moveStr) {
     if (!this.connected) return;
-    document.getElementById('bwrap').style.pointerEvents = 'none';
 
     this.ackTimeout = setTimeout(() => {
-      window.showCustomModal("تأخير في الرد", "لم يتم استلام تأكيد للنقلة من اللاعب الآخر.", "error");
+      if (typeof window.showCustomModal === 'function') {
+        window.showCustomModal("تأخير في الرد", "لم يتم استلام تأكيد للنقلة من اللاعب الآخر.", "error");
+      }
     }, 3000);
 
     await this.sendRaw("MOVE:" + moveStr);
@@ -10399,22 +10390,13 @@ const BLEManager = {
   }
 };
 
-const originalOnMoveCompleted = G.onMoveCompleted;
-G.onMoveCompleted = function(mv, src) {
-  originalOnMoveCompleted.call(G, mv, src);
-  if (S.mode === 'bluetooth' && src === 'me') {
-    let mStr = mv.from + mv.to;
-    if (mv.promo) mStr += mv.promo;
+const originalFinish = G.finish;
+G.finish = async function(fr, to, promo) {
+  if (S.mode === 'bluetooth') {
+    let mStr = String(fr[0]) + String(fr[1]) + String(to[0]) + String(to[1]) + (promo || '');
     BLEManager.sendMove(mStr);
   }
-
-  if (S.mode === 'bluetooth') {
-    if (S.turn !== BLEManager.myColor) {
-      document.getElementById('bwrap').style.pointerEvents = 'none';
-    } else {
-      document.getElementById('bwrap').style.pointerEvents = 'auto';
-    }
-  }
+  await originalFinish.call(G, fr, to, promo);
 };
 </script>
 
