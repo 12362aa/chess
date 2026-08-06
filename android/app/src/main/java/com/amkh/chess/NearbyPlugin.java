@@ -162,7 +162,7 @@ public class NearbyPlugin extends Plugin {
                     }
                 }
                 Log.e(TAG, "Advertising failed", e);
-                call.reject("Failed to start advertising: " + e.getMessage());
+                call.reject("تعذّر إعداد الاستضافة، يُرجى التأكد من تشغيل الواي فاي والبلوتوث والموقع.");
             });
     }
 
@@ -224,7 +224,7 @@ public class NearbyPlugin extends Plugin {
                     }
                 }
                 Log.e(TAG, "Discovery failed", e);
-                call.reject("Failed to start discovery: " + e.getMessage());
+                call.reject("تعذّر بدء البحث، يُرجى التأكد من تشغيل الواي فاي والبلوتوث والموقع.");
             });
     }
 

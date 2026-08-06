@@ -9046,6 +9046,7 @@ const G={
     if(isRemoteMatchMode()&&!S.over){
       S.over=true;
       if(S.mode==='online')OL.sendResign();
+      else if(S.mode==='bluetooth'&&typeof BLEManager!=='undefined')BLEManager.sendRaw("RESIGN");
       G.showOver({
         winner:S.myCol==='w'?'b':'w',
         tone:'loss',
@@ -9056,6 +9057,7 @@ const G={
       return;
     }
     if(S.mode==='online')OL.dc();
+    else if(S.mode==='bluetooth'&&typeof BLEManager!=='undefined')BLEManager.disconnect();
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   async toggleAst(){
@@ -10194,7 +10196,7 @@ const BLEManager = {
   async init() {
     const nearby = this.getNearby();
     if (!nearby) {
-      window.showCustomModal("عذراً", "ميزة اللعب الجوار تعمل فقط داخل التطبيق المثبت على الموبايل.", "error");
+      if (typeof Modal !== 'undefined') Modal.show("ميزة اللعب الجواري تعمل فقط داخل التطبيق المثبت على الموبايل.", "تنبيه", "✕");
       return false;
     }
     // Set up event listeners
@@ -10250,7 +10252,7 @@ const BLEManager = {
         }
       } else {
         this.setStatus("فشل الاتصال. حاول مجدداً.");
-        window.showCustomModal("فشل الاتصال", "تعذّر الاتصال بالجهاز الآخر. حاول مرة أخرى.", "error");
+        if (typeof Modal !== 'undefined') Modal.show("تعذّر الاتصال بالجهاز الآخر، يُرجى المحاولة مجدداً.", "فشل الاتصال", "✕");
       }
     });
 
@@ -10259,11 +10261,18 @@ const BLEManager = {
     });
 
     nearby.addListener('disconnected', (data) => {
+      const wasConnected = this.connected;
       this.connected = false;
       this.endpointId = null;
-      if (S.mode === 'bluetooth') {
-        window.showCustomModal("انقطاع", "تم فقدان الاتصال مع اللاعب الآخر.", "error");
-        Nav.menu();
+      if (S.mode === 'bluetooth' && !S.over && wasConnected) {
+        S.over = true;
+        G.showOver({
+          winner: this.myColor,
+          tone: 'win',
+          reason: 'disconnect',
+          message: 'انقطع اتصال الخصم',
+          detail: 'تم إغلاق المباراة بسبب توقف الاتصال بين الجهازين.'
+        });
       }
     });
   },
@@ -10289,7 +10298,7 @@ const BLEManager = {
       await nearby.startAdvertising({ name: this.playerName });
       this.setStatus("في انتظار انضمام لاعب آخر...");
     } catch (e) {
-      window.showCustomModal("خطأ", "فشل بدء الاستضافة: " + (e.message || e), "error");
+      if (typeof Modal !== 'undefined') Modal.show("تعذّر بدء الاستضافة، يُرجى التأكد من تشغيل الواي فاي والبلوتوث والموقع.", "تنبيه", "✕");
     }
   },
 
@@ -10308,7 +10317,7 @@ const BLEManager = {
     try {
       await nearby.startDiscovering();
     } catch (e) {
-      window.showCustomModal("خطأ", "فشل البحث: " + (e.message || e), "error");
+      if (typeof Modal !== 'undefined') Modal.show("تعذّر بدء البحث عن أجهزة قريبة، يُرجى المحاولة مرة أخرى.", "تنبيه", "✕");
     }
   },
 
@@ -10323,6 +10332,9 @@ const BLEManager = {
   },
 
   async disconnect() {
+    if (this.connected) {
+      try { await this.sendRaw("DISCONNECT"); } catch(e){}
+    }
     const nearby = this.getNearby();
     if (nearby) {
       try { await nearby.stopAll(); } catch (e) {}
@@ -10332,7 +10344,29 @@ const BLEManager = {
   },
 
   handleIncomingMessage(msg) {
-    if (msg.startsWith("START:")) {
+    if (msg === "RESIGN") {
+      if (S.mode === 'bluetooth' && !S.over) {
+        S.over = true;
+        G.showOver({
+          winner: this.myColor,
+          tone: 'win',
+          reason: 'resign',
+          message: 'انسحب الخصم من اللعبة',
+          detail: 'فزت بالمباراة بسبب انسحاب اللاعب الآخر.'
+        });
+      }
+    } else if (msg === "DISCONNECT") {
+      if (S.mode === 'bluetooth' && !S.over) {
+        S.over = true;
+        G.showOver({
+          winner: this.myColor,
+          tone: 'win',
+          reason: 'disconnect',
+          message: 'انقطع اتصال الخصم',
+          detail: 'انتهت المباراة بسبب انقطع اتصال اللاعب الآخر.'
+        });
+      }
+    } else if (msg.startsWith("START:")) {
       const hostColor = msg.split(":")[1];
       this.myColor = hostColor === 'w' ? 'b' : 'w';
       this.startGameUI();
@@ -10371,8 +10405,8 @@ const BLEManager = {
     if (!this.connected) return;
 
     this.ackTimeout = setTimeout(() => {
-      if (typeof window.showCustomModal === 'function') {
-        window.showCustomModal("تأخير في الرد", "لم يتم استلام تأكيد للنقلة من اللاعب الآخر.", "error");
+      if (typeof Modal !== 'undefined') {
+        Modal.show("تأخير في الرد، يُرجى التحقق من اتصال الجهاز الآخر.", "تنبيه الاتصال", "✕");
       }
     }, 3000);
 
@@ -10513,17 +10547,9 @@ G.finish = async function(fr, to, promo) {
 </div>
 <script>
 window.showCustomModal = function(title, msg, type = 'error') {
-  document.getElementById('cam-title').textContent = title;
-  document.getElementById('cam-msg').textContent = msg;
-  const icon = document.getElementById('cam-icon');
-  if(type === 'error') {
-    icon.className = 'app-modal-icon error';
-    icon.innerHTML = '<div class="cam-warn-tri"></div>';
-  } else {
-    icon.className = 'app-modal-icon info';
-    icon.innerHTML = '<div class="cam-info-circ"></div>';
+  if (typeof Modal !== 'undefined') {
+    Modal.show(msg, title, type === 'error' ? '✕' : 'ℹ');
   }
-  document.getElementById('custom-app-modal').classList.add('active');
 };
 </script>
 </body>
