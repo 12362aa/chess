@@ -10177,154 +10177,171 @@ window.addEventListener('beforeunload',()=>{
   <script src="friends-client.js"></script>
 <script>
 const BLEManager = {
-  SERVICE_UUID: "a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d",
-  MOVE_CHAR_UUID: "a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4e",
-  STATUS_CHAR_UUID: "a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4f",
   isHost: false,
-  deviceId: null,
   connected: false,
   myColor: 'w',
   ackTimeout: null,
+  endpointId: null,
+  playerName: 'لاعب-' + Math.floor(Math.random() * 9000 + 1000),
+
+  getNearby() {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.NearbyConnect) {
+      return window.Capacitor.Plugins.NearbyConnect;
+    }
+    return null;
+  },
 
   async init() {
-    if (!window.Capacitor || !window.BleClient) {
-      window.showCustomModal("عذراً", "ميزة البلوتوث تعمل فقط داخل التطبيق المثبت على الموبايل.", "error");
+    const nearby = this.getNearby();
+    if (!nearby) {
+      window.showCustomModal("عذراً", "ميزة اللعب الجوار تعمل فقط داخل التطبيق المثبت على الموبايل.", "error");
       return false;
     }
-    try {
-      this.setStatus("جاري تهيئة البلوتوث...");
-      await window.BleClient.initialize();
-      this.setStatus("");
-      return true;
-    } catch(e) {
-      window.showCustomModal("تعذّر التهيئة", "الخطأ: " + (e.message || e), "error");
-      return false;
-    }
+    // Set up event listeners
+    this.setupListeners(nearby);
+    return true;
+  },
+
+  listenersSet: false,
+  setupListeners(nearby) {
+    if (this.listenersSet) return;
+    this.listenersSet = true;
+
+    nearby.addListener('endpointFound', (data) => {
+      const list = document.getElementById('bt-devices-list');
+      if (!list) return;
+      if (document.getElementById('ep-' + data.endpointId)) return;
+
+      const btn = document.createElement('button');
+      btn.className = 'bt-device-btn';
+      btn.id = 'ep-' + data.endpointId;
+      btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1"/></svg> <span>${data.endpointName}</span> <span style='color:#7aa2f7;'>اتصال ❯</span>`;
+      btn.onclick = () => this.connectToEndpoint(data.endpointId);
+      list.appendChild(btn);
+      this.setStatus("تم العثور على أجهزة — اختر للاتصال:");
+    });
+
+    nearby.addListener('endpointLost', (data) => {
+      const el = document.getElementById('ep-' + data.endpointId);
+      if (el) el.remove();
+    });
+
+    nearby.addListener('connectionInitiated', (data) => {
+      // Auto-accepted on Java side
+      this.setStatus("جاري إتمام الاتصال مع " + data.endpointName + "...");
+    });
+
+    nearby.addListener('connectionResult', (data) => {
+      if (data.connected) {
+        this.endpointId = data.endpointId;
+        this.connected = true;
+        document.getElementById('bt-radar').style.display = 'none';
+
+        if (this.isHost) {
+          this.setStatus("متصل! جاري بدء اللعبة...");
+          // Host sends START with their color
+          this.myColor = Math.random() < 0.5 ? 'w' : 'b';
+          setTimeout(() => {
+            this.sendRaw("START:" + this.myColor);
+            this.startGameUI();
+          }, 500);
+        } else {
+          this.setStatus("متصل! في انتظار بدء اللعبة...");
+        }
+      } else {
+        this.setStatus("فشل الاتصال. حاول مجدداً.");
+        window.showCustomModal("فشل الاتصال", "تعذّر الاتصال بالجهاز الآخر. حاول مرة أخرى.", "error");
+      }
+    });
+
+    nearby.addListener('messageReceived', (data) => {
+      this.handleIncomingMessage(data.message);
+    });
+
+    nearby.addListener('disconnected', (data) => {
+      this.connected = false;
+      this.endpointId = null;
+      if (S.mode === 'bluetooth') {
+        window.showCustomModal("انقطاع", "تم فقدان الاتصال مع اللاعب الآخر.", "error");
+        Nav.menu();
+      }
+    });
   },
 
   setStatus(msg) {
     const el = document.getElementById('bt-status');
-    if(el) el.textContent = msg;
+    if (el) el.textContent = msg;
   },
 
-
   async hostGame() {
-    document.getElementById('tb-bt-host').classList.add('active'); document.getElementById('bt-radar').style.display='block';
+    document.getElementById('tb-bt-host').classList.add('active');
+    document.getElementById('bt-radar').style.display = 'block';
     document.getElementById('tb-bt-join').classList.remove('active');
-    
-    if(!await this.init()) return;
+    document.getElementById('bt-devices-list').innerHTML = '';
+
+    if (!await this.init()) return;
     this.isHost = true;
     this.connected = false;
-    this.myColor = Math.random() < 0.5 ? 'w' : 'b';
-    
+
+    const nearby = this.getNearby();
     try {
-      const BleClient = window.BleClient;
-      if (BleClient.startAdvertising) {
-          this.setStatus("جاري إعداد الاستضافة...");
-          await BleClient.startAdvertising({
-            services: [this.SERVICE_UUID],
-            name: "Chess-" + Math.floor(Math.random()*1000)
-          });
-          this.setStatus("في انتظار انضمام لاعب آخر...");
-      } else {
-          this.setStatus("وضع الاستضافة (Peripheral) قد يتطلب بلجن إضافي أو جهاز مختلف.");
-      }
-    } catch(e) {
-      this.setStatus("خطأ في الاستضافة: " + e.message);
+      this.setStatus("جاري إعداد الاستضافة...");
+      await nearby.startAdvertising({ name: this.playerName });
+      this.setStatus("في انتظار انضمام لاعب آخر...");
+    } catch (e) {
+      window.showCustomModal("خطأ", "فشل بدء الاستضافة: " + (e.message || e), "error");
     }
   },
 
   async scanForGames() {
     document.getElementById('tb-bt-host').classList.remove('active');
-    document.getElementById('tb-bt-join').classList.add('active'); document.getElementById('bt-radar').style.display='block';
+    document.getElementById('tb-bt-join').classList.add('active');
+    document.getElementById('bt-radar').style.display = 'block';
 
-    if(!await this.init()) return;
+    if (!await this.init()) return;
     this.isHost = false;
     this.setStatus("يبحث عن أجهزة قريبة...");
     const list = document.getElementById('bt-devices-list');
     list.innerHTML = '';
 
+    const nearby = this.getNearby();
     try {
-      const BleClient = window.BleClient;
-      await BleClient.requestLEScan(
-        { services: [this.SERVICE_UUID] },
-        (result) => {
-          const name = result.localName || result.device.name || "جهاز غير معروف";
-          if(document.getElementById('dev-' + result.device.deviceId)) return;
-          
-          const btn = document.createElement('button');
-          btn.className = "bt-device-btn";
-          btn.id = 'dev-' + result.device.deviceId;
-          btn.innerHTML = `<span>📱 ${name}</span> <span style='color:#7aa2f7;'>اتصال ❯</span>`;
-          btn.onclick = () => this.connectToDevice(result.device.deviceId);
-          list.appendChild(btn);
-        }
-      );
-      
-      setTimeout(async () => {
-        try { await BleClient.stopLEScan(); document.getElementById('bt-radar').style.display='none'; } catch(e){}
-        if(list.children.length === 0) this.setStatus("لم يتم العثور على أجهزة.");
-        else this.setStatus("تم العثور على أجهزة (اختر للاتصال):");
-      }, 10000);
-    } catch(e) {
-      this.setStatus("خطأ في البحث: " + e.message);
+      await nearby.startDiscovering();
+    } catch (e) {
+      window.showCustomModal("خطأ", "فشل البحث: " + (e.message || e), "error");
     }
   },
 
-  async connectToDevice(deviceId) {
-    const BleClient = window.BleClient;
-    this.setStatus("جاري الاتصال...");
+  async connectToEndpoint(endpointId) {
+    const nearby = this.getNearby();
+    this.setStatus("جاري طلب الاتصال...");
     try {
-      await BleClient.stopLEScan();
-      await BleClient.connect(deviceId, (deviceId) => this.onDisconnect(deviceId));
-      this.deviceId = deviceId;
-      this.connected = true;
-      this.setStatus("متصل!");
-      
-      await BleClient.startNotifications(
-        this.deviceId,
-        this.SERVICE_UUID,
-        this.MOVE_CHAR_UUID,
-        (value) => this.handleIncomingMessage(value)
-      );
-
-      this.setStatus("في انتظار بدء اللعبة من المضيف...");
-    } catch(e) {
-      this.setStatus("فشل الاتصال: " + e.message);
+      await nearby.requestConnection({ endpointId: endpointId, name: this.playerName });
+    } catch (e) {
+      this.setStatus("فشل طلب الاتصال: " + (e.message || e));
     }
   },
 
   async disconnect() {
-    if (this.deviceId && this.connected) {
-      try {
-        await window.BleClient.disconnect(this.deviceId);
-      } catch(e) {}
+    const nearby = this.getNearby();
+    if (nearby) {
+      try { await nearby.stopAll(); } catch (e) {}
     }
     this.connected = false;
-    this.deviceId = null;
+    this.endpointId = null;
   },
 
-  onDisconnect(deviceId) {
-    this.connected = false;
-    if (S.mode === 'bluetooth') {
-      window.showCustomModal("انقطاع", "تم فقدان الاتصال مع اللاعب الآخر.", "error");
-      Nav.menu();
-    }
-  },
-
-  handleIncomingMessage(dataView) {
-    const decoder = new TextDecoder('utf-8');
-    const msg = decoder.decode(dataView);
-    if(msg.startsWith("START:")) {
-      const color = msg.split(":")[1]; 
-      this.myColor = color === 'w' ? 'b' : 'w';
+  handleIncomingMessage(msg) {
+    if (msg.startsWith("START:")) {
+      const hostColor = msg.split(":")[1];
+      this.myColor = hostColor === 'w' ? 'b' : 'w';
       this.startGameUI();
-    } else if(msg.startsWith("MOVE:")) {
+    } else if (msg.startsWith("MOVE:")) {
       const move = msg.split(":")[1];
       if (S.mode === 'bluetooth') {
         this.applyOpponentMove(move);
       }
-    } else if(msg === "ACK") {
+    } else if (msg === "ACK") {
       clearTimeout(this.ackTimeout);
     }
   },
@@ -10336,7 +10353,7 @@ const BLEManager = {
     B.init();
     UI.updateBoard();
     UI.updateTurn();
-    if(S.turn !== this.myColor) {
+    if (S.turn !== this.myColor) {
       document.getElementById('bwrap').style.pointerEvents = 'none';
     } else {
       document.getElementById('bwrap').style.pointerEvents = 'auto';
@@ -10349,12 +10366,12 @@ const BLEManager = {
       const from = moveStr.substring(0, 2);
       const to = moveStr.substring(2, 4);
       const promo = moveStr.length > 4 ? moveStr[4] : '';
-      
-      const res = B.move({from, to, promo}, false);
-      if(res) {
-        G.onMoveCompleted({from, to, promo}, 'opp');
-        if(S.turn === this.myColor) {
-           document.getElementById('bwrap').style.pointerEvents = 'auto';
+
+      const res = B.move({ from, to, promo }, false);
+      if (res) {
+        G.onMoveCompleted({ from, to, promo }, 'opp');
+        if (S.turn === this.myColor) {
+          document.getElementById('bwrap').style.pointerEvents = 'auto';
         }
       }
       this.sendRaw("ACK");
@@ -10362,26 +10379,23 @@ const BLEManager = {
   },
 
   async sendMove(moveStr) {
-    if(!this.connected) return;
+    if (!this.connected) return;
     document.getElementById('bwrap').style.pointerEvents = 'none';
-    
+
     this.ackTimeout = setTimeout(() => {
-      window.showCustomModal("تأخير في الرد", "لم يتم استلام تأكيد للنقلة من اللاعب الآخر. تأكد من أنكما قريبان من بعضكما.", "error");
+      window.showCustomModal("تأخير في الرد", "لم يتم استلام تأكيد للنقلة من اللاعب الآخر.", "error");
     }, 3000);
 
     await this.sendRaw("MOVE:" + moveStr);
   },
 
   async sendRaw(msg) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(msg);
+    const nearby = this.getNearby();
+    if (!nearby || !this.connected) return;
     try {
-       const BleClient = window.BleClient;
-       if(!this.isHost) {
-           await BleClient.write(this.deviceId, this.SERVICE_UUID, this.MOVE_CHAR_UUID, data);
-       }
-    } catch(e) {
-       console.error("Failed to send message", e);
+      await nearby.sendMessage({ message: msg });
+    } catch (e) {
+      console.error("Failed to send message", e);
     }
   }
 };
@@ -10391,12 +10405,12 @@ G.onMoveCompleted = function(mv, src) {
   originalOnMoveCompleted.call(G, mv, src);
   if (S.mode === 'bluetooth' && src === 'me') {
     let mStr = mv.from + mv.to;
-    if(mv.promo) mStr += mv.promo;
+    if (mv.promo) mStr += mv.promo;
     BLEManager.sendMove(mStr);
   }
-  
+
   if (S.mode === 'bluetooth') {
-    if(S.turn !== BLEManager.myColor) {
+    if (S.turn !== BLEManager.myColor) {
       document.getElementById('bwrap').style.pointerEvents = 'none';
     } else {
       document.getElementById('bwrap').style.pointerEvents = 'auto';

@@ -1,0 +1,17 @@
+{
+  "appId": "com.amkh.chess",
+  "appName": "شطرنج - Am-Kh",
+  "webDir": "www",
+  "server": {
+    "allowNavigation": [
+      "*.ngrok-free.app",
+      "*.ngrok-free.dev",
+      "*.ngrok.io",
+      "*.ngrok.app"
+    ],
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
