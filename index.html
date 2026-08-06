@@ -10347,9 +10347,8 @@ const BLEManager = {
   },
 
   startGameUI() {
-    S.mode = 'bluetooth';
-    S.turn = 'w';
-    G.resetState();
+    G._reset('bluetooth', 0);
+    S.myCol = this.myColor;
     B.init();
     UI.updateBoard();
     UI.updateTurn();
