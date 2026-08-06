@@ -152,6 +152,15 @@ public class NearbyPlugin extends Plugin {
                 Log.d(TAG, "Advertising started as: " + name);
             })
             .addOnFailureListener(e -> {
+                if (e instanceof com.google.android.gms.common.api.ApiException) {
+                    if (((com.google.android.gms.common.api.ApiException) e).getStatusCode() == ConnectionsStatusCodes.STATUS_ALREADY_ADVERTISING) {
+                        isAdvertising = true;
+                        JSObject result = new JSObject();
+                        result.put("success", true);
+                        call.resolve(result);
+                        return;
+                    }
+                }
                 Log.e(TAG, "Advertising failed", e);
                 call.reject("Failed to start advertising: " + e.getMessage());
             });
@@ -205,6 +214,15 @@ public class NearbyPlugin extends Plugin {
                 Log.d(TAG, "Discovery started");
             })
             .addOnFailureListener(e -> {
+                if (e instanceof com.google.android.gms.common.api.ApiException) {
+                    if (((com.google.android.gms.common.api.ApiException) e).getStatusCode() == ConnectionsStatusCodes.STATUS_ALREADY_DISCOVERING) {
+                        isDiscovering = true;
+                        JSObject result = new JSObject();
+                        result.put("success", true);
+                        call.resolve(result);
+                        return;
+                    }
+                }
                 Log.e(TAG, "Discovery failed", e);
                 call.reject("Failed to start discovery: " + e.getMessage());
             });
