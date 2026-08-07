@@ -1,0 +1,842 @@
+/* ══════════════════════════════════════════════════════════════════════
+   شطرنج Am-Kh — Design System
+   ──────────────────────────────────────────────────────────────────────
+   الأساس البصري الموحّد للتطبيق: design tokens + مكونات UI أساسية.
+
+   قواعد الاستخدام:
+   • استخدم الـ tokens دايمًا، متكتبش قيمة لون أو مسافة مباشرة.
+   • المسافات من مقياس --space-* فقط (4/8/12/16/24/32/48). مفيش قيم عشوائية.
+   • كل المكونات لها prefix ‎.ds-‎ عشان تفضل معزولة عن ستايلات الشاشات القديمة.
+   • الملف ده مالوش أي selector على عناصر HTML عامة (body/button/input)،
+     فتحميله لوحده مايغيّرش شكل أي شاشة موجودة.
+
+   ملاحظة RTL: التطبيق ‎dir="rtl"‎ — استخدم الخصائص المنطقية
+   (margin-inline / padding-inline / inset-inline) مش left/right.
+══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ════════════════════════════════════════════════════════
+     1. الألوان — COLOR TOKENS
+     الهوية: كحلي غامق بلمحة بنفسجية + ذهبي دافئ.
+     الدرجات معادة الضبط: خطوات أعمق وأكثر تساويًا في الأساس،
+     وذهبي أنقى وأعلى تباينًا من النسخة القديمة.
+     ════════════════════════════════════════════════════════ */
+
+  /* ── الأساسي: الذهبي ── */
+  --color-primary:            #D8B45A;  /* اللون الأساسي للأزرار والتمييز */
+  --color-primary-hover:      #E5C570;  /* تفتيح بسيط عند الـ hover */
+  --color-primary-pressed:    #B9963F;  /* أغمق عند الضغط — إحساس الغمّة */
+  --color-primary-subtle:     rgba(216,180,90,.13); /* خلفية خفيفة/tint */
+  --color-primary-border:     rgba(216,180,90,.34); /* حدود بلون أساسي */
+  --color-primary-text:       #F0D68A;  /* نص/أيقونة ذهبية على خلفية غامقة */
+  --color-on-primary:         #0B0F1A;  /* النص فوق سطح ذهبي مليان */
+
+  /* ── الثانوي: فيروزي ── */
+  --color-secondary:          #3FC9B4;
+  --color-secondary-hover:    #57DBC7;
+  --color-secondary-pressed:  #2FA795;
+  --color-secondary-subtle:   rgba(63,201,180,.12);
+  --color-secondary-border:   rgba(63,201,180,.30);
+  --color-secondary-text:     #7BE0D0;
+  --color-on-secondary:       #06181A;
+
+  /* ── الخلفيات والأسطح ──
+     الترتيب من الأعمق للأعلى:
+       bg-base      → كانفس التطبيق (أعمق طبقة)
+       bg-elevated  → الحاويات المرفوعة: بطاقات، sheets، modals
+       surface      → الأسطح التفاعلية جوه الحاويات: inputs، chips
+       surface-raised → حالة الضغط/الاختيار فوق surface            */
+  --color-bg-base:            #080B16;
+  --color-bg-elevated:        #111627;
+  --color-surface:            #1C2238;
+  --color-surface-raised:     #28304B;
+  --color-surface-sunken:     #050710;  /* أعمق من الأساس: حقول/آبار */
+  --color-overlay:            rgba(4,6,13,.78); /* طبقة خلف المودالات */
+
+  /* ── الحدود ── */
+  --color-border:             #2A3149;  /* الحد الافتراضي */
+  --color-border-subtle:      #1E2438;  /* فواصل هادية */
+  --color-border-strong:      #3C4566;  /* تركيز/إبراز */
+
+  /* ── النصوص ──
+     نسب التباين مقيسة فعليًا (bg-base / bg-elevated / surface):
+       primary   16.9 / 15.5 / 13.6  → AAA على الطبقات التلاتة
+       secondary  8.1 /  7.4 /  6.5  → AAA على base و elevated، AA على surface
+       disabled   3.4 /  3.1 /  2.7  → النص المعطّل مستثنى من WCAG،
+                                        متستخدموش لأي نص محتاج قراءة فعلية */
+  --color-text-primary:       #F2EEE3;
+  --color-text-secondary:     #ADA695;
+  --color-text-disabled:      #6B6558;
+  --color-text-inverse:       #0B0F1A;  /* على الأسطح الفاتحة/الذهبية */
+
+  /* ── ألوان الحالة ── */
+  --color-success:            #48D982;
+  --color-success-subtle:     rgba(72,217,130,.13);
+  --color-danger:             #F4756F;
+  --color-danger-subtle:      rgba(244,117,111,.13);
+  --color-warning:            #F0B44C;
+  --color-warning-subtle:     rgba(240,180,76,.13);
+  --color-info:               #62A6FA;
+  --color-info-subtle:        rgba(98,166,250,.13);
+
+  /* ── حلقة التركيز (accessibility) ── */
+  --color-focus-ring:         rgba(216,180,90,.55);
+}
+
+:root{
+  /* ════════════════════════════════════════════════════════
+     2. الخطوط — TYPOGRAPHY
+     العائلة الأساسية بتبدأ بخطوط النظام العربية المتوفرة على أندرويد
+     (Noto Naskh / Droid Arabic) قبل ما توقع على sans-serif، عشان
+     التطبيق offline ومفيش خطوط محمّلة من الشبكة.
+     ملاحظة: 'Cairo' و 'Amiri' متسيبين في أول القائمة لو اتضافوا
+     كملفات محلية بعدين — لو مش موجودين المتصفح يتخطاهم بدون تأخير.
+     ════════════════════════════════════════════════════════ */
+  --font-family-base: 'Cairo', 'Noto Sans Arabic', 'Droid Arabic Naskh',
+                      'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-family-display: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic',
+                      Georgia, serif;
+  --font-family-mono: ui-monospace, 'SF Mono', 'Roboto Mono', monospace;
+
+  /* ── الأوزان ── */
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* ── الأحجام + line-height ──
+     الـ line-height أعلى من المعتاد (1.5–1.7 للنصوص) لأن الحروف
+     العربية لها تشكيل وذيول محتاجة مساحة رأسية أكبر من اللاتيني. */
+
+  /* عنوان شاشة — screen title */
+  --font-size-screen-title:   28px;
+  --line-height-screen-title: 1.35;
+  --font-weight-screen-title: var(--font-weight-bold);
+
+  /* عنوان بطاقة — card title */
+  --font-size-card-title:     18px;
+  --line-height-card-title:   1.45;
+  --font-weight-card-title:   var(--font-weight-semibold);
+
+  /* نص وصفي — body / description */
+  --font-size-body:           15px;
+  --line-height-body:         1.65;
+  --font-weight-body:         var(--font-weight-regular);
+
+  /* نص زر — button label */
+  --font-size-button:         15px;
+  --line-height-button:       1.4;
+  --font-weight-button:       var(--font-weight-semibold);
+
+  /* نص صغير / تسمية — caption / label */
+  --font-size-caption:        12px;
+  --line-height-caption:      1.5;
+  --font-weight-caption:      var(--font-weight-medium);
+
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-wide:   0.02em;
+
+  /* ════════════════════════════════════════════════════════
+     3. المسافات — SPACING SCALE
+     المقياس الوحيد المسموح: 4 / 8 / 12 / 16 / 24 / 32 / 48
+     ════════════════════════════════════════════════════════ */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* ════════════════════════════════════════════════════════
+     4. الأنصاف والظلال والحركة — RADIUS / SHADOW / MOTION
+     ════════════════════════════════════════════════════════ */
+  --radius-sm:   8px;   /* chips، عناصر صغيرة */
+  --radius-md:  12px;   /* أزرار، حقول */
+  --radius-lg:  16px;   /* بطاقات */
+  --radius-xl:  24px;   /* sheets، مودالات */
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.30);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.34);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.44);
+  --shadow-primary-glow: 0 4px 16px rgba(216,180,90,.24);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,.52);   /* النوافذ المرفوعة فوق المحتوى */
+
+  --duration-fast:   120ms;
+  --duration-normal: 200ms;
+  --duration-slow:   280ms;                    /* حركة الورقة السفلية */
+  --easing-standard: cubic-bezier(.4,0,.2,1);
+  --easing-decelerate: cubic-bezier(.22,.9,.3,1);  /* دخول: يدخل بسرعة ويهدى */
+  --easing-spring: cubic-bezier(.34,1.4,.64,1);    /* ارتداد بسيط للنوافذ */
+
+  /* ترتيب الطبقات — النوافذ فوق الشريط العلوي */
+  --z-appbar: 900;
+  --z-modal:  1000;
+  --z-toast:  1100;
+
+  /* أصغر مساحة لمس مقبولة على الموبايل */
+  --touch-target-min: 44px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   5. أدوات Typography — استخدمها على أي عنصر نص
+══════════════════════════════════════════════════════════════════════ */
+.ds-screen-title,
+.ds-card-title,
+.ds-body,
+.ds-caption{
+  font-family: var(--font-family-base);
+  margin: 0;
+}
+
+.ds-screen-title{
+  font-size: var(--font-size-screen-title);
+  line-height: var(--line-height-screen-title);
+  font-weight: var(--font-weight-screen-title);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-text-primary);
+}
+/* نسخة بخط العرض (Amiri) للعناوين ذات الطابع الكلاسيكي */
+.ds-screen-title--display{ font-family: var(--font-family-display); }
+
+.ds-card-title{
+  font-size: var(--font-size-card-title);
+  line-height: var(--line-height-card-title);
+  font-weight: var(--font-weight-card-title);
+  color: var(--color-text-primary);
+}
+
+.ds-body{
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-body);
+  color: var(--color-text-secondary);
+}
+.ds-body--strong{ color: var(--color-text-primary); }
+
+.ds-caption{
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-caption);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-secondary);
+}
+.ds-numeric{
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums; /* أرقام ثابتة العرض للعدادات */
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   6. Button — .ds-btn
+   الاستخدام:
+     <button class="ds-btn ds-btn--primary">ابدأ اللعب</button>
+     <button class="ds-btn ds-btn--secondary">إعدادات</button>
+     <button class="ds-btn ds-btn--ghost ds-btn--sm">إلغاء</button>
+     <button class="ds-btn ds-btn--primary" disabled>…</button>
+   المقاسات: ‎--sm‎ / (افتراضي) / ‎--lg‎ ، و ‎--block‎ لعرض كامل.
+══════════════════════════════════════════════════════════════════════ */
+.ds-btn{
+  /* البنية */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target-min);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+
+  /* النص */
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-button);
+  line-height: var(--line-height-button);
+  font-weight: var(--font-weight-button);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              border-color   var(--duration-fast) var(--easing-standard),
+              color          var(--duration-fast) var(--easing-standard),
+              transform      var(--duration-fast) var(--easing-standard),
+              box-shadow     var(--duration-fast) var(--easing-standard);
+}
+
+/* حلقة تركيز موحّدة لكل المكونات — للوحة المفاتيح فقط */
+.ds-btn:focus-visible,
+.ds-input:focus-visible,
+.ds-chip:focus-visible{
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── variant: primary / filled ── */
+.ds-btn--primary{
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary-glow);
+}
+.ds-btn--primary:hover:not(:disabled){ background: var(--color-primary-hover); }
+.ds-btn--primary:active:not(:disabled){
+  background: var(--color-primary-pressed);
+  box-shadow: none;
+  transform: scale(.975);
+}
+
+/* ── variant: secondary / outline ── */
+.ds-btn--secondary{
+  background: transparent;
+  color: var(--color-primary-text);
+  border-color: var(--color-primary-border);
+}
+.ds-btn--secondary:hover:not(:disabled){
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+}
+.ds-btn--secondary:active:not(:disabled){
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  transform: scale(.975);
+}
+
+/* ── variant: ghost ── */
+.ds-btn--ghost{
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: transparent;
+}
+.ds-btn--ghost:hover:not(:disabled){
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+.ds-btn--ghost:active:not(:disabled){
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  transform: scale(.975);
+}
+
+/* ── variant: danger (للأفعال المدمّرة: استسلام، حذف) ── */
+.ds-btn--danger{
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.ds-btn--danger:hover:not(:disabled){ background: rgba(244,117,111,.20); }
+.ds-btn--danger:active:not(:disabled){ transform: scale(.975); }
+
+/* ── الحالة المعطّلة — موحّدة لكل الـ variants ── */
+.ds-btn:disabled,
+.ds-btn[aria-disabled="true"]{
+  background: var(--color-surface);
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-subtle);
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+  pointer-events: none; /* يمنع أي hover/active يتسرب */
+}
+
+/* ── المقاسات ── */
+.ds-btn--sm{
+  min-height: 36px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-caption);
+  border-radius: var(--radius-sm);
+}
+.ds-btn--lg{
+  min-height: 56px;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-card-title);
+}
+.ds-btn--block{ display: flex; width: 100%; }
+
+/* أيقونة جوه الزر */
+.ds-btn__icon{
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   7. Card — .ds-card
+   الاستخدام:
+     <div class="ds-card">
+       <div class="ds-card__header">
+         <h2 class="ds-card-title">لعب أونلاين</h2>
+       </div>
+       <p class="ds-body">العب مع أصدقائك…</p>
+       <div class="ds-card__footer"> … أزرار … </div>
+     </div>
+   المتغيرات: ‎--interactive‎ (قابلة للنقر) ، ‎--flat‎ ، ‎--selected‎
+══════════════════════════════════════════════════════════════════════ */
+.ds-card{
+  display: block;
+  padding: var(--space-4);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-primary);
+}
+
+/* بطاقة قابلة للنقر — لها pressed state زي الزر */
+.ds-card--interactive{
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              border-color   var(--duration-fast) var(--easing-standard),
+              transform      var(--duration-fast) var(--easing-standard),
+              box-shadow     var(--duration-fast) var(--easing-standard);
+}
+.ds-card--interactive:hover{
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+}
+.ds-card--interactive:active{
+  background: var(--color-surface-raised);
+  transform: scale(.99);
+  box-shadow: var(--shadow-sm);
+}
+.ds-card--interactive:focus-visible{
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* بطاقة مختارة */
+.ds-card--selected{
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* بدون ظل — للبطاقات المتداخلة جوه بطاقة تانية */
+.ds-card--flat{
+  box-shadow: none;
+  background: var(--color-surface);
+}
+
+/* بطاقة معطّلة */
+.ds-card--disabled{
+  opacity: .5;
+  pointer-events: none;
+}
+
+.ds-card__header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.ds-card__body  { margin-bottom: var(--space-4); }
+.ds-card__footer{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+.ds-card__divider{
+  height: 1px;
+  margin: var(--space-4) 0;
+  background: var(--color-border-subtle);
+  border: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   8. Input — .ds-input
+   الاستخدام:
+     <div class="ds-field">
+       <label class="ds-label" for="code">كود الغرفة</label>
+       <input id="code" class="ds-input" type="text" placeholder="مثال: 4821">
+       <span class="ds-field__hint">٤ أرقام</span>
+     </div>
+   للخطأ: ضيف ‎.ds-input--error‎ على الحقل و ‎.ds-field__hint--error‎ للرسالة.
+══════════════════════════════════════════════════════════════════════ */
+.ds-field{
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ds-label{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.ds-input{
+  width: 100%;
+  min-height: var(--touch-target-min);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-button);
+  color: var(--color-text-primary);
+
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+              background-color var(--duration-fast) var(--easing-standard),
+              box-shadow var(--duration-fast) var(--easing-standard);
+}
+.ds-input::placeholder{ color: var(--color-text-disabled); }
+
+/* focus هنا مش focus-visible: الحقول لازم تبيّن التركيز باللمس كمان */
+.ds-input:focus{
+  border-color: var(--color-primary);
+  background: var(--color-bg-elevated);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.ds-input:disabled{
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.ds-input--error{ border-color: var(--color-danger); }
+.ds-input--error:focus{
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-subtle);
+}
+
+/* حقل نص متعدد الأسطر */
+.ds-input--textarea{
+  min-height: 96px;
+  padding: var(--space-3) var(--space-4);
+  line-height: var(--line-height-body);
+  resize: vertical;
+}
+
+/* حقل أكواد/أرقام — متوسط ومتباعد الحروف */
+.ds-input--code{
+  text-align: center;
+  letter-spacing: .28em;
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-bold);
+}
+
+.ds-field__hint{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+.ds-field__hint--error{ color: var(--color-danger); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   9. Chip / Badge — .ds-chip  و  .ds-badge
+   Chip  = عنصر تفاعلي (فلتر، اختيار) وله pressed/selected/disabled.
+   Badge = تسمية ساكنة للعرض فقط (حالة، عدّاد، مستوى).
+   الاستخدام:
+     <button class="ds-chip ds-chip--selected">سريع</button>
+     <span class="ds-badge ds-badge--success">متصل</span>
+══════════════════════════════════════════════════════════════════════ */
+.ds-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              border-color   var(--duration-fast) var(--easing-standard),
+              color          var(--duration-fast) var(--easing-standard),
+              transform      var(--duration-fast) var(--easing-standard);
+}
+.ds-chip:hover:not(:disabled){
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+.ds-chip:active:not(:disabled){
+  background: var(--color-surface-raised);
+  transform: scale(.96);
+}
+
+/* الحالة المختارة */
+.ds-chip--selected,
+.ds-chip[aria-selected="true"]{
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ds-chip:disabled,
+.ds-chip[aria-disabled="true"]{
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Badge: ساكن، مش تفاعلي ── */
+.ds-badge{
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);      /* أصغر من --space-1 عمدًا: badge مدمج */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.ds-badge--primary{
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+.ds-badge--secondary{
+  background: var(--color-secondary-subtle);
+  border-color: var(--color-secondary-border);
+  color: var(--color-secondary-text);
+}
+.ds-badge--success{
+  background: var(--color-success-subtle);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+.ds-badge--danger{
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.ds-badge--warning{
+  background: var(--color-warning-subtle);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+.ds-badge--info{
+  background: var(--color-info-subtle);
+  border-color: var(--color-info);
+  color: var(--color-info);
+}
+/* نقطة حالة صغيرة جوه الـ badge */
+.ds-badge__dot{
+  width: 6px; height: 6px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  flex-shrink: 0;
+}
+/* عدّاد دائري (إشعارات) */
+.ds-badge--count{
+  min-width: 20px; height: 20px;
+  padding: 0 var(--space-1);
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   10. أدوات تخطيط — LAYOUT HELPERS
+   كلها مبنية على مقياس المسافات، عشان الشاشات الجاية تلتزم بيه تلقائيًا.
+══════════════════════════════════════════════════════════════════════ */
+.ds-stack{ display: flex; flex-direction: column; gap: var(--space-4); }
+.ds-stack--tight{ gap: var(--space-2); }
+.ds-stack--loose{ gap: var(--space-6); }
+
+.ds-row{ display: flex; align-items: center; gap: var(--space-3); }
+.ds-row--between{ justify-content: space-between; }
+.ds-row--wrap{ flex-wrap: wrap; }
+
+/* حاوية الشاشة — padding جانبي موحّد + احترام آمن للنوتش وشريط التنقل */
+.ds-screen{
+  padding: var(--space-4);
+  padding-top: max(var(--space-4), env(safe-area-inset-top));
+  padding-bottom: max(var(--space-6), env(safe-area-inset-bottom));
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   11. النوافذ — DIALOG / OVERLAY
+   طبقة فوق محتوى الشاشة، مش شاشة منفصلة: الخلفية بتتعتّم وتتبلور
+   فيبان اللي تحتها. الدخول scale+fade والخروج بالعكس.
+══════════════════════════════════════════════════════════════════════ */
+.ds-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  /* عتمة متوسطة — المحتوى خلفها لازم يفضل مقروء كسياق */
+  background: var(--color-overlay);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--easing-standard);
+}
+.ds-overlay.is-open{ opacity: 1; pointer-events: auto; }
+
+.ds-dialog{
+  width: 100%;
+  max-width: 380px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-6);
+  text-align: center;
+  /* الخروج: يرجع صغير وشفاف */
+  transform: scale(.9) translateY(8px);
+  opacity: 0;
+  transition:
+    transform var(--duration-normal) var(--easing-spring),
+    opacity   var(--duration-fast) var(--easing-standard);
+}
+.ds-overlay.is-open .ds-dialog{ transform: scale(1) translateY(0); opacity: 1; }
+
+.ds-dialog__icon{
+  font-size: 44px;
+  line-height: 1;
+  margin-bottom: var(--space-4);
+  color: var(--color-primary-text);
+}
+.ds-dialog__title{
+  /* الخط الأساسي مش الزخرفي — Amiri بيقرا أصغر من حجمه الفعلي
+     فكان العنوان يبان أضعف من نص الرسالة تحته. */
+  font-family: var(--font-family-base);
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2);
+}
+.ds-dialog__message{
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-5);
+}
+.ds-dialog__actions{
+  display: flex;
+  gap: var(--space-3);
+}
+.ds-dialog__actions > .ds-btn{ flex: 1; }
+
+/* نبرة الخطر/التحذير على أيقونة النافذة */
+.ds-dialog__icon--danger { color: var(--color-danger); }
+.ds-dialog__icon--warning{ color: var(--color-warning); }
+.ds-dialog__icon--success{ color: var(--color-success); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   12. الورقة السفلية — BOTTOM SHEET
+   للقوائم الطويلة. بتطلع من تحت، وبتتسحب لتحت للإغلاق.
+══════════════════════════════════════════════════════════════════════ */
+.ds-overlay--sheet{
+  align-items: flex-end;
+  padding: 0;
+}
+
+.ds-sheet{
+  width: 100%;
+  max-width: 560px;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: 0 -24px 64px rgba(0,0,0,.52);
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateY(100%);
+  transition: transform var(--duration-slow) var(--easing-decelerate);
+}
+.ds-overlay--sheet.is-open .ds-sheet{ transform: translateY(0); }
+
+/* أثناء السحب بالإصبع: بنلغي الـ transition عشان يتبع الإصبع فورًا */
+.ds-sheet.is-dragging{ transition: none; }
+
+/* مقبض السحب — منطقة لمس مريحة مش خط رقيق */
+.ds-sheet__handle{
+  flex: none;
+  padding: var(--space-3) 0 var(--space-2);
+  display: flex;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+}
+.ds-sheet__handle::before{
+  content: '';
+  width: 42px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-border-strong);
+}
+.ds-sheet__handle:active{ cursor: grabbing; }
+
+.ds-sheet__header{
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-5) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.ds-sheet__title{
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-text);
+  margin: 0;
+}
+.ds-sheet__body{
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce){
+  .ds-btn, .ds-chip, .ds-card--interactive, .ds-input{
+    transition: none;
+  }
+  .ds-btn:active, .ds-chip:active, .ds-card--interactive:active{
+    transform: none;
+  }
+  /* النوافذ تظهر فورًا بدون حركة، مع الحفاظ على الـ fade البسيط */
+  .ds-overlay, .ds-dialog, .ds-sheet{ transition: opacity .01s linear; }
+  .ds-dialog{ transform: none; }
+  .ds-overlay.is-open .ds-dialog{ transform: none; }
+  .ds-sheet{ transform: none; }
+  .ds-overlay--sheet.is-open .ds-sheet{ transform: none; }
+}

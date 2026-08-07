@@ -12,6 +12,9 @@
 <link rel="apple-touch-icon" href="icon_v2.png?v=2">
 <link rel="icon" type="image/png" href="icon_v2.png?v=2">
 <title>♟ شطرنج — Am-Kh</title>
+<!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
+     عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
+<link rel="stylesheet" href="design-system.css">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -1002,8 +1005,9 @@ body[data-ui-theme="glass"] .mc-tag{
   inset:0;
   z-index:965;
   padding:18px;
-  background:rgba(2,6,16,.9);
-  backdrop-filter:blur(18px);
+  background:var(--color-overlay);
+  backdrop-filter:blur(14px) saturate(120%);
+  -webkit-backdrop-filter:blur(14px) saturate(120%);
   align-items:center;
   justify-content:center;
 }
@@ -1392,7 +1396,7 @@ body[data-ui-theme="glass"] .mc-tag{
 .vsl::-webkit-slider-thumb:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(201,168,76,.4);}
 .vsl::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:none;box-shadow:0 2px 8px rgba(201,168,76,.3);transition:all .2s ease;}
 .vsl::-moz-range-thumb:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(201,168,76,.4);}
-.settings-modal-overlay{display:none;position:fixed;inset:0;background:rgba(2,4,10,.84);backdrop-filter:blur(6px);z-index:10000;align-items:center;justify-content:center;padding:20px;}
+.settings-modal-overlay{display:none;position:fixed;inset:0;background:var(--color-overlay);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);z-index:10000;align-items:center;justify-content:center;padding:20px;}
 .settings-modal-card{background:linear-gradient(180deg,rgba(16,21,31,.98),rgba(10,14,22,.96));border:1px solid rgba(201,168,76,.18);border-radius:24px;max-width:1120px;width:100%;max-height:94vh;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.48);}
 .settings-modal-header{display:flex;justify-content:space-between;align-items:center;padding:22px 22px 16px;border-bottom:1px solid rgba(201,168,76,.1);}
 .settings-modal-title{color:var(--gold2);font-size:21px;margin:0;display:flex;align-items:center;gap:10px;}
@@ -1726,7 +1730,7 @@ body[data-ui-theme="glass"] .mc-tag{
 .sq-ripple::after{content:'';position:absolute;top:50%;left:50%;width:80%;height:80%;margin-top:-40%;margin-left:-40%;border-radius:50%;background:rgba(201,168,76,.25);animation:ripple .35s ease-out forwards;}
 
 /* ══════════ PROMO ══════════ */
-#promo-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);z-index:900;align-items:center;justify-content:center;}
+#promo-ov{display:none;position:fixed;inset:0;background:var(--color-overlay);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);z-index:900;align-items:center;justify-content:center;}
 #promo-ov.open{display:flex;}
 .pbox{background:var(--bg2);border:1px solid rgba(201,168,76,.24);border-radius:18px;padding:22px;text-align:center;box-shadow:0 0 60px rgba(201,168,76,.12);animation:pop .2s cubic-bezier(.34,1.56,.64,1);}
 @keyframes pop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
@@ -1736,7 +1740,7 @@ body[data-ui-theme="glass"] .mc-tag{
 .pp:hover{border-color:var(--gold);background-color:rgba(201,168,76,.11);transform:scale(1.1) translateY(-3px);box-shadow:0 8px 20px rgba(201,168,76,.2);}
 
 /* ══════════ GAME OVER ══════════ */
-#go-ov{display:none;position:fixed;inset:0;background:rgba(2,6,12,.82);backdrop-filter:blur(10px);z-index:850;align-items:center;justify-content:center;padding:12px;overflow:hidden;}
+#go-ov{display:none;position:fixed;inset:0;background:var(--color-overlay);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);z-index:850;align-items:center;justify-content:center;padding:12px;overflow:hidden;}
 #go-ov.open{display:flex;animation:fadeIn .28s ease-out;}
 
 @keyframes fadeIn{
@@ -3127,88 +3131,121 @@ body[data-ui-theme="glass"] .mc-tag{
   #s-game.mode-engine .chat-wrap{order:6;}
 }
 </style>
+<!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
+     عشان تقدر تبطّل اللي اتغيّر منها -->
+<link rel="stylesheet" href="screens.css">
 <!-- QR Code Libraries for LAN Mode -->
 </head>
 <body>
 <div id="particles"></div>
 
 
-<!-- BANNER -->
-<div id="banner">
-  <div class="bi">
-    <span class="bp">♟</span>
-    <span class="bd-dot"></span>
-    <span class="bby">Powered by</span>
-    <span class="bnm">Am-Kh</span>
-    <span class="bd-dot"></span>
-    <span id="sf-status" style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.08);color:var(--text3);border:1px solid rgba(255,255,255,.1)">SF ...</span>
-    <span class="bd-dot"></span>
-    <span class="bp">♚</span>
-</div>
+<!-- APP BAR — سياقي: محتواه بيتغيّر حسب الشاشة عن طريق AppBar.sync() -->
+<div id="banner" data-context="home">
+  <div class="appbar">
+    <!-- سياق الشاشة الرئيسية: شعار مصغّر + وصول سريع -->
+    <div class="appbar__lead" id="appbar-home-lead">
+      <span class="appbar__brand">
+        <span class="appbar__brand-mark">♟</span>
+        <span class="appbar__brand-name">Am-Kh</span>
+      </span>
+    </div>
+
+    <!-- سياق الشاشات الداخلية: رجوع + عنوان -->
+    <div class="appbar__lead" id="appbar-inner-lead" style="display:none">
+      <button class="appbar__icon-btn" id="appbar-back" aria-label="رجوع"
+        onclick="if(typeof SFX!=='undefined')SFX.btn();AppBar.back()">
+        <span class="appbar__back-glyph">←</span>
+      </button>
+    </div>
+    <div class="appbar__center">
+      <h1 class="appbar__title" id="appbar-title" style="display:none"></h1>
+    </div>
+
+    <div class="appbar__trail">
+      <span id="sf-status">SF ...</span>
+      <button class="appbar__icon-btn" id="appbar-settings" aria-label="الإعدادات"
+        onclick="if(typeof SFX!=='undefined')SFX.btn();Nav.settings()">⚙</button>
+    </div>
+  </div>
 </div>
 
 <!-- MENU -->
 <div id="s-menu" class="screen active">
-  <div class="logo">
-    <span class="logo-ic">♟</span>
-    <h1 class="logo-t">شطرنج</h1>
-    <p class="logo-s">Chess · Am-Kh</p>
-  </div>
-  <div class="mode-grid">
-    <div class="mc" data-mode="online" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.online()">
-      <span class="mc-tag">LIVE</span>
-      <span class="mc-ic ic-teal">⊕</span>
-      <div class="mc-t">أونلاين</div>
-      <div class="mc-d">العب مع صديق في أي مكان بالعالم</div>
-      <span class="mc-b bt">سيرفر WebSocket ◈</span>
+  <div class="home">
+    <div class="home__brand">
+      <h1 class="home__brand-title">شطرنج</h1>
+      <span class="home__brand-sub">Chess · Am-Kh</span>
     </div>
 
-    <div class="mc" data-mode="levels" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
-      <span class="mc-tag">NOUR</span>
-      <span class="mc-ic ic-gold">◈</span>
-      <div class="mc-t">مراحل نور</div>
-      <div class="mc-d">12 مرحلة تدريجية — افتح مرحلة مرحلة</div>
-      <span class="mc-b bg">محفوظ أوفلاين ◈</span>
-    </div>
-    <div class="mc" data-mode="engine" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.open()">
-      <span class="mc-tag">STOCKFISH</span>
-      <span class="mc-ic ic-blue mc-engine-ic">
-        <img src="./StockFish.png" alt="Stockfish" onerror="this.remove();this.parentElement.classList.add('fallback');this.parentElement.textContent='SF';">
-      </span>
-      <div class="mc-t">ضد المحرك</div>
-      <div class="mc-d">اختر قوة Stockfish وخض مواجهة AI كاملة أوفلاين</div>
-      <span class="mc-b bb">AI Match</span>
-    </div>
-    <div class="mc" data-mode="local" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
-      <span class="mc-tag">LOCAL</span>
-      <span class="mc-ic ic-green">⚔</span>
-      <div class="mc-t">لاعبَان</div>
-      <div class="mc-d">على نفس الشاشة بالتناوب</div>
-      <span class="mc-b bv">أوفلاين ◈</span>
-    </div>
-    <div class="mc" data-mode="bluetooth" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.bluetooth()">
-      <span class="mc-tag">BLUETOOTH</span>
-      <span class="mc-ic ic-blue">ᛒ</span>
-      <div class="mc-t">لعب عبر Bluetooth</div>
-      <div class="mc-d">العب أوفلاين مع جهاز قريب</div>
-      <span class="mc-b bb">بدون إنترنت ◈</span>
-    </div>
-    <div class="mc" data-mode="settings" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.settings()">
-      <span class="mc-tag">LAB</span>
-      <span class="mc-ic ic-blue">⚙</span>
-      <div class="mc-t">الإعدادات</div>
-      <div class="mc-d">صوت — رقعة — ألوان وأكثر</div>
-      <span class="mc-b bb">تخصيص</span>
-    </div>
-
+    <div class="home__grid">
+      <!-- أونلاين: البطاقة الرئيسية (تمتد على العمودين) -->
+      <div class="ds-card ds-card--interactive home-mode home-mode--online" role="button" tabindex="0"
+        data-mode="online" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.online()">
+        <span class="home-mode__icon">⊕</span>
+        <div class="home-mode__body">
+          <h2 class="home-mode__title">أونلاين</h2>
+          <p class="home-mode__desc">العب مع صديق في أي مكان بالعالم</p>
+        </div>
+        <span class="ds-badge home-mode__meta home-mode__live">
+          <span class="home-mode__live-dot"></span>مباشر
+        </span>
       </div>
-  <div class="offline-n">◉ مراحل نور و لاعبان واللعب ضد المحرك يعملان بالكامل بدون إتصال بالإنترنت</div>
+
+      <div class="ds-card ds-card--interactive home-mode home-mode--levels" role="button" tabindex="0"
+        data-mode="levels" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
+        <span class="home-mode__icon"><span>◈</span></span>
+        <div class="home-mode__body">
+          <h2 class="home-mode__title">مراحل نور</h2>
+          <p class="home-mode__desc">12 مرحلة من المبتدئ إلى الأسطورة</p>
+          <span class="ds-badge home-mode__meta">أوفلاين</span>
+        </div>
+      </div>
+      <div class="ds-card ds-card--interactive home-mode home-mode--engine" role="button" tabindex="0"
+        data-mode="engine" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.open()">
+        <span class="home-mode__icon">
+          <img src="./StockFish.png" alt="Stockfish" onerror="this.remove();this.parentElement.classList.add('is-fallback');this.parentElement.textContent='SF';">
+        </span>
+        <div class="home-mode__body">
+          <h2 class="home-mode__title">ضد المحرك</h2>
+          <p class="home-mode__desc">اختر قوة Stockfish وخض مواجهة AI</p>
+          <span class="ds-badge home-mode__meta">AI Match</span>
+        </div>
+      </div>
+
+      <div class="ds-card ds-card--interactive home-mode home-mode--local" role="button" tabindex="0"
+        data-mode="local" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
+        <span class="home-mode__icon">⚔</span>
+        <div class="home-mode__body">
+          <h2 class="home-mode__title">لاعبَان</h2>
+          <p class="home-mode__desc">على نفس الشاشة بالتناوب</p>
+          <span class="ds-badge home-mode__meta">أوفلاين</span>
+        </div>
+      </div>
+
+      <div class="ds-card ds-card--interactive home-mode home-mode--bluetooth" role="button" tabindex="0"
+        data-mode="bluetooth" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.bluetooth()">
+        <span class="home-mode__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+          </svg>
+        </span>
+        <div class="home-mode__body">
+          <h2 class="home-mode__title">Bluetooth</h2>
+          <p class="home-mode__desc">العب مع جهاز قريب بدون إنترنت</p>
+          <span class="ds-badge home-mode__meta">جهاز قريب</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="home__note">◉ نور و لاعبان و المحرك يعملون بالكامل بدون إنترنت</div>
+  </div>
 </div>
 
 <!-- LEVELS -->
 <div id="s-levels" class="screen">
   <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
-    <div class="lvl-hdr"><h2>◈ مراحل نور</h2><p>12 مرحلة من المبتدئ إلى الأسطورة</p></div>
+    <div class="lvl-hdr"><p>12 مرحلة من المبتدئ إلى الأسطورة</p></div>
     <div class="lp-card">
       <div class="lp-top"><span>التقدم الكلي</span><span id="lp-txt">0 / 12</span></div>
       <div class="lp-bar"><div class="lp-fill" id="lp-fill" style="width:0%"></div></div>
@@ -3325,7 +3362,17 @@ body[data-ui-theme="glass"] .mc-tag{
 
           <div class="settings-section">
             <h3 class="section-title"><span class="section-icon">▣</span> ألوان الرقعة</h3>
-            <div class="board-themes-grid">
+            <!-- 21 لون — بيتعرضوا في ورقة سفلية بدل ما يطوّلوا الصفحة.
+                 الشبكة نفسها بتتنقل جوه الورقة بالـ JS عند أول فتح. -->
+            <button type="button" class="board-theme-trigger" onclick="if(typeof SFX!=='undefined')SFX.btn(); BoardThemeSheet.open()">
+              <span class="board-theme-trigger__preview" id="board-theme-current-sw"></span>
+              <span class="board-theme-trigger__text">
+                <span class="board-theme-trigger__label">لون الرقعة</span>
+                <span class="board-theme-trigger__value" id="board-theme-current-name">خشب</span>
+              </span>
+              <span class="board-theme-trigger__chevron">‹</span>
+            </button>
+            <div class="board-themes-grid" id="board-themes-grid">
               <div class="th-opt on" id="th-classic"    onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>خشب ★</div>
               <div class="th-opt"    id="th-burl_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood')"><div class="th-sw"><div class="sw" style="background:#d4a574"></div><div class="sw" style="background:#8b6f47"></div></div>بيرل</div>
               <div class="th-opt"    id="th-dark_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood')"><div class="th-sw"><div class="sw" style="background:#9d8b7e"></div><div class="sw" style="background:#4a3a2a"></div></div>داكن</div>
@@ -3778,28 +3825,40 @@ body[data-ui-theme="glass"] .mc-tag{
 </div>
 
 <!-- CUSTOM ALERT/MODAL -->
-<div id="custom-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:950;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 60px rgba(201,168,76,.08),0 20px 60px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
-    <div id="modal-icon" style="font-size:52px;margin-bottom:16px;display:block;">📢</div>
-    <div id="modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">تنبيه</div>
-    <div id="modal-message" style="font-size:15px;color:var(--text);line-height:1.7;margin-bottom:24px;"></div>
-    <div id="modal-buttons" style="display:flex;gap:12px;justify-content:center;">
-      <button id="modal-btn-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">موافق</button>
-      <button id="modal-btn-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;display:none;">إلغاء</button>
+<div id="custom-modal" class="ds-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="ds-dialog">
+    <div id="modal-icon" class="ds-dialog__icon">📢</div>
+    <h2 id="modal-title" class="ds-dialog__title">تنبيه</h2>
+    <p id="modal-message" class="ds-dialog__message"></p>
+    <div id="modal-buttons" class="ds-dialog__actions">
+      <button id="modal-btn-cancel" class="ds-btn ds-btn--secondary" style="display:none;">إلغاء</button>
+      <button id="modal-btn-ok" class="ds-btn ds-btn--primary">موافق</button>
     </div>
   </div>
 </div>
 
+<!-- ورقة سفلية لألوان الرقعة — قابلة للسحب للأسفل للإغلاق -->
+<div class="ds-overlay ds-overlay--sheet" id="board-theme-sheet" role="dialog" aria-modal="true" aria-labelledby="board-theme-sheet-title">
+  <div class="ds-sheet" id="board-theme-sheet-panel">
+    <div class="ds-sheet__handle" aria-hidden="true"></div>
+    <div class="ds-sheet__header">
+      <h3 class="ds-sheet__title" id="board-theme-sheet-title">لون الرقعة</h3>
+    </div>
+    <div class="ds-sheet__body" id="board-theme-sheet-body"></div>
+  </div>
+</div>
+
 <!-- CUSTOM INPUT MODAL (for forgot password) -->
-<div id="input-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(15px);z-index:960;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border:1px solid rgba(201,168,76,.25);border-radius:24px;padding:36px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 60px rgba(201,168,76,.08),0 20px 60px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.34,1.56,.64,1);">
-    <div id="input-modal-icon" style="font-size:52px;margin-bottom:16px;display:block;color:var(--gold2);">◈</div>
-    <div id="input-modal-title" style="font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--gold2);margin-bottom:12px;">إعادة تعيين كلمة المرور</div>
-    <div id="input-modal-message" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;">أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين</div>
-    <input id="input-modal-field" type="email" placeholder="البريد الإلكتروني" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:20px;text-align:center;direction:ltr;">
-    <div style="display:flex;gap:12px;justify-content:center;">
-      <button id="input-modal-ok" class="btnp" style="padding:12px 24px;font-size:14px;border-radius:12px;">إرسال</button>
-      <button id="input-modal-cancel" class="btnb" style="padding:12px 24px;font-size:14px;border-radius:12px;">إلغاء</button>
+<div id="input-modal" class="ds-overlay" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
+  <div class="ds-dialog">
+    <div id="input-modal-icon" class="ds-dialog__icon">◈</div>
+    <h2 id="input-modal-title" class="ds-dialog__title">إعادة تعيين كلمة المرور</h2>
+    <p id="input-modal-message" class="ds-dialog__message">أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين</p>
+    <input id="input-modal-field" type="email" class="ds-input" placeholder="البريد الإلكتروني"
+      style="text-align:center;direction:ltr;margin-bottom:var(--space-5);">
+    <div class="ds-dialog__actions">
+      <button id="input-modal-cancel" class="ds-btn ds-btn--secondary">إلغاء</button>
+      <button id="input-modal-ok" class="ds-btn ds-btn--primary">إرسال</button>
     </div>
   </div>
 </div>
@@ -5023,6 +5082,8 @@ const Cfg={
     applyBoardVisual(boardDiv,{themeName:name});
     const customUpload=document.getElementById('custom-board-upload');
     if(customUpload)customUpload.style.display=name==='custom'?'block':'none';
+    /* تحديث صف المعاينة في الإعدادات — عرض فقط، مالوش دخل بالحفظ */
+    if(typeof BoardThemeSheet!=='undefined')BoardThemeSheet.syncTrigger(name);
     if(save){this._persist();}
   },
   pieces(style,save=true){
@@ -5239,10 +5300,129 @@ function getPlayerDisplayName(){
   return (Cfg?.data?.playerName||'أنت').trim()||'أنت';
 }
 
+/* ══════════════════════════════════════
+   DS OVERLAY — تحكم موحّد في فتح/غلق النوافذ
+   الطبقة بتفضل في الـ DOM دايمًا (display:flex من الـ CSS)
+   والظهور بكلاس is-open عشان الأنيميشن يشتغل في الاتجاهين.
+══════════════════════════════════════ */
+const DSOverlay={
+  _openCount:0,
+
+  open(el){
+    if(typeof el==='string')el=document.getElementById(el);
+    if(!el||el.classList.contains('is-open'))return;
+    el.style.removeProperty('display');   // نتخلص من أي display:none قديم inline
+    void el.offsetWidth;                  // reflow: الحالة الابتدائية تتثبّت قبل الترانزيشن
+    el.classList.add('is-open');
+    this._openCount++;
+    document.body.style.overflow='hidden';
+  },
+
+  close(el){
+    if(typeof el==='string')el=document.getElementById(el);
+    if(!el||!el.classList.contains('is-open'))return;
+    el.classList.remove('is-open');
+    this._openCount=Math.max(0,this._openCount-1);
+    if(this._openCount===0)document.body.style.removeProperty('overflow');
+  },
+
+  isOpen(el){
+    if(typeof el==='string')el=document.getElementById(el);
+    return !!el&&el.classList.contains('is-open');
+  },
+
+  /* يخلّي الورقة السفلية تتسحب لتحت بالإصبع. لو اتسحبت أكتر من ربع
+     ارتفاعها أو بسرعة كافية → تتقفل، غير كده ترجع مكانها. */
+  makeSheetDraggable(overlayId,panelId,onClose){
+    const overlay=document.getElementById(overlayId);
+    const panel=document.getElementById(panelId);
+    if(!overlay||!panel||panel.dataset.dragBound)return;
+    panel.dataset.dragBound='1';
+
+    const handle=panel.querySelector('.ds-sheet__handle');
+    const body=panel.querySelector('.ds-sheet__body');
+    let startY=0,startT=0,dy=0,dragging=false;
+
+    const start=e=>{
+      /* السحب يبدأ من المقبض دايمًا، أو من الجسم لو هو متزحلق لفوق خالص
+         عشان مانكسرش التمرير الطبيعي جوه القائمة */
+      const fromHandle=handle&&handle.contains(e.target);
+      if(!fromHandle&&!(body&&body.contains(e.target)&&body.scrollTop<=0))return;
+      dragging=true;dy=0;startY=e.clientY;startT=Date.now();
+      panel.classList.add('is-dragging');
+      panel.setPointerCapture?.(e.pointerId);
+    };
+    const move=e=>{
+      if(!dragging)return;
+      dy=Math.max(0,e.clientY-startY);        /* لتحت بس */
+      if(dy>0)e.preventDefault();
+      panel.style.transform=`translateY(${dy}px)`;
+    };
+    const end=()=>{
+      if(!dragging)return;
+      dragging=false;
+      panel.classList.remove('is-dragging');
+      panel.style.removeProperty('transform');
+      const far=dy>panel.getBoundingClientRect().height*0.25;
+      const fast=dy>60&&(Date.now()-startT)<300;   /* نفضة سريعة لتحت */
+      if(far||fast){ onClose?onClose():this.close(overlay); }
+    };
+
+    panel.addEventListener('pointerdown',start);
+    panel.addEventListener('pointermove',move,{passive:false});
+    panel.addEventListener('pointerup',end);
+    panel.addEventListener('pointercancel',end);
+    /* نقرة على الخلفية بره الورقة تقفل كمان */
+    overlay.addEventListener('pointerdown',e=>{
+      if(e.target===overlay){ onClose?onClose():this.close(overlay); }
+    });
+  }
+};
+
+/* ورقة ألوان الرقعة — بتنقل نفس شبكة ‎.th-opt‎ الموجودة جوه الورقة
+   (نقل عقدة، مش إعادة بناء) عشان كل ‎onclick="Cfg.theme(...)"‎ يفضل شغال
+   بحرفه ومنطق الحفظ مايتغيّرش. */
+const BoardThemeSheet={
+  _moved:false,
+
+  open(){
+    const grid=document.getElementById('board-themes-grid');
+    const body=document.getElementById('board-theme-sheet-body');
+    if(grid&&body&&!this._moved){ body.appendChild(grid); this._moved=true; }
+    DSOverlay.makeSheetDraggable('board-theme-sheet','board-theme-sheet-panel');
+    DSOverlay.open('board-theme-sheet');
+  },
+
+  close(){ DSOverlay.close('board-theme-sheet'); },
+
+  /* يحدّث صف المعاينة: الاسم + مربعي اللون، من نفس عنصر ‎th-<name>‎ */
+  syncTrigger(name){
+    const opt=document.getElementById('th-'+name);
+    const nameEl=document.getElementById('board-theme-current-name');
+    const swEl=document.getElementById('board-theme-current-sw');
+    if(!opt)return;
+    if(nameEl){
+      /* نص العنصر بدون الشرايح ولا نجمة المميز */
+      const txt=Array.from(opt.childNodes)
+        .filter(n=>n.nodeType===3).map(n=>n.textContent).join('')
+        .replace('★','').trim();
+      if(txt)nameEl.textContent=txt;
+    }
+    if(swEl){
+      swEl.innerHTML='';
+      opt.querySelectorAll('.sw').forEach(s=>{
+        const d=document.createElement('span');
+        d.className='board-theme-trigger__sw';
+        d.style.background=s.style.background;
+        swEl.appendChild(d);
+      });
+    }
+  }
+};
+
 const Modal={
   // Play appropriate sound based on icon type using Web Audio API (not mp3 files)
-  _playSound(icon){
-    if(typeof Cfg==='undefined'||!Cfg.data.sound)return;
+  _playSound(icon){    if(typeof Cfg==='undefined'||!Cfg.data.sound)return;
     try{
       const AudioContext=window.AudioContext||window.webkitAudioContext;
       if(!AudioContext)return;
@@ -5302,10 +5482,10 @@ const Modal={
     okBtn.textContent='موافق';
     okBtn.onclick=()=>{
       if(typeof SFX!=='undefined')SFX.btn();
-      modal.style.display='none';
+      DSOverlay.close(modal);
       if(onOk)onOk();
     };
-    modal.style.display='flex';
+    DSOverlay.open(modal);
     this._playSound(icon);
   },
   confirm(message,title='تأكيد',icon='؟',onOk=null,onCancel=null){
@@ -5319,20 +5499,20 @@ const Modal={
     titleEl.textContent=title;
     msgEl.textContent=message;
     iconEl.textContent=icon;
-    cancelBtn.style.display='inline-block';
+    cancelBtn.style.display='';
     cancelBtn.textContent='إلغاء';
     okBtn.textContent='تأكيد';
     okBtn.onclick=()=>{
       if(typeof SFX!=='undefined')SFX.btn();
-      modal.style.display='none';
+      DSOverlay.close(modal);
       if(onOk)onOk();
     };
     cancelBtn.onclick=()=>{
       if(typeof SFX!=='undefined')SFX.btn();
-      modal.style.display='none';
+      DSOverlay.close(modal);
       if(onCancel)onCancel();
     };
-    modal.style.display='flex';
+    DSOverlay.open(modal);
     this._playSound(icon);
   }
 };
@@ -5382,9 +5562,13 @@ const ENGINE_PICKER={
     this._setPlayerPreview();
     this.preview(S.engineSkill??Cfg.data.engineSkill??10);
     document.getElementById('engine-ov')?.classList.add('open');
+    /* الـ overlay بيغطي الشاشة كلها وله زر رجوع خاص، فبنخفي الشريط
+       العلوي عشان مايفضلش معروض بسياق الشاشة اللي وراه */
+    try{AppBar.setOverlay(true);}catch(e){}
   },
   close(){
     document.getElementById('engine-ov')?.classList.remove('open');
+    try{AppBar.setOverlay(false);}catch(e){}
   },
   start(){
     const slider=document.getElementById('engine-skill-input');
@@ -5889,21 +6073,21 @@ const SF=(()=>{
       const move=await bestMove(testBoard,'w',testCas,null,4,10);
       if(move&&move.length>=4){
         el.textContent='SF ◈';
-        el.style.background='rgba(74,222,128,.12)';
-        el.style.color='var(--green)';
-        el.style.borderColor='rgba(74,222,128,.28)';
+        el.style.background='var(--color-success-subtle)';
+        el.style.color='var(--color-success)';
+        el.style.borderColor='var(--color-success)';
       }else{
         el.textContent='Local ◈';
-        el.style.background='rgba(201,168,76,.12)';
-        el.style.color='var(--gold2)';
-        el.style.borderColor='rgba(201,168,76,.28)';
+        el.style.background='var(--color-primary-subtle)';
+        el.style.color='var(--color-primary-text)';
+        el.style.borderColor='var(--color-primary-border)';
       }
     }catch(e){
       console.error('Stockfish check failed:',e);
       el.textContent='Local ◈';
-      el.style.background='rgba(201,168,76,.12)';
-      el.style.color='var(--gold2)';
-      el.style.borderColor='rgba(201,168,76,.28)';
+      el.style.background='var(--color-primary-subtle)';
+      el.style.color='var(--color-primary-text)';
+      el.style.borderColor='var(--color-primary-border)';
     }
   }
 
@@ -9103,12 +9287,71 @@ const G={
   }
 };
 
+/* ══════════ APP BAR — شريط علوي سياقي ══════════
+   بيقرأ الشاشة النشطة ويضبط الشريط: شعار على الرئيسية، رجوع+عنوان
+   على الشاشات الداخلية، ومخفي في شاشة اللعب.
+   زر الرجوع بيستدعي نفس منطق زر الرجوع القديم بتاع كل شاشة بالظبط. */
+const AppBar={
+  /* عنوان كل شاشة + الفعل اللي زر الرجوع بيعمله فيها */
+  screens:{
+    's-menu':      {context:'home'},
+    's-levels':    {context:'inner', title:'مراحل نور',   back:()=>Nav.menu()},
+    's-online':    {context:'inner', title:'أونلاين',      back:()=>Nav.menu()},
+    's-bluetooth': {context:'inner', title:'Bluetooth',    back:()=>{try{BLEManager.disconnect();}catch(e){} Nav.menu();}},
+    's-settings':  {context:'inner', title:'الإعدادات',    back:()=>Nav.menu()},
+    's-game':      {context:'hidden'}
+  },
+  _current:'s-menu',
+  _overlay:false,
+
+  /* يخفي الشريط مؤقتًا وقت فتح overlay بيغطي الشاشة (زي منتقي المحرك)،
+     ويرجّعه لسياق الشاشة الحالية عند الإغلاق. */
+  setOverlay(on){
+    this._overlay=!!on;
+    const bar=document.getElementById('banner');
+    if(!bar)return;
+    if(this._overlay)bar.setAttribute('data-context','hidden');
+    else this.sync(this._current);
+  },
+
+  sync(id){
+    const bar=document.getElementById('banner');
+    if(!bar)return;
+    this._current=id;
+    if(this._overlay)return;   /* الـ overlay مفتوح — نسيب الشريط مخفي */
+    const cfg=this.screens[id]||{context:'inner',title:'',back:()=>Nav.menu()};
+    bar.setAttribute('data-context',cfg.context);
+
+    const homeLead =document.getElementById('appbar-home-lead');
+    const innerLead=document.getElementById('appbar-inner-lead');
+    const title    =document.getElementById('appbar-title');
+    const settings =document.getElementById('appbar-settings');
+    const isHome=cfg.context==='home';
+
+    if(homeLead) homeLead.style.display =isHome?'':'none';
+    if(innerLead)innerLead.style.display=isHome?'none':'';
+    if(title){
+      title.style.display=isHome?'none':'';
+      title.textContent=cfg.title||'';
+    }
+    /* أيقونة الإعدادات تختفي وإحنا جوه الإعدادات نفسها */
+    if(settings)settings.style.display=(id==='s-settings')?'none':'';
+  },
+
+  back(){
+    const cfg=this.screens[this._current];
+    if(cfg&&typeof cfg.back==='function')cfg.back();
+    else Nav.menu();
+  }
+};
+
 const Nav={
   show(id){
     try{CHAT._stopRecording();}catch(e){}
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    
+    try{AppBar.sync(id);}catch(e){}
+
     // Load profile data when settings screen is opened
     if(id === 's-settings'){
       setTimeout(() => {

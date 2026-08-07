@@ -1,0 +1,818 @@
+/* ══════════════════════════════════════════════════════════════════════
+   شطرنج Am-Kh — Screen & Shell Styles
+   ──────────────────────────────────────────────────────────────────────
+   ستايلات القشرة (الشريط العلوي) والشاشات المعاد بناؤها.
+   مبنية بالكامل على tokens الـ design-system.css — مفيش قيم لون أو
+   مسافة مكتوبة مباشرة (ما عدا أبعاد بصرية بحتة زي عرض شرطة الأكسنت).
+
+   يُحمَّل بعد ستايلات الشاشات القديمة عشان يقدر يبطّل اللي اتغيّر منها.
+══════════════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════════════
+   1. APP BAR — شريط علوي سياقي
+   نفس العنصر ‎#banner‎ القديم (محتفظين بالـ id عشان ستايلات الثيمات
+   الـ 14 تفضل شغّالة عليه)، لكن محتواه بيتغير حسب الشاشة:
+     [data-context="home"]   → شعار مصغّر + أيقونات وصول سريع
+     [data-context="inner"]  → زر رجوع + عنوان الشاشة
+     [data-context="hidden"] → مخفي تمامًا (شاشة اللعب لها شريطها الخاص)
+══════════════════════════════════════════════════════════════════════ */
+#banner{
+  height: 56px;               /* 56 = معيار شريط التطبيقات، يستوعب لمسة 44px */
+  /* القاعدة القديمة كانت 9999 فالشريط كان يفضل فوق النوافذ ومايتعتمش
+     معاها. التوكن بيحطه تحت طبقة المودالات (1000). */
+  z-index: var(--z-appbar);
+  padding: 0 var(--space-3);
+  padding-top: env(safe-area-inset-top);
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;   /* بدل التوسيط القديم */
+  background: var(--color-bg-base);
+  backdrop-filter: none;
+  /* شعرة فاصلة بـ box-shadow مش border — عشان ماتزوّدش ارتفاع الشريط
+     وتفضل مطابقة لـ --appbar-height بالظبط. */
+  box-shadow: inset 0 -1px 0 var(--color-border-subtle);
+}
+/* تبطيل شريط التدرّج المتحرك القديم — إحساس "موقع" مش تطبيق */
+#banner::before{
+  content: none;
+}
+#banner[data-context="hidden"]{ display: none; }
+
+/* ارتفاع الشريط + المساحة الآمنة — تستخدمه الشاشات كـ padding علوي */
+:root{ --appbar-height: 56px; }
+
+.screen{
+  padding-top: calc(var(--appbar-height) + env(safe-area-inset-top));
+}
+/* شاشة اللعب مالهاش شريط علوي، فمش محتاجة إزاحة */
+#s-game.screen{ padding-top: env(safe-area-inset-top); }
+
+.appbar{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 56px;
+}
+
+/* ── الجانب الأيمن/الأيسر ── */
+.appbar__lead,
+.appbar__trail{
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+.appbar__center{
+  flex: 1;
+  min-width: 0;              /* يسمح للعنوان إنه يتقطّع بـ ellipsis */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── زر أيقونة (رجوع، إعدادات، ملف شخصي) ── */
+.appbar__icon-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+.appbar__icon-btn:hover{
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+.appbar__icon-btn:active{
+  background: var(--color-surface-raised);
+  transform: scale(.92);
+}
+.appbar__icon-btn:focus-visible{
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* سهم الرجوع — يتقلب تلقائيًا مع اتجاه RTL */
+.appbar__back-glyph{ display: inline-block; }
+[dir="rtl"] .appbar__back-glyph{ transform: scaleX(-1); }
+
+/* ── عنوان الشاشة (السياق الداخلي) ── */
+.appbar__title{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-card-title);
+  line-height: var(--line-height-card-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── الشعار المصغّر (سياق الشاشة الرئيسية) ── */
+.appbar__brand{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.appbar__brand-mark{
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-primary);
+}
+.appbar__brand-name{
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+/* مؤشر جهوزية Stockfish — مدمج وهادي، بدل الكبسولة القديمة */
+#sf-status{
+  font-family: var(--font-family-base);
+  /* نص لاتيني وسط واجهة RTL — نعزل اتجاهه عشان "SF ◈" ماتتقلبش */
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-disabled);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   2. HOME — الشاشة الرئيسية
+   الهدف: كل أوضاع اللعب ظاهرة في شاشة واحدة بدون سكرول طويل.
+   البنية: شعار مدمج + شبكة عمودين، الوضع الأساسي (أونلاين) بيمتد
+   على العمودين كبطاقة رئيسية. الإعدادات انتقلت للشريط العلوي.
+══════════════════════════════════════════════════════════════════════ */
+/* الإزاحة العلوية لازم تطابق ارتفاع الشريط الفعلي. القاعدة القديمة
+   كانت 36px (ارتفاع الشريط القديم) فالمحتوى كان يدخل تحت الشريط.
+   في شاشة اللعب الشريط مخفي فالإزاحة صفر. */
+.screen{
+  padding-top: var(--appbar-height);
+}
+/* كل الشاشات الداخلية معايَرة على الشريط القديم بـ padding خاص بالـ id
+   (تخصيص 1-0-0 يغلب .screen) — فبنعيد ضبط الإزاحة العلوية لكل واحدة
+   بتخصيص 1-1-0. الجوانب والأسفل بتفضل زي ما هي لحد ما نعيد بناء
+   كل شاشة في مهمتها. */
+#s-levels.screen,
+#s-online.screen,
+#s-settings.screen,
+#s-bluetooth.screen{
+  padding-top: calc(var(--appbar-height) + var(--space-4, 16px));
+}
+/* أونلاين كانت متمركزة رأسيًا فالبطاقة كانت تسيب فراغ كبير فوقها */
+#s-online.screen{
+  justify-content: flex-start;
+}
+#banner[data-context="hidden"] ~ .screen,
+#s-game.screen{
+  padding-top: 0;
+}
+
+/* .lvl-hdr كانت بطاقة فيها عنوان الشاشة؛ العنوان بقى في الشريط
+   فبقيت مجرد سطر توضيحي — نشيل خلفية البطاقة اللي بتحطها الثيمات.
+   !important لأن قواعد الثيمات نفسها بـ !important. */
+.lvl-hdr{
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+}
+
+/* #s-menu القديم كان flex متمركز بـ padding خاص، وتخصيصه (1-0-0) أعلى
+   من .screen فبيغلبها — فلازم نضبط الـ padding كله هنا صراحةً. */
+#s-menu.screen{
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--appbar-height) 0 0;
+  min-height: 100dvh;
+}
+
+.home{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  height: calc(100dvh - var(--appbar-height));
+  padding: var(--space-2) var(--space-4);
+  padding-bottom: max(var(--space-3), env(safe-area-inset-bottom));
+  gap: var(--space-2);
+}
+
+/* ── الشعار: مدمج بدل النسخة العملاقة القديمة ── */
+.home__brand{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) 0 var(--space-1);
+  flex-shrink: 0;
+}
+.home__brand-title{
+  font-family: var(--font-family-display);
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.home__brand-sub{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--color-text-disabled);
+}
+
+/* ── شبكة الأوضاع ──
+   الصفوف بارتفاعها الطبيعي (مش متمددة) عشان مايحصلش فراغ داخل
+   البطاقات، والفائض الرأسي بيتوزّع حوالين الشبكة بـ align-content. */
+.home__grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-height: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   3. MODE CARD — بطاقة وضع لعب
+   كل وضع بيعرّف ‎--mode-accent‎ و ‎--mode-tint‎ الخاصين بيه، والبطاقة
+   بتستهلكهم. فالتمييز بلون + شكل أيقونة + تخطيط، مش مجرد قالب مُلوّن.
+══════════════════════════════════════════════════════════════════════ */
+.home-mode{
+  --mode-accent: var(--color-primary);
+  --mode-tint:   var(--color-primary-subtle);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  min-height: 0;
+  overflow: hidden;
+  text-align: start;
+  border-color: var(--color-border);
+  background:
+    linear-gradient(160deg, var(--mode-tint) 0%, transparent 62%),
+    var(--color-bg-elevated);
+}
+/* شرطة أكسنت علوية — بصمة اللون الخاصة بكل وضع */
+.home-mode::before{
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: var(--mode-accent);
+}
+.home-mode:hover{ border-color: var(--mode-accent); }
+
+/* البطاقات المربعة تاخد جزء من الفائض الرأسي بارتفاع نسبي، فالشبكة
+   تقرب من ملء الشاشة بدون ما يتفتح فراغ كبير جوه البطاقة نفسها.
+   الـ clamp بيحمي الشاشات القصيرة من فيض. */
+.home-mode:not(.home-mode--online){
+  min-height: clamp(180px, 27vh, 260px);
+}
+
+.home-mode__icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);          /* مربع مُدوّر — الافتراضي */
+  background: var(--mode-tint);
+  border: 1px solid var(--mode-accent);
+  color: var(--mode-accent);
+  font-size: 27px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+/* كتلة النص — تنزل لأسفل البطاقة والأيقونة تفضل فوق، فالارتفاع
+   الزائد يبقى فراغ مقصود في النص مش فراغ ميت. */
+.home-mode__body{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.home-mode__title{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-card-title);
+  line-height: var(--line-height-card-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.home-mode__desc{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.home-mode__meta{
+  margin-top: var(--space-2);
+  align-self: flex-start;
+  color: var(--mode-accent);
+  background: var(--mode-tint);
+  border-color: var(--mode-accent);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   4. هوية كل وضع — لون + شكل + تخطيط مختلف
+══════════════════════════════════════════════════════════════════════ */
+
+/* ── أونلاين: البطاقة الرئيسية — تمتد على العمودين، تخطيط أفقي ── */
+.home-mode--online{
+  --mode-accent: var(--color-secondary);
+  --mode-tint:   var(--color-secondary-subtle);
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.home-mode--online .home-mode__icon{
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);       /* دائرة — تمييز البطاقة الرئيسية */
+  font-size: 26px;
+}
+.home-mode--online .home-mode__body{
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.home-mode--online .home-mode__meta{ margin-top: 0; }
+
+/* نقطة "مباشر" النابضة */
+.home-mode__live{
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.home-mode__live-dot{
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-secondary);
+  animation: homeLivePulse 1.8s ease-in-out infinite;
+}
+@keyframes homeLivePulse{
+  0%,100%{ opacity: 1;   transform: scale(1); }
+  50%    { opacity: .45; transform: scale(.8); }
+}
+
+/* ── مراحل نور: ذهبي، أيقونة معيّنة (مُدوّرة 45°) ── */
+.home-mode--levels{
+  --mode-accent: var(--color-primary);
+  --mode-tint:   var(--color-primary-subtle);
+}
+.home-mode--levels .home-mode__icon{
+  border-radius: var(--radius-sm);
+  transform: rotate(45deg);
+}
+.home-mode--levels .home-mode__icon > *{ transform: rotate(-45deg); }
+
+/* ── ضد المحرك: أزرق، أيقونة صورة Stockfish ── */
+.home-mode--engine{
+  --mode-accent: var(--color-info);
+  --mode-tint:   var(--color-info-subtle);
+}
+.home-mode--engine .home-mode__icon{
+  padding: var(--space-1);
+  background: var(--color-surface-sunken);
+}
+.home-mode--engine .home-mode__icon img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* بديل نصي لو الصورة مش موجودة */
+.home-mode__icon.is-fallback{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  background: var(--mode-tint);
+}
+
+/* ── لاعبان: أخضر، أيقونة دائرية ── */
+.home-mode--local{
+  --mode-accent: var(--color-success);
+  --mode-tint:   var(--color-success-subtle);
+}
+.home-mode--local .home-mode__icon{ border-radius: var(--radius-pill); }
+
+/* ── بلوتوث: بنفسجي — اللون الوحيد اللي مش من ألوان الحالة، عشان
+     يفضل مميّز عن باقي الأوضاع ── */
+.home-mode--bluetooth{
+  --mode-accent: #9B8CF5;
+  --mode-tint:   rgba(155,140,245,.13);
+}
+.home-mode--bluetooth .home-mode__icon svg{
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+}
+
+/* ── ملاحظة الأوفلاين — سطر واحد هادي أسفل الشبكة ── */
+.home__note{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-success-subtle);
+  border: 1px solid var(--color-border-subtle);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   5. أزرار الرجوع القديمة داخل الشاشات
+   الشريط العلوي بقى فيه زر رجوع، فالأزرار القديمة بقت مكرّرة.
+   بنخفيها بالـ CSS (مش بنحذف الـ markup) عشان مانلمسش أي منطق —
+   الشاشات دي هيتم إعادة بناؤها في المهام الجاية.
+   ملاحظة: ‎.btnb‎ مستخدم في مودالات وأزرار تانية، فبنستهدف زر الرجوع
+   بتحديد المسار الكامل بس — مش الكلاس كله.
+══════════════════════════════════════════════════════════════════════ */
+#s-levels .back-btn,
+#s-online > .oc > .btnb,
+#s-bluetooth .bt-back-btn{
+  display: none;
+}
+
+/* عناوين الشاشات المكرّرة — العنوان بقى في الشريط العلوي */
+#s-online > .oc > h2{
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   6. شاشات ضيقة جدًا — نضغط المقاسات شوية عشان نفضل بدون سكرول
+══════════════════════════════════════════════════════════════════════ */
+@media (max-height: 700px){
+  .home{ gap: var(--space-2); }
+  .home__brand{ padding: 0; }
+  .home__brand-title{ font-size: 26px; }
+  .home__grid{ gap: var(--space-2); }
+  .home-mode{ padding: var(--space-3) var(--space-3); }
+  .home-mode--online{ padding: var(--space-3); }
+  .home-mode__icon{ width: 38px; height: 38px; font-size: 19px; }
+  .home-mode--online .home-mode__icon{ width: 44px; height: 44px; font-size: 22px; }
+}
+@media (max-height: 600px){
+  .home__brand{ display: none; }   /* الشعار موجود في الشريط العلوي أصلًا */
+  .home__note{ display: none; }
+}
+/* شاشات عريضة (تابلت) — نوسّع الشبكة */
+@media (min-width: 720px){
+  .home{ max-width: 720px; }
+  .home__grid{ grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   صف "لون الرقعة" في الإعدادات
+   بيفتح ورقة سفلية فيها الـ 21 لون، بدل ما الشبكة تطوّل الصفحة.
+   ══════════════════════════════════════════════════════════════════════ */
+.board-theme-trigger{
+  display: flex; align-items: center; gap: var(--space-3);
+  width: 100%; min-height: var(--touch-target-min);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  cursor: pointer; text-align: start;
+  transition: background var(--duration-fast) var(--easing-standard),
+              border-color var(--duration-fast) var(--easing-standard);
+}
+.board-theme-trigger:active{
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-strong);
+}
+.board-theme-trigger:focus-visible{
+  outline: 2px solid var(--color-focus-ring); outline-offset: 2px;
+}
+/* معاينة اللونين جنب بعض */
+.board-theme-trigger__preview{
+  display: flex; flex: 0 0 auto;
+  width: 40px; height: 40px;
+  border-radius: var(--radius-sm); overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+}
+.board-theme-trigger__sw{ flex: 1 1 50%; }
+.board-theme-trigger__text{ display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.board-theme-trigger__label{
+  font-size: var(--font-size-caption); font-weight: var(--font-weight-caption);
+  line-height: var(--line-height-caption); color: var(--color-text-secondary);
+}
+.board-theme-trigger__value{
+  font-size: var(--font-size-body); font-weight: var(--font-weight-semibold);
+  line-height: 1.3; color: var(--color-text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* السهم بيشاور لجوه — RTL فبيلف لليسار */
+.board-theme-trigger__chevron{
+  flex: 0 0 auto; font-size: 20px; line-height: 1;
+  color: var(--color-text-secondary);
+}
+/* جوه الورقة السفلية الشبكة بتتوسع وتبان أكبر */
+.ds-sheet__body .board-themes-grid{
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3); margin: 0;
+}
+@media (min-width: 480px){
+  .ds-sheet__body .board-themes-grid{ grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   6. شاشة الإعدادات — أقسام واضحة
+   الأقسام كانت موجودة بس بحدود باهتة وعناوين ضعيفة، والنتيجة تحس
+   كصفحة ويب طويلة. هنا: كل قسم بطاقة حقيقية، وعنوانه فوق فاصل فعلي.
+   ملاحظة: كله ستايل بس — الـ markup والـ onclick زي ما هما.
+══════════════════════════════════════════════════════════════════════ */
+#s-settings .settings-section{
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 0;                       /* الحشو بقى على العنوان والجسم */
+  margin-bottom: var(--space-4);
+  overflow: hidden;
+}
+/* شعرة التدرّج القديمة فوق البطاقة — بنشيلها، الحد كفاية */
+#s-settings .settings-section::before{ content: none; }
+
+/* العنوان: أبرز + فاصل حقيقي تحته */
+#s-settings .section-title{
+  display: flex; align-items: center; gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4) var(--space-4);
+  font-family: var(--font-family-base);
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+#s-settings .section-icon{
+  flex: 0 0 auto;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+  font-size: 16px;
+}
+/* جسم القسم */
+#s-settings .settings-grid{
+  display: grid; grid-template-columns: 1fr;
+  gap: 0;
+  padding: 0;
+}
+/* كل إعداد صف مستقل بفاصل بينه وبين اللي بعده */
+#s-settings .setting-item{
+  background: none;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: var(--space-4);
+  gap: var(--space-2);
+  min-height: auto;
+}
+#s-settings .setting-item:last-child{ border-bottom: 0; }
+#s-settings .setting-item:hover{ transform: none; }
+#s-settings .setting-label{
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+#s-settings .setting-description{
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+/* الأقسام اللي محتواها مش صفوف (زي ألوان الرقعة) محتاجة حشو */
+#s-settings .settings-section > .board-theme-trigger,
+#s-settings .settings-section > #custom-board-upload{
+  margin: var(--space-4);
+  width: calc(100% - var(--space-4) * 2);
+  box-sizing: border-box;
+}
+
+/* ── بطاقات ثيم التطبيق — أكبر ومعاينة ألوان واضحة ── */
+#s-settings .ui-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+@media (min-width: 480px){
+  #s-settings .ui-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+#s-settings .ui-opt{
+  display: flex; flex-direction: column; align-items: stretch; gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+              background-color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+#s-settings .ui-opt::before{ content: none; }   /* توهج قديم */
+#s-settings .ui-opt:hover{ transform: none; border-color: var(--color-border-strong); }
+#s-settings .ui-opt:active{ transform: scale(.97); }
+#s-settings .ui-opt.on{
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+}
+/* المعاينة: شريط ألوان كبير بدل مربعات 15px */
+#s-settings .ui-opt .th-sw{
+  display: flex; gap: 0;
+  height: 48px;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+}
+#s-settings .ui-opt .sw{
+  width: auto; height: auto;
+  flex: 1 1 0;
+  border-radius: 0;
+}
+
+/* ── بطاقة الملف الشخصي ──
+   الأصل كان hero بزخارف radial وكرة blur قطرها 260px، فكانت بتفتح
+   فراغ كبير فوق الصورة. هنا بطاقة مدمجة بنفس نمط باقي الأقسام. */
+#s-settings .settings-hero{
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+#s-settings .settings-hero::after{ content: none; }   /* كرة الـ blur */
+#s-settings .settings-hero-main{ gap: var(--space-4); }
+/* media query عند 768px كان بيقلبها لعمود فالصورة تطلع فوق النص.
+   الصورة بقت 64px فبتوسع جنب النص عادي على الموبايل. */
+#s-settings .settings-profile-card{
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-4);
+}
+/* صف الاسم: الحقل والزر جنب بعض بدل عمود */
+#s-settings .settings-input-row{ flex-direction: row; align-items: center; }
+#s-settings .settings-save-mini{ width: auto; flex: 0 0 auto; }
+#s-settings .settings-profile-avatar{
+  width: 64px; height: 64px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  flex: 0 0 auto;
+}
+#s-settings .settings-profile-avatar:hover{
+  transform: none;
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+}
+#s-settings .settings-profile-fallback{ font-size: 28px; }
+#s-settings .settings-overline{
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+}
+#s-settings .settings-headline{
+  font-family: var(--font-family-base);
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+#s-settings .settings-input-row{ margin-top: var(--space-3); gap: var(--space-2); }
+#s-settings .settings-name-input{
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+}
+#s-settings .settings-name-input:focus{
+  border-color: var(--color-primary-border);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+/* ── شريط التبويبات ── */
+#s-settings .settings-tabs{
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  padding: var(--space-1);
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+#s-settings .settings-tab{
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  gap: var(--space-2);
+  min-height: var(--touch-target-min);
+}
+#s-settings .settings-tab:hover{ background: var(--color-surface); transform: none; }
+#s-settings .settings-tab.active{
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: none;
+}
+
+/* ── صفوف الإعدادات ذات المفتاح ──
+   الأصل عمود (تسمية/وصف/مفتاح فوق بعض) فالمفتاح كان بيتمدّد ويتشوّه.
+   النمط الصح للتطبيقات: النص على جنب والمفتاح على التاني. */
+#s-settings .setting-item:has(> .toggle){
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "label  switch"
+    "desc   switch";
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+}
+#s-settings .setting-item:has(> .toggle) > .setting-label{ grid-area: label; }
+#s-settings .setting-item:has(> .toggle) > .setting-description{ grid-area: desc; }
+#s-settings .setting-item > .toggle{
+  grid-area: switch;
+  align-self: center;
+  width: 47px;
+  height: 25px;
+  flex: 0 0 auto;
+}
+/* .tsl كان فيه position:absolute بعدها position:relative — التانية بتغلب
+   فالشريحة كانت بتفقد امتدادها على الأب. */
+#s-settings .setting-item > .toggle > .tsl{
+  position: absolute;
+  inset: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   7. توحيد طبقات النوافذ
+   القيم القديمة كانت متفرّقة (965 / 10000 / 9999) فترتيب الظهور كان
+   بالصدفة. كلها بقت على توكن --z-modal فوق الشريط (--z-appbar).
+══════════════════════════════════════════════════════════════════════ */
+#engine-ov,
+.settings-modal-overlay,
+#promo-ov,
+#go-ov{
+  z-index: var(--z-modal);
+}
