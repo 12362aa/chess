@@ -12,6 +12,8 @@ const projectRoot = path.resolve(__dirname, '..');
 const webDir = path.join(projectRoot, 'www');
 const requiredFiles = new Set([
   'index.html',
+  'design-system.css',
+  'screens.css',
   'manifest.json',
   'sw.js',
   'url.json',
@@ -25,6 +27,44 @@ const assetExtensions = new Set([
   '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg',
   '.mp3', '.wav', '.ogg', '.webm'
 ]);
+
+/**
+ * Asset directories copied whole. The loop below only handles files at the
+ * project root, so without this list `pieces/` (432 images across 36 sets)
+ * never reached the bundle and every piece set broke offline in the APK.
+ */
+const assetDirectories = [
+  { name: 'pieces', minFiles: 432 }
+];
+
+function copyAssetDirectory(name) {
+  const source = path.join(projectRoot, name);
+  if (!fs.existsSync(source)) {
+    throw new Error(`Required asset directory is missing: ${name}`);
+  }
+
+  const destination = path.join(webDir, name);
+  fs.rmSync(destination, { recursive: true, force: true });
+  fs.mkdirSync(destination, { recursive: true });
+
+  let count = 0;
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      const setSource = path.join(source, entry.name);
+      const setDestination = path.join(destination, entry.name);
+      fs.mkdirSync(setDestination, { recursive: true });
+      for (const file of fs.readdirSync(setSource)) {
+        if (!assetExtensions.has(path.extname(file).toLowerCase())) continue;
+        fs.copyFileSync(path.join(setSource, file), path.join(setDestination, file));
+        count++;
+      }
+    } else if (assetExtensions.has(path.extname(entry.name).toLowerCase())) {
+      fs.copyFileSync(path.join(source, entry.name), path.join(destination, entry.name));
+      count++;
+    }
+  }
+  return count;
+}
 
 fs.mkdirSync(webDir, { recursive: true });
 
@@ -48,4 +88,21 @@ for (const file of requiredFiles) {
   }
 }
 
-console.log(`Copied ${copied.length} web files to ${path.relative(projectRoot, webDir)}.`);
+// Asset directories: copy, then assert the expected count so a partial copy
+// fails the build instead of shipping an APK with missing piece sets.
+let copiedAssets = 0;
+for (const { name, minFiles } of assetDirectories) {
+  const count = copyAssetDirectory(name);
+  if (count < minFiles) {
+    throw new Error(
+      `Asset directory "${name}" copied ${count} files, expected at least ${minFiles}.`
+    );
+  }
+  copiedAssets += count;
+  console.log(`Copied ${count} files from ${name}/.`);
+}
+
+console.log(
+  `Copied ${copied.length} web files and ${copiedAssets} bundled assets ` +
+  `to ${path.relative(projectRoot, webDir)}.`
+);
