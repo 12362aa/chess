@@ -5194,6 +5194,15 @@ const Cfg={
   }
 };
 
+/* صورة افتراضية للاعب بلا صورة محفوظة. SVG مضمّن عشان يظهر فورًا وأوفلاين،
+   من غير ما الشاشة تستنّى أي تبادل بلوتوث.
+   بدون أقواس في الألوان: encodeURIComponent مابيهربش "(" و ")"، وده كان
+   بيكسّر الـurl() في CSS فالخانة تطلع فاضية بدل الأيقونة. */
+const DEFAULT_AVATAR='data:image/svg+xml;utf8,'+encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'+
+  '<circle cx="32" cy="23" r="11" fill="#ffffff" fill-opacity=".42"/>'+
+  '<path d="M11 60c0-11.6 9.4-19 21-19s21 7.4 21 19z" fill="#ffffff" fill-opacity=".42"/></svg>');
+
 function updatePlayerImages(){
   const playerImg=Cfg.data.playerImage;
   const setAvatar=(el,src,fallbackText,fallbackColor='')=>{
@@ -5205,7 +5214,8 @@ function updatePlayerImages(){
     if(src){
       const img=new Image();
       img.onload=()=>{
-        el.style.backgroundImage=`url(${src})`;
+        /* الـurl بين علامتي اقتباس — أي قوس جوه data URL بيكسّر الصيغة بدونها */
+        el.style.backgroundImage=`url("${src}")`;
         el.style.color='transparent';
         el.textContent='';
       };
@@ -5226,8 +5236,10 @@ function updatePlayerImages(){
   if(isOnlineOrPreview){
     const myCol=S.myCol||'w';
     const oppCol=myCol==='w'?'b':'w';
-    setAvatar(document.querySelector('.av-'+myCol),playerImg,myCol==='w'?'♙':'♟');
-    setAvatar(document.querySelector('.av-'+oppCol),S.oppImg,oppCol==='w'?'♙':'♟');
+    /* كل لاعب في خانته: صورتي من إعداداتي، وصورة الخصم من اللي وصل فعلًا.
+       اللي مالوش صورة ياخد الافتراضية — مش خانة فاضية ولا صورة الطرف التاني. */
+    setAvatar(document.querySelector('.av-'+myCol),playerImg||DEFAULT_AVATAR,myCol==='w'?'♙':'♟');
+    setAvatar(document.querySelector('.av-'+oppCol),S.oppImg||DEFAULT_AVATAR,oppCol==='w'?'♙':'♟');
     return;
   }
 
@@ -10566,6 +10578,11 @@ const BLEManager = {
         this.connected = true;
         if (this._seen && this._seen[data.endpointId]) this.opponentName = this._seen[data.endpointId];
         this.setPhase('connected');
+        /* اتصال جديد = ملف شخصي جديد. أي أجزاء صورة من جلسة سابقة تتمسح
+           عشان ماتتلزقش على الخصم الحالي. */
+        this._clearProfileState();
+        /* تبادل الملف الشخصي يمشي بالتوازي — اللعب مابيستنّاهوش */
+        this.sendProfile();
 
         if (this.isHost) {
           this.setStatus("تم الاتصال — جارٍ بدء المباراة…");
@@ -10663,7 +10680,7 @@ const BLEManager = {
     try {
       this.setPhase('hosting');
       this.setStatus("جارٍ إعداد الاستضافة…");
-      await nearby.startAdvertising({ name: this.playerName });
+      await nearby.startAdvertising({ name: this._myName() });
       this.setStatus("في انتظار انضمام لاعب آخر…");
     } catch (e) {
       this.setPhase('idle');
@@ -10703,7 +10720,7 @@ const BLEManager = {
     const nearby = this.getNearby();
     this.setStatus("جارٍ طلب الاتصال…");
     try {
-      await nearby.requestConnection({ endpointId: endpointId, name: this.playerName });
+      await nearby.requestConnection({ endpointId: endpointId, name: this._myName() });
     } catch (e) {
       this.setPhase('found');
       this.fail("مش قادر يوصل بالجهاز ده. تأكد إنه لسه فاتح الشاشة وقريب منك، وجرّب تاني.", e);
@@ -10720,9 +10737,153 @@ const BLEManager = {
     }
     this.connected = false;
     this.endpointId = null;
+    this._clearProfileState();
+  },
+
+  /* ============ تبادل الملف الشخصي (Profile Handshake) ============
+     مسار منفصل تمامًا عن نقلات اللعب: رسائله ليها بادئات خاصة بتتفلتر
+     في أول handleIncomingMessage وبترجع فورًا، فـMOVE/ACK ماتمرّش على أي
+     كود جديد. الصورة بتتصغّر لـ96×96 JPEG وبتتقسّم chunks عشان حدود
+     حجم الحزمة، والواجهة عمرها ما بتستنّاها — الافتراضية بتتعرض من أول
+     ثانية وبتتبدل لما توصل الحقيقية. */
+  AV_SIZE: 96,
+  AV_QUALITY: 0.5,
+  AV_CHUNK: 1800,
+  AV_MAX_CHUNKS: 48,
+  AV_TIMEOUT: 8000,
+
+  opponentImage: null,
+  _avBuf: null,
+  _avExpect: 0,
+  _avTimer: null,
+  _avSendToken: 0,
+
+  /* الاسم المعلَن للجهاز: اسم اللاعب المحفوظ لو موجود، وإلا الاسم العشوائي.
+     ده اللي بيظهر في قائمة الأجهزة عند الطرف التاني قبل ما الاتصال يتم. */
+  _myName() {
+    const n = ((typeof Cfg !== 'undefined' && Cfg.data && Cfg.data.playerName) || '').trim();
+    return n || this.playerName;
+  },
+
+  /* اسم الخصم الجاهز للعرض — الافتراضي "لاعب" لو مالوش اسم محفوظ */
+  oppDisplayName() {
+    const n = (this.opponentName || '').trim();
+    return n || 'لاعب';
+  },
+
+  _clearProfileState() {
+    clearTimeout(this._avTimer);
+    this._avTimer = null;
+    this._avBuf = null;
+    this._avExpect = 0;
+    this._avSendToken++;
+    this.opponentImage = null;
+  },
+
+  /* تصغير + ضغط الصورة قبل الإرسال. أي فشل (صورة تالفة، canvas متلوّث)
+     بيرجّع null فنبعت الاسم بس والطرف التاني يعرض الافتراضية. */
+  _encodeAvatar(src) {
+    return new Promise((resolve) => {
+      if (!src) return resolve(null);
+      let settled = false;
+      const done = (v) => { if (!settled) { settled = true; resolve(v); } };
+      setTimeout(() => done(null), 4000);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const size = this.AV_SIZE;
+          const cv = document.createElement('canvas');
+          cv.width = size; cv.height = size;
+          const ctx = cv.getContext('2d');
+          /* قص مربّع من النص عشان الصورة ماتتشوهش */
+          const side = Math.min(img.width, img.height);
+          ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+          done(cv.toDataURL('image/jpeg', this.AV_QUALITY));
+        } catch (e) { console.warn('[BT] avatar encode failed', e); done(null); }
+      };
+      img.onerror = () => done(null);
+      img.src = src;
+    });
+  },
+
+  /* بيتنادى فور نجاح الاتصال على الجهازين. غير متزامن ومابيوقفش بدء
+     المباراة — لو اتأخر أو فشل، اللعب شغال والصورة الافتراضية معروضة. */
+  async sendProfile() {
+    const token = ++this._avSendToken;
+    try {
+      await this.sendRaw("NAME:" + this._myName().slice(0, 24));
+      const raw = (typeof Cfg !== 'undefined' && Cfg.data && Cfg.data.playerImage) || '';
+      if (!raw) return;
+      const small = await this._encodeAvatar(raw);
+      if (!small || token !== this._avSendToken || !this.connected) return;
+      const parts = [];
+      for (let i = 0; i < small.length; i += this.AV_CHUNK) parts.push(small.slice(i, i + this.AV_CHUNK));
+      if (parts.length > this.AV_MAX_CHUNKS) return;   // صورة أكبر من المتوقع — نكتفي بالاسم
+      await this.sendRaw("AVS:" + parts.length);
+      for (let i = 0; i < parts.length; i++) {
+        if (token !== this._avSendToken || !this.connected) return;
+        await this.sendRaw("AVC:" + i + ":" + parts[i]);
+        /* فسحة صغيرة بين الأجزاء عشان ماتزحمش الطابور لو اللاعب حرّك بسرعة */
+        await new Promise(r => setTimeout(r, 30));
+      }
+      if (token === this._avSendToken) await this.sendRaw("AVE");
+    } catch (e) {
+      console.warn('[BT] profile send failed', e);
+    }
+  },
+
+  _onName(name) {
+    this.opponentName = (name || '').trim().slice(0, 24);
+    const label = this.oppDisplayName();
+    if (S.mode === 'bluetooth') {
+      const el = document.getElementById(this.myColor === 'w' ? 'nm-b' : 'nm-w');
+      if (el) el.textContent = label;
+      GameIdentity.setConnection('connected', 'متصل بـ ' + label);
+    }
+  },
+
+  _onAvStart(countStr) {
+    clearTimeout(this._avTimer);
+    const n = parseInt(countStr, 10);
+    if (!(n > 0) || n > this.AV_MAX_CHUNKS) { this._avBuf = null; this._avExpect = 0; return; }
+    this._avBuf = new Array(n).fill(null);
+    this._avExpect = n;
+    /* لو الباقي ما وصلش في الوقت ده نسيب الافتراضية ونمسح الشغل الناقص */
+    this._avTimer = setTimeout(() => { this._avBuf = null; this._avExpect = 0; }, this.AV_TIMEOUT);
+  },
+
+  _onAvChunk(payload) {
+    if (!this._avBuf) return;
+    const sep = payload.indexOf(':');
+    if (sep < 0) return;
+    const idx = parseInt(payload.slice(0, sep), 10);
+    if (!(idx >= 0) || idx >= this._avExpect) return;
+    this._avBuf[idx] = payload.slice(sep + 1);
+  },
+
+  _onAvEnd() {
+    clearTimeout(this._avTimer);
+    this._avTimer = null;
+    const buf = this._avBuf;
+    this._avBuf = null;
+    if (!buf || buf.some(p => p === null)) return;   // ناقص — الافتراضية تفضل
+    const data = buf.join('');
+    if (!/^data:image\//.test(data)) return;
+    this.opponentImage = data;
+    if (S.mode === 'bluetooth') {
+      S.oppImg = data;
+      if (typeof updatePlayerImages === 'function') updatePlayerImages();
+    }
   },
 
   handleIncomingMessage(msg) {
+    /* رسائل الملف الشخصي أولًا وبـreturn — عشان ماتعديش على سلسلة
+       شروط النقلات أصلًا، فسرعة MOVE/ACK زي ما هي بالظبط. */
+    if (msg.startsWith("NAME:")) { this._onName(msg.slice(5)); return; }
+    if (msg.startsWith("AVS:"))  { this._onAvStart(msg.slice(4)); return; }
+    if (msg.startsWith("AVC:"))  { this._onAvChunk(msg.slice(4)); return; }
+    if (msg === "AVE")           { this._onAvEnd(); return; }
+
     if (msg === "RESIGN") {
       if (S.mode === 'bluetooth' && !S.over) {
         S.over = true;
@@ -10765,10 +10926,13 @@ const BLEManager = {
     /* كل لاعب على جهازه، فالتخطيط يتبع لونه: أنا تحت والخصم فوق.
        كانت ناقصة فالشاشة كانت بتورث تخطيط اللعبة السابقة. */
     fixBars(this.myColor);
-    const me = Cfg?.data?.playerName || 'أنت';
-    const opp = this.opponentName || 'الجهاز الآخر';
+    const me = ((Cfg?.data?.playerName || '').trim()) || 'أنت';
+    const opp = this.oppDisplayName();
     document.getElementById(this.myColor === 'w' ? 'nm-w' : 'nm-b').textContent = me;
     document.getElementById(this.myColor === 'w' ? 'nm-b' : 'nm-w').textContent = opp;
+    /* لو صورة الخصم وصلت قبل ما المباراة تبدأ، نحطها في خانتها فورًا.
+       لو لسه، updatePlayerImages بتعرض الافتراضية و_onAvEnd بتبدّلها بعدين. */
+    if (this.opponentImage) S.oppImg = this.opponentImage;
     GameIdentity.setConnection('connected', 'متصل بـ ' + opp);
     Nav.game();
     await R.all();
