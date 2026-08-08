@@ -816,3 +816,266 @@
 #go-ov{
   z-index: var(--z-modal);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   8. منتقي القطع — ورقة سفلية بمعاينة كبيرة
+   الأصل كان نافذة بعلامة X ومعاينة 28px مابتوريش تفاصيل التصميم.
+   هنا: ورقة قابلة للسحب، ومعاينة 64px على خلفية شطرنجية حقيقية
+   عشان القطعة تتقري زي ما هي على الرقعة.
+══════════════════════════════════════════════════════════════════════ */
+.ds-sheet__sub{
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+.ds-sheet__header{ flex-wrap: wrap; }
+
+.pc-sheet-group + .pc-sheet-group{ margin-top: var(--space-5); }
+.pc-sheet-group__title{
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+/* شبكة البطاقات */
+#piece-settings-modal .pc-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin: 0;
+}
+@media (min-width: 520px){
+  #piece-settings-modal .pc-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+
+#piece-settings-modal .pc-opt{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  text-align: center;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+              background-color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+#piece-settings-modal .pc-opt::before{ content: none; }   /* توهج قديم */
+#piece-settings-modal .pc-opt:hover{ transform: none; border-color: var(--color-border-strong); }
+#piece-settings-modal .pc-opt:active{ transform: scale(.97); }
+#piece-settings-modal .pc-opt.on,
+#piece-settings-modal .pc-opt.selected{
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  box-shadow: none;
+}
+
+/* المعاينة: مربعين بحجم حقيقي على خلفية شطرنجية زي الرقعة */
+#piece-settings-modal .pc-prev{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+}
+#piece-settings-modal .pc-prev .ppc{
+  width: auto;
+  height: 64px;                       /* كان 28px */
+  border: 0;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* مربع فاتح ومربع غامق — نفس ألوان الرقعة الحالية */
+#piece-settings-modal .pc-prev .ppc:nth-child(1){ background: var(--sq-l, #ba9d79); }
+#piece-settings-modal .pc-prev .ppc:nth-child(2){ background: var(--sq-d, #74533a); }
+#piece-settings-modal .pc-prev .ppc .piece{
+  width: 84%;
+  height: 84%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,.5));
+}
+#piece-settings-modal .pc-lbl{
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+#piece-settings-modal .pc-opt.on .pc-lbl,
+#piece-settings-modal .pc-opt.selected .pc-lbl{ color: var(--color-primary-text); }
+#piece-settings-modal .pc-sub{
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   9. شاشة نهاية المباراة
+   الأصل: بطاقة فوق خلفية معتمة، وإحصائيات صف رباعي بنص 9px.
+   هنا: الرقعة الحقيقية بتفضل باينة مموّهة خلف الشاشة، والإحصائيات
+   شبكة 2×2 ببطاقات، والأزرار على مكوّنات الـ DS.
+══════════════════════════════════════════════════════════════════════ */
+#go-ov{
+  z-index: var(--z-modal);
+  /* تعتيم أخف من الافتراضي عشان الرقعة تفضل مقروءة خلف الشاشة */
+  background: rgba(4,6,13,.62);
+  backdrop-filter: blur(8px) saturate(115%);
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+  align-items: center;
+  padding: var(--space-4);
+}
+
+/* البطاقة: سطح مرفوع نظيف. الثيمات بتحط تدرّجات بـ !important
+   فبتغرق المحتوى — بنثبّت السطح هنا بنفس القوة. */
+#go-ov .gobox{
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl) !important;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  gap: var(--space-4);
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+#go-ov .gobox::before,
+#go-ov .gobox::after{ content: none; }   /* زخارف قديمة */
+
+/* ── العنوان والنتيجة ── */
+#go-ov .go-score-pill{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+#go-ov .go-kicker{
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+#go-ov .go-stage-title{
+  font-family: var(--font-family-base);
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+#go-ov .go-stage-sub{
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+
+/* ── الرقعة النهائية: أكبر من النسخة المصغّرة القديمة ── */
+#go-ov .analysis-mini-board.gameover{
+  --mini-size: 168px;
+  margin-inline: auto;
+  border-radius: var(--radius-md);
+}
+
+/* ── الإحصائيات: شبكة 2×2 ببطاقات بدل صف نصوص ── */
+#go-ov .rv-analysis-stats{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  width: 100%;
+}
+#go-ov .rv-stat-item{
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  text-align: center;
+  flex: none;
+}
+#go-ov .rv-stat-label{
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+#go-ov .rv-stat-value{
+  font-family: var(--font-family-base);
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-secondary-text);
+  font-variant-numeric: tabular-nums;   /* أرقام ثابتة العرض فماتهتزّش */
+}
+
+#go-ov .go-engine-phase{
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ── الأزرار: عمود بعرض كامل، الأساسي فوق ── */
+#go-ov .go-bts{
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: auto;
+}
+#go-ov .go-bts > button{
+  width: 100%;
+  min-height: var(--touch-target-min);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+#go-ov .go-bts > button:active{ transform: scale(.98); }
+/* مراجعة المباراة = الإجراء الأساسي */
+#go-ov .go-bts > .bgp.review{
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: transparent;
+}
+/* مرة أخرى / التالي = ثانوي */
+#go-ov .go-bts > .bgp:not(.review){
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+/* القائمة = هادي */
+#go-ov .go-bts > .bgs{
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-subtle);
+}
+
+/* ترتيب بصري: الإجراء الأساسي فوق، بدون لمس ترتيب الـ markup
+   (المنطق بيعتمد على الـ id مش على الموضع). */
+#go-ov .go-bts > .bgp.review{ order: 1; }
+#go-ov .go-bts > #go-next     { order: 2; }
+#go-ov .go-bts > .bgp:not(.review):not(#go-next){ order: 3; }
+#go-ov .go-bts > .bgs         { order: 4; }

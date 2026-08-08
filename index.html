@@ -4651,16 +4651,14 @@ function generatePieceThemeOptions(){
 function openPieceSettings(){
   const modal=document.getElementById('piece-settings-modal');
   if(modal){
-    modal.style.display='flex';
     generatePieceThemeOptionsForModal();
+    DSOverlay.makeSheetDraggable('piece-settings-modal','piece-sheet-panel',closePieceSettings);
+    DSOverlay.open(modal);
   }
 }
 
 function closePieceSettings(){
-  const modal=document.getElementById('piece-settings-modal');
-  if(modal){
-    modal.style.display='none';
-  }
+  DSOverlay.close('piece-settings-modal');
 }
 
 function generatePieceThemeOptionsForModal(){
@@ -10349,21 +10347,26 @@ window.addEventListener('beforeunload',()=>{
 </script>
 
 <!-- Piece Settings Modal -->
-<div id="piece-settings-modal" class="settings-modal-overlay">
-  <div class="settings-modal-card">
-    <div class="settings-modal-header">
-      <h3 class="settings-modal-title"><span class="section-icon">◈</span> جميع قطع الشطرنج</h3>
-      <button class="settings-modal-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); closePieceSettings();">&times;</button>
+<!-- منتقي القطع — ورقة سفلية قابلة للسحب.
+     الـ id متسيب زي ما هو عشان ‎openPieceSettings/closePieceSettings‎
+     ومنطق الاختيار كله يفضل شغال بحرفه. -->
+<div id="piece-settings-modal" class="ds-overlay ds-overlay--sheet">
+  <div class="ds-sheet" id="piece-sheet-panel" role="dialog" aria-modal="true"
+       aria-labelledby="piece-sheet-title">
+    <div class="ds-sheet__handle" aria-hidden="true"></div>
+    <div class="ds-sheet__header">
+      <h3 class="ds-sheet__title" id="piece-sheet-title">جميع قطع الشطرنج</h3>
+      <p class="ds-sheet__sub">اسحب لتحت للإغلاق</p>
     </div>
 
-    <div class="settings-modal-body">
-      <div>
-        <div class="pc-section-header">◈ قطع ثنائية الأبعاد</div>
+    <div class="ds-sheet__body" id="piece-sheet-body">
+      <div class="pc-sheet-group">
+        <div class="pc-sheet-group__title">قطع ثنائية الأبعاد</div>
         <div class="pc-grid" id="pc-2d-grid-modal"></div>
       </div>
 
-      <div>
-        <div class="pc-section-header">◆ قطع ثلاثية الأبعاد</div>
+      <div class="pc-sheet-group">
+        <div class="pc-sheet-group__title">قطع ثلاثية الأبعاد</div>
         <div class="pc-grid" id="pc-3d-grid-modal"></div>
       </div>
     </div>
