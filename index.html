@@ -3173,72 +3173,79 @@ body[data-ui-theme="glass"] .mc-tag{
 <!-- MENU -->
 <div id="s-menu" class="screen active">
   <div class="home">
-    <div class="home__brand">
-      <h1 class="home__brand-title">شطرنج</h1>
-      <span class="home__brand-sub">Chess · Am-Kh</span>
+
+    <!-- هوية اللاعب — نقرة عليها تفتح الإعدادات لتعديل الاسم والصورة -->
+    <button class="home-id" type="button" onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.settings()">
+      <span class="home-id__av" id="home-id-av" aria-hidden="true"></span>
+      <span class="home-id__text">
+        <span class="home-id__hi">أهلًا بك</span>
+        <span class="home-id__name" id="home-id-name">لاعب</span>
+      </span>
+      <span class="home-id__chev" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </span>
+    </button>
+
+    <div class="home-grid">
+      <!-- البطاقة الرئيسية: رحلة المراحل — البطاقة الوحيدة اللي بتحمل بيانات حقيقية -->
+      <button class="home-hero" type="button" data-mode="levels"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.levels()">
+        <span class="home-hero__head">
+          <span class="home-hero__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          </span>
+          <span class="home-hero__heading">
+            <span class="home-hero__eyebrow">رحلتك</span>
+            <span class="home-hero__title">مراحل نور</span>
+          </span>
+          <span class="home-hero__count" id="home-hero-count">0/12</span>
+        </span>
+        <span class="home-hero__sub" id="home-hero-sub">12 مرحلة من المبتدئ إلى الأسطورة</span>
+        <span class="home-hero__track" aria-hidden="true"><span class="home-hero__fill" id="home-hero-fill"></span></span>
+        <span class="home-hero__cta" id="home-hero-cta">
+          ابدأ الرحلة
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </span>
+      </button>
+
+      <button class="home-tile" type="button" data-mode="engine"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); ENGINE_PICKER.open()">
+        <span class="home-tile__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/></svg>
+        </span>
+        <span class="home-tile__title">ضد المحرك</span>
+        <span class="home-tile__desc">قوة Stockfish باختيارك</span>
+      </button>
+
+      <button class="home-tile" type="button" data-mode="local"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); G.startLocalGame()">
+        <span class="home-tile__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="home-tile__title">لاعبَان</span>
+        <span class="home-tile__desc">على نفس الشاشة بالتناوب</span>
+      </button>
+
+      <button class="home-tile" type="button" data-mode="online"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.online()">
+        <span class="home-tile__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </span>
+        <span class="home-tile__title">أونلاين<span class="home-tile__live" aria-hidden="true"></span></span>
+        <span class="home-tile__desc">مع صديق في أي مكان</span>
+      </button>
+
+      <button class="home-tile" type="button" data-mode="bluetooth"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.bluetooth()">
+        <span class="home-tile__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
+        </span>
+        <span class="home-tile__title">Bluetooth</span>
+        <span class="home-tile__desc">جهاز قريب بدون إنترنت</span>
+      </button>
     </div>
 
-    <div class="home__grid">
-      <!-- أونلاين: البطاقة الرئيسية (تمتد على العمودين) -->
-      <div class="ds-card ds-card--interactive home-mode home-mode--online" role="button" tabindex="0"
-        data-mode="online" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.online()">
-        <span class="home-mode__icon">⊕</span>
-        <div class="home-mode__body">
-          <h2 class="home-mode__title">أونلاين</h2>
-          <p class="home-mode__desc">العب مع صديق في أي مكان بالعالم</p>
-        </div>
-        <span class="ds-badge home-mode__meta home-mode__live">
-          <span class="home-mode__live-dot"></span>مباشر
-        </span>
-      </div>
-
-      <div class="ds-card ds-card--interactive home-mode home-mode--levels" role="button" tabindex="0"
-        data-mode="levels" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.levels()">
-        <span class="home-mode__icon"><span>◈</span></span>
-        <div class="home-mode__body">
-          <h2 class="home-mode__title">مراحل نور</h2>
-          <p class="home-mode__desc">12 مرحلة من المبتدئ إلى الأسطورة</p>
-          <span class="ds-badge home-mode__meta">أوفلاين</span>
-        </div>
-      </div>
-      <div class="ds-card ds-card--interactive home-mode home-mode--engine" role="button" tabindex="0"
-        data-mode="engine" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.open()">
-        <span class="home-mode__icon">
-          <img src="./StockFish.png" alt="Stockfish" onerror="this.remove();this.parentElement.classList.add('is-fallback');this.parentElement.textContent='SF';">
-        </span>
-        <div class="home-mode__body">
-          <h2 class="home-mode__title">ضد المحرك</h2>
-          <p class="home-mode__desc">اختر قوة Stockfish وخض مواجهة AI</p>
-          <span class="ds-badge home-mode__meta">AI Match</span>
-        </div>
-      </div>
-
-      <div class="ds-card ds-card--interactive home-mode home-mode--local" role="button" tabindex="0"
-        data-mode="local" onclick="if(typeof SFX !== 'undefined') SFX.btn(); G.startLocalGame()">
-        <span class="home-mode__icon">⚔</span>
-        <div class="home-mode__body">
-          <h2 class="home-mode__title">لاعبَان</h2>
-          <p class="home-mode__desc">على نفس الشاشة بالتناوب</p>
-          <span class="ds-badge home-mode__meta">أوفلاين</span>
-        </div>
-      </div>
-
-      <div class="ds-card ds-card--interactive home-mode home-mode--bluetooth" role="button" tabindex="0"
-        data-mode="bluetooth" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Nav.bluetooth()">
-        <span class="home-mode__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
-          </svg>
-        </span>
-        <div class="home-mode__body">
-          <h2 class="home-mode__title">Bluetooth</h2>
-          <p class="home-mode__desc">العب مع جهاز قريب بدون إنترنت</p>
-          <span class="ds-badge home-mode__meta">جهاز قريب</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="home__note">◉ نور و لاعبان و المحرك يعملون بالكامل بدون إنترنت</div>
+    <p class="home-foot">مراحل نور و لاعبَان و المحرك يعملون بالكامل بدون إنترنت</p>
   </div>
 </div>
 
@@ -3312,7 +3319,7 @@ body[data-ui-theme="glass"] .mc-tag{
                   <div class="ui-opt" id="ui-minimal" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('minimal')"><div class="th-sw"><div class="sw" style="background:#0b0f14"></div><div class="sw" style="background:#e5e7eb"></div></div>Minimal</div>
                   <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#070713"></div><div class="sw" style="background:#00fff0"></div></div>Cyber</div>
                   <div class="ui-opt" id="ui-glass" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('glass')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,.10)"></div><div class="sw" style="background:#93c5fd"></div></div>Glass</div>
-                  <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#070a10"></div><div class="sw" style="background:#7c3aed"></div></div>Gaming</div>
+                  <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#070a10"></div><div class="sw" style="background:#ff7a18"></div><div class="sw" style="background:#00ffa3"></div></div>Gaming</div>
                   <div class="ui-opt" id="ui-anime" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('anime')"><div class="th-sw"><div class="sw" style="background:#07111f"></div><div class="sw" style="background:#78f0ff"></div><div class="sw" style="background:#ff7cbf"></div></div>Anime</div>
                 </div>
               </div>
@@ -5269,6 +5276,56 @@ function updatePlayerImages(){
   if(bw)bw.textContent='♙';
   if(bb)bb.textContent='♟';
 }
+
+/* =====================================
+   HOME — تعبئة بيانات الشاشة الرئيسية
+   الشاشة نفسها ستاتيك في الـHTML؛ الحتة المتغيرة بس هي هوية اللاعب
+   وتقدّمه في المراحل. كل قراءة محمية بـtry عشان أي عطل في التخزين
+   مايمنعش الشاشة من الظهور.
+===================================== */
+const Home={
+  async render(){
+    this._identity();
+    await this._progress();
+  },
+  _identity(){
+    const av=document.getElementById('home-id-av');
+    const nm=document.getElementById('home-id-name');
+    if(nm){
+      const n=((Cfg?.data?.playerName)||'').trim();
+      nm.textContent=n||'لاعب';
+    }
+    if(av){
+      const img=(Cfg?.data?.playerImage)||'';
+      av.style.backgroundImage=`url("${img||DEFAULT_AVATAR}")`;
+    }
+  },
+  async _progress(){
+    const fill=document.getElementById('home-hero-fill');
+    const count=document.getElementById('home-hero-count');
+    const sub=document.getElementById('home-hero-sub');
+    const cta=document.getElementById('home-hero-cta');
+    const total=LEVELS_DEF.length;
+    let done=0;
+    try{
+      const p=await LVL.get();
+      for(const lv of LEVELS_DEF){if(p[lv.id]&&p[lv.id].done)done++;}
+    }catch(e){done=0;}
+
+    if(count)count.textContent=done+'/'+total;
+    if(fill)fill.style.width=Math.round(done/total*100)+'%';
+    if(sub){
+      sub.textContent = done===0   ? total+' مرحلة من المبتدئ إلى الأسطورة'
+                      : done>=total? 'أنهيت كل المراحل — أسطورة'
+                      : 'التالية: المرحلة '+(done+1)+' — '+LEVELS_DEF[done].name;
+    }
+    /* نص الزر بيتغيّر مع الحالة عشان يبان إن الرحلة محفوظة فعلًا */
+    if(cta){
+      const label = done===0 ? 'ابدأ الرحلة' : done>=total ? 'العب من جديد' : 'تابع الرحلة';
+      cta.childNodes[0].nodeValue=label+' ';
+    }
+  }
+};
 
 /* =====================================
    LEVELS
@@ -9492,6 +9549,9 @@ const Nav={
         try{loadSettingsProfile();}catch(e){}
       }, 50);
     }
+    /* الشاشة الرئيسية بتعرض اسم/صورة اللاعب وتقدّمه في المراحل — بيانات
+       بتتغير من شاشات تانية، فبنحدّثها في كل مرة نرجع لها. */
+    if(id === 's-menu'){try{Home.render();}catch(e){}}
   },
   menu(){Nav.show('s-menu');},
   levels(){Nav.show('s-levels');LVL.buildUI();},
@@ -10329,6 +10389,9 @@ window.addEventListener('load',async ()=>{
     }catch(e){}
     // Load profile data after configuration is loaded
     try{loadSettingsProfile();}catch(e){}
+    /* الشاشة الرئيسية أول شاشة ظاهرة، فلازم تتعبّى بعد Cfg.load()
+       مباشرة — Nav.show مابيتنادىش لها عند الإقلاع. */
+    try{Home.render();}catch(e){}
     SFX.init();
     DRAG.init();
     if(normalizePieceTheme(Cfg.data.pieceStyle||'neo')==='neo') _loadChessPieces();

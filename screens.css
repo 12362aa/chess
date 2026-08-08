@@ -158,10 +158,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   2. HOME — الشاشة الرئيسية
-   الهدف: كل أوضاع اللعب ظاهرة في شاشة واحدة بدون سكرول طويل.
-   البنية: شعار مدمج + شبكة عمودين، الوضع الأساسي (أونلاين) بيمتد
-   على العمودين كبطاقة رئيسية. الإعدادات انتقلت للشريط العلوي.
+   2. تخطيط الشاشات العام — الإزاحة تحت الشريط العلوي
 ══════════════════════════════════════════════════════════════════════ */
 /* الإزاحة العلوية لازم تطابق ارتفاع الشريط الفعلي. القاعدة القديمة
    كانت 36px (ارتفاع الشريط القديم) فالمحتوى كان يدخل تحت الشريط.
@@ -199,6 +196,24 @@
   padding: 0 !important;
 }
 
+
+/* ══════════════════════════════════════════════════════════════════════
+   2. HOME — الشاشة الرئيسية (إعادة تصميم كاملة)
+   ──────────────────────────────────────────────────────────────────────
+   النسخة القديمة كانت 5 بطاقات بـ5 ألوان نيون متنافسة، كل واحدة بشرطة
+   ملوّنة فوق وشكل أيقونة مختلف وفراغ ميت جواها — الشاشة كانت بتقرأ
+   كمجموعة ستيكرات مش كتطبيق واحد.
+
+   النظام الجديد:
+   • أكسنت واحد للثيم كله (--color-primary). التمييز بين الأوضاع بالأيقونة
+     والمحتوى، مش بلون مختلف لكل بطاقة.
+   • لغة أيقونات واحدة: كل الأيقونات stroke SVG بنفس المقاس وجوه نفس
+     الحاوية المربعة المُدوّرة.
+   • Bento: بطاقة واحدة كبيرة بمعلومة حقيقية (تقدّم المراحل) + 4 بطاقات
+     مضغوطة موحّدة. كل الأوضاع ظاهرة بدون سكرول.
+   • كل القيم من الـtokens، فالثيمات الستة بتلوّنها تلقائيًا (القسم 12).
+══════════════════════════════════════════════════════════════════════ */
+
 /* #s-menu القديم كان flex متمركز بـ padding خاص، وتخصيصه (1-0-0) أعلى
    من .screen فبيغلبها — فلازم نضبط الـ padding كله هنا صراحةً. */
 #s-menu.screen{
@@ -213,256 +228,375 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 560px;
-  height: calc(100dvh - var(--appbar-height));
-  padding: var(--space-2) var(--space-4);
-  padding-bottom: max(var(--space-3), env(safe-area-inset-bottom));
-  gap: var(--space-2);
+  max-width: 520px;
+  min-height: calc(100dvh - var(--appbar-height));
+  padding: var(--space-3) var(--space-4);
+  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  gap: var(--space-3);
 }
 
-/* ── الشعار: مدمج بدل النسخة العملاقة القديمة ── */
-.home__brand{
+/* ── صف الهوية: صورة + اسم اللاعب، نقرة تفتح الإعدادات ──
+   بديل الشعار العملاق القديم — الشريط العلوي فيه الاسم أصلًا، والمساحة
+   دي أنفع لو بتعرّف اللاعب بنفسه. */
+.home-id{
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) 0 var(--space-1);
+  gap: var(--space-3);
+  /* العرض على قد المحتوى: السهم يفضل ملزوق بالاسم بدل ما يسيح لطرف
+     الشاشة ويتقري كزر رجوع، وسطح الـhover يبان كصف مترابط */
+  align-self: flex-start;
+  max-width: 100%;
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  font-family: var(--font-family-base);
+  text-align: start;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--duration-fast) var(--easing-standard),
+              border-color var(--duration-fast) var(--easing-standard);
+}
+.home-id:hover{
+  background: var(--color-surface);
+  border-color: var(--color-border-subtle);
+}
+.home-id:active{ transform: scale(.99); }
+.home-id__av{
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-raised);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--color-border);
   flex-shrink: 0;
 }
-.home__brand-title{
-  font-family: var(--font-family-display);
-  font-size: 34px;
-  line-height: 1.2;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-wide);
-  color: var(--color-text-primary);
-  margin: 0;
+.home-id__text{
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 0 1 auto;
 }
-.home__brand-sub{
-  font-family: var(--font-family-base);
+.home-id__hi{
   font-size: var(--font-size-caption);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--color-text-disabled);
+  line-height: 1.3;
+  color: var(--color-text-secondary);
 }
+.home-id__name{
+  font-size: var(--font-size-body);
+  line-height: 1.3;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-id__chev{
+  display: inline-flex;
+  color: var(--color-text-disabled);
+  flex-shrink: 0;
+}
+.home-id__chev svg{ width: 18px; height: 18px; }
 
-/* ── شبكة الأوضاع ──
-   الصفوف بارتفاعها الطبيعي (مش متمددة) عشان مايحصلش فراغ داخل
-   البطاقات، والفائض الرأسي بيتوزّع حوالين الشبكة بـ align-content. */
-.home__grid{
+/* ── الشبكة ──
+   موبايل: البطاقة الكبيرة على العرض الكامل + 4 بطاقات 2×2.
+   الشبكة بتمتد على الفراغ المتاح والصفوف بتتقاسمه بنسب ثابتة (الكبيرة
+   ناخدة نصيب أكبر)، فالشاشة الطويلة مابتسيبش فراغ ميت تحت البطاقات
+   ولا البطاقات بتتكوّم فوق. أي fr مينيموهه auto، فلو الشاشة قصيرة
+   الصفوف بترجع لحجم محتواها من غير ما يتقصّ حاجة. */
+.home-grid{
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto auto;
-  align-content: center;
+  grid-template-rows: 1.15fr 1fr 1fr;
   gap: var(--space-3);
-  flex: 1;
+  width: 100%;
+  flex: 1 1 auto;
   min-height: 0;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   3. MODE CARD — بطاقة وضع لعب
-   كل وضع بيعرّف ‎--mode-accent‎ و ‎--mode-tint‎ الخاصين بيه، والبطاقة
-   بتستهلكهم. فالتمييز بلون + شكل أيقونة + تخطيط، مش مجرد قالب مُلوّن.
+   البطاقة الرئيسية — رحلة المراحل
+   البطاقة الوحيدة اللي فيها بيانات حقيقية (تقدّم فعلي)، فهي اللي تستاهل
+   الحجم والأكسنت المليان.
 ══════════════════════════════════════════════════════════════════════ */
-.home-mode{
-  --mode-accent: var(--color-primary);
-  --mode-tint:   var(--color-primary-subtle);
-
-  position: relative;
+.home-hero{
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
+  /* الصف بيمتد على الفراغ المتاح، فبنوزّع الزيادة على المسافات جوه
+     البطاقة بدل ما تتجمّع كلها فوق الزرار وتبان كفراغ ميت */
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3);
-  min-height: 0;
-  overflow: hidden;
-  text-align: start;
-  border-color: var(--color-border);
+  padding: var(--space-4);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
   background:
-    linear-gradient(160deg, var(--mode-tint) 0%, transparent 62%),
+    linear-gradient(165deg, var(--color-primary-subtle) 0%, transparent 70%),
     var(--color-bg-elevated);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-family-base);
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--easing-standard),
+              box-shadow var(--duration-fast) var(--easing-standard);
 }
-/* شرطة أكسنت علوية — بصمة اللون الخاصة بكل وضع */
-.home-mode::before{
-  content: '';
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 3px;
-  background: var(--mode-accent);
-}
-.home-mode:hover{ border-color: var(--mode-accent); }
+.home-hero:hover{ box-shadow: var(--shadow-lg); }
+.home-hero:active{ transform: scale(.99); }
 
-/* البطاقات المربعة تاخد جزء من الفائض الرأسي بارتفاع نسبي، فالشبكة
-   تقرب من ملء الشاشة بدون ما يتفتح فراغ كبير جوه البطاقة نفسها.
-   الـ clamp بيحمي الشاشات القصيرة من فيض. */
-.home-mode:not(.home-mode--online){
-  min-height: clamp(180px, 27vh, 260px);
+.home-hero__head{
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
-
-.home-mode__icon{
+.home-hero__icon{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);          /* مربع مُدوّر — الافتراضي */
-  background: var(--mode-tint);
-  border: 1px solid var(--mode-accent);
-  color: var(--mode-accent);
-  font-size: 27px;
-  line-height: 1;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-text);
   flex-shrink: 0;
 }
-/* كتلة النص — تنزل لأسفل البطاقة والأيقونة تفضل فوق، فالارتفاع
-   الزائد يبقى فراغ مقصود في النص مش فراغ ميت. */
-.home-mode__body{
+.home-hero__icon svg{ width: 26px; height: 26px; }
+.home-hero__heading{
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
+  gap: 1px;
   min-width: 0;
+  flex: 1;
 }
-
-.home-mode__title{
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-card-title);
-  line-height: var(--line-height-card-title);
+.home-hero__eyebrow{
+  font-size: var(--font-size-caption);
+  line-height: 1.2;
+  letter-spacing: .06em;
+  color: var(--color-primary-text);
+}
+.home-hero__title{
+  font-size: 23px;
+  line-height: 1.25;
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  margin: 0;
 }
-.home-mode__desc{
-  font-family: var(--font-family-base);
+/* العدّاد بأرقام لاتينية — isolate عشان مايتقلبش في RTL */
+.home-hero__count{
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  direction: ltr;
+  unicode-bidi: isolate;
+  flex-shrink: 0;
+}
+.home-hero__sub{
   font-size: var(--font-size-caption);
   line-height: var(--line-height-caption);
   color: var(--color-text-secondary);
-  margin: 0;
 }
-.home-mode__meta{
-  margin-top: var(--space-2);
-  align-self: flex-start;
-  color: var(--mode-accent);
-  background: var(--mode-tint);
-  border-color: var(--mode-accent);
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   4. هوية كل وضع — لون + شكل + تخطيط مختلف
-══════════════════════════════════════════════════════════════════════ */
-
-/* ── أونلاين: البطاقة الرئيسية — تمتد على العمودين، تخطيط أفقي ── */
-.home-mode--online{
-  --mode-accent: var(--color-secondary);
-  --mode-tint:   var(--color-secondary-subtle);
-  grid-column: 1 / -1;
-  flex-direction: row;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-}
-.home-mode--online .home-mode__icon{
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-pill);       /* دائرة — تمييز البطاقة الرئيسية */
-  font-size: 26px;
-}
-.home-mode--online .home-mode__body{
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-.home-mode--online .home-mode__meta{ margin-top: 0; }
-
-/* نقطة "مباشر" النابضة */
-.home-mode__live{
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-.home-mode__live-dot{
-  width: 6px;
+.home-hero__track{
+  display: block;
   height: 6px;
   border-radius: var(--radius-pill);
-  background: var(--color-secondary);
-  animation: homeLivePulse 1.8s ease-in-out infinite;
+  background: var(--color-surface-raised);
+  overflow: hidden;
+}
+.home-hero__fill{
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  transition: width var(--duration-slow) var(--easing-decelerate);
+}
+.home-hero__cta{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  min-height: 50px;
+  /* البطاقة كلها زرار، فالـCTA ده مؤشر بصري مش هدف لمس منفصل —
+     بس بيفضل بارتفاع هدف اللمس عشان يقرا كزرار حقيقي */
+}
+.home-hero__cta svg{ width: 18px; height: 18px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   البطاقات المضغوطة — أربعتهم متطابقين في المقاس والتخطيط واللون
+══════════════════════════════════════════════════════════════════════ */
+.home-tile{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* المحتوى متمركز رأسيًا: لو الصف اتمدّ، الزيادة بتتقسم فوق وتحت
+     بالتساوي بدل ما تتجمّع كفجوة واحدة بين الأيقونة والعنوان */
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  font-family: var(--font-family-base);
+  text-align: start;
+  cursor: pointer;
+  min-height: 148px;
+  transition: transform var(--duration-fast) var(--easing-standard),
+              border-color var(--duration-fast) var(--easing-standard),
+              background var(--duration-fast) var(--easing-standard);
+}
+.home-tile:hover{
+  border-color: var(--color-primary-border);
+  background: var(--color-surface);
+}
+.home-tile:active{ transform: scale(.98); }
+
+.home-tile__icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-primary-text);
+  flex-shrink: 0;
+}
+.home-tile__icon svg{ width: 22px; height: 22px; }
+.home-tile:hover .home-tile__icon{
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+.home-tile__title{
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-body);
+  line-height: 1.3;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+.home-tile__desc{
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+/* نقطة "مباشر" — اللون الوحيد الخارج عن الأكسنت، لأنها حالة مش تزيين */
+.home-tile__live{
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+  flex-shrink: 0;
+  animation: homeLivePulse 2s ease-in-out infinite;
 }
 @keyframes homeLivePulse{
   0%,100%{ opacity: 1;   transform: scale(1); }
-  50%    { opacity: .45; transform: scale(.8); }
+  50%    { opacity: .35; transform: scale(.75); }
 }
 
-/* ── مراحل نور: ذهبي، أيقونة معيّنة (مُدوّرة 45°) ── */
-.home-mode--levels{
-  --mode-accent: var(--color-primary);
-  --mode-tint:   var(--color-primary-subtle);
-}
-.home-mode--levels .home-mode__icon{
-  border-radius: var(--radius-sm);
-  transform: rotate(45deg);
-}
-.home-mode--levels .home-mode__icon > *{ transform: rotate(-45deg); }
-
-/* ── ضد المحرك: أزرق، أيقونة صورة Stockfish ── */
-.home-mode--engine{
-  --mode-accent: var(--color-info);
-  --mode-tint:   var(--color-info-subtle);
-}
-.home-mode--engine .home-mode__icon{
-  padding: var(--space-1);
-  background: var(--color-surface-sunken);
-}
-.home-mode--engine .home-mode__icon img{
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-/* بديل نصي لو الصورة مش موجودة */
-.home-mode__icon.is-fallback{
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-caption);
-  font-weight: var(--font-weight-bold);
-  background: var(--mode-tint);
-}
-
-/* ── لاعبان: أخضر، أيقونة دائرية ── */
-.home-mode--local{
-  --mode-accent: var(--color-success);
-  --mode-tint:   var(--color-success-subtle);
-}
-.home-mode--local .home-mode__icon{ border-radius: var(--radius-pill); }
-
-/* ── بلوتوث: بنفسجي — اللون الوحيد اللي مش من ألوان الحالة، عشان
-     يفضل مميّز عن باقي الأوضاع ── */
-.home-mode--bluetooth{
-  --mode-accent: #9B8CF5;
-  --mode-tint:   rgba(155,140,245,.13);
-}
-.home-mode--bluetooth .home-mode__icon svg{
-  width: 22px;
-  height: 22px;
-  stroke: currentColor;
-}
-
-/* ── ملاحظة الأوفلاين — سطر واحد هادي أسفل الشبكة ── */
-.home__note{
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-success-subtle);
-  border: 1px solid var(--color-border-subtle);
+.home-foot{
+  margin-top: auto;
+  padding-top: var(--space-2);
   font-family: var(--font-family-base);
   font-size: var(--font-size-caption);
   line-height: var(--line-height-caption);
-  color: var(--color-success);
+  color: var(--color-text-disabled);
+  text-align: center;
   flex-shrink: 0;
 }
+
+/* ── التركيز بلوحة المفاتيح: العناصر بقت <button> فبتاخد focus فعلي ── */
+.home-id:focus-visible,
+.home-hero:focus-visible,
+.home-tile:focus-visible{
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   الأجهزة اللوحية
+   ──────────────────────────────────────────────────────────────────────
+   تابلت طولي (760–1099): نفس ترتيب الموبايل — الكبيرة فوق بعرض كامل
+   و2×2 تحتها — بس بمقاسات أكبر وسقف لارتفاع الشبكة. من غير السقف ده
+   البطاقات كانت بتتمطّ على 1180px فتطلع أعمدة فاضية طولها 700px.
+
+   تابلت عرضي/شاشة كبيرة (1100+): bento حقيقي — الكبيرة عمود كامل
+   على الجنب والأربعة 2×2 جنبها. العرض هنا بيكفي إن عنوان الكبيرة
+   يفضل في سطر واحد.
+══════════════════════════════════════════════════════════════════════ */
+@media (min-width: 760px){
+  .home{
+    max-width: 720px;
+    padding: var(--space-6);
+    gap: var(--space-4);
+    justify-content: center;
+  }
+  .home-grid{
+    gap: var(--space-4);
+    /* البطاقات مالهاش تتمطّ على طول التابلت — سقف + توسيط الكتلة كلها */
+    flex: 0 1 auto;
+    max-height: 640px;
+  }
+  .home-hero{ padding: var(--space-5); }
+  .home-hero__title{ font-size: 26px; }
+  .home-hero__icon{ width: 52px; height: 52px; }
+  .home-hero__icon svg{ width: 28px; height: 28px; }
+  .home-tile{ min-height: 152px; padding: var(--space-4); }
+  .home-tile__icon{ width: 44px; height: 44px; }
+  .home-tile__icon svg{ width: 24px; height: 24px; }
+  .home-id{ max-width: 340px; }
+  /* الفوتر بيمشي مع الكتلة المتمركزة بدل ما يتسمّر تحت */
+  .home-foot{ margin-top: var(--space-2); }
+}
+@media (min-width: 1100px){
+  .home{ max-width: 1060px; }
+  .home-grid{
+    grid-template-columns: 1.25fr 1fr 1fr;
+    /* صفّين بس هنا — الكبيرة بتمتد عليهم الاتنين في العمود الأول */
+    grid-template-rows: 1fr 1fr;
+    max-height: 520px;
+  }
+  .home-hero{
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    padding: var(--space-6);
+  }
+  .home-tile{ min-height: 168px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   شاشات قصيرة — نضغط المقاسات عشان نفضل بدون سكرول
+══════════════════════════════════════════════════════════════════════ */
+@media (max-height: 720px) and (max-width: 759px){
+  .home{ gap: var(--space-2); padding-top: var(--space-2); }
+  .home-grid{ gap: var(--space-2); }
+  .home-hero{ padding: var(--space-3); gap: var(--space-2); }
+  .home-hero__title{ font-size: 19px; }
+  .home-hero__icon{ width: 38px; height: 38px; }
+  .home-hero__icon svg{ width: 21px; height: 21px; }
+  .home-hero__cta{ padding: var(--space-2) var(--space-3); }
+  .home-tile{ min-height: 112px; padding: var(--space-2) var(--space-3); }
+  .home-tile__icon{ width: 32px; height: 32px; }
+  .home-tile__icon svg{ width: 18px; height: 18px; }
+  .home-id{ padding: var(--space-1) var(--space-2); }
+  .home-id__av{ width: 38px; height: 38px; }
+  .home-foot{ display: none; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .home-tile__live{ animation: none; }
+  .home-hero__fill{ transition: none; }
+}
+
 
 /* ══════════════════════════════════════════════════════════════════════
    5. أزرار الرجوع القديمة داخل الشاشات
@@ -483,28 +617,6 @@
   display: none;
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   6. شاشات ضيقة جدًا — نضغط المقاسات شوية عشان نفضل بدون سكرول
-══════════════════════════════════════════════════════════════════════ */
-@media (max-height: 700px){
-  .home{ gap: var(--space-2); }
-  .home__brand{ padding: 0; }
-  .home__brand-title{ font-size: 26px; }
-  .home__grid{ gap: var(--space-2); }
-  .home-mode{ padding: var(--space-3) var(--space-3); }
-  .home-mode--online{ padding: var(--space-3); }
-  .home-mode__icon{ width: 38px; height: 38px; font-size: 19px; }
-  .home-mode--online .home-mode__icon{ width: 44px; height: 44px; font-size: 22px; }
-}
-@media (max-height: 600px){
-  .home__brand{ display: none; }   /* الشعار موجود في الشريط العلوي أصلًا */
-  .home__note{ display: none; }
-}
-/* شاشات عريضة (تابلت) — نوسّع الشبكة */
-@media (min-width: 720px){
-  .home{ max-width: 720px; }
-  .home__grid{ grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
-}
 
 /* ══════════════════════════════════════════════════════════════════════
    صف "لون الرقعة" في الإعدادات
@@ -1339,3 +1451,217 @@
 }
 /* شريط الخصم أهدى بصريًا فالتفرقة فورية */
 #s-game.mode-bluetooth .pbar:not(.is-me){ opacity: .88; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   12. الثيمات × الـTOKENS — إعادة تلوين المكوّنات الجديدة
+   ──────────────────────────────────────────────────────────────────────
+   الثيمات الستة كانت بتشتغل على selectors قديمة بالاسم
+   (.mc / .oc / .gobox / .settings-section …) بـ!important، فأي مكوّن
+   مبني على الـtokens كان بيطلع بنفس اللون بالظبط في الستة — الشاشة
+   الرئيسية الجديدة والإعدادات والبلوتوث والحوارات كلهم كانوا كده.
+
+   الحل هنا: نعيد تعريف الـtokens نفسها على body[data-ui-theme]، فكل
+   مكوّن token-based بياخد لون الثيم تلقائيًا من غير قاعدة مخصوصة له،
+   وأي مكوّن جديد بعدين بيتلوّن لوحده.
+
+   ليه بيغلب؟ الخصائص المخصصة بتتورّث، وbody أخصّ من :root، فالإعلان
+   ده بيسبق تعريف design-system.css على كل الشجرة اللي تحت body.
+
+   مش بنلمس ‎--bg‎ ولا متغيّرات الستايل القديم، وطبقات body::before /
+   body::after بتاعة كل ثيم زي ما هي — الخلفية والإحساس العام مايتغيروش.
+   amkh مالوش قسم هنا لأنه هو نفسه القيم الافتراضية.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Minimal — رمادي مصمت، الأكسنت أبيض مكسور ── */
+body[data-ui-theme="minimal"]{
+  --color-primary:            #E5E7EB;
+  --color-primary-hover:      #F8FAFC;
+  --color-primary-pressed:    #CBD5E1;
+  --color-primary-subtle:     rgba(226,232,240,.10);
+  --color-primary-border:     rgba(226,232,240,.26);
+  --color-primary-text:       #E8ECF2;
+  --color-on-primary:         #0F172A;
+
+  --color-secondary:          #94A3B8;
+  --color-secondary-hover:    #B6C2D2;
+  --color-secondary-pressed:  #74839A;
+  --color-secondary-subtle:   rgba(148,163,184,.10);
+  --color-secondary-border:   rgba(148,163,184,.24);
+  --color-secondary-text:     #C3CEDC;
+  --color-on-secondary:       #0F172A;
+
+  --color-bg-base:            #0A1017;
+  --color-bg-elevated:        #111923;
+  --color-surface:            #18212D;
+  --color-surface-raised:     #222D3C;
+  --color-surface-sunken:     #070C12;
+  --color-overlay:            rgba(6,10,15,.80);
+
+  --color-border:             #263141;
+  --color-border-subtle:      #1B2430;
+  --color-border-strong:      #3A4757;
+
+  --color-text-primary:       #EEF2F7;
+  --color-text-secondary:     #9AA6B4;
+  --color-text-disabled:      #5E6975;
+  --color-text-inverse:       #0F172A;
+
+  --color-focus-ring:         rgba(226,232,240,.45);
+}
+
+/* ── Cyberpunk — فيروزي نيون + ماجنتا ── */
+body[data-ui-theme="cyberpunk"]{
+  --color-primary:            #00FFE7;
+  --color-primary-hover:      #5CFFF1;
+  --color-primary-pressed:    #00CDB9;
+  --color-primary-subtle:     rgba(0,255,231,.12);
+  --color-primary-border:     rgba(0,255,231,.32);
+  --color-primary-text:       #7DFFF0;
+  --color-on-primary:         #04121A;
+
+  --color-secondary:          #FF209A;
+  --color-secondary-hover:    #FF5CB4;
+  --color-secondary-pressed:  #CC1179;
+  --color-secondary-subtle:   rgba(255,32,154,.12);
+  --color-secondary-border:   rgba(255,32,154,.30);
+  --color-secondary-text:     #FF8CC6;
+  --color-on-secondary:       #14040D;
+
+  --color-bg-base:            #060711;
+  --color-bg-elevated:        #0D1224;
+  --color-surface:            #151C33;
+  --color-surface-raised:     #1F2846;
+  --color-surface-sunken:     #04050D;
+  --color-overlay:            rgba(4,5,13,.82);
+
+  --color-border:             #26314F;
+  --color-border-subtle:      #18203A;
+  --color-border-strong:      rgba(0,255,231,.28);
+
+  --color-text-primary:       #EAF4FF;
+  --color-text-secondary:     #93A7C4;
+  --color-text-disabled:      #5B6A85;
+  --color-text-inverse:       #04121A;
+
+  --color-focus-ring:         rgba(0,255,231,.55);
+}
+
+/* ── Glass — أسطح شفّافة، الأكسنت أزرق فاتح.
+   الأسطح هنا rgba مش ألوان مصمتة عشان طبقة الخلفية تبان من ورا
+   البطاقات؛ ده هو الثيم الوحيد اللي بيعمل كده. ── */
+body[data-ui-theme="glass"]{
+  --color-primary:            #93C5FD;
+  --color-primary-hover:      #B5D8FF;
+  --color-primary-pressed:    #6FA8E8;
+  --color-primary-subtle:     rgba(147,197,253,.14);
+  --color-primary-border:     rgba(147,197,253,.34);
+  --color-primary-text:       #C3DEFF;
+  --color-on-primary:         #0A1524;
+
+  --color-secondary:          #A7F3D0;
+  --color-secondary-hover:    #C4F8E2;
+  --color-secondary-pressed:  #7FD8B2;
+  --color-secondary-subtle:   rgba(167,243,208,.13);
+  --color-secondary-border:   rgba(167,243,208,.28);
+  --color-secondary-text:     #C7F7E2;
+  --color-on-secondary:       #06201A;
+
+  --color-bg-base:            rgba(9,17,29,.55);
+  --color-bg-elevated:        rgba(255,255,255,.07);
+  --color-surface:            rgba(255,255,255,.10);
+  --color-surface-raised:     rgba(255,255,255,.15);
+  --color-surface-sunken:     rgba(3,8,16,.42);
+  --color-overlay:            rgba(6,13,24,.66);
+
+  --color-border:             rgba(255,255,255,.14);
+  --color-border-subtle:      rgba(255,255,255,.08);
+  --color-border-strong:      rgba(255,255,255,.26);
+
+  --color-text-primary:       #F4F8FF;
+  --color-text-secondary:     #B9C7DA;
+  --color-text-disabled:      #7E8CA0;
+  --color-text-inverse:       #0A1524;
+
+  --color-focus-ring:         rgba(147,197,253,.55);
+}
+/* من غير blur الأسطح الشفافة بتبان عكرة مش زجاج */
+body[data-ui-theme="glass"] .home-id,
+body[data-ui-theme="glass"] .home-hero,
+body[data-ui-theme="glass"] .home-tile{
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+/* ── Gaming — برتقالي ناري + أخضر نيون ── */
+body[data-ui-theme="gaming"]{
+  --color-primary:            #FF7A18;
+  --color-primary-hover:      #FF9440;
+  --color-primary-pressed:    #D9620C;
+  --color-primary-subtle:     rgba(255,122,24,.13);
+  --color-primary-border:     rgba(255,122,24,.32);
+  --color-primary-text:       #FFB472;
+  --color-on-primary:         #140A02;
+
+  --color-secondary:          #00FFA3;
+  --color-secondary-hover:    #5CFFC4;
+  --color-secondary-pressed:  #00CC82;
+  --color-secondary-subtle:   rgba(0,255,163,.12);
+  --color-secondary-border:   rgba(0,255,163,.28);
+  --color-secondary-text:     #7DFFCC;
+  --color-on-secondary:       #021409;
+
+  --color-bg-base:            #06090F;
+  --color-bg-elevated:        #101722;
+  --color-surface:            #1A2331;
+  --color-surface-raised:     #25303F;
+  --color-surface-sunken:     #04070C;
+  --color-overlay:            rgba(4,7,12,.82);
+
+  --color-border:             #2B3647;
+  --color-border-subtle:      #1C2532;
+  --color-border-strong:      rgba(255,122,24,.30);
+
+  --color-text-primary:       #F5F1EA;
+  --color-text-secondary:     #A6ADB8;
+  --color-text-disabled:      #666E79;
+  --color-text-inverse:       #140A02;
+
+  --color-focus-ring:         rgba(255,122,24,.55);
+}
+
+/* ── Anime — وردي + سماوي على كحلي بنفسجي ── */
+body[data-ui-theme="anime"]{
+  --color-primary:            #FF7CBF;
+  --color-primary-hover:      #FF9ECF;
+  --color-primary-pressed:    #E0559F;
+  --color-primary-subtle:     rgba(255,124,191,.13);
+  --color-primary-border:     rgba(255,124,191,.32);
+  --color-primary-text:       #FFAAD4;
+  --color-on-primary:         #1A0713;
+
+  --color-secondary:          #78F0FF;
+  --color-secondary-hover:    #A3F6FF;
+  --color-secondary-pressed:  #4CC9D8;
+  --color-secondary-subtle:   rgba(120,240,255,.12);
+  --color-secondary-border:   rgba(120,240,255,.28);
+  --color-secondary-text:     #A8F4FF;
+  --color-on-secondary:       #03161B;
+
+  --color-bg-base:            #07111F;
+  --color-bg-elevated:        #101C33;
+  --color-surface:            #1A2745;
+  --color-surface-raised:     #263457;
+  --color-surface-sunken:     #050C17;
+  --color-overlay:            rgba(5,10,23,.80);
+
+  --color-border:             #2C3A5C;
+  --color-border-subtle:      #1E2A45;
+  --color-border-strong:      rgba(255,124,191,.30);
+
+  --color-text-primary:       #F4EEFB;
+  --color-text-secondary:     #AFA6C4;
+  --color-text-disabled:      #6C6683;
+  --color-text-inverse:       #1A0713;
+
+  --color-focus-ring:         rgba(255,124,191,.55);
+}
