@@ -23,3 +23,6 @@ _shoot.js
 _t7*.js
 *.tmp-cdplog.txt
 .claude/
+
+# APKs now ship as GitHub Release assets, not repo blobs
+Chess-AmKh-V*.apk
