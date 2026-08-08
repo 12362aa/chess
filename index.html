@@ -3559,38 +3559,68 @@ body[data-ui-theme="glass"] .mc-tag{
 </div>
 
 <!-- BLUETOOTH -->
-<div id="s-bluetooth" class="screen bt-premium-screen">
-  <div class="oc bt-premium-card">
-    <div class="bt-header">
-      <div class="bt-icon-wrapper">
-  <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
-  </svg>
-  </div>
-      <h2 class="bt-title">Bluetooth Match</h2>
-      <p class="bt-subtitle">اتصال مباشر بدون إنترنت</p>
-    </div>
-    
-    <div class="bt-tabs">
-      <button class="bt-tab-btn active" id="tb-bt-host" onclick="BLEManager.hostGame()">
-        <svg class="bt-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L15 9H22L16.5 13.5L18.5 21L12 17L5.5 21L7.5 13.5L2 9H9L12 2Z"/></svg> استضافة
-      </button>
-      <button class="bt-tab-btn" id="tb-bt-join" onclick="BLEManager.scanForGames()">
-        <svg class="bt-tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg> بحث
-      </button>
-    </div>
-    
-    <div class="bt-radar-container" id="bt-radar" style="display:none;">
-      <div class="bt-radar-ring"></div>
-      <div class="bt-radar-ring"></div>
-      <div class="bt-radar-ring"></div>
-    </div>
-    
-    <div id="bt-status" class="bt-status-text">اختر "استضافة" أو "بحث" للبدء.</div>
-    
-    <div id="bt-devices-list" class="bt-devices-grid"></div>
+<div id="s-bluetooth" class="screen bt-screen" data-phase="idle">
+  <div class="bt-shell">
 
-    <button class="bt-back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();BLEManager.disconnect();Nav.menu()">← العودة للقائمة</button>
+    <!-- الهوية -->
+    <div class="bt-hero ds-card">
+      <span class="bt-hero__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+        </svg>
+      </span>
+      <div class="bt-hero__body">
+        <h2 class="bt-hero__title">لعب عبر Bluetooth</h2>
+        <p class="bt-hero__sub">جهازين قريبين من بعض — بدون إنترنت</p>
+      </div>
+    </div>
+
+    <!-- اختيار الدور -->
+    <div class="bt-roles" role="tablist" aria-label="طريقة الاتصال">
+      <button type="button" class="bt-role" id="tb-bt-host" role="tab" aria-selected="false"
+              onclick="BLEManager.hostGame()">
+        <span class="bt-role__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20v-8"/><path d="M8.5 15.5a5 5 0 0 1 7 0"/><path d="M5.5 12.5a9 9 0 0 1 13 0"/><circle cx="12" cy="20" r="1.4"/>
+          </svg>
+        </span>
+        <span class="bt-role__text">
+          <span class="bt-role__title">استضافة</span>
+          <span class="bt-role__desc">تفتح مباراة وتستنى صاحبك</span>
+        </span>
+      </button>
+
+      <button type="button" class="bt-role" id="tb-bt-join" role="tab" aria-selected="false"
+              onclick="BLEManager.scanForGames()">
+        <span class="bt-role__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21.5" y2="21.5"/>
+          </svg>
+        </span>
+        <span class="bt-role__text">
+          <span class="bt-role__title">انضمام</span>
+          <span class="bt-role__desc">تدوّر على جهاز فاتح مباراة</span>
+        </span>
+      </button>
+    </div>
+
+    <!-- الحالة: مؤشر بحث + نص -->
+    <div class="bt-state ds-card">
+      <span class="bt-state__pulse" aria-hidden="true"><i></i><i></i><i></i></span>
+      <p id="bt-status" class="bt-state__text">اختر "استضافة" أو "انضمام" للبدء</p>
+    </div>
+
+    <!-- الأجهزة المتاحة -->
+    <div class="bt-devices">
+      <div class="bt-devices__title">الأجهزة القريبة</div>
+      <div id="bt-devices-list" class="bt-devices__list"></div>
+      <p class="bt-devices__empty">لسه مفيش أجهزة. خلّي الجهاز التاني يفتح نفس الشاشة ويختار "استضافة".</p>
+    </div>
+
+    <button type="button" class="ds-btn ds-btn--ghost ds-btn--block"
+            onclick="if(typeof SFX !== 'undefined') SFX.btn();BLEManager.disconnect();Nav.menu()">
+      العودة للقائمة
+    </button>
   </div>
 </div>
 
@@ -3598,8 +3628,16 @@ body[data-ui-theme="glass"] .mc-tag{
 <div id="s-game" class="screen">
   <div class="gtop">
     <button class="bsm" onclick="G.restart()">↺ جديدة</button>
-    <span class="gmlbl" id="gmode">—</span>
+    <span class="gmlbl" id="gmode">
+      <span class="gmlbl__icon" id="gmode-icon" aria-hidden="true"></span>
+      <span class="gmlbl__text" id="gmode-text">—</span>
+    </span>
     <button class="bsm" onclick="G.back()">← قائمة</button>
+  </div>
+  <!-- حالة الاتصال — تخص الأجهزة المنفصلة، فمخفية في مود لاعبَان -->
+  <div class="gconn" id="gconn" hidden>
+    <span class="gconn__dot" id="gconn-dot"></span>
+    <span class="gconn__text" id="gconn-text"></span>
   </div>
   <div class="pbar" id="bar-b">
     <div class="pbar-top">
@@ -8364,8 +8402,15 @@ const R={
       return;
     }
     const nm=S.turn==='w'?document.getElementById('nm-w').textContent:document.getElementById('nm-b').textContent;
-    if(E.inChk(S.bd,S.turn)){el.classList.add('check');el.textContent=`⚠ ${nm} في الكش!`;}
-    else el.textContent=`دور ${nm}`;
+    /* على جهازين منفصلين الشريط لازم يخاطب اللاعب مباشرة، مش يسمّي
+       صاحب الدور — وإلا يتناقض مع وسم "دورك" على شريط اللاعب. */
+    const iAmPlaying=(S.myCol==='w'||S.myCol==='b');
+    const mine=iAmPlaying&&S.turn===S.myCol;
+    if(E.inChk(S.bd,S.turn)){
+      el.classList.add('check');
+      el.textContent=iAmPlaying?(mine?'⚠ أنت في الكش!':`⚠ ${nm} في الكش!`):`⚠ ${nm} في الكش!`;
+    }
+    else el.textContent=iAmPlaying?(mine?'دورك':`دور ${nm}`):`دور ${nm}`;
   },
   async players(){
     const w=S.turn==='w';
@@ -8385,7 +8430,25 @@ const R={
       barB.classList.toggle('myturn',!w);
       turnW.classList.toggle('show',w);
       turnB.classList.toggle('show',!w);
+      /* على جهازين منفصلين "دوره" مالهاش معنى — كل لاعب لازم يعرف
+         لو الدور عليه هو ولا على الخصم. في لاعبَان على شاشة واحدة
+         الصيغة المحايدة هي الصح. */
+      /* أي وضع للاعب واحد (بلوتوث/أونلاين/محرك) يميّز أنا من الخصم.
+         "لاعبَان" وحده هو اللي الاتنين فيه على نفس الشاشة. */
+      if(S.myCol==='w'||S.myCol==='b'){
+        const mine=(S.turn===S.myCol);
+        const meEl=S.myCol==='w'?turnW:turnB;
+        const oppEl=S.myCol==='w'?turnB:turnW;
+        meEl.textContent=mine?'● دورك':'';
+        oppEl.textContent=mine?'':'● دور الخصم';
+      }else{
+        turnW.textContent='● دوره';
+        turnB.textContent='● دوره';
+      }
     }
+    /* وسم "أنت" — يتحدّد من myCol مش من الدور، فيفضل ثابت طول المباراة */
+    barW.classList.toggle('is-me',S.myCol==='w');
+    barB.classList.toggle('is-me',S.myCol==='b');
     barW.classList.remove('is-win','is-loss','is-draw');
     barB.classList.remove('is-win','is-loss','is-draw');
     if(resW){resW.className='pb-result';resW.textContent='';resW.title='';}
@@ -8534,6 +8597,70 @@ const R={
     el.scrollLeft=el.scrollWidth;
   },
   async all(){this.board();this.status();await this.players();this.hist();this.toolbar();updatePlayerImages();}
+};
+
+/* ══════════════════════════════════════
+   هوية أوضاع اللعب
+   كل وضع له عنوانه وأيقونته. البلوتوث ولاعبَان بيشاركوا نفس مكوّن
+   الرقعة، لكن هويتهم منفصلة تمامًا: البلوتوث لاعبان على جهازين، فله
+   عنوان وأيقونة وحالة اتصال — لاعبَان على شاشة واحدة فمالوش اتصال.
+══════════════════════════════════════ */
+const MODE_ICONS={
+  /* أيقونة البلوتوث — نفس الرسم المستخدم في بطاقة القائمة الرئيسية */
+  bluetooth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>',
+  local:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="M19 21h2v-2"/></svg>',
+  online:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>',
+  engine:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>',
+  bot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V5M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M8 13h.01M16 13h.01"/></svg>'
+};
+
+const GameIdentity={
+  /* العنوان الافتراضي لكل مود. المسارات اللي ليها تفاصيل (المرحلة، قوة
+     المحرك) بتعيد الضبط بعد كده عبر setTitle. */
+  _titles:{
+    local:'لاعبَان',
+    bluetooth:'لعب عبر Bluetooth',
+    online:'أونلاين',
+    engine:'ضد Stockfish',
+    bot:'مراحل نور'
+  },
+
+  apply(mode){
+    this.setIcon(mode);
+    this.setTitle(this._titles[mode]||'');
+    /* حالة الاتصال تخص الأجهزة المنفصلة بس */
+    if(mode==='bluetooth')this.setConnection('connecting','جارٍ التحضير…');
+    else this.hideConnection();
+  },
+
+  setIcon(mode){
+    const el=document.getElementById('gmode-icon');
+    if(el)el.innerHTML=MODE_ICONS[mode]||'';
+  },
+
+  setTitle(text){
+    const el=document.getElementById('gmode-text');
+    if(el)el.textContent=text||'';
+  },
+
+  /* state: connected | connecting | lost */
+  setConnection(state,text){
+    const bar=document.getElementById('gconn');
+    const dot=document.getElementById('gconn-dot');
+    const txt=document.getElementById('gconn-text');
+    if(!bar)return;
+    bar.hidden=false;
+    bar.dataset.state=state;
+    if(dot)dot.dataset.state=state;
+    if(txt)txt.textContent=text||'';
+  },
+
+  hideConnection(){
+    const bar=document.getElementById('gconn');
+    const txt=document.getElementById('gconn-text');
+    if(bar){bar.hidden=true;bar.removeAttribute('data-state');}
+    if(txt)txt.textContent='';   /* تنظيف النص — مش مجرد إخفاء */
+  }
 };
 
 const G={
@@ -8834,8 +8961,11 @@ const G={
     R.boardReset();
     CHAT.hide();
     const sg=document.getElementById('s-game');
-    sg.classList.remove('mode-local','mode-bot','mode-online','mode-engine');
+    sg.classList.remove('mode-local','mode-bot','mode-online','mode-engine','mode-bluetooth');
     sg.classList.add('mode-'+mode);
+    /* هوية المود تتضبط مركزيًا هنا عشان كل مسارات البدء تعدي عليها —
+       البلوتوث كان مابيعيّنش gmode خالص فكان بيورث عنوان اللعبة السابقة. */
+    GameIdentity.apply(mode);
     document.getElementById('promo-ov').classList.remove('open');
     document.getElementById('go-next').style.display='none';
   },
@@ -8843,7 +8973,7 @@ const G={
     this._reset('local',0);
     document.getElementById('nm-w').textContent='اللاعب الأبيض';
     document.getElementById('nm-b').textContent='اللاعب الأسود';
-    document.getElementById('gmode').textContent='⚔ لاعبَان';
+    GameIdentity.setTitle('لاعبَان');
     fixBars('both');
     Nav.game();
     await R.all();
@@ -8856,7 +8986,7 @@ const G={
     const pn=Cfg.data.playerName||'أنت';
     document.getElementById('nm-w').textContent=pn;
     document.getElementById('nm-b').textContent=`نور — ${lv.name}`;
-    document.getElementById('gmode').textContent=`◈ المرحلة ${id+1}: ${lv.name}`;
+    GameIdentity.setTitle(`المرحلة ${id+1}: ${lv.name}`);
     fixBars('w');
     Nav.game();await R.all();updatePlayerImages();
     CHAT.show();
@@ -8870,7 +9000,7 @@ const G={
     Cfg.saveData();
     document.getElementById('nm-w').textContent=getPlayerDisplayName();
     document.getElementById('nm-b').textContent=`Stockfish — ${preset.title}`;
-    document.getElementById('gmode').textContent=`♞ ضد Stockfish · ${preset.badge}`;
+    GameIdentity.setTitle(`ضد Stockfish · ${preset.badge}`);
     fixBars('w');
     Nav.game();
     await R.all();
@@ -9340,6 +9470,9 @@ const Nav={
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     try{AppBar.sync(id);}catch(e){}
+    /* شريط حالة الاتصال جزء من شاشة اللعب — الخروج منها بأي مسار
+       (رجوع، قائمة، بدء وضع تاني) لازم ينضّفه، مش بس مسار واحد. */
+    if(id!=='s-game'){try{GameIdentity.hideConnection();}catch(e){}}
 
     // Load profile data when settings screen is opened
     if(id === 's-settings'){
@@ -9639,7 +9772,7 @@ const OL=(()=>{
     const oc=E.opp(mc);
     G._reset('online',0);
     S.mode='online';S.levelId=-1;S.myCol=mc;
-    document.getElementById('gmode').textContent='⊕ أونلاين';
+    GameIdentity.setTitle('أونلاين');
     const myName=normName(Cfg.data.playerName,'أنا');
     const oppLabel=normName(oppName,'الخصم');
     document.getElementById(mc==='w'?'nm-w':'nm-b').textContent=myName;
@@ -10386,7 +10519,7 @@ const BLEManager = {
   async init() {
     const nearby = this.getNearby();
     if (!nearby) {
-      if (typeof Modal !== 'undefined') Modal.show("ميزة اللعب الجواري تعمل فقط داخل التطبيق المثبت على الموبايل.", "تنبيه", "✕");
+      if (typeof Modal !== 'undefined') Modal.show("اللعب عبر Bluetooth متاح في تطبيق الموبايل فقط، مش في المتصفح.", "غير متاح هنا", "✕");
       return false;
     }
     // Set up event listeners
@@ -10403,23 +10536,27 @@ const BLEManager = {
       const list = document.getElementById('bt-devices-list');
       if (!list) return;
       if (document.getElementById('ep-' + data.endpointId)) return;
-
-      const btn = document.createElement('button');
-      btn.className = 'bt-device-btn';
-      btn.id = 'ep-' + data.endpointId;
-      btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1"/></svg> <span>${data.endpointName}</span> <span style='color:#7aa2f7;'>اتصال ❯</span>`;
-      btn.onclick = () => this.connectToEndpoint(data.endpointId);
-      list.appendChild(btn);
-      this.setStatus("تم العثور على أجهزة — اختر للاتصال:");
+      this._seen = this._seen || {};
+      this._seen[data.endpointId] = data.endpointName;
+      this.renderDevice(list, data);
+      this.setStatus("تم العثور على أجهزة — اختر جهازًا للاتصال");
+      this.setPhase('found');
     });
 
     nearby.addListener('endpointLost', (data) => {
       const el = document.getElementById('ep-' + data.endpointId);
       if (el) el.remove();
+      if (this._seen) delete this._seen[data.endpointId];
+      const list = document.getElementById('bt-devices-list');
+      if (list && !list.children.length && !this.connected) {
+        this.setStatus("يبحث عن أجهزة قريبة…");
+        this.setPhase('scanning');
+      }
     });
 
     nearby.addListener('connectionInitiated', (data) => {
       // Auto-accepted on Java side
+      this.opponentName = data.endpointName || '';
       this.setStatus("جاري إتمام الاتصال مع " + data.endpointName + "...");
     });
 
@@ -10427,10 +10564,11 @@ const BLEManager = {
       if (data.connected) {
         this.endpointId = data.endpointId;
         this.connected = true;
-        document.getElementById('bt-radar').style.display = 'none';
+        if (this._seen && this._seen[data.endpointId]) this.opponentName = this._seen[data.endpointId];
+        this.setPhase('connected');
 
         if (this.isHost) {
-          this.setStatus("متصل! جاري بدء اللعبة...");
+          this.setStatus("تم الاتصال — جارٍ بدء المباراة…");
           // Host sends START with their color
           this.myColor = Math.random() < 0.5 ? 'w' : 'b';
           setTimeout(() => {
@@ -10438,11 +10576,11 @@ const BLEManager = {
             this.startGameUI();
           }, 500);
         } else {
-          this.setStatus("متصل! في انتظار بدء اللعبة...");
+          this.setStatus("تم الاتصال — في انتظار بدء المباراة…");
         }
       } else {
-        this.setStatus("فشل الاتصال. حاول مجدداً.");
-        if (typeof Modal !== 'undefined') Modal.show("تعذّر الاتصال بالجهاز الآخر، يُرجى المحاولة مجدداً.", "فشل الاتصال", "✕");
+        this.setPhase('idle');
+        this.fail("لم يتم الاتصال بالجهاز الآخر. تأكد إن الجهازين قريبين من بعض وحاول تاني.");
       }
     });
 
@@ -10454,7 +10592,9 @@ const BLEManager = {
       const wasConnected = this.connected;
       this.connected = false;
       this.endpointId = null;
+      this.setPhase('idle');
       if (S.mode === 'bluetooth' && !S.over && wasConnected) {
+        GameIdentity.setConnection('lost', 'انقطع الاتصال بالجهاز الآخر');
         S.over = true;
         G.showOver({
           winner: this.myColor,
@@ -10472,11 +10612,48 @@ const BLEManager = {
     if (el) el.textContent = msg;
   },
 
+  /* حالة الشاشة: idle | hosting | scanning | found | connected
+     بتتحكم في المؤشر والنص وظهور قائمة الأجهزة. */
+  setPhase(phase) {
+    const scr = document.getElementById('s-bluetooth');
+    if (scr) scr.dataset.phase = phase;
+  },
+
+  /* رسالة فشل مفهومة للاعب + خطوة تالية. الأخطاء التقنية تروح للـconsole
+     بس — اللاعب مايشوفش أسماء APIs ولا أكواد. */
+  fail(text, technical) {
+    if (technical) console.error('[BT]', technical);
+    this.setStatus(text);
+    if (typeof Modal !== 'undefined') Modal.show(text, 'تعذّر الاتصال', '✕');
+  },
+
+  renderDevice(list, data) {
+    const btn = document.createElement('button');
+    btn.className = 'bt-device';
+    btn.id = 'ep-' + data.endpointId;
+    btn.type = 'button';
+    const name = document.createElement('span');
+    name.className = 'bt-device__name';
+    name.textContent = data.endpointName || 'جهاز غير معروف';  // نص، مش HTML
+    btn.innerHTML =
+      '<span class="bt-device__icon" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg>' +
+      '</span>';
+    btn.appendChild(name);
+    const cta = document.createElement('span');
+    cta.className = 'bt-device__cta';
+    cta.textContent = 'اتصال';
+    btn.appendChild(cta);
+    btn.onclick = () => { if (typeof SFX !== 'undefined') SFX.btn(); this.connectToEndpoint(data.endpointId); };
+    list.appendChild(btn);
+  },
+
   async hostGame() {
-    document.getElementById('tb-bt-host').classList.add('active');
-    document.getElementById('bt-radar').style.display = 'block';
-    document.getElementById('tb-bt-join').classList.remove('active');
+    if (typeof SFX !== 'undefined') SFX.btn();
+    this.setTab('host');
     document.getElementById('bt-devices-list').innerHTML = '';
+    this._seen = {};
 
     if (!await this.init()) return;
     this.isHost = true;
@@ -10484,40 +10661,52 @@ const BLEManager = {
 
     const nearby = this.getNearby();
     try {
-      this.setStatus("جاري إعداد الاستضافة...");
+      this.setPhase('hosting');
+      this.setStatus("جارٍ إعداد الاستضافة…");
       await nearby.startAdvertising({ name: this.playerName });
-      this.setStatus("في انتظار انضمام لاعب آخر...");
+      this.setStatus("في انتظار انضمام لاعب آخر…");
     } catch (e) {
-      if (typeof Modal !== 'undefined') Modal.show("تعذّر بدء الاستضافة، يُرجى التأكد من تشغيل الواي فاي والبلوتوث والموقع.", "تنبيه", "✕");
+      this.setPhase('idle');
+      this.fail("مش قادر يبدأ الاستضافة. تأكد إن البلوتوث والواي فاي والموقع مفتوحين، وجرّب تاني.", e);
     }
   },
 
   async scanForGames() {
-    document.getElementById('tb-bt-host').classList.remove('active');
-    document.getElementById('tb-bt-join').classList.add('active');
-    document.getElementById('bt-radar').style.display = 'block';
+    if (typeof SFX !== 'undefined') SFX.btn();
+    this.setTab('join');
+    this._seen = {};
 
     if (!await this.init()) return;
     this.isHost = false;
-    this.setStatus("يبحث عن أجهزة قريبة...");
     const list = document.getElementById('bt-devices-list');
     list.innerHTML = '';
 
     const nearby = this.getNearby();
     try {
+      this.setPhase('scanning');
+      this.setStatus("يبحث عن أجهزة قريبة…");
       await nearby.startDiscovering();
     } catch (e) {
-      if (typeof Modal !== 'undefined') Modal.show("تعذّر بدء البحث عن أجهزة قريبة، يُرجى المحاولة مرة أخرى.", "تنبيه", "✕");
+      this.setPhase('idle');
+      this.fail("مش قادر يبحث عن أجهزة. تأكد إن البلوتوث والواي فاي والموقع مفتوحين، وجرّب تاني.", e);
     }
+  },
+
+  setTab(which) {
+    const host = document.getElementById('tb-bt-host');
+    const join = document.getElementById('tb-bt-join');
+    if (host) { host.classList.toggle('is-active', which === 'host'); host.setAttribute('aria-selected', which === 'host'); }
+    if (join) { join.classList.toggle('is-active', which === 'join'); join.setAttribute('aria-selected', which === 'join'); }
   },
 
   async connectToEndpoint(endpointId) {
     const nearby = this.getNearby();
-    this.setStatus("جاري طلب الاتصال...");
+    this.setStatus("جارٍ طلب الاتصال…");
     try {
       await nearby.requestConnection({ endpointId: endpointId, name: this.playerName });
     } catch (e) {
-      this.setStatus("فشل طلب الاتصال: " + (e.message || e));
+      this.setPhase('found');
+      this.fail("مش قادر يوصل بالجهاز ده. تأكد إنه لسه فاتح الشاشة وقريب منك، وجرّب تاني.", e);
     }
   },
 
@@ -10573,6 +10762,14 @@ const BLEManager = {
   async startGameUI() {
     G._reset('bluetooth', 0);
     S.myCol = this.myColor;
+    /* كل لاعب على جهازه، فالتخطيط يتبع لونه: أنا تحت والخصم فوق.
+       كانت ناقصة فالشاشة كانت بتورث تخطيط اللعبة السابقة. */
+    fixBars(this.myColor);
+    const me = Cfg?.data?.playerName || 'أنت';
+    const opp = this.opponentName || 'الجهاز الآخر';
+    document.getElementById(this.myColor === 'w' ? 'nm-w' : 'nm-b').textContent = me;
+    document.getElementById(this.myColor === 'w' ? 'nm-b' : 'nm-w').textContent = opp;
+    GameIdentity.setConnection('connected', 'متصل بـ ' + opp);
     Nav.game();
     await R.all();
     if (typeof updatePlayerImages === 'function') {
@@ -10596,7 +10793,8 @@ const BLEManager = {
 
     this.ackTimeout = setTimeout(() => {
       if (typeof Modal !== 'undefined') {
-        Modal.show("تأخير في الرد، يُرجى التحقق من اتصال الجهاز الآخر.", "تنبيه الاتصال", "✕");
+        GameIdentity.setConnection('lost', 'الجهاز الآخر مش بيرد');
+        Modal.show("الجهاز الآخر مش بيرد. تأكد إنه لسه فاتح اللعبة وقريب منك.", "الاتصال بطيء", "✕");
       }
     }, 3000);
 
@@ -10609,7 +10807,8 @@ const BLEManager = {
     try {
       await nearby.sendMessage({ message: msg });
     } catch (e) {
-      console.error("Failed to send message", e);
+      console.error("[BT] send failed", e);
+      GameIdentity.setConnection('lost', 'تعذّر إرسال النقلة');
     }
   }
 };
