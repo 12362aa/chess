@@ -41,9 +41,11 @@ const amkhFriends = {
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ receiver_id })
       });
-      alert('تم إرسال الطلب!');
+      window.amkhUI.notify('تم إرسال طلب الصداقة', 'تم', '◉');
       this.loadRequests();
-    } catch (e) {}
+    } catch (e) {
+      window.amkhUI.notify('تعذّر إرسال الطلب. تأكد من الإنترنت وحاول تاني.', 'لم يتم الإرسال', '◈');
+    }
   },
 
   async respondRequest(request_id, action) {
@@ -75,139 +77,140 @@ const amkhFriends = {
     const ws = window.chessWs || window.socket || (window.getWs && window.getWs());
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ type: 'friend:invite', friend_id }));
-      alert('تم إرسال الدعوة!');
+      window.amkhUI.notify('تم إرسال الدعوة — استنى صاحبك يقبل', 'تم', '◉');
     } else {
-      alert('يجب أن تكون متصلاً بخادم الأونلاين لإرسال دعوة.');
+      window.amkhUI.notify('لازم تكون متصل بالأونلاين الأول عشان تبعت دعوة.', 'غير متصل', '◈');
     }
   },
 
+  /* قائمة الأصدقاء قائمة طويلة، فالورقة السفلية أنسب من نافذة صغيرة —
+     نفس نمط باقي القوائم في التطبيق. */
   async showFriendsModal() {
-    await this.loadFriends();
-    await this.loadRequests();
-
-    const existing = document.getElementById('amkh-friends-modal');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'amkh-friends-modal';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:10000;display:flex;justify-content:center;align-items:center;direction:rtl;';
-    
-    overlay.innerHTML = \`
-      <div style="background:#222;color:#fff;padding:20px;border-radius:10px;width:350px;max-height:80vh;overflow-y:auto;font-family:sans-serif;">
-        <h2 style="margin-top:0;border-bottom:1px solid #444;padding-bottom:10px;">الأصدقاء</h2>
-        
-        <!-- Search -->
-        <div style="display:flex;margin-bottom:15px;">
-          <input type="text" id="friend-search-input" placeholder="ابحث بالإيميل أو الاسم..." style="flex:1;padding:8px;">
-          <button id="btn-friend-search" style="padding:8px;background:#2196F3;color:#fff;border:none;">بحث</button>
+    const U = window.amkhUI;
+    const overlay = U.mount('amkh-friends-modal', `
+      <div class="ds-sheet" id="amkh-friends-panel">
+        <div class="ds-sheet__handle" aria-hidden="true"></div>
+        <div class="ds-sheet__header">
+          <h3 class="ds-sheet__title">الأصدقاء</h3>
+          <button class="ds-sheet__close" data-close aria-label="إغلاق">✕</button>
         </div>
-        <div id="friend-search-results" style="margin-bottom:15px;"></div>
+        <div class="ds-sheet__body">
+          <div class="fr-search">
+            <input type="text" id="friend-search-input" class="ds-input" placeholder="ابحث بالاسم أو البريد…">
+            <button id="btn-friend-search" class="ds-btn ds-btn--secondary">بحث</button>
+          </div>
+          <div id="friend-search-results" class="fr-group"></div>
+          <div id="friend-requests-container" class="fr-group"></div>
+          <div id="friends-list-container" class="fr-group"></div>
+        </div>
+      </div>`, { sheet: true });
 
-        <!-- Requests -->
-        <div id="friend-requests-container" style="margin-bottom:15px;"></div>
+    if (window.DSOverlay && window.DSOverlay.makeSheetDraggable) {
+      try { window.DSOverlay.makeSheetDraggable('amkh-friends-modal', 'amkh-friends-panel'); } catch (e) {}
+    }
 
-        <!-- Friends List -->
-        <div id="friends-list-container"></div>
+    const listDiv = overlay.querySelector('#friends-list-container');
+    listDiv.innerHTML = '<p class="fr-empty">جاري التحميل…</p>';
 
-        <button id="btn-close-friends" style="width:100%;margin-top:15px;padding:10px;background:#f44336;color:#fff;border:none;border-radius:5px;cursor:pointer;">إغلاق</button>
-      </div>
-    \`;
-
-    document.body.appendChild(overlay);
-
-    document.getElementById('btn-close-friends').onclick = () => overlay.remove();
-
-    document.getElementById('btn-friend-search').onclick = async () => {
-      const q = document.getElementById('friend-search-input').value;
-      if (q.length < 3) return alert('اكتب 3 حروف على الأقل');
+    const input = overlay.querySelector('#friend-search-input');
+    const searchBtn = overlay.querySelector('#btn-friend-search');
+    const runSearch = async () => {
+      const q = input.value.trim();
+      const resDiv = overlay.querySelector('#friend-search-results');
+      if (q.length < 3) { resDiv.innerHTML = '<p class="fr-empty">اكتب 3 حروف على الأقل للبحث</p>'; return; }
+      resDiv.innerHTML = '<p class="fr-empty">جاري البحث…</p>';
       const results = await this.searchUsers(q);
-      const resDiv = document.getElementById('friend-search-results');
-      resDiv.innerHTML = '';
-      if (results.length === 0) {
-        resDiv.innerHTML = '<div style="color:#aaa;font-size:12px;">لم يتم العثور على أحد</div>';
-        return;
-      }
+      if (!results.length) { resDiv.innerHTML = '<p class="fr-empty">مفيش حد بالاسم ده</p>'; return; }
+      resDiv.innerHTML = '<h4 class="fr-heading">نتائج البحث</h4>';
       results.forEach(u => {
-        const d = document.createElement('div');
-        d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:#333;padding:8px;margin-bottom:5px;border-radius:4px;';
-        d.innerHTML = \`<span>\${u.display_name || u.email}</span>\`;
+        const row = this._row(u.display_name || u.email, null);
         const btn = document.createElement('button');
-        btn.innerText = 'إضافة';
-        btn.style.cssText = 'background:#4CAF50;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;';
-        btn.onclick = () => this.sendRequest(u.id);
-        d.appendChild(btn);
-        resDiv.appendChild(d);
+        btn.type = 'button';
+        btn.className = 'ds-btn ds-btn--secondary ds-btn--sm';
+        btn.textContent = 'إضافة';
+        btn.onclick = () => { U.sfx(); btn.disabled = true; btn.textContent = 'تم الإرسال'; this.sendRequest(u.id); };
+        row.appendChild(btn);
+        resDiv.appendChild(row);
       });
     };
+    searchBtn.onclick = () => { U.sfx(); runSearch(); };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
 
+    await this.loadFriends();
+    await this.loadRequests();
     this.renderFriendsUI();
   },
 
+  /* صف لاعب: اسم + حالة اختيارية، والأزرار بتتضاف من برّه */
+  _row(name, online) {
+    const U = window.amkhUI;
+    const d = document.createElement('div');
+    d.className = 'fr-row';
+    const status = online === null || online === undefined ? '' :
+      `<span class="fr-row__status ${online ? 'is-online' : ''}">${online ? 'أونلاين' : 'غير متصل'}</span>`;
+    d.innerHTML = `<span class="fr-row__info">
+        <span class="fr-row__name">${U.esc(name)}</span>${status}
+      </span>`;
+    return d;
+  },
+
   renderFriendsUI() {
+    const U = window.amkhUI;
     const reqDiv = document.getElementById('friend-requests-container');
     const listDiv = document.getElementById('friends-list-container');
     if (!reqDiv || !listDiv) return;
 
-    // Requests
+    // الطلبات الواردة
     reqDiv.innerHTML = '';
     if (this.requests.incoming && this.requests.incoming.length > 0) {
-      reqDiv.innerHTML += '<h4 style="margin:0 0 10px 0;color:#FFA500;">طلبات واردة:</h4>';
+      reqDiv.innerHTML = '<h4 class="fr-heading">طلبات واردة</h4>';
       this.requests.incoming.forEach(r => {
-        const d = document.createElement('div');
-        d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:#333;padding:8px;margin-bottom:5px;border-radius:4px;font-size:14px;';
-        d.innerHTML = \`<span>\${r.display_name || r.email}</span>\`;
-        
+        const row = this._row(r.display_name || r.email, null);
         const acts = document.createElement('div');
+        acts.className = 'fr-row__acts';
+
         const accept = document.createElement('button');
-        accept.innerText = '✓';
-        accept.style.cssText = 'background:#4CAF50;color:#fff;border:none;padding:5px;margin-left:5px;cursor:pointer;';
-        accept.onclick = () => this.respondRequest(r.id, 'accept');
+        accept.type = 'button';
+        accept.className = 'ds-btn ds-btn--primary ds-btn--sm';
+        accept.textContent = 'قبول';
+        accept.onclick = () => { U.sfx(); this.respondRequest(r.id, 'accept'); };
 
         const reject = document.createElement('button');
-        reject.innerText = '✗';
-        reject.style.cssText = 'background:#f44336;color:#fff;border:none;padding:5px;cursor:pointer;';
-        reject.onclick = () => this.respondRequest(r.id, 'decline');
+        reject.type = 'button';
+        reject.className = 'ds-btn ds-btn--ghost ds-btn--sm';
+        reject.textContent = 'رفض';
+        reject.onclick = () => { U.sfx(); this.respondRequest(r.id, 'decline'); };
 
         acts.appendChild(accept);
         acts.appendChild(reject);
-        d.appendChild(acts);
-        reqDiv.appendChild(d);
+        row.appendChild(acts);
+        reqDiv.appendChild(row);
       });
     }
 
-    // List
-    listDiv.innerHTML = '<h4 style="margin:0 0 10px 0;color:#4CAF50;">الأصدقاء:</h4>';
-    if (this.friends.length === 0) {
-      listDiv.innerHTML += '<div style="color:#aaa;font-size:12px;">لا يوجد أصدقاء بعد.</div>';
-    } else {
-      this.friends.forEach(f => {
-        const d = document.createElement('div');
-        d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:#333;padding:10px;margin-bottom:5px;border-radius:4px;';
-        
-        const statusColor = f.is_online ? '#4CAF50' : '#888';
-        const statusText = f.is_online ? 'أونلاين' : 'أوفلاين';
-
-        d.innerHTML = \`
-          <div>
-            <div style="font-weight:bold;">\${f.display_name || f.email}</div>
-            <div style="font-size:11px;color:\${statusColor}">● \${statusText}</div>
-          </div>
-        \`;
-        
-        if (f.is_online) {
-          const invBtn = document.createElement('button');
-          invBtn.innerText = '⚔ لعب';
-          invBtn.style.cssText = 'background:#FF9800;color:#fff;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;';
-          invBtn.onclick = () => {
-            this.inviteFriend(f.id);
-            document.getElementById('amkh-friends-modal').remove();
-          };
-          d.appendChild(invBtn);
-        }
-
-        listDiv.appendChild(d);
-      });
+    // قائمة الأصدقاء
+    listDiv.innerHTML = '<h4 class="fr-heading">أصدقائي</h4>';
+    if (!this.friends.length) {
+      listDiv.innerHTML += '<p class="fr-empty">لسه مضفتش أصدقاء — دوّر بالاسم أو البريد فوق.</p>';
+      return;
     }
+    this.friends.forEach(f => {
+      const row = this._row(f.display_name || f.email, !!f.is_online);
+      if (f.is_online) {
+        const invBtn = document.createElement('button');
+        invBtn.type = 'button';
+        invBtn.className = 'ds-btn ds-btn--primary ds-btn--sm';
+        invBtn.textContent = 'العب';
+        invBtn.onclick = () => {
+          U.sfx();
+          this.inviteFriend(f.id);
+          const ov = document.getElementById('amkh-friends-modal');
+          if (ov && ov._dismiss) ov._dismiss();
+        };
+        row.appendChild(invBtn);
+      }
+      listDiv.appendChild(row);
+    });
   },
 
   listenForInvites() {
@@ -258,8 +261,12 @@ const amkhFriends = {
     };
   },
 
-  handleInvite(msg) {
-    const wantsToPlay = confirm(\`\${msg.from_user} دعاك للعب مباراة أونلاين! هل تقبل؟\`);
+  async handleInvite(msg) {
+    const wantsToPlay = await window.amkhUI.confirm(
+      'دعوة للعب',
+      `${msg.from_user} بيدعوك لمباراة أونلاين. تقبل؟`,
+      'اقبل والعب', 'مش دلوقتي'
+    );
     if (wantsToPlay) {
       // Auto join room
       window.location.hash = 'online?room=' + msg.room_code;

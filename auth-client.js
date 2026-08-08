@@ -6,6 +6,107 @@ window.getApiBase = () => {
   return '/api';
 };
 
+/* ──────────────────────────────────────────────────────────────
+   amkhUI — طبقة عرض مشتركة للحساب والأصدقاء.
+   الملفين دول كانوا بيحقنوا HTML بستايل inline خام (أزرار برتقالي
+   عايمة و alert/confirm بتاعة المتصفح) فكانوا بيبانوا كأنهم مش من
+   نفس التطبيق. هنا بنبني كل حاجة على نفس التوكنز والكلاسات
+   (.ds-overlay / .ds-dialog / .ds-sheet / .ds-btn / .ds-input)
+   وبنستخدم DSOverlay بتاع التطبيق لما يكون موجود.
+────────────────────────────────────────────────────────────── */
+const amkhUI = {
+  esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+  },
+
+  sfx() { try { if (window.SFX) window.SFX.btn(); } catch (e) {} },
+
+  open(el) {
+    if (window.DSOverlay) return window.DSOverlay.open(el);
+    el.classList.add('is-open');
+  },
+
+  close(el) {
+    if (!el) return;
+    if (window.DSOverlay) window.DSOverlay.close(el);
+    else el.classList.remove('is-open');
+    setTimeout(() => { if (el.parentNode) el.remove(); }, 260);
+  },
+
+  /* بيرجّع الـoverlay جاهز ومفتوح. الإغلاق بالضغط على الخلفية أو Escape. */
+  mount(id, innerHTML, opts) {
+    const old = document.getElementById(id);
+    if (old) old.remove();
+    const overlay = document.createElement('div');
+    overlay.id = id;
+    overlay.className = 'ds-overlay' + ((opts && opts.sheet) ? ' ds-overlay--sheet' : '');
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.innerHTML = innerHTML;
+    document.body.appendChild(overlay);
+
+    const dismiss = () => {
+      document.removeEventListener('keydown', onKey);
+      this.close(overlay);
+    };
+    overlay.addEventListener('click', e => { if (e.target === overlay) dismiss(); });
+    const onKey = e => { if (e.key === 'Escape') dismiss(); };
+    document.addEventListener('keydown', onKey);
+
+    overlay.querySelectorAll('[data-close]').forEach(b => {
+      b.addEventListener('click', () => { this.sfx(); dismiss(); });
+    });
+
+    requestAnimationFrame(() => this.open(overlay));
+    overlay._dismiss = dismiss;
+    return overlay;
+  },
+
+  /* بديل alert() — بيستخدم نافذة التطبيق نفسها لو متاحة */
+  notify(message, title, icon) {
+    if (window.Modal && window.Modal.show) return window.Modal.show(message, title || 'تنبيه', icon || '◉');
+    const ov = this.mount('amkh-ui-notify', `
+      <div class="ds-dialog">
+        <div class="ds-dialog__icon">${this.esc(icon || '◉')}</div>
+        <h2 class="ds-dialog__title">${this.esc(title || 'تنبيه')}</h2>
+        <p class="ds-dialog__message">${this.esc(message)}</p>
+        <div class="ds-dialog__actions">
+          <button class="ds-btn ds-btn--primary" data-close>موافق</button>
+        </div>
+      </div>`);
+    return ov;
+  },
+
+  /* بديل confirm() — بيرجّع Promise<boolean> */
+  confirm(title, message, okText, cancelText) {
+    return new Promise(resolve => {
+      let settled = false;
+      const done = v => { if (!settled) { settled = true; resolve(v); } };
+      const ov = this.mount('amkh-ui-confirm', `
+        <div class="ds-dialog">
+          <div class="ds-dialog__icon">؟</div>
+          <h2 class="ds-dialog__title">${this.esc(title)}</h2>
+          <p class="ds-dialog__message">${this.esc(message)}</p>
+          <div class="ds-dialog__actions">
+            <button class="ds-btn ds-btn--secondary" data-act="no">${this.esc(cancelText || 'إلغاء')}</button>
+            <button class="ds-btn ds-btn--primary"   data-act="yes">${this.esc(okText || 'تأكيد')}</button>
+          </div>
+        </div>`);
+      ov.querySelectorAll('[data-act]').forEach(b => {
+        b.addEventListener('click', () => {
+          this.sfx();
+          done(b.dataset.act === 'yes');
+          ov._dismiss();
+        });
+      });
+      ov.addEventListener('click', e => { if (e.target === ov) done(false); });
+    });
+  }
+};
+window.amkhUI = amkhUI;
+
 const amkhAuth = {
   token: localStorage.getItem('amkh_auth_token') || null,
   user: null,
@@ -90,7 +191,11 @@ const amkhAuth = {
   },
 
   async promptMigration() {
-    const wantsSync = confirm('لقد قمت بإنشاء حساب جديد. هل تريد ربط تقدمك وإعداداتك الحالية المحفوظة على هذا الجهاز بحسابك الجديد؟');
+    const wantsSync = await amkhUI.confirm(
+      'ربط تقدمك الحالي',
+      'تم إنشاء الحساب. تحب نربط التقدم والإعدادات المحفوظة على الجهاز ده بحسابك الجديد؟',
+      'اربط الآن', 'لاحقًا'
+    );
     if (wantsSync) {
       await this.syncLocalData();
     }
@@ -204,126 +309,163 @@ const amkhAuth = {
     }, 5000);
   },
 
+  /* زر الحساب بيعيش جوه شريط التطبيق جنب الإعدادات — مش زر عايم فوق
+     الشاشة. أيقونة بس، من غير إيموجي، وبتتغير لما نكون داخلين. */
   updateUI() {
+    const trail = document.querySelector('.appbar__trail');
     let btn = document.getElementById('amkh-auth-btn');
     if (!btn) {
-      btn = document.createElement('div');
+      btn = document.createElement('button');
+      btn.type = 'button';
       btn.id = 'amkh-auth-btn';
-      btn.style.cssText = 'position:fixed;top:50px;left:20px;z-index:10005;background:#FF9800;color:#fff;padding:10px 20px;border-radius:30px;cursor:pointer;font-family:sans-serif;font-size:15px;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.5);border:2px solid #fff;display:flex;align-items:center;gap:8px;';
-      document.body.appendChild(btn);
+      btn.className = 'appbar__icon-btn amkh-auth-btn';
+      if (trail) trail.insertBefore(btn, trail.firstChild);
+      else document.body.appendChild(btn);
     }
-    
+
+    const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
     if (this.user) {
-      btn.innerHTML = `مرحباً ${this.user.display_name || this.user.email} ▼`;
-      btn.onclick = () => this.showProfileModal();
+      const name = this.user.display_name || this.user.email;
+      btn.innerHTML = ICON + '<span class="amkh-auth-btn__dot" aria-hidden="true"></span>';
+      btn.classList.add('is-signed-in');
+      btn.setAttribute('aria-label', 'حسابي — ' + name);
+      btn.title = name;
+      btn.onclick = () => { amkhUI.sfx(); this.showProfileModal(); };
     } else {
-      btn.innerHTML = 'تسجيل الدخول / حساب جديد';
-      btn.onclick = () => this.showLoginModal();
+      btn.innerHTML = ICON;
+      btn.classList.remove('is-signed-in');
+      btn.setAttribute('aria-label', 'تسجيل الدخول');
+      btn.title = 'تسجيل الدخول';
+      btn.onclick = () => { amkhUI.sfx(); this.showLoginModal(); };
     }
   },
 
   showLoginModal() {
-    const existing = document.getElementById('amkh-auth-modal');
-    if (existing) existing.remove();
+    const overlay = amkhUI.mount('amkh-auth-modal', `
+      <div class="ds-dialog amkh-auth-dialog">
+        <div class="ds-dialog__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h2 class="ds-dialog__title" id="auth-modal-title">تسجيل الدخول</h2>
+        <p class="ds-dialog__message" id="auth-modal-sub">سجّل دخولك عشان تقدر تزامن تقدمك وتلعب مع أصدقائك</p>
 
-    const overlay = document.createElement('div');
-    overlay.id = 'amkh-auth-modal';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:10000;display:flex;justify-content:center;align-items:center;direction:rtl;';
-    
-    overlay.innerHTML = \`
-      <div style="background:#222;color:#fff;padding:20px;border-radius:10px;width:300px;text-align:center;font-family:sans-serif;">
-        <h2 style="margin-top:0;">تسجيل الدخول</h2>
-        <input type="email" id="auth-email" placeholder="البريد الإلكتروني" style="width:100%;margin-bottom:10px;padding:8px;box-sizing:border-box;">
-        <input type="password" id="auth-pass" placeholder="كلمة المرور" style="width:100%;margin-bottom:10px;padding:8px;box-sizing:border-box;">
-        <input type="text" id="auth-name" placeholder="الاسم (للحساب الجديد فقط)" style="width:100%;margin-bottom:15px;padding:8px;box-sizing:border-box;display:none;">
-        
-        <div style="color:red;margin-bottom:10px;font-size:12px;" id="auth-err"></div>
+        <div class="ds-field">
+          <input type="email" id="auth-email" class="ds-input" placeholder="البريد الإلكتروني"
+            autocomplete="email" style="direction:ltr;text-align:left;">
+        </div>
+        <div class="ds-field">
+          <input type="password" id="auth-pass" class="ds-input" placeholder="كلمة المرور"
+            autocomplete="current-password" style="direction:ltr;text-align:left;">
+        </div>
+        <div class="ds-field" id="auth-name-field" style="display:none;">
+          <input type="text" id="auth-name" class="ds-input" placeholder="الاسم الظاهر للاعبين">
+        </div>
 
-        <button id="btn-login" style="width:100%;padding:10px;background:#4CAF50;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">تسجيل الدخول</button>
-        <button id="btn-register-toggle" style="background:none;border:none;color:#aaa;cursor:pointer;text-decoration:underline;">ليس لديك حساب؟ إنشاء حساب جديد</button>
-        <button id="btn-close-auth" style="margin-top:15px;background:none;border:none;color:#ff5555;cursor:pointer;">إغلاق</button>
-      </div>
-    \`;
+        <p class="ds-field__hint ds-field__hint--error" id="auth-err" role="alert" style="min-height:18px;"></p>
 
-    document.body.appendChild(overlay);
+        <div class="ds-dialog__actions" style="flex-direction:column;">
+          <button id="btn-login" class="ds-btn ds-btn--primary ds-btn--block">تسجيل الدخول</button>
+          <button id="btn-register-toggle" class="ds-btn ds-btn--ghost ds-btn--block">ليس لديك حساب؟ أنشئ حسابًا</button>
+          <button class="ds-btn ds-btn--ghost ds-btn--block" data-close>إغلاق</button>
+        </div>
+      </div>`);
 
     let isRegisterMode = false;
-    const errDiv = document.getElementById('auth-err');
-    const nameInput = document.getElementById('auth-name');
+    const errDiv = overlay.querySelector('#auth-err');
+    const nameField = overlay.querySelector('#auth-name-field');
+    const nameInput = overlay.querySelector('#auth-name');
+    const titleEl = overlay.querySelector('#auth-modal-title');
+    const subEl = overlay.querySelector('#auth-modal-sub');
+    const loginBtn = overlay.querySelector('#btn-login');
+    const toggleBtn = overlay.querySelector('#btn-register-toggle');
 
-    document.getElementById('btn-close-auth').onclick = () => overlay.remove();
-    
-    document.getElementById('btn-register-toggle').onclick = (e) => {
+    toggleBtn.onclick = () => {
+      amkhUI.sfx();
       isRegisterMode = !isRegisterMode;
+      errDiv.textContent = '';
       if (isRegisterMode) {
-        document.querySelector('#amkh-auth-modal h2').innerText = 'إنشاء حساب جديد';
-        nameInput.style.display = 'block';
-        document.getElementById('btn-login').innerText = 'إنشاء الحساب';
-        e.target.innerText = 'لديك حساب بالفعل؟ تسجيل الدخول';
+        titleEl.textContent = 'إنشاء حساب جديد';
+        subEl.textContent = 'حسابك بيحفظ تقدمك في المراحل وإعداداتك على أي جهاز';
+        nameField.style.display = '';
+        loginBtn.textContent = 'إنشاء الحساب';
+        toggleBtn.textContent = 'لديك حساب بالفعل؟ سجّل الدخول';
       } else {
-        document.querySelector('#amkh-auth-modal h2').innerText = 'تسجيل الدخول';
-        nameInput.style.display = 'none';
-        document.getElementById('btn-login').innerText = 'تسجيل الدخول';
-        e.target.innerText = 'ليس لديك حساب؟ إنشاء حساب جديد';
+        titleEl.textContent = 'تسجيل الدخول';
+        subEl.textContent = 'سجّل دخولك عشان تقدر تزامن تقدمك وتلعب مع أصدقائك';
+        nameField.style.display = 'none';
+        loginBtn.textContent = 'تسجيل الدخول';
+        toggleBtn.textContent = 'ليس لديك حساب؟ أنشئ حسابًا';
       }
     };
 
-    document.getElementById('btn-login').onclick = async () => {
-      const email = document.getElementById('auth-email').value;
-      const pass = document.getElementById('auth-pass').value;
-      const name = nameInput.value;
-      
-      if (!email || !pass) return errDiv.innerText = 'الرجاء إدخال البريد وكلمة المرور';
-      errDiv.innerText = 'جاري التحميل...';
+    loginBtn.onclick = async () => {
+      amkhUI.sfx();
+      const email = overlay.querySelector('#auth-email').value.trim();
+      const pass = overlay.querySelector('#auth-pass').value;
+      const name = nameInput.value.trim();
+
+      if (!email || !pass) { errDiv.textContent = 'الرجاء إدخال البريد وكلمة المرور'; return; }
+
+      errDiv.textContent = '';
+      loginBtn.disabled = true;
+      const label = loginBtn.textContent;
+      loginBtn.textContent = 'جاري التحميل…';
 
       let res;
-      if (isRegisterMode) {
-        res = await amkhAuth.register(email, pass, name);
-      } else {
-        res = await amkhAuth.login(email, pass);
+      try {
+        res = isRegisterMode
+          ? await amkhAuth.register(email, pass, name)
+          : await amkhAuth.login(email, pass);
+      } catch (e) {
+        res = { success: false, error: 'تعذّر الاتصال بالخادم. تأكد من الإنترنت وحاول تاني.' };
       }
 
-      if (res.success) {
-        overlay.remove();
-      } else {
-        errDiv.innerText = res.error || 'حدث خطأ';
-      }
+      loginBtn.disabled = false;
+      loginBtn.textContent = label;
+
+      if (res && res.success) overlay._dismiss();
+      else errDiv.textContent = (res && res.error) || 'حدث خطأ، حاول مرة أخرى';
     };
   },
 
   showProfileModal() {
-    const existing = document.getElementById('amkh-auth-modal');
-    if (existing) existing.remove();
+    const name = (this.user && (this.user.display_name || this.user.email)) || 'لاعب';
+    const overlay = amkhUI.mount('amkh-auth-modal', `
+      <div class="ds-dialog amkh-auth-dialog">
+        <div class="ds-dialog__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h2 class="ds-dialog__title">${amkhUI.esc(name)}</h2>
+        <p class="ds-dialog__message">حسابك متصل — تقدمك وإعداداتك بيتزامنوا تلقائيًا</p>
 
-    const overlay = document.createElement('div');
-    overlay.id = 'amkh-auth-modal';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:10000;display:flex;justify-content:center;align-items:center;direction:rtl;';
-    
-    overlay.innerHTML = \`
-      <div style="background:#222;color:#fff;padding:20px;border-radius:10px;width:300px;text-align:center;font-family:sans-serif;">
-        <h2 style="margin-top:0;">الملف الشخصي</h2>
-        <p>مرحباً، \${this.user.display_name || this.user.email}</p>
-        
-        <button id="btn-friends" style="width:100%;padding:10px;background:#2196F3;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">قائمة الأصدقاء</button>
-        <button id="btn-sync" style="width:100%;padding:10px;background:#FF9800;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">مزامنة البيانات المحلية قسراً</button>
-        <button id="btn-logout" style="width:100%;padding:10px;background:#f44336;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">تسجيل الخروج</button>
-        
-        <button id="btn-close-auth" style="margin-top:15px;background:none;border:none;color:#aaa;cursor:pointer;">إغلاق</button>
-      </div>
-    \`;
+        <div class="ds-dialog__actions" style="flex-direction:column;">
+          <button id="btn-friends" class="ds-btn ds-btn--primary ds-btn--block">قائمة الأصدقاء</button>
+          <button id="btn-sync"    class="ds-btn ds-btn--secondary ds-btn--block">مزامنة بياناتي الآن</button>
+          <button id="btn-logout"  class="ds-btn ds-btn--danger ds-btn--block">تسجيل الخروج</button>
+          <button class="ds-btn ds-btn--ghost ds-btn--block" data-close>إغلاق</button>
+        </div>
+      </div>`);
 
-    document.body.appendChild(overlay);
-
-    document.getElementById('btn-close-auth').onclick = () => overlay.remove();
-    document.getElementById('btn-logout').onclick = () => {
-      this.logout();
-      overlay.remove();
+    overlay.querySelector('#btn-logout').onclick = async () => {
+      amkhUI.sfx();
+      const sure = await amkhUI.confirm('تسجيل الخروج', 'هتخرج من حسابك على الجهاز ده. متأكد؟', 'خروج', 'إلغاء');
+      if (sure) { overlay._dismiss(); this.logout(); }
     };
-    document.getElementById('btn-sync').onclick = async () => {
+
+    const syncBtn = overlay.querySelector('#btn-sync');
+    syncBtn.onclick = async () => {
+      amkhUI.sfx();
+      syncBtn.disabled = true;
+      syncBtn.textContent = 'جاري المزامنة…';
       await this.syncLocalData();
+      syncBtn.textContent = 'تمت المزامنة';
+      setTimeout(() => { syncBtn.disabled = false; syncBtn.textContent = 'مزامنة بياناتي الآن'; }, 1600);
     };
-    document.getElementById('btn-friends').onclick = () => {
-      overlay.remove();
+
+    overlay.querySelector('#btn-friends').onclick = () => {
+      amkhUI.sfx();
+      overlay._dismiss();
       if (window.amkhFriends) window.amkhFriends.showFriendsModal();
     };
   }

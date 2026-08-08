@@ -3,11 +3,13 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '1.3';
+const SW_VERSION = '1.6';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
   './index.html',
+  './design-system.css',
+  './screens.css',
   './manifest.json',
   './icon_v2.png?v=2',
   './nour.png',
@@ -19,7 +21,8 @@ const STATIC_ASSETS = [
   './castle.mp3',
   './check.mp3',
   './checkmate.mp3',
-  './Error.mp3',
+  './startgame.mp3',
+  './error.wav',
   'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap',
 ];
 
@@ -27,10 +30,18 @@ const STATIC_ASSETS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      /* نكش الأصول الأساسية فقط — الفونتات الخارجية اختيارية */
+      /* نكش الأصول الأساسية فقط — الفونتات الخارجية اختيارية.
+         addAll ذرّية: لو أصل واحد فشل بيسقط الكاش كله ويفضل التطبيق
+         من غير Offline. فبنكش كل أصل لوحده عشان الفشل يفضل معزول. */
       const local = STATIC_ASSETS.filter(u => !u.startsWith('http'));
-      return cache.addAll(local).catch(() => {});
-    })
+      return Promise.all(
+        local.map(u =>
+          cache.add(u).catch(err => {
+            console.warn('[SW] precache skipped:', u, err && err.message);
+          })
+        )
+      );
+    }).catch(() => {})
   );
   self.skipWaiting();
 });

@@ -817,6 +817,31 @@
   color: var(--color-primary-text);
   margin: 0;
 }
+/* زر إغلاق جوه رأس الورقة — نفس هدف اللمس بتاع أزرار الشريط */
+.ds-sheet__close{
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  margin-inline-end: calc(var(--space-2) * -1);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+.ds-sheet__close:hover{ background: var(--color-surface); color: var(--color-text-primary); }
+.ds-sheet__close:active{ transform: scale(.92); }
+.ds-sheet__close:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+
 .ds-sheet__body{
   flex: 1 1 auto;
   overflow-y: auto;

@@ -22,3 +22,4 @@ _run.js
 _shoot.js
 _t7*.js
 *.tmp-cdplog.txt
+.claude/

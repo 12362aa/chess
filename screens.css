@@ -1665,3 +1665,127 @@ body[data-ui-theme="anime"]{
 
   --color-focus-ring:         rgba(255,124,191,.55);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   13. الحساب والأصدقاء — auth-client.js / friends-client.js
+   ──────────────────────────────────────────────────────────────────────
+   الملفين دول بيحقنوا DOM من الجافاسكريبت، فالكلاسات بتاعتهم لازم
+   تتعرّف هنا. زر الحساب بيعيش جوه .appbar__trail ومبني على
+   .appbar__icon-btn، وقايمة الأصدقاء ورقة سفلية عادية.
+══════════════════════════════════════════════════════════════════════ */
+
+/* ── زر الحساب في الشريط ── */
+.amkh-auth-btn{
+  position: relative;
+}
+.amkh-auth-btn svg{ display: block; }
+.amkh-auth-btn.is-signed-in{ color: var(--color-primary-text); }
+
+/* نقطة صغيرة بتقول إن فيه حساب مسجّل — من غير نص ولا إيموجي */
+.amkh-auth-btn__dot{
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  border: 2px solid var(--color-bg-base, #0B0F1C);
+  pointer-events: none;
+}
+
+/* ── حوار الدخول / الملف الشخصي ── */
+.amkh-auth-dialog{ max-width: 400px; }
+.amkh-auth-dialog .ds-dialog__icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-3);
+}
+.amkh-auth-dialog .ds-field{ margin-bottom: var(--space-3); text-align: start; }
+.amkh-auth-dialog .ds-field__hint{ text-align: start; margin: 0 0 var(--space-2); }
+.amkh-auth-dialog .ds-dialog__actions{ gap: var(--space-2); }
+
+/* ── ورقة الأصدقاء ── */
+.fr-search{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.fr-search .ds-input{ flex: 1 1 auto; min-width: 0; }
+.fr-search .ds-btn{ flex: none; }
+
+.fr-group:not(:empty){ margin-bottom: var(--space-4); }
+.fr-group:last-child{ margin-bottom: 0; }
+
+.fr-heading{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .04em;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2);
+}
+.fr-empty{
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+  margin: 0;
+  padding: var(--space-3) 0;
+}
+
+/* صف لاعب: الاسم على جنب والأزرار على الجنب التاني */
+.fr-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--touch-target-min);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+.fr-row + .fr-row{ margin-top: var(--space-2); }
+
+.fr-row__info{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;          /* عشان الاسم الطويل يتقطّع بدل ما يمدّ الصف */
+  flex: 1 1 auto;
+}
+.fr-row__name{
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fr-row__status{
+  flex: none;
+  font-size: var(--font-size-caption);
+  line-height: 1;
+  padding: 3px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  color: var(--color-text-secondary);
+}
+.fr-row__status.is-online{
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.fr-row__acts{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+/* الأجهزة اللوحية: الورقة تفضل في النص ومترميش نفسها على العرض كله */
+@media (min-width: 700px){
+  .fr-row{ padding: var(--space-3) var(--space-4); }
+  .amkh-auth-dialog{ max-width: 440px; }
+}

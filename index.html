@@ -3961,13 +3961,13 @@ const SFX=(()=>{
     fn();
   }
   // Local files for game moves
-  const FILES={move:'./move.mp3',capture:'./capture.mp3',castle:'./castle.mp3',checkmate:'./checkmate.mp3',check:'./check.mp3',error:'./Error.mp3'};
+  const FILES={move:'./move.mp3',capture:'./capture.mp3',castle:'./castle.mp3',checkmate:'./checkmate.mp3',check:'./check.mp3',error:'./error.wav'};
   // Use local sounds instead of external URLs (which are broken)
   const EXT_SOUNDS={
     win:    './checkmate.mp3',     // Victory sound (reusing checkmate)
-    loss:   './Error.mp3',         // Defeat sound
+    loss:   './error.wav',         // Defeat sound
     draw:   './move.mp3',          // Neutral sound
-    resign: './Error.mp3',         // Same as loss
+    resign: './error.wav',         // Same as loss
     startgame: './startgame.mp3'    // Online game start sound
   };
   let ctx=null;
