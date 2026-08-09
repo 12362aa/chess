@@ -3146,8 +3146,14 @@ body[data-ui-theme="glass"] .mc-tag{
 <link rel="stylesheet" href="screens.css">
 <!-- QR Code Libraries for LAN Mode -->
 </head>
-<body>
+<body data-screen="s-menu">
 <div id="particles"></div>
+<!-- طبقات زخرفة الثيم. body::before / body::after مشغولين بالتدرّجات
+     والشبكة، والثيمات محتاجة أكتر من طبقتين عشان يكون لكل واحد هوية
+     بصرية حقيقية (نقوش، مسحات، خطوط سرعة…) مش مجرد ألوان. الثلاث
+     طبقات دي بتتفعّل من قسم 15 في screens.css حسب data-ui-theme،
+     وبتفضل فاضية تمامًا لو الثيم مش محتاجها. -->
+<div id="theme-fx" aria-hidden="true"><i></i><i></i><i></i></div>
 
 
 <!-- APP BAR — سياقي: محتواه بيتغيّر حسب الشاشة عن طريق AppBar.sync() -->
@@ -9632,6 +9638,9 @@ const Nav={
     try{CHAT._stopRecording();}catch(e){}
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    /* الشاشة الحالية على body عشان الستايل يعرفها من غير :has().
+       زخارف الثيمات بتهدى على شاشة اللعب عشان الرقعة تفضل هي البطل. */
+    document.body.dataset.screen=id;
     try{AppBar.sync(id);}catch(e){}
     /* شريط حالة الاتصال جزء من شاشة اللعب — الخروج منها بأي مسار
        (رجوع، قائمة، بدء وضع تاني) لازم ينضّفه، مش بس مسار واحد. */

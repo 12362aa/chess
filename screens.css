@@ -1862,3 +1862,585 @@ body[data-ui-theme="anime"]{
   #s-game .sbar{ min-height: 28px; }
   #s-game .mvhist{ min-height: 22px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   15. هوية الثيمات — نقوش ومعالجات، مش ألوان بس
+   ──────────────────────────────────────────────────────────────────────
+   المشكلة: الستة ثيمات كانوا نفس التصميم بالحرف، بيتغيّر فيه اللون
+   وخلاص. «انمي» كان معناه وردي، و«سايبر» معناه فيروزي. الاسم كان
+   بيوعد بحاجة والشاشة بتوصّل حاجة تانية.
+
+   الحل هنا إن كل ثيم بياخد لغة بصرية خاصة بيه: نقش خلفية، ومعالجة
+   للأسطح، وتفاصيل على الحواف، ومعاملة للخط والأرقام. اللون بقى نتيجة
+   للهوية مش هو الهوية.
+
+   قيود التنفيذ:
+   • التطبيق أوفلاين (APK)، فمفيش أي صورة خارجية. كل النقوش SVG
+     مكتوب جوه الـCSS كـdata URI، أو تدرّجات محسوبة — يعني صفر طلبات
+     شبكة وصفر ملفات جديدة.
+   • مفيش backdrop-filter جديد. قِسته في المهمة السابقة: بلور بحجم
+     الشاشة = مسحة رسم كاملة كل فريم (39 مقابل 48 فريم/ث). glass
+     بيستخدمه أصلاً وهو ثيمه، وغيره لأ.
+   • الأنيميشن كله transform/opacity بس، وبيتوقف بالكامل مع
+     prefers-reduced-motion، وبيهدى على شاشة اللعب عشان مايسحبش
+     انتباه من الرقعة.
+   • النقوش كلها ورا المحتوى (z-index:0) وpointer-events:none، فمش
+     بتاخد لمسة ولا بتغطي نص.
+══════════════════════════════════════════════════════════════════════ */
+
+/* ── الحاوية: ثلاث طبقات مرسومة فوق بعض ──
+   #theme-fx نفسه طبقة، وكل <i> جواه طبقة. فاضيين افتراضيًا: أي ثيم
+   ماحدّدش نقش بيدفع صفر تكلفة رسم. */
+#theme-fx{
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+}
+#theme-fx > i{
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-repeat: repeat;
+}
+
+/* على شاشة اللعب النقوش تهدى — الرقعة هي البطل هناك */
+body[data-screen="s-game"] #theme-fx{ opacity: .35; }
+
+@media (prefers-reduced-motion: reduce){
+  #theme-fx, #theme-fx > i{ animation: none !important; }
+}
+/* ══════════════════════════════════════════════════════════════════════
+   15.1 amkh — الهندسة الإسلامية
+   ──────────────────────────────────────────────────────────────────────
+   الثيم الأصلي كان ذهبي على كحلي وبس. الاسم عربي والخط Amiri،
+   فالهوية الطبيعية له هي التسطيح الهندسي: نجمة الخاتم الثمانية
+   (مربع + مربع مايل) في شبكة متكرّرة، وميداليتان مقرنصتان في
+   الزوايا، وإطار ذهبي رفيع على الأسطح.
+   كله ساكن — الهندسة الإسلامية إحساسها سكون مش حركة، وده كمان
+   معناه صفر تكلفة أنيميشن.
+══════════════════════════════════════════════════════════════════════ */
+
+/* شبكة نجوم الخاتم — النقش الأساسي */
+body[data-ui-theme="amkh"] #theme-fx > i:nth-child(1){
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><g id='k' fill='none' stroke='%23C9A84C' stroke-width='1.1'><path d='M0 -46 L46 0 L0 46 L-46 0 Z'/><path d='M-32.5 -32.5 H32.5 V32.5 H-32.5 Z'/><circle r='12'/></g></defs><g opacity='.55'><use href='%23k' x='60' y='60'/><use href='%23k' x='0' y='0'/><use href='%23k' x='120' y='0'/><use href='%23k' x='0' y='120'/><use href='%23k' x='120' y='120'/></g></svg>");
+  background-size: 120px 120px;
+  opacity: .17;
+  /* القناع بيسيب النقش على الحواف ويفضّي النص — عشان الكلام يفضل
+     مقروء والنقش يبان زخرفة مش ضوضاء */
+  mask-image: radial-gradient(ellipse 78% 62% at 50% 46%, transparent 34%, black 100%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 62% at 50% 46%, transparent 34%, black 100%);
+}
+
+/* ميداليتان مقرنصتان: أعلى البداية وأسفل النهاية */
+body[data-ui-theme="amkh"] #theme-fx > i:nth-child(2){
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='-160 -160 320 320'><g fill='none' stroke='%23C9A84C' stroke-width='1.5' opacity='.6'><path d='M0 -150 L106 -106 L150 0 L106 106 L0 150 L-106 106 L-150 0 L-106 -106 Z'/><path d='M-92 -92 H92 V92 H-92 Z'/><path d='M0 -130 L130 0 L0 130 L-130 0 Z'/><circle r='62'/><circle r='26'/><path d='M0 -62 L0 -150 M0 62 L0 150 M-62 0 L-150 0 M62 0 L150 0'/></g></svg>");
+  background-repeat: no-repeat;
+  background-size: 300px 300px, 240px 240px;
+  background-position: -110px -120px, calc(100% + 90px) calc(100% + 96px);
+  opacity: .2;
+}
+
+/* دفء الفانوس — توهج ذهبي خفيف من أعلى البداية */
+body[data-ui-theme="amkh"] #theme-fx > i:nth-child(3){
+  background-image:
+    radial-gradient(ellipse 60% 42% at 88% 6%, rgba(201,168,76,.13), transparent 62%),
+    radial-gradient(ellipse 52% 38% at 8% 96%, rgba(45,212,191,.07), transparent 60%);
+  opacity: 1;
+}
+
+/* ── الأسطح: إطار ذهبي مزدوج + نجمة باهتة ورا المحتوى ── */
+body[data-ui-theme="amkh"] .home-hero{
+  position: relative;
+  box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(201,168,76,.14);
+}
+body[data-ui-theme="amkh"] .home-hero::before{
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: calc(var(--radius-lg) - 4px);
+  border: 1px solid rgba(201,168,76,.16);
+  pointer-events: none;
+}
+body[data-ui-theme="amkh"] .home-tile{
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='-48 -48 96 96'><g fill='none' stroke='%23C9A84C' stroke-width='1.4' opacity='.5'><path d='M0 -44 L44 0 L0 44 L-44 0 Z'/><path d='M-31 -31 H31 V31 H-31 Z'/><circle r='11'/></g></svg>");
+  background-repeat: no-repeat;
+  background-position: calc(100% + 26px) calc(100% + 24px);
+  background-size: 96px 96px;
+}
+body[data-ui-theme="amkh"] .home-hero__count,
+body[data-ui-theme="amkh"] .pb-timer{
+  font-family: var(--font-family-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+}
+
+/* شرائط ذهبية على طرفي سطر الأوفلاين — بديل الخط الأفقي الجاف */
+body[data-ui-theme="amkh"] .home-foot{
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+body[data-ui-theme="amkh"] .home-foot::before,
+body[data-ui-theme="amkh"] .home-foot::after{
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,.32));
+}
+body[data-ui-theme="amkh"] .home-foot::after{
+  background: linear-gradient(90deg, rgba(201,168,76,.32), transparent);
+}
+/* ══════════════════════════════════════════════════════════════════════
+   15.2 cyberpunk — أمن سيبراني
+   ──────────────────────────────────────────────────────────────────────
+   الطلب كان صريح: «اجعله ثيم سايبر سكيورتي». فاللغة هنا مأخوذة من
+   شاشات مراقبة الأمن: شبكة سداسية، مطر بيانات ست عشري بيسقط،
+   مسحة سكانر بتمرّ، وأقواس HUD في زوايا الشاشة. الأرقام كلها
+   monospace بعرض ثابت، والحروف اللاتينية capital متباعدة، والأسطح
+   مقصوصة الزوايا زي لوحات المعدّات.
+══════════════════════════════════════════════════════════════════════ */
+
+/* الشبكة السداسية — أرضية اللوحة */
+body[data-ui-theme="cyberpunk"] #theme-fx > i:nth-child(1){
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='96'><g fill='none' stroke='%2300FFE7' stroke-width='1'><path d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z'/><path d='M28 64 L56 80 L56 112 M28 64 L0 80 L0 112 M56 16 L84 0 M0 16 L-28 0'/></g></svg>");
+  background-size: 56px 96px;
+  opacity: .13;
+  mask-image: radial-gradient(ellipse 92% 78% at 50% 42%, black 20%, rgba(0,0,0,.35) 100%);
+  -webkit-mask-image: radial-gradient(ellipse 92% 78% at 50% 42%, black 20%, rgba(0,0,0,.35) 100%);
+}
+
+/* مطر البيانات — أعمدة أرقام ست عشرية بتنزل.
+   العنصر أطول من الشاشة والحركة translateY بمقدار ارتفاع البلاطة
+   بالظبط (150px)، فاللفة سلسة والرسم مرة واحدة بس. */
+body[data-ui-theme="cyberpunk"] #theme-fx > i:nth-child(2){
+  top: -150px;
+  bottom: -150px;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill='%2300FFE7' font-family='monospace' font-size='11' opacity='.75'><text x='6' y='12'>0x7F</text><text x='58' y='26'>1101</text><text x='104' y='16'>A3</text><text x='14' y='44'>4E9</text><text x='72' y='52'>0b10</text><text x='112' y='62'>FF</text><text x='4' y='76'>C2A</text><text x='60' y='86'>0110</text><text x='118' y='94'>7D</text><text x='20' y='110'>9B4</text><text x='76' y='120'>1001</text><text x='108' y='132'>E5</text><text x='2' y='142'>3F8</text><text x='62' y='148'>0101</text></g></svg>");
+  background-size: 150px 150px;
+  opacity: .16;
+  animation: tfxDataRain 9s linear infinite;
+  mask-image: linear-gradient(180deg, transparent 0%, black 22%, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 22%, black 70%, transparent 100%);
+}
+@keyframes tfxDataRain{
+  from{ transform: translateY(0); }
+  to  { transform: translateY(150px); }
+}
+
+/* أقواس HUD في الزوايا + خطوط CRT + مسحة السكانر.
+   الأقواس محبوسة جوه إطار (44px من فوق عشان شريط التطبيق، و34px
+   من تحت عشان سطر الأوفلاين) بدل ما تتحط على حواف الشاشة وتتخبّط
+   في النص أو تختفي ورا الشريط. */
+body[data-ui-theme="cyberpunk"] #theme-fx > i:nth-child(3){
+  inset: 44px 12px 34px;
+  background-image:
+    linear-gradient(90deg, rgba(0,255,231,.5) 0 34px, transparent 34px),
+    linear-gradient(180deg, rgba(0,255,231,.5) 0 34px, transparent 34px),
+    linear-gradient(270deg, rgba(255,32,154,.45) 0 34px, transparent 34px),
+    linear-gradient(180deg, rgba(255,32,154,.45) 0 34px, transparent 34px),
+    /* خطوط CRT الرفيعة */
+    repeating-linear-gradient(180deg, rgba(255,255,255,.035) 0 1px, transparent 1px 4px);
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  background-size: 34px 2px, 2px 34px, 34px 2px, 2px 34px, 100% 4px;
+  background-position: 0 0, 0 0, 100% 100%, 100% 100%, 0 0;
+  opacity: .85;
+}
+body[data-ui-theme="cyberpunk"] #theme-fx::after{
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 180px;
+  background: linear-gradient(180deg, transparent, rgba(0,255,231,.07) 60%, rgba(0,255,231,.14) 92%, transparent);
+  animation: tfxScan 7.5s linear infinite;
+}
+@keyframes tfxScan{
+  from{ transform: translateY(-190px); }
+  to  { transform: translateY(100vh); }
+}
+/* ── الأسطح: لوحات معدّات مقصوصة الزوايا بأقواس ركن ── */
+body[data-ui-theme="cyberpunk"] .home-hero,
+body[data-ui-theme="cyberpunk"] .home-tile,
+body[data-ui-theme="cyberpunk"] .settings-section{
+  position: relative;
+  border-radius: 4px;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+/* أقواس ركن داخلية — بترسم بالخلفية مش بعنصر، فمافيش تعارض مع
+   ::before/::after اللي بتستخدمها معالجات تانية */
+body[data-ui-theme="cyberpunk"] .home-hero,
+body[data-ui-theme="cyberpunk"] .home-tile{
+  background-image:
+    linear-gradient(90deg,  var(--color-primary) 0 18px, transparent 18px),
+    linear-gradient(180deg, var(--color-primary) 0 18px, transparent 18px),
+    linear-gradient(90deg,  var(--color-secondary) 0 18px, transparent 18px),
+    linear-gradient(180deg, var(--color-secondary) 0 18px, transparent 18px),
+    linear-gradient(165deg, var(--color-primary-subtle) 0%, transparent 70%);
+  background-repeat: no-repeat;
+  background-size: 18px 1px, 1px 18px, 18px 1px, 1px 18px, 100% 100%;
+  background-position: 8px 8px, 8px 8px, calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), 0 0;
+}
+
+/* علامة مائية: درع بفتحة مفتاح — رمز الأمن على البطاقة الرئيسية */
+body[data-ui-theme="cyberpunk"] .home-hero::before{
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 12px;
+  width: 116px;
+  height: 116px;
+  transform: translateY(-50%);
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%2300FFE7' stroke-width='2'><path d='M32 4 L56 12 v18c0 16-10 26-24 30C18 56 8 46 8 30V12z'/><circle cx='32' cy='28' r='5'/><path d='M32 33 v9'/></svg>") no-repeat center/contain;
+  opacity: .1;
+  pointer-events: none;
+}
+
+/* الأرقام والحروف اللاتينية: خط ثابت العرض ولغة طرفية */
+body[data-ui-theme="cyberpunk"] .home-hero__count,
+body[data-ui-theme="cyberpunk"] .pb-timer,
+body[data-ui-theme="cyberpunk"] .sbar-score,
+body[data-ui-theme="cyberpunk"] #lp-txt{
+  font-family: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+body[data-ui-theme="cyberpunk"] .home-hero__eyebrow,
+body[data-ui-theme="cyberpunk"] .home-tile__title{
+  letter-spacing: .1em;
+}
+body[data-ui-theme="cyberpunk"] .appbar__brand-name{
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  letter-spacing: .22em;
+}
+/* شريط التقدّم بيبقى شريط تحميل طرفية: قطع منفصلة مش خط متصل */
+body[data-ui-theme="cyberpunk"] .home-hero__fill{
+  background-image: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 9px);
+  color: var(--color-primary);
+}
+/* ══════════════════════════════════════════════════════════════════════
+   15.3 anime — لغة الأنمي الحقيقية
+   ──────────────────────────────────────────────────────────────────────
+   «انمي يعني انميات مثل جوجيتسو كايسن». اللي بيخلّي كادر أنمي أنمي
+   مش الوردي — هو أدوات الرسم نفسها:
+   • خطوط السرعة (集中線): خطوط شعاعية بتطلع من نقطة، بتستخدم في
+     لحظات التوتر.
+   • الهاف تون (screentone): نقط رمادية متساوية بتعمل التظليل —
+     ده أشهر توقيع في المانجا كلها.
+   • البتلات المتطايرة: الكادر الهادي الكلاسيكي.
+   • الطاقة الملعونة: وهج بنفسجي داكن بيتنفّس، الطابع البصري
+     لجوجيتسو كايسن.
+   المحصلة صفحة مرسومة، مش صفحة ملوّنة وردي.
+══════════════════════════════════════════════════════════════════════ */
+
+/* خطوط السرعة — شعاعية من أعلى المنتصف.
+   شريحتين بفترات زاوية مختلفة عشان السماكات تتنوّع؛ الرسّام مابيرسمش
+   الخطوط كلها بنفس السُمك، والتنوّع هو اللي بيخلّيها تقرا «مرسومة».
+   conic-gradient أرخص بكتير من 60 عنصر منفصل. */
+body[data-ui-theme="anime"] #theme-fx > i:nth-child(1){
+  background-image:
+    repeating-conic-gradient(from 0deg at 50% 26%,
+      rgba(255,255,255,.22) 0deg .5deg, transparent .5deg 2.6deg),
+    repeating-conic-gradient(from 1.3deg at 50% 26%,
+      rgba(255,170,212,.2) 0deg 1.1deg, transparent 1.1deg 9deg);
+  opacity: .62;
+  /* القناع بيفضّي النص في الوسط ويسيب الخطوط على الحواف — بالظبط زي
+     ما الرسّام بيسيب وش الشخصية نضيف وسط خطوط السرعة */
+  mask-image: radial-gradient(ellipse 62% 50% at 50% 26%, transparent 26%, black 88%);
+  -webkit-mask-image: radial-gradient(ellipse 62% 50% at 50% 26%, transparent 26%, black 88%);
+  animation: tfxSpeed 20s linear infinite;
+}
+@keyframes tfxSpeed{
+  from{ transform: rotate(0deg) scale(1.7); }
+  to  { transform: rotate(360deg) scale(1.7); }
+}
+
+/* الهاف تون — ساكن، هو التظليل نفسه مش حركة */
+body[data-ui-theme="anime"] #theme-fx > i:nth-child(2){
+  background-image: radial-gradient(circle, rgba(255,255,255,.4) 0 1.1px, transparent 1.6px);
+  background-size: 7px 7px;
+  opacity: .22;
+  mask-image: linear-gradient(150deg, black 0%, transparent 46%, transparent 62%, black 100%);
+  -webkit-mask-image: linear-gradient(150deg, black 0%, transparent 46%, transparent 62%, black 100%);
+}
+
+/* البتلات المتطايرة.
+   طبقة أكبر من الشاشة ببلاطة كاملة، والحركة transform بمقدار البلاطة
+   بالظبط (260px قطريًا) — لفة سلسة ورسم مرة واحدة. لو حرّكنا
+   background-position بدل كده كانت الطبقة بتتعاد رسمها كل فريم. */
+body[data-ui-theme="anime"] #theme-fx::before{
+  content: '';
+  position: absolute;
+  inset: -260px;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g fill='%23FFAAD4'><ellipse cx='36' cy='30' rx='9' ry='5' transform='rotate(-24 36 30)'/><ellipse cx='168' cy='72' rx='7.5' ry='4.2' transform='rotate(38 168 72)'/><ellipse cx='96' cy='140' rx='10' ry='5.6' transform='rotate(-52 96 140)'/><ellipse cx='222' cy='186' rx='8' ry='4.4' transform='rotate(16 222 186)'/><ellipse cx='52' cy='224' rx='9' ry='5' transform='rotate(-8 52 224)'/></g><g fill='%23A8F4FF' opacity='.72'><ellipse cx='210' cy='24' rx='6.6' ry='3.6' transform='rotate(-40 210 24)'/><ellipse cx='128' cy='206' rx='7.4' ry='4' transform='rotate(28 128 206)'/></g><g fill='%23FFD978' opacity='.6'><ellipse cx='250' cy='118' rx='6' ry='3.2' transform='rotate(-30 250 118)'/><ellipse cx='8' cy='96' rx='5.6' ry='3' transform='rotate(44 8 96)'/></g></svg>") repeat;
+  background-size: 260px 260px;
+  opacity: .8;
+  animation: tfxPetals 26s linear infinite;
+}
+@keyframes tfxPetals{
+  from{ transform: translate3d(0, -260px, 0); }
+  to  { transform: translate3d(-260px, 260px, 0); }
+}
+
+/* الطاقة الملعونة — وهج بيتنفّس */
+body[data-ui-theme="anime"] #theme-fx > i:nth-child(3){
+  background-image:
+    radial-gradient(ellipse 54% 40% at 14% 8%,  rgba(255,124,191,.2),  transparent 62%),
+    radial-gradient(ellipse 46% 38% at 88% 18%, rgba(120,240,255,.17), transparent 60%),
+    radial-gradient(ellipse 62% 44% at 50% 104%, rgba(139,92,246,.22), transparent 66%);
+  animation: tfxCursed 6.5s ease-in-out infinite alternate;
+}
+@keyframes tfxCursed{
+  from{ opacity: .72; transform: scale(1); }
+  to  { opacity: 1;   transform: scale(1.06); }
+}
+/* ── الأسطح: لوحات مانجا ──
+   حواف حادة من ناحية البداية (زي إطار الكادر)، وشريط أكسنت سميك،
+   ولمعة قطرية زي اللي بتترسم على الزجاج في الأنمي. */
+body[data-ui-theme="anime"] .home-hero,
+body[data-ui-theme="anime"] .home-tile{
+  position: relative;
+  overflow: hidden;
+  border-inline-start: 3px solid var(--color-primary-border);
+}
+body[data-ui-theme="anime"] .home-hero::after,
+body[data-ui-theme="anime"] .home-tile::after{
+  content: '';
+  position: absolute;
+  inset-block: -30%;
+  inset-inline-end: -14%;
+  width: 42px;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.1), transparent);
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+/* هاف تون خفيف في ركن البطاقة الرئيسية — التظليل بتاع المانجا */
+body[data-ui-theme="anime"] .home-hero::before{
+  content: '';
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  width: 46%;
+  height: 62%;
+  background-image: radial-gradient(circle, rgba(255,170,212,.55) 0 1.2px, transparent 1.8px);
+  background-size: 8px 8px;
+  mask-image: radial-gradient(ellipse at 100% 100%, black 8%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse at 100% 100%, black 8%, transparent 72%);
+  opacity: .5;
+  pointer-events: none;
+}
+/* العناوين بحدّ خارجي خفيف — أقرب للّيترينج المرسوم */
+body[data-ui-theme="anime"] .home-hero__title,
+body[data-ui-theme="anime"] .logo-t{
+  text-shadow: 0 2px 0 rgba(9,17,28,.55), 0 0 22px rgba(255,124,191,.28);
+}
+body[data-ui-theme="anime"] .home-hero__eyebrow{
+  letter-spacing: .14em;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   15.4 gaming — واجهة إسبورتس
+   ──────────────────────────────────────────────────────────────────────
+   لغة شاشة اللعب التنافسية: شبكة كربون سداسية، أسهم chevron
+   بتتحرّك زي شريط طاقة، أقواس تصويب في الزوايا، وأسطح بزوايا
+   مشطوفة وشريط برتقالي على الحافة العليا زي بار الـXP.
+══════════════════════════════════════════════════════════════════════ */
+
+/* نسيج ألياف الكربون */
+body[data-ui-theme="gaming"] #theme-fx > i:nth-child(1){
+  background-image:
+    repeating-linear-gradient(60deg,  rgba(255,255,255,.09) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(-60deg, rgba(255,255,255,.09) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(60deg,  rgba(255,122,24,.08) 0 2px, transparent 2px 78px);
+  opacity: .8;
+  mask-image: radial-gradient(ellipse 90% 76% at 50% 40%, black 10%, rgba(0,0,0,.35) 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 76% at 50% 40%, black 10%, rgba(0,0,0,.35) 100%);
+}
+
+/* أسهم chevron بتزحف لأعلى — إحساس شحن الطاقة */
+body[data-ui-theme="gaming"] #theme-fx > i:nth-child(2){
+  top: -64px;
+  bottom: -64px;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><g fill='none' stroke='%23FF7A18' stroke-width='2.4'><path d='M0 44 L32 20 L64 44'/><path d='M0 60 L32 36 L64 60' stroke='%2300FFA3'/></g></svg>");
+  background-size: 64px 64px;
+  opacity: .17;
+  animation: tfxChevron 6s linear infinite;
+  mask-image: linear-gradient(180deg, transparent, black 34%, black 62%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, black 34%, black 62%, transparent);
+}
+@keyframes tfxChevron{
+  from{ transform: translateY(0); }
+  to  { transform: translateY(-64px); }
+}
+
+/* أقواس تصويب + وهج ناري من الأسفل */
+body[data-ui-theme="gaming"] #theme-fx > i:nth-child(3){
+  inset: 44px 12px 34px;
+  background-image:
+    linear-gradient(90deg,  rgba(255,122,24,.62) 0 26px, transparent 26px),
+    linear-gradient(180deg, rgba(255,122,24,.62) 0 26px, transparent 26px),
+    linear-gradient(270deg, rgba(0,255,163,.5) 0 26px, transparent 26px),
+    linear-gradient(180deg, rgba(0,255,163,.5) 0 26px, transparent 26px);
+  background-repeat: no-repeat;
+  background-size: 26px 3px, 3px 26px, 26px 3px, 3px 26px;
+  background-position: 0 0, 0 0, 100% 100%, 100% 100%;
+}
+/* الوهج الناري طبقة مستقلة عشان يفضل ملزّق في قاع الشاشة مش جوه
+   الإطار المتقلّص فوق */
+body[data-ui-theme="gaming"] #theme-fx::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 26% at 50% 104%, rgba(255,122,24,.16), transparent 70%);
+}
+
+/* ── الأسطح: لوحات مشطوفة بشريط XP ── */
+body[data-ui-theme="gaming"] .home-hero,
+body[data-ui-theme="gaming"] .home-tile{
+  position: relative;
+  border-radius: 6px;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  overflow: hidden;
+}
+body[data-ui-theme="gaming"] .home-hero::before,
+body[data-ui-theme="gaming"] .home-tile::before{
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary) 70%, transparent);
+  pointer-events: none;
+}
+body[data-ui-theme="gaming"] .home-tile__title,
+body[data-ui-theme="gaming"] .home-hero__eyebrow,
+body[data-ui-theme="gaming"] .appbar__brand-name{
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+body[data-ui-theme="gaming"] .home-hero__count{
+  font-family: ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+}
+/* شريط التقدّم بيلمع زي بار الـXP */
+body[data-ui-theme="gaming"] .home-hero__fill{
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  box-shadow: 0 0 12px rgba(255,122,24,.5);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   15.5 glass — ضوء وانكسار
+   ──────────────────────────────────────────────────────────────────────
+   الزجاج مش بس شفافية: هو الضوء اللي بيتكسّر جواه. فالطبقات هنا
+   حزم ضوء مايلة وكاوستِكس ناعمة بتتحرّك ببطء. مافيش blur جديد —
+   الثيم بيستخدم backdrop-filter على الأسطح أصلاً وبس.
+══════════════════════════════════════════════════════════════════════ */
+body[data-ui-theme="glass"] #theme-fx > i:nth-child(1){
+  background-image:
+    linear-gradient(104deg, transparent 0 18%, rgba(255,255,255,.055) 18% 24%, transparent 24% 46%,
+                    rgba(255,255,255,.035) 46% 49%, transparent 49% 72%,
+                    rgba(255,255,255,.045) 72% 76%, transparent 76%);
+  opacity: .9;
+}
+body[data-ui-theme="glass"] #theme-fx > i:nth-child(2){
+  background-image:
+    radial-gradient(ellipse 34% 22% at 22% 18%, rgba(147,197,253,.22), transparent 70%),
+    radial-gradient(ellipse 30% 20% at 78% 32%, rgba(167,243,208,.18), transparent 70%),
+    radial-gradient(ellipse 40% 26% at 56% 88%, rgba(255,255,255,.12), transparent 72%);
+  animation: tfxCaustic 11s ease-in-out infinite alternate;
+}
+@keyframes tfxCaustic{
+  from{ transform: translate3d(-2%, -1%, 0) scale(1); }
+  to  { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+body[data-ui-theme="glass"] .home-hero,
+body[data-ui-theme="glass"] .home-tile{
+  position: relative;
+  overflow: hidden;
+}
+/* حافة علوية لامعة — الخط اللي بيميّز حرف الزجاج */
+body[data-ui-theme="glass"] .home-hero::before,
+body[data-ui-theme="glass"] .home-tile::before{
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   15.6 minimal — الفراغ هو الهوية
+   ──────────────────────────────────────────────────────────────────────
+   الثيم الوحيد اللي إضافة نقش عليه بتخالف اسمه. فبدل ما نزوّد،
+   بنشيل: مافيش طبقات، ومسطرة أفقية واحدة رفيعة جدًا تدّي إحساس
+   الورقة المسطّرة، والأسطح بتتعرّف بخط واحد مش بظل.
+══════════════════════════════════════════════════════════════════════ */
+body[data-ui-theme="minimal"] #theme-fx > i:nth-child(1){
+  background-image: repeating-linear-gradient(180deg, rgba(255,255,255,.022) 0 1px, transparent 1px 32px);
+  mask-image: linear-gradient(180deg, transparent, black 24%, black 76%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, black 24%, black 76%, transparent);
+}
+body[data-ui-theme="minimal"] .home-hero,
+body[data-ui-theme="minimal"] .home-tile{
+  box-shadow: none;
+  border-radius: var(--radius-md);
+}
+body[data-ui-theme="minimal"] .home-hero{
+  background: var(--color-bg-elevated);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   15.7 معاينة الثيم في الإعدادات
+   ──────────────────────────────────────────────────────────────────────
+   شريط الألوان لوحده مابيقولش إن «سايبر» فيه مطر بيانات ولا إن
+   «انمي» فيه خطوط سرعة — الاختيار كان أعمى. فبنرسم نقش الثيم نفسه
+   فوق شريط ألوانه، فاللي بيختار شايف اللي هيجيله.
+   النقوش هنا مصغّرة من نفس اللي فوق، مش رسومات تانية.
+══════════════════════════════════════════════════════════════════════ */
+#s-settings .ui-opt .th-sw{
+  position: relative;
+}
+#s-settings .ui-opt .th-sw::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#s-settings #ui-amkh .th-sw::after{
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><defs><g id='k' fill='none' stroke='%23FFF0A0' stroke-width='1'><path d='M0 -18 L18 0 L0 18 L-18 0 Z'/><path d='M-12.7 -12.7 H12.7 V12.7 H-12.7 Z'/></g></defs><use href='%23k' x='24' y='24'/><use href='%23k' x='0' y='0'/><use href='%23k' x='48' y='0'/><use href='%23k' x='0' y='48'/><use href='%23k' x='48' y='48'/></svg>");
+  background-size: 48px 48px;
+  opacity: .55;
+}
+/* الشريط نصّه غامق ونصّه فاتح، فالنقش لازم لونه يكون في النُص عشان
+   يبان على الاتنين. لون غامق بيختفي على النص الأسود، وأبيض بيختفي
+   على النص الفاتح — فالمتوسط هو الحل الوحيد اللي بيشتغل على الجهتين. */
+#s-settings #ui-minimal .th-sw::after{
+  background-image: repeating-linear-gradient(180deg, rgba(130,140,155,.6) 0 1px, transparent 1px 8px);
+}
+#s-settings #ui-cyberpunk .th-sw::after{
+  background-image:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='48'><g fill='none' stroke='%23179FAE' stroke-width='1.2'><path d='M14 0 L28 8 L28 24 L14 32 L0 24 L0 8 Z'/><path d='M14 32 L28 40 L28 56 M14 32 L0 40 L0 56'/></g></svg>"),
+    repeating-linear-gradient(180deg, rgba(120,150,155,.34) 0 1px, transparent 1px 4px);
+  background-size: 28px 48px, 100% 4px;
+  opacity: .9;
+}
+#s-settings #ui-glass .th-sw::after{
+  background-image: linear-gradient(104deg, transparent 0 22%, rgba(255,255,255,.5) 22% 30%, transparent 30% 58%, rgba(255,255,255,.34) 58% 63%, transparent 63%);
+}
+#s-settings #ui-gaming .th-sw::after{
+  background-image:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><g fill='none' stroke='%23A85A20' stroke-width='2.2'><path d='M0 22 L16 10 L32 22'/><path d='M0 32 L16 20 L32 32'/></g></svg>"),
+    repeating-linear-gradient(60deg, rgba(140,110,90,.3) 0 1px, transparent 1px 9px);
+  background-size: 32px 32px, auto;
+  opacity: .8;
+}
+#s-settings #ui-anime .th-sw::after{
+  background-image:
+    repeating-conic-gradient(from 0deg at 50% 118%, rgba(255,255,255,.55) 0deg 1deg, transparent 1deg 5deg),
+    radial-gradient(circle, rgba(120,60,100,.45) 0 1px, transparent 1.5px);
+  background-size: auto, 6px 6px;
+  opacity: .7;
+}
