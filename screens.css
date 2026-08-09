@@ -1038,10 +1038,18 @@
 ══════════════════════════════════════════════════════════════════════ */
 #go-ov{
   z-index: var(--z-modal);
-  /* تعتيم أخف من الافتراضي عشان الرقعة تفضل مقروءة خلف الشاشة */
-  background: rgba(4,6,13,.62);
-  backdrop-filter: blur(8px) saturate(115%);
-  -webkit-backdrop-filter: blur(8px) saturate(115%);
+  /* مافيش backdrop-filter هنا عن قصد. الشاشة دي بتعمل سكرول والمحتوى
+     بيتحرك جواها، وblur على طبقة بحجم الشاشة معناه مسحة رسم كاملة كل
+     فريم — والقياس على 360×740: 39 فريم/ث والبلور شغال مقابل 48 من
+     غيره، بنفس المحتوى. جرّبت أثبّت الخلفية (وقف أنيميشن الرقعة ورا،
+     وبعدين خبّيها بالكامل) فمااتغيّرش حاجة — 38 فريم/ث — فالتكلفة في
+     البلور نفسه مش في إن الخلفية بتتحرك. وجرّبت contain:paint على
+     البطاقة كذلك ومافرقش.
+     التعتيم أغمق شوية عشان يعوّض إن الرقعة بقت واضحة ورا النص. */
+  background: rgba(4,6,13,.88);
+  /* الستايل القديم جوه index.html لسه بيحط البلور، ولازم نلغيه صراحةً */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   align-items: center;
   padding: var(--space-4);
 }
@@ -1057,6 +1065,11 @@
   gap: var(--space-4);
   justify-content: flex-start;
   overflow-y: auto;
+  /* السكرول جوه البطاقة بس؛ من غير كده الصفحة اللي ورا بتمسك السحب
+     لما توصل لآخر البطاقة (scroll chaining) فيحس إنه علّق. */
+  overscroll-behavior: contain;
+  /* السحب باللمس على أندرويد كان بيتقطّع من غير ده */
+  -webkit-overflow-scrolling: touch;
 }
 #go-ov .gobox::before,
 #go-ov .gobox::after{ content: none; }   /* زخارف قديمة */
@@ -1191,6 +1204,44 @@
 #go-ov .go-bts > #go-next     { order: 2; }
 #go-ov .go-bts > .bgp:not(.review):not(#go-next){ order: 3; }
 #go-ov .go-bts > .bgs         { order: 4; }
+
+/* ── الشاشات القصيرة: تخلّي البطاقة تدخل من غير سكرول ──
+   على 360×740 كان محتوى مرحلة المراجعة 765px جوه بطاقة 679px، يعني
+   الأزرار كلها تحت الحافة واللاعب مضطر يسحب عشان يوصلها — وهو ده
+   السحب اللي كان بيتقطّع. بدل ما نسرّع سحب مش لازمه أصلاً، بنقصّر
+   المحتوى: الأزرار في عمودين بدل أربع صفوف (توفّر ~105px)، والرقعة
+   المصغّرة أصغر شوية (~36px)، والإحصائيات بحشو أقل (~24px).
+   الإجراء الأساسي (مراجعة المباراة) بيفضل بعرض كامل فوقهم. */
+@media (max-height: 780px){
+  #go-ov .analysis-mini-board.gameover{ --mini-size: 126px; }
+  #go-ov .rv-stat-item{ padding: var(--space-2); }
+  #go-ov .rv-stat-value{ font-size: 17px; }
+  #go-ov .gobox{ padding: var(--space-4); gap: var(--space-3); }
+  #go-ov .go-stage{ gap: var(--space-2); }
+
+  #go-ov .go-bts{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* زر المراجعة على عرض العمودين — أهم إجراء فالمساحة تليق بيه */
+  #go-ov .go-bts > .bgp.review{ grid-column: 1 / -1; }
+  /* «التالي» بيظهر في مراحل نور بس. لما يظهر بيبقى العدد فردي فبناخده
+     على عرض كامل كمان، عشان مايفضلش صف فيه زر واحد نص العرض. وهو
+     display:none في باقي الأوضاع فالقاعدة مالهاش أثر هناك. */
+  #go-ov .go-bts > #go-next{ grid-column: 1 / -1; }
+}
+
+/* أقصر من كده (360×640 وشبهها) الصندوق نفسه بيبقى 587px، فالإحصائيات
+   الأربعة في صف واحد بدل مربع، وسطر التقدّم بيتشال — الرقم اللي فيه
+   مكرر في «النقلات» تحته على أي حال. */
+@media (max-height: 680px){
+  #go-ov .analysis-mini-board.gameover{ --mini-size: 108px; }
+  #go-ov .rv-analysis-stats{ grid-template-columns: repeat(4, 1fr); }
+  #go-ov .rv-stat-item{ padding: var(--space-1) var(--space-2); }
+  #go-ov .rv-stat-value{ font-size: 14px; }
+  #go-ov .go-engine-phase{ display: none; }
+  #go-ov .go-review-note{ min-height: 0; }
+}
 
 /* ══════════════════════════════════════════════════════════════════════
    10. هوية وضع اللعب في شاشة المباراة
