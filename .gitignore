@@ -21,6 +21,7 @@ _shot_*.png
 _run.js
 _shoot.js
 _t7*.js
+_g[0-9]*.js
 *.tmp-cdplog.txt
 .claude/
 

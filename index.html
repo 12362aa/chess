@@ -1536,7 +1536,11 @@ body[data-ui-theme="glass"] .mc-tag{
 .chat-badge.show{display:inline-flex;}
 
 /* ══════════ GAME ══════════ */
-#s-game{flex-direction:column;align-items:center;min-height:100dvh;height:auto;padding:46px 0 24px;gap:12px;overflow-x:hidden;justify-content:flex-start;}
+#s-game{flex-direction:column;align-items:center;min-height:100dvh;height:auto;padding:46px 0 24px;gap:12px;overflow-x:hidden;justify-content:center;}
+/* `center` بيقص أعلى المحتوى لو طوله عدّى الشاشة؛ `safe center` بيرجع
+   لـflex-start ساعتها. المتصفحات القديمة بترمي السطر التاني وتفضل على
+   `center`، فالاتنين مكتوبين بالترتيب ده عن قصد. */
+#s-game{justify-content:safe center;}
 /* سجل النقلات بيبدأ فاضي فارتفاعه 10px، وأول ما تتسجّل نقلة يقفز لـ24px
    — ده كان بيزحلق الرقعة مع أول نقلة. نحجز ارتفاعه من الأول. */
 .mvhist{min-height:26px;}
@@ -8671,8 +8675,87 @@ const R={
       t.textContent=(i%2===0?`${Math.floor(i/2)+1}.`:'')+m;el.appendChild(t);});
     el.scrollLeft=el.scrollWidth;
   },
-  async all(){this.board();this.status();await this.players();this.hist();this.toolbar();updatePlayerImages();}
+  /* ══ توسيط الرقعة رأسيًا ══
+     العناصر تحت الرقعة (شريط الأدوات + الحالة + سجل النقلات) أطول من
+     اللي فوقها، فتوسيط العمود كله كان بيسيب الرقعة أعلى من منتصف الشاشة
+     بـ~44px. هنا بنقيس مركز الرقعة الفعلي ونحوّل الفرق لحشو علوي.
+     القيمة بتتحسب مرة لكل (مقاس شاشة + وضع لعب + حالة شريط الاتصال)
+     وبتتخزّن، فمع كل نقلة مفيش قراءة ولا كتابة للتخطيط — يعني صفر أثر
+     على سرعة النقل في البلوتوث/الأونلاين. */
+  _balSig:null,
+  /* offsetTop مش getBoundingClientRect: الشاشة بتدخل بأنيميشن
+     translateY+scale مدته 0.35s، والـrect بيرجع الإحداثيات بعد التحويل
+     فكان الحساب بيطلع غلط لو اتنادى والأنيميشن شغال. offsetTop
+     بيتجاهل التحويلات تمامًا. */
+  _docTop(el){let y=0;while(el&&el!==document.body){y+=el.offsetTop;el=el.offsetParent;}return y;},
+  balance(force){
+    const sg=document.getElementById('s-game');
+    const bc=document.getElementById('board-container');
+    if(!sg||!bc||!sg.classList.contains('active'))return;
+    const cs=getComputedStyle(sg);
+    /* تخطيطات الشبكة (ديسكتوب/تابلت أفقي) بتوسّط الرقعة بنفسها */
+    if(cs.display!=='flex'||cs.flexDirection!=='column'){
+      sg.style.paddingTop='';sg.style.paddingBottom='';this._balSig=null;return;
+    }
+    const gc=document.getElementById('gconn');
+    const sig=[innerWidth,innerHeight,S.mode,(gc&&!gc.hasAttribute('hidden'))?1:0].join('|');
+    if(!force&&sig===this._balSig)return;
+    this._balSig=sig;
+    /* نصفّر الحشو بعد فحص التوقيع مش قبله — لو صفّرناه قبله كانت أول
+       نقلة (اللي التوقيع فيها مايتغيّرش) بتمسح التوسيط وتنطّ الرقعة.
+       بنرجّع لقيمة الستايل شيت عشان نقيس على أساس نضيف، لأن كل بريك
+       بوينت له حشو مختلف فمنفترضش رقم. */
+    sg.style.paddingTop='';sg.style.paddingBottom='';
+    const padT=parseFloat(cs.paddingTop)||0,padB=parseFloat(cs.paddingBottom)||0;
+    const kids=[...sg.children].filter(c=>c.offsetWidth||c.offsetHeight);
+    if(!kids.length)return;
+    let top=Infinity,bot=-Infinity;
+    kids.forEach(c=>{top=Math.min(top,c.offsetTop);bot=Math.max(bot,c.offsetTop+c.offsetHeight);});
+    /* الفراغ اللي ينفع نوزّعه — أكتر منه يخلّي المحتوى يعمل سكرول.
+       clientHeight بيكبر لو المحتوى فايض أصلاً، فبنسقّفه بطول الشاشة. */
+    const free=Math.max(0,Math.floor(Math.min(sg.clientHeight,innerHeight)-padT-padB-(bot-top)));
+    if(!free)return;
+    /* زيادة الحشو بمقدار P بتزحلق الرقعة P/2 بس، لأن الفراغ الباقي
+       بيتوزّع بالتساوي على الناحيتين — فالمطلوب ضعف المسافة الناقصة.
+       الإشارة بتحدد الناحية: فوق لو الرقعة عالية، وتحت لو واطية. */
+    const want=Math.round(innerHeight-2*(this._docTop(bc)+bc.offsetHeight/2));
+    const add=Math.min(Math.abs(want),free);
+    if(add<1)return;
+    if(want>0)sg.style.paddingTop=(padT+add)+'px';
+    else sg.style.paddingBottom=(padB+add)+'px';
+  },
+  async all(){this.board();this.status();await this.players();this.hist();this.toolbar();updatePlayerImages();this.balance();}
 };
+/* المقاس بيتغيّر مع الدوران وظهور لوحة المفاتيح — نعيد الحساب وقتها بس */
+['resize','orientationchange'].forEach(ev=>{
+  let t=null;
+  window.addEventListener(ev,()=>{clearTimeout(t);t=setTimeout(()=>R.balance(true),120);});
+});
+/* أول رسمة بتحصل والخطوط (Cairo/Amiri) لسه بتتحمّل، فارتفاعات الأشرطة
+   بتكبر بعد ما نكون حسبنا التوازن. بدل ما نعيد القياس مع كل نقلة —
+   وده اللي كان هيبطّأ النقل — بنراقب العناصر متغيّرة الارتفاع بس
+   ونعيد الحساب لما ارتفاع واحد منها يتغيّر فعلاً. تغيير الحشو العلوي
+   مابيغيّرش ارتفاع أي عنصر، فمفيش حلقة لا نهائية. */
+(()=>{
+  const relayout=()=>{if(typeof R!=='undefined')R.balance(true);};
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(relayout).catch(()=>{});
+  if(typeof ResizeObserver!=='function')return;
+  let pending=false;
+  const ro=new ResizeObserver(()=>{
+    if(pending)return;pending=true;
+    requestAnimationFrame(()=>{pending=false;relayout();});
+  });
+  const watch=()=>{
+    ['bar-b','bar-w','gconn','board-container'].forEach(id=>{
+      const el=document.getElementById(id);if(el)ro.observe(el);
+    });
+    ['.gtop','.gtbar','.sbar','.mvhist'].forEach(sel=>{
+      const el=document.querySelector('#s-game '+sel);if(el)ro.observe(el);
+    });
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watch);
+  else watch();
+})();
 
 /* ══════════════════════════════════════
    هوية أوضاع اللعب
@@ -8724,17 +8807,22 @@ const GameIdentity={
     const dot=document.getElementById('gconn-dot');
     const txt=document.getElementById('gconn-text');
     if(!bar)return;
+    const was=bar.hidden;
     bar.hidden=false;
     bar.dataset.state=state;
     if(dot)dot.dataset.state=state;
     if(txt)txt.textContent=text||'';
+    /* ظهور الشريط بيزوّد 28px فوق الرقعة — نعيد التوسيط */
+    if(was)R.balance(true);
   },
 
   hideConnection(){
     const bar=document.getElementById('gconn');
     const txt=document.getElementById('gconn-text');
+    const was=bar&&!bar.hidden;
     if(bar){bar.hidden=true;bar.removeAttribute('data-state');}
     if(txt)txt.textContent='';   /* تنظيف النص — مش مجرد إخفاء */
+    if(was)R.balance(true);
   }
 };
 
