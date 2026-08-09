@@ -1537,6 +1537,9 @@ body[data-ui-theme="glass"] .mc-tag{
 
 /* ══════════ GAME ══════════ */
 #s-game{flex-direction:column;align-items:center;min-height:100dvh;height:auto;padding:46px 0 24px;gap:12px;overflow-x:hidden;justify-content:flex-start;}
+/* سجل النقلات بيبدأ فاضي فارتفاعه 10px، وأول ما تتسجّل نقلة يقفز لـ24px
+   — ده كان بيزحلق الرقعة مع أول نقلة. نحجز ارتفاعه من الأول. */
+.mvhist{min-height:26px;}
 .gtop{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;max-width:510px;margin-inline:auto;text-align:center;}
 .bsm{background:var(--bg2);border:1px solid rgba(201,168,76,.12);color:var(--gold2);padding:7px 11px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;position:relative;overflow:hidden;}
 .bsm:hover{border-color:rgba(201,168,76,.36);background:rgba(201,168,76,.06);transform:scale(1.03);}
@@ -1550,7 +1553,10 @@ body[data-ui-theme="glass"] .mc-tag{
 .av-w{background:rgba(255,248,240,.13);}
 .av-b{background:rgba(20,14,4,.55);border:1px solid rgba(255,255,255,.07);color:var(--gold2);}
 .pb-nm{font-size:12px;font-weight:700;}
-.pb-turn{font-size:9px;color:var(--gold2);animation:dbt .9s infinite;visibility:hidden;}
+/* النص بيتفضّى لما ميكونش الدور على اللاعب ده، فكان الـline box بيقع
+   لصفر ويقصّر الشريط ~12px — والرقعة كانت بتنطّ مرتين كل نقلة.
+   بنحجز ارتفاع ثابت زي ما .pb-ast بتعمل بالظبط. */
+.pb-turn{font-size:9px;line-height:14px;min-height:14px;color:var(--gold2);animation:dbt .9s infinite;visibility:hidden;}
 .pb-turn.show{visibility:visible;}
 .pb-result{
   display:none;
