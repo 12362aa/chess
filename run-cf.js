@@ -1,13 +1,6 @@
-/* مشغّل نفق ngrok لسيرفر الأونلاين.
-   بيشتغل على لينكس وويندوز: بيختار نسخة ngrok المناسبة، وبعد ما النفق
-   يفتح بيرفع الرابط العام على url.json في الريبو (اللي التطبيق بيقراه).
-
-   لينكس:   ngrok  (باينري بلا امتداد في جذر المشروع)  + update-url.sh
-   ويندوز:  ngrok.exe                                    + start-chess.ps1
-
-   نسخة ngrok لازم تكون متظبّطة بالـauthtoken مرة واحدة قبل التشغيل:
-     ./ngrok config add-authtoken <token>        (لينكس)
-     .\ngrok.exe config add-authtoken <token>    (ويندوز) */
+/* مشغّل النفق لسيرفر الأونلاين (Cloudflare Tunnel / ngrok).
+   يستخدم cloudflared افتراضياً (بدون صفحة تحذير لتضمن عمل WebSocket في المتصفحات)،
+   وبعد ما النفق يفتح بيرفع الرابط العام على url.json في الريبو فوراً. */
 const { spawn } = require('child_process');
 const path = require('path');
 const http = require('http');
@@ -15,14 +8,19 @@ const fs = require('fs');
 
 const isWin = process.platform === 'win32';
 
-/* اختيار باينري ngrok: على ويندوز ngrok.exe، على غيره الباينري بلا امتداد.
-   لو الملف مش موجود بنقع بالاسم اللي على PATH كحل أخير. */
-function ngrokBin() {
+function getCfBin() {
+  const localLinux = path.join(__dirname, 'cloudflared');
+  const localWin = path.join(__dirname, 'cloudflared-windows-amd64.exe');
+  if (!isWin && fs.existsSync(localLinux)) return localLinux;
+  if (isWin && fs.existsSync(localWin)) return localWin;
+  return isWin ? 'cloudflared-windows-amd64.exe' : 'cloudflared';
+}
+
+function getNgrokBin() {
   const local = path.join(__dirname, isWin ? 'ngrok.exe' : 'ngrok');
   return fs.existsSync(local) ? local : (isWin ? 'ngrok.exe' : 'ngrok');
 }
 
-/* اختيار طريقة رفع الرابط حسب النظام */
 function uploadUrl(url) {
   if (isWin) {
     spawn('powershell', [
@@ -36,46 +34,83 @@ function uploadUrl(url) {
 }
 
 const PORT = process.env.PORT || 8081;
+const cfBin = getCfBin();
 
-const ngrok = spawn(ngrokBin(), ['http', String(PORT)], {
-  stdio: 'ignore',
-  detached: false,
-  windowsHide: true
-});
+let uploaded = false;
 
-ngrok.on('error', (e) => {
-  console.error('failed to start ngrok:', e.message);
-  console.error('تأكد إن باينري ngrok موجود ومتظبّط بالـauthtoken.');
-  process.exit(1);
-});
+if (fs.existsSync(cfBin) || !isWin) {
+  console.log(`Starting Cloudflare Tunnel (${cfBin})...`);
+  const cf = spawn(cfBin, ['tunnel', '--url', `http://localhost:${PORT}`], {
+    windowsHide: true
+  });
 
-// انتظر 5 ثواني ليتأكد تشغيل ngrok
-setTimeout(() => {
-  const updateUrl = () => {
-    http.get('http://127.0.0.1:4040/api/tunnels', (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const tunnels = JSON.parse(data).tunnels;
-          if (tunnels && tunnels.length > 0) {
-            const url = tunnels[0].public_url;
-            console.log(`[${new Date().toLocaleString()}] URL:`, url);
-            uploadUrl(url);
+  const urlRegex = /https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/;
+
+  function handleData(chunk) {
+    const text = chunk.toString();
+    const match = text.match(urlRegex);
+    if (match && !uploaded) {
+      uploaded = true;
+      const url = match[0];
+      console.log(`[${new Date().toLocaleString()}] Cloudflare Tunnel URL:`, url);
+      uploadUrl(url);
+    }
+  }
+
+  cf.stdout.on('data', handleData);
+  cf.stderr.on('data', handleData);
+
+  cf.on('error', (e) => {
+    console.error('Cloudflare Tunnel failed to start, falling back to ngrok:', e.message);
+    startNgrok();
+  });
+
+  cf.on('exit', (code) => {
+    console.log(`Cloudflare Tunnel exited with code ${code}`);
+    process.exit(code || 0);
+  });
+} else {
+  startNgrok();
+}
+
+function startNgrok() {
+  const ngrok = spawn(getNgrokBin(), ['http', String(PORT)], {
+    stdio: 'ignore',
+    detached: false,
+    windowsHide: true
+  });
+
+  ngrok.on('error', (e) => {
+    console.error('failed to start ngrok:', e.message);
+    process.exit(1);
+  });
+
+  setTimeout(() => {
+    const updateUrl = () => {
+      http.get('http://127.0.0.1:4040/api/tunnels', (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const tunnels = JSON.parse(data).tunnels;
+            if (tunnels && tunnels.length > 0) {
+              const url = tunnels[0].public_url;
+              console.log(`[${new Date().toLocaleString()}] URL:`, url);
+              uploadUrl(url);
+            }
+          } catch(e) {
+            console.error('Error:', e.message);
           }
-        } catch(e) {
-          console.error('Error:', e.message);
-        }
-      });
-    }).on('error', (e) => console.error('Error fetching tunnels:', e.message));
-  };
+        });
+      }).on('error', (e) => console.error('Error fetching tunnels:', e.message));
+    };
 
-  updateUrl();
-  setInterval(updateUrl, 60000);
+    updateUrl();
+    setInterval(updateUrl, 60000);
+  }, 5000);
 
-}, 5000);
-
-ngrok.on('exit', (code) => {
-  console.log(`ngrok exited with code ${code}`);
-  process.exit(code);
-});
+  ngrok.on('exit', (code) => {
+    console.log(`ngrok exited with code ${code}`);
+    process.exit(code);
+  });
+}

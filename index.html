@@ -55,16 +55,16 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* UI theme effect layers */
 body[data-ui-theme="cyberpunk"]::before{
   background:
-    radial-gradient(circle at 14% 18%,rgba(0,255,231,.16) 0%,transparent 28%),
-    radial-gradient(circle at 88% 22%,rgba(255,32,154,.18) 0%,transparent 24%),
-    radial-gradient(circle at 72% 78%,rgba(125,89,255,.16) 0%,transparent 26%),
-    linear-gradient(180deg,#060711 0%,#0b1023 48%,#14091d 100%);
+    radial-gradient(circle at 14% 18%,rgba(0,255,102,.15) 0%,transparent 28%),
+    radial-gradient(circle at 88% 22%,rgba(255,176,32,.12) 0%,transparent 24%),
+    radial-gradient(circle at 72% 78%,rgba(0,255,102,.10) 0%,transparent 26%),
+    linear-gradient(180deg,#040604 0%,#07100a 48%,#040806 100%);
 }
 body[data-ui-theme="cyberpunk"]::after{
   background-image:
-    linear-gradient(rgba(0,255,231,.045) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,32,154,.035) 1px,transparent 1px),
-    linear-gradient(125deg,transparent 0 46%,rgba(255,255,255,.03) 46% 48%,transparent 48% 100%);
+    linear-gradient(rgba(0,255,102,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,102,.03) 1px,transparent 1px),
+    linear-gradient(125deg,transparent 0 46%,rgba(0,255,102,.025) 46% 48%,transparent 48% 100%);
   background-size:52px 52px,52px 52px,100% 100%;
   opacity:.88;
   mask-image:none;
@@ -79,28 +79,28 @@ body[data-ui-theme="cyberpunk"] .learn-card,
 body[data-ui-theme="cyberpunk"] .lvl-hdr,
 body[data-ui-theme="cyberpunk"] .lp-card{
   background:
-    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015)),
-    linear-gradient(135deg,rgba(6,10,24,.92),rgba(21,10,30,.9)) !important;
-  border-color:rgba(0,255,231,.18) !important;
-  box-shadow:0 18px 44px rgba(0,0,0,.34),0 0 0 1px rgba(255,32,154,.08),0 0 28px rgba(0,255,231,.08);
+    linear-gradient(180deg,rgba(0,255,102,.035),rgba(0,255,102,.01)),
+    linear-gradient(135deg,rgba(4,8,5,.94),rgba(10,18,12,.92)) !important;
+  border-color:rgba(0,255,102,.18) !important;
+  box-shadow:0 18px 44px rgba(0,0,0,.44),0 0 0 1px rgba(0,255,102,.08),0 0 28px rgba(0,255,102,.07);
 }
 body[data-ui-theme="cyberpunk"] .settings-tab.active,
 body[data-ui-theme="cyberpunk"] .settings-action-btn,
 body[data-ui-theme="cyberpunk"] .btnp{
-  background:linear-gradient(135deg,#00ffe7 0%,#7d59ff 52%,#ff209a 100%) !important;
-  color:#070b14 !important;
-  box-shadow:0 14px 28px rgba(0,255,231,.18) !important;
+  background:linear-gradient(135deg,#00ff66 0%,#31d99a 55%,#ffb020 100%) !important;
+  color:#021206 !important;
+  box-shadow:0 14px 28px rgba(0,255,102,.2) !important;
 }
 body[data-ui-theme="cyberpunk"] .logo-ic,
 body[data-ui-theme="cyberpunk"] .mc-ic{
-  filter:drop-shadow(0 0 16px rgba(0,255,231,.24)) drop-shadow(0 0 26px rgba(255,32,154,.22));
+  filter:drop-shadow(0 0 16px rgba(0,255,102,.3)) drop-shadow(0 0 26px rgba(255,176,32,.16));
 }
 body[data-ui-theme="gaming"]::before{
   background:
-    radial-gradient(circle at 18% 18%,rgba(255,122,24,.16) 0%,transparent 30%),
-    radial-gradient(circle at 82% 18%,rgba(0,255,163,.15) 0%,transparent 28%),
-    radial-gradient(circle at 50% 82%,rgba(255,214,74,.10) 0%,transparent 30%),
-    linear-gradient(180deg,#06090f 0%,#101722 44%,#1a1010 100%);
+    radial-gradient(circle at 18% 18%,rgba(255,70,85,.16) 0%,transparent 30%),
+    radial-gradient(circle at 82% 18%,rgba(0,229,255,.13) 0%,transparent 28%),
+    radial-gradient(circle at 50% 82%,rgba(255,70,85,.10) 0%,transparent 30%),
+    linear-gradient(180deg,#0f1923 0%,#152230 44%,#1c1620 100%);
 }
 body[data-ui-theme="gaming"]::after{
   background-image:
@@ -120,17 +120,17 @@ body[data-ui-theme="gaming"] .learn-card,
 body[data-ui-theme="gaming"] .lvl-hdr,
 body[data-ui-theme="gaming"] .lp-card{
   background:
-    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),
-    linear-gradient(135deg,rgba(10,15,24,.94),rgba(25,14,10,.92)) !important;
-  border-color:rgba(255,122,24,.18) !important;
-  box-shadow:0 18px 48px rgba(0,0,0,.34),0 0 0 1px rgba(0,255,163,.06),0 0 30px rgba(255,122,24,.08);
+    linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012)),
+    linear-gradient(135deg,rgba(15,25,35,.95),rgba(30,20,26,.92)) !important;
+  border-color:rgba(255,70,85,.2) !important;
+  box-shadow:0 18px 48px rgba(0,0,0,.38),0 0 0 1px rgba(0,229,255,.06),0 0 30px rgba(255,70,85,.08);
 }
 body[data-ui-theme="gaming"] .settings-tab.active,
 body[data-ui-theme="gaming"] .settings-action-btn,
 body[data-ui-theme="gaming"] .btnp{
-  background:linear-gradient(135deg,#ff7a18 0%,#ffb347 45%,#00ffa3 100%) !important;
-  color:#08100e !important;
-  box-shadow:0 14px 30px rgba(255,122,24,.2) !important;
+  background:linear-gradient(135deg,#ff4655 0%,#ff6b78 45%,#00e5ff 100%) !important;
+  color:#fff4f5 !important;
+  box-shadow:0 14px 30px rgba(255,70,85,.24) !important;
 }
 body[data-ui-theme="gaming"] .mc{
   position:relative;
@@ -210,24 +210,24 @@ body[data-ui-theme="glass"] .lp-card{
 }
 body[data-ui-theme="anime"]::before{
   background:
-    radial-gradient(circle at 18% 18%,rgba(255,124,191,.18) 0%,transparent 32%),
-    radial-gradient(circle at 82% 24%,rgba(110,231,255,.16) 0%,transparent 28%),
-    radial-gradient(circle at 50% 75%,rgba(255,214,102,.10) 0%,transparent 30%),
-    linear-gradient(180deg,#07111f 0%,#0d1b2f 36%,#15102f 100%);
+    radial-gradient(circle at 18% 18%,rgba(58,200,255,.18) 0%,transparent 32%),
+    radial-gradient(circle at 82% 24%,rgba(224,30,55,.15) 0%,transparent 28%),
+    radial-gradient(circle at 50% 75%,rgba(58,200,255,.09) 0%,transparent 30%),
+    linear-gradient(180deg,#0a0908 0%,#0f0d0c 36%,#140f10 100%);
 }
 body[data-ui-theme="anime"]::after{
   background-image:
-    linear-gradient(115deg,transparent 0 42%,rgba(255,255,255,.03) 42% 44%,transparent 44% 100%),
-    linear-gradient(25deg,transparent 0 58%,rgba(110,231,255,.025) 58% 60%,transparent 60% 100%),
-    radial-gradient(circle at 12% 22%,rgba(255,255,255,.12) 0 1px,transparent 1.5px),
-    radial-gradient(circle at 78% 14%,rgba(255,255,255,.10) 0 1.5px,transparent 2px),
-    radial-gradient(circle at 64% 72%,rgba(255,180,220,.10) 0 1.5px,transparent 2px);
+    linear-gradient(115deg,transparent 0 42%,rgba(247,243,238,.03) 42% 44%,transparent 44% 100%),
+    linear-gradient(25deg,transparent 0 58%,rgba(58,200,255,.03) 58% 60%,transparent 60% 100%),
+    radial-gradient(circle at 12% 22%,rgba(247,243,238,.12) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 78% 14%,rgba(247,243,238,.10) 0 1.5px,transparent 2px),
+    radial-gradient(circle at 64% 72%,rgba(58,200,255,.12) 0 1.5px,transparent 2px);
   background-size:100% 100%,100% 100%,140px 140px,170px 170px,160px 160px;
   opacity:.9;
   mask-image:none;
 }
 body[data-ui-theme="anime"] .logo-ic{
-  filter:drop-shadow(0 0 22px rgba(255,124,191,.26)) drop-shadow(0 0 52px rgba(110,231,255,.18));
+  filter:drop-shadow(0 0 22px rgba(58,200,255,.3)) drop-shadow(0 0 52px rgba(224,30,55,.18));
 }
 body[data-ui-theme="anime"] #banner,
 body[data-ui-theme="anime"] .settings-section,
@@ -238,7 +238,7 @@ body[data-ui-theme="anime"] .gobox,
 body[data-ui-theme="anime"] .learn-card,
 body[data-ui-theme="anime"] .lvl-hdr,
 body[data-ui-theme="anime"] .lp-card{
-  box-shadow:0 18px 48px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.03),0 0 28px rgba(255,124,191,.08);
+  box-shadow:0 18px 48px rgba(0,0,0,.42),0 0 0 1px rgba(247,243,238,.04),0 0 28px rgba(58,200,255,.08);
 }
 body[data-ui-theme="anime"] .settings-section,
 body[data-ui-theme="anime"] .mc,
@@ -246,21 +246,21 @@ body[data-ui-theme="anime"] .oc,
 body[data-ui-theme="anime"] .gobox,
 body[data-ui-theme="anime"] .learn-card{
   background:
-    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),
-    linear-gradient(135deg,rgba(12,22,42,.92),rgba(28,17,54,.9)) !important;
-  border-color:rgba(255,151,204,.2) !important;
+    linear-gradient(180deg,rgba(247,243,238,.045),rgba(247,243,238,.012)),
+    linear-gradient(135deg,rgba(14,12,11,.94),rgba(28,20,20,.92)) !important;
+  border-color:rgba(58,200,255,.2) !important;
 }
 body[data-ui-theme="anime"] .settings-tab.active,
 body[data-ui-theme="anime"] .settings-action-btn,
 body[data-ui-theme="anime"] .btnp{
-  background:linear-gradient(135deg,#ff7cbf 0%,#ffc857 48%,#78f0ff 100%) !important;
-  color:#09111c !important;
-  box-shadow:0 12px 26px rgba(255,124,191,.2) !important;
+  background:linear-gradient(135deg,#3ac8ff 0%,#8cdfff 46%,#e01e37 100%) !important;
+  color:#0a0908 !important;
+  box-shadow:0 12px 26px rgba(58,200,255,.24) !important;
 }
 body[data-ui-theme="anime"] .settings-tab:hover,
 body[data-ui-theme="anime"] .ui-opt:hover,
 body[data-ui-theme="anime"] .pc-opt:hover{
-  box-shadow:0 10px 24px rgba(120,240,255,.1);
+  box-shadow:0 10px 24px rgba(58,200,255,.12);
 }
 body[data-ui-theme="anime"] .settings-tab,
 body[data-ui-theme="anime"] .setting-label,
@@ -272,16 +272,16 @@ body[data-ui-theme="anime"] .settings-headline{
 
 /* Stronger signature for showcase themes */
 body[data-ui-theme="cyberpunk"] #banner{
-  background:linear-gradient(90deg,rgba(5,10,20,.95),rgba(18,9,30,.94)) !important;
-  box-shadow:0 1px 0 rgba(0,255,231,.18),0 12px 36px rgba(0,0,0,.24);
+  background:linear-gradient(90deg,rgba(4,8,5,.95),rgba(18,9,30,.94)) !important;
+  box-shadow:0 1px 0 rgba(0,255,102,.18),0 12px 36px rgba(0,0,0,.24);
 }
 body[data-ui-theme="cyberpunk"] .bnm,
 body[data-ui-theme="cyberpunk"] .rv-title{
   letter-spacing:.16em;
-  text-shadow:0 0 16px rgba(0,255,231,.22),0 0 26px rgba(255,32,154,.18);
+  text-shadow:0 0 16px rgba(0,255,102,.22),0 0 26px rgba(255,176,32,.18);
 }
 body[data-ui-theme="cyberpunk"] .bwrap{
-  box-shadow:0 0 0 4px rgba(5,10,20,.94),0 0 0 8px rgba(0,255,231,.18),0 0 24px rgba(255,32,154,.18),0 24px 54px rgba(0,0,0,.62);
+  box-shadow:0 0 0 4px rgba(4,8,5,.94),0 0 0 8px rgba(0,255,102,.18),0 0 24px rgba(255,176,32,.18),0 24px 54px rgba(0,0,0,.62);
 }
 body[data-ui-theme="cyberpunk"] .pbar,
 body[data-ui-theme="cyberpunk"] .gtbar .tbb2,
@@ -292,23 +292,23 @@ body[data-ui-theme="cyberpunk"] .rv-loadcard{
   background:
     linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01)),
     linear-gradient(135deg,rgba(7,14,28,.95),rgba(24,10,34,.92)) !important;
-  border-color:rgba(0,255,231,.18) !important;
-  box-shadow:0 14px 32px rgba(0,0,0,.28),0 0 0 1px rgba(255,32,154,.06),0 0 26px rgba(0,255,231,.07);
+  border-color:rgba(0,255,102,.18) !important;
+  box-shadow:0 14px 32px rgba(0,0,0,.28),0 0 0 1px rgba(255,176,32,.06),0 0 26px rgba(0,255,102,.07);
 }
 body[data-ui-theme="cyberpunk"] .pbar.myturn{
   box-shadow:none;
 }
 body[data-ui-theme="gaming"] #banner{
   background:linear-gradient(90deg,rgba(9,12,18,.96),rgba(26,16,10,.94)) !important;
-  box-shadow:0 1px 0 rgba(255,122,24,.18),0 12px 30px rgba(0,0,0,.22);
+  box-shadow:0 1px 0 rgba(255,70,85,.18),0 12px 30px rgba(0,0,0,.22);
 }
 body[data-ui-theme="gaming"] .bnm,
 body[data-ui-theme="gaming"] .rv-title{
   letter-spacing:.14em;
-  text-shadow:0 0 14px rgba(255,122,24,.18),0 0 22px rgba(0,255,163,.12);
+  text-shadow:0 0 14px rgba(255,70,85,.18),0 0 22px rgba(0,229,255,.12);
 }
 body[data-ui-theme="gaming"] .bwrap{
-  box-shadow:0 0 0 4px rgba(12,15,22,.96),0 0 0 8px rgba(255,122,24,.18),0 0 22px rgba(0,255,163,.12),0 24px 52px rgba(0,0,0,.6);
+  box-shadow:0 0 0 4px rgba(15,25,35,.96),0 0 0 8px rgba(255,70,85,.18),0 0 22px rgba(0,229,255,.12),0 24px 52px rgba(0,0,0,.6);
 }
 body[data-ui-theme="gaming"] .pbar,
 body[data-ui-theme="gaming"] .gtbar .tbb2,
@@ -318,26 +318,26 @@ body[data-ui-theme="gaming"] .rv-coach,
 body[data-ui-theme="gaming"] .rv-loadcard{
   background:
     linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)),
-    linear-gradient(135deg,rgba(12,18,28,.95),rgba(35,16,8,.92)) !important;
-  border-color:rgba(255,122,24,.18) !important;
-  box-shadow:0 14px 32px rgba(0,0,0,.28),0 0 0 1px rgba(0,255,163,.05),0 0 24px rgba(255,122,24,.08);
+    linear-gradient(135deg,rgba(15,25,35,.95),rgba(30,20,26,.92)) !important;
+  border-color:rgba(255,70,85,.18) !important;
+  box-shadow:0 14px 32px rgba(0,0,0,.28),0 0 0 1px rgba(0,229,255,.05),0 0 24px rgba(255,70,85,.08);
 }
 body[data-ui-theme="gaming"] .pbar.myturn{
   box-shadow:none;
 }
 body[data-ui-theme="anime"] #banner{
   background:
-    linear-gradient(90deg,rgba(8,18,33,.96),rgba(24,12,40,.94)),
-    linear-gradient(120deg,rgba(255,124,191,.08),transparent 36%,rgba(120,240,255,.08) 72%,transparent 100%) !important;
-  box-shadow:0 1px 0 rgba(255,151,204,.18),0 12px 32px rgba(0,0,0,.22);
+    linear-gradient(90deg,rgba(10,9,8,.96),rgba(20,15,15,.94)),
+    linear-gradient(120deg,rgba(58,200,255,.08),transparent 36%,rgba(224,30,55,.08) 72%,transparent 100%) !important;
+  box-shadow:0 1px 0 rgba(58,200,255,.18),0 12px 32px rgba(0,0,0,.22);
 }
 body[data-ui-theme="anime"] .bnm,
 body[data-ui-theme="anime"] .rv-title{
   letter-spacing:.08em;
-  text-shadow:0 0 18px rgba(255,124,191,.18),0 0 24px rgba(120,240,255,.12);
+  text-shadow:0 0 18px rgba(58,200,255,.18),0 0 24px rgba(224,30,55,.12);
 }
 body[data-ui-theme="anime"] .bwrap{
-  box-shadow:0 0 0 4px rgba(10,18,34,.96),0 0 0 8px rgba(255,151,204,.17),0 0 28px rgba(120,240,255,.12),0 26px 56px rgba(0,0,0,.6);
+  box-shadow:0 0 0 4px rgba(10,9,8,.96),0 0 0 8px rgba(58,200,255,.17),0 0 28px rgba(224,30,55,.12),0 26px 56px rgba(0,0,0,.6);
 }
 body[data-ui-theme="anime"] .pbar,
 body[data-ui-theme="anime"] .gtbar .tbb2,
@@ -348,9 +348,9 @@ body[data-ui-theme="anime"] .rv-loadcard,
 body[data-ui-theme="anime"] .go-score-pill{
   background:
     linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),
-    linear-gradient(135deg,rgba(13,23,44,.94),rgba(35,18,58,.9)) !important;
-  border-color:rgba(255,151,204,.22) !important;
-  box-shadow:0 14px 34px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.03),0 0 24px rgba(120,240,255,.07);
+    linear-gradient(135deg,rgba(14,12,11,.94),rgba(28,20,20,.92)) !important;
+  border-color:rgba(58,200,255,.22) !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.03),0 0 24px rgba(224,30,55,.07);
 }
 body[data-ui-theme="anime"] .pbar{
   position:relative;
@@ -370,7 +370,7 @@ body[data-ui-theme="anime"] .pbar.myturn{
 
 /* Clearer high-identity theme polish */
 body[data-ui-theme="gaming"] .logo-t{
-  background:linear-gradient(90deg,#ff7a18 0%,#ffd166 36%,#00ffa3 100%);
+  background:linear-gradient(90deg,#ff4655 0%,#ff6b78 36%,#00e5ff 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
@@ -410,7 +410,7 @@ body[data-ui-theme="gaming"] .gmlbl{
   text-transform:uppercase;
 }
 body[data-ui-theme="gaming"] .mc-ic{
-  filter:drop-shadow(0 0 18px rgba(255,122,24,.3)) drop-shadow(0 0 28px rgba(0,255,163,.18));
+  filter:drop-shadow(0 0 18px rgba(255,70,85,.3)) drop-shadow(0 0 28px rgba(0,229,255,.18));
 }
 body[data-ui-theme="gaming"] .gtbar .tbb2,
 body[data-ui-theme="gaming"] .bgp,
@@ -421,7 +421,7 @@ body[data-ui-theme="gaming"] .rv-close{
   box-shadow:0 10px 22px rgba(0,0,0,.24);
 }
 body[data-ui-theme="gaming"] .gtbar .tbb2{
-  background:linear-gradient(135deg,rgba(255,122,24,.16),rgba(0,255,163,.08)) !important;
+  background:linear-gradient(135deg,rgba(255,70,85,.16),rgba(0,229,255,.08)) !important;
   border-color:rgba(255,179,71,.18) !important;
   color:#f8fafc;
 }
@@ -435,7 +435,7 @@ body[data-ui-theme="gaming"] .pbar::before{
 }
 
 body[data-ui-theme="anime"] .logo-t{
-  background:linear-gradient(90deg,#ff8cc6 0%,#ffd166 42%,#78f0ff 100%);
+  background:linear-gradient(90deg,#3ac8ff 0%,#e01e37 42%,#e01e37 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
@@ -460,7 +460,7 @@ body[data-ui-theme="anime"] .settings-section::before{
   inset:-18%;
   background:
     radial-gradient(circle at 18% 20%,rgba(255,166,207,.22),transparent 22%),
-    radial-gradient(circle at 82% 22%,rgba(120,240,255,.22),transparent 24%),
+    radial-gradient(circle at 82% 22%,rgba(224,30,55,.22),transparent 24%),
     radial-gradient(circle at 54% 86%,rgba(255,209,102,.18),transparent 22%);
   pointer-events:none;
   filter:blur(2px);
@@ -475,13 +475,13 @@ body[data-ui-theme="anime"] .mc::after{
   pointer-events:none;
 }
 body[data-ui-theme="anime"] .mc-ic{
-  filter:drop-shadow(0 0 18px rgba(255,140,198,.3)) drop-shadow(0 0 24px rgba(120,240,255,.2));
+  filter:drop-shadow(0 0 18px rgba(58,200,255,.3)) drop-shadow(0 0 24px rgba(224,30,55,.2));
 }
 body[data-ui-theme="anime"] .mc-t{
   letter-spacing:.05em;
 }
 body[data-ui-theme="anime"] .mc-d{
-  color:#f4d9ea;
+  color:#e8e2db;
 }
 body[data-ui-theme="anime"] .gtbar .tbb2,
 body[data-ui-theme="anime"] .bgp,
@@ -491,8 +491,8 @@ body[data-ui-theme="anime"] .rv-close{
   box-shadow:0 10px 24px rgba(16,18,40,.28);
 }
 body[data-ui-theme="anime"] .gtbar .tbb2{
-  background:linear-gradient(135deg,rgba(255,124,191,.14),rgba(120,240,255,.1)) !important;
-  border-color:rgba(255,151,204,.18) !important;
+  background:linear-gradient(135deg,rgba(58,200,255,.14),rgba(224,30,55,.1)) !important;
+  border-color:rgba(58,200,255,.18) !important;
   color:#fff6fb;
 }
 
@@ -507,7 +507,7 @@ body[data-ui-theme="cyberpunk"] .bgp,
 body[data-ui-theme="cyberpunk"] .bgs,
 body[data-ui-theme="cyberpunk"] .rv-close{
   border-radius:14px !important;
-  box-shadow:0 10px 24px rgba(0,0,0,.26),0 0 18px rgba(0,255,231,.08);
+  box-shadow:0 10px 24px rgba(0,0,0,.26),0 0 18px rgba(0,255,102,.08);
 }
 
 .particle{position:fixed;pointer-events:none;z-index:0;border-radius:50%;animation:particleFloat linear infinite;}
@@ -786,7 +786,7 @@ body[data-ui-theme="gaming"] .rv-coach{
     linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)),
     linear-gradient(135deg,#0a121b 0%,#14120e 45%,#1f160d 100%) !important;
   border-color:rgba(255,156,62,.24) !important;
-  box-shadow:0 20px 46px rgba(0,0,0,.38),0 0 0 1px rgba(0,255,163,.08),0 0 30px rgba(255,122,24,.12);
+  box-shadow:0 20px 46px rgba(0,0,0,.38),0 0 0 1px rgba(0,229,255,.08),0 0 30px rgba(255,70,85,.12);
 }
 body[data-ui-theme="gaming"] .mc{
   border-radius:28px !important;
@@ -796,7 +796,7 @@ body[data-ui-theme="gaming"] .mc::before{
   opacity:1;
   background:
     repeating-linear-gradient(180deg,rgba(255,255,255,.04) 0 2px,transparent 2px 9px),
-    linear-gradient(130deg,transparent 0 52%,rgba(0,255,163,.08) 52% 54%,transparent 54% 100%);
+    linear-gradient(130deg,transparent 0 52%,rgba(0,229,255,.08) 52% 54%,transparent 54% 100%);
 }
 body[data-ui-theme="gaming"] .mc::after{
   content:'';
@@ -813,15 +813,15 @@ body[data-ui-theme="gaming"] .mc::after{
   transform:none;
 }
 body[data-ui-theme="gaming"] .mc-tag{
-  background:linear-gradient(135deg,#ff7a18,#00ffa3);
+  background:linear-gradient(135deg,#ff4655,#00e5ff);
   color:#07120f;
   border-color:transparent;
-  box-shadow:0 8px 20px rgba(255,122,24,.18);
+  box-shadow:0 8px 20px rgba(255,70,85,.18);
 }
 body[data-ui-theme="gaming"] .gmlbl,
 body[data-ui-theme="gaming"] .mc-t{letter-spacing:.12em;text-transform:uppercase;}
 body[data-ui-theme="gaming"] .bwrap{
-  box-shadow:0 0 0 4px rgba(8,13,18,.98),0 0 0 9px rgba(255,122,24,.3),0 0 0 13px rgba(0,255,163,.08),0 30px 70px rgba(0,0,0,.66);
+  box-shadow:0 0 0 4px rgba(10,18,25,.98),0 0 0 9px rgba(255,70,85,.3),0 0 0 13px rgba(0,229,255,.08),0 30px 70px rgba(0,0,0,.66);
 }
 
 body[data-ui-theme="anime"] #banner,
@@ -836,11 +836,11 @@ body[data-ui-theme="anime"] .rv-loadcard,
 body[data-ui-theme="anime"] .rv-card,
 body[data-ui-theme="anime"] .rv-coach{
   background:
-    radial-gradient(circle at top right,rgba(255,140,198,.18),transparent 34%),
-    radial-gradient(circle at bottom left,rgba(120,240,255,.16),transparent 24%),
-    linear-gradient(145deg,rgba(12,23,43,.95),rgba(33,19,58,.92)) !important;
-  border-color:rgba(255,171,214,.24) !important;
-  box-shadow:0 22px 50px rgba(13,18,43,.42),0 0 0 1px rgba(255,255,255,.04),0 0 26px rgba(120,240,255,.1);
+    radial-gradient(circle at top right,rgba(58,200,255,.18),transparent 34%),
+    radial-gradient(circle at bottom left,rgba(224,30,55,.16),transparent 24%),
+    linear-gradient(145deg,rgba(14,12,11,.95),rgba(28,20,20,.92)) !important;
+  border-color:rgba(58,200,255,.24) !important;
+  box-shadow:0 22px 50px rgba(10,9,8,.42),0 0 0 1px rgba(255,255,255,.04),0 0 26px rgba(224,30,55,.1);
 }
 body[data-ui-theme="anime"] .mc{
   border-radius:30px !important;
@@ -869,15 +869,15 @@ body[data-ui-theme="anime"] .mc::after{
   transform:skewX(-28deg);
 }
 body[data-ui-theme="anime"] .mc-tag{
-  background:linear-gradient(135deg,#ff8cc6,#ffd166,#78f0ff);
+  background:linear-gradient(135deg,#3ac8ff,#e01e37,#e01e37);
   color:#0b1022;
   border-color:transparent;
-  box-shadow:0 8px 20px rgba(255,124,191,.2);
+  box-shadow:0 8px 20px rgba(58,200,255,.2);
 }
 body[data-ui-theme="anime"] .logo-s,
-body[data-ui-theme="anime"] .mc-d{color:#f3d9ea;}
+body[data-ui-theme="anime"] .mc-d{color:#c9c2ba;}
 body[data-ui-theme="anime"] .bwrap{
-  box-shadow:0 0 0 4px rgba(15,22,43,.96),0 0 0 9px rgba(255,153,214,.26),0 0 0 13px rgba(120,240,255,.08),0 30px 68px rgba(0,0,0,.64);
+  box-shadow:0 0 0 4px rgba(20,15,15,.96),0 0 0 9px rgba(58,200,255,.26),0 0 0 13px rgba(224,30,55,.08),0 30px 68px rgba(0,0,0,.64);
 }
 
 body[data-ui-theme="cyberpunk"] #banner,
@@ -893,9 +893,9 @@ body[data-ui-theme="cyberpunk"] .rv-card,
 body[data-ui-theme="cyberpunk"] .rv-coach{
   background:
     linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),
-    linear-gradient(135deg,#08121c 0%,#0b1f27 38%,#190d2a 100%) !important;
-  border-color:rgba(0,255,231,.24) !important;
-  box-shadow:0 20px 48px rgba(0,0,0,.4),0 0 0 1px rgba(255,32,154,.08),0 0 30px rgba(0,255,231,.12);
+    linear-gradient(135deg,#040604 0%,#08130c 38%,#04100a 100%) !important;
+  border-color:rgba(0,255,102,.24) !important;
+  box-shadow:0 20px 48px rgba(0,0,0,.4),0 0 0 1px rgba(255,176,32,.08),0 0 30px rgba(0,255,102,.12);
 }
 body[data-ui-theme="cyberpunk"] .mc{
   border-radius:0 !important;
@@ -904,8 +904,8 @@ body[data-ui-theme="cyberpunk"] .mc{
 body[data-ui-theme="cyberpunk"] .mc::before{
   opacity:1;
   background:
-    linear-gradient(rgba(0,255,231,.07) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,32,154,.05) 1px,transparent 1px),
+    linear-gradient(rgba(0,255,102,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,176,32,.05) 1px,transparent 1px),
     linear-gradient(135deg,transparent 0 58%,rgba(255,255,255,.08) 58% 60%,transparent 60% 100%);
   background-size:22px 22px,22px 22px,100% 100%;
 }
@@ -917,7 +917,7 @@ body[data-ui-theme="cyberpunk"] .mc::after{
   height:auto;
   top:10px;
   left:10px;
-  border:1px solid rgba(0,255,231,.18);
+  border:1px solid rgba(0,255,102,.18);
   background:none;
   opacity:1;
   transform:none;
@@ -925,24 +925,24 @@ body[data-ui-theme="cyberpunk"] .mc::after{
 }
 body[data-ui-theme="cyberpunk"] .mc-tag{
   background:rgba(5,16,20,.84);
-  border-color:rgba(0,255,231,.26);
-  color:#93fff7;
-  box-shadow:0 0 18px rgba(0,255,231,.14);
+  border-color:rgba(0,255,102,.26);
+  color:#6bffa8;
+  box-shadow:0 0 18px rgba(0,255,102,.14);
 }
 body[data-ui-theme="cyberpunk"] .gmlbl,
 body[data-ui-theme="cyberpunk"] .mc-t{letter-spacing:.14em;text-transform:uppercase;}
 body[data-ui-theme="cyberpunk"] .bwrap{
-  box-shadow:0 0 0 4px rgba(5,12,18,.96),0 0 0 9px rgba(0,255,231,.28),0 0 0 13px rgba(255,32,154,.08),0 30px 70px rgba(0,0,0,.7);
+  box-shadow:0 0 0 4px rgba(3,7,4,.96),0 0 0 9px rgba(0,255,102,.28),0 0 0 13px rgba(255,176,32,.08),0 30px 70px rgba(0,0,0,.7);
 }
 
 /* Card comfort refinements for high-identity themes */
 body[data-ui-theme="gaming"] .mc{
   background:
-    radial-gradient(circle at 14% 18%,rgba(0,255,163,.16),transparent 32%),
-    radial-gradient(circle at 86% 84%,rgba(255,122,24,.16),transparent 28%),
+    radial-gradient(circle at 14% 18%,rgba(0,229,255,.16),transparent 32%),
+    radial-gradient(circle at 86% 84%,rgba(255,70,85,.16),transparent 28%),
     linear-gradient(145deg,#0c1118 0%,#131a23 44%,#171610 100%) !important;
   border-color:rgba(255,156,62,.2) !important;
-  box-shadow:0 20px 40px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.03),0 16px 30px rgba(0,255,163,.06);
+  box-shadow:0 20px 40px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.03),0 16px 30px rgba(0,229,255,.06);
 }
 body[data-ui-theme="gaming"] .mc::before{
   background:
@@ -952,30 +952,30 @@ body[data-ui-theme="gaming"] .mc::before{
 }
 body[data-ui-theme="gaming"] .mc::after{
   border-color:rgba(255,179,71,.14);
-  box-shadow:inset 0 0 0 1px rgba(0,255,163,.05);
+  box-shadow:inset 0 0 0 1px rgba(0,229,255,.05);
 }
-body[data-ui-theme="gaming"] .mc-d{color:#d8e6f3;}
+body[data-ui-theme="gaming"] .mc-d{color:#c4bfb6;}
 body[data-ui-theme="cyberpunk"] .mc{
   background:
-    radial-gradient(circle at 14% 18%,rgba(0,255,231,.16),transparent 30%),
-    radial-gradient(circle at 88% 12%,rgba(255,32,154,.14),transparent 26%),
+    radial-gradient(circle at 14% 18%,rgba(0,255,102,.16),transparent 30%),
+    radial-gradient(circle at 88% 12%,rgba(255,176,32,.14),transparent 26%),
     linear-gradient(150deg,#081118 0%,#0b1820 42%,#150f22 100%) !important;
-  border-color:rgba(0,255,231,.18) !important;
-  box-shadow:0 20px 46px rgba(0,0,0,.36),0 0 0 1px rgba(147,255,247,.04),0 0 20px rgba(0,255,231,.08);
+  border-color:rgba(0,255,102,.18) !important;
+  box-shadow:0 20px 46px rgba(0,0,0,.36),0 0 0 1px rgba(107,255,168,.04),0 0 20px rgba(0,255,102,.08);
 }
 body[data-ui-theme="cyberpunk"] .mc::before{
   background:
-    linear-gradient(rgba(0,255,231,.034) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,32,154,.028) 1px,transparent 1px),
+    linear-gradient(rgba(0,255,102,.034) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,176,32,.028) 1px,transparent 1px),
     radial-gradient(circle at 84% 18%,rgba(255,255,255,.08),transparent 26%);
   background-size:30px 30px,30px 30px,100% 100%;
   opacity:.56;
 }
 body[data-ui-theme="cyberpunk"] .mc::after{
-  border-color:rgba(0,255,231,.12);
-  box-shadow:inset 0 0 0 1px rgba(255,32,154,.04);
+  border-color:rgba(0,255,102,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,176,32,.04);
 }
-body[data-ui-theme="cyberpunk"] .mc-d{color:#d8ebf5;}
+body[data-ui-theme="cyberpunk"] .mc-d{color:#a8c9b3;}
 
 body[data-ui-theme="minimal"] .mc,
 body[data-ui-theme="minimal"] .settings-section,
@@ -4390,13 +4390,15 @@ const UI_THEMES={
     text:'#edf2f7',text2:'#9aa9bc',text3:'#6f8196',
     accent:'#f8fafc',accent2:'#bfd7ff',fxGlow:'rgba(219,228,239,.14)',fxNeon:'rgba(191,215,255,.14)'
   },
+  /* سايبر سكيورتي — تيرمنال أخضر فوسفوري على أسود صافي.
+     الماجنتا والبنفسجي اتشالوا: دول ألوان synthwave مش أمن معلوماتي. */
   cyberpunk:{
-    bg:'#060711',bg2:'#0d1222',bg3:'#15112a',bg4:'#1f1737',
-    gold:'#ff46c7',gold2:'#ff89df',gold3:'#ffd0f0',
-    teal:'#00ffe7',teal2:'#92fff7',
-    red:'#ff5b7f',green:'#2fffa8',blue:'#7d59ff',
-    text:'#eef6ff',text2:'#aab6e8',text3:'#6670a9',
-    accent:'#00ffe7',accent2:'#ff209a',fxGlow:'rgba(255,32,154,.28)',fxNeon:'rgba(0,255,231,.3)'
+    bg:'#040604',bg2:'#0a0f0b',bg3:'#101711',bg4:'#17211a',
+    gold:'#ffb020',gold2:'#ffc65c',gold3:'#ffe0a0',
+    teal:'#00ff66',teal2:'#6bffa8',
+    red:'#ff3b30',green:'#00ff66',blue:'#31d99a',
+    text:'#dfffe9',text2:'#7fa98c',text3:'#4c6654',
+    accent:'#00ff66',accent2:'#ffb020',fxGlow:'rgba(0,255,102,.24)',fxNeon:'rgba(0,255,102,.3)'
   },
   glass:{
     bg:'#09111d',bg2:'rgba(255,255,255,.07)',bg3:'rgba(255,255,255,.1)',bg4:'rgba(255,255,255,.13)',
@@ -4406,21 +4408,24 @@ const UI_THEMES={
     text:'#f4fbff',text2:'#d4e7ff',text3:'#9ebfe0',
     accent:'#d8e8ff',accent2:'#a7ffe1',fxGlow:'rgba(159,208,255,.18)',fxNeon:'rgba(167,255,225,.16)'
   },
+  /* إسبورتس — كحلي صخري + أحمر حاد + أوف-وايت مايل للبيج */
   gaming:{
-    bg:'#06090f',bg2:'#101722',bg3:'#171f28',bg4:'#241714',
-    gold:'#ff7a18',gold2:'#ffb347',gold3:'#ffe08a',
-    teal:'#00ffa3',teal2:'#8bffd4',
-    red:'#ff5c5c',green:'#00ffa3',blue:'#6cb7ff',
-    text:'#f5fbff',text2:'#c9d3db',text3:'#81909f',
-    accent:'#ff7a18',accent2:'#00ffa3',fxGlow:'rgba(255,122,24,.3)',fxNeon:'rgba(0,255,163,.28)'
+    bg:'#0f1923',bg2:'#16232f',bg3:'#1e2e3c',bg4:'#293b4b',
+    gold:'#ff4655',gold2:'#ff6b78',gold3:'#ff8b96',
+    teal:'#00e5ff',teal2:'#7df0ff',
+    red:'#ff4655',green:'#3ad29f',blue:'#00e5ff',
+    text:'#ece8e1',text2:'#9ba8b4',text3:'#5f6f7c',
+    accent:'#ff4655',accent2:'#00e5ff',fxGlow:'rgba(255,70,85,.28)',fxNeon:'rgba(0,229,255,.26)'
   },
+  /* أنمي — حِبر أسود + سماوي الطاقة الملعونة + قرمزي سوكونا.
+     الوردي اتشال؛ مالوش علاقة بالأنمي وكان مجرد بستيل عام. */
   anime:{
-    bg:'#07111f',bg2:'#101a2f',bg3:'#16233d',bg4:'#1d2d4f',
-    gold:'#ffc857',gold2:'#ffd978',gold3:'#fff1b3',
-    teal:'#78f0ff',teal2:'#a7f7ff',
-    red:'#ff7ca8',green:'#8df7c1',blue:'#8da2ff',
-    text:'#f6f7ff',text2:'#c8d2ee',text3:'#91a1c8',
-    accent:'#ff7cbf',accent2:'#78f0ff',fxGlow:'rgba(255,124,191,.28)',fxNeon:'rgba(120,240,255,.22)',
+    bg:'#0a0908',bg2:'#141110',bg3:'#1e1a19',bg4:'#2a2523',
+    gold:'#e01e37',gold2:'#f5405a',gold3:'#ff8a9c',
+    teal:'#3ac8ff',teal2:'#8cdfff',
+    red:'#e01e37',green:'#5ad48a',blue:'#3ac8ff',
+    text:'#f7f3ee',text2:'#a9a29b',text3:'#6b655f',
+    accent:'#3ac8ff',accent2:'#e01e37',fxGlow:'rgba(58,200,255,.26)',fxNeon:'rgba(224,30,55,.24)',
     // Anime-specific styles
     animeStyle:true,
     boardGlow:true,
@@ -10074,14 +10079,31 @@ const OL=(()=>{
   let SERVER_URL='';
   let SERVER_HTTP='';
   async function loadServerUrl(){
-    try{
-      const r=await fetch('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t='+Date.now());
-      const j=await r.json();
-      SERVER_HTTP=j.url||'';
-      SERVER_URL=j.url.replace('https://','wss://');
-    }catch(e){
-      SERVER_URL='';
-      SERVER_HTTP='';
+    const fetchWithTimeout = async (url, ms = 4000) => {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), ms);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(id);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (e) {
+        clearTimeout(id);
+        return null;
+      }
+    };
+
+    let data = await fetchWithTimeout('./url.json?t=' + Date.now());
+    if (!data || !data.url) {
+      data = await fetchWithTimeout('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t=' + Date.now());
+    }
+
+    if (data && data.url) {
+      SERVER_HTTP = String(data.url).trim();
+      SERVER_URL = SERVER_HTTP.replace(/^https:\/\//i, 'wss://').replace(/^http:\/\//, 'ws://');
+    } else {
+      SERVER_URL = '';
+      SERVER_HTTP = '';
     }
   }
 
