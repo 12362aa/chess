@@ -10083,7 +10083,7 @@ const OL=(()=>{
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), ms);
       try {
-        const res = await fetch(url, { signal: controller.signal });
+        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
         clearTimeout(id);
         if (!res.ok) return null;
         return await res.json();
@@ -10100,7 +10100,7 @@ const OL=(()=>{
 
     if (data && data.url) {
       SERVER_HTTP = String(data.url).trim();
-      SERVER_URL = SERVER_HTTP.replace(/^https:\/\//i, 'wss://').replace(/^http:\/\//, 'ws://');
+      SERVER_URL = SERVER_HTTP.replace(/^https:\/\//i, 'wss://').replace(/^http:\/\//i, 'ws://');
     } else {
       SERVER_URL = '';
       SERVER_HTTP = '';
@@ -10112,6 +10112,7 @@ const OL=(()=>{
   let _roomCode='';
   let _reconnectTimer=null;
   let _pingTimer=null;
+  let _connTimeoutTimer=null;
 
   function setSt(tab,msg,tp=''){
     const el=document.getElementById('st-'+tab);
@@ -10120,6 +10121,7 @@ const OL=(()=>{
 
   function destroy(){
     clearTimeout(_reconnectTimer);
+    clearTimeout(_connTimeoutTimer);
     clearInterval(_pingTimer);
     if(ws){
       try{ws.close();}catch(e){}
@@ -10142,6 +10144,7 @@ const OL=(()=>{
         if(!SERVER_URL){
           setSt('c','◆ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
           setSt('j','◆ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
+          try{document.getElementById('btn-create').disabled=false;}catch(e){}
           return;
         }
         connect(onOpen);
@@ -10150,15 +10153,28 @@ const OL=(()=>{
     }
     setSt('c','◌ جاري الاتصال بالخادم...','conn');
     setSt('j','◌ جاري الاتصال بالخادم...','conn');
+
+    _connTimeoutTimer = setTimeout(() => {
+      SERVER_URL = '';
+      destroy();
+      setSt('c','◆ تعذر الاتصال بالخادم (انتهت المهلة) — اعد المحاولة','err');
+      setSt('j','◆ تعذر الاتصال بالخادم (انتهت المهلة) — اعد المحاولة','err');
+      try{document.getElementById('btn-create').disabled=false;}catch(e){}
+    }, 7000);
+
     try{
       ws=new WebSocket(SERVER_URL);
     }catch(e){
+      SERVER_URL='';
+      clearTimeout(_connTimeoutTimer);
       setSt('c','◆ تعذر الاتصال بالخادم','err');
       setSt('j','◆ تعذر الاتصال بالخادم','err');
+      try{document.getElementById('btn-create').disabled=false;}catch(e){}
       return;
     }
 
     ws.onopen=()=>{
+      clearTimeout(_connTimeoutTimer);
       _pingTimer=setInterval(()=>send({type:'ping'}),25000);
       if(onOpen)onOpen();
     };
@@ -10186,8 +10202,11 @@ const OL=(()=>{
     };
 
     ws.onerror=()=>{
+      SERVER_URL = '';
+      clearTimeout(_connTimeoutTimer);
       setSt('c','◆ خطأ في الاتصال — تحقق من الإنترنت','err');
       setSt('j','◆ خطأ في الاتصال — تحقق من الإنترنت','err');
+      try{document.getElementById('btn-create').disabled=false;}catch(e){}
     };
   }
 
