@@ -14,6 +14,9 @@ Chess-AmKh-debug.apk
 apk-verification/
 README-ANDROID.md
 
+# نسخة لينكس من ngrok (باينري 32MB، بيتنزّل محليًا، مش بيتّبع)
+ngrok
+
 .claude/settings.local.json
 .tmp-cdp/
 .chrome-prof/
