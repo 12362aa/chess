@@ -7,7 +7,9 @@
       "*.ngrok-free.app",
       "*.ngrok-free.dev",
       "*.ngrok.io",
-      "*.ngrok.app"
+      "*.ngrok.app",
+      "*.trycloudflare.com",
+      "raw.githubusercontent.com"
     ],
     "cleartext": true
   },

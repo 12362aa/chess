@@ -14,7 +14,7 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css">
+<link rel="stylesheet" href="design-system.css?v=20260813-online-fix-1">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -3143,7 +3143,13 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css">
+<link rel="stylesheet" href="screens.css?v=20260813-online-fix-1">
+<!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
+     بنسخة CSS سابقة أثناء تحديث الموقع. -->
+<style>
+  .home-daily__icon{width:38px;height:38px;overflow:hidden;flex:0 0 38px}
+  .home-daily__icon>svg{display:block;width:20px!important;height:20px!important;max-width:20px;max-height:20px}
+</style>
 <!-- QR Code Libraries for LAN Mode -->
 </head>
 <body data-screen="s-menu">
@@ -10093,18 +10099,29 @@ const OL=(()=>{
       }
     };
 
-    let data = await fetchWithTimeout('./url.json?t=' + Date.now());
-    if (!data || !data.url) {
-      data = await fetchWithTimeout('https://raw.githubusercontent.com/12362aa/chess/main/url.json?t=' + Date.now());
+    /* url.json الموجود داخل الـAPK لقطة قديمة لا تتغير بعد التثبيت. كان
+       اختياره أولاً يمنع التطبيق نهائياً من قراءة الرابط الحي على GitHub.
+       نقرأ المصدر البعيد أولاً، ثم نتحقق من /api/health قبل اعتماد الرابط؛
+       الملف المحلي مجرد fallback للويب المحلي/التطوير وليس دليلاً أن
+       النفق ما زال حياً. */
+    const sources = [
+      'https://raw.githubusercontent.com/12362aa/chess/main/url.json?t=' + Date.now(),
+      './url.json?t=' + Date.now()
+    ];
+    for (const source of sources) {
+      const data = await fetchWithTimeout(source);
+      if (!data || !data.url) continue;
+      const base = String(data.url).trim().replace(/\/$/, '');
+      if (!/^https?:\/\//i.test(base)) continue;
+      const health = await fetchWithTimeout(base + '/api/health?t=' + Date.now(), 6000);
+      if (!health || health.status !== 'ok') continue;
+      SERVER_HTTP = base;
+      SERVER_URL = base.replace(/^https:\/\//i, 'wss://').replace(/^http:\/\//i, 'ws://');
+      return true;
     }
-
-    if (data && data.url) {
-      SERVER_HTTP = String(data.url).trim();
-      SERVER_URL = SERVER_HTTP.replace(/^https:\/\//i, 'wss://').replace(/^http:\/\//i, 'ws://');
-    } else {
-      SERVER_URL = '';
-      SERVER_HTTP = '';
-    }
+    SERVER_URL = '';
+    SERVER_HTTP = '';
+    return false;
   }
 
   let ws=null;

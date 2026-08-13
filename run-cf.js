@@ -38,6 +38,35 @@ const cfBin = getCfBin();
 
 let uploaded = false;
 
+function checkHealth(url, timeout = 8000) {
+  return new Promise((resolve) => {
+    const transport = url.startsWith('https:') ? require('https') : require('http');
+    const req = transport.get(`${url.replace(/\/$/, '')}/api/health?t=${Date.now()}`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+      timeout
+    }, (res) => {
+      let body = '';
+      res.setEncoding('utf8');
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        try { resolve(res.statusCode === 200 && JSON.parse(body).status === 'ok'); }
+        catch (_) { resolve(false); }
+      });
+    });
+    req.on('timeout', () => req.destroy());
+    req.on('error', () => resolve(false));
+  });
+}
+
+async function publishIfHealthy(url) {
+  if (!await checkHealth(url)) {
+    console.error('Tunnel opened but health check failed; URL was not published:', url);
+    return false;
+  }
+  uploadUrl(url);
+  return true;
+}
+
 if (fs.existsSync(cfBin) || !isWin) {
   console.log(`Starting Cloudflare Tunnel (${cfBin})...`);
   const cf = spawn(cfBin, ['tunnel', '--url', `http://localhost:${PORT}`], {
@@ -53,7 +82,7 @@ if (fs.existsSync(cfBin) || !isWin) {
       uploaded = true;
       const url = match[0];
       console.log(`[${new Date().toLocaleString()}] Cloudflare Tunnel URL:`, url);
-      uploadUrl(url);
+      publishIfHealthy(url);
     }
   }
 
@@ -96,7 +125,7 @@ function startNgrok() {
             if (tunnels && tunnels.length > 0) {
               const url = tunnels[0].public_url;
               console.log(`[${new Date().toLocaleString()}] URL:`, url);
-              uploadUrl(url);
+              publishIfHealthy(url);
             }
           } catch(e) {
             console.error('Error:', e.message);

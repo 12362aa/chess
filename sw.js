@@ -3,7 +3,7 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '1.6';
+const SW_VERSION = '1.7-online-fix-1';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
@@ -63,6 +63,23 @@ self.addEventListener('activate', e => {
 /* ══ Fetch ══ */
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+
+  /* ملفات التطبيق النصية لازم تتحدّث كوحدة واحدة. Cache First هنا كان
+     يسمح بـ index حديث مع CSS/JS قديم، وهو ما كسر الواجهة والاتصال. */
+  if (url.origin === location.origin && /\.(css|js|json)$/i.test(url.pathname)) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' })
+        .then(res => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(c => c || new Response('', { status: 503 })))
+    );
+    return;
+  }
 
   /* PeerJS و TURN servers — دايماً من الشبكة */
   if (
