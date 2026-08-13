@@ -58,18 +58,23 @@ function checkHealth(url, timeout = 8000) {
   });
 }
 
-async function publishIfHealthy(url) {
-  if (!await checkHealth(url)) {
-    console.error('Tunnel opened but health check failed; URL was not published:', url);
-    return false;
+async function publishIfHealthy(url, attempts = 12) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    if (await checkHealth(url)) {
+      uploadUrl(url);
+      return true;
+    }
+    if (attempt < attempts) {
+      await new Promise(resolve => setTimeout(resolve, 2500));
+    }
   }
-  uploadUrl(url);
-  return true;
+  console.error('Tunnel health check failed; URL was not published:', url);
+  return false;
 }
 
 if (fs.existsSync(cfBin) || !isWin) {
   console.log(`Starting Cloudflare Tunnel (${cfBin})...`);
-  const cf = spawn(cfBin, ['tunnel', '--url', `http://localhost:${PORT}`], {
+  const cf = spawn(cfBin, ['tunnel', '--protocol', 'http2', '--url', `http://localhost:${PORT}`], {
     windowsHide: true
   });
 
@@ -79,10 +84,9 @@ if (fs.existsSync(cfBin) || !isWin) {
     const text = chunk.toString();
     const match = text.match(urlRegex);
     if (match && !uploaded) {
-      uploaded = true;
       const url = match[0];
       console.log(`[${new Date().toLocaleString()}] Cloudflare Tunnel URL:`, url);
-      publishIfHealthy(url);
+      publishIfHealthy(url).then(ok => { if (ok) uploaded = true; });
     }
   }
 
@@ -95,8 +99,11 @@ if (fs.existsSync(cfBin) || !isWin) {
   });
 
   cf.on('exit', (code) => {
-    console.log(`Cloudflare Tunnel exited with code ${code}`);
-    process.exit(code || 0);
+    console.log(`Cloudflare Tunnel exited with code ${code}. Restarting tunnel in 3 seconds...`);
+    uploaded = false;
+    setTimeout(() => {
+      startCloudflare();
+    }, 3000);
   });
 } else {
   startNgrok();
