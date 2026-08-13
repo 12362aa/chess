@@ -214,51 +214,43 @@ const amkhFriends = {
   },
 
   listenForInvites() {
-    // Intercept WebSocket messages globally if possible
-    const originalSend = WebSocket.prototype.send;
-    // We actually need to intercept incoming messages.
-    // The easiest way without modifying core game logic too much is to hook into window.ws onmessage.
-    // If the main app parses messages, we can just add a global listener or intercept JSON.parse.
-    
-    // Instead of hooking WebSocket directly, we assume the server sends 'friend:invite-received'
-    // Let's monkey-patch WebSocket constructor to catch onmessage
+    /* لا نستبدل window.WebSocket: الاستبدال القديم أسقط الثوابت الساكنة
+       مثل WebSocket.OPEN، فكان اتصال اللعبة يفتح لكن send() يرفض إرسال
+       create/join وتظل الشاشة على «جاري الاتصال» للأبد. نراقب الرسائل
+       بإضافة listener لكل socket مع إبقاء الـconstructor الأصلي كما هو. */
     const OriginalWS = window.WebSocket;
-    window.WebSocket = function(url, protocols) {
-      const ws = new OriginalWS(url, protocols);
-      
-      // We need to wait for the main app to set ws.onmessage, then we wrap it
-      setTimeout(() => {
-        const originalOnMessage = ws.onmessage;
-        ws.onmessage = function(event) {
-          try {
-            const msg = JSON.parse(event.data);
-            if (msg.type === 'friend:invite-received') {
-              amkhFriends.handleInvite(msg);
-              return; // don't pass to main app
-            }
-            if (msg.type === 'friend:presence-update') {
-              if (document.getElementById('amkh-friends-modal')) {
-                amkhFriends.loadFriends().then(() => amkhFriends.renderFriendsUI());
-              }
-              return;
-            }
-          } catch(e) {}
-          
-          if (originalOnMessage) {
-            originalOnMessage.call(ws, event);
-          }
-        };
-      }, 1000);
+    if (!OriginalWS || OriginalWS.__amkhFriendsObserved) return;
 
-      // Authenticate WebSocket connection for presence
+    const ObservedWS = function(url, protocols) {
+      const ws = protocols === undefined
+        ? new OriginalWS(url)
+        : new OriginalWS(url, protocols);
+
+      ws.addEventListener('message', (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'friend:invite-received') {
+            amkhFriends.handleInvite(msg);
+          } else if (msg.type === 'friend:presence-update') {
+            if (document.getElementById('amkh-friends-modal')) {
+              amkhFriends.loadFriends().then(() => amkhFriends.renderFriendsUI());
+            }
+          }
+        } catch(e) {}
+      });
+
       ws.addEventListener('open', () => {
         if (window.amkhAuth && window.amkhAuth.token) {
           ws.send(JSON.stringify({ type: 'presence:hello', token: window.amkhAuth.token }));
         }
       });
-
       return ws;
     };
+
+    Object.setPrototypeOf(ObservedWS, OriginalWS);
+    ObservedWS.prototype = OriginalWS.prototype;
+    ObservedWS.__amkhFriendsObserved = true;
+    window.WebSocket = ObservedWS;
   },
 
   async handleInvite(msg) {
