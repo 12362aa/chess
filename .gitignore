@@ -30,3 +30,6 @@ _g*.js
 
 # APKs now ship as GitHub Release assets, not repo blobs
 Chess-AmKh-V*.apk
+
+# بروفايل المتصفح المستخدم في القياس بـCDP
+.chrome-prof-w/
