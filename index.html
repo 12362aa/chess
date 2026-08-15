@@ -10089,7 +10089,7 @@ const OL=(()=>{
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), ms);
       try {
-        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+        const res = await fetch(url, { signal: controller.signal, cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } });
         clearTimeout(id);
         if (!res.ok) return null;
         return await res.json();
