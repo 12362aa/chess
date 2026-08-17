@@ -9066,8 +9066,12 @@ const R={
     const want=Math.round(innerHeight-2*(this._docTop(bc)+bc.offsetHeight/2));
     const add=Math.min(Math.abs(want),free);
     if(add<1)return;
-    if(want>0)sg.style.paddingTop=(padT+add)+'px';
-    else sg.style.paddingBottom=(padB+add)+'px';
+    /* حشو من فوق ممنوع في التخطيط العمودي: هو اللي كان بيعمل الفراغ
+       الميت فوق الصف العلوي (~96px على 351×800). الفراغ الحر بقى بيروح
+       لباري اللاعبين يكبروا بيه (القسم 17 في screens.css)، فالرقعة
+       بتوصل نص الشاشة من غير ما حاجة تتزقّ لتحت. */
+    if(want>0)return;
+    sg.style.paddingBottom=(padB+add)+'px';
   },
   async all(){this.board();this.status();await this.players();this.hist();this.toolbar();updatePlayerImages();this.balance();}
 };

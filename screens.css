@@ -297,8 +297,8 @@
   display: inline-flex;
   color: var(--color-text-disabled);
   flex-shrink: 0;
-}
-.home-id__chev svg{ width: 18px; height: 18px; }
+}.home-id__chev svg,
+.home-id__chev .ico{ width: 18px; height: 18px; }
 
 /* ── الشبكة ──
    موبايل: البطاقة الكبيرة على العرض الكامل + 4 بطاقات 2×2.
@@ -365,8 +365,8 @@
   border: 1px solid var(--color-primary-border);
   color: var(--color-primary-text);
   flex-shrink: 0;
-}
-.home-hero__icon svg{ width: 26px; height: 26px; }
+}.home-hero__icon svg,
+.home-hero__icon .ico{ width: 26px; height: 26px; }
 .home-hero__heading{
   display: flex;
   flex-direction: column;
@@ -429,8 +429,8 @@
   min-height: 50px;
   /* البطاقة كلها زرار، فالـCTA ده مؤشر بصري مش هدف لمس منفصل —
      بس بيفضل بارتفاع هدف اللمس عشان يقرا كزرار حقيقي */
-}
-.home-hero__cta svg{ width: 18px; height: 18px; }
+}.home-hero__cta svg,
+.home-hero__cta .ico{ width: 18px; height: 18px; }
 
 /* ══════════════════════════════════════════════════════════════════════
    البطاقات المضغوطة — أربعتهم متطابقين في المقاس والتخطيط واللون
@@ -472,8 +472,8 @@
   border: 1px solid var(--color-border-subtle);
   color: var(--color-primary-text);
   flex-shrink: 0;
-}
-.home-tile__icon svg{ width: 22px; height: 22px; }
+}.home-tile__icon svg,
+.home-tile__icon .ico{ width: 22px; height: 22px; }
 .home-tile:hover .home-tile__icon{
   background: var(--color-primary-subtle);
   border-color: var(--color-primary-border);
@@ -553,8 +553,8 @@
   line-height: 1.3;
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-}
-.home-sec__title svg{
+}.home-sec__title svg,
+.home-sec__title .ico{
   width: 17px;
   height: 17px;
   color: var(--color-text-secondary);
@@ -596,8 +596,8 @@
   border: 1px solid var(--color-primary-border);
   color: var(--color-primary-text);
   flex-shrink: 0;
-}
-.home-daily__icon svg{ width: 20px; height: 20px; }
+}.home-daily__icon svg,
+.home-daily__icon .ico{ width: 20px; height: 20px; }
 .home-daily[data-done="1"] .home-daily__icon{
   background: var(--color-success-subtle);
   border-color: var(--color-success);
@@ -631,8 +631,8 @@
   flex-shrink: 0;
   direction: ltr;
   unicode-bidi: isolate;
-}
-.home-daily__streak svg{ width: 14px; height: 14px; }
+}.home-daily__streak svg,
+.home-daily__streak .ico{ width: 14px; height: 14px; }
 .home-daily__streak[hidden]{ display: none; }
 .home-daily__track{
   display: block;
@@ -736,8 +736,8 @@
   border: 1px solid var(--color-border-subtle);
   color: var(--color-text-secondary);
   flex-shrink: 0;
-}
-.home-game__ic svg{ width: 17px; height: 17px; }
+}.home-game__ic svg,
+.home-game__ic .ico{ width: 17px; height: 17px; }
 .home-game__text{
   display: flex;
   flex-direction: column;
@@ -818,11 +818,11 @@
   }
   .home-hero{ padding: var(--space-5); }
   .home-hero__title{ font-size: 26px; }
-  .home-hero__icon{ width: 52px; height: 52px; }
-  .home-hero__icon svg{ width: 28px; height: 28px; }
+  .home-hero__icon{ width: 52px; height: 52px; }.home-hero__icon svg,
+.home-hero__icon .ico{ width: 28px; height: 28px; }
   .home-tile{ min-height: 152px; padding: var(--space-4); }
-  .home-tile__icon{ width: 44px; height: 44px; }
-  .home-tile__icon svg{ width: 24px; height: 24px; }
+  .home-tile__icon{ width: 44px; height: 44px; }.home-tile__icon svg,
+.home-tile__icon .ico{ width: 24px; height: 24px; }
   .home-id{ max-width: 340px; }
   /* الفوتر بيمشي مع الكتلة المتمركزة بدل ما يتسمّر تحت */
   .home-foot{ margin-top: var(--space-2); }
@@ -851,12 +851,12 @@
   .home-grid{ gap: var(--space-2); }
   .home-hero{ padding: var(--space-3); gap: var(--space-2); }
   .home-hero__title{ font-size: 19px; }
-  .home-hero__icon{ width: 38px; height: 38px; }
-  .home-hero__icon svg{ width: 21px; height: 21px; }
+  .home-hero__icon{ width: 38px; height: 38px; }.home-hero__icon svg,
+.home-hero__icon .ico{ width: 21px; height: 21px; }
   .home-hero__cta{ padding: var(--space-2) var(--space-3); }
   .home-tile{ min-height: 112px; padding: var(--space-2) var(--space-3); }
-  .home-tile__icon{ width: 32px; height: 32px; }
-  .home-tile__icon svg{ width: 18px; height: 18px; }
+  .home-tile__icon{ width: 32px; height: 32px; }.home-tile__icon svg,
+.home-tile__icon .ico{ width: 18px; height: 18px; }
   .home-id{ padding: var(--space-1) var(--space-2); }
   .home-id__av{ width: 38px; height: 38px; }
   .home-foot{ display: none; }
@@ -1526,8 +1526,8 @@
   display: inline-flex; flex: 0 0 auto;
   width: 18px; height: 18px;
   color: var(--color-primary-text);
-}
-.gmlbl__icon svg{ width: 100%; height: 100%; }
+}.gmlbl__icon svg,
+.gmlbl__icon .ico{ width: 100%; height: 100%; }
 .gmlbl__text{
   font-family: var(--font-family-base);
   font-weight: var(--font-weight-semibold);
@@ -1601,8 +1601,8 @@
   background: var(--color-info-subtle);
   border: 1px solid var(--color-info);
   color: var(--color-info);
-}
-.bt-hero__icon svg{ width: 28px; height: 28px; }
+}.bt-hero__icon svg,
+.bt-hero__icon .ico{ width: 28px; height: 28px; }
 .bt-hero__body{ min-width: 0; }
 .bt-hero__title{
   margin: 0 0 var(--space-1);
@@ -1651,8 +1651,8 @@
   background: var(--color-surface);
   color: var(--color-info);
 }
-.bt-role.is-active .bt-role__icon{ background: var(--color-info); color: var(--color-on-secondary); }
-.bt-role__icon svg{ width: 19px; height: 19px; }
+.bt-role.is-active .bt-role__icon{ background: var(--color-info); color: var(--color-on-secondary); }.bt-role__icon svg,
+.bt-role__icon .ico{ width: 19px; height: 19px; }
 .bt-role__text{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .bt-role__title{ font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
 .bt-role__desc{
@@ -1723,8 +1723,8 @@
   border-radius: var(--radius-sm);
   background: var(--color-info-subtle);
   color: var(--color-info);
-}
-.bt-device__icon svg{ width: 17px; height: 17px; }
+}.bt-device__icon svg,
+.bt-device__icon .ico{ width: 17px; height: 17px; }
 .bt-device__name{
   flex: 1 1 auto; min-width: 0;
   font-weight: var(--font-weight-medium);
@@ -2129,7 +2129,11 @@ body[data-ui-theme="anime"]{
   #s-game.screen{ gap: 7px; }
   #s-game .gtbar{ margin-top: 0; }
   #s-game .sbar{ min-height: 28px; }
-  #s-game .mvhist{ min-height: 22px; }
+  /* ارتفاع ثابت مقصود، مش min-height. سجل النقلات بيبدأ فاضي وبيكبر
+     أول ما نقلة تتسجّل؛ index.html:1543 كان مثبّته بـmin-height:26px
+     لنفس السبب، والقاعدة القديمة هنا (22px) كانت بتقل عن ده فترجّع
+     النمو. أي تغيّر في ارتفاعه بيعيد توزيع فراغ البارات ويزحلق الرقعة. */
+  #s-game .mvhist{ height: 26px; min-height: 26px; max-height: 26px; }
   /* البلوتوث لوحده بيزوّد شريط حالة الاتصال (#gconn = 28px + مسافته)
      فوق كل اللي في الأوضاع التانية، فبيخرج 7px عن الشاشة. نضغط مسافاته
      هو بس — الأوضاع التانية مالهاش داعي تتأثر. */
@@ -2147,9 +2151,9 @@ body[data-ui-theme="anime"]{
    padding-top مالوش ذكر عن قصد: R.balance() بيكتبه inline للتوسيط. */
 @media (orientation: portrait) and (max-height: 700px) and (max-width: 700px){
   :root{ --board: min(100vw, 600px, 53dvh); }
-  #s-game.screen{ gap: 4px; padding-bottom: 10px; }
+  #s-game.screen{ gap: 4px; padding-bottom: 6px; }
   #s-game .sbar{ min-height: 24px; }
-  #s-game .mvhist{ min-height: 16px; max-height: 26px; }
+  #s-game .mvhist{ height: 18px; min-height: 18px; max-height: 18px; padding-block: 0; }
   #bar-b .pbar-top,
   #bar-w .pbar-top{ padding-block: 3px; }
   /* البلوتوث: #gconn بيزوّد ~35px. الحلّ من الكروم مش من الرقعة —
@@ -2745,3 +2749,94 @@ body[data-ui-theme="minimal"] .home-hero{
   background-size: auto, 6px 6px;
   opacity: .7;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   16. نظام الأيقونات — لكل ثيم طقم أيقونات خاص
+   ──────────────────────────────────────────────────────────────────────
+   المشكلة: الأيقونات كانت SVG مكتوب في الـHTML، يعني نفس الرسم بالحرف
+   في الستة ثيمات. الثيم كان بيغيّر لون الأيقونة وبس، فـ«سايبر» و«أنمي»
+   و«جيمنج» كانوا بيقروا نفس القراءة البصرية لأن الشكل واحد.
+
+   الحل: الأيقونة بقت طبقة mask، والرسم بييجي من متغيّر CSS، وكل ثيم
+   بيعيد تعريف المتغيّرات دي برسم بلغته البصرية. اللون لسه من
+   currentColor فكل قواعد الحالة القديمة (hover و data-done و is-active)
+   بتفضل شغّالة زي ما هي.
+
+   ليه mask ومش <img> أو ملفات .svg منفصلة:
+   • كله جوه screens.css اللي بيتنسخ للـAPK أصلًا — أوفلاين مضمون. ملف
+     جديد كان ممكن يتسرّب من allow-list الـbuild من غير ما حد يلاحظ.
+   • طلب شبكة صفر، ونفس الرسم بيتلوّن مع الثيم من غير نسخة لكل لون.
+
+   لغة كل ثيم:
+     amkh      هندسة إسلامية — مثمّنات ومعيّنات بدل الدوائر
+     cyberpunk تيرمينال — أقواس زوايا وخطوط مقطّعة وسُدس
+     anime     حبر مانجا — خط سميك وشرارة طاقة
+     gaming    إسبورتس — زوايا مشطوفة وقطعيات 45°
+     glass     زجاج — أشكال ناعمة مفتوحة
+     minimal   الفراغ — خط شعرة وهندسة مجرّدة وصفر زخرفة
+══════════════════════════════════════════════════════════════════════ */
+.ico{
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1.25em;
+  height: 1.25em;
+  /* اللون من currentColor عشان قواعد الحالة القديمة تفضل شغّالة */
+  background-color: currentColor;
+  -webkit-mask: var(--ico) center / contain no-repeat;
+  mask: var(--ico) center / contain no-repeat;
+}
+.ico--levels   { --ico: var(--icon-levels); }
+.ico--engine   { --ico: var(--icon-engine); }
+.ico--local    { --ico: var(--icon-local); }
+.ico--online   { --ico: var(--icon-online); }
+.ico--bluetooth{ --ico: var(--icon-bluetooth); }
+.ico--daily    { --ico: var(--icon-daily); }
+.ico--streak   { --ico: var(--icon-streak); }
+.ico--recent   { --ico: var(--icon-recent); }
+.ico--host     { --ico: var(--icon-host); }
+.ico--join     { --ico: var(--icon-join); }
+.ico--device   { --ico: var(--icon-device); }
+.ico--chev     { --ico: var(--icon-chev); }
+.ico--back     { --ico: var(--icon-back); }
+.ico--settings { --ico: var(--icon-settings); }
+.ico--bot      { --ico: var(--icon-bot); }
+
+/* ── 16.1 الطقم الافتراضي (amkh) — هندسة إسلامية ─────────────────────
+   نفس معاني الأيقونات القديمة بلغة الثيم: الدوائر بقت مثمّنات، والقلب
+   معيّن، زي تكرار النجمة الثمانية في النقش. */
+:root{
+  --icon-levels:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 1.6 L17.6 4.4 L20.4 10 L17.6 15.6 L12 18.4 L6.4 15.6 L3.6 10 L6.4 4.4 Z'/><path d='M12 6.4 L15.2 10 L12 13.6 L8.8 10 Z'/><path d='M8.4 17.6 L7.2 23 L12 20.4 L16.8 23 L15.6 17.6'/></svg>");
+  --icon-engine:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M6 4 H18 L20 6 V18 L18 20 H6 L4 18 V6 Z'/><path d='M12 8.4 L15.6 12 L12 15.6 L8.4 12 Z'/><path d='M9 1.6 V4 M15 1.6 V4 M9 20 v2.4 M15 20 v2.4 M20 9 h2.4 M20 15 h2.4 M1.6 9 H4 M1.6 15 H4'/></svg>");
+  --icon-local:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M9 2.8 L12.2 6 L9 9.2 L5.8 6 Z'/><path d='M2.6 20.8 v-1.4 A4.6 4.6 0 0 1 7.2 14.8 h3.6 a4.6 4.6 0 0 1 4.6 4.6 v1.4'/><path d='M17 3.4 L19.6 6 L17 8.6'/><path d='M18.2 15 a4 4 0 0 1 3.2 3.9 v1.9'/></svg>");
+  --icon-online:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 2.4 L18.8 5.6 L22 12 L18.8 18.4 L12 21.6 L5.2 18.4 L2 12 L5.2 5.6 Z'/><path d='M2.4 12 H21.6'/><path d='M12 2.4 c3.5 3.6 3.5 15.6 0 19.2 c-3.5-3.6-3.5-15.6 0-19.2 Z'/></svg>");
+  --icon-bluetooth: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 1.6 V22.4'/><path d='M12 1.6 L17.2 6.8 L6.8 17.2'/><path d='M12 22.4 L17.2 17.2 L6.8 6.8'/><path d='M14.6 4.2 L16 5.6 L14.6 7'/></svg>");
+  --icon-daily:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 2.6 L18.4 5.6 L21.4 12 L18.4 18.4 L12 21.4 L5.6 18.4 L2.6 12 L5.6 5.6 Z'/><path d='M12 7.6 L16.4 12 L12 16.4 L7.6 12 Z'/><path d='M11.4 12 h1.2'/></svg>");
+  --icon-streak:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 22.6 C15.8 22.6 18.8 19.6 18.8 15.8 C18.8 11 14.8 7 12 1.4 C9.2 7 5.2 11 5.2 15.8 C5.2 19.6 8.2 22.6 12 22.6 Z'/><path d='M12 18.8 L14.4 15.6 L12 12 L9.6 15.6 Z'/></svg>");
+  --icon-recent:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 3 L18.4 6 L21.4 12 L18.4 18 L12 21 L5.6 18 L2.6 12 L5.6 6 Z'/><path d='M12 7.4 V12 L15.4 14.2'/></svg>");
+  --icon-host:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linejoin='round'><path d='M12 19 V11.6'/><path d='M10.2 20.6 L12 18.8 L13.8 20.6 L12 22.4 Z'/><path d='M8.4 15 a5 5 0 0 1 7.2 0'/><path d='M5.4 11.8 a9 9 0 0 1 13.2 0'/></svg>");
+  --icon-join:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linejoin='round'><path d='M10.6 3 L15.4 5.2 L17.6 10 L15.4 14.8 L10.6 17 L5.8 14.8 L3.6 10 L5.8 5.2 Z'/><path d='M16 15.4 L21 20.4'/></svg>");
+  --icon-device:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linejoin='round'><path d='M7.4 2.6 H16.6 L18.6 4.6 V19.4 L16.6 21.4 H7.4 L5.4 19.4 V4.6 Z'/><path d='M10.6 18 h2.8'/></svg>");
+  --icon-chev:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round'><path d='M15.4 5 L8.6 12 L15.4 19'/><path d='M8.6 12 L10.6 9.9'/></svg>");
+  --icon-back:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linejoin='round'><path d='M20.4 12 H4.6'/><path d='M11.4 5 L4.6 12 L11.4 19'/><path d='M4.6 12 L6.6 9.9'/></svg>");
+  --icon-settings:  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 2.4 L18.8 5.6 L22 12 L18.8 18.4 L12 21.6 L5.2 18.4 L2 12 L5.2 5.6 Z'/><path d='M12 8 L16 12 L12 16 L8 12 Z'/></svg>");
+  --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M6.4 8.8 H17.6 L19.4 10.6 V17.8 L17.6 19.6 H6.4 L4.6 17.8 V10.6 Z'/><path d='M12 8.8 V5.6'/><path d='M10.4 4 L12 2.4 L13.6 4 L12 5.6 Z'/><path d='M8.8 14 h1 M14.2 14 h1'/></svg>");
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   17. شاشة اللعب على الموبايل — إلغاء الفراغ الميت فوق الصف العلوي
+   ──────────────────────────────────────────────────────────────────────
+   R.balance() كانت بتوسّط الرقعة بإضافة حشو من فوق. اللي تحت الرقعة
+   (بار + أزرار + حالة + سجل = 214px) أطول من اللي فوقها (عنوان + بار =
+   129px)، فعشان توسّط الرقعة كانت مجبورة تزُقّ كل حاجة لتحت بـ85px —
+   والنتيجة فراغ ميت كبير فوق الشاشة.
+
+   الحشو العلوي اتشال من R.balance (index.html) وبس. البارات والرقعة
+   بحجمهم الطبيعي زي النسخة المرجعية بالظبط.
+
+   ليه مفيش تكبير للبارات: جرّبت أوزّع الفراغ الحر عليها فتطلع 136px
+   وشكلها بقى لوحات فاضية والأزرار العلوية اتزقّت. والسبب إن الفراغ
+   الحر في المتصفح (108px على 800) مش هو الفراغ على تليفون حقيقي —
+   هناك شريط الحالة وشريط التنقّل بياكلوا ~65px فالفراغ الفعلي ~39px
+   بس، بيتقسم ~20 فوق و~20 تحت بـjustify-content الأصلي. يعني الشاشة
+   بتملأ نفسها من غير أي تدخّل.
+══════════════════════════════════════════════════════════════════════ */
