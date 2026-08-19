@@ -174,6 +174,45 @@ const amkhAuth = {
     return { success: false, error: data.error };
   },
 
+  /* ── الدخول بجوجل ──
+     الـplugin الأصلي بيرجّع idToken، والسيرفر هو اللي بيتحقّق منه ويطلّع
+     الـJWT بتاعنا. العميل مابيثقش في التوكن ولا بيقرا منه حاجة — بيمرّره
+     وخلاص، فالتحقّق كله في مكان واحد.
+     على المتصفح مافيش plugin: جوجل بترفض OAuth جوه WebView وفي المتصفح
+     العادي محتاج تدفق مختلف، فبنقول للمستخدم يستخدم التطبيق بدل ما
+     نسيبه يضغط زر مايحصلش منه حاجة. */
+  async loginWithGoogle() {
+    const g = window.amkhGoogleAuth;
+    if (!g || !g.available) {
+      return { success: false, error: 'الدخول بجوجل متاح في تطبيق الأندرويد' };
+    }
+    let idToken;
+    try {
+      const r = await g.signIn();
+      idToken = r && r.idToken;
+    } catch (e) {
+      const m = String((e && e.message) || '');
+      /* إلغاء المستخدم مش خطأ — مانزعّجهوش برسالة */
+      if (/cancel|closed|12501|user_cancel/i.test(m)) return { success: false, cancelled: true };
+      console.error('[auth] google sign-in failed:', m);
+      return { success: false, error: 'تعذّر الدخول بجوجل. جرّب تاني.' };
+    }
+    if (!idToken) return { success: false, error: 'تعذّر الحصول على هوية جوجل' };
+
+    const res = await fetch(`${window.getApiBase()}/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ idToken })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.token) {
+      this.setToken(data.token, data.user);
+      await this.promptMigration();
+      return { success: true };
+    }
+    return { success: false, error: data.error || 'تعذّر تسجيل الدخول' };
+  },
+
   setToken(token, user) {
     this.token = token;
     this.user = user;
@@ -366,6 +405,11 @@ const amkhAuth = {
 
         <div class="ds-dialog__actions" style="flex-direction:column;">
           <button id="btn-login" class="ds-btn ds-btn--primary ds-btn--block">تسجيل الدخول</button>
+          <div class="amkh-auth-sep" aria-hidden="true"><span>أو</span></div>
+          <button id="btn-google" class="ds-btn ds-btn--block amkh-google-btn">
+            <span class="amkh-google-mark" aria-hidden="true"></span>
+            <span>المتابعة بحساب جوجل</span>
+          </button>
           <button id="btn-register-toggle" class="ds-btn ds-btn--ghost ds-btn--block">ليس لديك حساب؟ أنشئ حسابًا</button>
           <button class="ds-btn ds-btn--ghost ds-btn--block" data-close>إغلاق</button>
         </div>
@@ -379,6 +423,36 @@ const amkhAuth = {
     const subEl = overlay.querySelector('#auth-modal-sub');
     const loginBtn = overlay.querySelector('#btn-login');
     const toggleBtn = overlay.querySelector('#btn-register-toggle');
+
+    /* زر جوجل: نفس الزر بيسجّل أو بيدخل — جوجل هي اللي بتحدّد، والسيرفر
+       بيعمل الحساب لو مش موجود. فمافيش وضع «تسجيل» منفصل ليه. */
+    const googleBtn = overlay.querySelector('#btn-google');
+    if (googleBtn) {
+      /* على المتصفح الحزمة مش بتشتغل، فبنخفي الزر بدل ما نسيبه يخيّب */
+      if (!window.amkhGoogleAuth || !window.amkhGoogleAuth.available) {
+        googleBtn.style.display = 'none';
+        const sep = overlay.querySelector('.amkh-auth-sep');
+        if (sep) sep.style.display = 'none';
+      } else {
+        googleBtn.onclick = async () => {
+          amkhUI.sfx();
+          errDiv.textContent = '';
+          googleBtn.disabled = true;
+          const prev = googleBtn.innerHTML;
+          googleBtn.innerHTML = '<span>جاري الدخول…</span>';
+          const r = await amkhAuth.loginWithGoogle();
+          googleBtn.disabled = false;
+          googleBtn.innerHTML = prev;
+          if (r.success) {
+            amkhUI.close(overlay);
+            amkhAuth.updateUI();
+            amkhUI.notify('اهلاً بك! تم تسجيل الدخول', 'تم', '◉');
+          } else if (!r.cancelled) {
+            errDiv.textContent = r.error || 'تعذّر الدخول';
+          }
+        };
+      }
+    }
 
     toggleBtn.onclick = () => {
       amkhUI.sfx();

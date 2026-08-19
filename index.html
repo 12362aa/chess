@@ -8,6 +8,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="شطرنج">
+<!-- الـweb client id بتاع مشروع Firebase. مكتوب هنا مرة واحدة: حزمة
+     الدخول بجوجل بتقراه منه، والسيرفر بيتحقّق من نفس القيمة عبر
+     google-services.json — فمفيش مكانين ممكن يختلفوا. القيمة دي عامة
+     بطبيعتها (بتظهر في أي تدفق OAuth) ومش سرّ. -->
+<meta name="google-web-client-id" content="467677566583-85jks1gk2fv2bqnslt9avp1fltr19h04.apps.googleusercontent.com">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon_v2.png?v=2">
 <link rel="icon" type="image/png" href="icon_v2.png?v=2">
@@ -11090,6 +11095,8 @@ window.addEventListener('beforeunload',()=>{
 
   <!-- Auth & Friends Scripts -->
   <script src="ble-bundle.js"></script>
+  <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
+  <script src="gauth-bundle.js"></script>
   <script src="auth-client.js"></script>
   <script src="friends-client.js?v=20260813-websocket-fix-2"></script>
 <script>

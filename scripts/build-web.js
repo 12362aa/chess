@@ -21,7 +21,11 @@ const requiredFiles = new Set([
   'friends-client.js',
   'stockfish-18-lite-single.js',
   'stockfish-18-lite-single.wasm',
-  'ble-bundle.js'
+  'ble-bundle.js',
+  /* حزمة الدخول بجوجل (esbuild IIFE من gauth-entry.js). لازم تكون في
+     القائمة دي، وإلا ماتوصلش للـAPK وزر الدخول بجوجل يفضل ميت من غير
+     أي رسالة خطأ في البناء. */
+  'gauth-bundle.js'
 ]);
 const assetExtensions = new Set([
   '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg',
