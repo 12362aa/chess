@@ -2120,31 +2120,40 @@ body[data-ui-theme="anime"]{
 }
 .fr-row + .fr-row{ margin-top: var(--space-2); }
 
+/* الاسم فوق والحالة تحته، مش جنب بعض.
+   النسخة الأولى كانت صف أفقي: الاسم والحالة بيتنافسوا على نفس العرض،
+   فبعد إضافة الأفاتار والأزرار الاسم بقى بيتقطّع من نصّه («محمود …»)
+   وهو أهم حاجة في السطر. العمودي بيدّي الاسم العرض كله. */
 .fr-row__info{
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   min-width: 0;          /* عشان الاسم الطويل يتقطّع بدل ما يمدّ الصف */
   flex: 1 1 auto;
 }
 .fr-row__name{
+  max-width: 100%;
   font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* الحالة بقت سطر توضيحي تحت الاسم، فمش محتاجة خلفية كبسولة —
+   الكبسولة كانت منطقية لما كانت جنب الاسم. */
 .fr-row__status{
+  max-width: 100%;
   flex: none;
   font-size: var(--font-size-caption);
-  line-height: 1;
-  padding: 3px var(--space-2);
-  border-radius: 999px;
-  background: var(--color-surface-raised);
-  color: var(--color-text-secondary);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-disabled);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .fr-row__status.is-online{
-  background: var(--color-success-subtle);
   color: var(--color-success);
 }
 
@@ -2154,6 +2163,130 @@ body[data-ui-theme="anime"]{
   gap: var(--space-2);
   flex: none;
 }
+
+/* ── تبويبات ورقة الأصدقاء ──
+   تبويبين بس (أصدقائك / إضافة) فشريط مقسوم بالنص أوضح من قائمة. */
+.fr-tabs{
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.fr-tab{
+  flex: 1 1 50%;
+  min-height: var(--touch-target-min);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              color var(--duration-fast) var(--easing-standard);
+}
+.fr-tab.is-active{
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+}
+
+.fr-hint{
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-disabled);
+}
+
+/* ── أفاتار حرف ──
+   مفيش صور بروفايل لكل لاعب، فأول حرف من الاسم أوضح من أيقونة واحدة
+   مكرّرة في كل سطر. */
+.fr-row__av{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  /* حرف لاتيني وسط واجهة RTL — نعزل اتجاهه */
+  direction: ltr;
+  unicode-bidi: isolate;
+  user-select: none;
+}
+
+/* «في مباراة» حالة تالتة غير متصل/غير متصل: صاحبك موجود بس مش فاضي */
+.fr-row__status.is-ingame{ color: var(--color-warning, #FFB020); }
+
+.fr-row__more{
+  min-width: 34px;
+  padding-inline: var(--space-2);
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ── قائمة الخيارات الصغيرة ── */
+.fr-menu{
+  position: fixed;
+  z-index: var(--z-modal, 1000);
+  min-width: 170px;
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 12px 32px rgba(0,0,0,.5);
+}
+.fr-menu__item{
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  text-align: start;
+  cursor: pointer;
+}
+.fr-menu__item:hover{ background: var(--color-surface); }
+
+/* ── نافذة الدعوة الواردة ──
+   شريط الوقت بيتقلّص لوحده. مقصود إنه شريط مش رقم بس: العين بتقرا
+   «فاضل شويّة» أسرع من قراءة رقم بيتغيّر. */
+.fr-invite{ max-width: 380px; }
+.fr-invite__name{ color: var(--color-primary-text); }
+.fr-invite__timer{
+  height: 4px;
+  margin: var(--space-3) 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  overflow: hidden;
+}
+.fr-invite__bar{
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  transition: width 1s linear;
+}
+.fr-invite__left{
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.fr-invite__n{ direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
+.fr-invite .ds-dialog__icon .ico{ width: 34px; height: 34px; color: var(--color-primary); }
 
 /* الأجهزة اللوحية: الورقة تفضل في النص ومترميش نفسها على العرض كله */
 @media (min-width: 700px){

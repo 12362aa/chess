@@ -10151,6 +10151,9 @@ const OL=(()=>{
       try{ws.close();}catch(e){}
       ws=null;
     }
+    /* لازم يتصفّر مع السوكت، وإلا نظام الأصدقاء يفضل شايف سوكت مقفول
+       ويحاول يبعت عليه */
+    window.chessWs=null;
   }
 
   function send(obj){
@@ -10188,8 +10191,13 @@ const OL=(()=>{
 
     try{
       ws=new WebSocket(SERVER_URL);
+      /* نظام الأصدقاء ملف منفصل (friends-client.js) ومحتاج نفس السوكت
+         عشان يبعت الدعوات — من غير التعريض ده كان بيلاقي السوكت مش
+         موجود ويقول «غير متصل» دايمًا. */
+      window.chessWs=ws;
     }catch(e){
       SERVER_URL='';
+      window.chessWs=null;
       clearTimeout(_connTimeoutTimer);
       setSt('c','◆ تعذر الاتصال بالخادم','err');
       setSt('j','◆ تعذر الاتصال بالخادم','err');
@@ -10235,6 +10243,12 @@ const OL=(()=>{
   }
 
   function handleMsg(d){
+    /* رسائل الأصدقاء (friend:*) بيتعامل معاها friends-client.js: الحضور
+       والطلبات والدعوات. بترجّع true لو استهلكت الرسالة، فبنخرج بدل ما
+       نكمل في switch مالوش حالة ليها. */
+    if(d && typeof d.type==='string' && d.type.indexOf('friend:')===0){
+      try{ if(window.amkhFriends && window.amkhFriends.handleSocketMessage(d)) return; }catch(e){}
+    }
     switch(d.type){
       case 'mm-color-required':
         {
