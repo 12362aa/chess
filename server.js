@@ -621,6 +621,114 @@ function send(ws, obj) {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   جسر الوقت الحقيقي لنظام الأصدقاء
+   ──────────────────────────────────────────────────────────────────────
+   friends.js بيتعامل مع HTTP بس، ومحتاج يوصّل حاجة لمستخدم متصل
+   (وصل طلب، وصلت دعوة، اتقبلت). الاتجاه مقصود: server.js بيحقن الأدوات
+   في friends.js، مش العكس — لأن server.js أصلاً بيعمل require ليه،
+   فأي require عكسي كان هيعمل حلقة.
+══════════════════════════════════════════════════════════════════════ */
+
+/* كل سوكتات المستخدم — ممكن يكون فاتح التطبيق على أكتر من جهاز */
+function socketsOf(userId) {
+  const set = userSockets.get(Number(userId));
+  return set ? [...set] : [];
+}
+
+/* حالة المستخدم من السوكت مباشرة: أدق من العمود في القاعدة لأن القاعدة
+   ممكن تكون فايتها آخر قطع اتصال. */
+function liveStatus(userId) {
+  const socks = socketsOf(userId).filter(s => s.readyState === WebSocket.OPEN);
+  if (!socks.length) return null;
+  /* جوه مباراة = عنده سوكت مرتبط بغرفة شغّالة */
+  const inGame = socks.some(s => {
+    const code = clientRoom.get(s);
+    if (!code) return false;
+    const room = rooms.get(code);
+    return !!(room && room.started && !room.ended);
+  });
+  return inGame ? 'in-game' : 'online';
+}
+
+friendsRouter.setRealtime({
+  push(userId, payload) {
+    const socks = socketsOf(userId);
+    let delivered = false;
+    for (const s of socks) {
+      if (s.readyState === WebSocket.OPEN) { send(s, payload); delivered = true; }
+    }
+    return delivered;
+  },
+  statusOf: liveStatus,
+});
+
+/* بثّ الحضور لأصدقاء مستخدم. بيبعت الحالة الغنية (online / in-game /
+   offline) وكمان is_online عشان أي عميل قديم يفضل شغّال. */
+function broadcastPresence(userId, statusOverride) {
+  try {
+    const status = statusOverride || liveStatus(userId) || 'offline';
+    const inGame = status === 'in-game';
+    db.prepare(`UPDATE presence SET is_online = ?, status = ?, in_game = ?, last_seen_at = datetime('now')
+                WHERE user_id = ?`).run(status === 'offline' ? 0 : 1, status, inGame ? 1 : 0, userId);
+    const payload = {
+      type: 'friend:presence-update',
+      friend_id: userId,
+      status,
+      is_online: status === 'offline' ? 0 : 1,
+      in_game: inGame ? 1 : 0,
+      last_seen_at: new Date().toISOString(),
+    };
+    for (const f of db.prepare('SELECT friend_id FROM friendships WHERE user_id = ?').all(userId)) {
+      for (const fws of socketsOf(f.friend_id)) send(fws, payload);
+    }
+  } catch (e) {
+    console.error('[presence] broadcast failed:', e.message);
+  }
+}
+
+/* بدء مباراة بين صديقين بعد قبول الدعوة.
+   الغرفة بتتولّد هنا وقت القبول — مش وقت الدعوة — عشان دعوة مارضيهاش
+   حد ماتسيبش غرفة فاضية معلّقة في الذاكرة. */
+function beginFriendGame(invite, hostWs, guestWs) {
+  let hostColor = invite.color;
+  if (hostColor !== 'w' && hostColor !== 'b') hostColor = Math.random() < 0.5 ? 'w' : 'b';
+  const guestColor = hostColor === 'w' ? 'b' : 'w';
+
+  const hostRow = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(invite.from_id) || {};
+  const guestRow = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(invite.to_id) || {};
+
+  leaveRoom(hostWs);
+  leaveRoom(guestWs);
+
+  const code = genCode('online');
+  const room = {
+    kind: 'online',
+    code,
+    host: makeMember(hostWs, hostColor, hostRow.display_name || hostRow.username || 'صديق', ''),
+    guest: makeMember(guestWs, guestColor, guestRow.display_name || guestRow.username || 'صديق', ''),
+    guestColor,
+    createdAt: Date.now(),
+    started: false,
+    ended: false,
+    state: null,
+  };
+  rooms.set(code, room);
+  clientRoom.set(hostWs, code);
+  clientRoom.set(guestWs, code);
+
+  db.prepare('UPDATE game_invites SET room_code = ? WHERE id = ?').run(code, invite.id);
+  send(hostWs, { type: 'friend:invite-room', code, role: 'host' });
+  send(guestWs, { type: 'friend:invite-room', code, role: 'guest' });
+  sendStart(room);
+  console.log(`[friends] invite ${invite.id} -> room ${code}`);
+
+  /* الاتنين بقوا جوه مباراة، فأصدقاؤهم يشوفوا الحالة الجديدة */
+  broadcastPresence(invite.from_id, 'in-game');
+  broadcastPresence(invite.to_id, 'in-game');
+  return code;
+}
+
 /* تنظيف الغرف القديمة كل 5 دقائق (أكثر من 30 دقيقة) */
 setInterval(() => {
   const now = Date.now();
@@ -644,29 +752,10 @@ const wss = new WebSocketServer({ server });
 wss.on('connection', (ws, req) => {
   console.log(`[+] client connected | total: ${wss.clients.size}`);
 
-// --- Presence Notification ---
-function notifyFriendsPresence(userId, isOnline) {
-  try {
-    // Find all friends of this user
-    const friends = db.prepare('SELECT friend_id FROM friendships WHERE user_id = ?').all(userId);
-    for (const f of friends) {
-      const friendSockets = userSockets.get(f.friend_id);
-      if (friendSockets) {
-        for (const fws of friendSockets) {
-          send(fws, {
-            type: 'friend:presence-update',
-            friend_id: userId,
-            is_online: isOnline ? 1 : 0,
-            last_seen_at: new Date().toISOString()
-          });
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Error notifying friends presence:', e);
-  }
-}
-// -----------------------------
+  /* بثّ الحضور بقى في broadcastPresence فوق. النسخة القديمة
+     (notifyFriendsPresence) كانت معرّفة جوه معالج الاتصال، يعني
+     بتتعرّف من أول ما أي حد يتصل، وكانت بتبعت is_online بس بدون
+     التفريق بين «متصل» و«جوه مباراة». */
 
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
@@ -686,65 +775,137 @@ function notifyFriendsPresence(userId, isOnline) {
           socketUser.set(ws, userId);
           if (!userSockets.has(userId)) userSockets.set(userId, new Set());
           userSockets.get(userId).add(ws);
-          
+
           try {
-            db.prepare("UPDATE presence SET is_online = 1, last_seen_at = datetime('now') WHERE user_id = ?").run(userId);
-            notifyFriendsPresence(userId, true);
-          } catch (e) {}
+            db.prepare('INSERT OR IGNORE INTO presence (user_id) VALUES (?)').run(userId);
+            broadcastPresence(userId);
+
+            /* أول ما يتصل بيلاقي اللي فاته وهو مقفول: طلبات صداقة
+               ودعوات لسه صالحة. من غير كده الدعوة اللي وصلت وهو مش
+               متصل بتضيع خالص. */
+            db.prepare(`UPDATE game_invites SET status = 'expired'
+                        WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < datetime('now')`).run();
+            const invites = db.prepare(`
+              SELECT i.id, i.color, i.expires_at, u.id AS uid, u.username, u.display_name, u.avatar_url
+              FROM game_invites i JOIN users u ON u.id = i.from_id
+              WHERE i.to_id = ? AND i.status = 'pending'`).all(userId);
+            for (const iv of invites) {
+              send(ws, {
+                type: 'friend:invite-received',
+                invite: {
+                  id: iv.id, color: iv.color, expires_at: iv.expires_at,
+                  from: { id: iv.uid, username: iv.username, display_name: iv.display_name, avatar_url: iv.avatar_url },
+                },
+              });
+            }
+            const pending = db.prepare(`SELECT COUNT(*) AS c FROM friend_requests WHERE receiver_id = ? AND status = 'pending'`).get(userId);
+            if (pending && pending.c) send(ws, { type: 'friend:requests-pending', count: pending.c });
+          } catch (e) {
+            console.error('[presence] hello failed:', e.message);
+          }
         });
         break;
       }
-      
+
       case 'presence:ping': {
         const userId = socketUser.get(ws);
         if (userId) {
           try {
-            db.prepare("UPDATE presence SET is_online = 1, last_seen_at = datetime('now') WHERE user_id = ?").run(userId);
+            db.prepare(`UPDATE presence SET is_online = 1, last_seen_at = datetime('now') WHERE user_id = ?`).run(userId);
           } catch (e) {}
         }
         break;
       }
       
+      /* ══ دعوة صديق لمباراة ══
+         النسخة الأولى كانت بتعمل الغرفة وقت الدعوة وتبعت الكود على طول.
+         مشاكلها: غرفة بتتولد لكل دعوة حتى لو محدش قبل (تفضل معلّقة في
+         الذاكرة لـ30 دقيقة)، والدعوة تضيع لو السيرفر رستر، ومافيش دعوة
+         لصاحب مش متصل دلوقتي.
+         النسخة دي بتسجّل الدعوة في القاعدة وليها عمر، والغرفة بتتولد
+         وقت القبول بس (beginFriendGame). */
       case 'friend:invite': {
-        const { friend_id } = msg;
         const senderId = socketUser.get(ws);
-        if (!senderId || !friend_id) break;
-        
+        const friendId = Number(msg.friend_id);
+        if (!senderId || !friendId) break;
         try {
-          const isFriend = db.prepare('SELECT 1 FROM friendships WHERE user_id = ? AND friend_id = ?').get(senderId, friend_id);
-          if (!isFriend) break;
-          
-          const sender = db.prepare('SELECT display_name FROM users WHERE id = ?').get(senderId);
-          
-          const code = genCode('online');
-          const room = {
-            kind: 'online',
-            code,
-            host: makeMember(ws, 'w', sender?.display_name || 'صديق', ''),
-            guest: null,
-            guestColor: 'b',
-            createdAt: Date.now(),
-            started: false,
-            ended: false,
-            state: null,
-          };
-          rooms.set(code, room);
-          clientRoom.set(ws, code);
-          send(ws, { type: 'room-created', code });
-          
-          const friendSockets = userSockets.get(friend_id);
-          if (friendSockets) {
-            for (const fws of friendSockets) {
-              send(fws, { 
-                type: 'friend:invite-received', 
-                from_user: sender?.display_name || 'صديق',
-                room_code: code
-              });
-            }
+          const isFriend = db.prepare('SELECT 1 FROM friendships WHERE user_id = ? AND friend_id = ?').get(senderId, friendId);
+          if (!isFriend) { send(ws, { type: 'friend:invite-error', reason: 'not-friend' }); break; }
+          const blocked = db.prepare(`SELECT 1 FROM friend_blocks
+                                      WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)`)
+            .get(senderId, friendId, friendId, senderId);
+          if (blocked) { send(ws, { type: 'friend:invite-error', reason: 'blocked' }); break; }
+
+          db.prepare(`UPDATE game_invites SET status = 'expired'
+                      WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < datetime('now')`).run();
+          const live = db.prepare(`SELECT id FROM game_invites WHERE from_id = ? AND to_id = ? AND status = 'pending'`).get(senderId, friendId);
+          if (live) { send(ws, { type: 'friend:invite-sent', invite_id: live.id, already: true }); break; }
+
+          const color = ['w', 'b', 'r'].includes(msg.color) ? msg.color : 'r';
+          const info = db.prepare(`INSERT INTO game_invites (from_id, to_id, color, expires_at)
+                                   VALUES (?, ?, ?, datetime('now', '+90 seconds'))`).run(senderId, friendId, color);
+          const inviteId = info.lastInsertRowid;
+          const sender = db.prepare('SELECT id, username, display_name, avatar_url FROM users WHERE id = ?').get(senderId);
+
+          let delivered = false;
+          for (const fws of socketsOf(friendId)) {
+            send(fws, { type: 'friend:invite-received', invite: { id: inviteId, from: sender, color, expires_in: 90 } });
+            delivered = true;
           }
+          send(ws, { type: 'friend:invite-sent', invite_id: inviteId, delivered, expires_in: 90 });
         } catch (e) {
-          console.error('Invite error', e);
+          console.error('[friends] invite error:', e.message);
+          send(ws, { type: 'friend:invite-error', reason: 'server' });
         }
+        break;
+      }
+
+      /* ══ الرد على دعوة ══
+         القبول بيبدأ المباراة فورًا: الداعي مضيف والمدعو ضيف. لو الداعي
+         قفل التطبيق في الوقت ده بنقول للمدعو إنه مش متاح بدل ما نفتح
+         غرفة نصّها فاضي. */
+      case 'friend:invite-respond': {
+        const me = socketUser.get(ws);
+        const inviteId = Number(msg.invite_id);
+        const accept = msg.action === 'accept';
+        if (!me || !inviteId) break;
+        try {
+          const inv = db.prepare(`SELECT * FROM game_invites WHERE id = ? AND to_id = ? AND status = 'pending'`).get(inviteId, me);
+          if (!inv) { send(ws, { type: 'friend:invite-error', reason: 'expired' }); break; }
+
+          if (!accept) {
+            db.prepare(`UPDATE game_invites SET status = 'declined', responded_at = datetime('now') WHERE id = ?`).run(inviteId);
+            for (const s of socketsOf(inv.from_id)) send(s, { type: 'friend:invite-declined', invite_id: inviteId, by: me });
+            send(ws, { type: 'friend:invite-closed', invite_id: inviteId });
+            break;
+          }
+
+          const hostWs = socketsOf(inv.from_id).find(s => s.readyState === WebSocket.OPEN);
+          if (!hostWs) {
+            db.prepare(`UPDATE game_invites SET status = 'expired', responded_at = datetime('now') WHERE id = ?`).run(inviteId);
+            send(ws, { type: 'friend:invite-error', reason: 'host-offline' });
+            break;
+          }
+          db.prepare(`UPDATE game_invites SET status = 'accepted', responded_at = datetime('now') WHERE id = ?`).run(inviteId);
+          beginFriendGame(inv, hostWs, ws);
+        } catch (e) {
+          console.error('[friends] invite-respond error:', e.message);
+          send(ws, { type: 'friend:invite-error', reason: 'server' });
+        }
+        break;
+      }
+
+      /* إلغاء دعوة من الداعي قبل ما ترد */
+      case 'friend:invite-cancel': {
+        const me = socketUser.get(ws);
+        const inviteId = Number(msg.invite_id);
+        if (!me || !inviteId) break;
+        try {
+          const inv = db.prepare(`SELECT to_id FROM game_invites WHERE id = ? AND from_id = ? AND status = 'pending'`).get(inviteId, me);
+          if (!inv) break;
+          db.prepare(`UPDATE game_invites SET status = 'cancelled', responded_at = datetime('now') WHERE id = ?`).run(inviteId);
+          for (const s of socketsOf(inv.to_id)) send(s, { type: 'friend:invite-cancelled', invite_id: inviteId });
+        } catch (e) {}
         break;
       }
 
@@ -1010,9 +1171,20 @@ function notifyFriendsPresence(userId, isOnline) {
         if (userSocketsSet.size === 0) {
           userSockets.delete(userId);
           try {
-            db.prepare("UPDATE presence SET is_online = 0, last_seen_at = datetime('now') WHERE user_id = ?").run(userId);
-            notifyFriendsPresence(userId, false);
+            /* آخر سوكت للمستخدم قفل → بقى offline. broadcastPresence
+               بيحسب الحالة من السوكتات الفعلية ويحدّث القاعدة ويبثّ. */
+            broadcastPresence(userId, 'offline');
+            /* أي دعوة كان باعتها ولسه معلّقة بتتلغي: الداعي مش موجود
+               يستقبل القبول، فمافيش فايدة إنها تفضل حيّة. */
+            const stale = db.prepare(`SELECT id, to_id FROM game_invites WHERE from_id = ? AND status = 'pending'`).all(userId);
+            for (const iv of stale) {
+              db.prepare(`UPDATE game_invites SET status = 'cancelled', responded_at = datetime('now') WHERE id = ?`).run(iv.id);
+              for (const s of socketsOf(iv.to_id)) send(s, { type: 'friend:invite-cancelled', invite_id: iv.id });
+            }
           } catch (e) {}
+        } else {
+          /* لسه فاتح على جهاز تاني — الحالة تتحدّث مش تبقى offline */
+          try { broadcastPresence(userId); } catch (e) {}
         }
       }
     }

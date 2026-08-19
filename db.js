@@ -11,10 +11,13 @@ db.pragma('foreign_keys = ON');
 function initDb() {
   db.exec(`
     -- جدول المستخدمين
+    -- password_hash بيسمح بـNULL عن قصد: مستخدم داخل بجوجل مالوش
+    -- باسورد عندنا أصلاً. الهوية بتتأكّد من مزوّد خارجي، وإحنا بنصدر
+    -- نفس الـJWT في الحالتين عشان باقي النظام مايفرّقش.
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
+      password_hash TEXT,
       display_name TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       last_login_at TEXT
@@ -70,7 +73,106 @@ function initDb() {
       is_online INTEGER DEFAULT 0,
       last_seen_at TEXT DEFAULT (datetime('now'))
     );
+
+    -- ══ حظر ══
+    -- منفصل عن حذف الصداقة عن قصد: حذف الصداقة بيسيب الطرفين يبعتوا
+    -- طلب تاني، والحظر بيمنع الطلب والدعوة والبحث. اتجاه واحد:
+    -- blocker حظر blocked.
+    CREATE TABLE IF NOT EXISTS friend_blocks (
+      blocker_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      blocked_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (blocker_id, blocked_id)
+    );
+
+    -- ══ دعوات المباريات بين الأصدقاء ══
+    -- الدعوة سجل مؤقت له عمر (expires_at). بتتخزن في القاعدة مش في
+    -- الذاكرة عشان لو السيرفر رستر الدعوة ماتضيعش، ولو المدعو مش متصل
+    -- دلوقتي يلاقيها لما يفتح. room_code بيتولّد وقت القبول ويتسلّم
+    -- لبروتوكول الغرف الموجود في server.js.
+    CREATE TABLE IF NOT EXISTS game_invites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      from_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      to_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      status TEXT DEFAULT 'pending',   -- pending | accepted | declined | expired | cancelled
+      color TEXT DEFAULT 'r',          -- لون الداعي: w | b | r (عشوائي)
+      room_code TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      expires_at TEXT,
+      responded_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_invites_to     ON game_invites(to_id, status);
+    CREATE INDEX IF NOT EXISTS idx_invites_from   ON game_invites(from_id, status);
+    CREATE INDEX IF NOT EXISTS idx_requests_recv  ON friend_requests(receiver_id, status);
+    CREATE INDEX IF NOT EXISTS idx_friendships_u  ON friendships(user_id);
   `);
+
+  migrate();
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ترقيات على جداول موجودة
+   ──────────────────────────────────────────────────────────────────────
+   CREATE TABLE IF NOT EXISTS مابيعدّلش جدول موجود، وقاعدة البيانات
+   بتبقى شغّالة عند المستخدمين، فأي عمود جديد لازم يتضاف بـALTER TABLE
+   محاط بحماية. SQLite مافيهاش ADD COLUMN IF NOT EXISTS فبنقرا أعمدة
+   الجدول الأول.
+══════════════════════════════════════════════════════════════════════ */
+function columns(table) {
+  try { return db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name); }
+  catch (e) { return []; }
+}
+
+function addColumn(table, name, definition) {
+  if (columns(table).includes(name)) return false;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);
+  return true;
+}
+
+function migrate() {
+  const added = [];
+
+  /* ── users ──
+     username: الهوية العامة اللي الأصدقاء بيتلاقوا بيها. البحث بيه مش
+       بالإيميل عشان مانكشفش إيميلات الناس لأي حد بيبحث.
+     provider: local | google — للعرض بس، النظام مايفرّقش في الصلاحيات.
+     google_uid: ربط ثابت بحساب جوجل. الإيميل ممكن يتغيّر، الـuid لأ. */
+  if (addColumn('users', 'username', 'TEXT')) added.push('users.username');
+  if (addColumn('users', 'provider', "TEXT DEFAULT 'local'")) added.push('users.provider');
+  if (addColumn('users', 'avatar_url', 'TEXT')) added.push('users.avatar_url');
+  if (addColumn('users', 'google_uid', 'TEXT')) added.push('users.google_uid');
+
+  /* ── presence ──
+     status أوسع من is_online: صاحبك ممكن يكون متصل بس جوه مباراة،
+     وده بيغيّر إن كنت تدعيه ولا لأ. is_online بيفضل عشان أي كود قديم. */
+  if (addColumn('presence', 'status', "TEXT DEFAULT 'offline'")) added.push('presence.status');
+  if (addColumn('presence', 'in_game', "INTEGER DEFAULT 0")) added.push('presence.in_game');
+
+  /* فهارس على الأعمدة الجديدة — بعد ALTER عشان تكون موجودة */
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username   ON users(username) WHERE username IS NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_uid ON users(google_uid) WHERE google_uid IS NOT NULL;
+  `);
+
+  /* أي حساب قديم مالوش username ياخد واحد مشتق من إيميله، عشان يبان
+     في البحث. التفرّد مضمون بالـid في الآخر. */
+  const needName = db.prepare(`SELECT id, email FROM users WHERE username IS NULL OR username = ''`).all();
+  if (needName.length) {
+    const set = db.prepare('UPDATE users SET username = ? WHERE id = ?');
+    const taken = new Set(
+      db.prepare(`SELECT username FROM users WHERE username IS NOT NULL`).all().map(r => String(r.username).toLowerCase())
+    );
+    for (const u of needName) {
+      let base = String(u.email || '').split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').slice(0, 16) || 'player';
+      let candidate = base, n = 1;
+      while (taken.has(candidate.toLowerCase())) candidate = base + (++n);
+      taken.add(candidate.toLowerCase());
+      set.run(candidate, u.id);
+    }
+    added.push(`backfilled ${needName.length} username(s)`);
+  }
+
+  if (added.length) console.log('[db] migrated:', added.join(', '));
 }
 
 initDb();
