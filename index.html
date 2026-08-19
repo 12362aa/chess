@@ -92,7 +92,7 @@ body[data-ui-theme="cyberpunk"] .lp-card{
 body[data-ui-theme="cyberpunk"] .settings-tab.active,
 body[data-ui-theme="cyberpunk"] .settings-action-btn,
 body[data-ui-theme="cyberpunk"] .btnp{
-  background:linear-gradient(135deg,#00ff66 0%,#31d99a 55%,#ffb020 100%) !important;
+  background:linear-gradient(135deg,#00ff66 0%,#00cc52 100%) !important;
   color:#021206 !important;
   box-shadow:0 14px 28px rgba(0,255,102,.2) !important;
 }
@@ -133,7 +133,7 @@ body[data-ui-theme="gaming"] .lp-card{
 body[data-ui-theme="gaming"] .settings-tab.active,
 body[data-ui-theme="gaming"] .settings-action-btn,
 body[data-ui-theme="gaming"] .btnp{
-  background:linear-gradient(135deg,#ff4655 0%,#ff6b78 45%,#00e5ff 100%) !important;
+  background:linear-gradient(135deg,#ff6b78 0%,#d62f3d 100%) !important;
   color:#fff4f5 !important;
   box-shadow:0 14px 30px rgba(255,70,85,.24) !important;
 }
@@ -258,7 +258,7 @@ body[data-ui-theme="anime"] .learn-card{
 body[data-ui-theme="anime"] .settings-tab.active,
 body[data-ui-theme="anime"] .settings-action-btn,
 body[data-ui-theme="anime"] .btnp{
-  background:linear-gradient(135deg,#3ac8ff 0%,#8cdfff 46%,#e01e37 100%) !important;
+  background:linear-gradient(135deg,#7bdcff 0%,#1d9fd4 100%) !important;
   color:#0a0908 !important;
   box-shadow:0 12px 26px rgba(58,200,255,.24) !important;
 }
@@ -3390,6 +3390,12 @@ body[data-ui-theme="glass"] .mc-tag{
           <span class="tab-icon">◉</span>
           <span class="tab-label">الصوت</span>
         </button>
+        <!-- الحساب: أول تبويب بيلمس السيرفر. كان مفيش مكان في الإعدادات
+             يقول للاعب هو داخل بمين ولا يخلّيه يغيّر اسمه العام. -->
+        <button class="settings-tab" data-tab="account" onclick="switchSettingsTab('account')">
+          <span class="tab-icon">☖</span>
+          <span class="tab-label">الحساب</span>
+        </button>
       </div>
 
       <div class="settings-content">
@@ -3404,10 +3410,10 @@ body[data-ui-theme="glass"] .mc-tag{
                 <div class="ui-grid">
                   <div class="ui-opt on" id="ui-amkh" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('amkh')"><div class="th-sw"><div class="sw" style="background:#0a0a14"></div><div class="sw" style="background:#c9a84c"></div></div>Amkh</div>
                   <div class="ui-opt" id="ui-minimal" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('minimal')"><div class="th-sw"><div class="sw" style="background:#0b0f14"></div><div class="sw" style="background:#e5e7eb"></div></div>Minimal</div>
-                  <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#070713"></div><div class="sw" style="background:#00fff0"></div></div>Cyber</div>
+                  <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#040604"></div><div class="sw" style="background:#00ff66"></div><div class="sw" style="background:#ffb020"></div></div>Cyber</div>
                   <div class="ui-opt" id="ui-glass" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('glass')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,.10)"></div><div class="sw" style="background:#93c5fd"></div></div>Glass</div>
-                  <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#070a10"></div><div class="sw" style="background:#ff7a18"></div><div class="sw" style="background:#00ffa3"></div></div>Gaming</div>
-                  <div class="ui-opt" id="ui-anime" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('anime')"><div class="th-sw"><div class="sw" style="background:#07111f"></div><div class="sw" style="background:#78f0ff"></div><div class="sw" style="background:#ff7cbf"></div></div>Anime</div>
+                  <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#0f1923"></div><div class="sw" style="background:#ff4655"></div><div class="sw" style="background:#00e5ff"></div></div>Gaming</div>
+                  <div class="ui-opt" id="ui-anime" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('anime')"><div class="th-sw"><div class="sw" style="background:#0a0908"></div><div class="sw" style="background:#3ac8ff"></div><div class="sw" style="background:#e01e37"></div></div>Anime</div>
                 </div>
               </div>
 
@@ -3587,6 +3593,20 @@ body[data-ui-theme="glass"] .mc-tag{
                   <span style="font-size:14px;color:var(--text2)">▷</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ الحساب والأصدقاء ══
+             المحتوى بيتبني في acctRender() حسب حالة الدخول: زر دخول
+             واحد لو مش مسجّل، وبياناته + الأصدقاء + المحظورين لو مسجّل.
+             السبب إن نص الأقسام دي مالهاش معنى بدون حساب، وإظهارها
+             مقفولة بيوحي إن فيه حاجة مكسورة. -->
+        <div class="settings-tab-content" id="tab-account">
+          <div class="settings-section">
+            <h3 class="section-title"><span class="section-icon">☖</span> حسابك</h3>
+            <div id="acct-body" class="settings-grid">
+              <p class="fr-empty">جاري التحميل…</p>
             </div>
           </div>
         </div>
@@ -4902,9 +4922,248 @@ function switchSettingsTab(tabName){
     content.classList.remove('active');
   });
   document.getElementById(`tab-${tabName}`).classList.add('active');
-  
+
+  /* تبويب الحساب بيتبني وقت الفتح مش وقت تحميل الصفحة: محتواه بيتغيّر
+     مع حالة الدخول وعدد الأصدقاء، فبناء مرة واحدة كان بيعرض بيانات
+     قديمة بعد أي تسجيل دخول أو خروج. */
+  if(tabName === 'account'){ try{ SettingsAccount.render(); }catch(e){} }
+
   if(typeof SFX !== 'undefined') SFX.btn();
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   تبويب الحساب في الإعدادات
+   ──────────────────────────────────────────────────────────────────────
+   بيوصل بين الإعدادات ونظام الحسابات: حالة الدخول، الاسم العام
+   (username) اللي الأصدقاء بيلاقوك بيه، مدخل لقائمة الأصدقاء،
+   والمحظورين. كل الأسماء بتتحط بـtextContent — الاسم بيكتبه المستخدم.
+══════════════════════════════════════════════════════════════════════ */
+const SettingsAccount = {
+  async render(){
+    const box = document.getElementById('acct-body');
+    if(!box) return;
+    const auth = window.amkhAuth;
+    box.innerHTML = '';
+
+    /* مش مسجّل: رسالة واحدة وزر واحد. مفيش فايدة من عرض أقسام مقفولة. */
+    if(!auth || !auth.token){
+      const p = document.createElement('p');
+      p.className = 'setting-description';
+      p.style.marginBottom = '12px';
+      p.textContent = 'سجّل دخولك عشان تزامن تقدمك على أي جهاز، وتضيف أصدقاء وتلعب معاهم.';
+      const btn = document.createElement('button');
+      btn.className = 'ds-btn ds-btn--primary ds-btn--block';
+      btn.textContent = 'تسجيل الدخول أو إنشاء حساب';
+      btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); if(auth) auth.showLoginModal(); };
+      box.appendChild(p);
+      box.appendChild(btn);
+      return;
+    }
+
+    const u = auth.user || {};
+    box.appendChild(this._identityRow(u));
+    box.appendChild(this._usernameRow(u));
+    box.appendChild(this._friendsRow());
+    box.appendChild(this._blockedRow());
+    box.appendChild(this._signOutRow());
+  },
+
+  _row(label, desc){
+    const item = document.createElement('div');
+    item.className = 'setting-item';
+    const text = document.createElement('div');
+    const l = document.createElement('div');
+    l.className = 'setting-label';
+    l.textContent = label;
+    text.appendChild(l);
+    if(desc){
+      const d = document.createElement('div');
+      d.className = 'setting-description';
+      d.textContent = desc;
+      text.appendChild(d);
+    }
+    item.appendChild(text);
+    return { item, text };
+  },
+
+  /* مين أنت وداخل إزاي */
+  _identityRow(u){
+    const how = u.provider === 'google' ? 'داخل بحساب جوجل' : 'داخل بالبريد الإلكتروني';
+    const { item } = this._row(u.display_name || u.username || 'لاعب', how);
+    const badge = document.createElement('span');
+    badge.className = 'acct-badge';
+    badge.textContent = u.provider === 'google' ? 'Google' : 'بريد';
+    item.appendChild(badge);
+    return item;
+  },
+
+  /* الاسم العام — ده اللي بيتبحث بيه، فليه سطر خاص */
+  _usernameRow(u){
+    const { item } = this._row('اسمك للأصدقاء', 'الأصدقاء بيلاقوك بالاسم ده. البريد الإلكتروني مش ظاهر لأي حد.');
+    const wrap = document.createElement('div');
+    wrap.className = 'acct-uname';
+    const val = document.createElement('code');
+    val.className = 'acct-uname__val';
+    val.textContent = '@' + (u.username || '—');
+    const edit = document.createElement('button');
+    edit.className = 'ds-btn ds-btn--ghost ds-btn--sm';
+    edit.textContent = 'تغيير';
+    edit.onclick = ()=> this._editUsername(val);
+    wrap.appendChild(val);
+    wrap.appendChild(edit);
+    item.appendChild(wrap);
+    return item;
+  },
+
+  async _editUsername(valEl){
+    if(typeof SFX!=='undefined')SFX.btn();
+    const U = window.amkhUI;
+    const current = (window.amkhAuth.user && window.amkhAuth.user.username) || '';
+    const next = await this._prompt('اسمك للأصدقاء', '3–16 حرف إنجليزي أو رقم أو _', current);
+    if(next === null) return;
+    const headers = { 'Authorization': 'Bearer ' + window.amkhAuth.token,
+                      'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
+    try{
+      const res = await fetch(`${window.getApiBase()}/username`, {
+        method:'POST', headers, body: JSON.stringify({ username: next })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(res.ok){
+        window.amkhAuth.user.username = data.username;
+        try{ localStorage.setItem('amkh_user', JSON.stringify(window.amkhAuth.user)); }catch(e){}
+        valEl.textContent = '@' + data.username;
+        U.notify('تم تغيير الاسم', 'تم', '◉');
+      } else U.notify(data.error || 'تعذّر تغيير الاسم', 'لم يتم', '◈');
+    }catch(e){ U.notify('تأكد من الإنترنت', 'لم يتم', '◈'); }
+  },
+
+  /* حوار إدخال بسيط بيرجّع النص أو null */
+  _prompt(title, hint, value){
+    return new Promise(resolve=>{
+      const U = window.amkhUI;
+      const ov = U.mount('acct-prompt', `
+        <div class="ds-dialog">
+          <h2 class="ds-dialog__title"></h2>
+          <p class="ds-dialog__message"></p>
+          <div class="ds-field">
+            <input type="text" class="ds-input" id="acct-prompt-input"
+                   maxlength="16" autocomplete="off" spellcheck="false"
+                   style="direction:ltr;text-align:left;">
+          </div>
+          <div class="ds-dialog__actions" style="flex-direction:column;">
+            <button class="ds-btn ds-btn--primary ds-btn--block" data-ok>حفظ</button>
+            <button class="ds-btn ds-btn--ghost ds-btn--block" data-cancel>إلغاء</button>
+          </div>
+        </div>`);
+      ov.querySelector('.ds-dialog__title').textContent = title;
+      ov.querySelector('.ds-dialog__message').textContent = hint;
+      const inp = ov.querySelector('#acct-prompt-input');
+      inp.value = value || '';
+      setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(e){} }, 80);
+      const done = (v)=>{ U.close(ov); resolve(v); };
+      ov.querySelector('[data-ok]').onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); done(inp.value.trim()); };
+      ov.querySelector('[data-cancel]').onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); done(null); };
+      inp.onkeydown = (e)=>{ if(e.key==='Enter'){ e.preventDefault(); done(inp.value.trim()); } };
+    });
+  },
+
+  _friendsRow(){
+    const { item } = this._row('الأصدقاء', 'شوف مين متصل، اضف أصدقاء، وابعت دعوات لعب');
+    const btn = document.createElement('button');
+    btn.className = 'ds-btn ds-btn--secondary ds-btn--sm';
+    btn.textContent = 'افتح';
+    btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); if(window.amkhFriends) window.amkhFriends.showFriendsModal(); };
+    item.appendChild(btn);
+    return item;
+  },
+
+  _blockedRow(){
+    const { item } = this._row('اللاعبون المحظورون', 'مش هيقدروا يبعتوا لك طلب ولا دعوة');
+    const btn = document.createElement('button');
+    btn.className = 'ds-btn ds-btn--ghost ds-btn--sm';
+    btn.textContent = 'إدارة';
+    btn.onclick = ()=> this._showBlocked();
+    item.appendChild(btn);
+    return item;
+  },
+
+  async _showBlocked(){
+    if(typeof SFX!=='undefined')SFX.btn();
+    const U = window.amkhUI;
+    const ov = U.mount('acct-blocked', `
+      <div class="ds-sheet" id="acct-blocked-panel">
+        <div class="ds-sheet__handle" aria-hidden="true"></div>
+        <div class="ds-sheet__header">
+          <h3 class="ds-sheet__title">المحظورون</h3>
+          <button class="ds-sheet__close" data-close aria-label="إغلاق">✕</button>
+        </div>
+        <div class="ds-sheet__body"><div id="acct-blocked-list" class="fr-group">
+          <p class="fr-empty">جاري التحميل…</p></div></div>
+      </div>`, { sheet: true });
+    const list = ov.querySelector('#acct-blocked-list');
+    const headers = { 'Authorization': 'Bearer ' + window.amkhAuth.token, 'ngrok-skip-browser-warning': 'true' };
+    let rows = [];
+    try{
+      const res = await fetch(`${window.getApiBase()}/friends/blocks`, { headers });
+      rows = res.ok ? await res.json() : [];
+    }catch(e){ rows = []; }
+    list.innerHTML = '';
+    if(!rows.length){ list.innerHTML = '<p class="fr-empty">مفيش حد محظور.</p>'; return; }
+    rows.forEach(u=>{
+      const row = document.createElement('div');
+      row.className = 'fr-row';
+      const av = document.createElement('span');
+      av.className = 'fr-row__av';
+      av.textContent = String(u.display_name || u.username || '؟').trim().slice(0,1).toUpperCase();
+      const info = document.createElement('div');
+      info.className = 'fr-row__info';
+      const nm = document.createElement('span');
+      nm.className = 'fr-row__name';
+      nm.textContent = u.display_name || u.username;
+      const sub = document.createElement('span');
+      sub.className = 'fr-row__status';
+      sub.textContent = '@' + (u.username || '');
+      info.appendChild(nm); info.appendChild(sub);
+      const acts = document.createElement('div');
+      acts.className = 'fr-row__acts';
+      const un = document.createElement('button');
+      un.className = 'ds-btn ds-btn--secondary ds-btn--sm';
+      un.textContent = 'فكّ الحظر';
+      un.onclick = async ()=>{
+        if(typeof SFX!=='undefined')SFX.btn();
+        un.disabled = true;
+        try{
+          await fetch(`${window.getApiBase()}/friends/unblock`, {
+            method:'POST', headers:{ ...headers, 'Content-Type':'application/json' },
+            body: JSON.stringify({ user_id: u.id })
+          });
+          row.remove();
+          if(!list.querySelector('.fr-row')) list.innerHTML = '<p class="fr-empty">مفيش حد محظور.</p>';
+        }catch(e){ un.disabled = false; }
+      };
+      acts.appendChild(un);
+      row.appendChild(av); row.appendChild(info); row.appendChild(acts);
+      list.appendChild(row);
+    });
+  },
+
+  _signOutRow(){
+    const { item } = this._row('تسجيل الخروج', 'تقدمك المحفوظ على السيرفر مش بيتأثر');
+    const btn = document.createElement('button');
+    btn.className = 'ds-btn ds-btn--ghost ds-btn--sm acct-danger';
+    btn.textContent = 'خروج';
+    btn.onclick = async ()=>{
+      if(typeof SFX!=='undefined')SFX.btn();
+      const yes = await window.amkhUI.confirm('تسجيل الخروج', 'متأكد؟ هتحتاج تسجّل دخول تاني عشان تلعب مع أصدقائك.', 'خروج', 'إلغاء');
+      if(!yes) return;
+      try{ window.amkhAuth.logout(); }catch(e){}
+      this.render();
+    };
+    item.appendChild(btn);
+    return item;
+  },
+};
+window.SettingsAccount = SettingsAccount;
 
 // Initialize piece themes when DOM is ready
 document.addEventListener('DOMContentLoaded',()=>{

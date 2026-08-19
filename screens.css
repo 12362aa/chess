@@ -3129,3 +3129,215 @@ body[data-ui-theme="minimal"]{
   --icon-settings:  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3.4'/><path d='M12 2.6 V5.4 M12 18.6 V21.4 M2.6 12 H5.4 M18.6 12 H21.4'/></svg>");
   --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><rect x='4.6' y='8.8' width='14.8' height='10.6'/><path d='M12 8.8 V5.8'/><circle cx='12' cy='4.2' r='1.4'/><path d='M9.4 13.8 H9.5 M14.6 13.8 H14.7'/></svg>");
 }
+/* ══════════════════════════════════════════════════════════════════════
+   18. شاشة الإعدادات — توحيد على توكنز الثيم
+   ──────────────────────────────────────────────────────────────────────
+   المشكلة اللي كانت: الشاشة دي أقدم من نظام التصميم، فحالات الاختيار
+   فيها مبنية على المتغيّرات القديمة (--gold و--teal) بشكل غير منتظم:
+     • التبويب النشط والأزرار → --gold
+     • بطاقة الثيم المختارة → --teal2
+     • مفتاح التبديل المفتوح → --gold
+     • لون النقاط المختار → --teal2 في مكان و--gold2 في مكان تاني
+   و--gold في ثيم سايبر بيساوي الكهرماني (اللون الثانوي)، فالنتيجة إن
+   الشاشة بتقول «اخترت ده» بلونين مختلفين، ولا واحد فيهم هو اللون
+   الأساسي اللي باقي التطبيق بيستخدمه.
+
+   القاعدة هنا واحدة: أي «مختار» بياخد --color-primary. اللون الثانوي
+   بقى للتحذيرات والحالات المختلفة، مش للاختيار.
+══════════════════════════════════════════════════════════════════════ */
+
+/* ── شريط التبويبات: مجموعة أزرار مقسومة ──
+   كان grid بـ4 أعمدة، فعلى 351px كل تبويب ~75px والنص بيلفّ لسطرين
+   ويطلع 2×2. صف أفقي واحد بسكرول أنضف: التبويبات تفضل في مستوى واحد
+   وترتيبها ثابت مهما كان عرض الشاشة. */
+#s-settings .settings-tabs{
+  display: flex !important;
+  flex-wrap: nowrap;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border-subtle) !important;
+  border-radius: var(--radius-lg);
+  box-shadow: none !important;
+}
+#s-settings .settings-tabs::-webkit-scrollbar{ display: none; }
+#s-settings .settings-tab{
+  flex: 1 0 auto;
+  gap: var(--space-2);
+  min-height: var(--touch-target-min);
+  padding: var(--space-2) var(--space-3) !important;
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  transform: none !important;   /* كان بيرتفع عند hover ويهزّ الشريط */
+}
+#s-settings .settings-tab:hover{
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+}
+/* النشط: لون واحد صريح. التدرّجات القديمة كانت بتخلط الأساسي بالثانوي
+   (أخضر→كهرماني في سايبر) فالتبويب كان بيقرأ كقوس قزح صغير. */
+#s-settings .settings-tab.active{
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+  box-shadow: none !important;
+}
+
+/* ── مفتاح التبديل ── */
+#s-settings .toggle input:checked + .tsl{
+  background: var(--color-primary-subtle) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: none !important;
+}
+#s-settings .toggle input:checked + .tsl::before{
+  background: var(--color-primary) !important;
+  box-shadow: none !important;
+}
+/* حلقة تركيز واضحة للوصول بالكيبورد */
+#s-settings .toggle input:focus-visible + .tsl{
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── أي بطاقة اختيار: ثيم، طقم قطع، لون رقعة، لون نقاط ── */
+#s-settings .ui-opt.on,
+#s-settings .pc-opt.on,
+#s-settings .pc-opt.selected,
+#s-settings .bc-opt.on,
+#s-settings .dot-color-opt.active{
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary-text) !important;
+  background: var(--color-primary-subtle) !important;
+  box-shadow: none !important;
+}
+#s-settings .ui-opt:hover,
+#s-settings .pc-opt:hover,
+#s-settings .bc-opt:hover,
+#s-settings .dot-color-opt:hover{
+  border-color: var(--color-primary-border) !important;
+  /* التكبير عند اللمس بيخلّي البطاقات تنطّ في شبكة ضيّقة */
+  transform: none !important;
+}
+
+/* ── عنوان القسم ──
+   كان 20px بلون --gold2 ومسافة 18px تحته. التوكنز بتخلّيه متناسق مع
+   عناوين باقي الشاشات. */
+#s-settings .section-title{
+  font-size: var(--font-size-card-title);
+  line-height: var(--line-height-card-title);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+#s-settings .section-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-text);
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* ── صف إعداد ──
+   العنوان والوصف على اليمين والتحكّم على الشمال، والوصف تحت العنوان
+   مش جنبه، عشان النص العربي الطويل مايزقّش المفتاح بره الشاشة. */
+/* القاعدة القديمة كانت flex-direction:column بـpadding 18px وخلفية
+   تدرّج وحدود — يعني كل إعداد بطاقة منفصلة، فالشاشة بقت كوم بطاقات
+   جوه بطاقة. الصف الأفقي (نص يمين، تحكّم شمال) أهدى وبيوفّر طول.
+   لازم نحدّد flex-direction صراحةً لأن القديمة column. */
+#s-settings .setting-item{
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0 !important;
+  background: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/* الارتفاع عند hover كان بيهزّ الصفوف في قائمة طويلة */
+#s-settings .setting-item:hover{
+  transform: none !important;
+  background: none !important;
+}
+/* كتلة النص هي اللي تتقلّص، والتحكّم يفضل بحجمه. من غير min-width:0
+   الوصف العربي الطويل كان بيزقّ الزر لسطر تحت ويطوّل كل صف. */
+#s-settings .setting-item > div:first-child{ flex: 1 1 auto; min-width: 0; }
+#s-settings .setting-item > .ds-btn,
+#s-settings .setting-item > .toggle,
+#s-settings .setting-item > .acct-badge,
+#s-settings .setting-item > .acct-uname{ flex: 0 0 auto; }
+#s-settings .setting-item:last-child{ border-bottom: 0; }
+#s-settings .setting-label{
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+#s-settings .setting-description{
+  margin-top: 2px;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-disabled);
+}
+/* الصفوف اللي فيها شبكة اختيارات (ألوان، أطقم) بتبقى عمودية */
+#s-settings .setting-item:has(.dot-color-picker),
+#s-settings .setting-item:has(.ui-themes-grid),
+#s-settings .setting-item:has(.pc-grid),
+#s-settings .setting-item:has(.vol-row){
+  flex-direction: column !important;
+  align-items: stretch;
+}
+
+/* ── تبويب الحساب ── */
+.acct-badge{
+  flex-shrink: 0;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  /* نص لاتيني وسط واجهة RTL */
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.acct-uname{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.acct-uname__val{
+  padding: 4px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-primary-text);
+  font-size: var(--font-size-caption);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+/* الخروج فعل مش رجعة فيه بضغطة، فلونه يقول كده — بس مش أحمر صارخ
+   لأنه مش خطر، بيانات المستخدم بتفضل على السيرفر. */
+.acct-danger{ color: var(--color-danger, #F5405A); }
+
+/* الصف اللي فيه تحكّم عريض (اسم المستخدم) بيلفّ على شاشة ضيّقة بدل
+   ما يزقّ النص بره */
+/* صف اسم المستخدم لوحده هو اللي فيه تحكّم عريض (الاسم + زر)،
+   فهو اللي يلفّ على شاشة ضيّقة — مش كل الصفوف. */
+@media (max-width: 380px){
+  #s-settings .setting-item:has(.acct-uname){ flex-wrap: wrap; }
+  .acct-uname{ width: 100%; justify-content: space-between; }
+}
