@@ -37,6 +37,9 @@ const PORT = process.env.PORT || 8081;
 const cfBin = getCfBin();
 
 let uploaded = false;
+/* آخر رابط اتنشر فعلًا. بنقارن بيه قبل النشر عشان مانرفعش نفس الرابط
+   كل دقيقة — كل رفع بيعمل commit في الريبو، فالتكرار بيوسّخ التاريخ. */
+let lastPublished = null;
 
 function checkHealth(url, timeout = 8000) {
   return new Promise((resolve) => {
@@ -58,58 +61,84 @@ function checkHealth(url, timeout = 8000) {
   });
 }
 
-async function publishIfHealthy(url, attempts = 12) {
+/* انتشار اسم نفق trycloudflare في DNS بياخد وقت: قِسته 45 ثانية على
+   ويندوز. النسخة الأولى كانت 12 محاولة × 2.5 ثانية ≈ 28 ثانية، وفشل
+   DNS بيرجع فورًا فالمحاولات كانت بتخلص قبل ما الاسم يشتغل — النتيجة
+   إن url.json مايتحدّثش خالص والتطبيق يفضل على رابط قديم ميت.
+   150 ثانية بتغطّي أبطأ انتشار شفته بفارق كبير. */
+async function publishIfHealthy(url, attempts = 50) {
   for (let attempt = 1; attempt <= attempts; attempt++) {
     if (await checkHealth(url)) {
       uploadUrl(url);
+      console.log(`Published after ${attempt} health check(s).`);
       return true;
     }
+    /* سطر كل 10 محاولات: يطمّن إن الانتظار مقصود مش تعليق */
+    if (attempt % 10 === 0) console.log(`  waiting for tunnel DNS… (${attempt}/${attempts})`);
     if (attempt < attempts) {
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
   console.error('Tunnel health check failed; URL was not published:', url);
   return false;
 }
 
-if (fs.existsSync(cfBin) || !isWin) {
-  console.log(`Starting Cloudflare Tunnel (${cfBin})...`);
-  const cf = spawn(cfBin, ['tunnel', '--protocol', 'http2', '--url', `http://localhost:${PORT}`], {
+/* ══════════════════════════════════════════════════════════════════════
+   ngrok هو النفق الأساسي — ده اللي المشروع معتمد عليه من الأصل.
+   ──────────────────────────────────────────────────────────────────────
+   ليه ngrok وليه cloudflared بديل بس:
+   • حساب ngrok بيدّي اسم مضيف ثابت، فالرابط جاهز فورًا. أنفاق
+     trycloudflare المجانية بتدّي اسم عشوائي جديد كل تشغيلة ولازم يستنى
+     انتشار DNS — قِسته: مرة اشتغل بعد 45 ثانية، ومرتين ما اشتغلش خلال
+     150 ثانية. ومعنى ده إن كل ريستارت للسيرفر ممكن يقطع الأونلاين
+     لدقايق أو يفضل مقطوع.
+   • cloudflared نفسه بيقول في سجله إن الأنفاق المجانية «مالهاش ضمان
+     تشغيل» وبيوصي بـnamed tunnel للإنتاج، وده محتاج حساب ودومين.
+   آلية التحديث كل دقيقة بتفضل زي ما هي: لو الرابط اتغيّر لأي سبب،
+   url.json بيتحدّث لوحده والتطبيق بيلاقي السيرفر من غير أي تدخّل.
+══════════════════════════════════════════════════════════════════════ */
+startNgrok();
+
+function startCloudflare() {
+  const bin = getCfBin();
+  if (isWin && !fs.existsSync(bin)) {
+    console.error('cloudflared غير موجود — مفيش نفق بديل.');
+    return;
+  }
+  console.log(`Starting Cloudflare Tunnel as fallback (${bin})...`);
+  const cf = spawn(bin, ['tunnel', '--protocol', 'http2', '--url', `http://localhost:${PORT}`], {
     windowsHide: true
   });
 
   const urlRegex = /https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/;
 
-  function handleData(chunk) {
+  const handleData = (chunk) => {
     const text = chunk.toString();
     const match = text.match(urlRegex);
     if (match && !uploaded) {
       const url = match[0];
       console.log(`[${new Date().toLocaleString()}] Cloudflare Tunnel URL:`, url);
       publishIfHealthy(url).then(ok => { if (ok) uploaded = true; });
+      return;
     }
-  }
+    /* رسائل cloudflared كانت بتتبلع كلها لأن اللوج كان بيطبع الرابط بس،
+       فأي فشل في الاتصال كان بيحصل في صمت. بنطلّع الأخطاء بس. */
+    if (/ERR|error|failed/i.test(text)) process.stderr.write('  [cf] ' + text.trim().slice(0, 300) + '\n');
+  };
 
   cf.stdout.on('data', handleData);
   cf.stderr.on('data', handleData);
 
-  cf.on('error', (e) => {
-    console.error('Cloudflare Tunnel failed to start, falling back to ngrok:', e.message);
-    startNgrok();
-  });
-
+  cf.on('error', (e) => console.error('Cloudflare Tunnel failed to start:', e.message));
   cf.on('exit', (code) => {
-    console.log(`Cloudflare Tunnel exited with code ${code}. Restarting tunnel in 3 seconds...`);
+    console.log(`Cloudflare Tunnel exited with code ${code}. Restarting in 3s...`);
     uploaded = false;
-    setTimeout(() => {
-      startCloudflare();
-    }, 3000);
+    setTimeout(startCloudflare, 3000);
   });
-} else {
-  startNgrok();
 }
 
 function startNgrok() {
+  console.log(`Starting ngrok (${getNgrokBin()}) on port ${PORT}...`);
   const ngrok = spawn(getNgrokBin(), ['http', String(PORT)], {
     stdio: 'ignore',
     detached: false,
@@ -118,8 +147,14 @@ function startNgrok() {
 
   ngrok.on('error', (e) => {
     console.error('failed to start ngrok:', e.message);
-    process.exit(1);
+    console.error('محاولة النفق البديل…');
+    startCloudflare();
   });
+
+  /* عدّاد محاولات قراءة لوحة ngrok المحليّة. لو خلصت من غير رابط، يبقى
+     ngrok مش شغّال فعلًا (توكن ناقص أو حد تاني ماخد البورت) فبنروح
+     للبديل بدل ما نفضل ساكتين والأونلاين واقف. */
+  let apiTries = 0;
 
   setTimeout(() => {
     const updateUrl = () => {
@@ -130,23 +165,43 @@ function startNgrok() {
           try {
             const tunnels = JSON.parse(data).tunnels;
             if (tunnels && tunnels.length > 0) {
-              const url = tunnels[0].public_url;
-              console.log(`[${new Date().toLocaleString()}] URL:`, url);
-              publishIfHealthy(url);
+              /* ngrok بيرجّع نفق http ونفق https لنفس العنوان — لازم
+                 نأخذ https، لأن التطبيق بيحوّله لـwss والمتصفح بيرفض
+                 wss على أصل غير آمن. */
+              const t = tunnels.find(x => String(x.public_url).startsWith('https:')) || tunnels[0];
+              const url = t.public_url;
+              if (url !== lastPublished) {
+                console.log(`[${new Date().toLocaleString()}] ngrok URL:`, url);
+                publishIfHealthy(url).then(ok => { if (ok) lastPublished = url; });
+              }
+            } else if (++apiTries >= 6) {
+              console.error('ngrok مافتحش أي نفق — تحويل للبديل.');
+              apiTries = -999;   /* مانكررش التحويل */
+              startCloudflare();
             }
           } catch(e) {
             console.error('Error:', e.message);
           }
         });
-      }).on('error', (e) => console.error('Error fetching tunnels:', e.message));
+      }).on('error', (e) => {
+        if (++apiTries >= 6 && apiTries > 0) {
+          console.error('لوحة ngrok مش بترد (' + e.message + ') — تحويل للبديل.');
+          apiTries = -999;
+          startCloudflare();
+        }
+      });
     };
 
     updateUrl();
+    /* آلية التحديث كل دقيقة: لو الخطة المجانية غيّرت الرابط، url.json
+       بيتحدّث لوحده. publishIfHealthy بيتأكد إن الرابط شغّال قبل نشره،
+       فرابط ميت مابيوصلش للتطبيق. */
     setInterval(updateUrl, 60000);
   }, 5000);
 
   ngrok.on('exit', (code) => {
-    console.log(`ngrok exited with code ${code}`);
-    process.exit(code);
+    console.log(`ngrok exited with code ${code}. Restarting in 3s...`);
+    lastPublished = null;
+    setTimeout(startNgrok, 3000);
   });
 }
