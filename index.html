@@ -10359,7 +10359,15 @@ const OL=(()=>{
         const res = await fetch(url, { signal: controller.signal, cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } });
         clearTimeout(id);
         if (!res.ok) return null;
-        return await res.json();
+        /* بنقرا نص ونشيل BOM بإيدينا قبل التحليل.
+           url.json اتحرّر مرة على ويندوز فاتكتب بـBOM (EF BB BF)، وأي
+           محلّل JSON بيرمي خطأ على الحرف ده. res.json() بيتصرّف صح مع
+           الترميز، لكن أي مسار قراءة تاني (نص، أو ملف محلي جوه الـAPK)
+           مايتصرّفش — والنتيجة إن التطبيق مايلاقيش رابط السيرفر خالص
+           والأونلاين يقف. السطر ده بيحصّن كل المسارات. */
+        const text = (await res.text()).replace(/^﻿/, '').trim();
+        if (!text) return null;
+        try { return JSON.parse(text); } catch (e) { return null; }
       } catch (e) {
         clearTimeout(id);
         return null;
