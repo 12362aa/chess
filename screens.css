@@ -2910,7 +2910,7 @@ body[data-ui-theme="minimal"] .home-hero{
 }
 #s-settings #ui-cyberpunk .th-sw::after{
   background-image:
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='48'><g fill='none' stroke='%23179FAE' stroke-width='1.2'><path d='M14 0 L28 8 L28 24 L14 32 L0 24 L0 8 Z'/><path d='M14 32 L28 40 L28 56 M14 32 L0 40 L0 56'/></g></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='48'><g fill='none' stroke='%2300FF66' stroke-width='1.2'><path d='M14 0 L28 8 L28 24 L14 32 L0 24 L0 8 Z'/><path d='M14 32 L28 40 L28 56 M14 32 L0 40 L0 56'/></g></svg>"),
     repeating-linear-gradient(180deg, rgba(120,150,155,.34) 0 1px, transparent 1px 4px);
   background-size: 28px 48px, 100% 4px;
   opacity: .9;
@@ -2920,7 +2920,7 @@ body[data-ui-theme="minimal"] .home-hero{
 }
 #s-settings #ui-gaming .th-sw::after{
   background-image:
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><g fill='none' stroke='%23A85A20' stroke-width='2.2'><path d='M0 22 L16 10 L32 22'/><path d='M0 32 L16 20 L32 32'/></g></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><g fill='none' stroke='%2300E5FF' stroke-width='2.2'><path d='M0 22 L16 10 L32 22'/><path d='M0 32 L16 20 L32 32'/></g></svg>"),
     repeating-linear-gradient(60deg, rgba(140,110,90,.3) 0 1px, transparent 1px 9px);
   background-size: 32px 32px, auto;
   opacity: .8;
@@ -2928,7 +2928,7 @@ body[data-ui-theme="minimal"] .home-hero{
 #s-settings #ui-anime .th-sw::after{
   background-image:
     repeating-conic-gradient(from 0deg at 50% 118%, rgba(255,255,255,.55) 0deg 1deg, transparent 1deg 5deg),
-    radial-gradient(circle, rgba(120,60,100,.45) 0 1px, transparent 1.5px);
+    radial-gradient(circle, rgba(224,30,55,.45) 0 1px, transparent 1.5px);
   background-size: auto, 6px 6px;
   opacity: .7;
 }
@@ -3292,9 +3292,16 @@ body[data-ui-theme="minimal"]{
   color: var(--color-text-disabled);
 }
 /* الصفوف اللي فيها شبكة اختيارات (ألوان، أطقم) بتبقى عمودية */
+/* الصفوف اللي جواها شبكة اختيارات لازم تبقى عمودية: الشبكة محتاجة
+   العرض كله. الأسماء دي متأكّد منها من الـmarkup — النسخة الأولى كانت
+   بتقول .ui-themes-grid وهو مش موجود (الصح .ui-grid)، فصف الثيمات فضل
+   أفقي والشبكة اتزنقت في نص العرض وسابت فراغ فاضح جنبها. */
 #s-settings .setting-item:has(.dot-color-picker),
-#s-settings .setting-item:has(.ui-themes-grid),
+#s-settings .setting-item:has(.ui-grid),
+#s-settings .setting-item:has(.board-themes-grid),
+#s-settings .setting-item:has(.board-theme-trigger),
 #s-settings .setting-item:has(.pc-grid),
+#s-settings .setting-item:has(.pc-current),
 #s-settings .setting-item:has(.vol-row){
   flex-direction: column !important;
   align-items: stretch;
@@ -3428,4 +3435,103 @@ body[data-ui-theme="glass"] .app-modal-overlay{
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
   background: var(--color-overlay);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   21. توسيط الرقعة فعليًا في نص الشاشة
+   ──────────────────────────────────────────────────────────────────────
+   القياس على 351×800: اللي فوق الرقعة 129px (العنوان + بار الخصم) واللي
+   تحتها 218px (بار اللاعب + الأزرار + شريط الحالة + سجل النقلات). الفرق
+   89px، فمركز الرقعة كان على 44% من الطول — مايل لفوق بشكل واضح.
+
+   المطلوب توسيط حقيقي من غير تغيير حجم الرقعة ولا القطع ولا البارات ولا
+   الصف العلوي، ومن غير فراغ ميت فوق (اللي كان الحل الغلط قبل كده).
+   فالحل إن اللي تحت الرقعة يخفّ لحد ما يتساوى مع اللي فوقها:
+
+   • شريط «دور اللاعب الأبيض» (#sbar) اتشال من الموبايل. الدور أصلًا
+     مكتوب جوه بار اللاعب نفسه («● دوره»)، فهو كان بيكرّر معلومة موجودة.
+   • سجل النقلات اتنقل فوق الرقعة تحت بار الخصم — نفس مكانه في lichess
+     على الموبايل. مجرد تغيير ترتيب، مفيش حاجة اتشالت.
+
+   النتيجة: فوق 162px وتحت 148px، والفراغ الحر بيتقسم بالتساوي،
+   فمركز الرقعة بيقع على ~50%.
+══════════════════════════════════════════════════════════════════════ */
+@media (orientation: portrait) and (max-width: 700px){
+  /* الدور مكتوب في بار اللاعب، فالشريط ده تكرار بياخد 37px من التوسيط */
+  #s-game[data-seat] > #sbar{ display: none !important; }
+
+  /* سجل النقلات فوق الرقعة: بيوازن الكفّتين */
+  #s-game[data-seat] > #mvhist{ order: 15; }
+
+  /* الفراغ الحر يتقسم بالتساوي فوق الرقعة وتحتها.
+     margin auto على الحاوية في flex column بيمتص الفراغ من الناحيتين
+     بالتساوي — أدق من justify-content لأنه مايتأثرش بأي padding
+     بيكتبه R.balance. */
+  #s-game[data-seat] > #board-container{
+    margin-block: auto;
+  }
+}
+
+/* البلوتوث عنده شريط حالة الاتصال (#gconn) فوق الرقعة، فالكفّة العليا
+   بقت أتقل ونزلت الرقعة لـ53%. سجل النقلات يفضل تحت الرقعة في الوضع ده
+   بس، فيوازن الـ28px اللي الشريط بيزودها فوق. */
+@media (orientation: portrait) and (max-width: 700px){
+  #s-game.mode-bluetooth[data-seat] > #mvhist{ order: 60; }
+}
+
+/* سجل النقلات: شريط نص، مش بطاقة.
+   بعد ما اتنقل فوق الرقعة، خلفيته وحدوده بقت تبان كصندوق فاضي في بداية
+   المباراة (لسه مفيش نقلات). بنشيل شكل البطاقة ونسيب المكان محجوز —
+   لو خبّيناه كان هيرجع لما أول نقلة تنزل ويزحلق الرقعة، وده الاهتزاز
+   اللي اتصلّح. */
+@media (orientation: portrait) and (max-width: 700px){
+  #s-game[data-seat] > #mvhist{
+    background: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    padding-inline: var(--space-2);
+    justify-content: center;
+  }
+}
+
+/* ── قائمة ألوان الرقعة مكانها الورقة السفلية ──
+   الشبكة مكتوبة في صفحة الإعدادات وBoardThemeSheet.open() بتنقلها للورقة
+   عند أول فتح (نقل عقدة عشان كل onclick يفضل شغّال). لكن قبل أول فتح كانت
+   ظاهرة في الصفحة تحت زر «لون الرقعة» — فالمستخدم بيشوف كل الرقع مفتوحة
+   والزر اللي المفروض يفتحها في نفس الوقت.
+   بنخبّيها في مكانها الأصلي بس؛ جوه الورقة بتظهر عادي. */
+#s-settings #board-themes-grid{ display: none !important; }
+#board-theme-sheet #board-themes-grid,
+.ds-sheet__body #board-themes-grid{ display: grid !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   22. أنيميشن دخول الشاشة: حركة بدون تعتيم
+   ──────────────────────────────────────────────────────────────────────
+   sfd كانت بتعمل أنيميشن على opacity من 0 لـ1. المشكلة إن الثيمات (ما
+   عدا amkh) بتحط filter: drop-shadow مزدوج على أيقونات البطاقات، وfilter
+   بيعمل طبقة تركيب مستقلة. لما الأب بيتحرك على opacity، الطبقة دي
+   بتترسم من الصفر — فالبطاقة (زي «مراحل نور») بتبان وكأنها اختفت ورجعت.
+   وده بالظبط اللي المستخدم بلّغ عنه: موجود في كل الثيمات إلا amkh.
+
+   نفس الإحساس بحركة خالصة: transform بس، مفيش opacity. الـtransform
+   بيتعامل معاه المُركِّب من غير إعادة رسم، فمفيش وميض.
+══════════════════════════════════════════════════════════════════════ */
+@keyframes sfdSlide{
+  from{ transform: translateY(10px); }
+  to  { transform: translateY(0); }
+}
+.screen.active.is-entering{
+  animation: sfdSlide .28s cubic-bezier(.25,.46,.45,.94) !important;
+}
+
+/* ودرع إضافي: ظل واحد بدل اتنين على أيقونات البطاقات. التمن الحقيقي في
+   الظل المزدوج، والفرق البصري بينهم شبه معدوم في حجم أيقونة. */
+@media (max-width: 700px){
+  body[data-ui-theme="cyberpunk"] .mc-ic,
+  body[data-ui-theme="gaming"] .mc-ic,
+  body[data-ui-theme="anime"] .mc-ic,
+  body[data-ui-theme="glass"] .mc-ic,
+  body[data-ui-theme="minimal"] .mc-ic{
+    filter: drop-shadow(0 0 14px currentColor) !important;
+  }
 }

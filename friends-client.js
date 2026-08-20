@@ -21,6 +21,9 @@ const amkhFriends = {
 
   async getAuthHeader() {
     if (!window.amkhAuth || !window.amkhAuth.token) return null;
+    /* نفس سبب الحماية في auth-client: نداءات الأصدقاء بتفشل بصمت لو
+       رابط السيرفر ماكانش اتحمّل، لأن getApiBase بترجع مسار نسبي. */
+    if (window.amkhEnsureServer && !await window.amkhEnsureServer()) return null;
     return { 'Authorization': `Bearer ${window.amkhAuth.token}`, 'ngrok-skip-browser-warning': 'true' };
   },
 

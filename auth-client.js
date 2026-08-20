@@ -1,9 +1,60 @@
 // auth-client.js
 // يعالج تسجيل الدخول والاتصال بالـ API
+
+/* هل إحنا جوه تطبيق أندرويد (Capacitor) ولا في متصفح؟
+   ──────────────────────────────────────────────────────────────
+   الفرق ده حرج: Capacitor بيقدّم الصفحة من https://localhost، يعني
+   location.hostname === 'localhost' جوه التطبيق. والنسخة القديمة كانت
+   بتاخد ده كإشارة «إحنا في التطوير» وترجّع http://localhost:8081/api —
+   وده عنوان التليفون نفسه، مافيهوش سيرفر. النتيجة إن تسجيل الدخول
+   كان بيفشل دايمًا في الـAPK بـ«تعذّر الاتصال بالخادم» رغم إن السيرفر
+   البعيد شغّال (الأونلاين كان شغّال لأنه بيستخدم رابطه الخاص).
+   فالاختصار المحلي بقى للمتصفح بس. */
+window.amkhIsNative = () => {
+  try {
+    if (window.Capacitor) {
+      if (typeof window.Capacitor.isNativePlatform === 'function') return window.Capacitor.isNativePlatform();
+      return true;
+    }
+  } catch (e) {}
+  return /\bwv\b|Android.*Version\/[\d.]+\s+Chrome/.test(navigator.userAgent) && location.protocol === 'https:' && location.hostname === 'localhost';
+};
+
 window.getApiBase = () => {
   if (window.SERVER_HTTP) return window.SERVER_HTTP + '/api';
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:8081/api';
+  if (!window.amkhIsNative()
+      && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:8081/api';
+  }
   return '/api';
+};
+
+/* ──────────────────────────────────────────────────────────────
+   التأكد إن رابط السيرفر متاح قبل أي نداء API.
+   ──────────────────────────────────────────────────────────────
+   الرابط بيتحمّل جوه وحدة الأونلاين (OL) وبيتعرّض على
+   window.SERVER_HTTP، لكن تحميله كان بيحصل أول ما تفتح شاشة الأونلاين
+   بس. فلو المستخدم فتح تسجيل الدخول من الشاشة الرئيسية، الرابط مايكونش
+   اتحمّل وgetApiBase ترجع مسار مش صحيح.
+
+   الدالة دي بتحمّله عند الحاجة وبترجّع true لو بقى متاح. كل نداء
+   بيتصل بالسيرفر بينادي عليها الأول. */
+window.amkhEnsureServer = async function ensureServer() {
+  if (window.SERVER_HTTP) return true;
+  /* متصفح تطوير محلي: getApiBase عندها مسار مباشر للسيرفر المحلي */
+  const h = window.location.hostname;
+  if (!window.amkhIsNative() && (h === 'localhost' || h === '127.0.0.1')) return true;
+  if (typeof window.amkhLoadServerUrl === 'function') {
+    /* نداء واحد بس لو كان فيه محاولة شغّالة، عشان فتح النافذة مرتين
+       مايبعتش طلبين للـGitHub */
+    if (!window.__srvPromise) {
+      window.__srvPromise = window.amkhLoadServerUrl()
+        .catch(() => false)
+        .finally(() => { window.__srvPromise = null; });
+    }
+    try { await window.__srvPromise; } catch (e) {}
+  }
+  return !!window.SERVER_HTTP;
 };
 
 /* ──────────────────────────────────────────────────────────────
@@ -146,6 +197,11 @@ const amkhAuth = {
   },
 
   async login(email, password) {
+    /* الرابط لازم يكون متاح قبل النداء، وإلا الطلب بيروح لمسار نسبي
+       مش موجود في الـAPK */
+    if (!await window.amkhEnsureServer()) {
+      return { success: false, error: 'تعذّر الوصول للسيرفر. تأكد من الإنترنت وحاول تاني.' };
+    }
     const res = await fetch(`${window.getApiBase()}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -160,6 +216,9 @@ const amkhAuth = {
   },
 
   async register(email, password, displayName) {
+    if (!await window.amkhEnsureServer()) {
+      return { success: false, error: 'تعذّر الوصول للسيرفر. تأكد من الإنترنت وحاول تاني.' };
+    }
     const res = await fetch(`${window.getApiBase()}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -182,6 +241,9 @@ const amkhAuth = {
      العادي محتاج تدفق مختلف، فبنقول للمستخدم يستخدم التطبيق بدل ما
      نسيبه يضغط زر مايحصلش منه حاجة. */
   async loginWithGoogle() {
+    if (!await window.amkhEnsureServer()) {
+      return { success: false, error: 'تعذّر الوصول للسيرفر. تأكد من الإنترنت وحاول تاني.' };
+    }
     const g = window.amkhGoogleAuth;
     if (!g || !g.available) {
       return { success: false, error: 'الدخول بجوجل متاح في تطبيق الأندرويد' };

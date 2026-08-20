@@ -10384,12 +10384,23 @@ const OL=(()=>{
       if (!health || health.status !== 'ok') continue;
       SERVER_HTTP = base;
       SERVER_URL = base.replace(/^https:\/\//i, 'wss://').replace(/^http:\/\//i, 'ws://');
+      /* لازم يتعرّض على window: auth-client.js و friends-client.js ملفات
+         منفصلة وبيبنوا رابط الـAPI من window.SERVER_HTTP. من غير السطر ده
+         كانوا بيرجعوا لـ'/api' النسبي، واللي في الـAPK بيبقى
+         https://localhost/api — مش موجود، فتسجيل الدخول كان بيفشل بـ
+         «تعذّر الاتصال بالخادم» رغم إن الأونلاين نفسه شغّال (هو بيستخدم
+         المتغيّر الداخلي مباشرة). */
+      window.SERVER_HTTP = base;
       return true;
     }
     SERVER_URL = '';
     SERVER_HTTP = '';
+    window.SERVER_HTTP = '';
     return false;
   }
+  /* الحساب ممكن يتفتح قبل أي مباراة أونلاين، فالرابط لازم يكون متاح
+     من غير ما المستخدم يفتح شاشة الأونلاين الأول. */
+  window.amkhLoadServerUrl = loadServerUrl;
 
   let ws=null;
   let _myCol='w';
