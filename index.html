@@ -10267,7 +10267,20 @@ const AppBar={
 const Nav={
   show(id){
     try{CHAT._stopRecording();}catch(e){}
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.classList.remove('is-entering');});
+    const el=document.getElementById(id);
+    el.classList.add('active');
+    /* أنيميشن الدخول مرة واحدة بس.
+       قبل كده كانت على .screen.active نفسها، فأي كود بيعيد ضبط الكلاس
+       (وده بيحصل كتير في إعادة الرسم) كان بيعيد أنيميشن بتبدأ من
+       opacity:0 على عنصر بحجم الشاشة — يعني الواجهة كلها تختفي وترجع.
+       الكلاس ده بيتشال أول ما الأنيميشن تخلص، فالحالة المستقرة نضيفة. */
+    el.classList.add('is-entering');
+    const done=()=>{el.classList.remove('is-entering');};
+    el.addEventListener('animationend',done,{once:true});
+    /* حبل أمان: لو الأنيميشن ماشتغلتش (تقليل الحركة، أو الشاشة مخفية)
+       الحدث مايجيش والكلاس يفضل — فبنشيله بالوقت كمان. */
+    setTimeout(done,420);
     document.getElementById(id).classList.add('active');
     /* الشاشة الحالية على body عشان الستايل يعرفها من غير :has().
        زخارف الثيمات بتهدى على شاشة اللعب عشان الرقعة تفضل هي البطل. */
@@ -10301,50 +10314,38 @@ function isRemoteMatchMode(mode=S.mode){
   return mode==='online'||mode==='bluetooth';
 }
 
+/* ترتيب مقاعد شاشة اللعب.
+   ────────────────────────────────────────────────────────────────
+   النسخة القديمة كانت بتشيل بار الأسود والرقعة وبار الأبيض وشريط
+   الأزرار والحالة وسجل النقلات من الشجرة بـremoveChild، وترجّعهم
+   بـappendChild بالترتيب المطلوب — يعني تفكيك وإعادة بناء لأكتر من
+   115 عنصر (الرقعة لوحدها 64 مربع وقطعها) كل مرة تبدأ مباراة أو
+   يتغيّر لون اللاعب.
+
+   وده كان مصدر الوميض اللي بيخلّي القطع تختفي لأجزاء من الثانية:
+   العنصر لما يتشال من الشجرة بيفقد رسمه، والرجوع بيفرض layout كامل
+   من جديد، فعلى تليفون بيسقط إطار أو اتنين.
+
+   الترتيب البصري أصلاً مضبوط بـflex order في CSS، فمفيش أي داعي إن
+   الشجرة تتغيّر. الدالة بقت بتكتب data-seat على #s-game وخلاص، وCSS
+   هي اللي بتقلب البارين. صفر تعديل على الشجرة = صفر وميض. */
 function fixBars(myCol){
-  const container=document.getElementById('board-container');
-  const barB=document.getElementById('bar-b');
-  const barW=document.getElementById('bar-w');
-  const gtbar=document.querySelector('.gtbar');
-  const sbar=document.getElementById('sbar');
-  const mvhist=document.getElementById('mvhist');
   const parent=document.getElementById('s-game');
+  if(!parent)return;
 
-  // Remove existing placements
-  if(barB.parentNode===parent)parent.removeChild(barB);
-  if(container.parentNode===parent)parent.removeChild(container);
-  if(barW.parentNode===parent)parent.removeChild(barW);
-  if(gtbar&&gtbar.parentNode===parent)parent.removeChild(gtbar);
-  if(sbar&&sbar.parentNode===parent)parent.removeChild(sbar);
-  if(mvhist&&mvhist.parentNode===parent)parent.removeChild(mvhist);
+  /* w = أنا الأبيض (باري تحت) · b = أنا الأسود (باري تحت) ·
+     both = لاعبان على نفس الجهاز (الأسود فوق زي حالة الأبيض) */
+  parent.dataset.seat = (myCol==='b') ? 'b' : (myCol==='both' ? 'both' : 'w');
 
-  if(myCol==='both'){
-    // For local 2-player mode, use consistent layout like other modes
-    parent.appendChild(barB);
-    parent.appendChild(container);
-    parent.appendChild(barW);
-    if(gtbar)parent.appendChild(gtbar);
-    if(sbar)parent.appendChild(sbar);
-    if(mvhist)parent.appendChild(mvhist);
-  }else if(myCol==='b'){
-    // اللاعب الأسود - يظهر في الأسفل
-    parent.appendChild(barW); // الخصم في الأعلى
-    parent.appendChild(container); // اللوحة في الوسط
-    parent.appendChild(barB); // أنا في الأسفل
-    // العناصر التفاعلية تظهر تحت اللاعب (barB)
-    if(gtbar)parent.appendChild(gtbar);
-    if(sbar)parent.appendChild(sbar);
-    if(mvhist)parent.appendChild(mvhist);
-  }else{
-    // اللاعب الأبيض - يظهر في الأسفل
-    parent.appendChild(barB); // الخصم في الأعلى
-    parent.appendChild(container); // اللوحة في الوسط
-    parent.appendChild(barW); // أنا في الأسفل
-    // العناصر التفاعلية تظهر تحت اللاعب (barW)
-    if(gtbar)parent.appendChild(gtbar);
-    if(sbar)parent.appendChild(sbar);
-    if(mvhist)parent.appendChild(mvhist);
-  }
+  /* شبكة أمان لأول تحميل: لو عنصر مش جوه #s-game لأي سبب بنرجّعه.
+     في الحالة العادية الشرط مايتحققش، فمفيش لمس للشجرة. */
+  const els=[document.getElementById('bar-b'),
+             document.getElementById('board-container'),
+             document.getElementById('bar-w'),
+             document.querySelector('.gtbar'),
+             document.getElementById('sbar'),
+             document.getElementById('mvhist')];
+  for(const el of els){ if(el && el.parentNode !== parent) parent.appendChild(el); }
 }
 
 const OL=(()=>{

@@ -3341,3 +3341,91 @@ body[data-ui-theme="minimal"]{
   #s-settings .setting-item:has(.acct-uname){ flex-wrap: wrap; }
   .acct-uname{ width: 100%; justify-content: space-between; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   19. إصلاح الوميض — الترتيب بالـCSS، والأنيميشن مرة واحدة
+   ──────────────────────────────────────────────────────────────────────
+   كان فيه سببين مقيسين للوميض اللي بيخلّي عناصر تختفي لأجزاء من الثانية:
+
+   1) fixBars() كانت بتشيل الرقعة والبارات من الشجرة وترجّعهم بترتيب
+      مختلف — تفكيك وإعادة بناء لـ115 عنصر. اتشالت خلاص، والترتيب بقى
+      هنا بـorder. الشجرة مابتتغيّرش، فمفيش إطار ساقط.
+
+   2) .screen.active كانت شايلة animation:sfd اللي بيبدأ من opacity:0.
+      المشكلة إن الأنيميشن بتتعاد كل مرة الكلاس يترجع — وبما إن الشاشة
+      بحجم الشاشة كلها، الوميض بيبان على كل حاجة. وأي كود بيعيد ضبط
+      الكلاس (زي R.all بعد نقلة) كان بيخلّي الشاشة تختفي وترجع.
+      الحل: الأنيميشن بتشتغل مرة واحدة لما الشاشة تدخل فعلًا (بكلاس
+      منفصل بيتشال بعد ما تخلص)، والحالة العادية بدون أنيميشن.
+══════════════════════════════════════════════════════════════════════ */
+
+/* ── ترتيب عناصر شاشة اللعب ──
+   القيم مسافتها 10 عشان أي إضافة مستقبلية تدخل بينهم من غير إعادة ترقيم */
+#s-game[data-seat] > .gtop            { order: 0; }
+#s-game[data-seat] > #gconn           { order: 5; }
+#s-game[data-seat] > #bar-b           { order: 10; }
+#s-game[data-seat] > #board-container { order: 20; }
+#s-game[data-seat] > #bar-w           { order: 30; }
+#s-game[data-seat] > .gtbar           { order: 40; }
+#s-game[data-seat] > #sbar            { order: 50; }
+#s-game[data-seat] > #mvhist          { order: 60; }
+#s-game[data-seat] > .chat-wrap       { order: 70; }
+
+/* أنا الأسود → باري تحت الرقعة وبار الخصم فوقها */
+#s-game[data-seat="b"] > #bar-w{ order: 10; }
+#s-game[data-seat="b"] > #bar-b{ order: 30; }
+
+/* ── أنيميشن دخول الشاشة ──
+   بدون animation في الحالة العادية. الكلاس is-entering بيتحط لحظة
+   التنقّل بس ويتشال بعد ما الأنيميشن تخلص. */
+.screen.active{ animation: none !important; }
+.screen.active.is-entering{
+  animation: sfd .35s cubic-bezier(.25,.46,.45,.94) !important;
+}
+/* الجهاز اللي المستخدم طالب فيه تقليل الحركة مايشوفش الانتقال أصلاً */
+@media (prefers-reduced-motion: reduce){
+  .screen.active.is-entering{ animation: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   20. تكلفة البلور على النوافذ المنبثقة
+   ──────────────────────────────────────────────────────────────────────
+   backdrop-filter بيخلّي المتصفح ياخد صورة لكل اللي ورا العنصر ويعمل
+   عليها بلور — كل إطار، مش مرة واحدة. على WebView أندرويد ده تمنه
+   عالي، والنتيجة إن النافذة بتتلعثم أو تختفي لإطار وقت الفتح.
+
+   والمفارقة إن الخلفية تحت البلور عتامتها ~84%، يعني البلور نفسه
+   تقريبًا مش باين — بندفع التمن كله ومانشوفش المقابل. فبنشيله ونعوّض
+   بعتامة أعلى شوية: نفس الإحساس البصري، وصفر تكلفة تركيب.
+
+   الاستثناء: ثيم glass. البلور هناك هو هوية الثيم نفسها مش تزويق،
+   واللي مختاره مستعد لتكلفته.
+══════════════════════════════════════════════════════════════════════ */
+#engine-ov,
+#promo-ov,
+#review-ov,
+.ds-overlay,
+body .app-modal-overlay{
+  /* body في المُحدِّد عشان يغلب القاعدة الأصلية في index.html اللي
+     تخصيصها أعلى — من غيره النافذة دي كانت بتفضل بالبلور */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* أغمق شوية عشان يعزل المحتوى اللي ورا زي ما البلور كان بيعمل */
+  background: color-mix(in srgb, var(--color-bg-base) 88%, transparent);
+}
+/* المتصفحات اللي مافيهاش color-mix تاخد الاحتياطي */
+@supports not (background: color-mix(in srgb, red 50%, transparent)){
+  #engine-ov, #promo-ov, #review-ov, .ds-overlay, .app-modal-overlay{
+    background: var(--color-overlay);
+  }
+}
+/* glass بيرجّع البلور: هو الهوية هناك */
+body[data-ui-theme="glass"] #engine-ov,
+body[data-ui-theme="glass"] #promo-ov,
+body[data-ui-theme="glass"] #review-ov,
+body[data-ui-theme="glass"] .ds-overlay,
+body[data-ui-theme="glass"] .app-modal-overlay{
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  background: var(--color-overlay);
+}
