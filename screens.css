@@ -2386,6 +2386,13 @@ body[data-ui-theme="anime"]{
   pointer-events: none;
   overflow: hidden;
   contain: strict;
+  /* الانتقال بين الشاشات بيغيّر عتامة طبقة الزخرفة (كاملة على الرئيسية،
+     .35 على اللعب). من غير transition العتامة بتقفز فجأة، وفي الثيمات
+     المزحومة (gaming/cyberpunk/anime) قفزة إضاءة الجسيمات المتحركة دي
+     بتتقري كوميض لحظي عند الرجوع للرئيسية — وده اللي المستخدم بيشوفه في
+     «كل الثيمات إلا amkh»، لأن زخرفة amkh هادية فالقفزة مش باينة فيها.
+     الـtransition بيحوّل القفزة لتلاشي ناعم فيختفي الوميض في كل الثيمات. */
+  transition: opacity .3s var(--easing-standard, ease);
 }
 #theme-fx > i{
   position: absolute;

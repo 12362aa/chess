@@ -41,7 +41,16 @@ async function ensureInit() {
 /* بيرجّع { idToken } أو بيرمي خطأ. الاستدعاء من auth-client.js */
 async function signInWithGoogle() {
   await ensureInit();
-  const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
+  /* مابنبعتش scopes هنا خالص — وده كان سبب فشل الدخول بجوجل على الأندرويد
+     بالكامل: الـplugin بيعتبر أي مصفوفة scopes (حتى «email/profile» اللي هي
+     أصلًا الافتراضي) طلبًا لصلاحيات إضافية، فبيرفض فورًا برسالة
+     «You CANNOT use scopes without modifying the main activity» ما لم يكن
+     الـMainActivity وارثًا من ModifiedMainActivityForSocialLoginPlugin —
+     وبتاعنا وارث من BridgeActivity العادي. الرفض بيحصل قبل ما يظهر أصلًا
+     اختيار الحساب أو يرجع idToken، فمحصلش أي اتصال بالسيرفر.
+     الـplugin بيضيف email/profile/openid افتراضيًا (GoogleProvider.login)،
+     واحنا محتاجين الـidToken بس للتحقّق على السيرفر — فمافيش أي خسارة. */
+  const res = await SocialLogin.login({ provider: 'google' });
   const r = (res && res.result) || {};
   /* شكل الرد في وضع online: { accessToken, idToken, profile }.
      بنقبل الشكل المتداخل كمان لو نسخة الـplugin غيّرته. */

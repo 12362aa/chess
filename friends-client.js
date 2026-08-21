@@ -121,13 +121,16 @@ const amkhFriends = {
   /* ── دعوة لمباراة ──
      بتمشي على الـWebSocket مش HTTP: السيرفر لازم يوصّلها للطرف التاني
      لحظيًا، ونفس السوكت هو اللي هيبدأ المباراة لو قبل. */
-  inviteFriend(friendId, name) {
+  inviteFriend(friendId, name, color) {
     const ws = this._socket();
     if (!ws) {
       window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت وحاول تاني.', 'غير متصل', '◈');
       return false;
     }
-    ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: 'r' }));
+    /* الداعي بيختار لونه زي الأونلاين العادي: أبيض/أسود/عشوائي. السيرفر
+       بياخد ده كلون المضيف (الداعي) والمدعو بياخد العكس. */
+    const c = (color === 'w' || color === 'b') ? color : 'r';
+    ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: c }));
     this._outgoingInvite = { friend_id: friendId, name, at: Date.now() };
     window.amkhUI.notify(`تم إرسال الدعوة لـ${name} — استنى يقبل`, 'تم', '◉');
     return true;
@@ -431,9 +434,16 @@ const amkhFriends = {
     inviteBtn.className = 'ds-btn ds-btn--primary ds-btn--sm';
     inviteBtn.textContent = 'العب';
     inviteBtn.disabled = !f.online || f.status === 'in-game';
-    inviteBtn.onclick = () => {
+    inviteBtn.onclick = async () => {
       U.sfx();
-      if (this.inviteFriend(f.id, f.display_name || f.username)) {
+      /* اختيار اللون قبل الدعوة — تمامًا زي الأونلاين العادي */
+      const color = await this._menu(inviteBtn, [
+        { key: 'w', label: '♔ ألعب بالأبيض' },
+        { key: 'b', label: '♚ ألعب بالأسود' },
+        { key: 'r', label: '⚄ لون عشوائي' },
+      ]);
+      if (!color) return;
+      if (this.inviteFriend(f.id, f.display_name || f.username, color)) {
         inviteBtn.disabled = true;
         inviteBtn.textContent = 'مستني…';
         setTimeout(() => { inviteBtn.disabled = !f.online; inviteBtn.textContent = 'العب'; }, 90000);

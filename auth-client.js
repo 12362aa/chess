@@ -102,7 +102,17 @@ const amkhUI = {
       document.removeEventListener('keydown', onKey);
       this.close(overlay);
     };
-    overlay.addEventListener('click', e => { if (e.target === overlay) dismiss(); });
+    /* نقرة الشبح: على اللمس، بعد ما تضغط الزر اللي بيفتح النافذة، بيتبعت
+       click تاني «شبح» بعد ~300ms عند نفس مكان الزر. النافذة بتكون فتحت
+       وغطّت المكان ده، فالنقرة دي بتقع على خلفية النافذة وتقفلها فورًا —
+       ده بالظبط «الأيقونة تفتح النافذة وتختفي». بنتجاهل إغلاق الخلفية
+       أول ٤٥٠ms عشان نمتص نقرة الشبح. (مالوش أي أثر على المتصفح). */
+    let openedAt = 0;
+    overlay.addEventListener('click', e => {
+      if (e.target !== overlay) return;
+      if (openedAt && (Date.now() - openedAt) < 450) return;
+      dismiss();
+    });
     const onKey = e => { if (e.key === 'Escape') dismiss(); };
     document.addEventListener('keydown', onKey);
 
@@ -110,7 +120,7 @@ const amkhUI = {
       b.addEventListener('click', () => { this.sfx(); dismiss(); });
     });
 
-    requestAnimationFrame(() => this.open(overlay));
+    requestAnimationFrame(() => { openedAt = Date.now(); this.open(overlay); });
     overlay._dismiss = dismiss;
     return overlay;
   },
@@ -282,9 +292,10 @@ const amkhAuth = {
       /* إلغاء المستخدم مش خطأ — مانزعّجهوش برسالة */
       if (/cancel|closed|12501|user_cancel/i.test(m)) return { success: false, cancelled: true };
       console.error('[auth] google sign-in failed:', m);
-      /* السبب بيظهر في الرسالة: تشخيص فشل الدخول بجوجل على تليفون بعيد
-         من غير سبب مكتوب كان شبه مستحيل. */
-      return { success: false, error: 'تعذّر الدخول بجوجل — ' + (m.slice(0, 90) || 'سبب غير معروف') };
+      /* السبب بيظهر في الرسالة كاملًا: تشخيص فشل الدخول بجوجل على تليفون
+         بعيد من غير سبب مكتوب كان شبه مستحيل. مابنقصّش الرسالة كتير عشان
+         رسائل الـplugin الأصلية (زي «10:» أو «main activity») تبان كلها. */
+      return { success: false, error: 'تعذّر الدخول بجوجل — ' + (m.slice(0, 200) || 'سبب غير معروف') };
     }
     if (!idToken) return { success: false, error: 'تعذّر الحصول على هوية جوجل' };
 
@@ -485,17 +496,36 @@ const amkhAuth = {
     };
 
     /* رسائل الأصدقاء (طلبات، دعوات، حضور) بتوصل على السوكت ده كمان لما
-       الأونلاين مش مفتوح، فبنمرّرها لنفس المعالج */
+       الأونلاين مش مفتوح، فبنمرّرها لنفس المعالج. وكمان: مباراة الصديق
+       بتبدأ على السوكت ده نفسه — السيرفر بيبعت friend:invite-room وبعدها
+       start وباقي رسائل المباراة، فلازم نمرّر رسائل المباراة لوحدة
+       الأونلاين، وإلا المباراة ماتبدأش أبدًا (ده كان سبب إن الدعوة تتقبل
+       وميحصلش أي مباراة). */
     ws.onmessage = (ev) => {
       let d = null;
       try { d = JSON.parse(ev.data); } catch (e) { return; }
-      if (d && typeof d.type === 'string' && d.type.indexOf('friend:') === 0) {
+      if (!d || typeof d.type !== 'string') return;
+      if (d.type.indexOf('friend:') === 0) {
         try { if (window.amkhFriends) window.amkhFriends.handleSocketMessage(d); } catch (e) {}
+        /* قبول الدعوة بيولّد غرفة على سوكت الحضور ده. لازم وحدة الأونلاين
+           تتبنّى السوكت قبل ما تيجي start (بتيجي بعد invite-room مباشرة
+           على نفس السوكت، فالترتيب مضمون). */
+        if (d.type === 'friend:invite-room' && window.OL && window.OL._adoptPresence) {
+          try { window.OL._adoptPresence(ws); } catch (e) {}
+        }
+        return;
       }
+      /* start / move / resign / chat / name / pimg… رسائل مباراة جاية على
+         سوكت الحضور — بتحصل بس في مباريات الأصدقاء. في الأونلاين العادي
+         رسائل المباراة بتيجي على سوكتها الخاص مش هنا، فمفيش ازدواج. */
+      try { if (window.OL && window.OL._recv) window.OL._recv(d); } catch (e) {}
     };
 
     ws.onclose = () => {
       clearInterval(this._presPing);
+      /* لو كانت مباراة صديق ماشية على السوكت ده، نبلّغ وحدة الأونلاين إنها
+         انقطعت (زي أي انقطاع أونلاين) قبل ما نعيد الاتصال للحضور */
+      try { if (window.OL && window.OL._presenceLost) window.OL._presenceLost(); } catch (e) {}
       if (!this.token) return;
       /* تأخير متزايد بحد أقصى 30 ثانية: مانضربش السيرفر لو هو واقع */
       clearTimeout(this._presTimer);

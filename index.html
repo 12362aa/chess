@@ -567,7 +567,11 @@ body[data-ui-theme="cyberpunk"] .rv-close{
   #s-game.mode-local .captured-piece{width:18px;height:18px;}
   #s-game.mode-local .pb-timer{font-size:19px;min-width:56px;}
 }
-@keyframes sfd{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* حركة دخول الشاشة: انزلاق بالـtransform بس، من غير opacity. الـopacity
+   اللي بتبدأ من صفر هي اللي بتعمل «الشاشة تظهر وتختفي» على WebView لو
+   حصل إن القاعدة اللي بتلغيها في screens.css ماكسبتش الكاسكيد لأي سبب
+   (ترتيب تحميل، ملف مااتحمّلش). transform بس = صفر احتمال وميض. */
+@keyframes sfd{from{transform:translateY(14px) scale(.99)}to{transform:translateY(0) scale(1)}}
 .ic-gold{color:var(--gold2);}.ic-teal{color:var(--teal2);}.ic-green{color:var(--green);}.ic-blue{color:var(--blue);}.ic-t2{color:var(--text2);}
 
 /* ══════════ MENU ══════════ */
@@ -5866,6 +5870,15 @@ const Home={
   _recent(games){
     const box=document.getElementById('home-recent-list');
     if(!box)return;
+    /* بصمة على أول ٤ مباريات: لو مافيش مباراة جديدة، مانهدّش الصفوف
+       ونبنيها تاني. الهدم والبناء ده كان بيحصل كل مرة نرجع للرئيسية
+       (من اللعب، الإعدادات، المستويات…) رغم إن القايمة مااتغيّرتش —
+       وهو اللي بيعمل الوميض اللي المستخدم بيشوفه في منطقة البطاقات.
+       دلوقتي بنعيد البناء بس لما البيانات تتغيّر فعلًا. */
+    const sig=(games||[]).slice(0,4)
+      .map(g=>[g.t,g.res,g.mode,g.opp,g.moves].join(':')).join('|');
+    if(sig===this._recentSig && box.childElementCount)return;
+    this._recentSig=sig;
     box.textContent='';
     if(!games||!games.length){
       const p=document.createElement('p');
@@ -10416,6 +10429,10 @@ const OL=(()=>{
   let _reconnectTimer=null;
   let _pingTimer=null;
   let _connTimeoutTimer=null;
+  /* مباراة صديق بتشتغل على سوكت الحضور المُعار من auth-client، مش على
+     سوكت أونلاين مملوك للوحدة دي. الفلاج ده بيمنع إننا نقفل سوكت الحضور
+     لما المباراة تخلص. */
+  let _borrowed=false;
 
   function setSt(tab,msg,tp=''){
     const el=document.getElementById('st-'+tab);
@@ -10427,9 +10444,12 @@ const OL=(()=>{
     clearTimeout(_connTimeoutTimer);
     clearInterval(_pingTimer);
     if(ws){
-      try{ws.close();}catch(e){}
+      /* سوكت الحضور مُعار — نفكّه من غير ما نقفله، عشان الحضور
+         والدعوات يفضلوا شغّالين بعد ما مباراة الصديق تخلص. */
+      if(!_borrowed){ try{ws.close();}catch(e){} }
       ws=null;
     }
+    _borrowed=false;
     /* لازم يتصفّر مع السوكت، وإلا نظام الأصدقاء يفضل شايف سوكت مقفول
        ويحاول يبعت عليه */
     window.chessWs=null;
@@ -10785,9 +10805,49 @@ const OL=(()=>{
       send({type:'resign'});
       setTimeout(()=>destroy(),400);
     },
-    dc(){destroy();}
+    dc(){destroy();},
+
+    /* ══ مباراة صديق عبر سوكت الحضور ══
+       الدعوة والقبول بيمشوا على سوكت الحضور (auth-client.js). لما الطرف
+       التاني يقبل، السيرفر بيعمل الغرفة على نفس سوكتات الحضور ويبعت عليها
+       'start' وباقي رسائل المباراة. الوحدة دي كانت بتسمع على سوكتها
+       الخاص بس، فرسالة 'start' كانت بتضيع والمباراة ماكانتش بتبدأ خالص.
+       الحل: نتبنّى سوكت الحضور كوسيلة نقل للمباراة. مفيش أي تغيير في
+       السيرفر — هو أصلاً بيعامل سوكت الحضور كسوكت مباراة صح. */
+    _adoptPresence(presWs){
+      if(!presWs) return;
+      /* لو فيه سوكت أونلاين مملوك مفتوح، نقفله (مش سوكت الحضور) */
+      if(ws && ws!==presWs && !_borrowed){ try{ws.close();}catch(e){} }
+      clearInterval(_pingTimer);
+      ws=presWs;
+      _borrowed=true;
+      window.chessWs=presWs;
+    },
+    /* auth-client بيمرّر رسائل المباراة الجاية على سوكت الحضور هنا */
+    _recv(d){ try{ handleMsg(d); }catch(e){} },
+    /* سوكت الحضور اتقفل وإحنا في مباراة صديق: نعاملها زي انقطاع الخصم
+       في الأونلاين العادي، وبعدين نفكّ الارتباط عشان الحضور يعيد الاتصال
+       لوحده لأي دعوات جاية */
+    _presenceLost(){
+      if(!_borrowed) return;
+      if(S.mode==='online'&&!S.over&&S.hist.length>0){
+        S.over=true;
+        SFX.win();
+        G.showOver({
+          winner:S.myCol||'w',
+          tone:'win',
+          reason:'disconnect',
+          message:'انقطع الاتصال بالخصم',
+          detail:'يمكنك مراجعة آخر وضع على الرقعة لمعرفة كيف وصلت المباراة إلى هذه النقطة.',
+        });
+      }
+      ws=null;
+      _borrowed=false;
+      window.chessWs=null;
+    }
   };
 })();
+window.OL=OL;
 
 const DRAG=(()=>{
   let ghost=null;
