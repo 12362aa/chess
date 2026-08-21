@@ -106,13 +106,25 @@ const amkhFriends = {
     } else window.amkhUI.notify(r.error || 'تعذّر الحظر', 'لم يتم', '◈');
   },
 
+  /* أي سوكت مفتوح ينفع للأصدقاء: سوكت الأونلاين لو المستخدم فاتح مباراة،
+     وإلا سوكت الحضور اللي بيفضل مفتوح طول ما هو مسجّل دخول. النسخة
+     القديمة كانت بتدوّر على سوكت الأونلاين بس، فالدعوة كانت تفشل بـ
+     «لازم تكون متصل بالأونلاين» وهو أصلًا متصل. */
+  _socket() {
+    const a = window.chessWs;
+    if (a && a.readyState === 1) return a;
+    const b = window.amkhAuth && window.amkhAuth._presWs;
+    if (b && b.readyState === 1) return b;
+    return null;
+  },
+
   /* ── دعوة لمباراة ──
      بتمشي على الـWebSocket مش HTTP: السيرفر لازم يوصّلها للطرف التاني
      لحظيًا، ونفس السوكت هو اللي هيبدأ المباراة لو قبل. */
   inviteFriend(friendId, name) {
-    const ws = window.chessWs || window.socket || (window.getWs && window.getWs());
-    if (!ws || ws.readyState !== 1) {
-      window.amkhUI.notify('لازم تكون متصل بالأونلاين الأول عشان تبعت دعوة.', 'غير متصل', '◈');
+    const ws = this._socket();
+    if (!ws) {
+      window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت وحاول تاني.', 'غير متصل', '◈');
       return false;
     }
     ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: 'r' }));
@@ -228,8 +240,8 @@ const amkhFriends = {
 
     const send = (action) => {
       clearInterval(tick);
-      const ws = window.chessWs || window.socket || (window.getWs && window.getWs());
-      if (ws && ws.readyState === 1) {
+      const ws = this._socket();
+      if (ws) {
         ws.send(JSON.stringify({ type: 'friend:invite-respond', invite_id: invite.id, action }));
       }
       this._invites = this._invites.filter(i => i.id !== invite.id);
@@ -539,13 +551,44 @@ const amkhFriends = {
         b.onclick = (e) => { e.stopPropagation(); cleanup(); resolve(it.key); };
         menu.appendChild(b);
       });
-      const r = anchor.getBoundingClientRect();
-      menu.style.top = Math.round(r.bottom + 6) + 'px';
-      menu.style.insetInlineEnd = Math.round(window.innerWidth - r.right) + 'px';
+      /* القياس بعد الإضافة للشجرة، وبعدها التثبيت جوه الشاشة.
+         النسخة القديمة كانت بتحسب الموضع من مكان الزر وخلاص من غير أي
+         فحص، فالقائمة كانت بتخرج من تحت الشاشة (زي ما في صورة المستخدم)
+         أو من الجانب لما الزر يكون قريب من الحرف. */
+      menu.style.visibility = 'hidden';
       document.body.appendChild(menu);
+
+      const r = anchor.getBoundingClientRect();
+      const mw = menu.offsetWidth, mh = menu.offsetHeight;
+      const PAD = 8;
+
+      /* رأسيًا: تحت الزر لو فيه مكان، وإلا فوقه */
+      let top = r.bottom + 6;
+      if (top + mh > window.innerHeight - PAD) {
+        top = r.top - mh - 6;
+        if (top < PAD) top = Math.max(PAD, window.innerHeight - mh - PAD);
+      }
+
+      /* أفقيًا: بنستخدم left عشان الحساب يبقى صريح في RTL كمان */
+      let left = r.right - mw;
+      if (left + mw > window.innerWidth - PAD) left = window.innerWidth - mw - PAD;
+      if (left < PAD) left = PAD;
+
+      menu.style.top = Math.round(top) + 'px';
+      menu.style.left = Math.round(left) + 'px';
+      menu.style.insetInlineEnd = 'auto';
+      menu.style.visibility = '';
+
       const onDoc = () => { cleanup(); resolve(null); };
-      const cleanup = () => { document.removeEventListener('click', onDoc, true); menu.remove(); };
-      setTimeout(() => document.addEventListener('click', onDoc, true), 0);
+      const cleanup = () => {
+        document.removeEventListener('click', onDoc, true);
+        window.removeEventListener('resize', onDoc);
+        menu.remove();
+      };
+      setTimeout(() => {
+        document.addEventListener('click', onDoc, true);
+        window.addEventListener('resize', onDoc, { once: true });
+      }, 0);
     });
   },
 

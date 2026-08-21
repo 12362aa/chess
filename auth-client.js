@@ -164,35 +164,60 @@ const amkhAuth = {
 
   async init() {
     if (this.token) {
-      await this.fetchMe();
-      if (this.user) {
-        // Logged in
+      /* نعرض المستخدم المحفوظ فورًا قبل أي شبكة، عشان الواجهة تفتح
+         وهو داخل بدل ما تبان كأنه خرج لثانية */
+      if (!this.user) {
+        try { this.user = JSON.parse(localStorage.getItem('amkh_user') || 'null'); } catch (e) {}
+      }
+      this.updateUI();
+
+      const state = await this.fetchMe();
+      if (state === 'ok') {
         console.log('Logged in as', this.user.display_name || this.user.email);
         this.updateUI();
-        // connect WS presence
         this.connectPresence();
         this.startAutoSync();
-      } else {
-        // Invalid token
+      } else if (state === 'invalid') {
+        /* السيرفر رفض التوكن نفسه — ده الخروج الشرعي الوحيد */
         this.logout();
+      } else {
+        /* offline: السيرفر مش متاح دلوقتي. الجلسة بتفضل والتطبيق يشتغل،
+           وبنحاول تاني بعد شوية. مسح التوكن هنا كان بيطلّع المستخدم من
+           حسابه على أول فشل شبكة. */
+        console.log('[auth] الحساب محفوظ، السيرفر مش متاح دلوقتي — هنحاول تاني');
+        setTimeout(() => { this.init(); }, 15000);
       }
     } else {
       this.updateUI();
     }
   },
 
+  /* بترجّع 'ok' لو البيانات جت، 'invalid' لو التوكن مرفوض فعلًا،
+     'offline' لو مافيش وصول للسيرفر.
+     ──────────────────────────────────────────────────────────────
+     التفريق ده مهم: النسخة القديمة كانت بتحوّل الحالتين لـuser=null،
+     وinit() بتعمل logout() على أي null — فأي فشل شبكة لحظي (وده بيحصل
+     عند بدء التطبيق لأن رابط السيرفر لسه بيتحمّل) كان بيمسح التوكن.
+     النتيجة إن المستخدم يلاقي نفسه خارج كل مرة يرجع للتطبيق. */
   async fetchMe() {
+    if (window.amkhEnsureServer && !await window.amkhEnsureServer()) {
+      return 'offline';
+    }
     try {
       const res = await fetch(`${window.getApiBase()}/me`, {
         headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' }
       });
       if (res.ok) {
         this.user = await res.json();
-      } else {
-        this.user = null;
+        try { localStorage.setItem('amkh_user', JSON.stringify(this.user)); } catch (e) {}
+        return 'ok';
       }
+      /* 401/403 = التوكن نفسه باطل. أي كود تاني (500، 502 من النفق)
+         مشكلة في السيرفر مش في التوكن، فمنمسحوش. */
+      if (res.status === 401 || res.status === 403) { this.user = null; return 'invalid'; }
+      return 'offline';
     } catch (e) {
-      this.user = null;
+      return 'offline';
     }
   },
 
@@ -257,7 +282,9 @@ const amkhAuth = {
       /* إلغاء المستخدم مش خطأ — مانزعّجهوش برسالة */
       if (/cancel|closed|12501|user_cancel/i.test(m)) return { success: false, cancelled: true };
       console.error('[auth] google sign-in failed:', m);
-      return { success: false, error: 'تعذّر الدخول بجوجل. جرّب تاني.' };
+      /* السبب بيظهر في الرسالة: تشخيص فشل الدخول بجوجل على تليفون بعيد
+         من غير سبب مكتوب كان شبه مستحيل. */
+      return { success: false, error: 'تعذّر الدخول بجوجل — ' + (m.slice(0, 90) || 'سبب غير معروف') };
     }
     if (!idToken) return { success: false, error: 'تعذّر الحصول على هوية جوجل' };
 
@@ -279,6 +306,9 @@ const amkhAuth = {
     this.token = token;
     this.user = user;
     localStorage.setItem('amkh_auth_token', token);
+    /* بيانات المستخدم بتتحفظ كمان: عند بدء التطبيق بنعرضها فورًا قبل
+       ما الشبكة ترد، فالواجهة تفتح والمستخدم داخل بدل ما تبان كأنه خرج. */
+    try { localStorage.setItem('amkh_user', JSON.stringify(user || null)); } catch (e) {}
     this.updateUI();
     this.connectPresence();
   },
@@ -287,6 +317,8 @@ const amkhAuth = {
     this.token = null;
     this.user = null;
     localStorage.removeItem('amkh_auth_token');
+    localStorage.removeItem('amkh_user');
+    this.disconnectPresence();
     this.updateUI();
     window.location.reload();
   },
@@ -397,18 +429,88 @@ const amkhAuth = {
     }, 10000);
   },
 
+  /* ── سوكت الحضور ──
+     النسخة القديمة كانت تعليقات و setInterval فاضي — مكانت بتعمل حاجة
+     خالص. فالتطبيق مكانش بيقول للسيرفر «أنا موجود» إلا لو المستخدم فتح
+     شاشة الأونلاين. نتيجة كده إن صاحبك يبان «منذ 3 ساعات» وهو فاتح
+     التطبيق جنبك، وزر «العب» يفضل مقفول لأنه بيتفعّل للمتصل بس.
+
+     الحل: سوكت مستقل للحضور بيتفتح أول ما المستخدم يسجّل دخول ويفضل
+     مفتوح. لو الأونلاين فتح سوكته الخاص، بنستخدمه هو (سوكت واحد أحسن).
+     وفيه إعادة اتصال بتأخير متزايد، ونبضة كل 25 ثانية عشان الوسطاء
+     مايقطعوش الاتصال الساكت. */
+  _presWs: null,
+  _presTimer: null,
+  _presPing: null,
+  _presBackoff: 1000,
+
   connectPresence() {
-    // Attempt to hook into existing WS or create new for presence if needed
-    // Assuming the site has `window.ws` or similar, but since we can't be sure, we rely on the main site's WS if possible.
-    // Or we just send a presence:hello if we have a connection.
-    // As a fallback, we poll or let the main app dispatch a custom event.
-    // In Am-Kh, let's just listen for a global WebSocket 'open' or try to get window.ws
-    setInterval(() => {
-      // Periodic check if WS is open
-      const ws = window.chessWs || window.socket || (window.getWs && window.getWs());
-      // We will define a global hook if possible, or assume friends-client will handle it
-    }, 5000);
+    if (!this.token) return;
+    /* لو الأونلاين عنده سوكت مفتوح، نستخدمه ونبعت التعريف عليه */
+    const shared = window.chessWs;
+    if (shared && shared.readyState === 1) {
+      try { shared.send(JSON.stringify({ type: 'presence:hello', token: this.token })); } catch (e) {}
+    }
+    /* وبرضه بنفتح سوكتنا لو مفيش واحد شغّال — الحضور لازم يفضل حتى لو
+       المستخدم مافتحش الأونلاين خالص */
+    if (this._presWs && (this._presWs.readyState === 0 || this._presWs.readyState === 1)) return;
+    this._openPresence();
   },
+
+  async _openPresence() {
+    if (!this.token) return;
+    if (window.amkhEnsureServer && !await window.amkhEnsureServer()) {
+      /* السيرفر مش متاح — نحاول تاني بعد شوية */
+      clearTimeout(this._presTimer);
+      this._presTimer = setTimeout(() => this._openPresence(), 10000);
+      return;
+    }
+    const base = window.SERVER_HTTP;
+    if (!base) return;
+    const url = base.replace(/^https:/i, 'wss:').replace(/^http:/i, 'ws:');
+    let ws;
+    try { ws = new WebSocket(url); } catch (e) { return; }
+    this._presWs = ws;
+
+    ws.onopen = () => {
+      this._presBackoff = 1000;
+      try { ws.send(JSON.stringify({ type: 'presence:hello', token: this.token })); } catch (e) {}
+      clearInterval(this._presPing);
+      /* نبضة أقصر من مهلة الخمول في أي وسيط (ngrok بيقطع بعد ~60ث) */
+      this._presPing = setInterval(() => {
+        if (ws.readyState === 1) {
+          try { ws.send(JSON.stringify({ type: 'presence:ping' })); } catch (e) {}
+        }
+      }, 25000);
+    };
+
+    /* رسائل الأصدقاء (طلبات، دعوات، حضور) بتوصل على السوكت ده كمان لما
+       الأونلاين مش مفتوح، فبنمرّرها لنفس المعالج */
+    ws.onmessage = (ev) => {
+      let d = null;
+      try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (d && typeof d.type === 'string' && d.type.indexOf('friend:') === 0) {
+        try { if (window.amkhFriends) window.amkhFriends.handleSocketMessage(d); } catch (e) {}
+      }
+    };
+
+    ws.onclose = () => {
+      clearInterval(this._presPing);
+      if (!this.token) return;
+      /* تأخير متزايد بحد أقصى 30 ثانية: مانضربش السيرفر لو هو واقع */
+      clearTimeout(this._presTimer);
+      this._presTimer = setTimeout(() => this._openPresence(), this._presBackoff);
+      this._presBackoff = Math.min(this._presBackoff * 2, 30000);
+    };
+    ws.onerror = () => { try { ws.close(); } catch (e) {} };
+  },
+
+  disconnectPresence() {
+    clearInterval(this._presPing);
+    clearTimeout(this._presTimer);
+    if (this._presWs) { try { this._presWs.close(); } catch (e) {} this._presWs = null; }
+  },
+
 
   /* زر الحساب بيعيش جوه شريط التطبيق جنب الإعدادات — مش زر عايم فوق
      الشاشة. أيقونة بس، من غير إيموجي، وبتتغير لما نكون داخلين. */

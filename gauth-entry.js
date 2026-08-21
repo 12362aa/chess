@@ -26,7 +26,13 @@ async function ensureInit() {
       /* على أندرويد الـplugin بيطلب توكن بجمهور الـweb client — وده
          بالظبط الجمهور اللي auth.js بيتحقّق منه. */
       webClientId: clientId,
-      mode: 'offline',
+      /* 'online' مقصود.
+         كان 'offline' وده كان سبب فشل الدخول بجوجل بالكامل: في وضع
+         offline الـplugin بيرجّع { serverAuthCode, responseType } وبس —
+         مفيش idToken خالص، فالكود كان يرمي «no idToken» ويظهر «تعذّر
+         الدخول بجوجل». وضع online بيرجّع idToken وaccessToken وprofile،
+         والـidToken هو اللي السيرفر بيتحقّق منه. */
+      mode: 'online',
     },
   });
   initialised = true;
@@ -37,12 +43,16 @@ async function signInWithGoogle() {
   await ensureInit();
   const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
   const r = (res && res.result) || {};
-  /* الـplugin بيرجّع الشكل ده على أندرويد؛ بناخد أول توكن موجود */
-  const idToken = (r.idToken)
-    || (r.accessToken && r.accessToken.token && r.idToken)
+  /* شكل الرد في وضع online: { accessToken, idToken, profile }.
+     بنقبل الشكل المتداخل كمان لو نسخة الـplugin غيّرته. */
+  const idToken = r.idToken
     || (r.authentication && r.authentication.idToken)
     || null;
-  if (!idToken) throw new Error('no idToken returned by Google');
+  if (!idToken) {
+    /* رسالة تشخيصية فيها المفاتيح الموجودة فعلًا — أسرع بكتير من
+       تخمين شكل الرد لو النسخة اتغيّرت */
+    throw new Error('no idToken in response; keys: ' + Object.keys(r).join(','));
+  }
   return { idToken, profile: r.profile || null };
 }
 
