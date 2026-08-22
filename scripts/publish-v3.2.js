@@ -110,10 +110,13 @@ function upload(uploadUrl, name, file) {
     console.log('الإصدار اتعمل:', release.id);
   }
 
-  const assetName = path.basename(apkPath);
+  /* اسم ثابت واضح للمستخدم — مش basename بتاع الجرادل (app-debug.apk).
+     ونمسح أي APK قديم على الإصدار (أيًا كان اسمه) عشان مايفضلش الناس
+     يحمّلوا نسخة قديمة جنب الجديدة. */
+  const assetName = 'Chess-AmKh-v3.2.apk';
   for (const a of release.assets || []) {
-    if (a.name === assetName) {
-      console.log('حذف ملف قديم بنفس الاسم…');
+    if (/\.apk$/i.test(a.name)) {
+      console.log('حذف نسخة قديمة على الإصدار:', a.name);
       await api('DELETE', `/releases/assets/${a.id}`);
     }
   }

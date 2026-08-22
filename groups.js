@@ -69,7 +69,7 @@ function groupSummary(groupId, me) {
     owner_id: g.owner_id,
     avatar_url: g.avatar_url || null,
     members_count: count,
-    last_message: last ? (last.kind === 'voice' ? 'رسالة صوتية' : last.body) : null,
+    last_message: last ? (last.kind === 'voice' ? 'رسالة صوتية' : last.kind === 'image' ? 'صورة' : last.kind === 'video' ? 'فيديو' : last.body) : null,
     last_kind: last ? (last.kind || 'text') : null,
     last_sender: last ? (last.display_name || last.username) : null,
     last_from_me: last ? (last.sender_id === me) : false,
@@ -108,7 +108,7 @@ router.post('/', authenticateToken, (req, res) => {
     if (!areFriends(me, uid) || blockedBetween(me, uid)) continue;
     members.add(uid);
   }
-  if (!members.size) return res.status(400).json({ error: 'اختر صديقًا واحدًا على الأقل' });
+  /* بنسمح بجروب فيه المالك بس (زي واتساب) — مش لازم تختار حد. */
 
   try {
     const info = db.prepare('INSERT INTO groups (name, owner_id) VALUES (?, ?)').run(name, me);

@@ -31,11 +31,23 @@ const amkhChat = {
     pause: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
     trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>',
     stop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>',
+    attach: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49"/></svg>',
+    image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>',
+    video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
   },
 
   _key(a, b) { const x = Number(a), y = Number(b); return Math.min(x, y) + ':' + Math.max(x, y); },
   _me() { return window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id; },
   _socket() { return window.amkhFriends ? window.amkhFriends._socket() : null; },
+
+  /* نص معاينة قصير حسب نوع الرسالة (للإشعارات وقائمة الصندوق). */
+  _previewOf(d) {
+    if (!d) return '';
+    if (d.kind === 'voice') return 'رسالة صوتية';
+    if (d.kind === 'image') return 'صورة';
+    if (d.kind === 'video') return 'فيديو';
+    return d.body || '';
+  },
 
   async _getAuthHeader() {
     if (!window.amkhAuth || !window.amkhAuth.token) return null;
@@ -114,6 +126,7 @@ const amkhChat = {
       this._recording = true;
       this._recStartAt = Date.now();
       this._recCtx = target;
+      this._sendRecordingState(target, true);
       this._showRecBar(true);
       this._recTimer = setInterval(() => {
         const s = Math.floor((Date.now() - this._recStartAt) / 1000);
@@ -137,6 +150,7 @@ const amkhChat = {
       this._recStream = null;
       this._recording = false;
       this._stoppingRec = false;
+      this._sendRecordingState(ctx, false);
       this._showRecBar(false);
       if (!doSend) { this._recChunks = []; return; }
       if (durationSec < 1) { window.amkhUI.notify('التسجيل قصير جداً', 'تنبيه', '◈'); this._recChunks = []; return; }
@@ -160,9 +174,11 @@ const amkhChat = {
     const ta = this._sheet.querySelector('#ch-text');
     const mic = this._sheet.querySelector('#ch-mic');
     const send = this._sheet.querySelector('#ch-send');
+    const attach = this._sheet.querySelector('#ch-attach');
     if (rec) rec.hidden = !show;
     if (ta) ta.style.visibility = show ? 'hidden' : '';
     if (mic) mic.style.visibility = show ? 'hidden' : '';
+    if (attach) attach.style.visibility = show ? 'hidden' : '';
     if (send && show) send.hidden = true;
     if (!show) { const t = this._sheet.querySelector('#ch-rec-time'); if (t) t.textContent = '0:00'; this._toggleSendMic(); }
   },
@@ -176,6 +192,78 @@ const amkhChat = {
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     if (this._openWith === friendId) this._appendBubble(msg, true);
     try { ws.send(JSON.stringify({ type: 'chat:send', kind: 'voice', to: friendId, audio: audioB64, duration: durationSec, mime, client_id: clientId })); } catch (e) {}
+    try { if (window.SFX) window.SFX.chat(); } catch (e) {}
+  },
+
+  /* ── وسائط (صور/فيديو) ──
+     الصور بنصغّرها ونضغطها في canvas عشان ماتعدّيش الحد؛ الفيديو بيتبعت زي
+     ما هو لو حجمه مناسب. الحد ~6MB بعد التحويل base64 (نفس حد السيرفر). */
+  _MEDIA_MAX_B64: 8_000_000,
+
+  async _pickMedia(file, ctx) {
+    const U = window.amkhUI;
+    try {
+      const isImage = /^image\//i.test(file.type);
+      const isVideo = /^video\//i.test(file.type);
+      if (!isImage && !isVideo) { U.notify('نوع ملف غير مدعوم', 'تنبيه', '◈'); return; }
+      let b64, mime, kind;
+      if (isImage) {
+        const r = await this._compressImage(file);
+        b64 = r.b64; mime = r.mime; kind = 'image';
+      } else {
+        b64 = await this._fileToBase64(file); mime = file.type || 'video/mp4'; kind = 'video';
+      }
+      if (!b64) { U.notify('تعذّر تجهيز الملف', 'تنبيه', '◈'); return; }
+      if (b64.length > this._MEDIA_MAX_B64) {
+        U.notify(isVideo ? 'الفيديو كبير جداً — اختر مقطع أصغر' : 'الصورة كبيرة جداً', 'تنبيه', '◈');
+        return;
+      }
+      if (ctx.kind === 'group') this.sendGroupMedia(ctx.id, b64, mime, kind);
+      else this.sendMedia(ctx.id, b64, mime, kind);
+    } catch (e) { U.notify('تعذّر إرسال الملف', 'تنبيه', '◈'); }
+  },
+
+  _fileToBase64(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => { try { resolve(String(reader.result).split(',')[1] || ''); } catch (e) { resolve(''); } };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  },
+
+  /* تصغير الصورة لأقصى بعد 1280px وضغطها JPEG لتقليل الحجم قبل الإرسال. */
+  _compressImage(file) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const MAX = 1280;
+          let { width: w, height: h } = img;
+          if (w > MAX || h > MAX) { const s = Math.min(MAX / w, MAX / h); w = Math.round(w * s); h = Math.round(h * s); }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          URL.revokeObjectURL(url);
+          resolve({ b64: dataUrl.split(',')[1] || '', mime: 'image/jpeg' });
+        } catch (e) { URL.revokeObjectURL(url); resolve({ b64: '', mime: '' }); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve({ b64: '', mime: '' }); };
+      img.src = url;
+    });
+  },
+
+  sendMedia(friendId, b64, mime, kind) {
+    const ws = this._socket();
+    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    const clientId = 'm' + (++this._cid) + '_' + Date.now();
+    const key = this._key(this._me(), friendId);
+    const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), read: false, pending: true };
+    (this._msgs[key] = this._msgs[key] || []).push(msg);
+    if (this._openWith === friendId) this._appendBubble(msg, true);
+    try { ws.send(JSON.stringify({ type: 'chat:send', kind, to: friendId, audio: b64, mime, client_id: clientId })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -204,6 +292,17 @@ const amkhChat = {
     try { ws.send(JSON.stringify({ type: 'chat:typing', to: friendId })); } catch (e) {}
   },
 
+  /* إشعار الطرف التاني إني بسجّل رسالة صوتية دلوقتي (زي «بيكتب…» بس
+     للتسجيل). بيشتغل للفردي والجروب حسب ctx. */
+  _sendRecordingState(ctx, on) {
+    const ws = this._socket();
+    if (!ws || !ctx) return;
+    try {
+      if (ctx.kind === 'group') ws.send(JSON.stringify({ type: 'group:recording', group_id: ctx.id, on: !!on }));
+      else ws.send(JSON.stringify({ type: 'chat:recording', to: ctx.id, on: !!on }));
+    } catch (e) {}
+  },
+
   handleSocketMessage(d) {
     if (!d || typeof d.type !== 'string') return false;
     switch (d.type) {
@@ -211,16 +310,20 @@ const amkhChat = {
       case 'chat:sent': return this._onSent(d);
       case 'chat:read-receipt': return this._onReadReceipt(d);
       case 'chat:typing': return this._onTyping(d);
+      case 'chat:recording': return this._onRecording(d);
       case 'chat:unread': return this._onUnreadSnapshot(d);
       case 'chat:error':
-        window.amkhUI.notify(d.reason === 'not-friend' ? 'لازم يكون صديقك' : 'تعذّر إرسال الرسالة', 'لم يتم', '◈');
+        this._onSendError(d, false);
+        window.amkhUI.notify(d.reason === 'not-friend' ? 'لازم يكون صديقك' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
         return true;
       case 'group:message': return this._onGroupMessage(d);
       case 'group:sent': return this._onGroupSent(d);
       case 'group:typing': return this._onGroupTyping(d);
+      case 'group:recording': return this._onGroupRecording(d);
       case 'group:created': return this._onGroupCreated(d);
       case 'group:error':
-        window.amkhUI.notify(d.reason === 'not-member' ? 'مش عضو في الجروب' : 'تعذّر إرسال الرسالة', 'لم يتم', '◈');
+        this._onSendError(d, true);
+        window.amkhUI.notify(d.reason === 'not-member' ? 'مش عضو في الجروب' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
         return true;
       default: return false;
     }
@@ -248,7 +351,7 @@ const amkhChat = {
       this._updateBadge();
       const name = (this._friendMeta[friendId] && this._friendMeta[friendId].name) || 'صديق';
       try { if (window.SFX) window.SFX.chat(); } catch (e) {}
-      window.amkhUI.notify(d.kind === 'voice' ? 'رسالة صوتية' : d.body, `💬 ${name}`, '◉');
+      window.amkhUI.notify(this._previewOf(d), `💬 ${name}`, '◉');
     }
     return true;
   },
@@ -271,6 +374,25 @@ const amkhChat = {
     return true;
   },
 
+  /* فشل الإرسال من السيرفر: نشيل حالة الانتظار عن الرسالة المتفائلة ونعلّمها
+     فشلت (بدل ما تفضل عليها أيقونة الساعة للأبد). isGroup يحدّد المخزن. */
+  _onSendError(d, isGroup) {
+    if (!d || !d.client_id) return;
+    const cid = d.client_id;
+    const stores = isGroup ? this._gmsgs : this._msgs;
+    for (const k of Object.keys(stores || {})) {
+      const m = (stores[k] || []).find(x => x.client_id === cid);
+      if (m) { m.pending = false; m.failed = true; break; }
+    }
+    const el = this._sheet && this._sheet.querySelector(`[data-cid="${cid}"]`);
+    if (el) {
+      el.classList.remove('is-pending');
+      el.classList.add('is-failed');
+      const tick = el.querySelector('.ch-tick');
+      if (tick) { tick.classList.remove('is-pending'); tick.textContent = '✗'; }
+    }
+  },
+
   _onReadReceipt(d) {
     /* الطرف التاني قرا كل رسايلي: كل التشيكات تبقى ✓✓ */
     const me = this._me();
@@ -288,6 +410,25 @@ const amkhChat = {
     this._showTypingRow();
     clearTimeout(this._typingHide);
     this._typingHide = setTimeout(() => this._clearTypingRow(), 3500);
+    return true;
+  },
+
+  /* الطرف التاني بيسجّل رسالة صوتية — نبيّن ده في سطر الحالة زي «بيكتب…».
+     d.on=true بيبدأ، false بيوقف. فيه مؤقّت أمان لو رسالة الإيقاف ضاعت. */
+  _onRecording(d) {
+    if (this._openWith !== d.from || !this._sheet) return true;
+    const sub = this._sheet.querySelector('.ch-conv__sub');
+    if (!sub) return true;
+    clearTimeout(this._recHide);
+    if (d.on) {
+      sub.textContent = 'بيسجّل رسالة صوتية…';
+      sub.className = 'ch-conv__sub is-online';
+      this._recHide = setTimeout(() => {
+        if (this._friendMeta && this._friendMeta[d.from]) this._paintSub(sub, this._friendMeta[d.from]);
+      }, 8000);
+    } else if (this._friendMeta && this._friendMeta[d.from]) {
+      this._paintSub(sub, this._friendMeta[d.from]);
+    }
     return true;
   },
 
@@ -361,6 +502,8 @@ const amkhChat = {
             <button class="ds-btn ds-btn--primary ch-rec__send" id="ch-rec-send" aria-label="إرسال">${this.ICONS.send}</button>
           </div>
           <textarea id="ch-text" class="ds-input ch-text" rows="1" placeholder="اكتب رسالة…" autocomplete="off"></textarea>
+          <button class="ds-btn ds-btn--ghost ch-attach" id="ch-attach" aria-label="إرفاق صورة أو فيديو">${this.ICONS.attach}</button>
+          <input type="file" id="ch-file" accept="image/*,video/*" hidden>
           <button class="ds-btn ds-btn--ghost ch-mic" id="ch-mic" aria-label="تسجيل صوتي">${this.ICONS.mic}</button>
           <button class="ds-btn ds-btn--primary ch-send" id="ch-send" aria-label="إرسال" hidden>${this.ICONS.send}</button>
         </div>
@@ -390,6 +533,12 @@ const amkhChat = {
     ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } });
     /* الميكروفون: يبدأ/يوقف التسجيل. أزرار شريط التسجيل تُرسِل أو تلغي. */
     if (micBtn) micBtn.onclick = () => { U.sfx(); this._startVoiceRec({ kind: 'friend', id: fid }); };
+    const attachBtn = overlay.querySelector('#ch-attach');
+    const fileInp = overlay.querySelector('#ch-file');
+    if (attachBtn && fileInp) {
+      attachBtn.onclick = () => { U.sfx(); fileInp.value = ''; fileInp.click(); };
+      fileInp.onchange = () => { const f = fileInp.files && fileInp.files[0]; if (f) this._pickMedia(f, { kind: 'friend', id: fid }); };
+    }
     const recSend = overlay.querySelector('#ch-rec-send');
     const recCancel = overlay.querySelector('#ch-rec-cancel');
     if (recSend) recSend.onclick = () => { U.sfx(); this._stopVoiceRec(true); };
@@ -474,6 +623,9 @@ const amkhChat = {
     if (m.kind === 'voice') {
       b.classList.add('ch-bubble--voice');
       b.appendChild(this._voiceEl(m));
+    } else if (m.kind === 'image' || m.kind === 'video') {
+      b.classList.add('ch-bubble--media');
+      b.appendChild(this._mediaEl(m));
     } else {
       const body = document.createElement('div');
       body.className = 'ch-bubble__body';
@@ -495,6 +647,38 @@ const amkhChat = {
     }
     b.appendChild(meta);
     return b;
+  },
+
+  /* عنصر وسائط (صورة/فيديو): بنحط الـbase64 كـdata URL. الصورة تفتح بملء
+     الشاشة عند الضغط؛ الفيديو بعناصر التحكم القياسية. */
+  _mediaEl(m) {
+    const wrap = document.createElement('div');
+    wrap.className = 'ch-media';
+    const src = 'data:' + (m.mime || (m.kind === 'video' ? 'video/mp4' : 'image/jpeg')) + ';base64,' + (m.audio || '');
+    if (m.kind === 'video') {
+      const v = document.createElement('video');
+      v.className = 'ch-media__video';
+      v.src = src; v.controls = true; v.preload = 'metadata'; v.playsInline = true;
+      wrap.appendChild(v);
+    } else {
+      const img = document.createElement('img');
+      img.className = 'ch-media__img'; img.alt = 'صورة'; img.loading = 'lazy';
+      img.src = src;
+      img.onclick = () => { try { this._openMediaViewer(src); } catch (e) {} };
+      wrap.appendChild(img);
+    }
+    return wrap;
+  },
+
+  /* عارض صورة بملء الشاشة (اضغط في أي مكان للإغلاق). */
+  _openMediaViewer(src) {
+    const ov = document.createElement('div');
+    ov.className = 'ch-media-viewer';
+    const img = document.createElement('img');
+    img.src = src; img.alt = '';
+    ov.appendChild(img);
+    ov.onclick = () => { try { window.amkhUI && window.amkhUI.sfx && window.amkhUI.sfx(); } catch (e) {} ov.remove(); };
+    document.body.appendChild(ov);
   },
 
   /* عنصر رسالة صوتية: زر تشغيل + شريط تقدّم + مدة. الصوت (base64) مخزّن
@@ -703,10 +887,6 @@ const amkhChat = {
     }
     if (!Array.isArray(friends)) friends = [];
     const online = friends.filter(f => f && f.id);
-    if (!online.length) {
-      U.notify('محتاج أصدقاء الأول عشان تعمل جروب', 'الجروبات', '◈');
-      return;
-    }
     const rows = online.map(f => `
       <label class="grp-pick">
         <span class="grp-pick__av" data-pav="${f.id}"></span>
@@ -718,7 +898,7 @@ const amkhChat = {
         <div class="ch-inbox__head"><button class="ch-back" data-close>›</button><h2 class="ch-inbox__title">جروب جديد</h2></div>
         <div class="grp-create__body">
           <input type="text" id="grp-name" class="ds-input" maxlength="60" placeholder="اسم الجروب" autocomplete="off">
-          <p class="grp-create__hint">اختر الأصدقاء:</p>
+          <p class="grp-create__hint">${online.length ? 'اختر الأصدقاء (اختياري):' : 'ممكن تعمل جروب لنفسك وتضيف أصدقاء بعدين.'}</p>
           <div class="grp-pick__list">${rows}</div>
         </div>
         <div class="grp-sheet__foot"><button class="ds-btn ds-btn--primary" id="grp-create-btn">إنشاء الجروب</button></div>
@@ -735,7 +915,6 @@ const amkhChat = {
       const name = (overlay.querySelector('#grp-name').value || '').trim();
       const members = [...overlay.querySelectorAll('.grp-pick__cb:checked')].map(cb => Number(cb.value));
       if (!name) { U.notify('اكتب اسم للجروب', 'تنبيه', '◈'); return; }
-      if (!members.length) { U.notify('اختر صديقًا واحدًا على الأقل', 'تنبيه', '◈'); return; }
       createBtn.disabled = true;
       const r = await this._gpost('/', { name, members });
       createBtn.disabled = false;
@@ -861,7 +1040,7 @@ const amkhChat = {
       this._updateBadge();
       const gname = (this._gmeta[gid] && this._gmeta[gid].name) || 'جروب';
       try { if (window.SFX) window.SFX.chat(); } catch (e) {}
-      window.amkhUI.notify(msg.sender_name + ': ' + (d.kind === 'voice' ? 'رسالة صوتية' : d.body), `👥 ${gname}`, '◉');
+      window.amkhUI.notify(msg.sender_name + ': ' + this._previewOf(d), `👥 ${gname}`, '◉');
     }
     return true;
   },
@@ -892,6 +1071,24 @@ const amkhChat = {
       this._clearTypingRow();
       if (sub && this._gmeta[d.group_id]) this._paintGroupSub(sub, this._gmeta[d.group_id]);
     }, 3500);
+    return true;
+  },
+
+  /* عضو في الجروب بيسجّل رسالة صوتية */
+  _onGroupRecording(d) {
+    if (this._openGroup !== d.group_id || !this._sheet) return true;
+    const sub = this._sheet.querySelector('.ch-conv__sub');
+    if (!sub) return true;
+    clearTimeout(this._grecHide);
+    if (d.on) {
+      sub.textContent = (d.name ? d.name + ' ' : '') + 'بيسجّل رسالة صوتية…';
+      sub.className = 'ch-conv__sub is-online';
+      this._grecHide = setTimeout(() => {
+        if (this._gmeta[d.group_id]) this._paintGroupSub(sub, this._gmeta[d.group_id]);
+      }, 8000);
+    } else if (this._gmeta[d.group_id]) {
+      this._paintGroupSub(sub, this._gmeta[d.group_id]);
+    }
     return true;
   },
 
@@ -932,6 +1129,17 @@ const amkhChat = {
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
     try { ws.send(JSON.stringify({ type: 'group:send', kind: 'voice', group_id: gid, audio: audioB64, duration: durationSec, mime, client_id: clientId })); } catch (e) {}
+    try { if (window.SFX) window.SFX.chat(); } catch (e) {}
+  },
+
+  sendGroupMedia(gid, b64, mime, kind) {
+    const ws = this._socket();
+    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    const clientId = 'gm' + (++this._cid) + '_' + Date.now();
+    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), pending: true };
+    (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
+    if (this._openGroup === gid) this._appendGroupBubble(msg);
+    try { ws.send(JSON.stringify({ type: 'group:send', kind, group_id: gid, audio: b64, mime, client_id: clientId })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -980,6 +1188,8 @@ const amkhChat = {
             <button class="ds-btn ds-btn--primary ch-rec__send" id="ch-rec-send" aria-label="إرسال">${this.ICONS.send}</button>
           </div>
           <textarea id="ch-text" class="ds-input ch-text" rows="1" placeholder="اكتب رسالة…" autocomplete="off"></textarea>
+          <button class="ds-btn ds-btn--ghost ch-attach" id="ch-attach" aria-label="إرفاق صورة أو فيديو">${this.ICONS.attach}</button>
+          <input type="file" id="ch-file" accept="image/*,video/*" hidden>
           <button class="ds-btn ds-btn--ghost ch-mic" id="ch-mic" aria-label="تسجيل صوتي">${this.ICONS.mic}</button>
           <button class="ds-btn ds-btn--primary ch-send" id="ch-send" aria-label="إرسال" hidden>${this.ICONS.send}</button>
         </div>
@@ -1008,6 +1218,12 @@ const amkhChat = {
     ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; this._toggleSendMic(overlay); this._typingGroup(gid); });
     ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } });
     if (micBtn) micBtn.onclick = () => { U.sfx(); this._startVoiceRec({ kind: 'group', id: gid }); };
+    const gAttachBtn = overlay.querySelector('#ch-attach');
+    const gFileInp = overlay.querySelector('#ch-file');
+    if (gAttachBtn && gFileInp) {
+      gAttachBtn.onclick = () => { U.sfx(); gFileInp.value = ''; gFileInp.click(); };
+      gFileInp.onchange = () => { const f = gFileInp.files && gFileInp.files[0]; if (f) this._pickMedia(f, { kind: 'group', id: gid }); };
+    }
     const recSend = overlay.querySelector('#ch-rec-send');
     const recCancel = overlay.querySelector('#ch-rec-cancel');
     if (recSend) recSend.onclick = () => { U.sfx(); this._stopVoiceRec(true); };
@@ -1092,6 +1308,7 @@ const amkhChat = {
       b.appendChild(nm);
     }
     if (m.kind === 'voice') { b.classList.add('ch-bubble--voice'); b.appendChild(this._voiceEl(m)); }
+    else if (m.kind === 'image' || m.kind === 'video') { b.classList.add('ch-bubble--media'); b.appendChild(this._mediaEl(m)); }
     else { const body = document.createElement('div'); body.className = 'ch-bubble__body'; body.textContent = m.body; b.appendChild(body); }
     const meta = document.createElement('div');
     meta.className = 'ch-bubble__meta';

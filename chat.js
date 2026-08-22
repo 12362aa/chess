@@ -80,7 +80,7 @@ router.get('/conversations', authenticateToken, (req, res) => {
                                  WHERE convo_key = ? AND recipient_id = ? AND read_at IS NULL`).get(key, me).c;
       out.push({
         friend: decorateStatus(fr),
-        last_message: (last.kind === 'voice') ? 'رسالة صوتية' : last.body,
+        last_message: (last.kind === 'voice') ? 'رسالة صوتية' : (last.kind === 'image') ? 'صورة' : (last.kind === 'video') ? 'فيديو' : last.body,
         last_kind: last.kind || 'text',
         last_from_me: last.sender_id === me,
         last_at: last.created_at,

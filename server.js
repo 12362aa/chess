@@ -733,11 +733,12 @@ groupsRouter.setRealtime({
 /* إرسال رسالة جروب: بتخزّن الأول وبعدين بتوزّع على كل الأعضاء المتصلين،
    ولأي عضو غير متصل بتبعتله إشعار دفع. spec زي رسالة الدردشة الفردية. */
 function pushGroupMessage(groupId, fromId, spec, clientId) {
-  const kind = spec && spec.kind === 'voice' ? 'voice' : 'text';
+  const kind = spec && ['voice', 'image', 'video'].includes(spec.kind) ? spec.kind : 'text';
+  const hasMedia = kind !== 'text';
   const body = typeof (spec && spec.body) === 'string' ? spec.body : '';
-  const audio = kind === 'voice' ? String((spec && spec.audio) || '') : null;
+  const audio = hasMedia ? String((spec && spec.audio) || '') : null;
   const duration = kind === 'voice' ? (parseInt(spec && spec.duration) || 0) : null;
-  const mime = kind === 'voice' ? String((spec && spec.mime) || '') : null;
+  const mime = hasMedia ? String((spec && spec.mime) || '') : null;
   const info = db.prepare(`INSERT INTO group_messages (group_id, sender_id, kind, body, audio_data, duration, mime)
                            VALUES (?, ?, ?, ?, ?, ?, ?)`)
                  .run(groupId, fromId, kind, body, audio, duration, mime);
@@ -749,7 +750,7 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
     from: fromId, sender_name: senderName, sender_avatar: sender.avatar_url || null,
     kind, body, created_at: row.created_at, client_id: clientId || null,
   };
-  if (kind === 'voice') { payload.audio = audio; payload.duration = duration; payload.mime = mime; }
+  if (hasMedia) { payload.audio = audio; payload.duration = duration || 0; payload.mime = mime; }
 
   const members = groupsRouter.memberIds(groupId);
   const offline = [];
@@ -771,7 +772,10 @@ function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds) 
   if (!_adminReady) return;
   const g = db.prepare('SELECT name FROM groups WHERE id = ?').get(groupId) || {};
   const groupName = g.name || 'جروب';
-  const preview = (kind === 'voice' ? '🎙️ رسالة صوتية' : String(body || '').slice(0, 100));
+  const preview = (kind === 'voice' ? '🎙️ رسالة صوتية'
+                : kind === 'image' ? '📷 صورة'
+                : kind === 'video' ? '🎥 فيديو'
+                : String(body || '').slice(0, 100));
   let tokens = [];
   for (const uid of userIds) tokens = tokens.concat(getTokensForUser(uid));
   if (!tokens.length) return;
@@ -787,11 +791,12 @@ function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds) 
    بتبعت لكل سوكتات الطرفين المفتوحة. بترجّع الرسالة المخزّنة.
    spec: { kind:'text'|'voice', body, audio, duration, mime }. */
 function pushChatMessage(fromId, toId, spec, clientId) {
-  const kind = spec && spec.kind === 'voice' ? 'voice' : 'text';
+  const kind = spec && ['voice', 'image', 'video'].includes(spec.kind) ? spec.kind : 'text';
+  const hasMedia = kind !== 'text';
   const body = typeof (spec && spec.body) === 'string' ? spec.body : '';
-  const audio = kind === 'voice' ? String((spec && spec.audio) || '') : null;
+  const audio = hasMedia ? String((spec && spec.audio) || '') : null;
   const duration = kind === 'voice' ? (parseInt(spec && spec.duration) || 0) : null;
-  const mime = kind === 'voice' ? String((spec && spec.mime) || '') : null;
+  const mime = hasMedia ? String((spec && spec.mime) || '') : null;
   const key = chatRouter.convoKey(fromId, toId);
   const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body, kind, audio_data, duration, mime)
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -801,7 +806,7 @@ function pushChatMessage(fromId, toId, spec, clientId) {
     type: 'chat:message', id: row.id, convo_key: key,
     from: fromId, to: toId, kind, body, created_at: row.created_at, client_id: clientId || null,
   };
-  if (kind === 'voice') { payload.audio = audio; payload.duration = duration; payload.mime = mime; }
+  if (hasMedia) { payload.audio = audio; payload.duration = duration || 0; payload.mime = mime; }
   for (const s of socketsOf(fromId)) send(s, payload);   /* صدى لكل أجهزة المُرسِل */
   let delivered = false;
   for (const s of socketsOf(toId)) {
@@ -820,7 +825,10 @@ function sendChatPushToUser(fromId, toId, kind, body) {
   if (!tokens.length) return;
   const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(fromId) || {};
   const name = sender.display_name || sender.username || 'صديق';
-  const preview = kind === 'voice' ? '🎙️ رسالة صوتية' : String(body || '').slice(0, 120);
+  const preview = kind === 'voice' ? '🎙️ رسالة صوتية'
+                : kind === 'image' ? '📷 صورة'
+                : kind === 'video' ? '🎥 فيديو'
+                : String(body || '').slice(0, 120);
   sendPushToTokens(tokens, {
     title: name,
     body: preview,
@@ -1125,14 +1133,15 @@ wss.on('connection', (ws, req) => {
         const me = socketUser.get(ws);
         const to = Number(msg.to);
         const clientId = typeof msg.client_id === 'string' ? msg.client_id.slice(0, 64) : null;
-        const kind = msg.kind === 'voice' ? 'voice' : 'text';
+        const kind = ['voice', 'image', 'video'].includes(msg.kind) ? msg.kind : 'text';
         let body = typeof msg.body === 'string' ? msg.body.trim() : '';
         if (!me || !Number.isInteger(to) || to <= 0) break;
         let spec;
-        if (kind === 'voice') {
+        if (kind !== 'text') {
           const audio = typeof msg.audio === 'string' ? msg.audio : '';
-          if (!audio || audio.length > 4_000_000) break;   /* حد أقصى ~3MB base64 */
-          spec = { kind: 'voice', body: '', audio, duration: parseInt(msg.duration) || 0, mime: String(msg.mime || '').slice(0, 60) };
+          if (!audio) { send(ws, { type: 'chat:error', reason: 'server', client_id: clientId }); break; }
+          if (audio.length > 8_000_000) { send(ws, { type: 'chat:error', reason: 'too-big', client_id: clientId }); break; }   /* حد أقصى ~6MB base64 */
+          spec = { kind, body: '', audio, duration: kind === 'voice' ? (parseInt(msg.duration) || 0) : 0, mime: String(msg.mime || '').slice(0, 60) };
         } else {
           if (!body) break;
           spec = { kind: 'text', body: body.slice(0, 4000) };
@@ -1175,19 +1184,29 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
+      /* الطرف بيسجّل رسالة صوتية — نبلّغ الصديق زي مؤشّر الكتابة */
+      case 'chat:recording': {
+        const me = socketUser.get(ws);
+        const to = Number(msg.to);
+        if (!me || !Number.isInteger(to) || to <= 0) break;
+        for (const s of socketsOf(to)) send(s, { type: 'chat:recording', from: me, on: !!msg.on });
+        break;
+      }
+
       /* ══ شات الجروبات ══ */
       case 'group:send': {
         const me = socketUser.get(ws);
         const gid = Number(msg.group_id);
         const clientId = typeof msg.client_id === 'string' ? msg.client_id.slice(0, 64) : null;
-        const kind = msg.kind === 'voice' ? 'voice' : 'text';
+        const kind = ['voice', 'image', 'video'].includes(msg.kind) ? msg.kind : 'text';
         let body = typeof msg.body === 'string' ? msg.body.trim() : '';
         if (!me || !Number.isInteger(gid) || gid <= 0) break;
         let spec;
-        if (kind === 'voice') {
+        if (kind !== 'text') {
           const audio = typeof msg.audio === 'string' ? msg.audio : '';
-          if (!audio || audio.length > 4_000_000) break;   /* حد أقصى ~3MB base64 */
-          spec = { kind: 'voice', body: '', audio, duration: parseInt(msg.duration) || 0, mime: String(msg.mime || '').slice(0, 60) };
+          if (!audio) { send(ws, { type: 'group:error', reason: 'server', client_id: clientId }); break; }
+          if (audio.length > 8_000_000) { send(ws, { type: 'group:error', reason: 'too-big', client_id: clientId }); break; }   /* حد أقصى ~6MB base64 */
+          spec = { kind, body: '', audio, duration: kind === 'voice' ? (parseInt(msg.duration) || 0) : 0, mime: String(msg.mime || '').slice(0, 60) };
         } else {
           if (!body) break;
           spec = { kind: 'text', body: body.slice(0, 4000) };
@@ -1217,6 +1236,22 @@ wss.on('connection', (ws, req) => {
           for (const uid of groupsRouter.memberIds(gid)) {
             if (uid === me) continue;
             for (const s of socketsOf(uid)) send(s, { type: 'group:typing', group_id: gid, from: me, name });
+          }
+        } catch (e) {}
+        break;
+      }
+
+      case 'group:recording': {
+        const me = socketUser.get(ws);
+        const gid = Number(msg.group_id);
+        if (!me || !Number.isInteger(gid) || gid <= 0) break;
+        try {
+          if (!groupsRouter.isMember(gid, me)) break;
+          const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(me) || {};
+          const name = sender.display_name || sender.username || '';
+          for (const uid of groupsRouter.memberIds(gid)) {
+            if (uid === me) continue;
+            for (const s of socketsOf(uid)) send(s, { type: 'group:recording', group_id: gid, from: me, name, on: !!msg.on });
           }
         } catch (e) {}
         break;
@@ -1575,6 +1610,14 @@ const heartbeat = setInterval(() => {
 wss.on('close', () => clearInterval(heartbeat));
 
 /* ══ Start ══ */
+/* عند إقلاع السيرفر مفيش أي سوكت متصل، فأي صف حضوره is_online=1 هو
+   بقايا قديمة من قبل آخر ريستارت. من غير المسح ده صاحبك يفضل يبان
+   «متصل» و«آخر ظهور» متجمّد على وقت الريستارت (مشكلة «متصل منذ 3 ساعات»).
+   بنصفّرهم كلهم offline؛ اللي يتصل فعلاً يرجع online من presence:hello. */
+try {
+  db.prepare(`UPDATE presence SET is_online = 0, status = 'offline', in_game = 0`).run();
+} catch (e) { console.error('[presence] startup reset failed:', e.message); }
+
 server.listen(PORT, () => {
   console.log(`♟ Chess server running on port ${PORT}`);
   try{

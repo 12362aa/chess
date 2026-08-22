@@ -11726,6 +11726,10 @@ const Notifications={
   chatMsg(from){this.send('رسالة جديدة',{body:`${from}: رسالة نصية`,tag:'chat'});},
   voiceMsg(from){this.send('رسالة صوتية',{body:`${from}: أرسل رسالة صوتية`,tag:'chat-voice'});}
 };
+/* لازم نعرّضه على window: auth-client.js بيندهله بـ window.Notifications._linkTokenToUser
+   بعد الدخول عشان يربط توكِن الإشعارات بالحساب. من غير ده الربط كان بيفشل بصمت
+   والتوكِن يفضل مجهول الهوية فمايوصلش إشعار للـuserId. */
+window.Notifications=Notifications;
 
 try{
   if(!IS_CAPACITOR_NATIVE&&'serviceWorker' in navigator && navigator.serviceWorker){

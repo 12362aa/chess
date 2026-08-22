@@ -44,7 +44,11 @@ const PUBLIC_FIELDS = `u.id, u.username, u.display_name, u.avatar_url, u.provide
    محفوظة، والسوكت بيقول الحقيقة دلوقتي. السوكت أولى لأنه لحظي. */
 function decorateStatus(row) {
   const live = realtime.statusOf(row.id);
-  const status = live || (row.is_online ? (row.in_game ? 'in-game' : 'online') : 'offline');
+  /* سيرفر واحد (fork mode)، فالسوكت هو الحقيقة الوحيدة للاتصال دلوقتي:
+     لو مفيش سوكت مفتوح للمستخدم يبقى offline مهما قال عمود is_online
+     (اللي ممكن يكون بايت من قبل ريستارت). last_seen_at بيفضل للعرض
+     «آخر ظهور منذ…». */
+  const status = live || 'offline';
   return {
     id: row.id,
     username: row.username,
