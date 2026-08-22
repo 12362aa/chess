@@ -3742,6 +3742,7 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 .ch-tick.is-read{ color: #6fd1ff; }
 
 .ch-typing{ display: flex; gap: 4px; padding: 8px 4px; }
+.ch-typing[hidden]{ display: none; }
 .ch-typing span{
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--color-text-secondary, #9aa);
@@ -3753,13 +3754,72 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 
 .ch-input{
   display: flex; align-items: flex-end; gap: var(--space-2, 8px);
+  position: relative;
   padding: var(--space-2, 8px) var(--space-3, 12px);
   padding-bottom: max(var(--space-3, 12px), env(safe-area-inset-bottom));
   border-top: 1px solid var(--color-border, rgba(255,255,255,.1));
   flex: 0 0 auto;
 }
 .ch-text{ flex: 1 1 auto; resize: none; max-height: 120px; line-height: 1.4; }
-.ch-send{ flex: 0 0 auto; width: 44px; height: 44px; padding: 0; font-size: 1.1rem; }
+
+/* ── زر الميكروفون ── */
+.ch-mic{ flex: 0 0 auto; width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.ch-mic svg{ width: 22px; height: 22px; }
+
+/* ── شريط التسجيل الصوتي (بديل حقل الكتابة أثناء التسجيل) ── */
+.ch-rec{
+  position: absolute; inset-inline: var(--space-3, 12px); bottom: 0;
+  display: flex; align-items: center; gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) 0;
+  padding-bottom: max(var(--space-3, 12px), env(safe-area-inset-bottom));
+  background: var(--color-bg-elevated, var(--color-bg-base, #12141a));
+}
+.ch-rec[hidden]{ display: none; }
+.ch-rec__cancel{
+  flex: 0 0 auto; width: 40px; height: 40px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--color-danger, #ff5b6a);
+}
+.ch-rec__cancel svg{ width: 20px; height: 20px; }
+.ch-rec__dot{
+  flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--color-danger, #ff5b6a); animation: chRecPulse 1s infinite ease-in-out;
+}
+@keyframes chRecPulse{ 0%,100%{ opacity: 1; } 50%{ opacity: .25; } }
+.ch-rec__time{ flex: 0 0 auto; font-variant-numeric: tabular-nums; color: var(--color-text-primary, #fff); font-weight: 700; }
+.ch-rec__hint{ flex: 1 1 auto; color: var(--color-text-secondary, #9aa); font-size: .82rem; }
+.ch-rec__send{ flex: 0 0 auto; width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.ch-rec__send svg{ width: 20px; height: 20px; }
+
+/* ── فقاعة رسالة صوتية ── */
+.ch-bubble--voice{ min-width: 190px; }
+.ch-voice{ display: flex; align-items: center; gap: var(--space-2, 8px); }
+.ch-voice__play{
+  flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-primary, #6c8cff); color: #fff; border: none; cursor: pointer;
+}
+.ch-voice__play svg{ width: 18px; height: 18px; }
+.ch-voice__bar{
+  flex: 1 1 auto; height: 6px; border-radius: 3px; min-width: 80px;
+  background: linear-gradient(to left,
+    var(--color-primary, #6c8cff) var(--prog, 0%),
+    var(--color-border, rgba(255,255,255,.2)) var(--prog, 0%));
+}
+.ch-bubble--their .ch-voice__bar{
+  background: linear-gradient(to left,
+    var(--color-text-primary, #fff) var(--prog, 0%),
+    var(--color-border, rgba(255,255,255,.25)) var(--prog, 0%));
+}
+.ch-voice__dur{ flex: 0 0 auto; font-size: .74rem; color: var(--color-text-secondary, #9aa); font-variant-numeric: tabular-nums; }
+.ch-send{ flex: 0 0 auto; width: 44px; height: 44px; padding: 0; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+/* أيقونات SVG المرسومة داخل أزرار الدردشة (بدل الإيموجي) */
+.ch-send svg{ width: 20px; height: 20px; }
+.ch-tick svg{ width: 13px; height: 13px; vertical-align: -2px; }
+.ch-tick.is-pending{ opacity: .7; }
+.fr-row__chat svg, .ds-sheet__inbox svg{ width: 20px; height: 20px; display: block; }
+.fr-row__chat, .ds-sheet__inbox{ display: inline-flex; align-items: center; justify-content: center; }
 
 /* ── صندوق الوارد (inbox) ── */
 .ch-inbox{ display: flex; flex-direction: column; height: 100%; min-height: 0; }
@@ -3799,3 +3859,87 @@ body[data-ui-theme="glass"] .app-modal-overlay{
   font-size: .68rem; font-weight: 700; color: #fff;
   background: var(--color-accent, #4c7cf3); border-radius: var(--radius-pill, 999px);
 }
+
+/* ══ شات الجروبات ══ */
+/* زر «جروب جديد» في رأس الصندوق */
+.ch-inbox__new{
+  margin-inline-start: auto; flex: 0 0 auto;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; line-height: 1; font-weight: 700;
+  background: var(--color-accent, #4c7cf3); color: #fff;
+  border: none; cursor: pointer;
+}
+.ch-inbox__av--group{ background: var(--color-surface-raised, rgba(255,255,255,.12)); font-size: 1.15rem; }
+.ch-conv__av--group{ background: var(--color-surface-raised, rgba(255,255,255,.12)); font-size: 1.15rem; }
+.ch-conv__info{
+  margin-inline-start: auto; flex: 0 0 auto;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; line-height: 1; letter-spacing: 1px;
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-primary, #fff);
+}
+.ch-conv__info:hover{ background: var(--color-surface, rgba(255,255,255,.08)); }
+
+/* صف الرسالة في الجروب: صورة المرسِل جنب الفقاعة */
+.ch-grow{ display: flex; align-items: flex-end; gap: 6px; max-width: 100%; }
+.ch-grow--mine{ align-self: flex-end; flex-direction: row-reverse; }
+.ch-grow--their{ align-self: flex-start; }
+.ch-grow__av{
+  width: 28px; height: 28px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; overflow: hidden;
+  font-size: .8rem; font-weight: 700; color: #fff;
+  background: var(--color-accent, #4c7cf3);
+  margin-bottom: 2px;
+}
+.ch-grow__av--spacer{ background: none; }
+.ch-grow__av .ch-conv__av-img,
+.ch-grow__av img{ width: 100%; height: 100%; object-fit: cover; }
+.ch-grow .ch-bubble{ max-width: 100%; }
+/* اسم المُرسِل فوق أول فقاعة له */
+.ch-bubble__from{
+  font-size: .72rem; font-weight: 700;
+  color: var(--color-accent, #6c8cff);
+  margin-bottom: 2px;
+}
+
+/* أوراق الجروب (إنشاء / أعضاء) */
+.grp-sheet{ display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.grp-create__body{ flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-3, 12px); display: flex; flex-direction: column; gap: var(--space-2, 8px); }
+.grp-create__hint{ margin: var(--space-2, 8px) 0 0; color: var(--color-text-secondary, #9aa); font-size: .85rem; }
+#grp-name{ width: 100%; }
+.grp-pick__list{ display: flex; flex-direction: column; gap: 2px; }
+.grp-pick{
+  display: flex; align-items: center; gap: var(--space-3, 12px);
+  padding: var(--space-2, 8px) var(--space-2, 8px);
+  border-radius: var(--radius-md, 10px); cursor: pointer;
+}
+.grp-pick:hover{ background: var(--color-surface, rgba(255,255,255,.06)); }
+.grp-pick__av{
+  width: 36px; height: 36px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; overflow: hidden; font-weight: 700; color: #fff;
+  background: var(--color-accent, #4c7cf3);
+}
+.grp-pick__av img{ width: 100%; height: 100%; object-fit: cover; }
+.grp-pick__name{ flex: 1 1 auto; min-width: 0; color: var(--color-text-primary, #fff); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grp-pick__cb{ flex: 0 0 auto; width: 20px; height: 20px; accent-color: var(--color-accent, #4c7cf3); }
+.grp-sheet__foot{
+  flex: 0 0 auto; padding: var(--space-3, 12px);
+  padding-bottom: max(var(--space-3, 12px), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border, rgba(255,255,255,.1));
+}
+.grp-sheet__foot .ds-btn{ width: 100%; }
+.grp-mem__list{ flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-2, 8px); }
+.grp-mem{ display: flex; align-items: center; gap: var(--space-3, 12px); padding: var(--space-2, 8px) var(--space-3, 12px); }
+.grp-mem__av{
+  width: 40px; height: 40px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; overflow: hidden; font-weight: 700; color: #fff;
+  background: var(--color-accent, #4c7cf3);
+}
+.grp-mem__av img{ width: 100%; height: 100%; object-fit: cover; }
+.grp-mem__name{ flex: 1 1 auto; min-width: 0; color: var(--color-text-primary, #fff); }
+.grp-mem__tag{ flex: 0 0 auto; font-size: .7rem; font-weight: 700; color: var(--color-accent, #6c8cff); padding: 2px 8px; border-radius: var(--radius-pill, 999px); background: var(--color-surface, rgba(255,255,255,.08)); }

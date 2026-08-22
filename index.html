@@ -4362,6 +4362,12 @@ const SFX=(()=>{
     confirm:[{f:523.25,t0:0,dur:0.14,type:'triangle',vol:0.11,f2:698.46}],
     /* حساب/بروفايل: نغمتان هادئتان محايدتان */
     account:[{f:587.33,t0:0,dur:0.10,vol:0.09},{f:880,t0:0.07,dur:0.16,vol:0.11}],
+    /* فتح جروب: ٣ نغمات دافئة متقاربة — إحساس «جماعة» */
+    group:  [{f:523.25,t0:0,dur:0.09,vol:0.09},{f:698.46,t0:0.06,dur:0.10,vol:0.10},{f:880,t0:0.13,dur:0.16,vol:0.11}],
+    /* إنشاء جروب جديد: صعود لامع من ٣ نغمات أوسع */
+    groupNew:[{f:587.33,t0:0,dur:0.09,vol:0.10},{f:783.99,t0:0.07,dur:0.10,vol:0.11},{f:1046.5,t0:0.15,dur:0.20,vol:0.12}],
+    /* أعضاء الجروب: نغمتان محايدتان قصيرتان */
+    members:[{f:659.25,t0:0,dur:0.09,vol:0.09},{f:830.61,t0:0.07,dur:0.14,vol:0.10}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -7588,10 +7594,15 @@ ${pn}: ${txt}
     this._recorder.onstop=()=>{
       const durationSec=Math.round((Date.now()-this._recordStartTime)/1000);
       if(durationSec<1){
+        /* لازم ننضّف قبل الخروج: من غير كده الميكروفون يفضل شغّال
+           و_stoppingRec يفضل true فأي تسجيل بعده يترفض عند بدايته. */
+        try{ this._recStream?.getTracks?.().forEach(t=>t.stop()); }catch(e){}
+        this._recStream=null;
+        this._stoppingRec=false;
         Modal.show('التسجيل قصير جداً','تنبيه','⚠');
         return;
       }
-      
+
       const audioMime=this._recorder?.mimeType||chosenMime||'audio/webm';
       const blob=new Blob(this._audioChunks,{type:audioMime});
       const reader=new FileReader();
@@ -7723,6 +7734,8 @@ ${pn}: ${txt}
         cancelAnimationFrame(this._playRaf);
         this._playRaf=0;
       }
+      /* أوقف أي تشغيل Web Audio شغّال من رسالة تانية */
+      try{ if(this._currentSource){ this._currentSource.onended=null; this._currentSource.stop(0); this._currentSource=null; } }catch(e){}
       if(this._currentAudio&&!this._currentAudio.paused){
         try{
           if(this._currentAudio._objUrl) URL.revokeObjectURL(this._currentAudio._objUrl);
@@ -7750,13 +7763,22 @@ ${pn}: ${txt}
         'audio/ogg'
       ].filter((mime,idx,list)=>mime&&list.indexOf(mime)===idx);
       const storedDur=parseInt(msgEl?.dataset?.duration)||0;
-      const fail=()=>{
+      let _triedWebAudio=false;
+      const reallyFail=()=>{
         if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
         if(bar)bar.style.setProperty('--prog','0%');
         if(playIcon)playIcon.innerHTML='&#9654;';
         this._currentAudio=null;
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
         Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
+      };
+      /* لو فشل عنصر <audio> في فك الترميز (شائع في WebView أندرويد مع
+         webm/opus)، نجرّب Web Audio API اللي بيستخدم مفكّكات Chromium
+         المدمجة — بتشتغل حتى لما مشغّل النظام يرفض الملف. */
+      const fail=()=>{
+        if(_triedWebAudio){ reallyFail(); return; }
+        _triedWebAudio=true;
+        this._playViaWebAudio(arrayBuffer,msgEl,playIcon,bar,storedDur).then(ok=>{ if(!ok) reallyFail(); });
       };
       const tick=()=>{
         const audio=this._currentAudio;
@@ -7827,6 +7849,63 @@ ${pn}: ${txt}
     // Check ogg
     try{const bytes=atob(base64.slice(0,4));if(bytes==='OggS')return 'audio/ogg';}catch(e){}
     return null;
+  },
+  _ensureAudioCtx(){
+    try{
+      if(!this._audioCtx){
+        const C=window.AudioContext||window.webkitAudioContext;
+        if(!C)return null;
+        this._audioCtx=new C();
+      }
+      if(this._audioCtx.state==='suspended'){ this._audioCtx.resume().catch(()=>{}); }
+      return this._audioCtx;
+    }catch(e){ return null; }
+  },
+  /* تشغيل عبر Web Audio API — بيفك ترميز webm/opus بمفكّكات Chromium
+     المدمجة حتى لو عنصر <audio> رفض الملف. بيرجّع Promise<boolean>. */
+  _playViaWebAudio(arrayBuffer,msgEl,playIcon,bar,storedDur){
+    return new Promise((resolve)=>{
+      const ctx=this._ensureAudioCtx();
+      if(!ctx){ resolve(false); return; }
+      try{ if(this._currentSource){ this._currentSource.onended=null; this._currentSource.stop(0); this._currentSource=null; } }catch(e){}
+      let buf;
+      try{ buf=arrayBuffer.slice(0); }catch(e){ buf=arrayBuffer; }
+      const done=(ok)=>resolve(ok);
+      let decoded=false;
+      const onDecoded=(audioBuf)=>{
+        if(decoded)return; decoded=true;
+        try{
+          const src=ctx.createBufferSource();
+          src.buffer=audioBuf;
+          src.connect(ctx.destination);
+          this._currentSource=src;
+          const dur=storedDur>0?storedDur:(audioBuf.duration||0);
+          const startAt=ctx.currentTime;
+          if(playIcon)playIcon.innerHTML='&#9208;';
+          if(msgEl&&msgEl.dataset)msgEl.dataset._playing='1';
+          const tick=()=>{
+            if(this._currentSource!==src){ return; }
+            const elapsed=ctx.currentTime-startAt;
+            if(dur>0&&bar){ const pct=Math.max(0,Math.min(100,(elapsed/dur)*100)); bar.style.setProperty('--prog',pct+'%'); }
+            this._playRaf=requestAnimationFrame(tick);
+          };
+          src.onended=()=>{
+            if(this._currentSource===src)this._currentSource=null;
+            if(bar)bar.style.setProperty('--prog','0%');
+            if(playIcon)playIcon.innerHTML='&#9654;';
+            if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
+            if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
+          };
+          src.start(0);
+          this._playRaf=requestAnimationFrame(tick);
+          done(true);
+        }catch(e){ done(false); }
+      };
+      try{
+        const p=ctx.decodeAudioData(buf,onDecoded,()=>done(false));
+        if(p&&typeof p.then==='function'){ p.then(onDecoded).catch(()=>done(false)); }
+      }catch(e){ done(false); }
+    });
   },
   toggle(){
     SFX.btn();
@@ -11516,6 +11595,8 @@ const Notifications={
     }catch(e){}
   },
   async requestPermission(){
+    /* على التطبيق (APK) الإشعارات بتتسجّل عبر إضافة Capacitor مش Notification API */
+    if(IS_CAPACITOR_NATIVE){ this.enabled=true; this._registerNativePush(); return true; }
     if(!('Notification' in window))return false;
     if(Notification.permission==='granted'){this.enabled=true;this._registerPush();return true;}
     if(Notification.permission==='denied')return false;
@@ -11523,6 +11604,52 @@ const Notifications={
     this.enabled=permission==='granted';
     if(this.enabled)this._registerPush();
     return this.enabled;
+  },
+  /* حفظ توكِن FCM على السيرفر، مربوط بالحساب لو مسجّل دخول (عشان يوصله
+     إشعار وهو غير متصل). بينفع للويب والتطبيق. */
+  _saveToken(token,platform){
+    try{
+      if(!token)return;
+      const base=OL.getHttpBase&&OL.getHttpBase();
+      if(!base)return;
+      const headers={'Content-Type':'application/json'};
+      try{ if(window.amkhAuth&&window.amkhAuth.token) headers['Authorization']='Bearer '+window.amkhAuth.token; }catch(e){}
+      fetch(base.replace(/\/$/,'')+'/save-token',{
+        method:'POST',
+        headers,
+        body:JSON.stringify({token,deviceId:LVL._getDeviceId(),platform:platform||'',userAgent:navigator.userAgent})
+      }).catch(()=>{});
+    }catch(e){}
+  },
+  /* تسجيل الإشعارات على التطبيق عبر @capacitor/push-notifications:
+     يطلب الإذن، يسجّل مع FCM، وياخد التوكِن الأصلي للجهاز. */
+  async _registerNativePush(){
+    try{
+      const PN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.PushNotifications;
+      if(!PN){ console.log('[push] PushNotifications plugin غير موجود'); return; }
+      if(this._nativePushWired)return;
+      this._nativePushWired=true;
+      try{
+        let perm=await PN.checkPermissions();
+        if(perm.receive!=='granted') perm=await PN.requestPermissions();
+        if(perm.receive!=='granted'){ this._nativePushWired=false; return; }
+      }catch(e){}
+      PN.addListener('registration',(t)=>{
+        try{ this._nativeToken=t&&t.value; if(this._nativeToken) this._saveToken(this._nativeToken,'android-native'); }catch(e){}
+      });
+      PN.addListener('registrationError',(e)=>{ console.log('[push] registrationError',e); });
+      PN.addListener('pushNotificationActionPerformed',(a)=>{
+        try{ const data=(a&&a.notification&&a.notification.data)||{}; if(data.link) location.href=data.link; else if(data.room) this._autoJoinRoom(data.room); }catch(e){}
+      });
+      await PN.register();
+    }catch(e){ console.log('[push] native register failed',e); this._nativePushWired=false; }
+  },
+  /* ربط توكِن الإشعارات بالحساب بعد تسجيل الدخول (يعيد الإرسال بالهيدر). */
+  _linkTokenToUser(){
+    try{
+      if(IS_CAPACITOR_NATIVE){ if(this._nativeToken) this._saveToken(this._nativeToken,'android-native'); else this._registerNativePush(); }
+      else if(this.enabled){ this._registerPush(); }
+    }catch(e){}
   },
   async _registerPush(){
     if(IS_CAPACITOR_NATIVE||!('serviceWorker' in navigator))return;
@@ -11539,9 +11666,11 @@ const Notifications={
               console.log('[FCM] Token:',token.substring(0,20)+'...');
               const base=OL.getHttpBase&&OL.getHttpBase();
               if(base){
+                const _pushHeaders={'Content-Type':'application/json'};
+                try{ if(window.amkhAuth&&window.amkhAuth.token) _pushHeaders['Authorization']='Bearer '+window.amkhAuth.token; }catch(e){}
                 fetch(base.replace(/\/$/,'')+'/save-token',{
                   method:'POST',
-                  headers:{'Content-Type':'application/json'},
+                  headers:_pushHeaders,
                   body:JSON.stringify({
                     token,
                     deviceId:LVL._getDeviceId(),
@@ -11610,6 +11739,11 @@ try{
 }catch(e){}
 
 function requestNotificationPermission(){
+  /* على التطبيق (APK) مفيش Notification API — نسجّل إشعارات Capacitor مباشرة. */
+  if(IS_CAPACITOR_NATIVE){
+    try{ Notifications.requestPermission(); }catch(e){}
+    return;
+  }
   if('Notification' in window){
     const requestOnClick=()=>{
       Notifications.requestPermission().then(granted=>{

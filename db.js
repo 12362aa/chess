@@ -1,8 +1,13 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'data.db');
-const db = new Database(dbPath, { verbose: console.log });
+/* مسار القاعدة افتراضيًا data.db جنب السيرفر، ويمكن تجاوزه بـ AMKH_DB_PATH
+   (للاختبار المعزول على قاعدة مؤقتة من غير ما نلمس بيانات التشغيل). */
+const dbPath = process.env.AMKH_DB_PATH || path.join(__dirname, 'data.db');
+/* السيرفر بيسجّل كل SQL افتراضيًا زي الأصل؛ AMKH_DB_VERBOSE=0 بيطفّي
+   السجل (مفيد للاختبار المعزول عشان مايغرقش الخرج). */
+const verbose = process.env.AMKH_DB_VERBOSE === '0' ? undefined : console.log;
+const db = new Database(dbPath, verbose ? { verbose } : {});
 
 // Enable foreign keys
 db.pragma('foreign_keys = ON');
@@ -215,6 +220,53 @@ function migrate() {
      وده بيغيّر إن كنت تدعيه ولا لأ. is_online بيفضل عشان أي كود قديم. */
   if (addColumn('presence', 'status', "TEXT DEFAULT 'offline'")) added.push('presence.status');
   if (addColumn('presence', 'in_game', "INTEGER DEFAULT 0")) added.push('presence.in_game');
+
+  /* ── messages: رسايل صوتية ──
+     kind: 'text' | 'voice'. الصوت بيتخزّن base64 في audio_data زي ما
+     بيتبعت على السوكت — الرسايل قصيرة (نوتة صوتية) فمقبول. duration بالثواني. */
+  if (addColumn('messages', 'kind', "TEXT DEFAULT 'text'")) added.push('messages.kind');
+  if (addColumn('messages', 'audio_data', 'TEXT')) added.push('messages.audio_data');
+  if (addColumn('messages', 'duration', 'INTEGER')) added.push('messages.duration');
+  if (addColumn('messages', 'mime', 'TEXT')) added.push('messages.mime');
+
+  /* ── جروبات الأصدقاء (شات جماعي) ──
+     groups: الجروب نفسه. group_members: العضوية. group_messages: الرسايل
+     (نص/صوت). group_reads: آخر رسالة قراها كل عضو لحساب غير المقروء. */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS groups (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      name       TEXT NOT NULL,
+      owner_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      avatar_url TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS group_members (
+      group_id  INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      joined_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (group_id, user_id)
+    );
+    CREATE TABLE IF NOT EXISTS group_messages (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_id   INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      sender_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind       TEXT DEFAULT 'text',
+      body       TEXT,
+      audio_data TEXT,
+      duration   INTEGER,
+      mime       TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS group_reads (
+      group_id     INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      last_read_id INTEGER DEFAULT 0,
+      PRIMARY KEY (group_id, user_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
+    CREATE INDEX IF NOT EXISTS idx_group_messages_grp ON group_messages(group_id, id);
+  `);
+
 
   /* فهارس على الأعمدة الجديدة — بعد ALTER عشان تكون موجودة */
   db.exec(`

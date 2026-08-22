@@ -73,14 +73,15 @@ router.get('/conversations', authenticateToken, (req, res) => {
     const out = [];
     for (const fr of friends) {
       const key = convoKey(me, fr.id);
-      const last = db.prepare(`SELECT id, sender_id, body, created_at FROM messages
+      const last = db.prepare(`SELECT id, sender_id, body, created_at, kind FROM messages
                                WHERE convo_key = ? ORDER BY id DESC LIMIT 1`).get(key);
       if (!last) continue;   /* بس المحادثات اللي فيها رسايل */
       const unread = db.prepare(`SELECT COUNT(*) AS c FROM messages
                                  WHERE convo_key = ? AND recipient_id = ? AND read_at IS NULL`).get(key, me).c;
       out.push({
         friend: decorateStatus(fr),
-        last_message: last.body,
+        last_message: (last.kind === 'voice') ? 'رسالة صوتية' : last.body,
+        last_kind: last.kind || 'text',
         last_from_me: last.sender_id === me,
         last_at: last.created_at,
         last_id: last.id,
@@ -110,10 +111,11 @@ router.get('/history', authenticateToken, (req, res) => {
   const key = convoKey(me, other);
 
   try {
+    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, kind, audio_data, duration, mime';
     const rows = before
-      ? db.prepare(`SELECT id, sender_id, recipient_id, body, created_at, read_at FROM messages
+      ? db.prepare(`SELECT ${cols} FROM messages
                     WHERE convo_key = ? AND id < ? ORDER BY id DESC LIMIT ?`).all(key, before, limit)
-      : db.prepare(`SELECT id, sender_id, recipient_id, body, created_at, read_at FROM messages
+      : db.prepare(`SELECT ${cols} FROM messages
                     WHERE convo_key = ? ORDER BY id DESC LIMIT ?`).all(key, limit);
     rows.reverse();   /* للعرض: الأقدم فوق */
     const messages = rows.map(m => ({
@@ -121,7 +123,11 @@ router.get('/history', authenticateToken, (req, res) => {
       from: m.sender_id,
       to: m.recipient_id,
       mine: m.sender_id === me,
+      kind: m.kind || 'text',
       body: m.body,
+      audio: m.audio_data || null,
+      duration: m.duration || 0,
+      mime: m.mime || '',
       created_at: m.created_at,
       read: !!m.read_at,
     }));

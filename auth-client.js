@@ -330,6 +330,9 @@ const amkhAuth = {
     this.updateUI();
     this.connectPresence();
     this._reconcileAvatar();
+    /* بعد الدخول: اربط توكِن الإشعارات بالحساب عشان توصلك رسايل الأصدقاء
+       وأنت غير متصل (السيرفر بيبعت للـuserId). */
+    try { if (window.Notifications && window.Notifications._linkTokenToUser) window.Notifications._linkTokenToUser(); } catch (e) {}
   },
 
   /* توفيق صورة الملف بين الجهاز والخادم بعد تسجيل الدخول:

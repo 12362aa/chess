@@ -33,6 +33,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Microphone: online voice chat (getUserMedia in the WebView).
          Capacitor's WebChromeClient maps the WebView audio-capture request to

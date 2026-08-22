@@ -198,6 +198,15 @@ function getTokensForDeviceId(deviceId) {
     .map(t => t.token);
 }
 
+/* توكِنات FCM المرتبطة بحساب مستخدم (للإشعارات على الرسايل وهو غير متصل). */
+function getTokensForUser(userId) {
+  if (!userId) return [];
+  const all = safeReadTokens();
+  return all
+    .filter(t => t && t.userId != null && String(t.userId) === String(userId) && t.token)
+    .map(t => t.token);
+}
+
 async function sendPushToDevice(deviceId, payload) {
   if (!_adminReady) return { ok: false, reason: 'admin-not-ready' };
   const tokens = getTokensForDeviceId(deviceId);
@@ -274,6 +283,8 @@ const friendsRouter = require('./friends');
 app.use('/api/friends', friendsRouter);
 const chatRouter = require('./chat');
 app.use('/api/chat', chatRouter);
+const groupsRouter = require('./groups');
+app.use('/api/groups', groupsRouter);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -351,11 +362,21 @@ app.post('/save-token', (req, res) => {
     const platform = req.body && req.body.platform ? String(req.body.platform).trim() : '';
     const userAgent = req.body && req.body.userAgent ? String(req.body.userAgent).trim() : '';
 
+    /* لو فيه JWT في الهيدر، بنربط التوكِن بحساب المستخدم عشان نقدر نبعتله
+       إشعار وهو غير متصل. بدون تسجيل دخول بيتخزّن بالجهاز بس (زي الأول). */
+    let userId = null;
+    try {
+      const auth = req.headers['authorization'] || '';
+      const m = /^Bearer\s+(.+)$/i.exec(auth);
+      if (m) { const d = jwt.verify(m[1], JWT_SECRET); if (d && d.id) userId = Number(d.id); }
+    } catch (e) { userId = null; }
+
     const tokens = safeReadTokens();
     const now = new Date().toISOString();
 
     const idx = tokens.findIndex(t => (t && t.token) === token);
     const entry = { token, deviceId, platform, userAgent, updatedAt: now };
+    if (userId != null) entry.userId = userId;
     if (idx >= 0) tokens[idx] = { ...tokens[idx], ...entry };
     else tokens.push({ ...entry, createdAt: now });
 
@@ -694,23 +715,118 @@ friendsRouter.setRealtime({
 /* الدردشة بتستخدم نفس statusOf عشان قائمة المحادثات تعرض الحضور الحقيقي. */
 chatRouter.setRealtime({ statusOf: liveStatus });
 
+/* جروبات الأصدقاء: بتحتاج توزيع رسالة/إشعار على كل الأعضاء المتصلين،
+   وتبليغ عضو باقي (مثلاً جروب جديد). server.js بيحقن الأدوات زي chat. */
+groupsRouter.setRealtime({
+  statusOf: liveStatus,
+  /* بلّغ كل أعضاء الجروب (ما عدا exceptId اختياريًا) بحمولة. */
+  notifyGroup(groupId, payload, exceptId) {
+    try {
+      for (const uid of groupsRouter.memberIds(groupId)) {
+        if (exceptId && uid === exceptId) continue;
+        for (const s of socketsOf(uid)) send(s, payload);
+      }
+    } catch (e) {}
+  },
+});
+
+/* إرسال رسالة جروب: بتخزّن الأول وبعدين بتوزّع على كل الأعضاء المتصلين،
+   ولأي عضو غير متصل بتبعتله إشعار دفع. spec زي رسالة الدردشة الفردية. */
+function pushGroupMessage(groupId, fromId, spec, clientId) {
+  const kind = spec && spec.kind === 'voice' ? 'voice' : 'text';
+  const body = typeof (spec && spec.body) === 'string' ? spec.body : '';
+  const audio = kind === 'voice' ? String((spec && spec.audio) || '') : null;
+  const duration = kind === 'voice' ? (parseInt(spec && spec.duration) || 0) : null;
+  const mime = kind === 'voice' ? String((spec && spec.mime) || '') : null;
+  const info = db.prepare(`INSERT INTO group_messages (group_id, sender_id, kind, body, audio_data, duration, mime)
+                           VALUES (?, ?, ?, ?, ?, ?, ?)`)
+                 .run(groupId, fromId, kind, body, audio, duration, mime);
+  const row = db.prepare(`SELECT id, created_at FROM group_messages WHERE id = ?`).get(info.lastInsertRowid);
+  const sender = db.prepare('SELECT display_name, username, avatar_url FROM users WHERE id = ?').get(fromId) || {};
+  const senderName = sender.display_name || sender.username || 'صديق';
+  const payload = {
+    type: 'group:message', id: row.id, group_id: groupId,
+    from: fromId, sender_name: senderName, sender_avatar: sender.avatar_url || null,
+    kind, body, created_at: row.created_at, client_id: clientId || null,
+  };
+  if (kind === 'voice') { payload.audio = audio; payload.duration = duration; payload.mime = mime; }
+
+  const members = groupsRouter.memberIds(groupId);
+  const offline = [];
+  for (const uid of members) {
+    const socks = socketsOf(uid).filter(s => s.readyState === WebSocket.OPEN);
+    if (socks.length) { for (const s of socks) send(s, payload); }
+    else if (uid !== fromId) offline.push(uid);
+  }
+  /* إشعار دفع للأعضاء غير المتصلين (#64 للجروبات). */
+  if (offline.length) {
+    try { sendGroupPushToUsers(groupId, fromId, senderName, kind, body, offline); } catch (e) {}
+  }
+  return { row };
+}
+
+/* إشعار دفع برسالة جروب لأعضاء غير متصلين. العنوان = اسم الجروب،
+   والسطر = «اسم المُرسِل: المعاينة» زي واتساب. */
+function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds) {
+  if (!_adminReady) return;
+  const g = db.prepare('SELECT name FROM groups WHERE id = ?').get(groupId) || {};
+  const groupName = g.name || 'جروب';
+  const preview = (kind === 'voice' ? '🎙️ رسالة صوتية' : String(body || '').slice(0, 100));
+  let tokens = [];
+  for (const uid of userIds) tokens = tokens.concat(getTokensForUser(uid));
+  if (!tokens.length) return;
+  sendPushToTokens(tokens, {
+    title: groupName,
+    body: senderName + ': ' + preview,
+    tag: 'group-' + groupId,
+    data: { kind: 'group', group_id: String(groupId), from: String(fromId) },
+  });
+}
+
 /* دالة موحّدة لإرسال رسالة دردشة: بتخزّن الأول (store-and-forward) وبعدين
-   بتبعت لكل سوكتات الطرفين المفتوحة. بترجّع الرسالة المخزّنة. */
-function pushChatMessage(fromId, toId, body, clientId) {
+   بتبعت لكل سوكتات الطرفين المفتوحة. بترجّع الرسالة المخزّنة.
+   spec: { kind:'text'|'voice', body, audio, duration, mime }. */
+function pushChatMessage(fromId, toId, spec, clientId) {
+  const kind = spec && spec.kind === 'voice' ? 'voice' : 'text';
+  const body = typeof (spec && spec.body) === 'string' ? spec.body : '';
+  const audio = kind === 'voice' ? String((spec && spec.audio) || '') : null;
+  const duration = kind === 'voice' ? (parseInt(spec && spec.duration) || 0) : null;
+  const mime = kind === 'voice' ? String((spec && spec.mime) || '') : null;
   const key = chatRouter.convoKey(fromId, toId);
-  const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body)
-                           VALUES (?, ?, ?, ?)`).run(key, fromId, toId, body);
+  const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body, kind, audio_data, duration, mime)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+                 .run(key, fromId, toId, body, kind, audio, duration, mime);
   const row = db.prepare(`SELECT id, created_at FROM messages WHERE id = ?`).get(info.lastInsertRowid);
   const payload = {
     type: 'chat:message', id: row.id, convo_key: key,
-    from: fromId, to: toId, body, created_at: row.created_at, client_id: clientId || null,
+    from: fromId, to: toId, kind, body, created_at: row.created_at, client_id: clientId || null,
   };
+  if (kind === 'voice') { payload.audio = audio; payload.duration = duration; payload.mime = mime; }
   for (const s of socketsOf(fromId)) send(s, payload);   /* صدى لكل أجهزة المُرسِل */
   let delivered = false;
   for (const s of socketsOf(toId)) {
     if (s.readyState === WebSocket.OPEN) { send(s, payload); delivered = true; }
   }
+  /* لو الطرف التاني مش متصل بأي سوكت مفتوح — إشعار دفع لهاتفه (#64). */
+  if (!delivered) { try { sendChatPushToUser(fromId, toId, kind, body); } catch (e) {} }
   return { row, key, delivered };
+}
+
+/* إشعار دفع برسالة دردشة لمستخدم غير متصل. بنجيب اسم المُرسِل ونبعت
+   FCM لكل توكِنات المستقبِل المرتبطة بحسابه. */
+function sendChatPushToUser(fromId, toId, kind, body) {
+  if (!_adminReady) return;
+  const tokens = getTokensForUser(toId);
+  if (!tokens.length) return;
+  const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(fromId) || {};
+  const name = sender.display_name || sender.username || 'صديق';
+  const preview = kind === 'voice' ? '🎙️ رسالة صوتية' : String(body || '').slice(0, 120);
+  sendPushToTokens(tokens, {
+    title: name,
+    body: preview,
+    tag: 'chat-' + fromId,
+    data: { kind: 'chat', from: String(fromId) },
+  });
 }
 
 /* بثّ الحضور لأصدقاء مستخدم. بيبعت الحالة الغنية (online / in-game /
@@ -1008,16 +1124,25 @@ wss.on('connection', (ws, req) => {
       case 'chat:send': {
         const me = socketUser.get(ws);
         const to = Number(msg.to);
-        let body = typeof msg.body === 'string' ? msg.body.trim() : '';
         const clientId = typeof msg.client_id === 'string' ? msg.client_id.slice(0, 64) : null;
-        if (!me || !Number.isInteger(to) || to <= 0 || !body) break;
-        body = body.slice(0, 4000);
+        const kind = msg.kind === 'voice' ? 'voice' : 'text';
+        let body = typeof msg.body === 'string' ? msg.body.trim() : '';
+        if (!me || !Number.isInteger(to) || to <= 0) break;
+        let spec;
+        if (kind === 'voice') {
+          const audio = typeof msg.audio === 'string' ? msg.audio : '';
+          if (!audio || audio.length > 4_000_000) break;   /* حد أقصى ~3MB base64 */
+          spec = { kind: 'voice', body: '', audio, duration: parseInt(msg.duration) || 0, mime: String(msg.mime || '').slice(0, 60) };
+        } else {
+          if (!body) break;
+          spec = { kind: 'text', body: body.slice(0, 4000) };
+        }
         try {
           if (!chatRouter.areFriends(me, to) || chatRouter.blockedBetween(me, to)) {
             send(ws, { type: 'chat:error', reason: 'not-friend', client_id: clientId });
             break;
           }
-          const { row, delivered } = pushChatMessage(me, to, body, clientId);
+          const { row, delivered } = pushChatMessage(me, to, spec, clientId);
           send(ws, { type: 'chat:sent', client_id: clientId, id: row.id, created_at: row.created_at, to, delivered });
         } catch (e) {
           console.error('[chat] send failed:', e.message);
@@ -1047,6 +1172,66 @@ wss.on('connection', (ws, req) => {
         const to = Number(msg.to);
         if (!me || !Number.isInteger(to) || to <= 0) break;
         for (const s of socketsOf(to)) send(s, { type: 'chat:typing', from: me });
+        break;
+      }
+
+      /* ══ شات الجروبات ══ */
+      case 'group:send': {
+        const me = socketUser.get(ws);
+        const gid = Number(msg.group_id);
+        const clientId = typeof msg.client_id === 'string' ? msg.client_id.slice(0, 64) : null;
+        const kind = msg.kind === 'voice' ? 'voice' : 'text';
+        let body = typeof msg.body === 'string' ? msg.body.trim() : '';
+        if (!me || !Number.isInteger(gid) || gid <= 0) break;
+        let spec;
+        if (kind === 'voice') {
+          const audio = typeof msg.audio === 'string' ? msg.audio : '';
+          if (!audio || audio.length > 4_000_000) break;   /* حد أقصى ~3MB base64 */
+          spec = { kind: 'voice', body: '', audio, duration: parseInt(msg.duration) || 0, mime: String(msg.mime || '').slice(0, 60) };
+        } else {
+          if (!body) break;
+          spec = { kind: 'text', body: body.slice(0, 4000) };
+        }
+        try {
+          if (!groupsRouter.isMember(gid, me)) {
+            send(ws, { type: 'group:error', reason: 'not-member', client_id: clientId });
+            break;
+          }
+          const { row } = pushGroupMessage(gid, me, spec, clientId);
+          send(ws, { type: 'group:sent', client_id: clientId, id: row.id, created_at: row.created_at, group_id: gid });
+        } catch (e) {
+          console.error('[groups] send failed:', e.message);
+          send(ws, { type: 'group:error', reason: 'server', client_id: clientId });
+        }
+        break;
+      }
+
+      case 'group:typing': {
+        const me = socketUser.get(ws);
+        const gid = Number(msg.group_id);
+        if (!me || !Number.isInteger(gid) || gid <= 0) break;
+        try {
+          if (!groupsRouter.isMember(gid, me)) break;
+          const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(me) || {};
+          const name = sender.display_name || sender.username || '';
+          for (const uid of groupsRouter.memberIds(gid)) {
+            if (uid === me) continue;
+            for (const s of socketsOf(uid)) send(s, { type: 'group:typing', group_id: gid, from: me, name });
+          }
+        } catch (e) {}
+        break;
+      }
+
+      case 'group:read': {
+        const me = socketUser.get(ws);
+        const gid = Number(msg.group_id);
+        if (!me || !Number.isInteger(gid) || gid <= 0) break;
+        try {
+          if (!groupsRouter.isMember(gid, me)) break;
+          const last = db.prepare('SELECT MAX(id) AS m FROM group_messages WHERE group_id = ?').get(gid).m || 0;
+          db.prepare(`INSERT INTO group_reads (group_id, user_id, last_read_id) VALUES (?, ?, ?)
+                      ON CONFLICT(group_id, user_id) DO UPDATE SET last_read_id = excluded.last_read_id`).run(gid, me, last);
+        } catch (e) {}
         break;
       }
 
