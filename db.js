@@ -105,6 +105,25 @@ function initDb() {
     CREATE INDEX IF NOT EXISTS idx_invites_from   ON game_invites(from_id, status);
     CREATE INDEX IF NOT EXISTS idx_requests_recv  ON friend_requests(receiver_id, status);
     CREATE INDEX IF NOT EXISTS idx_friendships_u  ON friendships(user_id);
+
+    -- ══ رسائل الدردشة بين الأصدقاء (1:1) ══
+    -- الرسالة متخزّنة مرة واحدة. المحادثة مش جدول مستقل: بتتعرّف من
+    -- الزوج (sender_id, recipient_id). read_at = NULL معناها لسه ماتقرتش.
+    -- convo_key = "أصغر_id:أكبر_id" عشان كل استعلامات المحادثة تبقى على
+    -- عمود واحد مفهرس بدل شرط OR على الاتجاهين. الترتيب من id التصاعدي
+    -- (سلطة السيرفر) مش من ساعة الجهاز. الرسايل مربوطة بالحساب فبتفضل
+    -- بعد تسجيل الخروج والدخول تاني.
+    CREATE TABLE IF NOT EXISTS messages (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      convo_key    TEXT NOT NULL,
+      sender_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      recipient_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      body         TEXT NOT NULL,
+      created_at   TEXT DEFAULT (datetime('now')),
+      read_at      TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_messages_convo  ON messages(convo_key, id);
+    CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages(recipient_id, read_at);
   `);
 
   migrate();
@@ -129,6 +148,51 @@ function addColumn(table, name, definition) {
   return true;
 }
 
+/* ── إزالة قيد NOT NULL عن users.password_hash ──
+   قواعد قديمة اتعملت والعمود NOT NULL. الدخول بجوجل بيـINSERT صف
+   password_hash=NULL (المستخدم مالوش باسورد عندنا) فبيفشل بـ
+   «NOT NULL constraint failed: users.password_hash» ويرجّع 500.
+   SQLite مابتسمحش بإزالة القيد بـALTER COLUMN، فبنعيد بناء الجدول
+   مرة واحدة: جدول جديد بالمخطط الصح، ننقل الصفوف، نمسح القديم،
+   نعيد التسمية. الأعمدة والفهارس بتترجع بعدها في migrate().
+   بنطفّي foreign_keys مؤقتًا (لازم بره أي transaction) عشان DROP
+   مايعملش cascade على الجداول اللي بتشير لـusers. */
+function dropUsersPasswordHashNotNull() {
+  const info = db.prepare(`PRAGMA table_info(users)`).all();
+  const ph = info.find(c => c.name === 'password_hash');
+  if (!ph || ph.notnull === 0) return false; // مفيش قيد — خلاص
+
+  const NEW_COLS = ['id', 'email', 'password_hash', 'display_name',
+                    'created_at', 'last_login_at', 'username',
+                    'provider', 'avatar_url', 'google_uid'];
+  /* ننقل بس الأعمدة الموجودة فعلًا في الجدول القديم ومعرّفة في الجديد */
+  const copy = info.map(c => c.name).filter(n => NEW_COLS.includes(n)).join(', ');
+
+  db.pragma('foreign_keys = OFF');
+  const rebuild = db.transaction(() => {
+    db.exec(`
+      CREATE TABLE users_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT,
+        display_name TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        last_login_at TEXT,
+        username TEXT,
+        provider TEXT DEFAULT 'local',
+        avatar_url TEXT,
+        google_uid TEXT
+      );
+      INSERT INTO users_new (${copy}) SELECT ${copy} FROM users;
+      DROP TABLE users;
+      ALTER TABLE users_new RENAME TO users;
+    `);
+  });
+  rebuild();
+  db.pragma('foreign_keys = ON');
+  return true;
+}
+
 function migrate() {
   const added = [];
 
@@ -141,6 +205,10 @@ function migrate() {
   if (addColumn('users', 'provider', "TEXT DEFAULT 'local'")) added.push('users.provider');
   if (addColumn('users', 'avatar_url', 'TEXT')) added.push('users.avatar_url');
   if (addColumn('users', 'google_uid', 'TEXT')) added.push('users.google_uid');
+
+  /* لازم بعد إضافة الأعمدة (عشان الجدول الجديد ياخد نسخة كاملة) وقبل
+     إنشاء الفهارس تحت (عشان الفهارس بتتمسح مع الجدول القديم وتترجع) */
+  if (dropUsersPasswordHashNotNull()) added.push('users.password_hash → nullable');
 
   /* ── presence ──
      status أوسع من is_online: صاحبك ممكن يكون متصل بس جوه مباراة،

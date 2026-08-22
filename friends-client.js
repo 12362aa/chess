@@ -52,7 +52,39 @@ const amkhFriends = {
   },
 
   /* ── تحميل البيانات ── */
-  async loadFriends() { this._friends = (await this._get('/friends')) || []; return this._friends; },
+  /* كاش محلي للأصدقاء: القائمة لازم ماتختفيش أبدًا حتى لو السيرفر واقع أو
+     مفيش نت. بنخزّنها لكل مستخدم على حدة (بمفتاح فيه id الحساب) عشان
+     حساب مايشوفش أصدقاء حساب تاني. */
+  _cacheKey() {
+    const uid = window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id;
+    return uid ? `amkh_friends_cache_${uid}` : null;
+  },
+  _saveCache(list) {
+    const key = this._cacheKey();
+    if (!key || !Array.isArray(list)) return;
+    try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
+  },
+  _loadCache() {
+    const key = this._cacheKey();
+    if (!key) return [];
+    try {
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!Array.isArray(arr)) return [];
+      /* السيرفر مش موصول، فمش عارفين الحضور الحقيقي: نعرضهم «غير متصل»
+         عشان مانضلّلش. أي رسالة حضور جاية بعدين بتصحّح السطر. */
+      return arr.map(f => ({ ...f, online: false, status: 'offline' }));
+    } catch (e) { return []; }
+  },
+  async loadFriends() {
+    const data = await this._get('/friends');
+    if (Array.isArray(data)) {
+      this._friends = data;
+      this._saveCache(data);        /* نجاح: نحدّث الكاش */
+    } else if (!this._friends.length) {
+      this._friends = this._loadCache();   /* فشل والقائمة فاضية: من الكاش */
+    }
+    return this._friends;
+  },
   async loadRequests() {
     this._requests = (await this._get('/friends/requests')) || { incoming: [], outgoing: [] };
     this._updateBadge();
@@ -226,7 +258,7 @@ const amkhFriends = {
           <button class="ds-btn ds-btn--primary ds-btn--block" data-accept>قبول واللعب</button>
           <button class="ds-btn ds-btn--ghost ds-btn--block" data-decline>رفض</button>
         </div>
-      </div>`);
+      </div>`, { sfx: 'invite' });
     /* الاسم نص مش HTML */
     overlay.querySelector('.fr-invite__name').textContent = name;
 
@@ -264,6 +296,44 @@ const amkhFriends = {
     window.amkhUI.close(el);
   },
 
+  /* ── نافذة اختيار اللون قبل إرسال الدعوة ──
+     نافذة متخصصة بالثيم (مش قائمة صغيرة) — 3 أزرار كبيرة واضحة.
+     بترجّع 'w' | 'b' | 'r'، أو null لو اتلغت أو اتقفلت. */
+  _colorChoice(name) {
+    const U = window.amkhUI;
+    return new Promise((resolve) => {
+      let chosen = null;
+      const overlay = U.mount('amkh-color-modal', `
+        <div class="ds-dialog fr-color">
+          <div class="ds-dialog__icon" aria-hidden="true">♟</div>
+          <h2 class="ds-dialog__title">تلعب بأنهي لون؟</h2>
+          <p class="ds-dialog__message">هتبعت دعوة لـ<b class="fr-color__name"></b></p>
+          <div class="fr-color__opts">
+            <button class="fr-color__opt" data-color="w">
+              <span class="fr-color__disc fr-color__disc--w">♔</span>
+              <span class="fr-color__lbl">أبيض</span>
+            </button>
+            <button class="fr-color__opt" data-color="r">
+              <span class="fr-color__disc fr-color__disc--r">⚄</span>
+              <span class="fr-color__lbl">عشوائي</span>
+            </button>
+            <button class="fr-color__opt" data-color="b">
+              <span class="fr-color__disc fr-color__disc--b">♚</span>
+              <span class="fr-color__lbl">أسود</span>
+            </button>
+          </div>
+          <div class="ds-dialog__actions">
+            <button class="ds-btn ds-btn--ghost ds-btn--block" data-cancel>إلغاء</button>
+          </div>
+        </div>`, { sfx: 'account', onDismiss: () => resolve(chosen) });
+      overlay.querySelector('.fr-color__name').textContent = name || 'صديق';
+      overlay.querySelectorAll('[data-color]').forEach((b) => {
+        b.onclick = () => { U.sfx(); chosen = b.dataset.color; overlay._dismiss(); };
+      });
+      overlay.querySelector('[data-cancel]').onclick = () => { U.sfx(); overlay._dismiss(); };
+    });
+  },
+
   /* ── شارة عدد الطلبات على زر الأصدقاء ── */
   _updateBadge() {
     const n = (this._requests.incoming || []).length;
@@ -289,6 +359,7 @@ const amkhFriends = {
         <div class="ds-sheet__handle" aria-hidden="true"></div>
         <div class="ds-sheet__header">
           <h3 class="ds-sheet__title">الأصدقاء</h3>
+          <button class="ds-sheet__inbox" data-inbox aria-label="الرسايل">💬</button>
           <button class="ds-sheet__close" data-close aria-label="إغلاق">✕</button>
         </div>
         <div class="fr-tabs" role="tablist">
@@ -317,6 +388,10 @@ const amkhFriends = {
     if (window.DSOverlay && window.DSOverlay.makeSheetDraggable) {
       try { window.DSOverlay.makeSheetDraggable('amkh-friends-modal', 'amkh-friends-panel'); } catch (e) {}
     }
+
+    /* زر صندوق الرسايل في رأس القائمة */
+    const inboxBtn = overlay.querySelector('[data-inbox]');
+    if (inboxBtn) inboxBtn.onclick = () => { U.sfx(); if (window.amkhChat) window.amkhChat.showInbox(); };
 
     /* التبويبات */
     overlay.querySelectorAll('.fr-tab').forEach(tab => {
@@ -348,7 +423,17 @@ const amkhFriends = {
     /* بحث تلقائي بعد ما يبطّل كتابة — أقل ضغط على السيرفر من كل حرف */
     input.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 450); };
 
-    overlay.querySelector('#friends-list-container').innerHTML = '<p class="fr-empty">جاري التحميل…</p>';
+    /* الأصدقاء لازم يبانوا فورًا وميختفوش أبدًا: لو عندنا كاش نعرضه على
+       طول قبل ما نكلّم السيرفر، وبعدين نحدّث لما الرد يوصل. */
+    if (!this._friends.length) {
+      const cached = this._loadCache();
+      if (cached.length) this._friends = cached;
+    }
+    if (this._friends.length) {
+      this._render();
+    } else {
+      overlay.querySelector('#friends-list-container').innerHTML = '<p class="fr-empty">جاري التحميل…</p>';
+    }
     await Promise.all([this.loadFriends(), this.loadRequests()]);
     this._render();
   },
@@ -396,7 +481,20 @@ const amkhFriends = {
     av.className = 'fr-row__av';
     av.setAttribute('aria-hidden', 'true');
     const label = String(user.display_name || user.username || '؟').trim();
-    av.textContent = label.slice(0, 1).toUpperCase();
+    const initial = label.slice(0, 1).toUpperCase();
+    /* أفاتار حقيقي لو الخادم رجّع صورة (data URL للمستخدم العادي أو رابط
+       جوجل)، وإلا الحرف الأول. أي فشل تحميل يرجع للحرف تلقائيًا. */
+    if (user.avatar_url) {
+      const img = document.createElement('img');
+      img.className = 'fr-row__av-img';
+      img.alt = '';
+      img.loading = 'lazy';
+      img.onerror = () => { img.remove(); av.textContent = initial; };
+      img.src = user.avatar_url;
+      av.appendChild(img);
+    } else {
+      av.textContent = initial;
+    }
     row.appendChild(av);
 
     const info = document.createElement('div');
@@ -428,6 +526,18 @@ const amkhFriends = {
     const s = this._statusLabel(f);
     const { row, acts } = this._baseRow(f, s.text, s.cls);
 
+    /* دردشة: شات دائم مع الصديق (chat-client.js) */
+    const chatBtn = document.createElement('button');
+    chatBtn.type = 'button';
+    chatBtn.className = 'ds-btn ds-btn--ghost ds-btn--sm fr-row__chat';
+    chatBtn.setAttribute('aria-label', 'دردشة');
+    chatBtn.textContent = '💬';
+    chatBtn.onclick = () => {
+      U.sfx();
+      if (window.amkhChat) window.amkhChat.openChat(f);
+    };
+    acts.appendChild(chatBtn);
+
     /* دعوة: متاحة لو متصل ومش في مباراة */
     const inviteBtn = document.createElement('button');
     inviteBtn.type = 'button';
@@ -436,12 +546,8 @@ const amkhFriends = {
     inviteBtn.disabled = !f.online || f.status === 'in-game';
     inviteBtn.onclick = async () => {
       U.sfx();
-      /* اختيار اللون قبل الدعوة — تمامًا زي الأونلاين العادي */
-      const color = await this._menu(inviteBtn, [
-        { key: 'w', label: '♔ ألعب بالأبيض' },
-        { key: 'b', label: '♚ ألعب بالأسود' },
-        { key: 'r', label: '⚄ لون عشوائي' },
-      ]);
+      /* اختيار اللون قبل الدعوة — نافذة متخصصة بالثيم */
+      const color = await this._colorChoice(f.display_name || f.username);
       if (!color) return;
       if (this.inviteFriend(f.id, f.display_name || f.username, color)) {
         inviteBtn.disabled = true;
@@ -589,7 +695,15 @@ const amkhFriends = {
       menu.style.insetInlineEnd = 'auto';
       menu.style.visibility = '';
 
-      const onDoc = () => { cleanup(); resolve(null); };
+      const onDoc = (e) => {
+        /* ضغطة جوه القائمة = اختيار عنصر، سيبها توصل لزر العنصر.
+           الـlistener ده على الـdocument بـcapture=true، يعني بيمسك أي
+           ضغطة قبل ما توصل لهدفها. من غير الفحص ده كان بيمسك حتى الضغط
+           على أزرار القائمة نفسها، يقفلها ويرجّع null قبل ما ينفّذ b.onclick
+           — وده كان السبب إن اختيار اللون والإزالة والحظر مبيعملوش أي حاجة. */
+        if (e && e.target && menu.contains(e.target)) return;
+        cleanup(); resolve(null);
+      };
       const cleanup = () => {
         document.removeEventListener('click', onDoc, true);
         window.removeEventListener('resize', onDoc);

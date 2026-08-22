@@ -271,6 +271,26 @@ router.post('/username', authenticateToken, (req, res) => {
   res.json({ username: raw });
 });
 
+/* حفظ صورة الملف الشخصي على الخادم عشان الأصدقاء يشوفوها في القائمة.
+   الصورة بتوصل كـ data URL متصغّرة من العميل (96×96 JPEG ≈ كام كيلوبايت).
+   سلسلة فاضية = مسح الصورة. السقف 80KB أقل بأمان من حد express.json
+   الافتراضي (100KB) فالطلب مايترفضش قبل ما يوصل هنا. */
+router.post('/avatar', authenticateToken, (req, res) => {
+  const url = (req.body && typeof req.body.avatar_url === 'string') ? req.body.avatar_url.trim() : '';
+  if (url === '') {
+    db.prepare('UPDATE users SET avatar_url = NULL WHERE id = ?').run(req.user.id);
+    return res.json({ success: true, avatar_url: null });
+  }
+  if (!/^data:image\/(png|jpeg|jpg|webp);base64,/i.test(url)) {
+    return res.status(400).json({ error: 'صيغة الصورة غير مدعومة' });
+  }
+  if (url.length > 80000) {
+    return res.status(413).json({ error: 'الصورة كبيرة جدًا' });
+  }
+  db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(url, req.user.id);
+  res.json({ success: true, avatar_url: url });
+});
+
 // جلب بيانات المستخدم
 router.get('/me', authenticateToken, (req, res) => {
   const user = db.prepare('SELECT id, email, display_name, username, provider, avatar_url, created_at, last_login_at FROM users WHERE id = ?').get(req.user.id);

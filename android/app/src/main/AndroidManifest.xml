@@ -33,7 +33,15 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    
+
+    <!-- Microphone: online voice chat (getUserMedia in the WebView).
+         Capacitor's WebChromeClient maps the WebView audio-capture request to
+         this runtime permission and prompts the user — without it declared,
+         getUserMedia throws and voice recording fails with
+         «لا يمكن الوصول للميكروفون». -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- Bluetooth Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />

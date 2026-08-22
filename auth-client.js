@@ -93,6 +93,10 @@ const amkhUI = {
     const overlay = document.createElement('div');
     overlay.id = id;
     overlay.className = 'ds-overlay' + ((opts && opts.sheet) ? ' ds-overlay--sheet' : '');
+    /* نوع صوت الفتح: مخصّص من opts.sfx، وإلا الأوراق السفلية تاخد صوت
+       sheet والباقي default. DSOverlay.open بيقرا الخاصية دي. */
+    if (opts && opts.sfx) overlay.dataset.sfx = opts.sfx;
+    else if (opts && opts.sheet) overlay.dataset.sfx = 'sheet';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.innerHTML = innerHTML;
@@ -101,6 +105,7 @@ const amkhUI = {
     const dismiss = () => {
       document.removeEventListener('keydown', onKey);
       this.close(overlay);
+      if (opts && typeof opts.onDismiss === 'function') { try { opts.onDismiss(); } catch (e) {} }
     };
     /* نقرة الشبح: على اللمس، بعد ما تضغط الزر اللي بيفتح النافذة، بيتبعت
        click تاني «شبح» بعد ~300ms عند نفس مكان الزر. النافذة بتكون فتحت
@@ -128,6 +133,7 @@ const amkhUI = {
   /* بديل alert() — بيستخدم نافذة التطبيق نفسها لو متاحة */
   notify(message, title, icon) {
     if (window.Modal && window.Modal.show) return window.Modal.show(message, title || 'تنبيه', icon || '◉');
+    const kind = (icon === '✕' || icon === '◆' || icon === '⚡' || icon === '⚠') ? 'error' : 'success';
     const ov = this.mount('amkh-ui-notify', `
       <div class="ds-dialog">
         <div class="ds-dialog__icon">${this.esc(icon || '◉')}</div>
@@ -136,7 +142,7 @@ const amkhUI = {
         <div class="ds-dialog__actions">
           <button class="ds-btn ds-btn--primary" data-close>موافق</button>
         </div>
-      </div>`);
+      </div>`, { sfx: kind });
     return ov;
   },
 
@@ -154,7 +160,7 @@ const amkhUI = {
             <button class="ds-btn ds-btn--secondary" data-act="no">${this.esc(cancelText || 'إلغاء')}</button>
             <button class="ds-btn ds-btn--primary"   data-act="yes">${this.esc(okText || 'تأكيد')}</button>
           </div>
-        </div>`);
+        </div>`, { sfx: 'confirm' });
       ov.querySelectorAll('[data-act]').forEach(b => {
         b.addEventListener('click', () => {
           this.sfx();
@@ -220,6 +226,7 @@ const amkhAuth = {
       if (res.ok) {
         this.user = await res.json();
         try { localStorage.setItem('amkh_user', JSON.stringify(this.user)); } catch (e) {}
+        this._reconcileAvatar();
         return 'ok';
       }
       /* 401/403 = التوكن نفسه باطل. أي كود تاني (500، 502 من النفق)
@@ -322,6 +329,27 @@ const amkhAuth = {
     try { localStorage.setItem('amkh_user', JSON.stringify(user || null)); } catch (e) {}
     this.updateUI();
     this.connectPresence();
+    this._reconcileAvatar();
+  },
+
+  /* توفيق صورة الملف بين الجهاز والخادم بعد تسجيل الدخول:
+     - عندي صورة محلية والخادم فاضي → ارفعها (بيشمل مين ضبط صورته قبل الميزة دي).
+     - الخادم عنده صورة data: ومحليًا مفيش → املأ المحلي عشان تشوف صورتك على أي جهاز.
+     بيشتغل بهدوء؛ أي فشل مايأثرش على الدخول. مابنملّاش المحلي من روابط
+     جوجل (http) عشان صورة اللوحة تفضل تشتغل أوفلاين وجوّه الـAPK. */
+  _reconcileAvatar() {
+    try {
+      if (typeof Cfg === 'undefined' || !Cfg.data) return;
+      const server = this.user && this.user.avatar_url;
+      const local = Cfg.data.playerImage;
+      if (local && !server) {
+        if (typeof Cfg._syncAvatarToServer === 'function') Cfg._syncAvatarToServer(local);
+      } else if (!local && server && /^data:image\//i.test(String(server))) {
+        Cfg.data.playerImage = server;
+        try { Cfg._persist(); } catch (e) {}
+        try { if (typeof Cfg._updateProfileImage === 'function') Cfg._updateProfileImage(); } catch (e) {}
+      }
+    } catch (e) {}
   },
 
   logout() {
@@ -331,7 +359,19 @@ const amkhAuth = {
     localStorage.removeItem('amkh_user');
     this.disconnectPresence();
     this.updateUI();
-    window.location.reload();
+    /* من غير window.location.reload(): الـreload كان بيعيد تحميل الصفحة
+       كلها، والـ<body> بيتْرسم فريم بثيم amkh الافتراضي قبل ما سكربت الثيم
+       المتزامن يشتغل تاني — ده بالظبط مصدر ومضة amkh على الشاشة الرئيسية
+       وقت الخروج. مافيش داعي لإعادة تحميل: updateUI() صفّرت زر الحساب،
+       disconnectPresence() قطعت الاتصال، وهنا بنمسح كاش الأصدقاء. */
+    try {
+      if (window.amkhFriends) {
+        window.amkhFriends._friends = [];
+        if (typeof window.amkhFriends._updateBadge === 'function') {
+          window.amkhFriends._updateBadge();
+        }
+      }
+    } catch (e) {}
   },
 
   async promptMigration() {
@@ -505,6 +545,10 @@ const amkhAuth = {
       let d = null;
       try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d || typeof d.type !== 'string') return;
+      if (d.type.indexOf('chat:') === 0) {
+        try { if (window.amkhChat) window.amkhChat.handleSocketMessage(d); } catch (e) {}
+        return;
+      }
       if (d.type.indexOf('friend:') === 0) {
         try { if (window.amkhFriends) window.amkhFriends.handleSocketMessage(d); } catch (e) {}
         /* قبول الدعوة بيولّد غرفة على سوكت الحضور ده. لازم وحدة الأونلاين
@@ -545,6 +589,7 @@ const amkhAuth = {
   /* زر الحساب بيعيش جوه شريط التطبيق جنب الإعدادات — مش زر عايم فوق
      الشاشة. أيقونة بس، من غير إيموجي، وبتتغير لما نكون داخلين. */
   updateUI() {
+    const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
     const trail = document.querySelector('.appbar__trail');
     let btn = document.getElementById('amkh-auth-btn');
     if (!btn) {
@@ -552,22 +597,32 @@ const amkhAuth = {
       btn.type = 'button';
       btn.id = 'amkh-auth-btn';
       btn.className = 'appbar__icon-btn amkh-auth-btn';
+      /* الأيقونة (SVG) تُكتب مرة واحدة عند إنشاء الزر ولا تُعاد أبدًا.
+         إعادة كتابة innerHTML في كل updateUI (وبتتنادى مرتين على الإقلاع:
+         من الكاش ثم بعد التحقق) كانت بتعيد رسم الـSVG فيومض. نقطة الحالة
+         بقت عنصر منفصل نضيفه/نشيله من غير ما نلمس الأيقونة — وكده
+         friends-client يقدر يتشارك نفس النقطة بأمان. */
+      btn.innerHTML = ICON;
       if (trail) trail.insertBefore(btn, trail.firstChild);
       else document.body.appendChild(btn);
     }
 
-    const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-
     if (this.user) {
       const name = this.user.display_name || this.user.email;
-      btn.innerHTML = ICON + '<span class="amkh-auth-btn__dot" aria-hidden="true"></span>';
       btn.classList.add('is-signed-in');
+      if (!btn.querySelector('.amkh-auth-btn__dot')) {
+        const dot = document.createElement('span');
+        dot.className = 'amkh-auth-btn__dot';
+        dot.setAttribute('aria-hidden', 'true');
+        btn.appendChild(dot);
+      }
       btn.setAttribute('aria-label', 'حسابي — ' + name);
       btn.title = name;
       btn.onclick = () => { amkhUI.sfx(); this.showProfileModal(); };
     } else {
-      btn.innerHTML = ICON;
       btn.classList.remove('is-signed-in');
+      const dot = btn.querySelector('.amkh-auth-btn__dot');
+      if (dot) dot.remove();
       btn.setAttribute('aria-label', 'تسجيل الدخول');
       btn.title = 'تسجيل الدخول';
       btn.onclick = () => { amkhUI.sfx(); this.showLoginModal(); };
@@ -740,4 +795,15 @@ const amkhAuth = {
 };
 
 window.amkhAuth = amkhAuth;
+/* اعرض زر الحساب فورًا بالحالة المحفوظة عشان يبان مع شريط التطبيق من
+   أول رسم بدل ما «ينطّ» بعد ثانية (شريط التطبيق موجود في الصفحة قبل
+   ما السكربت ده يتحمّل، فالزر بيلاقي مكانه على طول). التحقق من التوكن
+   والحضور والمزامنة بيفضلوا مؤجَّلين لأنهم بيحتاجوا رابط السيرفر
+   يتحمّل الأول. */
+try {
+  if (amkhAuth.token && !amkhAuth.user) {
+    try { amkhAuth.user = JSON.parse(localStorage.getItem('amkh_user') || 'null'); } catch (e) {}
+  }
+  amkhAuth.updateUI();
+} catch (e) {}
 setTimeout(() => amkhAuth.init(), 1000);

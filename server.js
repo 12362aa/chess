@@ -272,6 +272,8 @@ app.use('/api/register', authLimiter);
 
 const friendsRouter = require('./friends');
 app.use('/api/friends', friendsRouter);
+const chatRouter = require('./chat');
+app.use('/api/chat', chatRouter);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -284,35 +286,52 @@ app.post('/api/groq/chat', async (req, res) => {
     if (!apiKey) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
 
     const body = req.body && typeof req.body === 'object' ? req.body : {};
-    const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'meta-llama/llama-4-scout-17b-16e-instruct';
     const messages = Array.isArray(body.messages) ? body.messages : null;
     const max_tokens = Number.isFinite(body.max_tokens) ? body.max_tokens : undefined;
     const temperature = Number.isFinite(body.temperature) ? body.temperature : undefined;
-
     if (!messages || !messages.length) return res.status(400).json({ error: 'Missing messages[]' });
 
-    const payload = {
-      model,
-      messages,
-    };
-    if (typeof max_tokens === 'number') payload.max_tokens = Math.max(1, Math.min(2048, Math.floor(max_tokens)));
-    if (typeof temperature === 'number') payload.temperature = Math.max(0, Math.min(2, temperature));
+    /* سلسلة موديلات نجرّبها بالترتيب.
+       allam-2-7b هو الوحيد على Groq اللي بيرد عربي موثوق — اتأكدنا حيًّا:
+       gpt-oss بيرد كوري/إنجليزي، qwen بيرد روسي، رغم الأمر الصريح بالعربية.
+       بس allam مش مُدرج في التوثيق الرسمي، والموديل القديم
+       (llama-4-scout) اتشال فجأة وبقى model_not_found — فبنحصّن نفسنا:
+       لو الموديل المطلوب رجّع خطأ (اتشال/404) أو رجّع محتوى فاضي (موديلات
+       التفكير بتضيّع التوكنز)، بنجرّب البديل تلقائيًا فالميزة ماتقفش. */
+    const requested = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'allam-2-7b';
+    const chain = [requested, 'allam-2-7b', 'openai/gpt-oss-120b'].filter((m, i, a) => a.indexOf(m) === i);
 
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    let lastDetail = 'no attempt';
+    for (const model of chain) {
+      const payload = { model, messages };
+      if (typeof max_tokens === 'number') payload.max_tokens = Math.max(1, Math.min(2048, Math.floor(max_tokens)));
+      if (typeof temperature === 'number') payload.temperature = Math.max(0, Math.min(2, temperature));
+      /* gpt-oss بيضيّع كل التوكنز في «التفكير» ويرجّع محتوى فاضي —
+         reasoning_effort:low بيخلّيه يرجّع نص فعلي */
+      if (model.indexOf('gpt-oss') !== -1) payload.reasoning_effort = 'low';
 
-    const text = await resp.text();
-    if (!resp.ok) {
-      return res.status(resp.status).send(text || JSON.stringify({ error: 'Groq request failed' }));
+      let resp;
+      try {
+        resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify(payload),
+        });
+      } catch (netErr) { lastDetail = `[${model}] network: ${netErr.message}`; continue; }
+
+      const text = await resp.text();
+      if (!resp.ok) { lastDetail = `[${model}] ${resp.status}: ${text.slice(0, 160)}`; continue; }
+
+      /* رد 200 بمحتوى فاضي (كل التوكنز راحت في التفكير) نعتبره فشل */
+      let content = '';
+      try { const j = JSON.parse(text); content = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || ''; }
+      catch (e) { lastDetail = `[${model}] bad json`; continue; }
+      if (!content.trim()) { lastDetail = `[${model}] empty content`; continue; }
+
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).send(text);
     }
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(200).send(text);
+    return res.status(502).json({ error: 'كل موديلات الذكاء الاصطناعي فشلت', detail: lastDetail });
   } catch (e) {
     return res.status(500).json({ error: 'Groq proxy error', detail: String(e && e.message ? e.message : e) });
   }
@@ -597,7 +616,16 @@ function getRoomAndSide(ws) {
   if (!code) return null;
   const room = rooms.get(code);
   if (!room) return null;
-  const side = room.host?.ws === ws ? 'host' : (room.guest?.ws === ws ? 'guest' : null);
+  let side = room.host?.ws === ws ? 'host' : (room.guest?.ws === ws ? 'guest' : null);
+  if (!side) {
+    /* السوكت اتربط بالغرفة (في beginFriendGame بنربط كل سوكتات الطرف) بس
+       مش هو الـws المخزّن في room.host/guest — ده بيحصل لما السوكت اللي
+       بدأ عليه بدء المباراة كان ميت والحي بعت أول نقلة. نتبنّى الحي هنا
+       حسب هوية المستخدم عشان النقلات/الاستسلام يتوجّهوا صح. */
+    const uid = socketUser.get(ws);
+    if (uid && room.hostId === uid && room.host) { room.host.ws = ws; side = 'host'; }
+    else if (uid && room.guestId === uid && room.guest) { room.guest.ws = ws; side = 'guest'; }
+  }
   if (!side) return null;
   return { room, code, side };
 }
@@ -663,6 +691,28 @@ friendsRouter.setRealtime({
   statusOf: liveStatus,
 });
 
+/* الدردشة بتستخدم نفس statusOf عشان قائمة المحادثات تعرض الحضور الحقيقي. */
+chatRouter.setRealtime({ statusOf: liveStatus });
+
+/* دالة موحّدة لإرسال رسالة دردشة: بتخزّن الأول (store-and-forward) وبعدين
+   بتبعت لكل سوكتات الطرفين المفتوحة. بترجّع الرسالة المخزّنة. */
+function pushChatMessage(fromId, toId, body, clientId) {
+  const key = chatRouter.convoKey(fromId, toId);
+  const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body)
+                           VALUES (?, ?, ?, ?)`).run(key, fromId, toId, body);
+  const row = db.prepare(`SELECT id, created_at FROM messages WHERE id = ?`).get(info.lastInsertRowid);
+  const payload = {
+    type: 'chat:message', id: row.id, convo_key: key,
+    from: fromId, to: toId, body, created_at: row.created_at, client_id: clientId || null,
+  };
+  for (const s of socketsOf(fromId)) send(s, payload);   /* صدى لكل أجهزة المُرسِل */
+  let delivered = false;
+  for (const s of socketsOf(toId)) {
+    if (s.readyState === WebSocket.OPEN) { send(s, payload); delivered = true; }
+  }
+  return { row, key, delivered };
+}
+
 /* بثّ الحضور لأصدقاء مستخدم. بيبعت الحالة الغنية (online / in-game /
    offline) وكمان is_online عشان أي عميل قديم يفضل شغّال. */
 function broadcastPresence(userId, statusOverride) {
@@ -705,6 +755,8 @@ function beginFriendGame(invite, hostWs, guestWs) {
   const room = {
     kind: 'online',
     code,
+    hostId: invite.from_id,
+    guestId: invite.to_id,
     host: makeMember(hostWs, hostColor, hostRow.display_name || hostRow.username || 'صديق', ''),
     guest: makeMember(guestWs, guestColor, guestRow.display_name || guestRow.username || 'صديق', ''),
     guestColor,
@@ -714,14 +766,29 @@ function beginFriendGame(invite, hostWs, guestWs) {
     state: null,
   };
   rooms.set(code, room);
-  clientRoom.set(hostWs, code);
-  clientRoom.set(guestWs, code);
+
+  /* الكارثة القديمة: كنا بنبعت start لسوكت واحد بس (socketsOf(...).find(OPEN)).
+     لكن سوكت الحضور بيعيد الاتصال مع أي رعشة في الشبكة/النفق، والسوكت الميت
+     بيفضل في المجموعة لحد ما الـheartbeat يقتله بعد ~30ث وهو لسه بيبلّغ OPEN.
+     فالـ.find كان بياخد السوكت الميت والرسالة تروح في الفاضي → الداعي
+     مايدخلش المباراة إلا بعد كذا محاولة. الحل: نبعت لكل سوكتات كل طرف
+     المفتوحة، ونربط clientRoom لكلها؛ الميت بيسقط الرسالة بلا ضرر، والحي
+     بياخدها أكيد. أول رسالة حقيقية من الطرف بتصحّح room.host.ws/guest.ws
+     عبر getRoomAndSide. */
+  const hostSockets = socketsOf(invite.from_id).filter(s => s.readyState === WebSocket.OPEN);
+  const guestSockets = socketsOf(invite.to_id).filter(s => s.readyState === WebSocket.OPEN);
+  for (const s of hostSockets) clientRoom.set(s, code);
+  for (const s of guestSockets) clientRoom.set(s, code);
 
   db.prepare('UPDATE game_invites SET room_code = ? WHERE id = ?').run(code, invite.id);
-  send(hostWs, { type: 'friend:invite-room', code, role: 'host' });
-  send(guestWs, { type: 'friend:invite-room', code, role: 'guest' });
-  sendStart(room);
-  console.log(`[friends] invite ${invite.id} -> room ${code}`);
+  for (const s of hostSockets) send(s, { type: 'friend:invite-room', code, role: 'host' });
+  for (const s of guestSockets) send(s, { type: 'friend:invite-room', code, role: 'guest' });
+
+  room.started = true;
+  room.ended = false;
+  for (const s of hostSockets) send(s, { type: 'start', yourColor: room.host.color, oppName: room.guest.name || 'الخصم', room: code });
+  for (const s of guestSockets) send(s, { type: 'start', yourColor: room.guest.color, oppName: room.host.name || 'الخصم', room: code });
+  console.log(`[friends] invite ${invite.id} -> room ${code} (host socks ${hostSockets.length}, guest socks ${guestSockets.length})`);
 
   /* الاتنين بقوا جوه مباراة، فأصدقاؤهم يشوفوا الحالة الجديدة */
   broadcastPresence(invite.from_id, 'in-game');
@@ -800,6 +867,32 @@ wss.on('connection', (ws, req) => {
             }
             const pending = db.prepare(`SELECT COUNT(*) AS c FROM friend_requests WHERE receiver_id = ? AND status = 'pending'`).get(userId);
             if (pending && pending.c) send(ws, { type: 'friend:requests-pending', count: pending.c });
+
+            /* عدّاد رسايل الدردشة غير المقروءة أول ما يتصل، عشان الشارة
+               تبقى صح لحظة الفتح على أي جهاز. */
+            try {
+              const rows = db.prepare(`SELECT sender_id AS friend_id, COUNT(*) AS count FROM messages
+                                       WHERE recipient_id = ? AND read_at IS NULL GROUP BY sender_id`).all(userId);
+              const total = rows.reduce((s, r) => s + r.count, 0);
+              send(ws, { type: 'chat:unread', total, by_friend: rows });
+            } catch (e) {}
+
+            /* لو الطرف كان جوه مباراة صداقة والسوكت اتقطع لحظة القبول: نعيد
+               ربطه بالغرفة الشغّالة ونبعتله start تاني. ده بيضمن إن الداعي
+               يدخل المباراة حتى لو سوكته كان بيعيد الاتصال وقت القبول. */
+            for (const [code, room] of rooms) {
+              if (!room || room.ended || room.kind !== 'online') continue;
+              let side = null;
+              if (room.hostId === userId) side = 'host';
+              else if (room.guestId === userId) side = 'guest';
+              if (!side || !room[side]) continue;
+              clientRoom.set(ws, code);
+              room[side].ws = ws;
+              const oppName = side === 'host' ? (room.guest?.name || 'الخصم') : (room.host?.name || 'الخصم');
+              send(ws, { type: 'friend:invite-room', code, role: side });
+              send(ws, { type: 'start', yourColor: room[side].color, oppName, room: code });
+              break;
+            }
           } catch (e) {
             console.error('[presence] hello failed:', e.message);
           }
@@ -880,14 +973,16 @@ wss.on('connection', (ws, req) => {
             break;
           }
 
-          const hostWs = socketsOf(inv.from_id).find(s => s.readyState === WebSocket.OPEN);
-          if (!hostWs) {
+          const hostSockets = socketsOf(inv.from_id).filter(s => s.readyState === WebSocket.OPEN);
+          if (!hostSockets.length) {
             db.prepare(`UPDATE game_invites SET status = 'expired', responded_at = datetime('now') WHERE id = ?`).run(inviteId);
             send(ws, { type: 'friend:invite-error', reason: 'host-offline' });
             break;
           }
           db.prepare(`UPDATE game_invites SET status = 'accepted', responded_at = datetime('now') WHERE id = ?`).run(inviteId);
-          beginFriendGame(inv, hostWs, ws);
+          /* beginFriendGame بيعيد اشتقاق كل سوكتات الطرفين بنفسه ويبعت
+             start لكلها؛ بنمرّر أول سوكت حي كبداية بس. */
+          beginFriendGame(inv, hostSockets[0], ws);
         } catch (e) {
           console.error('[friends] invite-respond error:', e.message);
           send(ws, { type: 'friend:invite-error', reason: 'server' });
@@ -906,6 +1001,52 @@ wss.on('connection', (ws, req) => {
           db.prepare(`UPDATE game_invites SET status = 'cancelled', responded_at = datetime('now') WHERE id = ?`).run(inviteId);
           for (const s of socketsOf(inv.to_id)) send(s, { type: 'friend:invite-cancelled', invite_id: inviteId });
         } catch (e) {}
+        break;
+      }
+
+      /* ══ دردشة الأصدقاء ══ */
+      case 'chat:send': {
+        const me = socketUser.get(ws);
+        const to = Number(msg.to);
+        let body = typeof msg.body === 'string' ? msg.body.trim() : '';
+        const clientId = typeof msg.client_id === 'string' ? msg.client_id.slice(0, 64) : null;
+        if (!me || !Number.isInteger(to) || to <= 0 || !body) break;
+        body = body.slice(0, 4000);
+        try {
+          if (!chatRouter.areFriends(me, to) || chatRouter.blockedBetween(me, to)) {
+            send(ws, { type: 'chat:error', reason: 'not-friend', client_id: clientId });
+            break;
+          }
+          const { row, delivered } = pushChatMessage(me, to, body, clientId);
+          send(ws, { type: 'chat:sent', client_id: clientId, id: row.id, created_at: row.created_at, to, delivered });
+        } catch (e) {
+          console.error('[chat] send failed:', e.message);
+          send(ws, { type: 'chat:error', reason: 'server', client_id: clientId });
+        }
+        break;
+      }
+
+      case 'chat:read': {
+        const me = socketUser.get(ws);
+        const from = Number(msg.from);
+        if (!me || !Number.isInteger(from) || from <= 0) break;
+        try {
+          const key = chatRouter.convoKey(me, from);
+          const info = db.prepare(`UPDATE messages SET read_at = datetime('now')
+                                   WHERE convo_key = ? AND recipient_id = ? AND sender_id = ? AND read_at IS NULL`)
+                         .run(key, me, from);
+          if (info.changes > 0) {
+            for (const s of socketsOf(from)) send(s, { type: 'chat:read-receipt', by: me, convo_key: key });
+          }
+        } catch (e) {}
+        break;
+      }
+
+      case 'chat:typing': {
+        const me = socketUser.get(ws);
+        const to = Number(msg.to);
+        if (!me || !Number.isInteger(to) || to <= 0) break;
+        for (const s of socketsOf(to)) send(s, { type: 'chat:typing', from: me });
         break;
       }
 

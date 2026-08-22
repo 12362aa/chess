@@ -41,6 +41,55 @@
   --glow-teal:rgba(45,212,191,.3);
   --custom-board: none;
 }
+/* ── متغيّرات كل ثيم على body — نفس قيم UI_THEMES بالظبط ──
+   وجودها في CSS (مش في JS بس) بيخلّي الثيم يظهر صح من أول رسم، من غير
+   وميض مظهر amkh الافتراضي (اللي في :root) لحد ما الـJS يشتغل — خصوصًا
+   بعد تسجيل الخروج اللي بيعمل reload. الـattribute بيتحط في أول <body>. */
+body[data-ui-theme="minimal"]{
+  --bg:#0a1017;--bg2:#111923;--bg3:#17212d;--bg4:#1d2937;
+  --gold:#f8fafc;--gold2:#dbe4ef;--gold3:#ffffff;
+  --teal:#8fa3ba;--teal2:#c5d0dc;
+  --red:#fda4af;--green:#a7f3d0;--blue:#bfd7ff;
+  --text:#edf2f7;--text2:#9aa9bc;--text3:#6f8196;
+  --accent:#f8fafc;--accent2:#bfd7ff;
+  --fx-glow:rgba(219,228,239,.14);--fx-neon:rgba(191,215,255,.14);
+}
+body[data-ui-theme="cyberpunk"]{
+  --bg:#040604;--bg2:#0a0f0b;--bg3:#101711;--bg4:#17211a;
+  --gold:#ffb020;--gold2:#ffc65c;--gold3:#ffe0a0;
+  --teal:#00ff66;--teal2:#6bffa8;
+  --red:#ff3b30;--green:#00ff66;--blue:#31d99a;
+  --text:#dfffe9;--text2:#7fa98c;--text3:#4c6654;
+  --accent:#00ff66;--accent2:#ffb020;
+  --fx-glow:rgba(0,255,102,.24);--fx-neon:rgba(0,255,102,.3);
+}
+body[data-ui-theme="glass"]{
+  --bg:#09111d;--bg2:rgba(255,255,255,.07);--bg3:rgba(255,255,255,.1);--bg4:rgba(255,255,255,.13);
+  --gold:#d8e8ff;--gold2:#eef6ff;--gold3:#ffffff;
+  --teal:#a7ffe1;--teal2:#defef3;
+  --red:#ffb4bf;--green:#b2ffd7;--blue:#9fd0ff;
+  --text:#f4fbff;--text2:#d4e7ff;--text3:#9ebfe0;
+  --accent:#d8e8ff;--accent2:#a7ffe1;
+  --fx-glow:rgba(159,208,255,.18);--fx-neon:rgba(167,255,225,.16);
+}
+body[data-ui-theme="gaming"]{
+  --bg:#0f1923;--bg2:#16232f;--bg3:#1e2e3c;--bg4:#293b4b;
+  --gold:#ff4655;--gold2:#ff6b78;--gold3:#ff8b96;
+  --teal:#00e5ff;--teal2:#7df0ff;
+  --red:#ff4655;--green:#3ad29f;--blue:#00e5ff;
+  --text:#ece8e1;--text2:#9ba8b4;--text3:#5f6f7c;
+  --accent:#ff4655;--accent2:#00e5ff;
+  --fx-glow:rgba(255,70,85,.28);--fx-neon:rgba(0,229,255,.26);
+}
+body[data-ui-theme="anime"]{
+  --bg:#0a0908;--bg2:#141110;--bg3:#1e1a19;--bg4:#2a2523;
+  --gold:#e01e37;--gold2:#f5405a;--gold3:#ff8a9c;
+  --teal:#3ac8ff;--teal2:#8cdfff;
+  --red:#e01e37;--green:#5ad48a;--blue:#3ac8ff;
+  --text:#f7f3ee;--text2:#a9a29b;--text3:#6b655f;
+  --accent:#3ac8ff;--accent2:#e01e37;
+  --fx-glow:rgba(58,200,255,.26);--fx-neon:rgba(224,30,55,.24);
+}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;
   min-height:100dvh;overflow-x:hidden;overflow-y:auto;
@@ -1007,13 +1056,14 @@ body[data-ui-theme="glass"] .mc-tag{
   color:#eff9ff;
 }
 
-/* Engine picker */
+/* Engine picker — أُعيد بناؤه بالكامل: مبني على design tokens
+   فيتلوّن تلقائيًا مع كل ثيم، ويشتغل على الموبايل والتابلت. */
 #engine-ov{
   display:none;
   position:fixed;
   inset:0;
   z-index:965;
-  padding:18px;
+  padding:16px;
   background:var(--color-overlay);
   backdrop-filter:blur(14px) saturate(120%);
   -webkit-backdrop-filter:blur(14px) saturate(120%);
@@ -1021,101 +1071,110 @@ body[data-ui-theme="glass"] .mc-tag{
   justify-content:center;
 }
 #engine-ov.open{display:flex;}
-.engine-card{
-  width:min(94vw,760px);
-  max-height:min(92vh,760px);
+.ep-card{
+  width:min(96vw,720px);
+  max-height:92vh;
   overflow:auto;
-  border-radius:28px;
-  border:1px solid rgba(120,240,255,.18);
-  background:
-    radial-gradient(circle at top right,rgba(120,240,255,.12),transparent 30%),
-    radial-gradient(circle at bottom left,rgba(255,124,191,.12),transparent 24%),
-    linear-gradient(145deg,rgba(8,15,26,.96),rgba(16,24,36,.94));
-  box-shadow:0 26px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.03);
-  padding:24px;
-}
-.engine-card-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px;}
-.engine-kicker{font-size:11px;letter-spacing:.18em;color:var(--teal2);font-weight:900;margin-bottom:6px;}
-.engine-title{font-size:30px;font-family:'Amiri',serif;color:var(--text);line-height:1.1;}
-.engine-subtitle{margin-top:8px;color:var(--text2);font-size:13px;line-height:1.7;max-width:460px;}
-.engine-close{
-  min-height:42px;
-  padding:0 14px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.1);
-  background:rgba(255,255,255,.04);
-  color:var(--text2);
-  cursor:pointer;
-  font-size:13px;
-  font-weight:800;
   display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  flex-shrink:0;
+  flex-direction:column;
+  gap:18px;
+  border-radius:var(--radius-xl,24px);
+  border:1px solid var(--color-border);
+  background:var(--color-bg-elevated);
+  box-shadow:var(--shadow-xl,0 26px 80px rgba(0,0,0,.45));
+  padding:22px;
 }
-.engine-close:hover{color:var(--text);border-color:rgba(120,240,255,.24);}
-.engine-versus{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-bottom:22px;}
-.engine-side{
-  border-radius:24px;
-  padding:18px 16px;
-  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
-  border:1px solid rgba(255,255,255,.08);
-  display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
-}
-.engine-avatar{
-  width:84px;height:84px;border-radius:24px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.1);font-size:36px;color:var(--gold2);overflow:hidden;
-}
-.engine-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-.engine-avatar.ai.fallback{font-size:34px;color:#9afbf5;}
-.engine-name{font-size:18px;font-weight:800;color:var(--text);}
-.engine-role{font-size:12px;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;}
-.engine-vs-badge{
-  width:60px;height:60px;border-radius:50%;
+.ep-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
+.ep-kicker{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--color-secondary-text);margin-bottom:6px;}
+.ep-title{font-size:26px;font-weight:800;color:var(--color-text-primary);margin:0;line-height:1.15;}
+.ep-sub{margin:6px 0 0;font-size:13px;color:var(--color-text-secondary);line-height:1.6;}
+.ep-close{
+  flex-shrink:0;width:40px;height:40px;border-radius:12px;
+  border:1px solid var(--color-border);background:var(--color-surface);
+  color:var(--color-text-secondary);font-size:17px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#07111a;font-weight:900;letter-spacing:.12em;
-  box-shadow:0 12px 30px rgba(0,0,0,.22);
 }
-.engine-picker-body{display:grid;gap:18px;}
-.engine-slider-wrap{
-  border-radius:22px;
-  padding:18px;
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.012));
-  border:1px solid rgba(255,255,255,.08);
+.ep-close:hover{color:var(--color-text-primary);border-color:var(--color-border-strong);}
+.ep-versus{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;
+  padding:14px;border-radius:var(--radius-lg,18px);
+  background:var(--color-surface);border:1px solid var(--color-border-subtle);
 }
-.engine-slider-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px;color:var(--text);}
-.engine-skill-value{font-size:18px;font-weight:900;color:var(--gold2);}
-.engine-skill-input{width:100%;margin:18px 0 10px;accent-color:var(--accent2);}
-.engine-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
-.engine-meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
-.engine-meta-card{
-  border-radius:20px;
-  padding:16px;
-  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));
-  border:1px solid rgba(255,255,255,.08);
+.ep-vs-side{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+.ep-vs-avatar{
+  width:64px;height:64px;border-radius:18px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:800;
+  background:var(--color-surface-raised);border:1px solid var(--color-border);
+  color:var(--color-primary-text);
+  background-size:cover;background-position:center;
 }
-.engine-meta-label{font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
-.engine-meta-value{font-size:20px;font-weight:800;color:var(--text);}
-.engine-desc{
-  border-radius:18px;
-  padding:14px 16px;
-  background:rgba(120,240,255,.07);
-  border:1px solid rgba(120,240,255,.16);
-  color:#e9fbff;
-  line-height:1.8;
-  font-size:13px;
+.ep-vs-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.ep-vs-avatar.ai.fallback{color:var(--color-secondary-text);}
+.ep-vs-name{font-size:15px;font-weight:700;color:var(--color-text-primary);}
+.ep-vs-lvl{font-size:12px;font-weight:700;color:var(--color-primary-text);}
+.ep-vs-badge{
+  width:48px;height:48px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;letter-spacing:.08em;font-size:14px;
+  background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));
+  color:var(--color-on-primary);
 }
-.engine-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
-@media(max-width:700px){
-  .engine-card{padding:18px;}
-  .engine-title{font-size:24px;}
-  .engine-versus{grid-template-columns:1fr;justify-items:center;}
-  .engine-vs-badge{width:46px;height:46px;font-size:12px;}
-  .engine-meta-grid{grid-template-columns:1fr;}
-  .engine-actions{flex-direction:column-reverse;}
+.ep-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.ep-lvl{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:12px 6px;cursor:pointer;
+  border-radius:14px;border:1px solid var(--color-border);
+  background:var(--color-surface);color:var(--color-text-primary);
+  transition:border-color .12s ease,background .12s ease,transform .12s ease;
+}
+.ep-lvl:hover{border-color:var(--color-border-strong);}
+.ep-lvl:active{transform:scale(.97);}
+.ep-lvl.is-active{
+  border-color:var(--color-primary);
+  background:var(--color-primary-subtle);
+  box-shadow:0 0 0 1px var(--color-primary-border) inset;
+}
+.ep-lvl-num{font-size:20px;font-weight:900;color:var(--color-primary-text);line-height:1;}
+.ep-lvl.is-active .ep-lvl-num{color:var(--color-primary);}
+.ep-lvl-name{font-size:12px;font-weight:700;}
+.ep-lvl-elo{font-size:10px;color:var(--color-text-secondary);}
+.ep-detail{
+  padding:14px 16px;border-radius:var(--radius-lg,16px);
+  background:var(--color-primary-subtle);border:1px solid var(--color-primary-border);
+}
+.ep-detail-main{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.ep-detail-title{font-size:17px;font-weight:800;color:var(--color-text-primary);}
+.ep-detail-badge{
+  font-size:12px;font-weight:700;color:var(--color-primary-text);
+  padding:2px 10px;border-radius:999px;
+  background:var(--color-surface);border:1px solid var(--color-primary-border);
+}
+.ep-detail-desc{margin:0;font-size:13px;line-height:1.7;color:var(--color-text-secondary);}
+.ep-actions{display:flex;gap:10px;justify-content:flex-end;}
+.ep-btn{
+  min-height:48px;padding:0 22px;border-radius:14px;
+  font-size:15px;font-weight:800;cursor:pointer;border:1px solid transparent;
+}
+.ep-btn-ghost{background:var(--color-surface);border-color:var(--color-border);color:var(--color-text-secondary);}
+.ep-btn-ghost:hover{color:var(--color-text-primary);border-color:var(--color-border-strong);}
+.ep-btn-go{background:var(--color-primary);color:var(--color-on-primary);}
+.ep-btn-go:hover{background:var(--color-primary-hover);}
+@media(max-width:640px){
+  .ep-card{padding:16px;gap:14px;border-radius:20px;max-height:94vh;}
+  .ep-title{font-size:22px;}
+  .ep-grid{gap:6px;}
+  .ep-lvl{padding:10px 3px;}
+  .ep-lvl-num{font-size:17px;}
+  .ep-lvl-name{font-size:10px;}
+  .ep-lvl-elo{display:none;}
+  .ep-vs-avatar{width:52px;height:52px;}
+  .ep-actions{flex-direction:column-reverse;}
+  .ep-btn{width:100%;}
+}
+@media(max-width:380px){
+  .ep-grid{grid-template-columns:repeat(2,1fr);}
+  .ep-lvl-elo{display:block;}
 }
 
 /* ══════════ SHARED ══════════ */
@@ -3166,6 +3225,20 @@ body[data-ui-theme="glass"] .mc-tag{
 <!-- QR Code Libraries for LAN Mode -->
 </head>
 <body data-screen="s-menu">
+<script>
+/* الثيم قبل أول رسم — يمنع وميض مظهر amkh الافتراضي على باقي الثيمات عند
+   فتح التطبيق أو بعد تسجيل الخروج (اللي بيعمل reload). بنقرا من localStorage
+   (متزامن، بيتكتب مع كل تغيير في _persist) مش IndexedDB (async، بيرجع بعد الرسم).
+   القيم موجودة في CSS تحت body[data-ui-theme]، فبمجرد ما ينحط الـattribute
+   المظهر يظبط فورًا قبل أي رسم. الـJS بعدين بيعيد تأكيد نفس الثيم. */
+(function(){
+  try{
+    var ok={amkh:1,minimal:1,cyberpunk:1,glass:1,gaming:1,anime:1};
+    var c=JSON.parse(localStorage.getItem('chess-cfg-v6')||'{}')||{};
+    document.body.dataset.uiTheme=ok[c.uiTheme]?c.uiTheme:'amkh';
+  }catch(e){ document.body.dataset.uiTheme='amkh'; }
+})();
+</script>
 <div id="particles"></div>
 <!-- طبقات زخرفة الثيم. body::before / body::after مشغولين بالتدرّجات
      والشبكة، والثيمات محتاجة أكتر من طبقتين عشان يكون لكل واحد هوية
@@ -3903,73 +3976,44 @@ body[data-ui-theme="glass"] .mc-tag{
 
 <!-- ENGINE PICKER -->
 <div id="engine-ov">
-  <div class="engine-card">
-    <div class="engine-card-head">
-      <div>
-        <div class="engine-kicker">STOCKFISH OFFLINE</div>
-        <div class="engine-title">اختر قوة المحرك</div>
-        <div class="engine-subtitle">وضع أوفلاين كامل مع Stockfish ودعم كامل للمساعد والمراجعة</div>
+  <div class="ep-card">
+    <div class="ep-head">
+      <div class="ep-head-txt">
+        <div class="ep-kicker">STOCKFISH · أوفلاين</div>
+        <h2 class="ep-title">اختر مستوى الخصم</h2>
+        <p class="ep-sub">عشرة مستويات متدرّجة من مبتدئ حتى القوة الكاملة</p>
       </div>
-      <button class="engine-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">← القائمة</button>
+      <button class="ep-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()" aria-label="رجوع">✕</button>
     </div>
 
-    <div class="engine-versus">
-      <div class="engine-side player">
-        <div class="engine-avatar player" id="engine-player-avatar">أ</div>
-        <div class="engine-name" id="engine-player-name">أنت</div>
-        <div class="engine-role">اللاعب</div>
+    <div class="ep-versus">
+      <div class="ep-vs-side">
+        <div class="ep-vs-avatar player" id="engine-player-avatar">أ</div>
+        <div class="ep-vs-name" id="engine-player-name">أنت</div>
       </div>
-      <div class="engine-vs-badge">VS</div>
-      <div class="engine-side ai">
-        <div class="engine-avatar ai" id="engine-ai-avatar">
+      <div class="ep-vs-badge">VS</div>
+      <div class="ep-vs-side">
+        <div class="ep-vs-avatar ai">
           <img src="./StockFish.png" alt="Stockfish" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent='♞';">
         </div>
-        <div class="engine-name">Stockfish</div>
-        <div class="engine-role" id="engine-skill-badge">Skill 10</div>
+        <div class="ep-vs-name">Stockfish</div>
+        <div class="ep-vs-lvl" id="engine-sel-badge">مستوى 4</div>
       </div>
     </div>
 
-    <div class="engine-picker-body">
-      <div class="engine-slider-wrap">
-        <div class="engine-slider-head">
-          <span>قوة المحرك</span>
-          <span class="engine-skill-value" id="engine-skill-value">10 / 20</span>
-        </div>
-        <input id="engine-skill-input" class="engine-skill-input" type="range" min="0" max="20" step="1" value="10" oninput="ENGINE_PICKER.preview(this.value)">
-        <div class="engine-scale">
-          <span>0</span>
-          <span>5</span>
-          <span>10</span>
-          <span>15</span>
-          <span>20</span>
-        </div>
-      </div>
+    <div class="ep-grid" id="engine-level-grid"></div>
 
-      <div class="engine-meta-grid">
-        <div class="engine-meta-card">
-          <div class="engine-meta-label">البروفايل</div>
-          <div class="engine-meta-value" id="engine-skill-name">متوازن</div>
-        </div>
-        <div class="engine-meta-card">
-          <div class="engine-meta-label">Skill Level</div>
-          <div class="engine-meta-value" id="engine-skill-level">10</div>
-        </div>
-        <div class="engine-meta-card">
-          <div class="engine-meta-label">عمق البحث</div>
-          <div class="engine-meta-value" id="engine-skill-depth">8</div>
-        </div>
-        <div class="engine-meta-card">
-          <div class="engine-meta-label">زمن التفكير</div>
-          <div class="engine-meta-value" id="engine-skill-think">900ms</div>
-        </div>
+    <div class="ep-detail">
+      <div class="ep-detail-main">
+        <span class="ep-detail-title" id="engine-sel-title">متوسط</span>
+        <span class="ep-detail-badge" id="engine-sel-elo">~1800 Elo</span>
       </div>
-
-      <div class="engine-desc" id="engine-skill-desc">مستوى متوازن لمواجهة تدريبية قوية.</div>
+      <p class="ep-detail-desc" id="engine-sel-desc">لعب ثابت يناسب اللاعب العادي، بلا هدايا مجانية.</p>
     </div>
 
-    <div class="engine-actions">
-      <button class="bgs" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">إلغاء</button>
-      <button class="bgp review" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.start()">◈ ابدأ المواجهة</button>
+    <div class="ep-actions">
+      <button class="ep-btn ep-btn-ghost" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">إلغاء</button>
+      <button class="ep-btn ep-btn-go" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.start()">ابدأ المواجهة ←</button>
     </div>
   </div>
 </div>
@@ -4277,6 +4321,58 @@ const SFX=(()=>{
     });
   }
 
+  /* ── أصوات النوافذ ───────────────────────────────────────────────
+     كل نافذة في التطبيق بتطلّع صوت مميز أول ما تظهر. أصوات مُولّدة
+     (Web Audio) مش ملفات: بتشتغل offline دايمًا، صفر تحميل وصفر تضخيم
+     للـAPK، وكل نوع نافذة له نغمته الخاصة. الربط في نقطة واحدة
+     (DSOverlay.open) عشان يغطّي كل النوافذ، والنوع بيتحدّد من الخاصية
+     data-sfx على النافذة (افتراضي: default). */
+  function tones(seq){
+    if(!Cfg.data.sound)return;
+    try{
+      const c=getCtx();
+      if(c.state==='suspended')c.resume();
+      const now=c.currentTime, base=(Cfg.data.vol/100);
+      seq.forEach(n=>{
+        const o=c.createOscillator(), g=c.createGain();
+        o.type=n.type||'sine';
+        o.frequency.setValueAtTime(n.f, now+n.t0);
+        if(n.f2) o.frequency.exponentialRampToValueAtTime(n.f2, now+n.t0+n.dur);
+        const v=Math.max(0.0001, base*(n.vol||0.12));
+        g.gain.setValueAtTime(0.0001, now+n.t0);
+        g.gain.exponentialRampToValueAtTime(v, now+n.t0+0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, now+n.t0+n.dur);
+        o.connect(g);g.connect(c.destination);
+        o.start(now+n.t0);o.stop(now+n.t0+n.dur+0.03);
+      });
+    }catch(e){}
+  }
+  const MODAL_SFX={
+    /* عام: صعود دافئ من نغمتين — إحساس «فتح» */
+    default:[{f:523.25,t0:0,dur:0.11,vol:0.09},{f:783.99,t0:0.06,dur:0.15,vol:0.11}],
+    /* الورقة السفلية: نغمة أنعم وأخفض */
+    sheet:  [{f:493.88,t0:0,dur:0.10,vol:0.08},{f:659.25,t0:0.05,dur:0.16,vol:0.10}],
+    /* دعوة صديق: جِنجل مبهج من ٣ نغمات صاعدة */
+    invite: [{f:659.25,t0:0,dur:0.10,vol:0.10},{f:880,t0:0.07,dur:0.10,vol:0.11},{f:1174.66,t0:0.15,dur:0.18,vol:0.12}],
+    /* نجاح: نغمتان صاعدتان لامعتان */
+    success:[{f:659.25,t0:0,dur:0.10,vol:0.10},{f:987.77,t0:0.08,dur:0.20,vol:0.12}],
+    /* خطأ/تحذير: نغمة واحدة هابطة */
+    error:  [{f:392,t0:0,dur:0.16,type:'sine',vol:0.12,f2:246.94}],
+    /* تأكيد: نغمة استفهام صاعدة (تريانجل) */
+    confirm:[{f:523.25,t0:0,dur:0.14,type:'triangle',vol:0.11,f2:698.46}],
+    /* حساب/بروفايل: نغمتان هادئتان محايدتان */
+    account:[{f:587.33,t0:0,dur:0.10,vol:0.09},{f:880,t0:0.07,dur:0.16,vol:0.11}],
+  };
+  let _lastModalSfx=0;
+  function playModalSfx(kind){
+    /* debounce مستقل عن نقرة الزر عشان صوت الفتح مايتبلعش لما الزر اللي
+       بيفتح النافذة بيطلّع صوت نقرة قبله بأجزاء من الثانية */
+    const now=Date.now();
+    if(now-_lastModalSfx<140)return;
+    _lastModalSfx=now;
+    tones(MODAL_SFX[kind]||MODAL_SFX.default);
+  }
+
   const api = {
     move()      {play('move');},
     capture()   {play('capture');},
@@ -4301,6 +4397,8 @@ const SFX=(()=>{
       if(!Cfg.data.sound)return;
       try{const c=getCtx();const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1320;g.gain.setValueAtTime((Cfg.data.vol/100)*0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);o.connect(g);g.connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+0.13);}catch(e){}
     },
+    /* صوت فتح نافذة — kind من MODAL_SFX (default لو مش معروف) */
+    modalOpen(kind){ playModalSfx(kind); },
     init(){_init();}
   };
   window.SFX = api;
@@ -5289,7 +5387,7 @@ const Cfg={
     confirm:true,
     playerName:null,
     playerImage:null,
-    engineSkill:10,
+    engineLevel:4,
     uiTheme:'amkh',
     pieceStyle:'neo',
     dotColor:'#2dd4bf',
@@ -5436,6 +5534,8 @@ const Cfg={
     if(S.mode==='online'){
       OL.sendPimg(this.data.playerImage);
     }
+    /* رفعها للخادم عشان تظهر لأصدقائك في قائمة الأصدقاء (مش بس في المباراة) */
+    this._syncAvatarToServer(this.data.playerImage);
   },
   _updateAvatar(name){
     const av=document.getElementById('set-name-av');
@@ -5531,6 +5631,52 @@ const Cfg={
     this._persist();
     this._updateAvatar(this.data.playerName);
     Modal.show('تم حذف صورة الملف الشخصي','تم','◆');
+    /* امسحها من الخادم كمان عشان تختفي من عند الأصدقاء */
+    this._syncAvatarToServer('');
+  },
+  /* تصغير الصورة لـ96×96 JPEG قبل رفعها — صغيرة تكفي لقائمة الأصدقاء
+     ومناسبة لعمود قاعدة البيانات. بترجّع null لو الصورة تالفة. */
+  _downscaleAvatar(src){
+    return new Promise((resolve)=>{
+      if(!src) return resolve(null);
+      let done=false; const fin=v=>{ if(!done){ done=true; resolve(v); } };
+      setTimeout(()=>fin(null),4000);
+      const img=new Image();
+      img.onload=()=>{ try{
+        const SZ=96, cv=document.createElement('canvas'); cv.width=SZ; cv.height=SZ;
+        const ctx=cv.getContext('2d');
+        const side=Math.min(img.width,img.height);
+        ctx.drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,SZ,SZ);
+        fin(cv.toDataURL('image/jpeg',0.5));
+      }catch(e){ fin(null); } };
+      img.onerror=()=>fin(null);
+      img.src=src;
+    });
+  },
+  /* رفع/مسح صورة الملف على الخادم. صامتة تمامًا: لو مفيش تسجيل دخول أو
+     الرفع فشل، الصورة لسه شغّالة محليًا وفي المباريات — مجرد إن الأصدقاء
+     مش هيشوفوها لحد ما الرفع ينجح. */
+  async _syncAvatarToServer(dataUrl){
+    try{
+      if(!window.amkhAuth || !window.amkhAuth.token) return;
+      if(typeof window.amkhEnsureServer==='function'){
+        const ok=await window.amkhEnsureServer(); if(!ok) return;
+      }
+      const small = dataUrl ? await this._downscaleAvatar(dataUrl) : '';
+      if(dataUrl && !small) return;   // فشل التصغير — مانرفعش صورة تالفة
+      const res=await fetch(`${window.getApiBase()}/avatar`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${window.amkhAuth.token}`,'ngrok-skip-browser-warning':'true'},
+        body:JSON.stringify({ avatar_url: small||'' }),
+      });
+      if(res.ok){
+        const j=await res.json().catch(()=>null);
+        if(j && window.amkhAuth.user){
+          window.amkhAuth.user.avatar_url = j.avatar_url || null;
+          try{ localStorage.setItem('amkh_user', JSON.stringify(window.amkhAuth.user)); }catch(e){}
+        }
+      }
+    }catch(e){}
   },
   prepareCustomBoardImage(fileInput){
     const file=fileInput.files[0];
@@ -5982,35 +6128,55 @@ LEVELS_DEF[9]={...LEVELS_DEF[9],depth:14,skill:19,random:0};
 LEVELS_DEF[10]={...LEVELS_DEF[10],depth:17,skill:20,random:0};
 LEVELS_DEF[11]={...LEVELS_DEF[11],depth:20,skill:20,random:0};
 const ENGINE_AVATAR_FILE='StockFish.png';
-const ENGINE_TIER_RULES=[
-  {min:0,max:2,title:'متساهل',description:'يرتكب أخطاء كثيرة ومناسب للتجربة الأولى مع المحرك.'},
-  {min:3,max:6,title:'تدريبي',description:'يبدأ في العقاب على الأخطاء الواضحة لكنه ما زال صالحاً للتعلّم.'},
-  {min:7,max:10,title:'متوازن',description:'مواجهة قوية ومستقرة لمعظم اللاعبين مع نقلات منطقية باستمرار.'},
-  {min:11,max:14,title:'قوي',description:'يعاقب التسرع بسرعة ويقرأ التبديلات بشكل أعمق.'},
-  {min:15,max:17,title:'خبير',description:'محرك صلب يضغط تكتيكياً وموضعياً طوال المباراة.'},
-  {min:18,max:20,title:'وحشي',description:'أعلى قوة متاحة في هذا الوضع ومناسبة للتحدي الكامل.'}
+/* ══════════════════════════════════════
+   مستويات Stockfish — سُلّم عادل من 10 درجات
+   ──────────────────────────────────────
+   الطريقة الصحيحة للتحكّم في القوة هي UCI_LimitStrength + UCI_Elo
+   (مدى Stockfish الرسمي 1320..3190)، مش Skill Level لوحده — لأن
+   Skill Level بيحافظ على حدّة المحرك التكتيكية حتى في أقل درجة،
+   فيحسّه اللاعب أقوى بكتير من المفروض. هنا:
+     • كل مستوى له Elo هدف + زمن تفكير (movetime) متدرّج.
+     • المستويات الأولى فيها نسبة "غلطة" (blunder) نقلة عشوائية
+       عشان يبقى فيه أرضية مبتدئ حقيقية تحت أضعف Elo متاح.
+     • المستوى العاشر بلا كبح إطلاقًا = القوة الكاملة للمحرك.
+   ══════════════════════════════════════ */
+const ENGINE_LEVELS=[
+  {level:1, elo:1350, moveMs:150,  blunder:0.22, title:'مبتدئ',  tagline:'أول لعبة لك مع المحرك', description:'يلعب ببساطة ويقع في أخطاء كثيرة — مثالي لأول تجربة مع Stockfish.'},
+  {level:2, elo:1500, moveMs:220,  blunder:0.14, title:'هاوٍ',    tagline:'يتعلّم القواعد',        description:'يفهم أساسيات اللعب لكنه ما زال يخطئ ويترك فرصاً واضحة.'},
+  {level:3, elo:1650, moveMs:300,  blunder:0.07, title:'ناشئ',    tagline:'يعاقب الأخطاء الكبيرة',  description:'يستغل الأخطاء الواضحة ويبني خططاً بسيطة، ومناسب للتعلّم.'},
+  {level:4, elo:1800, moveMs:420,  blunder:0.03, title:'متوسط',   tagline:'خصم متوازن',            description:'لعب ثابت يناسب اللاعب العادي، بلا هدايا مجانية.'},
+  {level:5, elo:1980, moveMs:560,  blunder:0.01, title:'متقدّم',  tagline:'يقرأ التكتيكات',        description:'يرى التكتيكات القصيرة ويصعب خداعه بسهولة.'},
+  {level:6, elo:2180, moveMs:720,  blunder:0,    title:'قوي',     tagline:'ضغط مستمر',             description:'يضغط موضعياً وتكتيكياً ويعاقب أي تسرّع في اللعب.'},
+  {level:7, elo:2380, moveMs:900,  blunder:0,    title:'خبير',    tagline:'حسابات أعمق',           description:'يحسب بعمق ويحافظ على خطة واضحة طوال المباراة.'},
+  {level:8, elo:2580, moveMs:1100, blunder:0,    title:'محترف',   tagline:'دقة عالية',             description:'دقة عالية ونادراً ما يمنحك فرصة للعودة في المباراة.'},
+  {level:9, elo:2780, moveMs:1300, blunder:0,    title:'أستاذ',   tagline:'قرب القوة القصوى',      description:'مستوى الأساتذة — يتطلب لعباً شبه مثالي لمجاراته.'},
+  {level:10,elo:null, moveMs:1600, blunder:0, limitless:true, title:'أسطورة', tagline:'القوة الكاملة', description:'المحرك بكامل قوته بلا أي كبح — أقصى تحدٍّ ممكن.'}
 ];
 
+function getEngineLevel(level){
+  const n=Math.max(1,Math.min(10,parseInt(level,10)||4));
+  return ENGINE_LEVELS[n-1];
+}
+
+/* لا يزال يُستخدم من مساعد اللعب (assist) بمقياس Skill 0..20 */
 function engineDepthForSkill(skill){
   const depths=[1,1,2,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20];
   return depths[Math.max(0,Math.min(20,skill|0))];
 }
 
-function engineThinkForSkill(skill){
-  const clamped=Math.max(0,Math.min(20,skill|0));
-  return 260+(clamped*70);
-}
-
-function getEnginePreset(skill){
-  const clamped=Math.max(0,Math.min(20,parseInt(skill,10)||0));
-  const tier=ENGINE_TIER_RULES.find(t=>clamped>=t.min&&clamped<=t.max)||ENGINE_TIER_RULES[2];
+function getEnginePreset(level){
+  const L=getEngineLevel(level);
   return{
-    skill:clamped,
-    depth:engineDepthForSkill(clamped),
-    thinkMs:engineThinkForSkill(clamped),
-    title:tier.title,
-    badge:`Skill ${clamped}`,
-    description:tier.description
+    level:L.level,
+    elo:L.elo,
+    limitStrength:!L.limitless,
+    moveMs:L.moveMs,
+    blunder:L.blunder||0,
+    depth:L.limitless?16:12,
+    title:L.title,
+    tagline:L.tagline,
+    badge:L.limitless?'قوة كاملة':`~${L.elo} Elo`,
+    description:L.description
   };
 }
 
@@ -6041,9 +6207,15 @@ const DSOverlay={
   open(el){
     if(typeof el==='string')el=document.getElementById(el);
     if(!el||el.classList.contains('is-open'))return;
+    /* نجمّد حركة الخلفية الأول (قبل الـreflow تحت) عشان وقت ما النافذة
+       تبدأ ترانزيشن الفتح تلاقي الطبقات المتحركة واقفة خلاص — من غير كده
+       WebView بيعيد بناء الطبقات فتحصل ومضة. القاعدة في screens.css. */
+    document.body.classList.add('amkh-modal-open');
     el.style.removeProperty('display');   // نتخلص من أي display:none قديم inline
-    void el.offsetWidth;                  // reflow: الحالة الابتدائية تتثبّت قبل الترانزيشن
+    void el.offsetWidth;                  // reflow: تجميد الخلفية + الحالة الابتدائية يتثبّتوا قبل الترانزيشن
     el.classList.add('is-open');
+    /* صوت الفتح المميز — النوع من data-sfx على النافذة (افتراضي default) */
+    try{ if(window.SFX&&SFX.modalOpen) SFX.modalOpen(el.dataset.sfx||'default'); }catch(e){}
     this._openCount++;
     document.body.style.overflow='hidden';
   },
@@ -6053,7 +6225,13 @@ const DSOverlay={
     if(!el||!el.classList.contains('is-open'))return;
     el.classList.remove('is-open');
     this._openCount=Math.max(0,this._openCount-1);
-    if(this._openCount===0)document.body.style.removeProperty('overflow');
+    if(this._openCount===0){
+      /* التجميد بيتشال بس لو مافيش نافذة لعب مفتوحة كمان */
+      if(!document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open')){
+        document.body.style.removeProperty('overflow');
+        document.body.classList.remove('amkh-modal-open');   // آخر نافذة اتقفلت: الحركة ترجع
+      }
+    }
   },
 
   isOpen(el){
@@ -6108,6 +6286,28 @@ const DSOverlay={
     });
   }
 };
+/* لازم نعرّضه على window: auth-client.js و friends-client.js ملفات منفصلة
+   بتتأكد من window.DSOverlay قبل ما تفتح أي نافذة. من غير كده كل نوافذ
+   amkhUI (الأصدقاء/الدعوة/تسجيل الدخول…) بتقع على fallback بدون صوت ولا
+   تجميد الرفرفة. الـconst مابيتعلّقش على window لوحده. */
+window.DSOverlay = DSOverlay;
+
+/* تجميد رفرفة نوافذ اللعب (#engine-ov/#promo-ov/#review-ov/#go-ov) اللي
+   بتفتح بكلاس .open من غير DSOverlay. بنمسك/نسيب نفس كلاس التجميد
+   ‎body.amkh-modal-open‎ يدويًا — بديل :has() اللي بيقع على WebView القديم.
+   القفل بيتشال بس لما مافيش ولا نافذة تانية مفتوحة (DSOverlay أو لعب). */
+function amkhGrabModalFreeze(){
+  document.body.classList.add('amkh-modal-open');
+  document.body.style.overflow='hidden';
+}
+function amkhReleaseModalFreeze(){
+  if(DSOverlay._openCount>0)return;
+  if(document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open'))return;
+  document.body.style.removeProperty('overflow');
+  document.body.classList.remove('amkh-modal-open');
+}
+window.amkhGrabModalFreeze=amkhGrabModalFreeze;
+window.amkhReleaseModalFreeze=amkhReleaseModalFreeze;
 
 /* ورقة ألوان الرقعة — بتنقل نفس شبكة ‎.th-opt‎ الموجودة جوه الورقة
    (نقل عقدة، مش إعادة بناء) عشان كل ‎onclick="Cfg.theme(...)"‎ يفضل شغال
@@ -6151,52 +6351,9 @@ const BoardThemeSheet={
 };
 
 const Modal={
-  // Play appropriate sound based on icon type using Web Audio API (not mp3 files)
-  _playSound(icon){    if(typeof Cfg==='undefined'||!Cfg.data.sound)return;
-    try{
-      const AudioContext=window.AudioContext||window.webkitAudioContext;
-      if(!AudioContext)return;
-      const ctx=new AudioContext();
-      const t=ctx.currentTime;
-      const o=ctx.createOscillator();
-      const g=ctx.createGain();
-      const vol=(Cfg.data.vol/100)*0.15;
-      
-      // Error/warning sounds - lower pitch with quick decay
-      if(icon==='✕'||icon==='◆'||icon==='⚡'||icon==='⚠'){
-        o.type='sine';
-        o.frequency.setValueAtTime(300,t);
-        o.frequency.exponentialRampToValueAtTime(200,t+0.15);
-        g.gain.setValueAtTime(vol,t);
-        g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
-      }
-      // Success sounds - pleasant higher pitch
-      else if(icon==='◈'||icon==='◉'){
-        o.type='sine';
-        o.frequency.setValueAtTime(880,t);
-        o.frequency.exponentialRampToValueAtTime(1100,t+0.1);
-        g.gain.setValueAtTime(vol,t);
-        g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-      }
-      // Confirm sound - distinct from click (two-tone chirp)
-      else if(icon==='؟'||icon==='?'){
-        o.type='triangle';
-        o.frequency.setValueAtTime(520,t);
-        o.frequency.exponentialRampToValueAtTime(780,t+0.08);
-        g.gain.setValueAtTime(vol*0.9,t);
-        g.gain.exponentialRampToValueAtTime(0.001,t+0.22);
-      }
-      // Default button sound
-      else{
-        o.type='sine';
-        o.frequency.setValueAtTime(660,t);
-        g.gain.setValueAtTime(vol*0.6,t);
-        g.gain.exponentialRampToValueAtTime(0.001,t+0.08);
-      }
-      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.3);
-      setTimeout(()=>ctx.close(),350);
-    }catch(e){}
-  },
+  /* صوت النافذة موحّد في SFX.modalOpen وبيتشغّل من DSOverlay.open حسب
+     الخاصية data-sfx. شلنا _playSound القديمة اللي كانت بتعمل AudioContext
+     جديد كل مرة (تسريب) — show/confirm دلوقتي بيحطّوا data-sfx قبل الفتح. */
   show(message,title='تنبيه',icon='◉',onOk=null){
     const modal=document.getElementById('custom-modal');
     const titleEl=document.getElementById('modal-title');
@@ -6215,8 +6372,8 @@ const Modal={
       DSOverlay.close(modal);
       if(onOk)onOk();
     };
+    modal.dataset.sfx=(icon==='✕'||icon==='◆'||icon==='⚡'||icon==='⚠')?'error':'success';
     DSOverlay.open(modal);
-    this._playSound(icon);
   },
   confirm(message,title='تأكيد',icon='؟',onOk=null,onCancel=null){
     const modal=document.getElementById('custom-modal');
@@ -6242,15 +6399,18 @@ const Modal={
       DSOverlay.close(modal);
       if(onCancel)onCancel();
     };
+    modal.dataset.sfx='confirm';
     DSOverlay.open(modal);
-    this._playSound(icon);
   }
 };
+/* نفس السبب: نعرّض Modal على window عشان amkhUI.notify/confirm يلاقوه. */
+window.Modal = Modal;
 
 /* ══════════════════════════════════════
    INDEXEDDB STORAGE (Levels fallback)
 ══════════════════════════════════════ */
 const ENGINE_PICKER={
+  _sel:4,
   _setPlayerPreview(){
     const avatar=document.getElementById('engine-player-avatar');
     const nameEl=document.getElementById('engine-player-name');
@@ -6259,8 +6419,6 @@ const ENGINE_PICKER={
     const img=Cfg?.data?.playerImage||'';
     if(img){
       avatar.style.backgroundImage=`url(${img})`;
-      avatar.style.backgroundSize='cover';
-      avatar.style.backgroundPosition='center';
       avatar.style.color='transparent';
       avatar.textContent='';
     }else{
@@ -6269,45 +6427,60 @@ const ENGINE_PICKER={
       avatar.textContent=(getPlayerDisplayName()[0]||'أ').toUpperCase();
     }
   },
-  preview(skill){
-    const preset=getEnginePreset(skill);
-    const slider=document.getElementById('engine-skill-input');
-    if(slider)slider.value=String(preset.skill);
-    const skillValue=document.getElementById('engine-skill-value');
-    const badge=document.getElementById('engine-skill-badge');
-    const name=document.getElementById('engine-skill-name');
-    const level=document.getElementById('engine-skill-level');
-    const depth=document.getElementById('engine-skill-depth');
-    const think=document.getElementById('engine-skill-think');
-    const desc=document.getElementById('engine-skill-desc');
-    if(skillValue)skillValue.textContent=String(preset.skill);
-    if(badge)badge.textContent=preset.badge;
-    if(name)name.textContent=preset.title;
-    if(level)level.textContent=`القوة ${preset.skill} من 20`;
-    if(depth)depth.textContent=`Depth ${preset.depth}`;
-    if(think)think.textContent=`~ ${preset.thinkMs}ms`;
-    if(desc)desc.textContent=preset.description;
+  _renderGrid(){
+    const grid=document.getElementById('engine-level-grid');
+    if(!grid)return;
+    grid.innerHTML='';
+    ENGINE_LEVELS.forEach(L=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.className='ep-lvl'+(L.level===this._sel?' is-active':'');
+      b.dataset.level=String(L.level);
+      const num=document.createElement('span'); num.className='ep-lvl-num'; num.textContent=String(L.level);
+      const nm=document.createElement('span'); nm.className='ep-lvl-name'; nm.textContent=L.title;
+      const elo=document.createElement('span'); elo.className='ep-lvl-elo'; elo.textContent=L.limitless?'قوة كاملة':('~'+L.elo);
+      b.appendChild(num); b.appendChild(nm); b.appendChild(elo);
+      b.onclick=()=>{ if(typeof SFX!=='undefined')SFX.btn(); this.select(L.level); };
+      grid.appendChild(b);
+    });
+  },
+  select(level){
+    this._sel=Math.max(1,Math.min(10,parseInt(level,10)||4));
+    const preset=getEnginePreset(this._sel);
+    const grid=document.getElementById('engine-level-grid');
+    if(grid)grid.querySelectorAll('.ep-lvl').forEach(el=>{
+      el.classList.toggle('is-active',parseInt(el.dataset.level,10)===this._sel);
+    });
+    const set=(id,txt)=>{const e=document.getElementById(id);if(e)e.textContent=txt;};
+    set('engine-sel-badge','مستوى '+preset.level);
+    set('engine-sel-title',preset.title);
+    set('engine-sel-elo',preset.badge);
+    set('engine-sel-desc',preset.description);
   },
   open(){
+    this._sel=Math.max(1,Math.min(10,parseInt(S.engineLevel??Cfg.data.engineLevel??4,10)||4));
     this._setPlayerPreview();
-    this.preview(S.engineSkill??Cfg.data.engineSkill??10);
+    this._renderGrid();
+    this.select(this._sel);
     document.getElementById('engine-ov')?.classList.add('open');
+    amkhGrabModalFreeze();
+    try{SFX.modalOpen('confirm');}catch(e){}
     /* الـ overlay بيغطي الشاشة كلها وله زر رجوع خاص، فبنخفي الشريط
        العلوي عشان مايفضلش معروض بسياق الشاشة اللي وراه */
     try{AppBar.setOverlay(true);}catch(e){}
   },
   close(){
     document.getElementById('engine-ov')?.classList.remove('open');
+    amkhReleaseModalFreeze();
     try{AppBar.setOverlay(false);}catch(e){}
   },
   start(){
-    const slider=document.getElementById('engine-skill-input');
-    const skill=Math.max(0,Math.min(20,parseInt(slider?.value,10)||Cfg.data.engineSkill||10));
-    Cfg.data.engineSkill=skill;
+    const level=this._sel;
+    Cfg.data.engineLevel=level;
     Cfg.saveData();
-    S.engineSkill=skill;
+    S.engineLevel=level;
     this.close();
-    G.startEngineGame(skill);
+    G.startEngineGame(level);
   }
 };
 
@@ -6685,8 +6858,14 @@ const SF=(()=>{
       _worker.postMessage('ucinewgame');
       _worker.postMessage('setoption name MultiPV value 1');
       _worker.postMessage('setoption name Hash value 64');
-      _worker.postMessage('setoption name UCI_LimitStrength value false');
-      _worker.postMessage('setoption name Skill Level value '+(skill===null?20:skill));
+      if(job.limitStrength&&job.elo){
+        /* كبح القوة للمستوى المطلوب — الطريقة الرسمية والعادلة */
+        _worker.postMessage('setoption name UCI_LimitStrength value true');
+        _worker.postMessage('setoption name UCI_Elo value '+job.elo);
+      }else{
+        _worker.postMessage('setoption name UCI_LimitStrength value false');
+        _worker.postMessage('setoption name Skill Level value '+(skill===null?20:skill));
+      }
       _worker.postMessage('position fen '+job.fen);
       job.timeoutId=setTimeout(()=>{
         const timedOut=_active===job?job:null;
@@ -6696,7 +6875,13 @@ const SF=(()=>{
         job.resolve(job.fallback);
         init().catch(()=>{}).finally(()=>_pumpQueue());
       },job.timeoutMs);
-      _worker.postMessage('go depth '+job.depth);
+      /* movetime بيدّي القوة المكبوحة إحساسها الطبيعي؛ من غيره
+         الكبح مع go depth ثابت بيبان متذبذب. الأعلى (بلا كبح) بيبحث بعمق. */
+      if(job.moveMs){
+        _worker.postMessage('go movetime '+job.moveMs);
+      }else{
+        _worker.postMessage('go depth '+job.depth);
+      }
     }catch(e){
       console.error('Stockfish queue error:',e);
       const failed=_active;
@@ -6770,12 +6955,13 @@ const SF=(()=>{
     });
   }
 
-  async function bestMove(bd,turn,cas,ep,depth=6,skillLevel=null,onInfo=null){
+  async function bestMove(bd,turn,cas,ep,depth=6,skillLevel=null,onInfo=null,opts=null){
     try{
       await init();
     }catch(e){
       return null;
     }
+    const o=opts||{};
     return new Promise(resolve=>{
       _queue.push({
         id:++_jobId,
@@ -6784,9 +6970,12 @@ const SF=(()=>{
         turn,
         depth:Math.max(1,parseInt(depth,10)||1),
         skillLevel,
+        limitStrength:!!o.limitStrength,
+        elo:o.elo||null,
+        moveMs:o.moveMs||null,
         onInfo,
         fallback:null,
-        timeoutMs:Math.max(6500,(parseInt(depth,10)||1)*900),
+        timeoutMs:Math.max(6500,(parseInt(depth,10)||1)*900,(o.moveMs||0)+3000),
         resolve
       });
       _pumpQueue();
@@ -7023,7 +7212,7 @@ const S={
   assistOn:false,hintsOn:true,oppUsingAssist:false,
   astMove:null,astBusy:false,_astSnap:null,
   levelId:-1,moveCount:0,
-  engineSkill:10,
+  engineLevel:4,
   assistW:false, assistB:false,
   snapshots:[],
   preMove:null,
@@ -7220,7 +7409,7 @@ ${pn}: ${txt}
     try{
       this._setNourTyping(true);
       const json=await groqChat({
-        model:'meta-llama/llama-4-scout-17b-16e-instruct',
+        model:GROQ_MODEL,
         messages:[{role:'system',content:sys},{role:'user',content:user}],
         max_tokens:180,
         temperature:0.75
@@ -7694,7 +7883,7 @@ const EVALBAR={
 };
 
 const FCM_VAPID_KEY='BCHoPl4NJ2oqiYV6PP1iyl5buD3FZBCjZNc_jvLqG_7deA0p4YkZcVVReAeEjK4LX6g-vuwDFe08Sm8qlVcKMic';
-const GROQ_MODEL='meta-llama/llama-4-scout-17b-16e-instruct';
+const GROQ_MODEL='allam-2-7b';
 
 async function groqChat({ messages, model, max_tokens, temperature }){
   // Try multiple server URLs for better connectivity
@@ -8710,6 +8899,8 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
       _coachCache={};
       stopMiniAnimator('gameover');
       document.getElementById('review-ov').classList.add('open');
+      amkhGrabModalFreeze();
+      try{SFX.modalOpen('account');}catch(e){}
       
       // Enhanced loading screen with chess animation
       document.getElementById('rv-main').innerHTML=`
@@ -8847,6 +9038,7 @@ ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv
     close(){
       stopMiniAnimator('review');
       document.getElementById('review-ov').classList.remove('open');
+      amkhReleaseModalFreeze();
       if(S.over&&S.endState&&typeof G!=='undefined'&&G.restoreQuickReview){
         G.restoreQuickReview();
       }
@@ -9475,6 +9667,7 @@ const G={
     this._clearQuickReviewTimers();
     stopMiniAnimator('gameover');
     document.getElementById('go-ov').classList.remove('open');
+    amkhReleaseModalFreeze();
     document.getElementById('go-stage-comment').classList.add('active');
     document.getElementById('go-stage-review').classList.remove('active');
     const commentEl=document.getElementById('go-nour-t');
@@ -9587,6 +9780,8 @@ const G={
     this._primeQuickReview(result);
     this._setQuickStage('comment');
     document.getElementById('go-ov').classList.add('open');
+    amkhGrabModalFreeze();
+    try{const _t=(S.endState&&S.endState.tone);SFX.modalOpen(_t==='loss'?'error':_t==='draw'?'default':'success');}catch(e){}
     this._typeQuickText(document.getElementById('go-nour-t'),comment,token,()=>{
       if(token!==S._resultToken||!S.endState)return;
       S._goStageTimer=setTimeout(()=>{
@@ -9655,6 +9850,8 @@ const G={
     this._primeQuickReview(S.endState);
     this._setQuickStage('review');
     document.getElementById('go-ov').classList.add('open');
+    amkhGrabModalFreeze();
+    try{SFX.modalOpen('default');}catch(e){}
     const miniBoard=document.getElementById('go-mini-board');
     if(miniBoard){
       const frames=buildReplayFrames(S.snapshots||[]);
@@ -9780,6 +9977,7 @@ const G={
        البلوتوث كان مابيعيّنش gmode خالص فكان بيورث عنوان اللعبة السابقة. */
     GameIdentity.apply(mode);
     document.getElementById('promo-ov').classList.remove('open');
+    amkhReleaseModalFreeze();
     document.getElementById('go-next').style.display='none';
   },
   async startLocalGame(){
@@ -9804,12 +10002,12 @@ const G={
     Nav.game();await R.all();updatePlayerImages();
     CHAT.show();
   },
-  async startEngineGame(skill){
-    const preset=getEnginePreset(skill??Cfg.data.engineSkill??10);
+  async startEngineGame(level){
+    const preset=getEnginePreset(level??Cfg.data.engineLevel??4);
     this._reset('engine',preset.depth);
-    S.engineSkill=preset.skill;
+    S.engineLevel=preset.level;
     S.myCol='w';
-    Cfg.data.engineSkill=preset.skill;
+    Cfg.data.engineLevel=preset.level;
     Cfg.saveData();
     document.getElementById('nm-w').textContent=getPlayerDisplayName();
     document.getElementById('nm-b').textContent=`Stockfish — ${preset.title}`;
@@ -10011,11 +10209,11 @@ const G={
       S.busy=true;
       const isLevelMode=isNourLevelMode();
       const lv=isLevelMode?LEVELS_DEF[S.levelId]:null;
-      const preset=isStockfishMode()?getEnginePreset(S.engineSkill||Cfg.data.engineSkill||10):null;
+      const preset=isStockfishMode()?getEnginePreset(S.engineLevel||Cfg.data.engineLevel||4):null;
       const depth=isLevelMode?(lv?lv.depth:S.diff):(preset?.depth||S.diff||8);
       const thinkDelay=isLevelMode
         ?(depth<=1?300:depth===2?480:depth===3?720:980)
-        :(preset?.thinkMs||680);
+        :220;
       const engineJob=++S._engineJob;
       S._engineTimer=setTimeout(async()=>{
         S._engineTimer=null;
@@ -10028,8 +10226,10 @@ const G={
         try{
           const skillLevel=isLevelMode
             ?Math.max(0,Math.min(20,Math.round(lv?.skill||0)))
-            :(preset?.skill??10);
-          const randomChance=isLevelMode&&lv&&lv.random?lv.random:0;
+            :null;
+          const randomChance=isLevelMode
+            ?(lv&&lv.random?lv.random:0)
+            :(preset?.blunder||0);
           const legalMoves=E.allLegal(bd,'b',cas,ep);
 
           if(legalMoves.length>0&&Math.random()<randomChance){
@@ -10037,7 +10237,8 @@ const G={
             bm={from:randomMove.from,to:randomMove.to};
           }else{
             const sfDepth=isLevelMode?depth+5:Math.max(depth,6);
-            const sfMove=await SF.bestMove(bd,'b',cas,ep,sfDepth,skillLevel);
+            const engineOpts=isLevelMode?null:{limitStrength:preset.limitStrength,elo:preset.elo,moveMs:preset.moveMs};
+            const sfMove=await SF.bestMove(bd,'b',cas,ep,sfDepth,skillLevel,null,engineOpts);
             if(engineJob!==S._engineJob)return;
             if(sfMove){
               const f='abcdefgh';
@@ -10128,15 +10329,17 @@ const G={
     tps.forEach(tp=>{
       const b=document.createElement('div');b.className='pp '+cl+tp;
       b.title={Q:'وزير',R:'رخ',B:'فيل',N:'حصان'}[tp];
-      b.onclick=()=>{SFX.btn();ov.classList.remove('open');
+      b.onclick=()=>{SFX.btn();ov.classList.remove('open');amkhReleaseModalFreeze();
         const{fr,to}=S.pending;S.pending=null;this.finish(fr,to,tp);};
       row.appendChild(b);});
     ov.classList.add('open');
+    amkhGrabModalFreeze();
+    try{SFX.modalOpen('success');}catch(e){}
   },
   restart(){
     SFX.btn();this._hideQuickReview();this._cancelEngineThink();
     if(S.mode==='online'){OL.dc();Nav.menu();}
-    else if(isStockfishMode())this.startEngineGame(S.engineSkill||Cfg.data.engineSkill||10);
+    else if(isStockfishMode())this.startEngineGame(S.engineLevel||Cfg.data.engineLevel||4);
     else if(S.levelId>=0)this.startLevel(S.levelId);
     else this.startLocalGame();
   },
@@ -10283,18 +10486,21 @@ const Nav={
     document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.classList.remove('is-entering');});
     const el=document.getElementById(id);
     el.classList.add('active');
-    /* أنيميشن الدخول مرة واحدة بس.
-       قبل كده كانت على .screen.active نفسها، فأي كود بيعيد ضبط الكلاس
-       (وده بيحصل كتير في إعادة الرسم) كان بيعيد أنيميشن بتبدأ من
-       opacity:0 على عنصر بحجم الشاشة — يعني الواجهة كلها تختفي وترجع.
-       الكلاس ده بيتشال أول ما الأنيميشن تخلص، فالحالة المستقرة نضيفة. */
-    el.classList.add('is-entering');
-    const done=()=>{el.classList.remove('is-entering');};
-    el.addEventListener('animationend',done,{once:true});
-    /* حبل أمان: لو الأنيميشن ماشتغلتش (تقليل الحركة، أو الشاشة مخفية)
-       الحدث مايجيش والكلاس يفضل — فبنشيله بالوقت كمان. */
-    setTimeout(done,420);
-    document.getElementById(id).classList.add('active');
+    /* أنيميشن الدخول مرة واحدة لكل شاشة (أول ظهور في الجلسة). قبل كده
+       كان بيتضاف في كل Nav.show، فكل رجوع للرئيسية كان بيعيد تشغيل
+       sfdSlide على الشاشة كلها — والثيمات (ماعدا amkh) بتحط filter/mask
+       على كروتها (زي «مراحل نور»)، والطبقات دي بتتعاد rasterize مع
+       transform الأب على WebView فتومض. أول ظهور بس بياخد الحركة؛
+       الرجوع بقى فوري ونضيف من غير إعادة تركيب. */
+    if(!el.dataset.entered){
+      el.dataset.entered='1';
+      el.classList.add('is-entering');
+      const done=()=>{el.classList.remove('is-entering');};
+      el.addEventListener('animationend',done,{once:true});
+      /* حبل أمان: لو الأنيميشن ماشتغلتش (تقليل الحركة، أو الشاشة مخفية)
+         الحدث مايجيش والكلاس يفضل — فبنشيله بالوقت كمان. */
+      setTimeout(done,420);
+    }
     /* الشاشة الحالية على body عشان الستايل يعرفها من غير :has().
        زخارف الثيمات بتهدى على شاشة اللعب عشان الرقعة تفضل هي البطل. */
     document.body.dataset.screen=id;
@@ -10547,6 +10753,10 @@ const OL=(()=>{
        نكمل في switch مالوش حالة ليها. */
     if(d && typeof d.type==='string' && d.type.indexOf('friend:')===0){
       try{ if(window.amkhFriends && window.amkhFriends.handleSocketMessage(d)) return; }catch(e){}
+    }
+    if(d && typeof d.type==='string' && d.type.indexOf('chat:')===0){
+      try{ if(window.amkhChat) window.amkhChat.handleSocketMessage(d); }catch(e){}
+      return;
     }
     switch(d.type){
       case 'mm-color-required':
@@ -11452,6 +11662,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="gauth-bundle.js"></script>
   <script src="auth-client.js"></script>
   <script src="friends-client.js?v=20260813-websocket-fix-2"></script>
+  <script src="chat-client.js?v=20260822-chat-1"></script>
 <script>
 const BLEManager = {
   isHost: false,

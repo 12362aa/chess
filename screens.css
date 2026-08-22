@@ -2221,6 +2221,14 @@ body[data-ui-theme="anime"]{
   direction: ltr;
   unicode-bidi: isolate;
   user-select: none;
+  overflow: hidden;   /* يقص صورة الأفاتار على شكل الدائرة */
+}
+/* صورة أفاتار حقيقية داخل الدائرة (لو الخادم رجّعها) */
+.fr-row__av-img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* «في مباراة» حالة تالتة غير متصل/غير متصل: صاحبك موجود بس مش فاضي */
@@ -2287,6 +2295,52 @@ body[data-ui-theme="anime"]{
 }
 .fr-invite__n{ direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
 .fr-invite .ds-dialog__icon .ico{ width: 34px; height: 34px; color: var(--color-primary); }
+
+/* نافذة اختيار اللون قبل إرسال الدعوة */
+.fr-color{ max-width: 380px; }
+.fr-color__name{ color: var(--color-primary-text); }
+.fr-color__opts{
+  display: flex;
+  gap: 10px;
+  margin: 4px 0 2px;
+}
+.fr-color__opt{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 8px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .12s ease;
+}
+.fr-color__opt:hover{
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-subtle);
+}
+.fr-color__opt:active{ transform: scale(.96); }
+.fr-color__disc{
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  line-height: 1;
+  box-shadow: var(--shadow-md);
+}
+.fr-color__disc--w{ background: #f3f4f6; color: #1f2430; }
+.fr-color__disc--b{ background: #1f2430; color: #f3f4f6; }
+.fr-color__disc--r{
+  background: linear-gradient(135deg, #f3f4f6 0 50%, #1f2430 50% 100%);
+  color: var(--color-primary-text);
+}
+.fr-color__lbl{ font-size: 14px; font-weight: 700; }
 
 /* الأجهزة اللوحية: الورقة تفضل في النص ومترميش نفسها على العرض كله */
 @media (min-width: 700px){
@@ -2407,6 +2461,34 @@ body[data-screen="s-game"] #theme-fx{ opacity: .35; }
 @media (prefers-reduced-motion: reduce){
   #theme-fx, #theme-fx > i{ animation: none !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   وميض النوافذ — تجميد حركة الخلفية وقت فتح أي نافذة
+   ──────────────────────────────────────────────────────────────────────
+   الطبقات الزخرفية (#theme-fx وجوّاها) بترسم كل فريم في كل الثيمات ماعدا
+   amkh (طبقاته ساكنة). لما تُفتح نافذة بترانزيشن opacity فوقها، WebView
+   أندرويد بيعيد بناء شجرة طبقات الـcompositing، فالنافذة تبان وتختفي لفريم
+   — ده بالظبط الوميض اللي بيظهر في كل الثيمات إلا amkh. DSOverlay بيحط
+   الكلاس ده على الـ body قبل ما يفتح أي نافذة (ومعاه reflow يثبّت التجميد
+   قبل بدء الترانزيشن)، فبنجمّد الحركة: paused مش none عشان مافيش قفز،
+   والحركة ترجع تكمّل بسلاسة أول ما النافذة تتقفل. السبب بيتشال من غير ما
+   نلمس هوية الثيم في الوضع العادي. */
+body.amkh-modal-open #theme-fx,
+body.amkh-modal-open #theme-fx > i,
+body.amkh-modal-open #theme-fx::before,
+body.amkh-modal-open #theme-fx::after,
+body.amkh-modal-open #particles,
+body.amkh-modal-open #particles > *{
+  animation-play-state: paused !important;
+}
+
+/* نوافذ اللعب (#engine-ov / #promo-ov / #review-ov / #go-ov) بتفتح بكلاس
+   .open من غير ما تعدّي على DSOverlay. كنا بنمسكها بـ:has() بس ده بيقع
+   ساكت على WebView أندرويد الأقدم من Chromium 105 (شائع على الأجهزة
+   الرخيصة/غير المحدّثة) فالوميض كان بيفضل. دلوقتي JS بيضيف/يشيل نفس كلاس
+   ‎body.amkh-modal-open‎ عند فتح/قفل نوافذ اللعب (شوف amkhReleaseModalFreeze
+   في index.html)، فالتجميد بيشتغل على كل إصدارات WebView من غير :has(). */
+
 /* ══════════════════════════════════════════════════════════════════════
    15.1 amkh — الهندسة الإسلامية
    ──────────────────────────────────────────────────────────────────────
@@ -3418,6 +3500,7 @@ body[data-ui-theme="minimal"]{
 #engine-ov,
 #promo-ov,
 #review-ov,
+#go-ov,
 .ds-overlay,
 body .app-modal-overlay{
   /* body في المُحدِّد عشان يغلب القاعدة الأصلية في index.html اللي
@@ -3426,6 +3509,21 @@ body .app-modal-overlay{
   -webkit-backdrop-filter: none !important;
   /* أغمق شوية عشان يعزل المحتوى اللي ورا زي ما البلور كان بيعمل */
   background: color-mix(in srgb, var(--color-bg-base) 88%, transparent);
+  /* طبقة تركيب ثابتة: من غيرها WebView أندرويد بيبني طبقة النافذة من
+     الصفر وقت الفتح فتحصل ومضة فريم فاضي (السبب الجذري للرفرفة على
+     الهاتف مش الويب). الأوفرلاي كله position:fixed من غير transform
+     خاص بيه، فـtranslateZ آمن هنا. */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+/* الكروت الجوّانية: نرقّيها لطبقة كمان — من غير ما نلمس الـtransform
+   بتاعها (scale/translateY في الأنيميشن) عشان مانكسرش حركة الفتح. */
+.ds-dialog, .ds-sheet, .app-modal-card, .ep-card, .gobox{
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
 }
 /* المتصفحات اللي مافيهاش color-mix تاخد الاحتياطي */
 @supports not (background: color-mix(in srgb, red 50%, transparent)){
@@ -3549,4 +3647,155 @@ body[data-ui-theme="glass"] .app-modal-overlay{
   body[data-ui-theme="minimal"] .mc-ic{
     filter: drop-shadow(0 0 14px currentColor) !important;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   دردشة الأصدقاء — شات دائم بستايل التطبيق (chat-client.js)
+   كل الألوان من توكنز الثيم عشان تمشي على كل الثيمات.
+══════════════════════════════════════════════════════════════════════ */
+
+/* زر الرسايل في رأس قائمة الأصدقاء */
+.ds-sheet__inbox{
+  margin-inline-start: auto;
+  margin-inline-end: var(--space-2, 8px);
+  width: 38px; height: 38px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; line-height: 1;
+  border: 1px solid var(--color-border, rgba(255,255,255,.12));
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-surface-raised, rgba(255,255,255,.06));
+  color: var(--color-text-primary, #fff);
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease;
+}
+.ds-sheet__inbox:hover{ background: var(--color-surface, rgba(255,255,255,.1)); }
+.ds-sheet__inbox:active{ transform: scale(.94); }
+
+/* زر الدردشة داخل صف الصديق */
+.fr-row__chat{ font-size: 1.05rem; line-height: 1; }
+
+/* شارة غير المقروء على زر الأصدقاء في الشريط العلوي */
+.amkh-chat-badge{
+  position: absolute; top: 2px; inset-inline-end: 2px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .68rem; font-weight: 700; line-height: 1;
+  color: #fff; background: var(--color-danger, #e5484d);
+  border-radius: var(--radius-pill, 999px);
+  box-shadow: 0 0 0 2px var(--color-bg-base, #000);
+  pointer-events: none;
+}
+#appbar-friends, #appbar-settings{ position: relative; }
+
+/* ── محادثة (conversation) ── */
+.ch-conv{ display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.ch-conv__head{
+  display: flex; align-items: center; gap: var(--space-2, 8px);
+  padding: var(--space-3, 12px);
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.1));
+  flex: 0 0 auto;
+}
+.ch-back{
+  width: 34px; height: 34px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; line-height: 1;
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-primary, #fff);
+  transform: scaleX(-1);   /* السهم يشاور صح في RTL */
+}
+.ch-conv__av, .ch-inbox__av{
+  width: 40px; height: 40px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; overflow: hidden;
+  font-weight: 700; color: #fff;
+  background: var(--color-accent, #4c7cf3);
+}
+.ch-conv__av-img, .ch-inbox__av-img{ width: 100%; height: 100%; object-fit: cover; }
+.ch-conv__id{ display: flex; flex-direction: column; min-width: 0; }
+.ch-conv__name{ font-weight: 700; color: var(--color-text-primary, #fff); }
+.ch-conv__sub{ font-size: .78rem; color: var(--color-text-secondary, #9aa); }
+.ch-conv__sub.is-online{ color: var(--color-success, #45c463); }
+.ch-conv__sub.is-ingame{ color: var(--color-warning, #e6a23c); }
+
+.ch-scroll{ flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-3, 12px); }
+.ch-loadmore{ text-align: center; margin-bottom: var(--space-2, 8px); }
+.ch-msgs{ display: flex; flex-direction: column; gap: 6px; }
+.ch-empty{ text-align: center; color: var(--color-text-secondary, #9aa); padding: var(--space-4, 16px); }
+
+.ch-bubble{
+  max-width: 78%; padding: 8px 11px;
+  border-radius: 14px;
+  word-break: break-word; white-space: pre-wrap;
+  background: var(--color-surface-raised, rgba(255,255,255,.08));
+  color: var(--color-text-primary, #fff);
+}
+.ch-bubble--their{ align-self: flex-start; border-bottom-inline-start: 3px solid transparent; }
+.ch-bubble--mine{
+  align-self: flex-end;
+  background: var(--color-accent, #4c7cf3);
+  color: var(--color-on-accent, #fff);
+}
+.ch-bubble.is-pending{ opacity: .65; }
+.ch-bubble__meta{ display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px; }
+.ch-time{ font-size: .66rem; opacity: .7; }
+.ch-tick{ font-size: .7rem; opacity: .8; }
+.ch-tick.is-read{ color: #6fd1ff; }
+
+.ch-typing{ display: flex; gap: 4px; padding: 8px 4px; }
+.ch-typing span{
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--color-text-secondary, #9aa);
+  animation: chTyping 1s infinite ease-in-out;
+}
+.ch-typing span:nth-child(2){ animation-delay: .15s; }
+.ch-typing span:nth-child(3){ animation-delay: .3s; }
+@keyframes chTyping{ 0%,60%,100%{ transform: translateY(0); opacity: .4; } 30%{ transform: translateY(-4px); opacity: 1; } }
+
+.ch-input{
+  display: flex; align-items: flex-end; gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  padding-bottom: max(var(--space-3, 12px), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border, rgba(255,255,255,.1));
+  flex: 0 0 auto;
+}
+.ch-text{ flex: 1 1 auto; resize: none; max-height: 120px; line-height: 1.4; }
+.ch-send{ flex: 0 0 auto; width: 44px; height: 44px; padding: 0; font-size: 1.1rem; }
+
+/* ── صندوق الوارد (inbox) ── */
+.ch-inbox{ display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.ch-inbox__head{
+  display: flex; align-items: center; gap: var(--space-2, 8px);
+  padding: var(--space-3, 12px);
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.1));
+  flex: 0 0 auto;
+}
+.ch-inbox__title{ margin: 0; font-size: 1.05rem; color: var(--color-text-primary, #fff); }
+.ch-inbox__list{ flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-2, 8px); }
+.ch-inbox__row{
+  display: flex; align-items: center; gap: var(--space-3, 12px);
+  width: 100%; padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: none; border: none; cursor: pointer; text-align: start;
+  border-radius: var(--radius-md, 10px);
+}
+.ch-inbox__row:hover{ background: var(--color-surface, rgba(255,255,255,.06)); }
+.ch-inbox__av{ position: relative; }
+.ch-inbox__av.is-online::after{
+  content: ''; position: absolute; bottom: 0; inset-inline-end: 0;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--color-success, #45c463);
+  box-shadow: 0 0 0 2px var(--color-bg-base, #000);
+}
+.ch-inbox__mid{ flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.ch-inbox__name{ font-weight: 700; color: var(--color-text-primary, #fff); }
+.ch-inbox__prev{
+  font-size: .8rem; color: var(--color-text-secondary, #9aa);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.ch-inbox__end{ display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: 0 0 auto; }
+.ch-inbox__time{ font-size: .68rem; color: var(--color-text-secondary, #9aa); }
+.ch-inbox__badge{
+  min-width: 18px; height: 18px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .68rem; font-weight: 700; color: #fff;
+  background: var(--color-accent, #4c7cf3); border-radius: var(--radius-pill, 999px);
 }

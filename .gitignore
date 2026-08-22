@@ -29,7 +29,25 @@ _g*.js
 .claude/
 
 # APKs now ship as GitHub Release assets, not repo blobs
-Chess-AmKh-V*.apk
+*.apk
 
 # بروفايل المتصفح المستخدم في القياس بـCDP
 .chrome-prof-w/
+
+# نسخ احتياطية من قاعدة البيانات — فيها بيانات مستخدمين (إيميلات، google_uid).
+# ممنوع تمامًا ترفع لـgit.
+data.db.bak*
+*.db.bak*
+
+# cloudflared: مش أداة النفق بتاعتنا (بنستخدم ngrok)، وباينري لينكس ممنوع يترفع.
+cloudflared
+cloudflared*
+
+# لوجات وملفات مؤقتة محلية
+logs/
+tunnel.out
+tunnel.err
+.fuse_hidden*
+git-push.bat
+kill-all.bat
+start-all.bat
