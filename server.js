@@ -1135,7 +1135,8 @@ wss.on('connection', (ws, req) => {
         const clientId = typeof msg.client_id === 'string' ? msg.client_id.slice(0, 64) : null;
         const kind = ['voice', 'image', 'video'].includes(msg.kind) ? msg.kind : 'text';
         let body = typeof msg.body === 'string' ? msg.body.trim() : '';
-        if (!me || !Number.isInteger(to) || to <= 0) break;
+        if (!me) { send(ws, { type: 'chat:error', reason: 'auth', client_id: clientId }); break; }
+        if (!Number.isInteger(to) || to <= 0) break;
         let spec;
         if (kind !== 'text') {
           const audio = typeof msg.audio === 'string' ? msg.audio : '';
@@ -1200,7 +1201,8 @@ wss.on('connection', (ws, req) => {
         const clientId = typeof msg.client_id === 'string' ? msg.client_id.slice(0, 64) : null;
         const kind = ['voice', 'image', 'video'].includes(msg.kind) ? msg.kind : 'text';
         let body = typeof msg.body === 'string' ? msg.body.trim() : '';
-        if (!me || !Number.isInteger(gid) || gid <= 0) break;
+        if (!me) { send(ws, { type: 'group:error', reason: 'auth', client_id: clientId }); break; }
+        if (!Number.isInteger(gid) || gid <= 0) break;
         let spec;
         if (kind !== 'text') {
           const audio = typeof msg.audio === 'string' ? msg.audio : '';

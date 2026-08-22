@@ -143,10 +143,16 @@ const amkhFriends = {
      القديمة كانت بتدوّر على سوكت الأونلاين بس، فالدعوة كانت تفشل بـ
      «لازم تكون متصل بالأونلاين» وهو أصلًا متصل. */
   _socket() {
+    /* نفضّل سوكت الحضور المُعرّف بالتوكن (بيبعت presence:hello فالسيرفر
+       عارف صاحبه). سوكت الأونلاين العادي (window.chessWs) ممكن يكون مفتوح
+       ومش معرّف على السيرفر — ولو بعتنا الشات/الدعوة عليه، السيرفر كان
+       بيلاقي socketUser فاضي فيهمل الرسالة من غير أي رد، فتفضل الساعة
+       عالقة على الرسالة للأبد (مش علاقة بالحجم خالص). التفضيل هنا بيضمن
+       إن الشات دايمًا يمشي على سوكت معرّف. */
+    const p = window.amkhAuth && window.amkhAuth._presWs;
+    if (p && p.readyState === 1) return p;
     const a = window.chessWs;
     if (a && a.readyState === 1) return a;
-    const b = window.amkhAuth && window.amkhAuth._presWs;
-    if (b && b.readyState === 1) return b;
     return null;
   },
 

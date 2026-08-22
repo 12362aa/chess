@@ -339,6 +339,9 @@ const amkhChat = {
       const arr = this._msgs[key] || [];
       if (arr.some(m => m.client_id === d.client_id)) return true;
     }
+    /* حماية من الازدواج: لو نفس الرسالة وصلت مرتين (سوكتين مفتوحين أو
+       إعادة اتصال) نتجاهل النسخة التانية بمعرّف السيرفر. */
+    if (d.id && (this._msgs[key] || []).some(m => m.id === d.id)) return true;
     const msg = { id: d.id, client_id: d.client_id || null, from: d.from, to: d.to, mine, kind: d.kind || 'text', body: d.body, audio: d.audio || null, duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at, read: false };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
 
@@ -1024,6 +1027,8 @@ const amkhChat = {
       const arr = this._gmsgs[gid] || [];
       if (arr.some(m => m.client_id === d.client_id)) return true;
     }
+    /* حماية من الازدواج بمعرّف السيرفر (سوكتين/إعادة اتصال). */
+    if (d.id && (this._gmsgs[gid] || []).some(m => m.id === d.id)) return true;
     const msg = {
       id: d.id, client_id: d.client_id || null, from: d.from, mine,
       sender_name: d.sender_name || 'صديق', sender_avatar: d.sender_avatar || null,

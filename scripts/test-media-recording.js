@@ -37,6 +37,18 @@ function wsClient(token) {
     ws.on('error', reject);
   });
 }
+/* سوكت خام من غير presence:hello — بيحاكي سوكت الأونلاين المفتوح المش
+   معرّف على السيرفر، عشان نتأكد إن الشات عليه بيرجّع خطأ auth بدل ما
+   يعلّق على الساعة للأبد. */
+function wsClientNoAuth() {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(WSURL);
+    const inbox = [];
+    ws.on('message', d => { try { inbox.push(JSON.parse(d.toString())); } catch (e) {} });
+    ws.on('open', () => setTimeout(() => resolve({ ws, inbox }), 200));
+    ws.on('error', reject);
+  });
+}
 const waitFor = async (inbox, pred, ms = 2000) => {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) { const hit = inbox.find(pred); if (hit) return hit; await sleep(50); }
@@ -113,6 +125,13 @@ const ok = (cond, msg) => { console.log((cond ? '✔' : '✘') + ' ' + msg); if 
     const gsent = await waitFor(ca.inbox, m => m.type === 'group:sent' && m.client_id === 'g-img-1');
     ok(!!gsent, 'صورة الجروب: المُرسِل استلم group:sent');
   }
+
+  // 4) سوكت غير معرّف (اللي كان بيسبّب علقان الساعة): لازم يرجّع chat:error/auth
+  const noauth = await wsClientNoAuth();
+  noauth.ws.send(JSON.stringify({ type: 'chat:send', kind: 'voice', to: idB, audio: Buffer.from('short-voice').toString('base64'), duration: 5, mime: 'audio/webm', client_id: 'noauth-1' }));
+  const authErr = await waitFor(noauth.inbox, m => m.type === 'chat:error' && m.reason === 'auth' && m.client_id === 'noauth-1');
+  ok(!!authErr, 'الصوت على سوكت مجهول يرجّع auth (بدل ما تعلّق الساعة للأبد)');
+  noauth.ws.close();
 
   ca.ws.close(); cb.ws.close();
   await sleep(200);
