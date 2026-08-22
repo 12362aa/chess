@@ -940,7 +940,7 @@ const amkhChat = {
       end.appendChild(badge);
     }
     row.appendChild(end);
-    row.onclick = () => { if (window.amkhUI) window.amkhUI.sfx(); this.openGroup({ id: g.id, name: g.name, members_count: g.members_count, owner_id: g.owner_id }); };
+    row.onclick = () => { if (window.amkhUI) window.amkhUI.sfx(); this.openGroup({ id: g.id, name: g.name, members_count: g.members_count, owner_id: g.owner_id, avatar_url: g.avatar_url || null }); };
     return row;
   },
 
@@ -1247,7 +1247,8 @@ const amkhChat = {
     }
     const U = window.amkhUI;
     const gid = group.id;
-    this._gmeta[gid] = { name: group.name || 'حفلة شطرنجية', members_count: group.members_count || 0, owner_id: group.owner_id, avatar_url: group.avatar_url || null };
+    const _prev = this._gmeta[gid] || {};
+    this._gmeta[gid] = { name: group.name || _prev.name || 'حفلة شطرنجية', members_count: group.members_count || _prev.members_count || 0, owner_id: group.owner_id || _prev.owner_id, avatar_url: (group.avatar_url != null ? group.avatar_url : _prev.avatar_url) || null };
 
     const overlay = U.mount('amkh-chat-modal', `
       <div class="ds-sheet ch-conv ch-conv--group" id="amkh-chat-panel">

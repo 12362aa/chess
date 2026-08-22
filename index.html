@@ -1702,7 +1702,14 @@ body[data-ui-theme="glass"] .mc-tag{
 /* ══════════ BOARD ══════════ */
 .bwrap{border-radius:4px;position:relative;
   box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.26),0 26px 60px rgba(0,0,0,.65),0 0 40px rgba(201,168,76,.06);
-  display:inline-block;line-height:0;transition:box-shadow .3s;}
+  display:inline-block;line-height:0;transition:box-shadow .3s;
+  /* ترقية الرقعة لطبقة compositing ثابتة خاصة بيها. الطبقات الزخرفية في
+     ثيمات gaming/cyberpunk/anime بترسم كل فريم، وأي reflow (فتح شات مثلًا)
+     كان بيخلّي WebView أندرويد يعيد بناء شجرة الطبقات فتُرسم الرقعة من جديد
+     وتبان فاضية لفريم = الوميض. الترقية الساكنة دي بتفصل الرقعة عن الشجرة
+     دي فمابتتأثرش بإعادة البناء. نفس النمط المستخدم للنوافذ. */
+  transform:translateZ(0);-webkit-transform:translateZ(0);
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;}
 .bwrap:hover{box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.35),0 30px 70px rgba(0,0,0,.7),0 0 50px rgba(201,168,76,.1);}
 /* --sq بيتحسب هنا كمان (مش في :root بس) عشان يتبع قيمة --board السارية
    على الرقعة نفسها. لو أي قاعدة غيّرت --board على عنصر أب (مثلًا وضع
@@ -6316,6 +6323,20 @@ function amkhReleaseModalFreeze(){
 window.amkhGrabModalFreeze=amkhGrabModalFreeze;
 window.amkhReleaseModalFreeze=amkhReleaseModalFreeze;
 
+/* تجميد خفيف لطبقة الزخرفة لفريم واحد فقط — لأي تفاعل بيعمل reflow كبير
+   (زي فتح/قفل شات اللعب اللي بيقلب display) من غير ما يعدّي على DSOverlay.
+   بيمنع WebView أندرويد من إعادة رسم العناصر (زي الرقعة) وقت إعادة بناء
+   شجرة الطبقات فيختفي الوميض. مابيلمسش overflow ولا بيمسك الحركة أكتر من
+   فريمين، فالخلفية بتفضل شغّالة طول ما الشات مفتوح. */
+function amkhFreezeFxFrame(){
+  try{
+    document.body.classList.add('amkh-modal-open');
+    void document.body.offsetWidth;                 /* يثبّت التجميد قبل الـreflow */
+    requestAnimationFrame(()=>requestAnimationFrame(amkhReleaseModalFreeze));
+  }catch(e){}
+}
+window.amkhFreezeFxFrame=amkhFreezeFxFrame;
+
 /* ورقة ألوان الرقعة — بتنقل نفس شبكة ‎.th-opt‎ الموجودة جوه الورقة
    (نقل عقدة، مش إعادة بناء) عشان كل ‎onclick="Cfg.theme(...)"‎ يفضل شغال
    بحرفه ومنطق الحفظ مايتغيّرش. */
@@ -7840,6 +7861,7 @@ ${pn}: ${txt}
   },
   toggle(){
     SFX.btn();
+    if(window.amkhFreezeFxFrame)amkhFreezeFxFrame();   /* امنع وميض الرقعة وقت قلب display الشات */
     const wrap=document.getElementById('chat-wrap');
     wrap.classList.toggle('show');
     if(wrap.classList.contains('show')){
@@ -7867,6 +7889,7 @@ ${pn}: ${txt}
     }
   },
   hide(){
+    if(window.amkhFreezeFxFrame)amkhFreezeFxFrame();
     document.getElementById('btn-chat').style.display='none';
     document.getElementById('chat-wrap').classList.remove('show');
     document.getElementById('chat-msgs').innerHTML='';
@@ -11541,12 +11564,17 @@ const Notifications={
     return this.enabled;
   },
   /* حفظ توكِن FCM على السيرفر، مربوط بالحساب لو مسجّل دخول (عشان يوصله
-     إشعار وهو غير متصل). بينفع للويب والتطبيق. */
-  _saveToken(token,platform){
+     إشعار وهو غير متصل). بينفع للويب والتطبيق.
+     مهم: لازم ننتظر تحميل رابط السيرفر (amkhEnsureServer) قبل القراءة،
+     لأن التوكِن بيوصل عند الإقلاع قبل ما يتحمّل الرابط، وقبل كده كان بيتفقد. */
+  async _saveToken(token,platform){
     try{
       if(!token)return;
-      const base=OL.getHttpBase&&OL.getHttpBase();
-      if(!base)return;
+      if(platform) this._nativeToken=this._nativeToken||token;
+      try{ if(window.amkhEnsureServer) await window.amkhEnsureServer(); }catch(e){}
+      let base=OL.getHttpBase&&OL.getHttpBase();
+      if(!base){ this._pendingToken={token,platform}; return; }
+      this._pendingToken=null;
       const headers={'Content-Type':'application/json'};
       try{ if(window.amkhAuth&&window.amkhAuth.token) headers['Authorization']='Bearer '+window.amkhAuth.token; }catch(e){}
       fetch(base.replace(/\/$/,'')+'/save-token',{
@@ -11569,6 +11597,9 @@ const Notifications={
         if(perm.receive!=='granted') perm=await PN.requestPermissions();
         if(perm.receive!=='granted'){ this._nativePushWired=false; return; }
       }catch(e){}
+      /* لازم نعمل قناة إشعارات بنفس الـ id اللي السيرفر بيبعت عليه (chess-amkh)،
+         وإلا Android 8+ بيرمي الإشعار في الصمت من غير ما يظهر. */
+      try{ await PN.createChannel({id:'chess-amkh',name:'إشعارات Am-Kh',description:'رسائل ودعوات ونقلات المباريات',importance:5,visibility:1,vibration:true}); }catch(e){}
       PN.addListener('registration',(t)=>{
         try{ this._nativeToken=t&&t.value; if(this._nativeToken) this._saveToken(this._nativeToken,'android-native'); }catch(e){}
       });

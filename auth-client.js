@@ -193,6 +193,9 @@ const amkhAuth = {
         this.updateUI();
         this.connectPresence();
         this.startAutoSync();
+        /* الجلسة استعادت — نعيد ربط توكِن الإشعارات بالحساب. لو داخل من غير
+           تسجيل تفاعلي (فتح التطبيق وهو مسجّل) كان التوكِن مايتربطش أبدًا. */
+        try { if (window.Notifications && window.Notifications._linkTokenToUser) window.Notifications._linkTokenToUser(); } catch (e) {}
       } else if (state === 'invalid') {
         /* السيرفر رفض التوكن نفسه — ده الخروج الشرعي الوحيد */
         this.logout();
