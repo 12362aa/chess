@@ -552,6 +552,14 @@ const amkhAuth = {
         try { if (window.amkhChat) window.amkhChat.handleSocketMessage(d); } catch (e) {}
         return;
       }
+      /* رسائل الجروبات (group:message / group:sent / group:typing…) بتوصل
+         على سوكت الحضور ده كمان — من غير التمرير ده كانت بتروح لمعالج
+         المباراة (OL._recv) وتتبلع، فرسايل الجروب تعلّق على الساعة أو
+         توصل متأخّر جدًا لما نفتح السجل بالـHTTP. */
+      if (d.type.indexOf('group:') === 0) {
+        try { if (window.amkhChat) window.amkhChat.handleSocketMessage(d); } catch (e) {}
+        return;
+      }
       if (d.type.indexOf('friend:') === 0) {
         try { if (window.amkhFriends) window.amkhFriends.handleSocketMessage(d); } catch (e) {}
         /* قبول الدعوة بيولّد غرفة على سوكت الحضور ده. لازم وحدة الأونلاين

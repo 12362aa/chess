@@ -59,10 +59,21 @@ function safeWriteTokens(tokens) {
 }
 
 let _adminReady = false;
+let _adminError = null;
 try {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  let privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
+  /* المفتاح ممكن يتخزّن بطرق مختلفة في .env:
+     • بـ \n حرفية (backslash-n) — الشائع → نحوّلها أسطر حقيقية.
+     • أو Base64 للمفتاح كله (FIREBASE_PRIVATE_KEY_B64) — أنضف وبيتفادى
+       مشاكل الاقتباس متعدد الأسطر اللي بتبوّظ الـPEM.
+     لو الاتنين موجودين نفضّل الـBase64. */
+  if (process.env.FIREBASE_PRIVATE_KEY_B64) {
+    try { privateKey = Buffer.from(process.env.FIREBASE_PRIVATE_KEY_B64, 'base64').toString('utf8'); } catch (e) {}
+  } else {
+    privateKey = privateKey.replace(/\\n/g, '\n');
+  }
   if (projectId && clientEmail && privateKey) {
     admin.initializeApp({
       credential: admin.credential.cert({
@@ -72,9 +83,13 @@ try {
       }),
     });
     _adminReady = true;
+  } else {
+    _adminError = 'missing FIREBASE_PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY';
   }
 } catch (e) {
   _adminReady = false;
+  _adminError = e && e.message ? e.message : 'init failed';
+  console.error('[push] Firebase admin init failed:', _adminError);
 }
 
 const FRONTEND_URL = String(process.env.FRONTEND_URL || '').trim();
@@ -287,7 +302,21 @@ const groupsRouter = require('./groups');
 app.use('/api/groups', groupsRouter);
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  /* تشخيص الإشعارات بدون أي أسرار: هل Firebase admin متهيّأ؟ وكام توكِن
+     متخزّن؟ وكام منهم مربوط بحساب فعلاً؟ ده بيخلّينا نعرف سبب عدم وصول
+     الإشعار (admin مش متهيّأ / مفيش توكِن مربوط) من غير ما نكشف مفاتيح. */
+  let tokenCount = 0, linkedCount = 0, nativeCount = 0;
+  try {
+    const toks = safeReadTokens();
+    tokenCount = toks.length;
+    linkedCount = toks.filter(t => t && t.userId != null).length;
+    nativeCount = toks.filter(t => t && t.platform === 'android-native').length;
+  } catch (e) {}
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    push: { adminReady: _adminReady, adminError: _adminError, tokens: tokenCount, linked: linkedCount, native: nativeCount },
+  });
 });
 
 // Groq proxy (keep API key off the frontend)
@@ -771,10 +800,10 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
 function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds) {
   if (!_adminReady) return;
   const g = db.prepare('SELECT name FROM groups WHERE id = ?').get(groupId) || {};
-  const groupName = g.name || 'جروب';
-  const preview = (kind === 'voice' ? '🎙️ رسالة صوتية'
-                : kind === 'image' ? '📷 صورة'
-                : kind === 'video' ? '🎥 فيديو'
+  const groupName = g.name || 'حفلة شطرنجية';
+  const preview = (kind === 'voice' ? 'رسالة صوتية'
+                : kind === 'image' ? 'صورة'
+                : kind === 'video' ? 'فيديو'
                 : String(body || '').slice(0, 100));
   let tokens = [];
   for (const uid of userIds) tokens = tokens.concat(getTokensForUser(uid));
@@ -825,9 +854,9 @@ function sendChatPushToUser(fromId, toId, kind, body) {
   if (!tokens.length) return;
   const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(fromId) || {};
   const name = sender.display_name || sender.username || 'صديق';
-  const preview = kind === 'voice' ? '🎙️ رسالة صوتية'
-                : kind === 'image' ? '📷 صورة'
-                : kind === 'video' ? '🎥 فيديو'
+  const preview = kind === 'voice' ? 'رسالة صوتية'
+                : kind === 'image' ? 'صورة'
+                : kind === 'video' ? 'فيديو'
                 : String(body || '').slice(0, 120);
   sendPushToTokens(tokens, {
     title: name,
@@ -1468,15 +1497,15 @@ wss.on('connection', (ws, req) => {
             let tag = 'chess-online';
 
             if (msg.type === 'move') {
-              title = 'دورك الآن ♟';
+              title = 'دورك الآن';
               body = `${fromName} لعب نقلة. افتح المباراة ورد بسرعة!`;
               tag = 'your-turn';
             } else if (msg.type === 'chat') {
-              title = 'رسالة جديدة 💬';
+              title = 'رسالة جديدة';
               body = `${fromName}: ${(msg.text || 'رسالة').toString().slice(0, 70)}`;
               tag = 'chat';
             } else if (msg.type === 'voice') {
-              title = 'رسالة صوتية 🎙';
+              title = 'رسالة صوتية';
               body = `${fromName} أرسل لك ريكورد… افتح الشات واسمعها!`;
               tag = 'voice';
             }

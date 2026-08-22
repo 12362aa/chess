@@ -34,6 +34,8 @@ const amkhChat = {
     attach: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49"/></svg>',
     image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>',
     video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+    group: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
   },
 
   _key(a, b) { const x = Number(a), y = Number(b); return Math.min(x, y) + ':' + Math.max(x, y); },
@@ -255,8 +257,38 @@ const amkhChat = {
     });
   },
 
-  sendMedia(friendId, b64, mime, kind) {
-    const ws = this._socket();
+  _fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('read'));
+      reader.readAsDataURL(file);
+    });
+  },
+
+  /* تصغير صورة الحفلة لمربّع صغير (JPEG) — نخزّنها كـ data URL في avatar_url. */
+  _downscaleImage(src, size) {
+    return new Promise((resolve) => {
+      if (!src) return resolve(null);
+      const SZ = size || 128;
+      let done = false; const fin = v => { if (!done) { done = true; resolve(v); } };
+      setTimeout(() => fin(null), 4000);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const cv = document.createElement('canvas'); cv.width = SZ; cv.height = SZ;
+          const ctx = cv.getContext('2d');
+          const side = Math.min(img.width, img.height);
+          ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, SZ, SZ);
+          fin(cv.toDataURL('image/jpeg', 0.6));
+        } catch (e) { fin(null); }
+      };
+      img.onerror = () => fin(null);
+      img.src = src;
+    });
+  },
+
+  sendMedia(friendId, b64, mime, kind) {    const ws = this._socket();
     if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
     const clientId = 'm' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
@@ -321,9 +353,10 @@ const amkhChat = {
       case 'group:typing': return this._onGroupTyping(d);
       case 'group:recording': return this._onGroupRecording(d);
       case 'group:created': return this._onGroupCreated(d);
+      case 'group:updated': return this._onGroupUpdated(d);
       case 'group:error':
         this._onSendError(d, true);
-        window.amkhUI.notify(d.reason === 'not-member' ? 'مش عضو في الجروب' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
+        window.amkhUI.notify(d.reason === 'not-member' ? 'مش عضو في الحفلة' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
         return true;
       default: return false;
     }
@@ -565,6 +598,22 @@ const amkhChat = {
     } else av.textContent = initial;
   },
 
+  /* صورة الحفلة: لو فيه صورة مرفوعة نعرضها، وإلا أيقونة مرسومة (مش إيموجي). */
+  _paintGroupAvatar(av, g) {
+    if (!av) return;
+    av.innerHTML = '';
+    const url = g && g.avatar_url;
+    if (url) {
+      const img = document.createElement('img');
+      img.className = 'ch-conv__av-img'; img.alt = ''; img.loading = 'lazy';
+      img.onerror = () => { img.remove(); av.innerHTML = this.ICONS.group; };
+      img.src = url;
+      av.appendChild(img);
+    } else {
+      av.innerHTML = this.ICONS.group;
+    }
+  },
+
   _paintSub(el, meta) {
     if (!el) return;
     let txt = 'غير متصل', cls = 'ch-conv__sub';
@@ -718,7 +767,8 @@ const amkhChat = {
   /* تشغيل/إيقاف رسالة صوتية عبر Web Audio API (يفكّ webm/opus في كل
      المنصّات). إعادة الضغط توقف التشغيل الحالي. */
   _toggleVoice(wrap, btn, bar) {
-    if (this._vSource && this._vWrap === wrap) { this._stopVoicePlay(); return; }
+    // نفس الرسالة شغّالة (أو بيتفكّ ترميزها دلوقتي)؟ الضغطة توقفها فورًا.
+    if (this._vWrap === wrap && (this._vSource || this._vPending)) { this._stopVoicePlay(); return; }
     this._stopVoicePlay();
     const info = wrap._voice || {};
     if (!info.audio) { window.amkhUI.notify('التسجيل مش متاح', 'تنبيه', '◈'); return; }
@@ -726,7 +776,21 @@ const amkhChat = {
     if (!ctx) { window.amkhUI.notify('جهازك مايدعمش تشغيل الصوت', 'تنبيه', '◈'); return; }
     let buf;
     try { buf = this._base64ToArrayBuffer(info.audio); } catch (e) { window.amkhUI.notify('تعذّر قراءة التسجيل', 'تنبيه', '◈'); return; }
+    // توكن يميّز محاولة التشغيل دي؛ أي إيقاف/تبديل بيزوّده فيلغي أي فكّ ترميز جارٍ.
+    const tok = ++this._vTok;
+    this._vPending = true; this._vWrap = wrap; this._vBtn = btn; this._vBar = bar;
+    btn.innerHTML = this.ICONS.pause;   // إحساس فوري بالضغط أثناء فكّ الترميز
+    let started = false;
+    const fail = () => {
+      if (tok !== this._vTok) return;   // اتلغت المحاولة دي خلاص
+      this._stopVoicePlay();
+      window.amkhUI.notify('لا يمكن تشغيل هذا الملف الصوتي', 'تنبيه', '◈');
+    };
     const onDecoded = (audioBuf) => {
+      // decodeAudioData ممكن ينادي الكولباك ويرجّع Promise مع بعض → لازم يتنفّذ
+      // مرة واحدة بس، وميتنفّذش لو المحاولة اتلغت (توقّف/تبديل) أثناء الترميز.
+      if (started || tok !== this._vTok) return;
+      started = true; this._vPending = false;
       const src = ctx.createBufferSource();
       src.buffer = audioBuf;
       src.connect(ctx.destination);
@@ -745,12 +809,14 @@ const amkhChat = {
       this._vRaf = requestAnimationFrame(tick);
     };
     try {
-      const p = ctx.decodeAudioData(buf, onDecoded, () => window.amkhUI.notify('لا يمكن تشغيل هذا الملف الصوتي', 'تنبيه', '◈'));
-      if (p && typeof p.then === 'function') p.then(onDecoded).catch(() => window.amkhUI.notify('لا يمكن تشغيل هذا الملف الصوتي', 'تنبيه', '◈'));
-    } catch (e) { window.amkhUI.notify('لا يمكن تشغيل هذا الملف الصوتي', 'تنبيه', '◈'); }
+      const p = ctx.decodeAudioData(buf, onDecoded, fail);
+      if (p && typeof p.then === 'function') p.then(onDecoded).catch(fail);
+    } catch (e) { fail(); }
   },
 
   _stopVoicePlay() {
+    this._vTok = (this._vTok || 0) + 1;   // يبطل أي فكّ ترميز جارٍ فمايشتغلش بعد الإيقاف
+    this._vPending = false;
     if (this._vRaf) { cancelAnimationFrame(this._vRaf); this._vRaf = 0; }
     if (this._vSource) { try { this._vSource.onended = null; this._vSource.stop(0); } catch (e) {} this._vSource = null; }
     if (this._vBar) { this._vBar.style.setProperty('--prog', '0%'); this._vBar = null; }
@@ -792,7 +858,7 @@ const amkhChat = {
         <div class="ch-inbox__head">
           <button class="ch-back" data-close aria-label="رجوع">›</button>
           <h2 class="ch-inbox__title">الرسايل</h2>
-          <button class="ch-inbox__new" id="ch-new-group" aria-label="جروب جديد">＋</button>
+          <button class="ch-inbox__new" id="ch-new-group" aria-label="حفلة شطرنجية جديدة">＋</button>
         </div>
         <div class="ch-inbox__list" id="ch-inbox-list">
           <p class="ch-empty">جارِ التحميل…</p>
@@ -832,7 +898,7 @@ const amkhChat = {
     if (!items.length) {
       const e = document.createElement('p');
       e.className = 'ch-empty';
-      e.textContent = 'مفيش رسايل لسه — افتح محادثة مع صاحبك، أو اعمل جروب جديد من زر ＋.';
+      e.textContent = 'مفيش رسايل لسه — افتح محادثة مع صاحبك، أو اعمل حفلة شطرنجية جديدة من زر ＋.';
       listEl.appendChild(e);
       this._updateBadge();
       return;
@@ -850,7 +916,7 @@ const amkhChat = {
     row.dataset.gid = String(g.id);
     const av = document.createElement('span');
     av.className = 'ch-inbox__av ch-inbox__av--group'; av.setAttribute('aria-hidden', 'true');
-    av.textContent = '👥';
+    this._paintGroupAvatar(av, g);
     row.appendChild(av);
     const mid = document.createElement('div');
     mid.className = 'ch-inbox__mid';
@@ -898,13 +964,13 @@ const amkhChat = {
       </label>`).join('');
     const overlay = U.mount('amkh-grp-create', `
       <div class="ds-sheet grp-sheet">
-        <div class="ch-inbox__head"><button class="ch-back" data-close>›</button><h2 class="ch-inbox__title">جروب جديد</h2></div>
+        <div class="ch-inbox__head"><button class="ch-back" data-close>›</button><h2 class="ch-inbox__title">حفلة شطرنجية جديدة</h2></div>
         <div class="grp-create__body">
-          <input type="text" id="grp-name" class="ds-input" maxlength="60" placeholder="اسم الجروب" autocomplete="off">
-          <p class="grp-create__hint">${online.length ? 'اختر الأصدقاء (اختياري):' : 'ممكن تعمل جروب لنفسك وتضيف أصدقاء بعدين.'}</p>
+          <input type="text" id="grp-name" class="ds-input" maxlength="60" placeholder="اسم الحفلة" autocomplete="off">
+          <p class="grp-create__hint">${online.length ? 'اختر الأصدقاء (اختياري):' : 'ممكن تعمل حفلة لنفسك وتضيف أصدقاء بعدين.'}</p>
           <div class="grp-pick__list">${rows}</div>
         </div>
-        <div class="grp-sheet__foot"><button class="ds-btn ds-btn--primary" id="grp-create-btn">إنشاء الجروب</button></div>
+        <div class="grp-sheet__foot"><button class="ds-btn ds-btn--primary" id="grp-create-btn">إنشاء الحفلة</button></div>
       </div>`, { sheet: true, sfx: 'groupNew' });
     online.forEach(f => {
       const av = overlay.querySelector(`[data-pav="${f.id}"]`);
@@ -917,7 +983,7 @@ const amkhChat = {
       U.sfx();
       const name = (overlay.querySelector('#grp-name').value || '').trim();
       const members = [...overlay.querySelectorAll('.grp-pick__cb:checked')].map(cb => Number(cb.value));
-      if (!name) { U.notify('اكتب اسم للجروب', 'تنبيه', '◈'); return; }
+      if (!name) { U.notify('اكتب اسم للحفلة', 'تنبيه', '◈'); return; }
       createBtn.disabled = true;
       const r = await this._gpost('/', { name, members });
       createBtn.disabled = false;
@@ -925,7 +991,7 @@ const amkhChat = {
         this._gmeta[r.id] = { name: r.name, members_count: r.members_count, owner_id: r.owner_id };
         try { overlay.querySelector('[data-close]').click(); } catch (e) {}
         this.openGroup({ id: r.id, name: r.name, members_count: r.members_count, owner_id: r.owner_id });
-      } else U.notify((r && r.error) || 'تعذّر إنشاء الجروب', 'تنبيه', '◈');
+      } else U.notify((r && r.error) || 'تعذّر إنشاء الحفلة', 'تنبيه', '◈');
     };
   },
 
@@ -1043,9 +1109,9 @@ const amkhChat = {
     } else if (!mine) {
       this._gunread[gid] = (this._gunread[gid] || 0) + 1;
       this._updateBadge();
-      const gname = (this._gmeta[gid] && this._gmeta[gid].name) || 'جروب';
+      const gname = (this._gmeta[gid] && this._gmeta[gid].name) || 'حفلة شطرنجية';
       try { if (window.SFX) window.SFX.chat(); } catch (e) {}
-      window.amkhUI.notify(msg.sender_name + ': ' + this._previewOf(d), `👥 ${gname}`, '◉');
+      window.amkhUI.notify(msg.sender_name + ': ' + this._previewOf(d), gname, '◉');
     }
     return true;
   },
@@ -1098,8 +1164,23 @@ const amkhChat = {
   },
 
   _onGroupCreated(d) {
-    /* اتحطّينا في جروب جديد — نحدّث الشارة، والصندوق لو مفتوح. */
+    /* اتحطّينا في حفلة جديدة — نحدّث الشارة، والصندوق لو مفتوح. */
     this._gunread[d.group_id] = (this._gunread[d.group_id] || 0);
+    if (this._sheet && this._sheet.dataset.view === 'inbox') this.showInbox();
+    return true;
+  },
+
+  _onGroupUpdated(d) {
+    /* بيانات الحفلة اتغيّرت (صورة مثلًا) — حدّث الميتا والواجهات المفتوحة. */
+    const gid = d.group_id;
+    if (gid == null) return true;
+    if (this._gmeta[gid]) {
+      if ('avatar_url' in d) this._gmeta[gid].avatar_url = d.avatar_url || null;
+      if (d.name) this._gmeta[gid].name = d.name;
+    }
+    if (this._openGroup === gid && this._sheet) {
+      this._paintGroupAvatar(this._sheet.querySelector('#ch-grp-av'), this._gmeta[gid] || { avatar_url: d.avatar_url || null });
+    }
     if (this._sheet && this._sheet.dataset.view === 'inbox') this.showInbox();
     return true;
   },
@@ -1166,18 +1247,18 @@ const amkhChat = {
     }
     const U = window.amkhUI;
     const gid = group.id;
-    this._gmeta[gid] = { name: group.name || 'جروب', members_count: group.members_count || 0, owner_id: group.owner_id };
+    this._gmeta[gid] = { name: group.name || 'حفلة شطرنجية', members_count: group.members_count || 0, owner_id: group.owner_id, avatar_url: group.avatar_url || null };
 
     const overlay = U.mount('amkh-chat-modal', `
       <div class="ds-sheet ch-conv ch-conv--group" id="amkh-chat-panel">
         <div class="ch-conv__head">
           <button class="ch-back" data-close aria-label="رجوع">›</button>
-          <span class="ch-conv__av ch-conv__av--group" aria-hidden="true">👥</span>
+          <span class="ch-conv__av ch-conv__av--group" id="ch-grp-av" aria-hidden="true"></span>
           <div class="ch-conv__id">
             <span class="ch-conv__name"></span>
             <span class="ch-conv__sub"></span>
           </div>
-          <button class="ch-conv__info" id="ch-grp-info" aria-label="أعضاء الجروب">⋯</button>
+          <button class="ch-conv__info" id="ch-grp-info" aria-label="أعضاء الحفلة">⋯</button>
         </div>
         <div class="ch-scroll" id="ch-scroll">
           <div class="ch-loadmore" id="ch-loadmore" hidden><button class="ds-btn ds-btn--ghost ds-btn--sm">عرض الأقدم</button></div>
@@ -1206,6 +1287,7 @@ const amkhChat = {
     this._openWith = null;
 
     overlay.querySelector('.ch-conv__name').textContent = this._gmeta[gid].name;
+    this._paintGroupAvatar(overlay.querySelector('#ch-grp-av'), this._gmeta[gid]);
     this._paintGroupSub(overlay.querySelector('.ch-conv__sub'), this._gmeta[gid]);
 
     const ta = overlay.querySelector('#ch-text');
@@ -1275,7 +1357,7 @@ const amkhChat = {
     if (!arr.length) {
       const e = document.createElement('p');
       e.className = 'ch-empty';
-      e.textContent = 'مفيش رسايل لسه — ابدأ الكلام مع الجروب 👋';
+      e.textContent = 'مفيش رسايل لسه — ابدأ الكلام مع الحفلة';
       listEl.appendChild(e);
       return;
     }
@@ -1349,17 +1431,51 @@ const amkhChat = {
     const U = window.amkhUI;
     if (!data || !Array.isArray(data.members)) { U.notify('تعذّر جلب الأعضاء', 'تنبيه', '◈'); return; }
     const meId = this._me();
+    const isOwner = data.owner_id === meId;
+    const meta = this._gmeta[gid] || {};
     const rowsHtml = data.members.map(mem => {
-      const isOwner = mem.id === data.owner_id;
+      const isOwn = mem.id === data.owner_id;
       return `<div class="grp-mem"><span class="grp-mem__av" data-av="${mem.id}"></span>`
-        + `<span class="grp-mem__name"></span>${isOwner ? '<span class="grp-mem__tag">المالك</span>' : ''}</div>`;
+        + `<span class="grp-mem__name"></span>${isOwn ? '<span class="grp-mem__tag">المالك</span>' : ''}</div>`;
     }).join('');
     const overlay = U.mount('amkh-grp-members', `
       <div class="ds-sheet grp-sheet">
-        <div class="ch-inbox__head"><button class="ch-back" data-close>›</button><h2 class="ch-inbox__title">أعضاء الجروب</h2></div>
+        <div class="ch-inbox__head"><button class="ch-back" data-close>›</button><h2 class="ch-inbox__title">أعضاء الحفلة</h2></div>
+        <div class="grp-info__hero">
+          <span class="grp-info__av ch-conv__av--group" id="grp-info-av" aria-hidden="true"></span>
+          <span class="grp-info__name" id="grp-info-name"></span>
+          ${isOwner ? `<button class="ds-btn ds-btn--ghost ds-btn--sm" id="grp-av-btn">${this.ICONS.camera}<span>تغيير الصورة</span></button><input type="file" id="grp-av-file" accept="image/*" hidden>` : ''}
+        </div>
         <div class="grp-mem__list">${rowsHtml}</div>
-        <div class="grp-sheet__foot"><button class="ds-btn ds-btn--danger" id="grp-leave">مغادرة الجروب</button></div>
+        <div class="grp-sheet__foot"><button class="ds-btn ds-btn--danger" id="grp-leave">مغادرة الحفلة</button></div>
       </div>`, { sheet: true, sfx: 'members' });
+    /* رأس الحفلة: الصورة + الاسم */
+    this._paintGroupAvatar(overlay.querySelector('#grp-info-av'), meta);
+    const nmEl = overlay.querySelector('#grp-info-name');
+    if (nmEl) nmEl.textContent = meta.name || 'حفلة شطرنجية';
+    /* المالك يقدر يغيّر صورة الحفلة */
+    if (isOwner) {
+      const avBtn = overlay.querySelector('#grp-av-btn');
+      const avFile = overlay.querySelector('#grp-av-file');
+      if (avBtn && avFile) {
+        avBtn.onclick = () => { U.sfx(); avFile.value = ''; avFile.click(); };
+        avFile.onchange = async () => {
+          const f = avFile.files && avFile.files[0];
+          if (!f) return;
+          const dataUrl = await this._fileToDataUrl(f).catch(() => null);
+          const small = dataUrl ? await this._downscaleImage(dataUrl, 128) : null;
+          if (!small) { U.notify('تعذّر تجهيز الصورة', 'تنبيه', '◈'); return; }
+          const r = await this._gpost(`/${gid}/avatar`, { avatar_url: small });
+          if (r && !r.error) {
+            const url = r.avatar_url || small;
+            if (this._gmeta[gid]) this._gmeta[gid].avatar_url = url;
+            this._paintGroupAvatar(overlay.querySelector('#grp-info-av'), { avatar_url: url });
+            /* حدّث رأس شاشة الحفلة والصندوق لو مفتوحين */
+            if (this._openGroup === gid && this._sheet) this._paintGroupAvatar(this._sheet.querySelector('#ch-grp-av'), { avatar_url: url });
+          } else U.notify((r && r.error) || 'تعذّر تغيير الصورة', 'تنبيه', '◈');
+        };
+      }
+    }
     /* أسماء وصور بأمان (textContent) */
     data.members.forEach(mem => {
       const av = overlay.querySelector(`[data-av="${mem.id}"]`);

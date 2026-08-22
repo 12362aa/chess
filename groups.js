@@ -98,7 +98,7 @@ router.post('/', authenticateToken, (req, res) => {
   const me = req.user.id;
   const name = String((req.body && req.body.name) || '').trim().slice(0, 60);
   const raw = Array.isArray(req.body && req.body.members) ? req.body.members : [];
-  if (!name) return res.status(400).json({ error: 'اسم الجروب مطلوب' });
+  if (!name) return res.status(400).json({ error: 'اسم الحفلة مطلوب' });
 
   /* الأعضاء لازم يكونوا أصدقاء ليك ومش محظورين، والمالك بينضاف تلقائيًا. */
   const members = new Set();
@@ -215,6 +215,29 @@ router.post('/:id/leave', authenticateToken, (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     console.error('[groups] leave failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── تغيير صورة الحفلة (المالك فقط) ── */
+router.post('/:id/avatar', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid) return res.status(400).json({ error: 'مش متاح' });
+  const g = db.prepare('SELECT owner_id FROM groups WHERE id = ?').get(gid);
+  if (!g) return res.status(404).json({ error: 'الحفلة مش موجودة' });
+  if (g.owner_id !== me) return res.status(403).json({ error: 'المالك بس يقدر يغيّر الصورة' });
+  /* data URL صغيرة (128px JPEG). سقف أمان ~200KB عشان مايتخزنش نص ضخم. */
+  let url = String((req.body && req.body.avatar_url) || '').trim();
+  if (url && !/^data:image\//i.test(url)) return res.status(400).json({ error: 'صورة غير صالحة' });
+  if (url.length > 200000) return res.status(400).json({ error: 'الصورة كبيرة جداً' });
+  try {
+    db.prepare('UPDATE groups SET avatar_url = ? WHERE id = ?').run(url || null, gid);
+    /* بلّغ الأعضاء المتصلين إن صورة الحفلة اتغيّرت. */
+    try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:updated', group_id: gid, avatar_url: url || null }, null); } catch (e) {}
+    res.json({ ok: true, avatar_url: url || null });
+  } catch (e) {
+    console.error('[groups] avatar failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
   }
 });

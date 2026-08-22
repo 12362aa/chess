@@ -1573,27 +1573,28 @@ body[data-ui-theme="glass"] .mc-tag{
 .chat-row.opp{align-self:flex-end;justify-content:flex-end;}
 .chat-row.sys{align-self:center;justify-content:center;}
 .chat-av{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);flex-shrink:0;background-size:cover;background-position:center;}
-.chat-av.nour{background-image:url('./nour.png?v=2');border-color:rgba(201,168,76,.22);}
-.chat-row.me .chat-av{border-color:rgba(201,168,76,.22);}
+.chat-av.nour{background-image:url('./nour.png?v=2');border-color:color-mix(in srgb,var(--gold) 22%,transparent);}
+.chat-row.me .chat-av{border-color:color-mix(in srgb,var(--gold) 22%,transparent);}
 .chat-row.opp .chat-av{border-color:rgba(255,255,255,.12);}
 .chat-msg{font-size:12px;padding:6px 9px;border-radius:8px;max-width:85%;line-height:1.6;word-break:break-word;}
-.chat-msg.me{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid rgba(201,168,76,.18);align-self:flex-start;}
+.chat-msg.me{background:color-mix(in srgb,var(--gold) 12%,transparent);color:var(--gold2);border:1px solid color-mix(in srgb,var(--gold) 18%,transparent);align-self:flex-start;}
 .chat-msg.opp{background:var(--bg3);color:var(--text);border:1px solid rgba(255,255,255,.06);align-self:flex-end;}
-.chat-msg.sys{background:rgba(45,212,191,.07);color:var(--teal2);border:1px solid rgba(45,212,191,.12);align-self:center;font-size:11px;text-align:center;}
+.chat-msg.sys{background:color-mix(in srgb,var(--teal) 7%,transparent);color:var(--teal2);border:1px solid color-mix(in srgb,var(--teal) 12%,transparent);align-self:center;font-size:11px;text-align:center;}
 .chat-inp-row{display:flex;gap:6px;padding:7px;border-top:1px solid rgba(255,255,255,.05);background:var(--bg3);}
-.chat-inp{flex:1;padding:7px 10px;background:var(--bg);border:1px solid rgba(201,168,76,.16);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:12px;outline:none;}
+.chat-inp{flex:1;padding:7px 10px;background:var(--bg);border:1px solid color-mix(in srgb,var(--gold) 16%,transparent);border-radius:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:12px;outline:none;}
 .chat-inp:focus{border-color:var(--gold);}
-.chat-send{padding:7px 12px;background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.28);border-radius:8px;color:var(--gold2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .17s;white-space:nowrap;flex-shrink:0;}
-.chat-send:hover{background:rgba(201,168,76,.3);}
-.chat-mic{padding:7px 10px;background:rgba(45,212,191,.18);border:1px solid rgba(45,212,191,.28);border-radius:8px;color:var(--teal2);font-size:12px;cursor:pointer;transition:all .17s;display:flex;align-items:center;justify-content:center;}
-.chat-mic:hover{background:rgba(45,212,191,.3);}
+.chat-send{padding:7px 12px;background:color-mix(in srgb,var(--gold) 18%,transparent);border:1px solid color-mix(in srgb,var(--gold) 28%,transparent);border-radius:8px;color:var(--gold2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .17s;white-space:nowrap;flex-shrink:0;}
+.chat-send:hover{background:color-mix(in srgb,var(--gold) 30%,transparent);}
+.chat-mic{padding:7px 10px;background:color-mix(in srgb,var(--teal) 18%,transparent);border:1px solid color-mix(in srgb,var(--teal) 28%,transparent);border-radius:8px;color:var(--teal2);font-size:12px;cursor:pointer;transition:all .17s;display:flex;align-items:center;justify-content:center;}
+.chat-mic:hover{background:color-mix(in srgb,var(--teal) 30%,transparent);}
 .chat-mic.recording{background:rgba(248,113,113,.6);border-color:rgba(248,113,113,.5);color:#fff;animation:pulse 1s infinite;}
 .chat-mic .rec-timer{font-size:10px;margin-right:4px;min-width:24px;text-align:center;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
-.chat-msg.voice{background:rgba(45,212,191,.15);color:var(--teal2);border:1px solid rgba(45,212,191,.25);align-self:flex-start;cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;min-width:120px;}
-.chat-msg.voice.opp{align-self:flex-end;background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.2);color:var(--gold2);}
-.chat-msg.voice .v-play{width:22px;height:22px;border-radius:50%;background:rgba(45,212,191,.25);display:flex;align-items:center;justify-content:center;font-size:10px;}
-.chat-msg.voice.opp .v-play{background:rgba(201,168,76,.25);}
+.chat-msg.voice{background:color-mix(in srgb,var(--teal) 15%,transparent);color:var(--teal2);border:1px solid color-mix(in srgb,var(--teal) 25%,transparent);align-self:flex-start;cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;min-width:120px;}
+.chat-msg.voice.opp{align-self:flex-end;background:color-mix(in srgb,var(--gold) 12%,transparent);border-color:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold2);}
+.chat-msg.voice .v-play{width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--teal) 25%,transparent);display:flex;align-items:center;justify-content:center;font-size:10px;}
+.chat-msg.voice .v-play svg{width:12px;height:12px;display:block;}
+.chat-msg.voice.opp .v-play{background:color-mix(in srgb,var(--gold) 25%,transparent);}
 .chat-msg.voice .v-bar{flex:1;height:3px;background:rgba(255,255,255,.1);border-radius:2px;position:relative;overflow:hidden;}
 .chat-msg.voice .v-bar::after{content:'';position:absolute;left:0;top:0;height:100%;width:var(--prog,0%);background:var(--teal2);border-radius:2px;transition:width .12s linear;}
 .chat-msg.voice.opp .v-bar::after{background:var(--gold2);}
@@ -7285,6 +7286,9 @@ const CHAT={
   _recStream:null,
   _stoppingRec:false,
   _playRaf:0,
+  /* أيقونات مرسومة (SVG) بدل الرموز/الإيموجي في فقاعات الصوت */
+  _svgPlay:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"/></svg>',
+  _svgPause:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
   _arrayBufferToBase64(buffer){
     const bytes=new Uint8Array(buffer);
     let binary='';
@@ -7318,7 +7322,7 @@ const CHAT={
       const durSec=parseInt(text)||0;
       const durStr=durSec<60?durSec+'"':Math.floor(durSec/60)+':'+String(durSec%60).padStart(2,'0');
       bubble.className='chat-msg voice '+type;
-      bubble.innerHTML=`<span class="v-play">&#9654;</span><span class="v-bar"></span><span class="v-dur">${durStr}</span>`;
+      bubble.innerHTML=`<span class="v-play">${this._svgPlay}</span><span class="v-bar"></span><span class="v-dur">${durStr}</span>`;
       if(audioData){
         bubble.dataset.audio=audioData;
         bubble.dataset.duration=durSec;
@@ -7654,79 +7658,6 @@ ${pn}: ${txt}
   },
   _playVoice(audioBase64,msgEl,audioMime=''){
     return this._playVoiceCompat(audioBase64,msgEl,audioMime);
-    try{
-      if(this._playRaf){
-        cancelAnimationFrame(this._playRaf);
-        this._playRaf=0;
-      }
-      if(this._currentAudio&&!this._currentAudio.paused){
-        try{
-          if(this._currentAudio._objUrl) URL.revokeObjectURL(this._currentAudio._objUrl);
-        }catch(e){}
-        this._currentAudio.pause();
-        this._currentAudio.currentTime=0;
-        if(this._currentBarEl)this._currentBarEl.style.setProperty('--prog','0%');
-      }
-      if(msgEl&&msgEl.dataset&&msgEl.dataset._playing==='1')return;
-      if(msgEl&&msgEl.dataset)msgEl.dataset._playing='1';
-      const arrayBuffer=this._base64ToArrayBuffer(audioBase64);
-      // Detect actual mime type from data, fallback to webm
-      const mimeType=this._detectMimeType(audioBase64)||'audio/webm';
-      const blob=new Blob([arrayBuffer],{type:mimeType});
-      const url=URL.createObjectURL(blob);
-      const audio=new Audio(url);
-      audio._objUrl=url;
-      this._currentAudio=audio;
-      // Visual progress
-      const bar=msgEl?.querySelector('.v-bar');
-      const playIcon=msgEl?.querySelector('.v-play');
-      this._currentBarEl=bar;
-      if(playIcon)playIcon.textContent='⏸';
-
-      const storedDur=parseInt(msgEl?.dataset?.duration)||0;
-      const getDur=()=>{
-        if(storedDur>0) return storedDur;
-        const d=audio.duration;
-        return (typeof d==='number'&&isFinite(d)&&d>0)?d:0;
-      };
-      const tick=()=>{
-        if(!audio||audio.paused||audio.ended){
-          this._playRaf=0;
-          return;
-        }
-        const dur=getDur();
-        if(dur>0&&bar){
-          const pct=Math.max(0,Math.min(100,(audio.currentTime/dur)*100));
-          bar.style.setProperty('--prog',pct+'%');
-        }
-        this._playRaf=requestAnimationFrame(tick);
-      };
-      audio.onplaying=()=>{ this._playRaf=requestAnimationFrame(tick); };
-      audio.onloadedmetadata=()=>{ if(bar)bar.style.setProperty('--prog','0%'); };
-      audio.onended=()=>{
-        try{ URL.revokeObjectURL(url); }catch(e){}
-        if(bar)bar.style.setProperty('--prog','0%');
-        if(playIcon)playIcon.textContent='▶';
-        this._currentAudio=null;
-        if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
-        if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
-      };
-      audio.onpause=()=>{
-        if(playIcon)playIcon.textContent='▶';
-        if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
-        if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
-      };
-      audio.play().catch(()=>{
-        try{ URL.revokeObjectURL(url); }catch(e){}
-        Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
-        if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
-        if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
-      });
-    }catch(e){
-      Modal.show('خطأ في تشغيل الصوت','تنبيه','✕');
-      if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
-      if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
-    }
   },
   _playVoiceCompat(audioBase64,msgEl,audioMime=''){
     try{
@@ -7749,7 +7680,7 @@ ${pn}: ${txt}
       this._currentBarEl=bar||null;
       if(msgEl&&msgEl.dataset&&msgEl.dataset._playing==='1')return;
       if(msgEl&&msgEl.dataset)msgEl.dataset._playing='1';
-      if(playIcon)playIcon.innerHTML='&#9208;';
+      if(playIcon)playIcon.innerHTML=this._svgPause;
       if(bar)bar.style.setProperty('--prog','0%');
       const arrayBuffer=this._base64ToArrayBuffer(audioBase64);
       const mimeCandidates=[
@@ -7767,7 +7698,7 @@ ${pn}: ${txt}
       const reallyFail=()=>{
         if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
         if(bar)bar.style.setProperty('--prog','0%');
-        if(playIcon)playIcon.innerHTML='&#9654;';
+        if(playIcon)playIcon.innerHTML=this._svgPlay;
         this._currentAudio=null;
         if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
         Modal.show('لا يمكن تشغيل الرسالة الصوتية','تنبيه','✕');
@@ -7810,13 +7741,13 @@ ${pn}: ${txt}
         audio.onended=()=>{
           try{ URL.revokeObjectURL(url); }catch(e){}
           if(bar)bar.style.setProperty('--prog','0%');
-          if(playIcon)playIcon.innerHTML='&#9654;';
+          if(playIcon)playIcon.innerHTML=this._svgPlay;
           this._currentAudio=null;
           if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
           if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
         };
         audio.onpause=()=>{
-          if(playIcon)playIcon.innerHTML='&#9654;';
+          if(playIcon)playIcon.innerHTML=this._svgPlay;
           if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
           if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
         };
@@ -7881,7 +7812,7 @@ ${pn}: ${txt}
           this._currentSource=src;
           const dur=storedDur>0?storedDur:(audioBuf.duration||0);
           const startAt=ctx.currentTime;
-          if(playIcon)playIcon.innerHTML='&#9208;';
+          if(playIcon)playIcon.innerHTML=this._svgPause;
           if(msgEl&&msgEl.dataset)msgEl.dataset._playing='1';
           const tick=()=>{
             if(this._currentSource!==src){ return; }
@@ -7892,7 +7823,7 @@ ${pn}: ${txt}
           src.onended=()=>{
             if(this._currentSource===src)this._currentSource=null;
             if(bar)bar.style.setProperty('--prog','0%');
-            if(playIcon)playIcon.innerHTML='&#9654;';
+            if(playIcon)playIcon.innerHTML=this._svgPlay;
             if(this._playRaf){cancelAnimationFrame(this._playRaf);this._playRaf=0;}
             if(msgEl&&msgEl.dataset)msgEl.dataset._playing='0';
           };
@@ -10837,6 +10768,10 @@ const OL=(()=>{
       try{ if(window.amkhChat) window.amkhChat.handleSocketMessage(d); }catch(e){}
       return;
     }
+    if(d && typeof d.type==='string' && d.type.indexOf('group:')===0){
+      try{ if(window.amkhChat) window.amkhChat.handleSocketMessage(d); }catch(e){}
+      return;
+    }
     switch(d.type){
       case 'mm-color-required':
         {
@@ -11710,9 +11645,9 @@ const Notifications={
     if(this._remindersScheduled)return;
     this._remindersScheduled=true;
     const reminders=[
-      {title:'حان وقت الشطرنج! 🎯',body:'مرحلة نور تنتظرك. تمرّن يومياً! 💪',ms:4*3600000},
-      {title:'لا تنسَ مبارياتك! ♟',body:'خصمك ينتظرك أونلاين. ادخل الآن! ⚡',ms:8*3600000},
-      {title:'نور يفتقدك 💬',body:'استمر في التدريب وافتح مرحلة جديدة! 🌟',ms:24*3600000},
+      {title:'حان وقت الشطرنج!',body:'مرحلة نور تنتظرك. تمرّن يومياً!',ms:4*3600000},
+      {title:'لا تنسَ مبارياتك!',body:'خصمك ينتظرك أونلاين. ادخل الآن!',ms:8*3600000},
+      {title:'نور يفتقدك',body:'استمر في التدريب وافتح مرحلة جديدة!',ms:24*3600000},
     ];
     reminders.forEach(r=>{
       setInterval(()=>{

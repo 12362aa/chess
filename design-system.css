@@ -172,7 +172,8 @@
 
   /* ترتيب الطبقات — النوافذ فوق الشريط العلوي */
   --z-appbar: 900;
-  --z-modal:  1000;
+  --z-modal:  1000;   /* الأوراق السفلية (sheets) */
+  --z-dialog: 1050;   /* التنبيهات/التأكيدات — لازم تطلع فوق الأوراق المفتوحة */
   --z-toast:  1100;
 
   /* أصغر مساحة لمس مقبولة على الموبايل */
@@ -702,6 +703,9 @@
   transition: opacity var(--duration-normal) var(--easing-standard);
 }
 .ds-overlay.is-open{ opacity: 1; pointer-events: auto; }
+/* التنبيهات والتأكيدات (أي overlay مش ورقة سفلية) لازم تطلع فوق الأوراق
+   المفتوحة، مش وراها — قبل كده كانت بترجع خلف ورقة الشات فتبان فوق الرئيسية */
+.ds-overlay:not(.ds-overlay--sheet){ z-index: var(--z-dialog); }
 
 .ds-dialog{
   width: 100%;
