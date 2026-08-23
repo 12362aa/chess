@@ -36,6 +36,14 @@ const amkhChat = {
     video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
     group: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+    dots: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    userMinus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="17" y1="11" x2="23" y2="11"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
   },
 
   _key(a, b) { const x = Number(a), y = Number(b); return Math.min(x, y) + ':' + Math.max(x, y); },
@@ -1082,6 +1090,15 @@ const amkhChat = {
       return res.ok ? (data || { ok: true }) : { error: (data && data.error) || 'خطأ' };
     } catch (e) { return { error: 'اتصال' }; }
   },
+  async _gdel(path) {
+    const headers = await this._getAuthHeader();
+    if (!headers) return null;
+    try {
+      const res = await fetch(`${window.getApiBase()}/groups${path}`, { method: 'DELETE', headers });
+      const data = await res.json().catch(() => null);
+      return res.ok ? (data || { ok: true }) : { error: (data && data.error) || 'خطأ' };
+    } catch (e) { return { error: 'اتصال' }; }
+  },
   _gunreadTotal() { return Object.values(this._gunread).reduce((s, n) => s + (n || 0), 0); },
 
   /* ── استقبال رسالة جروب ── */
@@ -1432,13 +1449,34 @@ const amkhChat = {
     const U = window.amkhUI;
     if (!data || !Array.isArray(data.members)) { U.notify('تعذّر جلب الأعضاء', 'تنبيه', '◈'); return; }
     const meId = this._me();
+    const myRole = data.my_role || 'member';
+    const amAdmin = myRole === 'owner' || myRole === 'admin';
     const isOwner = data.owner_id === meId;
+    const sendPolicy = data.send_policy || 'all';
     const meta = this._gmeta[gid] || {};
+    const roleTag = r => r === 'owner'
+      ? '<span class="grp-mem__tag">المالك</span>'
+      : (r === 'admin' ? '<span class="grp-mem__tag grp-mem__tag--admin">مشرف</span>' : '');
     const rowsHtml = data.members.map(mem => {
-      const isOwn = mem.id === data.owner_id;
-      return `<div class="grp-mem"><span class="grp-mem__av" data-av="${mem.id}"></span>`
-        + `<span class="grp-mem__name"></span>${isOwn ? '<span class="grp-mem__tag">المالك</span>' : ''}</div>`;
+      const canAct = amAdmin && mem.id !== meId && mem.id !== data.owner_id;
+      return `<div class="grp-mem" data-mid="${mem.id}"><span class="grp-mem__av" data-av="${mem.id}"></span>`
+        + `<span class="grp-mem__name"></span>${roleTag(mem.role)}`
+        + (canAct ? `<button class="grp-mem__act" data-act="${mem.id}" aria-label="إجراءات">${this.ICONS.dots}</button>` : '')
+        + `</div>`;
     }).join('');
+    const adminHtml = amAdmin ? `
+        <div class="grp-admin">
+          <button class="grp-admin__row" id="grp-policy">
+            <span class="grp-admin__ic">${this.ICONS.lock}</span>
+            <span class="grp-admin__mid"><span class="grp-admin__t">إرسال الرسائل</span>
+              <span class="grp-admin__s" id="grp-policy-s">${sendPolicy === 'admins' ? 'المشرفون فقط' : 'كل الأعضاء'}</span></span>
+          </button>
+          <button class="grp-admin__row" id="grp-invite">
+            <span class="grp-admin__ic">${this.ICONS.link}</span>
+            <span class="grp-admin__mid"><span class="grp-admin__t">رابط الدعوة</span>
+              <span class="grp-admin__s">مشاركة أو تصفير الرابط</span></span>
+          </button>
+        </div>` : '';
     const overlay = U.mount('amkh-grp-members', `
       <div class="ds-sheet grp-sheet">
         <div class="ch-inbox__head"><button class="ch-back" data-close>›</button><h2 class="ch-inbox__title">أعضاء الحفلة</h2></div>
@@ -1447,6 +1485,8 @@ const amkhChat = {
           <span class="grp-info__name" id="grp-info-name"></span>
           ${isOwner ? `<button class="ds-btn ds-btn--ghost ds-btn--sm" id="grp-av-btn">${this.ICONS.camera}<span>تغيير الصورة</span></button><input type="file" id="grp-av-file" accept="image/*" hidden>` : ''}
         </div>
+        ${adminHtml}
+        <button class="grp-add" id="grp-add">${this.ICONS.plus}<span>إضافة أعضاء</span></button>
         <div class="grp-mem__list">${rowsHtml}</div>
         <div class="grp-sheet__foot"><button class="ds-btn ds-btn--danger" id="grp-leave">مغادرة الحفلة</button></div>
       </div>`, { sheet: true, sfx: 'members' });
@@ -1477,13 +1517,42 @@ const amkhChat = {
         };
       }
     }
-    /* أسماء وصور بأمان (textContent) */
+    /* أسماء وصور بأمان (textContent). صورتي أنا ممكن تكون لسه ماترفعتش
+       للسيرفر (users.avatar_url فاضي) لكن محفوظة محليًا — فبنستخدم صورة
+       الملف الشخصي المحلية كبديل عشان تبان في قائمة الأعضاء زي الباقيين. */
+    let myLocalAvatar = '';
+    try { myLocalAvatar = localStorage.getItem('chess_profile_image') || ''; } catch (e) {}
     data.members.forEach(mem => {
       const av = overlay.querySelector(`[data-av="${mem.id}"]`);
-      if (av) this._paintAvatar(av, { name: mem.display_name || mem.username, avatar_url: mem.avatar_url });
+      if (!av) return;
+      const url = mem.avatar_url || (mem.id === meId ? myLocalAvatar : '');
+      this._paintAvatar(av, { name: mem.display_name || mem.username, avatar_url: url });
     });
+    /* لو صورتي محليًا موجودة والسيرفر مايعرفهاش — نرفعها في الخلفية عشان
+       باقي الأعضاء كمان يشوفوها، مش أنا بس. */
+    try {
+      const meRow = data.members.find(m => m.id === meId);
+      if (myLocalAvatar && meRow && !meRow.avatar_url && window.amkhSyncMyAvatar) window.amkhSyncMyAvatar();
+    } catch (e) {}
     const names = overlay.querySelectorAll('.grp-mem__name');
     data.members.forEach((mem, i) => { if (names[i]) names[i].textContent = (mem.display_name || mem.username) + (mem.id === meId ? ' (أنت)' : ''); });
+    /* إضافة أعضاء (متاح لأي عضو زي واتساب) */
+    const addBtn = overlay.querySelector('#grp-add');
+    if (addBtn) addBtn.onclick = () => { U.sfx(); this._addMembersFlow(gid, data.members.map(m => m.id)); };
+    /* إجراءات المشرف على عضو: ترقية/تنزيل مشرف + إزالة */
+    if (amAdmin) {
+      overlay.querySelectorAll('.grp-mem__act').forEach(btn => {
+        btn.onclick = () => {
+          U.sfx();
+          const mem = data.members.find(m => m.id === Number(btn.dataset.act));
+          if (mem) this._memberActions(gid, mem);
+        };
+      });
+      const polBtn = overlay.querySelector('#grp-policy');
+      if (polBtn) polBtn.onclick = () => { U.sfx(); this._sendPolicyFlow(gid, sendPolicy); };
+      const invBtn = overlay.querySelector('#grp-invite');
+      if (invBtn) invBtn.onclick = () => { U.sfx(); this._inviteLinkFlow(gid); };
+    }
     const leaveBtn = overlay.querySelector('#grp-leave');
     if (leaveBtn) leaveBtn.onclick = async () => {
       U.sfx();
@@ -1495,6 +1564,166 @@ const amkhChat = {
         this.showInbox();
       } else U.notify((r && r.error) || 'تعذّرت المغادرة', 'تنبيه', '◈');
     };
+  },
+
+  /* ── إضافة أعضاء بعد الإنشاء: منتقي أصدقاء (اللي مش في الحفلة) ── */
+  async _addMembersFlow(gid, existingIds) {
+    const U = window.amkhUI;
+    let friends = [];
+    if (window.amkhFriends) {
+      try {
+        if (typeof window.amkhFriends.loadFriends === 'function') friends = await window.amkhFriends.loadFriends();
+        if ((!friends || !friends.length) && Array.isArray(window.amkhFriends._friends)) friends = window.amkhFriends._friends;
+      } catch (e) { if (Array.isArray(window.amkhFriends._friends)) friends = window.amkhFriends._friends; }
+    }
+    if (!Array.isArray(friends)) friends = [];
+    const have = new Set((existingIds || []).map(Number));
+    const pool = friends.filter(f => f && f.id && !have.has(Number(f.id)));
+    if (!pool.length) { U.notify('كل أصدقائك في الحفلة بالفعل', 'إضافة أعضاء', '◉'); return; }
+    const rows = pool.map(f => `
+      <label class="grp-pick">
+        <span class="grp-pick__av" data-pav="${f.id}"></span>
+        <span class="grp-pick__name" data-pname="${f.id}"></span>
+        <input type="checkbox" class="grp-pick__cb" value="${f.id}">
+      </label>`).join('');
+    const overlay = U.mount('amkh-grp-add', `
+      <div class="ds-sheet grp-sheet">
+        <div class="ch-inbox__head"><button class="ch-back" data-close>›</button><h2 class="ch-inbox__title">إضافة أعضاء</h2></div>
+        <div class="grp-create__body"><div class="grp-pick__list">${rows}</div></div>
+        <div class="grp-sheet__foot"><button class="ds-btn ds-btn--primary" id="grp-add-btn">إضافة</button></div>
+      </div>`, { sheet: true, sfx: 'groupNew' });
+    pool.forEach(f => {
+      const av = overlay.querySelector(`[data-pav="${f.id}"]`);
+      if (av) this._paintAvatar(av, { name: f.display_name || f.username, avatar_url: f.avatar_url });
+      const nm = overlay.querySelector(`[data-pname="${f.id}"]`);
+      if (nm) nm.textContent = f.display_name || f.username;
+    });
+    const btn = overlay.querySelector('#grp-add-btn');
+    if (btn) btn.onclick = async () => {
+      U.sfx();
+      const members = [...overlay.querySelectorAll('.grp-pick__cb:checked')].map(cb => Number(cb.value));
+      if (!members.length) { U.notify('اختر عضو واحد على الأقل', 'تنبيه', '◈'); return; }
+      btn.disabled = true;
+      const r = await this._gpost(`/${gid}/members`, { members });
+      btn.disabled = false;
+      if (r && !r.error) {
+        if (this._gmeta[gid]) this._gmeta[gid].members_count = r.members;
+        try { overlay._dismiss(); } catch (e) {}
+        this._showGroupMembers(gid);
+      } else U.notify((r && r.error) || 'تعذّرت الإضافة', 'تنبيه', '◈');
+    };
+  },
+
+  /* ── إجراءات المشرف على عضو: ترقية/تنزيل مشرف + إزالة ── */
+  _memberActions(gid, mem) {
+    const U = window.amkhUI;
+    const name = mem.display_name || mem.username;
+    const isAdminMem = mem.role === 'admin';
+    const overlay = U.mount('amkh-grp-memact', `
+      <div class="ds-dialog grp-act">
+        <div class="grp-act__hero"><span class="grp-act__av" id="grp-act-av"></span>
+          <span class="grp-act__name"></span></div>
+        <div class="grp-act__list">
+          <button class="grp-act__btn" data-do="admin">${this.ICONS.shield}<span>${isAdminMem ? 'إزالة كمشرف' : 'تعيين كمشرف'}</span></button>
+          <button class="grp-act__btn grp-act__btn--danger" data-do="remove">${this.ICONS.userMinus}<span>إزالة من الحفلة</span></button>
+          <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إلغاء</span></button>
+        </div>
+      </div>`, { sfx: 'sheet' });
+    this._paintAvatar(overlay.querySelector('#grp-act-av'), { name, avatar_url: mem.avatar_url });
+    const nmEl = overlay.querySelector('.grp-act__name'); if (nmEl) nmEl.textContent = name;
+    overlay.querySelectorAll('[data-do]').forEach(b => b.onclick = async () => {
+      U.sfx();
+      const act = b.dataset.do;
+      if (act === 'admin') {
+        const r = await this._gpost(`/${gid}/admins`, { user_id: mem.id, make: !isAdminMem });
+        try { overlay._dismiss(); } catch (e) {}
+        if (r && !r.error) this._showGroupMembers(gid);
+        else U.notify((r && r.error) || 'تعذّر التغيير', 'تنبيه', '◈');
+      } else if (act === 'remove') {
+        try { overlay._dismiss(); } catch (e) {}
+        const ok = await U.confirm('إزالة عضو', `إزالة ${name} من الحفلة؟`, 'إزالة', 'إلغاء');
+        if (!ok) return;
+        const r = await this._gdel(`/${gid}/members/${mem.id}`);
+        if (r && !r.error) this._showGroupMembers(gid);
+        else U.notify((r && r.error) || 'تعذّرت الإزالة', 'تنبيه', '◈');
+      }
+    });
+  },
+
+  /* ── سياسة الإرسال: فتح/غلق الحفلة ── */
+  _sendPolicyFlow(gid, current) {
+    const U = window.amkhUI;
+    const overlay = U.mount('amkh-grp-policy', `
+      <div class="ds-dialog grp-act">
+        <h2 class="ds-dialog__title">مين يقدر يبعت؟</h2>
+        <div class="grp-act__list">
+          <button class="grp-act__opt${current === 'all' ? ' is-sel' : ''}" data-pol="all"><span>كل الأعضاء</span></button>
+          <button class="grp-act__opt${current === 'admins' ? ' is-sel' : ''}" data-pol="admins"><span>المشرفون فقط</span></button>
+          <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إلغاء</span></button>
+        </div>
+      </div>`, { sfx: 'sheet' });
+    overlay.querySelectorAll('[data-pol]').forEach(b => b.onclick = async () => {
+      U.sfx();
+      const pol = b.dataset.pol;
+      try { overlay._dismiss(); } catch (e) {}
+      if (pol === current) return;
+      const r = await this._gpost(`/${gid}/settings`, { send_policy: pol });
+      if (r && !r.error) this._showGroupMembers(gid);
+      else U.notify((r && r.error) || 'تعذّر الحفظ', 'تنبيه', '◈');
+    });
+  },
+
+  /* ── رابط الدعوة: عرض/نسخ/تصفير ── */
+  async _inviteLinkFlow(gid) {
+    const U = window.amkhUI;
+    let cur = await this._gget(`/${gid}/invite`);
+    const linkOf = t => t ? `${location.origin}${location.pathname}#join=${t}` : '';
+    const render = (token) => {
+      const link = linkOf(token);
+      const overlay = U.mount('amkh-grp-invite', `
+        <div class="ds-dialog grp-act">
+          <h2 class="ds-dialog__title">رابط الدعوة</h2>
+          <p class="ds-dialog__message grp-inv__url">${token ? U.esc(link) : 'الرابط مقفول حالياً'}</p>
+          <div class="grp-act__list">
+            <button class="grp-act__btn" data-do="copy" ${token ? '' : 'disabled'}>${this.ICONS.copy}<span>نسخ الرابط</span></button>
+            <button class="grp-act__btn" data-do="reset">${this.ICONS.refresh}<span>${token ? 'تصفير الرابط' : 'توليد رابط'}</span></button>
+            <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إغلاق</span></button>
+          </div>
+        </div>`, { sfx: 'sheet' });
+      overlay.querySelectorAll('[data-do]').forEach(b => b.onclick = async () => {
+        U.sfx();
+        if (b.dataset.do === 'copy' && token) {
+          try { await navigator.clipboard.writeText(link); U.notify('اتنسخ الرابط', 'تم', '◉'); } catch (e) { U.notify(link, 'رابط الدعوة', '◉'); }
+        } else if (b.dataset.do === 'reset') {
+          const r = await this._gpost(`/${gid}/invite`, { enabled: true, reset: !!token });
+          try { overlay._dismiss(); } catch (e) {}
+          if (r && !r.error) render(r.token);
+          else U.notify((r && r.error) || 'تعذّر التوليد', 'تنبيه', '◈');
+        }
+      });
+    };
+    render(cur && cur.token);
+  },
+  /* ── الانضمام لحفلة عبر رابط دعوة (#join=TOKEN) ── */
+  async joinByInvite(token, _tries) {
+    const U = window.amkhUI;
+    token = String(token || '').trim();
+    if (!token) return;
+    /* لازم تكون مسجّل دخول — نستنى شوية لو التوكِن وصل قبل ما الحساب يجهز. */
+    const authed = () => { try { return !!(window.amkhAuth && window.amkhAuth.token); } catch (e) { return false; } };
+    if (!authed()) {
+      const t = (_tries || 0);
+      if (t < 20) { setTimeout(() => this.joinByInvite(token, t + 1), 600); return; }
+      if (U) U.notify('سجّل الدخول الأول عشان تنضم للحفلة', 'دعوة حفلة', '◈');
+      return;
+    }
+    const r = await this._gpost(`/join/${token}`, {});
+    if (r && !r.error && r.group_id) {
+      const s = r.summary || {};
+      this._gmeta[r.group_id] = { name: s.name, members_count: s.members_count, owner_id: s.owner_id, avatar_url: s.avatar_url || null };
+      if (r.already) { if (U) U.notify('أنت عضو في الحفلة دي بالفعل', 'دعوة حفلة', '◉'); }
+      this.openGroup({ id: r.group_id, name: s.name, members_count: s.members_count, owner_id: s.owner_id, avatar_url: s.avatar_url || null });
+    } else if (U) U.notify((r && r.error) || 'الرابط منتهي أو غير صالح', 'دعوة حفلة', '◈');
   },
 };
 window.amkhChat = amkhChat;

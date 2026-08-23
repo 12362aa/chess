@@ -1590,6 +1590,39 @@ body[data-ui-theme="glass"] .mc-tag{
 .chat-mic.recording{background:rgba(248,113,113,.6);border-color:rgba(248,113,113,.5);color:#fff;animation:pulse 1s infinite;}
 .chat-mic .rec-timer{font-size:10px;margin-right:4px;min-width:24px;text-align:center;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+/* شات الاونلاين وقت فتح الكيبورد: نثبّت اللوحة فوق الكيبورد بالظبط
+   (بمقدار --kb اللي بنحسبه من visualViewport) عشان تختفي الفجوة/العته
+   البصري ولا تتغطّى خانة الكتابة. الرقعة وتخطيط شاشة اللعب ما بيتغيّروش. */
+body.kb-chat .chat-wrap.show{
+  position:fixed;left:0;right:0;top:auto;bottom:var(--kb,0);
+  width:100%;max-width:100%;height:min(46vh,300px);min-height:0;
+  margin:0;border-radius:14px 14px 0 0;z-index:9999;
+  box-shadow:0 -10px 34px rgba(0,0,0,.55);
+  transition:bottom .12s ease-out;
+}
+body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
+/* نافذة تحديث التقييم (مصنّفة) — تتبع الثيم عبر متغيّرات التصميم */
+.ds-dialog.rtu{text-align:center;}
+.rtu-big{font-size:44px;font-weight:800;line-height:1.1;margin:6px 0 2px;letter-spacing:.5px;}
+.rtu-flow{display:flex;align-items:center;justify-content:center;gap:12px;font-size:22px;font-weight:700;margin:4px 0 8px;}
+.rtu-flow .rtu-before{opacity:.6;}
+.rtu-flow .rtu-arrow{opacity:.5;font-size:18px;}
+.rtu-flow .rtu-after{color:var(--gold2,inherit);}
+.rtu-opp{font-size:13px;opacity:.85;margin-bottom:6px;}
+/* شارة التقييم جنب اسم اللاعب في شريط المباراة */
+.pb-nm .pb-rt{display:inline-block;font-size:11px;font-weight:700;opacity:.85;color:var(--gold2,#e0b34d);vertical-align:middle;}
+.acct-rating__val{font-size:22px;font-weight:800;color:var(--gold2,#e0b34d);}
+.fr-row__rating{display:inline-block;font-size:11px;font-weight:700;color:var(--gold2,#e0b34d);opacity:.9;}
+/* قائمة الخصوصية داخل نافذة الإعدادات */
+.priv-sheet{text-align:right;}
+.priv-list{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px;max-height:56vh;overflow:auto;}
+.priv-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  background:color-mix(in srgb,var(--gold,#e0b34d) 6%,transparent);border:1px solid color-mix(in srgb,var(--gold,#e0b34d) 14%,transparent);
+  border-radius:10px;padding:11px 12px;cursor:pointer;color:inherit;font:inherit;text-align:right;}
+.priv-row:active{transform:scale(.99);}
+.priv-row__label{font-size:14px;font-weight:600;}
+.priv-row__val{font-size:12px;font-weight:800;color:var(--gold2,#e0b34d);white-space:nowrap;}
+.priv-opt{margin-bottom:6px;}
 .chat-msg.voice{background:color-mix(in srgb,var(--teal) 15%,transparent);color:var(--teal2);border:1px solid color-mix(in srgb,var(--teal) 25%,transparent);align-self:flex-start;cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;min-width:120px;}
 .chat-msg.voice.opp{align-self:flex-end;background:color-mix(in srgb,var(--gold) 12%,transparent);border-color:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold2);}
 .chat-msg.voice .v-play{width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--teal) 25%,transparent);display:flex;align-items:center;justify-content:center;font-size:10px;}
@@ -3223,7 +3256,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260813-online-fix-1">
+<link rel="stylesheet" href="screens.css?v=20260823-flicker-layers-2">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3723,6 +3756,12 @@ body[data-ui-theme="glass"] .mc-tag{
         <div class="copt"    id="co-r" onclick="OL.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
       </div>
       <div id="st-c" class="ost"></div>
+      <p class="flbl" style="margin-top:10px">نوع المباراة</p>
+      <div class="copts" id="rated-opts">
+        <div class="copt on" id="rt-casual" onclick="OL.setRated(false)"><span class="ic-t2">◷</span>ودّية</div>
+        <div class="copt"    id="rt-rated"  onclick="OL.setRated(true)"><span class="ic-t2">★</span>مصنّفة</div>
+      </div>
+      <div class="p2p" id="rt-hint" style="margin-top:4px;font-size:11px;opacity:.85">المباراة الودّية لا تؤثّر على تقييمك. المصنّفة تحتاج تسجيل الدخول للطرفين.</div>
       <div id="rbox" class="rbox">
         <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
         <div class="rb-c" id="rcode">—</div>
@@ -4376,6 +4415,16 @@ const SFX=(()=>{
     groupNew:[{f:587.33,t0:0,dur:0.09,vol:0.10},{f:783.99,t0:0.07,dur:0.10,vol:0.11},{f:1046.5,t0:0.15,dur:0.20,vol:0.12}],
     /* أعضاء الجروب: نغمتان محايدتان قصيرتان */
     members:[{f:659.25,t0:0,dur:0.09,vol:0.09},{f:830.61,t0:0.07,dur:0.14,vol:0.10}],
+    /* التقييم صعد: أربع نغمات صاعدة منتصرة */
+    ratingUp:[{f:523.25,t0:0,dur:0.09,vol:0.10},{f:659.25,t0:0.07,dur:0.09,vol:0.11},{f:783.99,t0:0.14,dur:0.10,vol:0.12},{f:1046.5,t0:0.22,dur:0.22,vol:0.13}],
+    /* التقييم نزل: نغمتان هابطتان لطيفتان */
+    ratingDown:[{f:659.25,t0:0,dur:0.12,type:'sine',vol:0.11,f2:440},{f:392,t0:0.12,dur:0.18,type:'sine',vol:0.10}],
+    /* تعادل مصنّف: نغمتان محايدتان متساويتان */
+    ratingEven:[{f:587.33,t0:0,dur:0.11,vol:0.10},{f:659.25,t0:0.09,dur:0.16,vol:0.11}],
+    /* الخصوصية: نغمتان هادئتان «قفل» — أخفض من الحساب */
+    privacy:[{f:466.16,t0:0,dur:0.10,vol:0.09},{f:622.25,t0:0.07,dur:0.16,vol:0.10}],
+    /* اختيار خصوصية: نقرة تأكيد واحدة قصيرة */
+    privacyPick:[{f:698.46,t0:0,dur:0.08,vol:0.09},{f:932.33,t0:0.06,dur:0.13,vol:0.10}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -5079,9 +5128,128 @@ const SettingsAccount = {
     const u = auth.user || {};
     box.appendChild(this._identityRow(u));
     box.appendChild(this._usernameRow(u));
+    box.appendChild(this._ratingRow(u));
+    box.appendChild(this._privacyRow());
     box.appendChild(this._friendsRow());
     box.appendChild(this._blockedRow());
     box.appendChild(this._signOutRow());
+  },
+
+  /* ── الخصوصية (زي واتساب، بتتخزّن على الحساب وتفضل للأبد) ──
+     صف واحد بيفتح ورقة فيها كل المفاتيح، وكل مفتاح بيفتح نافذة اختيار. */
+  _PRIV_LABELS: {
+    who_can_add_me_to_parties:      'مين يقدر يضيفني لحفلة',
+    who_can_message_me:             'مين يقدر يبعتلي رسالة',
+    who_can_send_me_game_invites:   'مين يقدر يدعيني للعب',
+    who_can_send_me_friend_requests:'مين يبعتلي طلب صداقة',
+    who_can_see_my_online_status:   'مين يشوف إني متصل',
+    who_can_see_my_last_activity:   'مين يشوف آخر ظهور ليا',
+    who_can_see_my_avatar:          'مين يشوف صورتي',
+    who_can_see_my_rating:          'مين يشوف تقييمي',
+    read_receipts:                  'إيصالات القراءة',
+  },
+  _PRIV_OPTS: {
+    everyone:'الكل', friends:'الأصدقاء فقط', nobody:'لا أحد', on:'مفعّلة', off:'متوقّفة',
+  },
+  /* المفاتيح اللي خياراتها Everyone/Nobody بس أو On/Off — الباقي ثلاثي */
+  _privOptionsFor(key){
+    if(key==='who_can_send_me_friend_requests') return ['everyone','nobody'];
+    if(key==='read_receipts') return ['on','off'];
+    return ['everyone','friends','nobody'];
+  },
+
+  _privacyRow(){
+    const { item } = this._row('الخصوصية', 'اتحكّم مين يضيفك لحفلة، يبعتلك، يدعيك، ويشوف حالتك — بيتحفظ في حسابك للأبد.');
+    item.style.cursor = 'pointer';
+    const chev = document.createElement('i');
+    chev.className = 'ico ico--chev';
+    item.appendChild(chev);
+    item.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); this._openPrivacySheet(); };
+    return item;
+  },
+
+  async _openPrivacySheet(){
+    const U = window.amkhUI;
+    let data = null;
+    try{
+      const res = await fetch(`${window.getApiBase()}/privacy`, { headers:{ 'Authorization':'Bearer '+window.amkhAuth.token, 'ngrok-skip-browser-warning':'true' } });
+      if(res.ok) data = await res.json();
+    }catch(e){}
+    const priv = (data && data.privacy) || {};
+    const rowsHtml = Object.keys(this._PRIV_LABELS).map(k=>`
+      <button class="ds-list__item priv-row" data-key="${k}">
+        <span class="priv-row__label">${this._PRIV_LABELS[k]}</span>
+        <span class="priv-row__val" data-val="${k}">${this._PRIV_OPTS[priv[k]]||''}</span>
+      </button>`).join('');
+    const overlay = U.mount('amkh-privacy-sheet', `
+      <div class="ds-dialog priv-sheet">
+        <h2 class="ds-dialog__title">الخصوصية</h2>
+        <div class="ds-list priv-list">${rowsHtml}</div>
+        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--ghost ds-btn--block" data-close>تمام</button></div>
+      </div>`, { sfx:'privacy', sheet:true });
+    overlay.querySelectorAll('.priv-row').forEach(btn=>{
+      btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); const k=btn.dataset.key; this._pickPrivacy(k, priv[k], (nv)=>{ priv[k]=nv; const ve=overlay.querySelector(`[data-val="${k}"]`); if(ve) ve.textContent=this._PRIV_OPTS[nv]||''; }); };
+    });
+  },
+
+  _pickPrivacy(key, current, onSaved){
+    const U = window.amkhUI;
+    const opts = this._privOptionsFor(key);
+    const btns = opts.map(o=>`
+      <button class="ds-btn ds-btn--block priv-opt${o===current?' ds-btn--primary':' ds-btn--ghost'}" data-opt="${o}">${this._PRIV_OPTS[o]}</button>`).join('');
+    const overlay = U.mount('amkh-privacy-pick', `
+      <div class="ds-dialog">
+        <h2 class="ds-dialog__title">${this._PRIV_LABELS[key]}</h2>
+        <div class="ds-dialog__actions" style="flex-direction:column;">${btns}
+          <button class="ds-btn ds-btn--ghost ds-btn--block" data-close>إلغاء</button>
+        </div>
+      </div>`, { sfx:'privacyPick' });
+    overlay.querySelectorAll('.priv-opt').forEach(b=>{
+      b.onclick = async ()=>{
+        if(typeof SFX!=='undefined')SFX.btn();
+        const nv = b.dataset.opt;
+        U.close(overlay);
+        try{
+          const res = await fetch(`${window.getApiBase()}/privacy`, {
+            method:'POST',
+            headers:{ 'Authorization':'Bearer '+window.amkhAuth.token, 'ngrok-skip-browser-warning':'true', 'Content-Type':'application/json' },
+            body: JSON.stringify({ [key]: nv }),
+          });
+          if(res.ok){ if(onSaved) onSaved(nv); }
+          else U.notify('تعذّر الحفظ', 'لم يتم', '◈');
+        }catch(e){ U.notify('تأكد من الإنترنت', 'لم يتم', '◈'); }
+      };
+    });
+  },
+
+  /* التقييم (أونلاين فقط) — بيتجاب طازة من /me عشان يبان الرقم الحالي */
+  _ratingRow(u){
+    const { item, text } = this._row('تقييمك', 'يتغيّر من مباريات الأونلاين المصنّفة فقط، ومحفوظ في حسابك للأبد.');
+    const val = document.createElement('div');
+    val.className = 'acct-rating__val';
+    val.textContent = '—';
+    item.appendChild(val);
+    const rec = document.createElement('div');
+    rec.className = 'setting-description acct-rating__rec';
+    rec.style.marginTop = '2px';
+    rec.textContent = '';
+    text.appendChild(rec);
+    const fill = (d)=>{
+      if(!d || !isFinite(d.rating)) return;
+      val.textContent = Math.round(d.rating) + (d.provisional ? ' ؟' : '');
+      const w=d.wins||0, l=d.losses||0, dr=d.draws||0, g=d.rating_games||0;
+      rec.textContent = `فوز ${w} · خسارة ${l} · تعادل ${dr}` + (d.rating_peak?` · أعلى تقييم ${Math.round(d.rating_peak)}`:'') + (g?'':' · لسه مالعبتش مباراة مصنّفة');
+      try{ window.__myRating={rating:Math.round(d.rating),rd:d.rating_rd,provisional:d.provisional}; }catch(e){}
+    };
+    // لو عندنا نسخة مخبّأة نعرضها فورًا، وبعدين نحدّث من السيرفر
+    try{ if(window.__myRating) fill(Object.assign({}, u, window.__myRating)); }catch(e){}
+    (async ()=>{
+      try{
+        const res = await fetch(`${window.getApiBase()}/me`, { headers:{ 'Authorization':'Bearer '+window.amkhAuth.token, 'ngrok-skip-browser-warning':'true' } });
+        if(res.ok){ const d = await res.json(); fill(d); }
+      }catch(e){}
+    })();
+    return item;
   },
 
   _row(label, desc){
@@ -5710,7 +5878,11 @@ const Cfg={
   }
 };
 
-/* صورة افتراضية للاعب بلا صورة محفوظة. SVG مضمّن عشان يظهر فورًا وأوفلاين،
+/* نعرّض مزامنة صورتي على window عشان chat-client يقدر يطلبها لما يلاقي إن
+   السيرفر لسه مايعرفش صورتي (users.avatar_url فاضي) بينما هي محفوظة محليًا. */
+try{ window.amkhSyncMyAvatar = function(){ try{ if(Cfg && Cfg.data && Cfg.data.playerImage) Cfg._syncAvatarToServer(Cfg.data.playerImage); }catch(e){} }; }catch(e){}
+
+/* أيقونة افتراضية للاعب — SVG مضمّنة (data URL) عشان تشتغل offline
    من غير ما الشاشة تستنّى أي تبادل بلوتوث.
    بدون أقواس في الألوان: encodeURIComponent مابيهربش "(" و ")"، وده كان
    بيكسّر الـurl() في CSS فالخانة تطلع فاضية بدل الأيقونة. */
@@ -9945,6 +10117,12 @@ const G={
        عشان قفل التكرار جوّه _record يقارن بالتوكن الجديد. محمي بـtry
        ومش مُنتظَر عشان أي عطل في التخزين مايأخّرش ظهور شاشة النهاية. */
     try{this._record();}catch(e){}
+    /* بلاغ النتيجة للسيرفر لو أونلاين (مرة واحدة لكل مباراة). التصنيف
+       بيتحدّد سيرفر‑سايد لما الطرفين يتفقوا. */
+    if(S.mode==='online' && S._reportedToken!==S._resultToken){
+      S._reportedToken=S._resultToken;
+      try{ OL.reportResult(S.endState.tone, S.endState.reason||''); }catch(e){}
+    }
     S._quickDone=false;
     R.all();
     S._goTimer=setTimeout(()=>{
@@ -10672,6 +10850,23 @@ const OL=(()=>{
      سوكت أونلاين مملوك للوحدة دي. الفلاج ده بيمنع إننا نقفل سوكت الحضور
      لما المباراة تخلص. */
   let _borrowed=false;
+  /* تقييمات اللاعبين للمباراة الحالية (تظهر في شريط اللاعب) */
+  let _oppRatingSnap=null;
+  let _myRatingSnap=null;
+
+  /* اكتب اسم اللاعب في الشريط + شارة تقييمه (لو متوفّرة) من غير ما نغيّر
+     تخطيط الشريط: الشارة span سطري صغير جوّه نفس عنصر الاسم. */
+  function setBarName(barId,name,rating){
+    const el=document.getElementById(barId); if(!el) return;
+    el.textContent=name||'';
+    if(rating && isFinite(rating.rating)){
+      const s=document.createElement('span');
+      s.className='pb-rt';
+      s.textContent=Math.round(rating.rating)+(rating.provisional?'؟':'');
+      el.appendChild(document.createTextNode(' '));
+      el.appendChild(s);
+    }
+  }
 
   function setSt(tab,msg,tp=''){
     const el=document.getElementById('st-'+tab);
@@ -10698,6 +10893,41 @@ const OL=(()=>{
     if(ws&&ws.readyState===WebSocket.OPEN){
       try{ws.send(JSON.stringify(obj));}catch(e){}
     }
+  }
+
+  /* نافذة تحديث التقييم بعد مباراة مصنّفة — بشفافية كاملة زي chess.com:
+     تقييمك قبل/بعد، الفرق، وتقييم الخصم. مصحوبة بصوت وتتبع الثيم. */
+  function showRatingUpdate(d){
+    const U=window.amkhUI; if(!U) return;
+    const delta=Number(d.delta)||0;
+    const up=delta>0, down=delta<0;
+    const sfxKey=up?'ratingUp':down?'ratingDown':'ratingEven';
+    const sign=delta>0?'+':(delta<0?'−':'±');
+    const absDelta=Math.abs(delta);
+    const dColor=up?'#22c55e':down?'#f87171':'var(--txt-dim,#9aa)';
+    const outTxt=d.outcome==='win'?'فوز':d.outcome==='loss'?'خسارة':'تعادل';
+    const outIcon=d.outcome==='win'?'★':d.outcome==='loss'?'◆':'◷';
+    const prov=d.provisional?' <span style="opacity:.7;font-size:.7em">مبدئي ؟</span>':'';
+    const opp=d.opp;
+    const oppLine=opp?`<div class="rtu-opp">تقييم الخصم: <b>${Math.round(opp.rating)}${opp.provisional?' ؟':''}</b></div>`:'';
+    // حدّث النسخة المحلية عشان تبان فورًا في الحساب/شريط الخصم
+    try{ window.__myRating={rating:Math.round(d.after),rd:d.rd,provisional:d.provisional}; }catch(e){}
+    const ov=U.mount('rating-update', `
+      <div class="ds-dialog rtu">
+        <div class="ds-dialog__icon">${outIcon}</div>
+        <h2 class="ds-dialog__title">تحديث التقييم — ${outTxt}</h2>
+        <div class="rtu-big" style="color:${dColor}">${sign}${absDelta}</div>
+        <div class="rtu-flow">
+          <span class="rtu-before">${Math.round(d.before)}</span>
+          <span class="rtu-arrow">←</span>
+          <span class="rtu-after">${Math.round(d.after)}${prov}</span>
+        </div>
+        ${oppLine}
+        <div class="ds-dialog__actions">
+          <button class="ds-btn ds-btn--primary" data-close>تمام</button>
+        </div>
+      </div>`, { sfx: sfxKey });
+    return ov;
   }
 
   function connect(onOpen){
@@ -10804,7 +11034,7 @@ const OL=(()=>{
           try{document.getElementById('btn-mm').style.display='none';}catch(e){}
           try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
           try{
-            send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced});
+            send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced,token:OL._tok()});
           }catch(e){
             try{document.getElementById('btn-mm').style.display='inline-flex';}catch(err){}
             try{document.getElementById('btn-mc').style.display='none';}catch(err){}
@@ -10850,6 +11080,11 @@ const OL=(()=>{
         break;
 
       case 'start':
+        /* المباراة بدأت فعلاً — نقفل أي نوافذ دعوة/أصدقاء لسه مفتوحة */
+        try{ if(window.amkhFriends && window.amkhFriends.closeAllInviteUI) window.amkhFriends.closeAllInviteUI(); }catch(e){}
+        _oppRatingSnap = d.oppRating||null;
+        _myRatingSnap = d.myRating||null;
+        if(_myRatingSnap){ try{ window.__myRating={rating:Math.round(_myRatingSnap.rating),rd:_myRatingSnap.rd,provisional:_myRatingSnap.provisional}; }catch(e){} }
         _go(d.yourColor, d.oppName||'');
         break;
 
@@ -10897,9 +11132,9 @@ const OL=(()=>{
       case 'name':
         {
           const oc=E.opp(S.myCol);
-          const oppEl=document.getElementById(oc==='w'?'nm-w':'nm-b');
           const nm=(d.name||'').trim();
-          if(oppEl)oppEl.textContent=(!nm||nm==='أنا')?'الخصم':nm;
+          const label=(!nm||nm==='أنا')?'الخصم':nm;
+          setBarName(oc==='w'?'nm-w':'nm-b', label, _oppRatingSnap);
         }
         break;
 
@@ -10910,6 +11145,10 @@ const OL=(()=>{
             updatePlayerImages();
           }
         }
+        break;
+
+      case 'rating:update':
+        try{ showRatingUpdate(d); }catch(e){}
         break;
 
       case 'pong': break;
@@ -10929,8 +11168,8 @@ const OL=(()=>{
     GameIdentity.setTitle('أونلاين');
     const myName=normName(Cfg.data.playerName,'أنا');
     const oppLabel=normName(oppName,'الخصم');
-    document.getElementById(mc==='w'?'nm-w':'nm-b').textContent=myName;
-    document.getElementById(oc==='w'?'nm-w':'nm-b').textContent=oppLabel;
+    setBarName(mc==='w'?'nm-w':'nm-b', myName, _myRatingSnap);
+    setBarName(oc==='w'?'nm-w':'nm-b', oppLabel, _oppRatingSnap);
     fixBars(mc);
     CHAT.show();
     setTimeout(()=>{
@@ -10946,6 +11185,20 @@ const OL=(()=>{
 
   return{
     pc:'w',
+    rt:false,   // نوع غرفة الإنشاء: false=ودّية، true=مصنّفة
+    _tok(){ try{ return (window.amkhAuth&&window.amkhAuth.token)||''; }catch(e){ return ''; } },
+    setRated(v){
+      SFX.btn();
+      const signedIn=!!this._tok();
+      if(v&&!signedIn){
+        try{ (window.amkhUI||window.U).notify('سجّل الدخول أولاً حتى تلعب مباراة مصنّفة تؤثّر على تقييمك.','مباراة مصنّفة','★'); }catch(e){}
+        v=false;
+      }
+      this.rt=!!v;
+      const cas=document.getElementById('rt-casual'), rat=document.getElementById('rt-rated');
+      if(cas)cas.classList.toggle('on',!this.rt);
+      if(rat)rat.classList.toggle('on',this.rt);
+    },
     getHttpBase(){return SERVER_HTTP||'';},
     init(){
       setSt('c','');setSt('j','');
@@ -10980,7 +11233,7 @@ const OL=(()=>{
       _myCol=col;
       document.getElementById('btn-create').disabled=true;
       connect(()=>{
-        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
+        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),rated:!!this.rt,token:this._tok()});
         // Send profile image if available
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
@@ -10992,7 +11245,7 @@ const OL=(()=>{
       const code=document.getElementById('jinp').value.trim().toUpperCase();
       if(!code){setSt('j','أدخل الكود أولاً','err');return;}
       connect(()=>{
-        send({type:'join',code,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId()});
+        send({type:'join',code,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),token:this._tok()});
         // Send profile image if available
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
@@ -11002,7 +11255,7 @@ const OL=(()=>{
     mmFind(){
       SFX.btn();
       connect(()=>{
-        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w'});
+        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w',token:this._tok()});
       });
     },
     mmCancel(){
@@ -11051,6 +11304,12 @@ const OL=(()=>{
     sendResign(){
       send({type:'resign'});
       setTimeout(()=>destroy(),400);
+    },
+    /* بلاغ نتيجة نهائية للسيرفر (للتصنيف). السيرفر بيصنّف لما الطرفين
+       يتفقوا، والانسحاب/قطع الاتصال بيتعامل معاهم لوحدهم. */
+    reportResult(tone,reason){
+      const result = tone==='win'?'win':tone==='loss'?'loss':'draw';
+      send({type:'game:over',result,reason:(reason||'').toString(),token:this._tok()});
     },
     dc(){destroy();},
 
@@ -11340,6 +11599,12 @@ window.addEventListener('beforeunload',e=>{
 // Capacitor packages these files locally. Skipping the PWA worker only in the
 // native shell avoids a second cache layer while leaving the website unchanged.
 const IS_CAPACITOR_NATIVE=Boolean(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform());
+/* علامة على <html> عشان الـCSS يقدر يفرّق التطبيق عن الويب. الوميض
+   (اختفاء عناصر لفريم) بيحصل على WebView أندرويد بس — مش على الويب —
+   بسبب الطبقات الزخرفية المتحركة كل فريم في ثيمات gaming/cyberpunk/anime.
+   على التطبيق فقط بنعزل الزخرفة والمحتوى في طبقتين GPU مستقلتين عبر هذه
+   العلامة، فالحركة تفضل شغّالة والوميض بيختفي (شوف screens.css). */
+try{ if(IS_CAPACITOR_NATIVE) document.documentElement.classList.add('amkh-native'); }catch(e){}
 if(!IS_CAPACITOR_NATIVE&&'serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
@@ -11549,6 +11814,14 @@ const Notifications={
       if(m&&m[1]){
         const code=decodeURIComponent(m[1]);
         this._autoJoinRoom(code);
+        return;
+      }
+      /* رابط دعوة حفلة: #join=TOKEN */
+      const j=h.match(/#join=([A-Za-z0-9]+)/);
+      if(j&&j[1]){
+        const tok=j[1];
+        try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+        if(window.amkhChat && window.amkhChat.joinByInvite) window.amkhChat.joinByInvite(tok);
       }
     }catch(e){}
   },
@@ -11727,6 +12000,36 @@ function requestNotificationPermission(){
 
 try{Notifications._handleDeepLink();}catch(e){}
 try{LAN.restoreSession();}catch(e){}
+
+/* ══════════════════════════════════════════════════════════════
+   شات الاونلاين + الكيبورد: على الأندرويد فتح الكيبورد بيزحلق الشاشة
+   (adjustPan) فتظهر فجوة/عته بصري فوق الكيبورد وخانة الكتابة تتغطّى.
+   بنستخدم visualViewport عشان نثبّت لوحة الشات فوق الكيبورد بالظبط
+   طول ما خانة الكتابة مركّز عليها، وبنرجّعها زي ما كانت أول ما يتقفل
+   الكيبورد — من غير ما نلمس مقاس الرقعة أو تخطيط شاشة اللعب إطلاقًا.
+══════════════════════════════════════════════════════════════ */
+const ChatKB={
+  init(){
+    const vv=window.visualViewport;
+    document.addEventListener('focusin',e=>{ if(e.target&&e.target.id==='chat-inp'){ document.body.classList.add('kb-chat'); this._sync(); setTimeout(()=>this._sync(),250);} });
+    document.addEventListener('focusout',e=>{ if(e.target&&e.target.id==='chat-inp') setTimeout(()=>{ if(document.activeElement&&document.activeElement.id==='chat-inp')return; this._off(); },80); });
+    if(vv){ vv.addEventListener('resize',()=>this._sync()); vv.addEventListener('scroll',()=>this._sync()); }
+  },
+  _sync(){
+    if(!document.body.classList.contains('kb-chat'))return;
+    const vv=window.visualViewport;
+    let kb=0;
+    if(vv) kb=Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
+    document.body.style.setProperty('--kb', kb+'px');
+    const el=document.getElementById('chat-msgs');
+    if(el) el.scrollTop=el.scrollHeight;
+  },
+  _off(){
+    document.body.classList.remove('kb-chat');
+    document.body.style.removeProperty('--kb');
+  }
+};
+try{ ChatKB.init(); }catch(e){}
 
 window.addEventListener('beforeunload',()=>{
   try{CHAT._stopRecording();}catch(e){}

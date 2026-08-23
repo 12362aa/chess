@@ -2490,6 +2490,53 @@ body.amkh-modal-open #particles > *{
    في index.html)، فالتجميد بيشتغل على كل إصدارات WebView من غير :has(). */
 
 /* ══════════════════════════════════════════════════════════════════════
+   الوميض على التطبيق (APK) فقط — عزل طبقات الـcompositing (الحركة تفضل شغّالة)
+   ──────────────────────────────────────────────────────────────────────
+   المستخدم أكّد: الوميض (اختفاء عناصر لجزء من الثانية) موجود في أماكن
+   كتير مش الرقعة بس، وموجود على التطبيق فقط (مش الويب) وفي ثيمات
+   gaming/cyberpunk/anime فقط (مش amkh).
+
+   السبب المقيس: على WebView أندرويد، الطبقات الزخرفية الكاملة اللي بتتحرك
+   كل فريم (مطر البيانات، السكانر، الشيفرون، خطوط السرعة، البتلات، الوهج،
+   وخلفية bgShift) مش مُرقّاة على طبقة GPU مستقلة، فبتتضمّ (squash) في نفس
+   طبقة الرسم بتاعة المحتوى. أي reflow في أي مكان (فتح شات، نقلة، تحديث
+   بطاقة، فتح قائمة) بيخلّي الـcompositor يعيد ضمّ الطبقات كلها، فالمحتوى
+   غير المُرقّى يختفي لفريم واحد. amkh مالوش الوميض لأن طبقاته ساكنة،
+   والويب مالوش لأن Chromium الكامل بيرقّي تلقائيًا أكتر من WebView.
+
+   الحل (بدون إيقاف أي حركة — الهوية البصرية محفوظة بالكامل):
+   نثبّت الطبقات الزخرفية المتحركة كطبقات GPU دايمة ومستقلة عبر
+   will-change:transform + translateZ(0)، فحركتها تفضل على خيط الـcompositor
+   لوحدها من غير ما تجبر المحتوى على إعادة رسم. مابنلمسش المحتوى نفسه إطلاقًا
+   (لا .screen ولا الرقعة ولا الشات) عشان مانوقعش في مشاكل رسم تانية على
+   WebView (زي صور data-URI اللي بتبطّل تظهر على طبقة مُرقّاة).
+   محصور على التطبيق (amkh-native) والثيمات التقيلة بس، وselectors صريحة
+   بدون :is()/:has() عشان تشتغل على WebView القديم (أقل من Chromium 105). */
+html.amkh-native body[data-ui-theme="gaming"] #theme-fx,
+html.amkh-native body[data-ui-theme="gaming"] #theme-fx > i,
+html.amkh-native body[data-ui-theme="gaming"] #particles,
+html.amkh-native body[data-ui-theme="cyberpunk"] #theme-fx,
+html.amkh-native body[data-ui-theme="cyberpunk"] #theme-fx > i,
+html.amkh-native body[data-ui-theme="cyberpunk"] #particles,
+html.amkh-native body[data-ui-theme="anime"] #theme-fx,
+html.amkh-native body[data-ui-theme="anime"] #theme-fx > i,
+html.amkh-native body[data-ui-theme="anime"] #particles{
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+/* خلفية bgShift المتحركة (طبقة كاملة فوق الشاشة) تتثبّت هي كمان */
+html.amkh-native body[data-ui-theme="gaming"]::before,
+html.amkh-native body[data-ui-theme="cyberpunk"]::before,
+html.amkh-native body[data-ui-theme="anime"]::before{
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    15.1 amkh — الهندسة الإسلامية
    ──────────────────────────────────────────────────────────────────────
    الثيم الأصلي كان ذهبي على كحلي وبس. الاسم عربي والخط Amiri،
@@ -3985,3 +4032,54 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 .grp-mem__av img{ width: 100%; height: 100%; object-fit: cover; }
 .grp-mem__name{ flex: 1 1 auto; min-width: 0; color: var(--color-text-primary, #fff); }
 .grp-mem__tag{ flex: 0 0 auto; font-size: .7rem; font-weight: 700; color: var(--color-primary, #6c8cff); padding: 2px 8px; border-radius: var(--radius-pill, 999px); background: var(--color-surface, rgba(255,255,255,.08)); }
+.grp-mem__tag--admin{ color: var(--color-accent, #f0b429); }
+.grp-mem__act{
+  flex: 0 0 auto; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; color: var(--color-text-secondary, #9aa); border-radius: 50%; cursor: pointer;
+}
+.grp-mem__act svg{ width: 20px; height: 20px; }
+.grp-mem__act:hover{ background: var(--color-surface, rgba(255,255,255,.08)); color: var(--color-text-primary, #fff); }
+
+/* لوحة إعدادات المشرف داخل ورقة الأعضاء */
+.grp-admin{ display: flex; flex-direction: column; gap: 2px; padding: var(--space-2, 8px) var(--space-2, 8px) 0; }
+.grp-admin__row{
+  display: flex; align-items: center; gap: var(--space-3, 12px); width: 100%; text-align: start;
+  padding: var(--space-2, 8px) var(--space-3, 12px); border: none; background: transparent; cursor: pointer;
+  border-radius: var(--radius-md, 12px); color: var(--color-text-primary, #fff);
+}
+.grp-admin__row:hover{ background: var(--color-surface, rgba(255,255,255,.06)); }
+.grp-admin__ic{ flex: 0 0 auto; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--color-surface, rgba(255,255,255,.08)); color: var(--color-primary, #6c8cff); }
+.grp-admin__ic svg{ width: 20px; height: 20px; }
+.grp-admin__mid{ display: flex; flex-direction: column; min-width: 0; }
+.grp-admin__t{ font-weight: 700; font-size: .95rem; }
+.grp-admin__s{ font-size: .8rem; color: var(--color-text-secondary, #9aa); }
+
+/* زر إضافة الأعضاء */
+.grp-add{
+  display: flex; align-items: center; gap: var(--space-3, 12px); width: calc(100% - 16px); margin: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px); border: none; cursor: pointer;
+  border-radius: var(--radius-md, 12px); background: var(--color-surface, rgba(255,255,255,.06)); color: var(--color-primary, #6c8cff); font-weight: 700;
+}
+.grp-add svg{ width: 22px; height: 22px; }
+.grp-add:hover{ background: var(--color-surface-strong, rgba(255,255,255,.1)); }
+
+/* نافذة إجراءات العضو / السياسة / الدعوة */
+.grp-act__hero{ display: flex; flex-direction: column; align-items: center; gap: var(--space-2, 8px); margin-bottom: var(--space-3, 12px); }
+.grp-act__av{ width: 56px; height: 56px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; font-weight: 700; color: #fff; background: var(--color-primary, #4c7cf3); }
+.grp-act__av img{ width: 100%; height: 100%; object-fit: cover; }
+.grp-act__name{ font-weight: 700; color: var(--color-text-primary, #fff); }
+.grp-act__list{ display: flex; flex-direction: column; gap: var(--space-2, 8px); }
+.grp-act__btn, .grp-act__opt{
+  display: flex; align-items: center; gap: var(--space-3, 12px); width: 100%; text-align: start;
+  padding: var(--space-3, 12px); border: 1px solid var(--color-border, rgba(255,255,255,.08)); cursor: pointer;
+  border-radius: var(--radius-md, 12px); background: var(--color-surface, rgba(255,255,255,.05)); color: var(--color-text-primary, #fff); font-weight: 600;
+}
+.grp-act__btn svg{ width: 20px; height: 20px; flex: 0 0 auto; }
+.grp-act__btn:hover, .grp-act__opt:hover{ background: var(--color-surface-strong, rgba(255,255,255,.1)); }
+.grp-act__btn--danger{ color: var(--color-danger, #ff6b6b); }
+.grp-act__btn--ghost{ justify-content: center; background: transparent; border-color: transparent; color: var(--color-text-secondary, #9aa); }
+.grp-act__btn[disabled]{ opacity: .5; cursor: default; }
+.grp-act__opt{ justify-content: space-between; }
+.grp-act__opt.is-sel{ border-color: var(--color-primary, #6c8cff); color: var(--color-primary, #6c8cff); }
+.grp-inv__url{ word-break: break-all; direction: ltr; text-align: center; font-size: .82rem; background: var(--color-surface, rgba(255,255,255,.05)); padding: var(--space-2, 8px); border-radius: var(--radius-md, 12px); }
+

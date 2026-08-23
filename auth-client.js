@@ -196,6 +196,9 @@ const amkhAuth = {
         /* الجلسة استعادت — نعيد ربط توكِن الإشعارات بالحساب. لو داخل من غير
            تسجيل تفاعلي (فتح التطبيق وهو مسجّل) كان التوكِن مايتربطش أبدًا. */
         try { if (window.Notifications && window.Notifications._linkTokenToUser) window.Notifications._linkTokenToUser(); } catch (e) {}
+        /* نرفع صورتي للسيرفر لو محفوظة محليًا بس السيرفر مايعرفهاش — عشان
+           تبان لأصدقائي وفي قائمة أعضاء الحفلة، مش عندي محليًا بس. */
+        try { if (window.amkhSyncMyAvatar) window.amkhSyncMyAvatar(); } catch (e) {}
       } else if (state === 'invalid') {
         /* السيرفر رفض التوكن نفسه — ده الخروج الشرعي الوحيد */
         this.logout();
@@ -532,6 +535,8 @@ const amkhAuth = {
     ws.onopen = () => {
       this._presBackoff = 1000;
       try { ws.send(JSON.stringify({ type: 'presence:hello', token: this.token })); } catch (e) {}
+      /* دعوات الحفلات اللي وصلت والتطبيق كان مقفول — نجيبها ونعرضها. */
+      try { if (window.amkhFriends && window.amkhFriends.loadPartyInvites) window.amkhFriends.loadPartyInvites(); } catch (e) {}
       clearInterval(this._presPing);
       /* نبضة أقصر من مهلة الخمول في أي وسيط (ngrok بيقطع بعد ~60ث) */
       this._presPing = setInterval(() => {
@@ -571,6 +576,12 @@ const amkhAuth = {
         if (d.type === 'friend:invite-room' && window.OL && window.OL._adoptPresence) {
           try { window.OL._adoptPresence(ws); } catch (e) {}
         }
+        return;
+      }
+      /* دعوات الحفلات (بديل الإضافة المباشرة لما الخصوصية تمنعها) بتوصل
+         على سوكت الحضور — بنمرّرها لوحدة الأصدقاء اللي بتعرض الكارت. */
+      if (d.type.indexOf('party:') === 0) {
+        try { if (window.amkhFriends) window.amkhFriends.handleSocketMessage(d); } catch (e) {}
         return;
       }
       /* start / move / resign / chat / name / pimg… رسائل مباراة جاية على

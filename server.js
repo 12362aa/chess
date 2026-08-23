@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 8081;
 
 const db = require('./db');
 const jwt = require('jsonwebtoken');
+const ratingStore = require('./rating-store');
 
 // Maps for presence and invites
 const userSockets = new Map(); // userId -> Set of WebSockets
@@ -126,6 +127,10 @@ function sendPushToTokens(tokens, payload) {
     tokens,
     notification: { title, body },
     data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
+    android: {
+      priority: 'high',
+      notification: { channelId: 'chess-amkh', sound: 'default', defaultSound: true },
+    },
     webpush: {
       headers: { Urgency: 'high' },
       notification: {
@@ -141,8 +146,36 @@ function sendPushToTokens(tokens, payload) {
   };
 
   return admin.messaging().sendEachForMulticast(message)
-    .then(resp => ({ ok: true, successCount: resp.successCount, failureCount: resp.failureCount, responses: resp.responses }))
-    .catch(e => ({ ok: false, reason: 'send-failed', error: String(e && e.message ? e.message : e) }));
+    .then(resp => {
+      /* نظّف التوكِنات الميتة (NotRegistered/invalid) عشان ما تفضلش تتحسب
+         وتبوّظ العدّاد وتخلي الدفع يبان إنه «نجح» وهو مايوصلش. */
+      try {
+        const bad = [];
+        resp.responses.forEach((r, i) => {
+          if (!r.success) {
+            const code = r.error && r.error.code;
+            if (code === 'messaging/registration-token-not-registered'
+             || code === 'messaging/invalid-registration-token') bad.push(tokens[i]);
+          }
+        });
+        if (bad.length) {
+          const allTok = safeReadTokens();
+          safeWriteTokens(allTok.filter(t => t && !bad.includes(t.token)));
+        }
+        console.log('[push] sent title="%s" tokens=%d ok=%d fail=%d%s',
+          title, tokens.length, resp.successCount, resp.failureCount,
+          bad.length ? ' cleaned=' + bad.length : '');
+        resp.responses.forEach((r, i) => {
+          if (!r.success) console.log('[push]   FAIL tok=%s code=%s',
+            String(tokens[i]).slice(0, 10), r.error && r.error.code);
+        });
+      } catch (e) {}
+      return { ok: true, successCount: resp.successCount, failureCount: resp.failureCount, responses: resp.responses };
+    })
+    .catch(e => {
+      console.log('[push] send THREW:', e && e.message ? e.message : e);
+      return { ok: false, reason: 'send-failed', error: String(e && e.message ? e.message : e) };
+    });
 }
 
 const _dailySent = new Set();
@@ -236,6 +269,10 @@ async function sendPushToDevice(deviceId, payload) {
     tokens,
     notification: { title, body },
     data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
+    android: {
+      priority: 'high',
+      notification: { channelId: 'chess-amkh', sound: 'default', defaultSound: true },
+    },
     webpush: {
       headers: { Urgency: 'high' },
       notification: {
@@ -300,6 +337,8 @@ const chatRouter = require('./chat');
 app.use('/api/chat', chatRouter);
 const groupsRouter = require('./groups');
 app.use('/api/groups', groupsRouter);
+const privacyRouter = require('./privacy');
+app.use('/api/privacy', privacyRouter);
 // Health check
 app.get('/api/health', (req, res) => {
   /* تشخيص الإشعارات بدون أي أسرار: هل Firebase admin متهيّأ؟ وكام توكِن
@@ -553,17 +592,28 @@ function sendStart(room) {
   if (!room || !room.host || !room.guest) return;
   room.started = true;
   room.ended = false;
+  const ratingOf = (id) => {
+    if (!id) return null;
+    try { const row = ratingStore.getUserRating.get(id); return row ? ratingStore.publicRating(row) : null; }
+    catch (e) { return null; }
+  };
   send(room.host.ws, {
     type: 'start',
     yourColor: room.host.color,
     oppName: room.guest.name || 'الخصم',
     room: room.code,
+    rated: !!room.rated,
+    oppRating: ratingOf(room.guestId),
+    myRating: ratingOf(room.hostId),
   });
   send(room.guest.ws, {
     type: 'start',
     yourColor: room.guest.color,
     oppName: room.host.name || 'الخصم',
     room: room.code,
+    rated: !!room.rated,
+    oppRating: ratingOf(room.hostId),
+    myRating: ratingOf(room.guestId),
   });
 }
 
@@ -643,9 +693,14 @@ function mmRequiredColor(ws, selfEntry) {
 function mmStartGame(aWs, aInfo, aColor, bWs, bInfo, bColor) {
   const code = genCode();
 
+  const aId = aInfo?.userId || socketUser.get(aWs) || null;
+  const bId = bInfo?.userId || socketUser.get(bWs) || null;
   const room = {
     kind: 'online',
     code,
+    hostId: aId,
+    guestId: bId,
+    rated: !!(aId && bId),   // طابور الماتش‑ميكينج مصنّف طالما الطرفين مسجّلين
     host: makeMember(aWs, aColor, aInfo?.name || '', aInfo?.deviceId || ''),
     guest: makeMember(bWs, bColor, bInfo?.name || '', bInfo?.deviceId || ''),
     guestColor: bColor,
@@ -757,6 +812,10 @@ groupsRouter.setRealtime({
       }
     } catch (e) {}
   },
+  /* بلّغ مستخدم واحد بعينه (مثلاً اللي اتشال من الحفلة). */
+  notifyUser(userId, payload) {
+    try { for (const s of socketsOf(userId)) send(s, payload); } catch (e) {}
+  },
 });
 
 /* إرسال رسالة جروب: بتخزّن الأول وبعدين بتوزّع على كل الأعضاء المتصلين،
@@ -812,7 +871,7 @@ function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds) 
     title: groupName,
     body: senderName + ': ' + preview,
     tag: 'group-' + groupId,
-    data: { kind: 'group', group_id: String(groupId), from: String(fromId) },
+    data: { kind: 'group', group_id: String(groupId), from_id: String(fromId) },
   });
 }
 
@@ -843,6 +902,7 @@ function pushChatMessage(fromId, toId, spec, clientId) {
   }
   /* لو الطرف التاني مش متصل بأي سوكت مفتوح — إشعار دفع لهاتفه (#64). */
   if (!delivered) { try { sendChatPushToUser(fromId, toId, kind, body); } catch (e) {} }
+  else { console.log('[push] SKIP chat push: user %s has an OPEN socket (delivered live)', toId); }
   return { row, key, delivered };
 }
 
@@ -851,6 +911,7 @@ function pushChatMessage(fromId, toId, spec, clientId) {
 function sendChatPushToUser(fromId, toId, kind, body) {
   if (!_adminReady) return;
   const tokens = getTokensForUser(toId);
+  console.log('[push] chat push -> user %s : %d linked token(s)', toId, tokens.length);
   if (!tokens.length) return;
   const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(fromId) || {};
   const name = sender.display_name || sender.username || 'صديق';
@@ -862,7 +923,7 @@ function sendChatPushToUser(fromId, toId, kind, body) {
     title: name,
     body: preview,
     tag: 'chat-' + fromId,
-    data: { kind: 'chat', from: String(fromId) },
+    data: { kind: 'chat', from_id: String(fromId) },
   });
 }
 
@@ -910,6 +971,7 @@ function beginFriendGame(invite, hostWs, guestWs) {
     code,
     hostId: invite.from_id,
     guestId: invite.to_id,
+    rated: !!invite.rated,
     host: makeMember(hostWs, hostColor, hostRow.display_name || hostRow.username || 'صديق', ''),
     guest: makeMember(guestWs, guestColor, guestRow.display_name || guestRow.username || 'صديق', ''),
     guestColor,
@@ -939,14 +1001,151 @@ function beginFriendGame(invite, hostWs, guestWs) {
 
   room.started = true;
   room.ended = false;
-  for (const s of hostSockets) send(s, { type: 'start', yourColor: room.host.color, oppName: room.guest.name || 'الخصم', room: code });
-  for (const s of guestSockets) send(s, { type: 'start', yourColor: room.guest.color, oppName: room.host.name || 'الخصم', room: code });
+  const frRating = (id) => { if (!id) return null; try { const row = ratingStore.getUserRating.get(id); return row ? ratingStore.publicRating(row) : null; } catch (e) { return null; } };
+  const hR = frRating(room.hostId), gR = frRating(room.guestId);
+  for (const s of hostSockets) send(s, { type: 'start', yourColor: room.host.color, oppName: room.guest.name || 'الخصم', room: code, rated: !!room.rated, oppRating: gR, myRating: hR });
+  for (const s of guestSockets) send(s, { type: 'start', yourColor: room.guest.color, oppName: room.host.name || 'الخصم', room: code, rated: !!room.rated, oppRating: hR, myRating: gR });
   console.log(`[friends] invite ${invite.id} -> room ${code} (host socks ${hostSockets.length}, guest socks ${guestSockets.length})`);
 
   /* الاتنين بقوا جوه مباراة، فأصدقاؤهم يشوفوا الحالة الجديدة */
   broadcastPresence(invite.from_id, 'in-game');
   broadcastPresence(invite.to_id, 'in-game');
   return code;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   تقييم Glicko-2 لمباريات الأونلاين المصنّفة
+   ──────────────────────────────────────────────────────────────
+   السيرفر مش عارف الفايز بنفسه (النقلات بتتحسب على الأجهزة)، فالنموذج
+   اللي اختاره المستخدم: الطرفين بيبلّغا النتيجة (game:over)، والتقييم
+   يتعدّل بس لما يتفقوا؛ والاستسلام/قطع الاتصال = خسارة للطرف صاحبه.
+   بنثبّت هوية اللاعبين على كل غرفة أونلاين وقت البدء، وبنجمّع النقلات
+   للأرشفة. finalizeRatedGame بيتنفّذ مرة واحدة بس لكل غرفة.
+══════════════════════════════════════════════════════════════ */
+
+// سجّل نقلة في الغرفة (للأرشفة + إعادة الحساب لاحقًا). سقف معقول.
+function recordMove(room, mv) {
+  if (!room) return;
+  if (!room.moves) room.moves = [];
+  if (room.moves.length < 600 && mv != null) room.moves.push(mv);
+}
+
+// طبّع نتيجة أبلغ بها طرف: بيرجّع لون الفايز 'w'|'b'|'draw' من منظور مطلق
+function reportToWinnerColor(room, side, result) {
+  const myColor = room[side] && room[side].color;
+  const oppColor = myColor === 'w' ? 'b' : 'w';
+  if (result === 'draw') return 'draw';
+  if (result === 'win') return myColor;
+  if (result === 'loss') return oppColor;
+  return null;
+}
+
+/* نفّذ التقييم فعليًا. winnerColor: 'w'|'b'|'draw'. */
+function finalizeRatedGame(room, winnerColor, reason) {
+  if (!room || room.ratingDone) return;
+  if (!room.rated || !room.hostId || !room.guestId) return;
+  if (room.hostId === room.guestId) return;
+  if (!['w', 'b', 'draw'].includes(winnerColor)) return;
+  room.ratingDone = true;
+
+  // اربط اللون بهوية اللاعب + سوكت الغرفة لكل لون
+  const hostIsWhite = room.host.color === 'w';
+  const whiteId = hostIsWhite ? room.hostId : room.guestId;
+  const blackId = hostIsWhite ? room.guestId : room.hostId;
+  const whiteWs = hostIsWhite ? room.host?.ws : room.guest?.ws;
+  const blackWs = hostIsWhite ? room.guest?.ws : room.host?.ws;
+  const winner = winnerColor === 'draw' ? 'draw' : (winnerColor === 'w' ? 'white' : 'black');
+
+  let res;
+  try {
+    res = ratingStore.applyResult(whiteId, blackId, winner, reason, room.moves);
+  } catch (e) {
+    console.error('[rating] applyResult failed:', e.message);
+    return;
+  }
+  if (!res) return;
+
+  // ابعت لكل لاعب تغييره بشفافية (على سوكت الغرفة + سوكتات الحضور)
+  pushRatingUpdate(whiteId, blackId, res.white, winner === 'draw' ? 'draw' : (winner === 'white' ? 'win' : 'loss'), reason, whiteWs);
+  pushRatingUpdate(blackId, whiteId, res.black, winner === 'draw' ? 'draw' : (winner === 'black' ? 'win' : 'loss'), reason, blackWs);
+  console.log(`[rating] room ${room.code} rated: white ${whiteId} ${res.white.delta>=0?'+':''}${res.white.delta}, black ${blackId} ${res.black.delta>=0?'+':''}${res.black.delta} (${reason})`);
+}
+
+function pushRatingUpdate(userId, oppId, change, outcome, reason, directWs) {
+  const oppRow = ratingStore.getUserRating.get(oppId);
+  const payload = {
+    type: 'rating:update',
+    outcome,             // win | loss | draw
+    reason: reason || '',
+    before: change.before,
+    after: change.after,
+    delta: change.delta,
+    rating: change.after,
+    rd: change.rd,
+    provisional: change.provisional,
+    opp: oppRow ? ratingStore.publicRating(oppRow) : null,
+  };
+  const seen = new Set();
+  const out = (s) => { if (s && !seen.has(s) && s.readyState === WebSocket.OPEN) { seen.add(s); send(s, payload); } };
+  // سوكت الغرفة (ماتش‑ميكينج/كود ممكن مايكونش على سوكت الحضور)
+  out(directWs);
+  // كل سوكتات الحضور المصادَق عليها
+  for (const s of socketsOf(userId)) out(s);
+  // حدّث حالة الحضور عشان التقييم الجديد يبان لأصدقائه
+  try { broadcastPresence(userId); } catch (e) {}
+}
+
+/* استقبل JWT من رسالة لعب على سوكت غير مصادَق (ماتش‑ميكينج/كود) */
+function userIdFromToken(token) {
+  if (!token || typeof token !== 'string') return null;
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    const id = Number(payload && (payload.uid || payload.id || payload.sub));
+    return Number.isInteger(id) && id > 0 ? id : null;
+  } catch (e) { return null; }
+}
+
+/* استقبال بلاغ نتيجة من أحد الطرفين. بنطبّق التقييم لما يتفقوا. */
+function handleGameResult(ws, msg) {
+  const info = getRoomAndSide(ws);
+  if (!info) return;
+  const { room, side } = info;
+  if (room.kind !== 'online' || room.ratingDone) return;
+
+  const winnerColor = reportToWinnerColor(room, side, msg.result);
+  if (!winnerColor) return;
+
+  room.reports = room.reports || {};
+  room.reports[side] = winnerColor;
+  room.ended = true;
+
+  const other = side === 'host' ? 'guest' : 'host';
+  const reason = (msg.reason || '').toString().slice(0, 40) || 'game-over';
+
+  if (room.reports[other]) {
+    // الطرفان أبلغا: نصنّف بس لو اتفقوا
+    if (room.reports[other] === winnerColor) {
+      finalizeRatedGame(room, winnerColor, reason);
+    } else {
+      console.warn(`[rating] room ${room.code} disputed result — not rated`);
+      room.ratingDone = true; // نزاع: نتجنّب التصنيف عشان ماحدش يغش
+    }
+  }
+  // طرف واحد لسه: نستنّى تأكيد الطرف التاني (أو انسحاب/قطع اتصال)
+}
+
+/* استسلام أو قطع اتصال = خسارة للطرف ده (سلطة كافية، بلا انتظار). */
+function finalizeOnLeave(room, side, reason) {
+  if (!room || room.kind !== 'online' || room.ratingDone) return;
+  const other = side === 'host' ? 'guest' : 'host';
+  // لو الطرف التاني أبلغ نتيجة قبل كده، نحترمها بدل ما نفترض خسارة
+  if (room.reports && room.reports[other]) {
+    finalizeRatedGame(room, room.reports[other], reason || 'reported');
+    return;
+  }
+  const loserColor = room[side] && room[side].color;
+  const winnerColor = loserColor === 'w' ? 'b' : 'w';
+  finalizeRatedGame(room, winnerColor, reason || 'resign');
 }
 
 /* تنظيف الغرف القديمة كل 5 دقائق (أكثر من 30 دقيقة) */
@@ -1088,14 +1287,15 @@ wss.on('connection', (ws, req) => {
           if (live) { send(ws, { type: 'friend:invite-sent', invite_id: live.id, already: true }); break; }
 
           const color = ['w', 'b', 'r'].includes(msg.color) ? msg.color : 'r';
-          const info = db.prepare(`INSERT INTO game_invites (from_id, to_id, color, expires_at)
-                                   VALUES (?, ?, ?, datetime('now', '+90 seconds'))`).run(senderId, friendId, color);
+          const rated = msg.rated === true ? 1 : 0;
+          const info = db.prepare(`INSERT INTO game_invites (from_id, to_id, color, rated, expires_at)
+                                   VALUES (?, ?, ?, ?, datetime('now', '+90 seconds'))`).run(senderId, friendId, color, rated);
           const inviteId = info.lastInsertRowid;
           const sender = db.prepare('SELECT id, username, display_name, avatar_url FROM users WHERE id = ?').get(senderId);
 
           let delivered = false;
           for (const fws of socketsOf(friendId)) {
-            send(fws, { type: 'friend:invite-received', invite: { id: inviteId, from: sender, color, expires_in: 90 } });
+            send(fws, { type: 'friend:invite-received', invite: { id: inviteId, from: sender, color, rated: !!rated, expires_in: 90 } });
             delivered = true;
           }
           send(ws, { type: 'friend:invite-sent', invite_id: inviteId, delivered, expires_in: 90 });
@@ -1247,6 +1447,12 @@ wss.on('connection', (ws, req) => {
             send(ws, { type: 'group:error', reason: 'not-member', client_id: clientId });
             break;
           }
+          /* حفلة مقفولة (send_policy='admins'): المشرفون بس يقدروا يبعتوا. */
+          const gpol = (db.prepare('SELECT send_policy FROM groups WHERE id = ?').get(gid) || {}).send_policy;
+          if (gpol === 'admins' && !groupsRouter.isAdmin(gid, me)) {
+            send(ws, { type: 'group:error', reason: 'closed', client_id: clientId });
+            break;
+          }
           const { row } = pushGroupMessage(gid, me, spec, clientId);
           send(ws, { type: 'group:sent', client_id: clientId, id: row.id, created_at: row.created_at, group_id: gid });
         } catch (e) {
@@ -1310,6 +1516,9 @@ wss.on('connection', (ws, req) => {
           name: (msg.name || '').slice(0, 20),
           deviceId: (msg.deviceId || '').slice(0, 80) || null,
           color: normalizeMatchColor(msg.color),
+          /* الماتش‑ميكينج بيجري على سوكت اللعب اللي مش مصادَق عليه بالضرورة،
+             فبنقبل التوكن في الرسالة كمصدر بديل للهوية عشان الغرفة تتصنّف. */
+          userId: socketUser.get(ws) || userIdFromToken(msg.token) || null,
           createdAt: Date.now(),
         };
         mmQueue.set(ws, entry);
@@ -1348,9 +1557,12 @@ wss.on('connection', (ws, req) => {
         const hostColor = msg.color === 'b' ? 'b' : 'w';
         const guestColor = hostColor === 'w' ? 'b' : 'w';
 
+        const hostId = socketUser.get(ws) || userIdFromToken(msg.token) || null;
         const room = {
           kind: roomKind,
           code,
+          hostId,
+          rated: roomKind === 'online' && msg.rated === true && !!hostId,
           host: makeMember(ws, hostColor, msg.name || '', msg.deviceId || ''),
           guest: null,
           guestColor,
@@ -1393,6 +1605,9 @@ wss.on('connection', (ws, req) => {
         leaveRoom(ws);
 
         room.guest = makeMember(ws, room.guestColor, msg.name || '', msg.deviceId || '');
+        room.guestId = socketUser.get(ws) || userIdFromToken(msg.token) || null;
+        // مباراة مصنّفة تحتاج الطرفين مسجّلين
+        if (room.rated && !(room.hostId && room.guestId)) room.rated = false;
         clientRoom.set(ws, code);
 
         /* أبلغ الضيف */
@@ -1462,6 +1677,12 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
+      /* ══ بلاغ نتيجة مباراة (للتقييم المصنّف) ══ */
+      case 'game:over': {
+        try { handleGameResult(ws, msg); } catch (e) { console.error('[rating] game:over:', e.message); }
+        break;
+      }
+
       /* ══ رسائل اللعبة — بتتنقل للخصم مباشرة ══ */
       case 'move':
       case 'assist':
@@ -1474,7 +1695,11 @@ wss.on('connection', (ws, req) => {
         const info = getRoomAndSide(ws);
         if (info) {
           const { room, side } = info;
-          if (msg.type === 'resign') room.ended = true;
+          if (msg.type === 'resign') {
+            room.ended = true;
+            finalizeOnLeave(room, side, 'resign');   // المنسحب يخسر (لو مصنّفة)
+          }
+          if (msg.type === 'move') recordMove(room, msg.move != null ? msg.move : (msg.san || msg.uci || null));
           if (msg.type === 'name') {
             const nm = (msg.name || '').slice(0, 20);
             if (room[side]) room[side].name = nm;
@@ -1586,6 +1811,12 @@ wss.on('connection', (ws, req) => {
     if (info && info.room.kind === 'lan') {
       handleLanDisconnect(ws);
     } else {
+      /* قطع الاتصال في مباراة أونلاين مصنّفة لسه شغّالة = خسارة للمنقطع،
+         بس بشرط إنه اتفصل فعلاً (مش لسه فاتح على جهاز تاني). */
+      if (info && info.room.kind === 'online' && !info.room.ratingDone
+          && userId && !userSockets.has(userId)) {
+        try { finalizeOnLeave(info.room, info.side, 'disconnect'); } catch (e) {}
+      }
       leaveRoom(ws);
       clientRoom.delete(ws);
     }

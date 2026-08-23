@@ -21,6 +21,13 @@
             </intent-filter>
         </activity>
 
+        <!-- قناة الإشعار الافتراضية: لو رسالة FCM جت من غير channelId صريح،
+             Firebase بيستخدم القناة دي بدل ما يقع على fallback ممكن يتبلع.
+             نفس id القناة اللي العميل بيعملها (chess-amkh). -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="chess-amkh" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

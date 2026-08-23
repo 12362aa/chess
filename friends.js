@@ -22,6 +22,7 @@
 const express = require('express');
 const db = require('./db');
 const { authenticateToken } = require('./auth');
+const privacy = require('./privacy');
 
 const router = express.Router();
 
@@ -38,26 +39,40 @@ function setRealtime(rt) {
 
 /* ── الحقول العامة لأي مستخدم ──
    أي استعلام بيرجّع مستخدم لازم يمرّ من هنا. مفيش email. */
-const PUBLIC_FIELDS = `u.id, u.username, u.display_name, u.avatar_url, u.provider`;
+const PUBLIC_FIELDS = `u.id, u.username, u.display_name, u.avatar_url, u.provider, u.rating, u.rating_rd, u.rating_games`;
 
 /* الحالة النهائية بتجمع القاعدة مع السوكت: القاعدة بتقول آخر حالة
    محفوظة، والسوكت بيقول الحقيقة دلوقتي. السوكت أولى لأنه لحظي. */
-function decorateStatus(row) {
+function decorateStatus(row, viewerId) {
   const live = realtime.statusOf(row.id);
   /* سيرفر واحد (fork mode)، فالسوكت هو الحقيقة الوحيدة للاتصال دلوقتي:
      لو مفيش سوكت مفتوح للمستخدم يبقى offline مهما قال عمود is_online
      (اللي ممكن يكون بايت من قبل ريستارت). last_seen_at بيفضل للعرض
      «آخر ظهور منذ…». */
-  const status = live || 'offline';
+  let status = live || 'offline';
+  const rd = isFinite(row.rating_rd) ? row.rating_rd : 350;
+
+  /* إنفاذ خصوصية العرض بالنسبة للمُشاهد (viewerId): لو المالك مخفي عنه
+     الحالة/آخر ظهور/الصورة/التقييم، بنرجّع قيمة محايدة بدل ما نكشفها. */
+  const owner = row.id;
+  const seeOnline  = viewerId == null || privacy.canSeeOnline(viewerId, owner);
+  const seeLast    = viewerId == null || privacy.canSeeLastActivity(viewerId, owner);
+  const seeAvatar  = viewerId == null || privacy.canSeeAvatar(viewerId, owner);
+  const seeRating  = viewerId == null || privacy.canSeeRating(viewerId, owner);
+  if (!seeOnline) status = 'offline';
+
   return {
     id: row.id,
     username: row.username,
     display_name: row.display_name,
-    avatar_url: row.avatar_url || null,
+    avatar_url: seeAvatar ? (row.avatar_url || null) : null,
     provider: row.provider || 'local',
     status,
     online: status !== 'offline',
-    last_seen_at: row.last_seen_at || null,
+    last_seen_at: seeLast ? (row.last_seen_at || null) : null,
+    rating: seeRating ? Math.round(isFinite(row.rating) ? row.rating : 1500) : null,
+    provisional: seeRating ? (rd > 110) : false,
+    rating_games: seeRating ? (row.rating_games || 0) : 0,
   };
 }
 
@@ -106,7 +121,7 @@ router.get('/search', authenticateToken, (req, res) => {
   `).all(me, like, like, me, me, q);
 
   const out = rows.map(r => {
-    const u = decorateStatus(r);
+    const u = decorateStatus(r, me);
     if (areFriends(me, r.id)) u.relation = 'friend';
     else if (db.prepare(`SELECT 1 FROM friend_requests WHERE sender_id = ? AND receiver_id = ? AND status = 'pending'`).get(me, r.id)) u.relation = 'sent';
     else if (db.prepare(`SELECT 1 FROM friend_requests WHERE sender_id = ? AND receiver_id = ? AND status = 'pending'`).get(r.id, me)) u.relation = 'incoming';
@@ -152,6 +167,11 @@ router.post('/request', authenticateToken, (req, res) => {
   }
 
   try {
+    /* خصوصية المستلِم: مين مسموح له يبعتله طلب صداقة (Everyone/Nobody).
+       بنرجّع نفس رسالة الحظر المبهمة عشان الإعداد مايتحوّلش لأداة كشف. */
+    if (!privacy.canFriendRequest(me, target)) {
+      return res.status(403).json({ error: 'مش ممكن إرسال الطلب' });
+    }
     /* طلب مرفوض قبل كده بيرجع pending تاني بدل ما يقف عند UNIQUE */
     const prev = db.prepare('SELECT id, status FROM friend_requests WHERE sender_id = ? AND receiver_id = ?').get(me, target);
     if (prev && prev.status === 'pending') return res.status(409).json({ error: 'الطلب مبعوت بالفعل' });
@@ -180,7 +200,7 @@ router.get('/requests', authenticateToken, (req, res) => {
     LEFT JOIN presence p ON p.user_id = u.id
     WHERE r.receiver_id = ? AND r.status = 'pending'
     ORDER BY r.created_at DESC
-  `).all(me).map(r => ({ request_id: r.request_id, created_at: r.created_at, user_id: r.id, ...decorateStatus(r) }));
+  `).all(me).map(r => ({ request_id: r.request_id, created_at: r.created_at, user_id: r.id, ...decorateStatus(r, me) }));
 
   const outgoing = db.prepare(`
     SELECT r.id AS request_id, r.created_at, ${PUBLIC_FIELDS}, p.is_online, p.in_game, p.last_seen_at
@@ -188,7 +208,7 @@ router.get('/requests', authenticateToken, (req, res) => {
     LEFT JOIN presence p ON p.user_id = u.id
     WHERE r.sender_id = ? AND r.status = 'pending'
     ORDER BY r.created_at DESC
-  `).all(me).map(r => ({ request_id: r.request_id, created_at: r.created_at, user_id: r.id, ...decorateStatus(r) }));
+  `).all(me).map(r => ({ request_id: r.request_id, created_at: r.created_at, user_id: r.id, ...decorateStatus(r, me) }));
 
   res.json({ incoming, outgoing, count: incoming.length });
 });
@@ -237,7 +257,7 @@ router.get('/', authenticateToken, (req, res) => {
   `).all(me);
 
   const RANK = { online: 0, away: 1, 'in-game': 2, offline: 3 };
-  const out = rows.map(r => ({ ...decorateStatus(r), since: r.since }))
+  const out = rows.map(r => ({ ...decorateStatus(r, me), since: r.since }))
     .sort((a, b) => (RANK[a.status] - RANK[b.status])
       || String(b.last_seen_at || '').localeCompare(String(a.last_seen_at || ''))
       || String(a.display_name || a.username).localeCompare(String(b.display_name || b.username), 'ar'));
@@ -268,6 +288,8 @@ router.post('/invite', authenticateToken, (req, res) => {
   if (to === me) return res.status(400).json({ error: 'مش ممكن تدعي نفسك' });
   if (!areFriends(me, to)) return res.status(403).json({ error: 'ينفع تدعي أصدقاءك بس' });
   if (blockedBetween(me, to)) return res.status(403).json({ error: 'مش ممكن إرسال الدعوة' });
+  /* خصوصية المدعوّ: مين مسموح له يبعتله دعوة لعب (Everyone/Friends/Nobody). */
+  if (!privacy.canGameInvite(me, to)) return res.status(403).json({ error: 'إعدادات الخصوصية عند صاحبك مابتسمحش بالدعوة' });
 
   /* دعوة واحدة حيّة بين الاتنين في الاتجاه ده */
   const live = db.prepare(`SELECT id FROM game_invites WHERE from_id = ? AND to_id = ? AND status = 'pending'`).get(me, to);

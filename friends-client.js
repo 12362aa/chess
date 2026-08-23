@@ -179,7 +179,8 @@ const amkhFriends = {
      لو استهلكت الرسالة، عشان اللي بيناديها يعرف إنها مش محتاجة معالجة
      تانية. */
   handleSocketMessage(d) {
-    if (!d || typeof d.type !== 'string' || !d.type.startsWith('friend:')) return false;
+    if (!d || typeof d.type !== 'string') return false;
+    if (!d.type.startsWith('friend:') && !d.type.startsWith('party:')) return false;
     switch (d.type) {
       case 'friend:presence-update': {
         const f = this._friends.find(x => x.id === d.friend_id);
@@ -238,6 +239,9 @@ const amkhFriends = {
       case 'friend:requests-pending':
         this.loadRequests();
         return true;
+      case 'party:invite':
+        this._showPartyInvite(d);
+        return true;
       default:
         return false;
     }
@@ -292,6 +296,51 @@ const amkhFriends = {
     overlay.querySelector('[data-decline]').onclick = () => { U.sfx(); send('decline'); };
   },
 
+  /* ── دعوة انضمام لحفلة (بديل الإضافة المباشرة لما الخصوصية تمنعها) ──
+     مش زي دعوة اللعب: مالهاش عدّاد لحظي (بتعيش 72 ساعة على السيرفر)،
+     والرد بيروح HTTP لراوتر الحفلات مش على السوكت. */
+  _showPartyInvite(d) {
+    const U = window.amkhUI;
+    const iid = Number(d.invite_id);
+    if (!iid) return;
+    /* نتجنّب تكرار نفس الدعوة لو وصلت مرتين */
+    if (document.querySelector(`[data-party-invite="${iid}"]`)) return;
+    const pname = d.party_name || 'حفلة';
+    const fname = d.from_name || 'صديق';
+
+    const overlay = U.mount('amkh-party-invite-modal', `
+      <div class="ds-dialog fr-invite" data-party-invite="${iid}">
+        <div class="ds-dialog__icon" aria-hidden="true"><i class="ico ico--join"></i></div>
+        <h2 class="ds-dialog__title">دعوة لحفلة</h2>
+        <p class="ds-dialog__message"><b class="fr-invite__name"></b> بيدعيك تنضم لحفلة «<b class="fr-invite__party"></b>»</p>
+        <div class="ds-dialog__actions" style="flex-direction:column;">
+          <button class="ds-btn ds-btn--primary ds-btn--block" data-accept>انضمام</button>
+          <button class="ds-btn ds-btn--ghost ds-btn--block" data-decline>رفض</button>
+        </div>
+      </div>`, { sfx: 'invite' });
+    overlay.querySelector('.fr-invite__name').textContent = fname;
+    overlay.querySelector('.fr-invite__party').textContent = pname;
+
+    const done = async (action) => {
+      U.close(overlay);
+      const r = await this._post(`/groups/party-invite/${iid}/${action}`, {});
+      if (action === 'accept') {
+        if (r && r.ok) U.notify(`انضممت لحفلة «${pname}»`, 'تم', '◉');
+        /* السيرفر بيبعت group:created لكل الأعضاء بعد القبول، وamkhChat
+           بيحدّث صندوق الحفلات لوحده — مش محتاجين نعمل reload هنا. */
+        else U.notify((r && r.error) || 'تعذّر الانضمام', 'لم يتم', '◈');
+      }
+    };
+    overlay.querySelector('[data-accept]').onclick = () => { U.sfx(); done('accept'); };
+    overlay.querySelector('[data-decline]').onclick = () => { U.sfx(); done('decline'); };
+  },
+
+  /* عند فتح التطبيق: هات أي دعوات حفلات معلّقة واعرضها (اللي وصلت والتطبيق مقفول). */
+  async loadPartyInvites() {
+    const list = await this._get('/groups/party-invites');
+    if (Array.isArray(list)) for (const inv of list) this._showPartyInvite(inv);
+  },
+
   _closeInvite(inviteId) {
     const el = document.getElementById('amkh-invite-modal');
     if (!el) return;
@@ -300,6 +349,20 @@ const amkhFriends = {
       if (d && Number(d.dataset.invite) !== Number(inviteId)) return;
     }
     window.amkhUI.close(el);
+  },
+
+  /* المباراة بدأت — نقفل كل نوافذ الدعوة/الأصدقاء على أي طرف: نافذة
+     «تم إرسال الدعوة»، الدعوة الواردة، اختيار اللون، وورقة الأصدقاء
+     اللي تحتهم. بينادَى من index.html عند رسالة start. */
+  closeAllInviteUI() {
+    const U = window.amkhUI;
+    this._outgoingInvite = null;
+    this._invites = [];
+    ['amkh-ui-notify', 'amkh-invite-modal', 'amkh-color-modal', 'amkh-friends-modal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { try { U.close(el); } catch (e) { try { el.remove(); } catch (e2) {} } }
+    });
+    this._sheet = null;
   },
 
   /* ── نافذة اختيار اللون قبل إرسال الدعوة ──
@@ -508,6 +571,14 @@ const amkhFriends = {
     const nm = document.createElement('span');
     nm.className = 'fr-row__name';
     nm.textContent = label;
+    /* شارة تقييم صغيرة جنب الاسم — بتظهر لكل مستخدم زي chess.com */
+    if (user && isFinite(user.rating)) {
+      const rt = document.createElement('span');
+      rt.className = 'fr-row__rating';
+      rt.textContent = Math.round(user.rating) + (user.provisional ? '؟' : '');
+      nm.appendChild(document.createTextNode(' '));
+      nm.appendChild(rt);
+    }
     const st = document.createElement('span');
     st.className = 'fr-row__status' + (statusClass ? ' ' + statusClass : '');
     st.textContent = statusText;

@@ -211,6 +211,27 @@ function migrate() {
   if (addColumn('users', 'avatar_url', 'TEXT')) added.push('users.avatar_url');
   if (addColumn('users', 'google_uid', 'TEXT')) added.push('users.google_uid');
 
+  /* ── تقييم Glicko-2 (أونلاين فقط، مربوط بالحساب للأبد) ──
+     rating/rd/vol = أرقام Glicko-2. rd>110 = تقييم مبدئي (?).
+     rating_games = عدد المباريات المصنّفة. rating_peak = أعلى تقييم.
+     wins/losses/draws = سجل المباريات المصنّفة. */
+  if (addColumn('users', 'rating', 'REAL DEFAULT 1500')) added.push('users.rating');
+  if (addColumn('users', 'rating_rd', 'REAL DEFAULT 350')) added.push('users.rating_rd');
+  if (addColumn('users', 'rating_vol', 'REAL DEFAULT 0.06')) added.push('users.rating_vol');
+  if (addColumn('users', 'rating_games', 'INTEGER DEFAULT 0')) added.push('users.rating_games');
+  if (addColumn('users', 'rating_peak', 'REAL DEFAULT 1500')) added.push('users.rating_peak');
+  if (addColumn('users', 'rating_updated_at', 'TEXT')) added.push('users.rating_updated_at');
+  if (addColumn('users', 'wins', 'INTEGER DEFAULT 0')) added.push('users.wins');
+  if (addColumn('users', 'losses', 'INTEGER DEFAULT 0')) added.push('users.losses');
+  if (addColumn('users', 'draws', 'INTEGER DEFAULT 0')) added.push('users.draws');
+
+  /* ── خصوصية على مستوى الحساب (زي واتساب، تفضل للأبد) ──
+     JSON فيه مفاتيح enum: Everyone|Friends|Nobody. القيم الفاضية = الافتراضي. */
+  if (addColumn('users', 'privacy_json', 'TEXT')) added.push('users.privacy_json');
+
+  /* دعوة اللعب بين الأصدقاء ممكن تكون مصنّفة (تأثّر على التقييم) */
+  if (addColumn('game_invites', 'rated', 'INTEGER DEFAULT 0')) added.push('game_invites.rated');
+
   /* لازم بعد إضافة الأعمدة (عشان الجدول الجديد ياخد نسخة كاملة) وقبل
      إنشاء الفهارس تحت (عشان الفهارس بتتمسح مع الجدول القديم وتترجع) */
   if (dropUsersPasswordHashNotNull()) added.push('users.password_hash → nullable');
@@ -265,6 +286,40 @@ function migrate() {
     );
     CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
     CREATE INDEX IF NOT EXISTS idx_group_messages_grp ON group_messages(group_id, id);
+  `);
+
+  /* ── سجل المباريات المصنّفة (audit + إعادة حساب) ──
+     نخزّن تقييمات ما قبل/بعد المباراة للطرفين + النقلات، عشان نقدر
+     نعيد حساب التاريخ كله لو صلّحنا باج أو غيّرنا الإعدادات. */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS rated_games (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      white_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      black_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      winner      TEXT,                       -- 'white' | 'black' | 'draw'
+      reason      TEXT,
+      w_r_before  REAL, w_rd_before REAL, w_vol_before REAL,
+      b_r_before  REAL, b_rd_before REAL, b_vol_before REAL,
+      w_r_after   REAL, w_rd_after  REAL, w_vol_after  REAL,
+      b_r_after   REAL, b_rd_after  REAL, b_vol_after  REAL,
+      moves       TEXT,
+      created_at  TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_rated_games_w ON rated_games(white_id, id);
+    CREATE INDEX IF NOT EXISTS idx_rated_games_b ON rated_games(black_id, id);
+
+    -- دعوات الحفلات المعلّقة (بديل الإضافة المباشرة لما الخصوصية تمنعها)
+    CREATE TABLE IF NOT EXISTS party_invites (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      party_id    INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+      inviter_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      invitee_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      status      TEXT DEFAULT 'pending',      -- pending | accepted | declined | expired
+      created_at  TEXT DEFAULT (datetime('now')),
+      expires_at  TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_party_invites_invitee ON party_invites(invitee_id, status);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_party_invites_uniq ON party_invites(party_id, invitee_id) WHERE status = 'pending';
   `);
 
 

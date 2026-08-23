@@ -293,8 +293,16 @@ router.post('/avatar', authenticateToken, (req, res) => {
 
 // جلب بيانات المستخدم
 router.get('/me', authenticateToken, (req, res) => {
-  const user = db.prepare('SELECT id, email, display_name, username, provider, avatar_url, created_at, last_login_at FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare(`SELECT id, email, display_name, username, provider, avatar_url, created_at, last_login_at,
+                                  rating, rating_rd, rating_games, rating_peak, wins, losses, draws
+                           FROM users WHERE id = ?`).get(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
+  // ملخّص تقييم جاهز للعرض (provisional لو RD>110)
+  const rd = isFinite(user.rating_rd) ? user.rating_rd : 350;
+  user.rating = Math.round(isFinite(user.rating) ? user.rating : 1500);
+  user.rating_rd = Math.round(rd);
+  user.rating_peak = Math.round(isFinite(user.rating_peak) ? user.rating_peak : 1500);
+  user.provisional = rd > 110;
   res.json(user);
 });
 

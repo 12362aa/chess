@@ -39,6 +39,9 @@ _g*.js
 data.db.bak*
 *.db.bak*
 
+# توكِنات FCM للإشعارات مربوطة بحسابات المستخدمين — بيانات حساسة، ممنوع ترفع لـgit.
+tokens.json
+
 # cloudflared: مش أداة النفق بتاعتنا (بنستخدم ngrok)، وباينري لينكس ممنوع يترفع.
 cloudflared
 cloudflared*

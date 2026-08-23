@@ -12,8 +12,25 @@
 const express = require('express');
 const db = require('./db');
 const { authenticateToken } = require('./auth');
+const privacy = require('./privacy');
 
 const router = express.Router();
+
+/* ── ترقية المخطّط (idempotent): أدوار الأعضaء + سياسة الإرسال + رابط الدعوة ──
+   على غرار إعدادات جروبات واتساب:
+   • group_members.role : 'admin' | 'member' (المالك = groups.owner_id = سوبر أدمن).
+   • groups.send_policy  : 'all' | 'admins' (مين يقدر يبعت — فتح/غلق الحفلة).
+   • groups.invite_token : توكِن رابط الدعوة (NULL = مقفول). */
+function _addColumn(table, col, decl) {
+  try {
+    const cols = db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name);
+    if (!cols.includes(col)) db.prepare(`ALTER TABLE ${table} ADD COLUMN ${col} ${decl}`).run();
+  } catch (e) { /* الجدول ممكن يكون لسه ماتعملش — بيتعمل في db.js قبل الراوتر */ }
+}
+_addColumn('group_members', 'role', `TEXT DEFAULT 'member'`);
+_addColumn('groups', 'send_policy', `TEXT DEFAULT 'all'`);
+_addColumn('groups', 'invite_token', 'TEXT');
+
 
 let realtime = { statusOf() { return null; } };
 function setRealtime(rt) {
@@ -38,6 +55,28 @@ function blockedBetween(a, b) {
 function isMember(groupId, userId) {
   return !!db.prepare('SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?').get(groupId, userId);
 }
+/* المالك (السوبر أدمن) — مايتشالش ومايتنزّلش أبداً. */
+function ownerOf(groupId) {
+  const g = db.prepare('SELECT owner_id FROM groups WHERE id = ?').get(groupId);
+  return g ? g.owner_id : null;
+}
+/* دور العضو الفعلي: 'owner' | 'admin' | 'member' | null (مش عضو). */
+function roleOf(groupId, userId) {
+  const own = ownerOf(groupId);
+  if (own && own === userId) return 'owner';
+  const r = db.prepare('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?').get(groupId, userId);
+  if (!r) return null;
+  return r.role === 'admin' ? 'admin' : 'member';
+}
+/* مشرف = المالك أو أدمن — بيقدر يدير الحفلة. */
+function isAdmin(groupId, userId) {
+  const role = roleOf(groupId, userId);
+  return role === 'owner' || role === 'admin';
+}
+/* توكِن دعوة عشوائي URL-safe. */
+function makeInviteToken() {
+  return require('crypto').randomBytes(12).toString('base64').replace(/[+/=]/g, '').slice(0, 16);
+}
 /* كل user_ids لأعضاء الجروب — لازمة للتوزيع على السوكتات. */
 function memberIds(groupId) {
   return db.prepare('SELECT user_id FROM group_members WHERE group_id = ?').all(groupId).map(r => r.user_id);
@@ -55,7 +94,7 @@ function memberInfo(row) {
 
 /* ملخّص جروب لواجهة القائمة: آخر رسالة + غير المقروء + عدد الأعضاء. */
 function groupSummary(groupId, me) {
-  const g = db.prepare('SELECT id, name, owner_id, avatar_url, created_at FROM groups WHERE id = ?').get(groupId);
+  const g = db.prepare('SELECT id, name, owner_id, avatar_url, created_at, send_policy FROM groups WHERE id = ?').get(groupId);
   if (!g) return null;
   const count = db.prepare('SELECT COUNT(*) AS c FROM group_members WHERE group_id = ?').get(groupId).c;
   const last = db.prepare(`SELECT m.id, m.sender_id, m.body, m.kind, m.created_at, u.display_name, u.username
@@ -69,6 +108,8 @@ function groupSummary(groupId, me) {
     owner_id: g.owner_id,
     avatar_url: g.avatar_url || null,
     members_count: count,
+    send_policy: g.send_policy || 'all',
+    my_role: roleOf(groupId, me),
     last_message: last ? (last.kind === 'voice' ? 'رسالة صوتية' : last.kind === 'image' ? 'صورة' : last.kind === 'video' ? 'فيديو' : last.body) : null,
     last_kind: last ? (last.kind || 'text') : null,
     last_sender: last ? (last.display_name || last.username) : null,
@@ -132,11 +173,20 @@ router.get('/:id/members', authenticateToken, (req, res) => {
   const gid = toId(req.params.id);
   if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
   try {
-    const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.avatar_url
+    const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.avatar_url, gm.role
                              FROM group_members gm JOIN users u ON u.id = gm.user_id
                              WHERE gm.group_id = ? ORDER BY gm.joined_at ASC`).all(gid);
-    const g = db.prepare('SELECT owner_id FROM groups WHERE id = ?').get(gid) || {};
-    res.json({ owner_id: g.owner_id, members: rows.map(memberInfo) });
+    const g = db.prepare('SELECT owner_id, send_policy FROM groups WHERE id = ?').get(gid) || {};
+    const members = rows.map(r => ({
+      ...memberInfo(r),
+      role: r.id === g.owner_id ? 'owner' : (r.role === 'admin' ? 'admin' : 'member'),
+    }));
+    res.json({
+      owner_id: g.owner_id,
+      send_policy: g.send_policy || 'all',
+      my_role: roleOf(gid, me),
+      members,
+    });
   } catch (e) {
     console.error('[groups] members failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
@@ -242,6 +292,263 @@ router.post('/:id/avatar', authenticateToken, (req, res) => {
   }
 });
 
+/* ── إضافة أعضاء بعد الإنشاء ──  body: { members: [userId,...] }
+   أي عضو يقدر يضيف أصدقاءه (زي واتساب افتراضياً). المُضاف لازم يكون صديق
+   للمُضيف ومش محظور. لكن خصوصية المُضاف بتحكم: لو إعداده مايسمحش بالإضافة
+   المباشرة (Friends لغير صديق مباشر أو Nobody) بنبعتله دعوة معلّقة بدل ما
+   نضيفه على طول — ده مطلب المستخدم: "ممنوع حد يضيفه لحفلة بإضافة عادية". */
+router.post('/:id/members', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  const raw = Array.isArray(req.body && req.body.members) ? req.body.members : [];
+  const added = [], invited = [];
+  const gname = (db.prepare('SELECT name FROM groups WHERE id = ?').get(gid) || {}).name || '';
+  try {
+    const add = db.prepare(`INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)`);
+    for (const v of raw) {
+      const uid = toId(v);
+      if (!uid || uid === me) continue;
+      if (isMember(gid, uid)) continue;
+      /* لازم يكون صديقك ومش محظور — أساس زي واتساب. */
+      if (!areFriends(me, uid) || blockedBetween(me, uid)) continue;
+      /* خصوصية المُضاف: مسموح بالإضافة المباشرة؟ */
+      if (privacy.canAddToParty(me, uid)) {
+        const info = add.run(gid, uid);
+        if (info.changes) added.push(uid);
+      } else {
+        if (sendPartyInvite(gid, me, uid)) invited.push(uid);
+      }
+    }
+    if (added.length) {
+      try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:created', group_id: gid, name: gname }, null); } catch (e) {}
+    }
+    res.json({ ok: true, added, invited, members: (db.prepare('SELECT COUNT(*) AS c FROM group_members WHERE group_id = ?').get(gid) || {}).c || 0 });
+  } catch (e) {
+    console.error('[groups] add members failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── دعوات الحفلات المعلّقة (بديل الإضافة المباشرة) ──
+   بتنتهي بعد 72 ساعة (معيار واتساب). بنكنس المنتهية عند القراءة. */
+const PARTY_INVITE_TTL_H = 72;
+
+function expireOldInvites() {
+  try {
+    db.prepare(`UPDATE party_invites SET status = 'expired'
+                WHERE status = 'pending' AND expires_at <= datetime('now')`).run();
+  } catch (e) {}
+}
+
+/* بيعمل دعوة معلّقة (أو بيرجّع الموجودة) ويبلّغ المدعوّ لو متصل. */
+function sendPartyInvite(partyId, inviterId, inviteeId) {
+  expireOldInvites();
+  try {
+    const exists = db.prepare(`SELECT id FROM party_invites
+                               WHERE party_id = ? AND invitee_id = ? AND status = 'pending'`).get(partyId, inviteeId);
+    let inviteId;
+    if (exists) {
+      inviteId = exists.id;
+    } else {
+      const info = db.prepare(`INSERT INTO party_invites (party_id, inviter_id, invitee_id, expires_at)
+                               VALUES (?, ?, ?, datetime('now', '+${PARTY_INVITE_TTL_H} hours'))`)
+                     .run(partyId, inviterId, inviteeId);
+      inviteId = info.lastInsertRowid;
+    }
+    const g = db.prepare('SELECT name, avatar_url FROM groups WHERE id = ?').get(partyId) || {};
+    const from = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(inviterId) || {};
+    try {
+      realtime.notifyUser && realtime.notifyUser(inviteeId, {
+        type: 'party:invite',
+        invite_id: inviteId,
+        party_id: partyId,
+        party_name: g.name || 'حفلة',
+        party_avatar: g.avatar_url || null,
+        from_id: inviterId,
+        from_name: from.display_name || from.username || 'صديق',
+      });
+    } catch (e) {}
+    return true;
+  } catch (e) {
+    console.error('[groups] party invite failed:', e.message);
+    return false;
+  }
+}
+
+/* ── دعوات الحفلات المعلّقة الخاصة بيّ ── */
+router.get('/party-invites', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  expireOldInvites();
+  try {
+    const rows = db.prepare(`SELECT pi.id, pi.party_id, pi.inviter_id, pi.created_at, pi.expires_at,
+                                    g.name AS party_name, g.avatar_url AS party_avatar,
+                                    u.display_name, u.username
+                             FROM party_invites pi
+                             JOIN groups g ON g.id = pi.party_id
+                             JOIN users  u ON u.id = pi.inviter_id
+                             WHERE pi.invitee_id = ? AND pi.status = 'pending'
+                             ORDER BY pi.id DESC`).all(me);
+    res.json(rows.map(r => ({
+      invite_id: r.id,
+      party_id: r.party_id,
+      party_name: r.party_name,
+      party_avatar: r.party_avatar || null,
+      from_id: r.inviter_id,
+      from_name: r.display_name || r.username,
+      created_at: r.created_at,
+      expires_at: r.expires_at,
+    })));
+  } catch (e) {
+    console.error('[groups] party invites list failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── قبول دعوة حفلة → انضمام فعلي ── */
+router.post('/party-invite/:id/accept', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const iid = toId(req.params.id);
+  expireOldInvites();
+  try {
+    const inv = db.prepare(`SELECT * FROM party_invites WHERE id = ? AND invitee_id = ? AND status = 'pending'`).get(iid, me);
+    if (!inv) return res.status(404).json({ error: 'الدعوة منتهية أو غير موجودة' });
+    db.prepare(`UPDATE party_invites SET status = 'accepted' WHERE id = ?`).run(iid);
+    if (!isMember(inv.party_id, me)) {
+      db.prepare('INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)').run(inv.party_id, me);
+      const name = (db.prepare('SELECT name FROM groups WHERE id = ?').get(inv.party_id) || {}).name || '';
+      try { realtime.notifyGroup && realtime.notifyGroup(inv.party_id, { type: 'group:created', group_id: inv.party_id, name }, null); } catch (e) {}
+    }
+    res.json({ ok: true, group_id: inv.party_id, summary: groupSummary(inv.party_id, me) });
+  } catch (e) {
+    console.error('[groups] party invite accept failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── رفض دعوة حفلة ── */
+router.post('/party-invite/:id/decline', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const iid = toId(req.params.id);
+  try {
+    const inv = db.prepare(`SELECT * FROM party_invites WHERE id = ? AND invitee_id = ? AND status = 'pending'`).get(iid, me);
+    if (!inv) return res.status(404).json({ error: 'الدعوة غير موجودة' });
+    db.prepare(`UPDATE party_invites SET status = 'declined' WHERE id = ?`).run(iid);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[groups] party invite decline failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── إزالة عضو (المشرفون فقط، والمالك مايتشالش) ── */
+router.delete('/:id/members/:uid', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  const uid = toId(req.params.uid);
+  if (!gid || !uid || !isAdmin(gid, me)) return res.status(403).json({ error: 'المشرفون بس' });
+  if (uid === ownerOf(gid)) return res.status(400).json({ error: 'ماينفعش تشيل مالك الحفلة' });
+  if (!isMember(gid, uid)) return res.status(404).json({ error: 'مش عضو' });
+  try {
+    db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').run(gid, uid);
+    try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:updated', group_id: gid }, null); } catch (e) {}
+    try { realtime.notifyUser && realtime.notifyUser(uid, { type: 'group:removed', group_id: gid }); } catch (e) {}
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[groups] remove member failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── ترقية/تنزيل مشرف (المشرفون فقط، والمالك ثابت) ──  body: { user_id, make } */
+router.post('/:id/admins', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  const uid = toId(req.body && req.body.user_id);
+  const make = !!(req.body && req.body.make);
+  if (!gid || !uid || !isAdmin(gid, me)) return res.status(403).json({ error: 'المشرفون بس' });
+  if (uid === ownerOf(gid)) return res.status(400).json({ error: 'مالك الحفلة سوبر أدمن دايماً' });
+  if (!isMember(gid, uid)) return res.status(404).json({ error: 'مش عضو' });
+  try {
+    db.prepare('UPDATE group_members SET role = ? WHERE group_id = ? AND user_id = ?')
+      .run(make ? 'admin' : 'member', gid, uid);
+    try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:updated', group_id: gid }, null); } catch (e) {}
+    res.json({ ok: true, role: make ? 'admin' : 'member' });
+  } catch (e) {
+    console.error('[groups] admins failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── سياسة الإرسال: فتح/غلق الحفلة (المشرفون فقط) ──  body: { send_policy: 'all'|'admins' } */
+router.post('/:id/settings', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid || !isAdmin(gid, me)) return res.status(403).json({ error: 'المشرفون بس' });
+  const pol = String((req.body && req.body.send_policy) || '').trim();
+  if (pol !== 'all' && pol !== 'admins') return res.status(400).json({ error: 'قيمة غير صالحة' });
+  try {
+    db.prepare('UPDATE groups SET send_policy = ? WHERE id = ?').run(pol, gid);
+    try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:updated', group_id: gid, send_policy: pol }, null); } catch (e) {}
+    res.json({ ok: true, send_policy: pol });
+  } catch (e) {
+    console.error('[groups] settings failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── رابط الدعوة (المشرفون فقط) ──
+   GET  → التوكِن الحالي (أو null). POST body { enabled, reset } → توليد/تصفير/غلق. */
+router.get('/:id/invite', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid || !isAdmin(gid, me)) return res.status(403).json({ error: 'المشرفون بس' });
+  try {
+    const g = db.prepare('SELECT invite_token FROM groups WHERE id = ?').get(gid) || {};
+    res.json({ ok: true, token: g.invite_token || null });
+  } catch (e) {
+    console.error('[groups] invite get failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+router.post('/:id/invite', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid || !isAdmin(gid, me)) return res.status(403).json({ error: 'المشرفون بس' });
+  const enabled = req.body && req.body.enabled !== undefined ? !!req.body.enabled : true;
+  const reset = !!(req.body && req.body.reset);
+  try {
+    let token = null;
+    if (enabled) {
+      const cur = (db.prepare('SELECT invite_token FROM groups WHERE id = ?').get(gid) || {}).invite_token;
+      token = (cur && !reset) ? cur : makeInviteToken();
+    }
+    db.prepare('UPDATE groups SET invite_token = ? WHERE id = ?').run(token, gid);
+    res.json({ ok: true, token });
+  } catch (e) {
+    console.error('[groups] invite set failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── الانضمام عبر رابط الدعوة ──  أي مستخدم مسجّل. */
+router.post('/join/:token', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const token = String(req.params.token || '').trim();
+  if (!token) return res.status(400).json({ error: 'رابط غير صالح' });
+  try {
+    const g = db.prepare('SELECT id, name FROM groups WHERE invite_token = ?').get(token);
+    if (!g) return res.status(404).json({ error: 'الرابط منتهي أو غير صالح' });
+    if (isMember(g.id, me)) return res.json({ ok: true, group_id: g.id, already: true, summary: groupSummary(g.id, me) });
+    db.prepare('INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)').run(g.id, me);
+    try { realtime.notifyGroup && realtime.notifyGroup(g.id, { type: 'group:updated', group_id: g.id }, null); } catch (e) {}
+    res.json({ ok: true, group_id: g.id, summary: groupSummary(g.id, me) });
+  } catch (e) {
+    console.error('[groups] join failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
 module.exports = router;
 module.exports.setRealtime = setRealtime;
 module.exports.isMember = isMember;
@@ -249,3 +556,5 @@ module.exports.memberIds = memberIds;
 module.exports.areFriends = areFriends;
 module.exports.blockedBetween = blockedBetween;
 module.exports.groupSummary = groupSummary;
+module.exports.roleOf = roleOf;
+module.exports.isAdmin = isAdmin;
