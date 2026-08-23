@@ -345,6 +345,9 @@ const amkhAuth = {
     /* بعد الدخول: اربط توكِن الإشعارات بالحساب عشان توصلك رسايل الأصدقاء
        وأنت غير متصل (السيرفر بيبعت للـuserId). */
     try { if (window.Notifications && window.Notifications._linkTokenToUser) window.Notifications._linkTokenToUser(); } catch (e) {}
+    /* لو المستخدم فتح رابط دعوة حفلة (#join=TOKEN) وهو مش مسجّل دخول،
+       التوكِن اتحفظ في sessionStorage — نكمّل الانضمام دلوقتي بعد الدخول. */
+    try { if (window.amkhChat && window.amkhChat.resumePendingInvite) window.amkhChat.resumePendingInvite(); } catch (e) {}
   },
 
   /* توفيق صورة الملف بين الجهاز والخادم بعد تسجيل الدخول:

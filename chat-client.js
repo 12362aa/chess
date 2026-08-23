@@ -1764,21 +1764,44 @@ const amkhChat = {
     const U = window.amkhUI;
     token = String(token || '').trim();
     if (!token) return;
-    /* لازم تكون مسجّل دخول — نستنى شوية لو التوكِن وصل قبل ما الحساب يجهز. */
+    /* نحفظ التوكِن فورًا: لو المستخدم مش مسجّل دخول لسه، الرابط بيتفتح على
+       الموقع من غير ما ينضم لأي حفلة. بنسيبه محفوظ لحد ما يسجّل الدخول
+       ونستأنف الانضمام تلقائيًا (من setToken في auth-client). */
+    try { sessionStorage.setItem('amkh_pending_invite', token); } catch (e) {}
     const authed = () => { try { return !!(window.amkhAuth && window.amkhAuth.token); } catch (e) { return false; } };
     if (!authed()) {
       const t = (_tries || 0);
-      if (t < 20) { setTimeout(() => this.joinByInvite(token, t + 1), 600); return; }
-      if (U) U.notify('سجّل الدخول الأول عشان تنضم للحفلة', 'دعوة حفلة', '◈');
+      /* محاولات سريعة قليلة تحسبًا إن الحساب لسه بيتحمّل عند الإقلاع. */
+      if (t < 8) { setTimeout(() => this.joinByInvite(token, t + 1), 500); return; }
+      /* بعد كده نبطّل اللف الصامت ونطلب الدخول بوضوح — التوكِن محفوظ. */
+      if (U) U.notify('سجّل الدخول الأول عشان تنضم للحفلة، وهنكمّل تلقائيًا', 'دعوة حفلة', '◈');
       return;
     }
+    /* لازم رابط السيرفر يكون متاح قبل النداء — على الموقع (GitHub Pages)
+       getApiBase بترجع "/api" النسبي قبل تحميل الرابط، فالطلب كان بيروح
+       لـ github.io/api (404) والحفلة ماتتفتحش. _gpost بيضمنه عبر
+       _getAuthHeader، بس بنأكّده هنا كمان قبل إظهار أي مؤشّر. */
+    try { if (window.amkhEnsureServer) await window.amkhEnsureServer(); } catch (e) {}
+    if (U) U.notify('بنضمّك للحفلة…', 'دعوة حفلة', '◉');
     const r = await this._gpost(`/join/${token}`, {});
     if (r && !r.error && r.group_id) {
+      try { sessionStorage.removeItem('amkh_pending_invite'); } catch (e) {}
       const s = r.summary || {};
       this._gmeta[r.group_id] = { name: s.name, members_count: s.members_count, owner_id: s.owner_id, avatar_url: s.avatar_url || null };
       if (r.already) { if (U) U.notify('أنت عضو في الحفلة دي بالفعل', 'دعوة حفلة', '◉'); }
       this.openGroup({ id: r.group_id, name: s.name, members_count: s.members_count, owner_id: s.owner_id, avatar_url: s.avatar_url || null });
-    } else if (U) U.notify((r && r.error) || 'الرابط منتهي أو غير صالح', 'دعوة حفلة', '◈');
+    } else {
+      /* فشل حقيقي (رابط منتهي/شبكة): نمسح التوكِن المعلّق عشان ما نلفّش عليه
+         عند كل تسجيل دخول. */
+      try { sessionStorage.removeItem('amkh_pending_invite'); } catch (e) {}
+      if (U) U.notify((r && r.error) || 'الرابط منتهي أو غير صالح', 'دعوة حفلة', '◈');
+    }
+  },
+  /* يُستدعى بعد تسجيل الدخول (من setToken) عشان يكمّل انضمام حفلة معلّق. */
+  resumePendingInvite() {
+    let tok = null;
+    try { tok = sessionStorage.getItem('amkh_pending_invite'); } catch (e) {}
+    if (tok) this.joinByInvite(tok);
   },
 };
 window.amkhChat = amkhChat;

@@ -103,6 +103,8 @@
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
+/* أيقونة مرسومة جوه زر الشريط (زي كأس لوحة الصدارة) — مقاس متناسق مع الترس */
+.appbar__icon-btn .ico{ width: 22px; height: 22px; }
 
 /* سهم الرجوع — يتقلب تلقائيًا مع اتجاه RTL */
 .appbar__back-glyph{ display: inline-block; }
@@ -3139,6 +3141,7 @@ body[data-ui-theme="minimal"] .home-hero{
 .ico--back     { --ico: var(--icon-back); }
 .ico--settings { --ico: var(--icon-settings); }
 .ico--bot      { --ico: var(--icon-bot); }
+.ico--trophy   { --ico: var(--icon-trophy); }
 
 /* ── 16.1 الطقم الافتراضي (amkh) — هندسة إسلامية ─────────────────────
    نفس معاني الأيقونات القديمة بلغة الثيم: الدوائر بقت مثمّنات، والقلب
@@ -3159,6 +3162,8 @@ body[data-ui-theme="minimal"] .home-hero{
   --icon-back:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linejoin='round'><path d='M20.4 12 H4.6'/><path d='M11.4 5 L4.6 12 L11.4 19'/><path d='M4.6 12 L6.6 9.9'/></svg>");
   --icon-settings:  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M12 2.4 L18.8 5.6 L22 12 L18.8 18.4 L12 21.6 L5.2 18.4 L2 12 L5.2 5.6 Z'/><path d='M12 8 L16 12 L12 16 L8 12 Z'/></svg>");
   --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M6.4 8.8 H17.6 L19.4 10.6 V17.8 L17.6 19.6 H6.4 L4.6 17.8 V10.6 Z'/><path d='M12 8.8 V5.6'/><path d='M10.4 4 L12 2.4 L13.6 4 L12 5.6 Z'/><path d='M8.8 14 h1 M14.2 14 h1'/></svg>");
+  /* كأس/تاج لوحة الصدارة — أيقونة مرسومة (بدون إيموجي) */
+  --icon-trophy:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M7 4 H17 V9 A5 5 0 0 1 7 9 Z'/><path d='M7 5.4 H4.2 V7 A3.2 3.2 0 0 0 7 10.1'/><path d='M17 5.4 H19.8 V7 A3.2 3.2 0 0 1 17 10.1'/><path d='M12 14 V17'/><path d='M8.8 20.4 H15.2 L14.4 17.4 H9.6 Z'/></svg>");
 }
 
 /* ══════════════════════════════════════════════════════════════════════

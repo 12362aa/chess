@@ -3331,6 +3331,12 @@ body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
 
     <div class="appbar__trail">
       <span id="sf-status">SF ...</span>
+      <!-- لوحة الصدارة: مكان ثابت بارز في الشريط العلوي (مش مدفونة في اللعبة).
+           تظهر على الشاشة الرئيسية فقط عن طريق AppBar.sync. -->
+      <button class="appbar__icon-btn" id="appbar-leaderboard" aria-label="لوحة الصدارة"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); Leaderboard.open()">
+        <i class="ico ico--trophy" aria-hidden="true"></i>
+      </button>
       <button class="appbar__icon-btn" id="appbar-settings" aria-label="الإعدادات"
         onclick="if(typeof SFX!=='undefined')SFX.btn();Nav.settings()">⚙</button>
     </div>
@@ -3400,15 +3406,6 @@ body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
         </span>
         <span class="home-tile__title">أونلاين<span class="home-tile__live" aria-hidden="true"></span></span>
         <span class="home-tile__desc">مع صديق في أي مكان</span>
-      </button>
-
-      <button class="home-tile" type="button" data-mode="leaderboard"
-        onclick="if(typeof SFX!=='undefined')SFX.btn(); Leaderboard.open()">
-        <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--levels" aria-hidden="true"></i>
-        </span>
-        <span class="home-tile__title">لوحة الصدارة</span>
-        <span class="home-tile__desc">أفضل اللاعبين حول العالم</span>
       </button>
 
       <button class="home-tile" type="button" data-mode="bluetooth"
@@ -10921,10 +10918,13 @@ const AppBar={
     const innerLead=document.getElementById('appbar-inner-lead');
     const title    =document.getElementById('appbar-title');
     const settings =document.getElementById('appbar-settings');
+    const leaderboard=document.getElementById('appbar-leaderboard');
     const isHome=cfg.context==='home';
 
     if(homeLead) homeLead.style.display =isHome?'':'none';
     if(innerLead)innerLead.style.display=isHome?'none':'';
+    /* لوحة الصدارة تظهر في الشريط العلوي على الرئيسية فقط */
+    if(leaderboard)leaderboard.style.display=isHome?'':'none';
     if(title){
       title.style.display=isHome?'none':'';
       title.textContent=cfg.title||'';
