@@ -442,7 +442,7 @@ const amkhFriends = {
         <div class="ds-sheet__handle" aria-hidden="true"></div>
         <div class="ds-sheet__header">
           <h3 class="ds-sheet__title">الأصدقاء</h3>
-          <button class="ds-sheet__inbox" data-inbox aria-label="الرسايل">${(window.amkhChat && window.amkhChat.ICONS.chat) || '💬'}</button>
+          <button class="ds-sheet__inbox" data-inbox aria-label="الرسايل">${(window.amkhChat && window.amkhChat.ICONS.chat) || '✉'}</button>
           <button class="ds-sheet__close" data-close aria-label="إغلاق">✕</button>
         </div>
         <div class="fr-tabs" role="tablist">
@@ -594,7 +594,7 @@ const amkhFriends = {
     if (user && isFinite(user.rating)) {
       const rt = document.createElement('span');
       rt.className = 'fr-row__rating';
-      rt.textContent = Math.round(user.rating) + (user.provisional ? '؟' : '');
+      rt.textContent = String(Math.round(user.rating));
       nmRow.appendChild(rt);
     }
     const st = document.createElement('span');
@@ -627,7 +627,7 @@ const amkhFriends = {
     chatBtn.className = 'ds-btn ds-btn--ghost ds-btn--sm fr-row__chat';
     chatBtn.setAttribute('aria-label', 'دردشة');
     if (window.amkhChat && window.amkhChat.ICONS) chatBtn.innerHTML = window.amkhChat.ICONS.chat;
-    else chatBtn.textContent = '💬';
+    else chatBtn.textContent = '✉';
     chatBtn.onclick = () => {
       U.sfx();
       if (window.amkhChat) window.amkhChat.openChat(f);

@@ -402,7 +402,7 @@ const amkhChat = {
       this._updateBadge();
       const name = (this._friendMeta[friendId] && this._friendMeta[friendId].name) || 'صديق';
       try { if (window.SFX) window.SFX.chat(); } catch (e) {}
-      window.amkhUI.notify(this._previewOf(d), `💬 ${name}`, '◉');
+      window.amkhUI.notify(this._previewOf(d), name, '◉');
     }
     return true;
   },
@@ -674,7 +674,7 @@ const amkhChat = {
     if (!arr.length) {
       const e = document.createElement('p');
       e.className = 'ch-empty';
-      e.textContent = 'ابدأ المحادثة — قول له سلام 👋';
+      e.textContent = 'ابدأ المحادثة — قول له سلام';
       listEl.appendChild(e);
       return;
     }
@@ -708,7 +708,7 @@ const amkhChat = {
     if (m.mine) {
       const tick = document.createElement('span');
       tick.className = 'ch-tick' + (m.read ? ' is-read' : '') + (m.pending ? ' is-pending' : '');
-      if (m.pending) tick.innerHTML = this.ICONS.clock;   /* أيقونة ساعة مرسومة بدل 🕓 */
+      if (m.pending) tick.innerHTML = this.ICONS.clock;   /* أيقونة ساعة مرسومة */
       else tick.textContent = m.read ? '✓✓' : '✓';
       meta.appendChild(tick);
     }

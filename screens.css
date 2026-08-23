@@ -4207,3 +4207,58 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 .lb-empty{ text-align: center; color: var(--lb-sub); padding: 40px 16px; font-size: .9rem; }
 .lb-prov{ color: var(--lb-sub); font-size: .7rem; }
 
+/* — تحسينات التتويج: أزرار قابلة للنقر + تاج + منصّة متدرّجة — */
+.lb-pod{ position: relative; background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+.lb-pod:active{ transform: translateY(1px); }
+.lb-pod__crown{ display: block; color: var(--lb-gold); line-height: 0; margin-bottom: 2px; filter: drop-shadow(0 2px 6px rgba(232,196,121,.5)); animation: lbCrown 2.4s ease-in-out infinite; }
+.lb-pod__crown svg{ width: 26px; height: 26px; }
+@keyframes lbCrown{ 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-3px) } }
+.lb-pod--1 .lb-pod__av{ box-shadow: 0 0 0 3px rgba(232,196,121,.22), 0 12px 30px rgba(232,196,121,.36); }
+.lb-pod__base{
+  margin-top: 8px; width: 78%; border-radius: 10px 10px 4px 4px;
+  display: grid; place-items: center; font-weight: 900; font-size: 1.1rem; color: #23200f;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.35), 0 8px 16px rgba(0,0,0,.35);
+}
+.lb-pod--1 .lb-pod__base{ height: 50px; background: linear-gradient(180deg, #fce7bf, var(--lb-gold2)); }
+.lb-pod--2 .lb-pod__base{ height: 36px; background: linear-gradient(180deg, #fff, #b9c2d2); }
+.lb-pod--3 .lb-pod__base{ height: 28px; background: linear-gradient(180deg, #f0b982, #b96f34); }
+.lb-pod--me .lb-pod__av{ outline: 2px solid var(--lb-gold); outline-offset: 3px; }
+
+/* — الصفوف كأزرار قابلة للنقر — */
+.lb-list{ display: block; }
+.lb-row{ width: 100%; text-align: start; cursor: pointer; font-family: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+.lb-row:active{ transform: scale(.995); }
+.lb-row:hover{ border-color: rgba(232,196,121,.35); }
+.lb-row__go{ flex: 0 0 auto; color: var(--lb-sub); font-size: 1.4rem; line-height: 1; opacity: .6; }
+
+/* — شريط «ترتيبك» الثابت — */
+.lb-self{
+  position: sticky; bottom: 0; margin-top: 6px;
+  display: flex; align-items: center; gap: 11px; padding: 12px;
+  background: linear-gradient(180deg, rgba(232,196,121,.14), #0e1526);
+  border: 1px solid var(--lb-gold); border-radius: 14px;
+}
+.lb-self__lbl{ flex: 0 0 auto; font-size: .72rem; font-weight: 800; color: var(--lb-gold); }
+.lb-self__mid{ flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.lb-self__name{ font-weight: 700; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-self__note{ font-size: .7rem; color: var(--lb-sub); }
+.lb-self__rating{ flex: 0 0 auto; font-weight: 900; font-size: 1.05rem; color: var(--lb-gold); }
+
+/* — بروفايل لاعب من اللوحة (فاخر متناسق مع اللوحة) — */
+.lb-prof{
+  --lb-gold: #e8c479; --lb-sub: #9aa4bd; --lb-line: rgba(232,196,121,.18);
+  position: relative; width: 100%; max-width: 340px; margin: 0 auto; padding: 26px 22px 22px;
+  text-align: center; color: #f4f1e8; direction: rtl; border-radius: 22px;
+  background: radial-gradient(120% 70% at 50% -10%, rgba(232,196,121,.14), transparent 60%), linear-gradient(180deg,#121a30,#0a0e1a);
+  border: 1px solid var(--lb-line); box-shadow: 0 24px 70px rgba(0,0,0,.6);
+}
+.lb-prof__close{ position: absolute; inset-inline-start: 14px; top: 14px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.06); border: 1px solid var(--lb-line); color: #f4f1e8; font-size: 15px; cursor: pointer; }
+.lb-prof__av{ width: 88px; height: 88px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; background: #1c2540 center/cover no-repeat; border: 3px solid var(--lb-gold); display: grid; place-items: center; color: var(--lb-gold); font-weight: 800; font-size: 2rem; box-shadow: 0 10px 26px rgba(232,196,121,.28); }
+.lb-prof__name{ display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 1.15rem; }
+.lb-prof__rank{ margin-top: 4px; font-size: .85rem; color: var(--lb-gold); font-weight: 700; }
+.lb-prof__stats{ margin-top: 6px; font-size: .8rem; color: var(--lb-sub); }
+.lb-prof__actions{ margin-top: 18px; }
+.lb-prof__hint{ font-size: .82rem; color: var(--lb-sub); }
+.lb-prof__add{ min-width: 180px; }
+
+

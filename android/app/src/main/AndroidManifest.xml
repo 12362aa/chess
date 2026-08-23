@@ -19,6 +19,19 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- App Links: افتح روابط الدعوة داخل التطبيق مباشرة بدون متصفح.
+                 android:autoVerify يخلّي Android يتحقق من
+                 https://12362aa.github.io/.well-known/assetlinks.json (يحوي بصمة
+                 SHA-256 لهذا التطبيق) فيفتح الرابط في التطبيق فورًا بلا نافذة اختيار. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="12362aa.github.io"
+                      android:pathPrefix="/chess" />
+            </intent-filter>
         </activity>
 
         <!-- قناة الإشعار الافتراضية: لو رسالة FCM جت من غير channelId صريح،

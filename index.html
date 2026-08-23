@@ -4098,7 +4098,7 @@ body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
 <!-- CUSTOM ALERT/MODAL -->
 <div id="custom-modal" class="ds-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="ds-dialog">
-    <div id="modal-icon" class="ds-dialog__icon">📢</div>
+    <div id="modal-icon" class="ds-dialog__icon">◈</div>
     <h2 id="modal-title" class="ds-dialog__title">تنبيه</h2>
     <p id="modal-message" class="ds-dialog__message"></p>
     <div id="modal-buttons" class="ds-dialog__actions">
@@ -5267,7 +5267,7 @@ const SettingsAccount = {
     text.appendChild(rec);
     const fill = (d)=>{
       if(!d || !isFinite(d.rating)) return;
-      val.textContent = Math.round(d.rating) + (d.provisional ? ' ؟' : '');
+      val.textContent = Math.round(d.rating);
       const w=d.wins||0, l=d.losses||0, dr=d.draws||0, g=d.rating_games||0;
       rec.textContent = `فوز ${w} · خسارة ${l} · تعادل ${dr}` + (d.rating_peak?` · أعلى تقييم ${Math.round(d.rating_peak)}`:'') + (g?'':' · لسه مالعبتش مباراة مصنّفة');
       try{ window.__myRating={rating:Math.round(d.rating),rd:d.rating_rd,provisional:d.provisional}; }catch(e){}
@@ -6887,44 +6887,114 @@ const Leaderboard = {
         <div class="lb-scroll" id="lb-scroll"><div class="lb-empty">جارٍ التحميل…</div></div>
       </div>`, { sfx: 'account' });
     const box = overlay.querySelector('#lb-scroll');
+    /* نقر على أي لاعب (منصّة أو صف) يفتح بروفايله للتواصل/إضافة صداقة */
+    box.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-uid]');
+      if(el){ try{ if(window.SFX) SFX.btn(); }catch(err){} this._openProfile(el.getAttribute('data-uid')); }
+    });
     try{
       const res = await fetch(`${window.getApiBase()}/leaderboard?limit=100`, { headers:{ 'ngrok-skip-browser-warning':'true' } });
       const data = await res.json();
       const players = (data && data.players) || [];
-      box.innerHTML = this._render(players, meId);
+      this._players = players;
+      box.innerHTML = this._render(players, meId) + this._selfBar(players, meId);
     }catch(e){
       box.innerHTML = '<div class="lb-empty">تعذّر تحميل لوحة الصدارة. تأكد من الاتصال وحاول تاني.</div>';
     }
   },
   _render(players, meId){
     if(!players.length) return '<div class="lb-empty">لسه مفيش مباريات مصنّفة. العب مباراة مصنّفة أونلاين عشان تظهر هنا.</div>';
+    const CROWN='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8l4.5 3L12 5l4.5 6L21 8l-1.6 9.4a1 1 0 0 1-1 .82H5.6a1 1 0 0 1-1-.82L3 8z"/></svg>';
     const top = players.slice(0, 3);
     const rest = players.slice(3);
     let html = '';
     if(top.length){
-      const pod = p => `
-        <div class="lb-pod lb-pod--${p.rank}">
+      const pod = p => {
+        const me=(meId!=null && p.id===meId)?' lb-pod--me':'';
+        return `
+        <button type="button" class="lb-pod lb-pod--${p.rank}${me}" data-uid="${this._esc(p.id)}">
+          ${p.rank===1?`<span class="lb-pod__crown" aria-hidden="true">${CROWN}</span>`:''}
           <div class="lb-pod__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}<span class="lb-pod__medal">${p.rank}</span></div>
           <div class="lb-pod__name">${this._flag(p.country)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(p.name)}</span></div>
-          <div class="lb-pod__rating">${p.rating}${p.provisional?'<span class="lb-prov">؟</span>':''}</div>
-        </div>`;
+          <div class="lb-pod__rating">${Math.round(p.rating)}</div>
+          <div class="lb-pod__base"><span>${p.rank}</span></div>
+        </button>`;
+      };
       html += '<div class="lb-podium">' + top.map(pod).join('') + '</div>';
     }
-    html += rest.map(p => {
-      const wl = `${p.wins}ف ${p.losses}خ ${p.draws}ت`;
-      const me = (meId!=null && p.id===meId) ? ' lb-row--me' : '';
-      return `
-        <div class="lb-row${me}">
+    if(rest.length){
+      html += '<div class="lb-list">' + rest.map(p => {
+        const wl = `${p.wins}ف ${p.losses}خ ${p.draws}ت`;
+        const me = (meId!=null && p.id===meId) ? ' lb-row--me' : '';
+        return `
+        <button type="button" class="lb-row${me}" data-uid="${this._esc(p.id)}">
           <div class="lb-row__rank">${p.rank}</div>
           <div class="lb-row__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}</div>
           <div class="lb-row__mid">
             <div class="lb-row__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span></div>
             <div class="lb-row__meta">${p.games} مباراة · ${wl}</div>
           </div>
-          <div class="lb-row__rating">${p.rating}${p.provisional?'<small>مبدئي</small>':''}</div>
-        </div>`;
-    }).join('');
+          <div class="lb-row__rating">${Math.round(p.rating)}</div>
+          <span class="lb-row__go" aria-hidden="true">‹</span>
+        </button>`;
+      }).join('') + '</div>';
+    }
     return html;
+  },
+  /* شريط «ترتيبك» ثابت أسفل اللوحة لو اللاعب مش ضمن المعروضين */
+  _selfBar(players, meId){
+    if(meId==null) return '';
+    const inList = players.some(p => p.id===meId);
+    if(inList) return '';
+    const r = (window.__myRating && isFinite(window.__myRating.rating)) ? Math.round(window.__myRating.rating) : null;
+    if(r==null) return '';
+    const me = (window.amkhAuth && window.amkhAuth.user) || {};
+    const name = this._esc(me.display_name || me.username || 'أنت');
+    return `
+      <div class="lb-self">
+        <div class="lb-self__lbl">ترتيبك</div>
+        <div class="lb-self__mid"><span class="lb-self__name">${name}</span><span class="lb-self__note">لسه مش ضمن أفضل ${players.length}</span></div>
+        <div class="lb-self__rating">${r}</div>
+      </div>`;
+  },
+  /* نافذة بروفايل لاعب من اللوحة — يقدر يبعتله طلب صداقة مباشرة.
+     صوت مخصّص، وستايل فاخر متناسق مع اللوحة (مش تابع الثيم زيّها). */
+  async _openProfile(uid){
+    const U = window.amkhUI; if(!U) return;
+    const p = (this._players||[]).find(x => String(x.id)===String(uid));
+    if(!p) return;
+    const meId = (window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id) || null;
+    const isMe = (meId!=null && String(p.id)===String(meId));
+    const signedIn = !!(window.amkhAuth && window.amkhAuth.token);
+    const wl = `${p.wins} فوز · ${p.losses} خسارة · ${p.draws} تعادل`;
+    const ov = U.mount('lb-profile', `
+      <div class="lb-prof">
+        <button class="lb-prof__close" data-close aria-label="إغلاق">✕</button>
+        <div class="lb-prof__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}</div>
+        <div class="lb-prof__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span></div>
+        <div class="lb-prof__rank">المركز #${p.rank} · تقييم ${Math.round(p.rating)}</div>
+        <div class="lb-prof__stats">${wl}</div>
+        <div class="lb-prof__actions"></div>
+      </div>`, { sfx: 'account' });
+    const acts = ov.querySelector('.lb-prof__actions');
+    if(isMe){
+      acts.innerHTML = '<div class="lb-prof__hint">ده أنت</div>';
+    }else if(!signedIn){
+      acts.innerHTML = '<div class="lb-prof__hint">سجّل الدخول عشان تبعت طلب صداقة</div>';
+    }else{
+      const btn = document.createElement('button');
+      btn.type='button'; btn.className='ds-btn ds-btn--primary lb-prof__add';
+      btn.textContent='إضافة صديق';
+      btn.onclick = async () => {
+        try{ if(window.SFX) SFX.btn(); }catch(e){}
+        btn.disabled = true; btn.textContent = 'بيتبعت…';
+        let ok=false;
+        try{ ok = await window.amkhFriends.sendRequest(p.id); }catch(e){}
+        btn.textContent = ok ? 'تم إرسال الطلب ✓' : 'تعذّر الإرسال';
+        if(!ok) setTimeout(()=>{ btn.disabled=false; btn.textContent='إضافة صديق'; }, 1600);
+      };
+      acts.appendChild(btn);
+    }
   },
 };
 
@@ -7475,6 +7545,16 @@ const PST={
   K:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]],
 };
 
+/* اسم اللاعب من شريطه بدون شارة التقييم: setBarName بيحط الاسم في
+   span.pb-nm-text والتقييم في span منفصل، فقراية textContent كامل بتطلع
+   «أحمد 1300». بنقرا الـspan لوحده عشان شاشات النتيجة/المراجعة ونافذة
+   نور ما تعاملش التقييم كأنه جزء من الاسم. */
+function pbName(id){
+  const el=document.getElementById(id);
+  if(!el)return '';
+  return (el.querySelector('.pb-nm-text')?.textContent ?? el.textContent ?? '').trim();
+}
+
 const E={
   col:p=>p?p[0]:null, tp:p=>p?p[1]:null, opp:c=>c==='w'?'b':'w',
   inb:(r,c)=>r>=0&&r<8&&c>=0&&c<8, clone:b=>b.map(r=>[...r]),
@@ -7866,38 +7946,38 @@ ${pn}: ${txt}
       if(reply&&reply.length>2){
         this._addMsg(reply,'opp');
       }else{
-        this._addMsg('حاضر! أنا هنا لو احتجت أي شيء 💬','opp');
+        this._addMsg('حاضر! أنا هنا لو احتجت أي شيء','opp');
       }
     }catch(e){
       this._setNourTyping(false);
       console.error('Nour AI error:', e);
-      
+
       // Provide contextual fallback responses based on player message
       const fallbackResponses = [
-        'أنا هنا معك! استمر في اللعب 💪',
-        'حركة ممتازة! استمر هكذا 🎯',
-        'فكر جيداً في النقلة التالية 🤔',
-        'أنت تتحسن مع كل نقلة! 📈',
-        'ركز معي، يمكننا الفوز بهذه المرحلة 🏆',
-        'حاول السيطرة على المركز ♟️',
-        'لا تستسلم! النصر قريب ✨',
-        'أنا أستمتع بالعب معك! 😊'
+        'أنا هنا معك! استمر في اللعب',
+        'حركة ممتازة! استمر هكذا',
+        'فكر جيداً في النقلة التالية',
+        'أنت تتحسن مع كل نقلة!',
+        'ركز معي، يمكننا الفوز بهذه المرحلة',
+        'حاول السيطرة على المركز',
+        'لا تستسلم! النصر قريب',
+        'أنا أستمتع بالعب معك!'
       ];
-      
+
       // Try to give relevant response based on message content
       let fallbackMsg = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
       const userMsg = txt.toLowerCase();
-      
+
       if (userMsg.includes('مرحبا') || userMsg.includes('اهلا')) {
-        fallbackMsg = 'أهلاً بك! مستعد للعب؟ 🎮';
+        fallbackMsg = 'أهلاً بك! مستعد للعب؟';
       } else if (userMsg.includes('كيف')) {
-        fallbackMsg = 'أنا بخير! شكراً لسؤالك 💚';
+        fallbackMsg = 'أنا بخير! شكراً لسؤالك';
       } else if (userMsg.includes('نصيحة') || userMsg.includes('مشورة')) {
-        fallbackMsg = 'حاول السيطرة على مربعات المركز 🎯';
+        fallbackMsg = 'حاول السيطرة على مربعات المركز';
       } else if (userMsg.includes('فزت') || userMsg.includes('فوز')) {
-        fallbackMsg = 'مبروك! لقد لعبت بشكل رائع 🏆';
+        fallbackMsg = 'مبروك! لقد لعبت بشكل رائع';
       } else if (userMsg.includes('خسرت') || userMsg.includes('خسارة')) {
-        fallbackMsg = 'لا بأس! المهم أن تستمر في المحاولة 💪';
+        fallbackMsg = 'لا بأس! المهم أن تستمر في المحاولة';
       }
       
       this._addMsg(fallbackMsg,'opp');
@@ -8301,7 +8381,7 @@ ${pn}: ${txt}
     if(micBtn)micBtn.style.display=(isRemoteMatchMode())?'flex':'none';
     // Show Nour welcome in levels mode
     if(S.mode==='bot'&&S.levelId>=0){
-      this._addMsg('مرحباً! أنا نور. تحدث معي anytime 💬','opp');
+      this._addMsg('مرحباً! أنا نور. تحدث معي في أي وقت','opp');
     }
   },
   hide(){
@@ -9001,8 +9081,8 @@ const REV=(()=>{
     }
     const wAcc=wCount?Math.round(wTotal/wCount):50;
     const bAcc=bCount?Math.round(bTotal/bCount):50;
-    const wName=document.getElementById('nm-w')?.textContent||'الأبيض';
-    const bName=document.getElementById('nm-b')?.textContent||'الأسود';
+    const wName=pbName('nm-w')||'الأبيض';
+    const bName=pbName('nm-b')||'الأسود';
     let highlight='مباراة متوازنة';
     if(wAcc>=90&&bAcc>=90)highlight='مباراة ممتازة من الطرفين!';
     else if(wAcc>bAcc+20)highlight=`${wName} تفوّق بوضوح`;
@@ -9737,7 +9817,7 @@ const R={
       el.appendChild(txt);
       return;
     }
-    const nm=S.turn==='w'?document.getElementById('nm-w').textContent:document.getElementById('nm-b').textContent;
+    const nm=S.turn==='w'?pbName('nm-w'):pbName('nm-b');
     /* على جهازين منفصلين الشريط لازم يخاطب اللاعب مباشرة، مش يسمّي
        صاحب الدور — وإلا يتناقض مع وسم "دورك" على شريط اللاعب. */
     const iAmPlaying=(S.myCol==='w'||S.myCol==='b');
@@ -10135,7 +10215,7 @@ const G={
   _buildStatusLine(result){
     if(result.statusLine)return result.statusLine;
     if(result.winner){
-      const nm=document.getElementById(result.winner==='w'?'nm-w':'nm-b')?.textContent||'الفائز';
+      const nm=pbName(result.winner==='w'?'nm-w':'nm-b')||'الفائز';
       return `${nm} يفوز`;
     }
     return result.message||'تعادل';
@@ -10629,7 +10709,7 @@ const G={
       }
       if(isCheckmate){
         const w=E.opp(S.turn);
-        const nm=w==='w'?document.getElementById('nm-w').textContent:document.getElementById('nm-b').textContent;
+        const nm=w==='w'?pbName('nm-w'):pbName('nm-b');
         setTimeout(()=>{
           if(w==='w'&&S.levelId>=0){
             const stars=LVL.calcStars(S.moveCount,S.levelId);
@@ -11118,7 +11198,7 @@ const OL=(()=>{
     if(rating && isFinite(rating.rating)){
       const s=document.createElement('span');
       s.className='pb-rt';
-      s.textContent=Math.round(rating.rating)+(rating.provisional?'؟':'');
+      s.textContent=String(Math.round(rating.rating));
       el.appendChild(document.createTextNode(' '));
       el.appendChild(s);
     }
@@ -11163,9 +11243,9 @@ const OL=(()=>{
     const dColor=up?'#22c55e':down?'#f87171':'var(--txt-dim,#9aa)';
     const outTxt=d.outcome==='win'?'فوز':d.outcome==='loss'?'خسارة':'تعادل';
     const outIcon=d.outcome==='win'?'★':d.outcome==='loss'?'◆':'◷';
-    const prov=d.provisional?' <span style="opacity:.7;font-size:.7em">مبدئي ؟</span>':'';
+    const prov='';
     const opp=d.opp;
-    const oppLine=opp?`<div class="rtu-opp">تقييم الخصم: <b>${Math.round(opp.rating)}${opp.provisional?' ؟':''}</b></div>`:'';
+    const oppLine=opp?`<div class="rtu-opp">تقييم الخصم: <b>${Math.round(opp.rating)}</b></div>`:'';
     // حدّث النسخة المحلية عشان تبان فورًا في الحساب/شريط الخصم
     try{ window.__myRating={rating:Math.round(d.after),rd:d.rd,provisional:d.provisional}; }catch(e){}
     const ov=U.mount('rating-update', `
@@ -11338,9 +11418,11 @@ const OL=(()=>{
       case 'start':
         /* المباراة بدأت فعلاً — نقفل أي نوافذ دعوة/أصدقاء لسه مفتوحة */
         try{ if(window.amkhFriends && window.amkhFriends.closeAllInviteUI) window.amkhFriends.closeAllInviteUI(); }catch(e){}
-        _oppRatingSnap = d.oppRating||null;
-        _myRatingSnap = d.myRating||null;
-        if(_myRatingSnap){ try{ window.__myRating={rating:Math.round(_myRatingSnap.rating),rd:_myRatingSnap.rd,provisional:_myRatingSnap.provisional}; }catch(e){} }
+        /* التقييم يظهر في شريط اللاعب في المباريات المصنّفة فقط —
+           في الودّية مفيش لازمة لعرضه جنب الأسماء. */
+        _oppRatingSnap = d.rated ? (d.oppRating||null) : null;
+        _myRatingSnap  = d.rated ? (d.myRating||null)  : null;
+        if(d.myRating){ try{ window.__myRating={rating:Math.round(d.myRating.rating),rd:d.myRating.rd,provisional:d.myRating.provisional}; }catch(e){} }
         _go(d.yourColor, d.oppName||'');
         break;
 
@@ -12066,9 +12148,16 @@ const Notifications={
       },220);
     }catch(e){}
   },
-  _handleDeepLink(){
+  _handleDeepLink(srcUrl){
     try{
-      const h=(location.hash||'').trim();
+      /* على الويب: بنقرا الـhash من العنوان الحالي.
+         على التطبيق (App Links): الرابط بيوصل كنص في srcUrl من appUrlOpen،
+         فبناخد الجزء اللي بعد أول # منه. */
+      let h='';
+      if(srcUrl){ const i=String(srcUrl).indexOf('#'); h = i>=0 ? String(srcUrl).slice(i) : ''; }
+      else { h=(location.hash||'').trim(); }
+      h=(h||'').trim();
+      if(!h) return;
       const m=h.match(/#online\?room=([^&]+)/i);
       if(m&&m[1]){
         const code=decodeURIComponent(m[1]);
@@ -12079,7 +12168,7 @@ const Notifications={
       const j=h.match(/#join=([A-Za-z0-9]+)/);
       if(j&&j[1]){
         const tok=j[1];
-        try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+        if(!srcUrl){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} }
         if(window.amkhChat && window.amkhChat.joinByInvite) window.amkhChat.joinByInvite(tok);
       }
     }catch(e){}
@@ -12258,6 +12347,21 @@ function requestNotificationPermission(){
 }
 
 try{Notifications._handleDeepLink();}catch(e){}
+/* App Links على التطبيق: لما ييجي رابط دعوة (https://12362aa.github.io/chess/#...)
+   بيتفتح التطبيق مباشرة عبر intent-filter، والـURL بيوصل هنا من @capacitor/app.
+   بنمرّره لنفس منطق الـdeep-link عشان يدخل الحفلة/الغرفة فورًا. */
+try{
+  const _AppPlug = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if(_AppPlug && _AppPlug.addListener){
+    _AppPlug.addListener('appUrlOpen', (ev)=>{
+      try{ if(ev && ev.url) Notifications._handleDeepLink(ev.url); }catch(e){}
+    });
+    /* لو التطبيق اتفتح من رابط وهو مقفول، ممكن يكون الـURL جه مع أول launch */
+    if(_AppPlug.getLaunchUrl){
+      _AppPlug.getLaunchUrl().then(r=>{ try{ if(r && r.url) Notifications._handleDeepLink(r.url); }catch(e){} }).catch(()=>{});
+    }
+  }
+}catch(e){}
 try{LAN.restoreSession();}catch(e){}
 
 /* ══════════════════════════════════════════════════════════════
