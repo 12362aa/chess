@@ -291,10 +291,22 @@ router.post('/avatar', authenticateToken, (req, res) => {
   res.json({ success: true, avatar_url: url });
 });
 
+// تحديث دولة اللاعب (كود ISO alpha-2، أو فاضي للمسح) — تُستخدم لعلَم لوحة الصدارة
+router.post('/country', authenticateToken, (req, res) => {
+  let code = (req.body && typeof req.body.country === 'string') ? req.body.country.trim().toUpperCase() : '';
+  if (code === '' || code === 'XX') {
+    db.prepare('UPDATE users SET country = NULL WHERE id = ?').run(req.user.id);
+    return res.json({ success: true, country: null });
+  }
+  if (!/^[A-Z]{2}$/.test(code)) return res.status(400).json({ error: 'كود دولة غير صالح' });
+  db.prepare('UPDATE users SET country = ? WHERE id = ?').run(code, req.user.id);
+  res.json({ success: true, country: code });
+});
+
 // جلب بيانات المستخدم
 router.get('/me', authenticateToken, (req, res) => {
   const user = db.prepare(`SELECT id, email, display_name, username, provider, avatar_url, created_at, last_login_at,
-                                  rating, rating_rd, rating_games, rating_peak, wins, losses, draws
+                                  rating, rating_rd, rating_games, rating_peak, wins, losses, draws, country
                            FROM users WHERE id = ?`).get(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   // ملخّص تقييم جاهز للعرض (provisional لو RD>110)

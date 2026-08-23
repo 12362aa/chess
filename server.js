@@ -358,6 +358,46 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+/* ══ لوحة الصدارة العالمية ══
+   ترتيب حسب "التقييم المتحفّظ" (r − 2·RD) بين اللي لعبوا مباراة مصنّفة واحدة على الأقل،
+   وده بيدفع التقييمات المبدئية (RD عالي) لتحت تلقائيًا. حساب-مربوط: الاسم + الأفاتار +
+   التقييم + علَم الدولة (اختيار يدوي). التصميم فاخر وثابت (مش تابع للثيم) على العميل. */
+app.get('/api/leaderboard', (req, res) => {
+  try {
+    let limit = parseInt(req.query.limit, 10);
+    if (!isFinite(limit) || limit <= 0) limit = 100;
+    limit = Math.min(limit, 200);
+    const rows = db.prepare(`
+      SELECT id, display_name, username, avatar_url, country,
+             rating, rating_rd, rating_games, rating_peak, wins, losses, draws
+      FROM users
+      WHERE rating_games >= 1
+      ORDER BY (rating - 2 * rating_rd) DESC, rating_games DESC
+      LIMIT ?`).all(limit);
+    const out = rows.map((u, i) => {
+      const rd = isFinite(u.rating_rd) ? u.rating_rd : 350;
+      return {
+        rank: i + 1,
+        id: u.id,
+        name: u.display_name || u.username || 'لاعب',
+        avatar_url: u.avatar_url || null,
+        country: u.country || null,
+        rating: Math.round(isFinite(u.rating) ? u.rating : 1500),
+        provisional: rd > 110,
+        peak: Math.round(isFinite(u.rating_peak) ? u.rating_peak : 1500),
+        games: u.rating_games || 0,
+        wins: u.wins || 0,
+        losses: u.losses || 0,
+        draws: u.draws || 0,
+      };
+    });
+    res.json({ players: out, updated_at: new Date().toISOString() });
+  } catch (e) {
+    console.error('[leaderboard] failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
 // Groq proxy (keep API key off the frontend)
 app.post('/api/groq/chat', async (req, res) => {
   try {
@@ -666,9 +706,20 @@ function mmRemove(ws) {
   try { mmQueue.delete(ws); } catch (e) {}
 }
 
+function mmSameType(selfEntry, entry) {
+  /* نوع المباراة لازم يتطابق: مصنّفة مع مصنّفة، وودّية مع ودّية.
+     والمصنّفة تتطلب تسجيل دخول الطرفين. */
+  const selfRated = !!(selfEntry && selfEntry.rated);
+  const oppRated = !!(entry && entry.rated);
+  if (selfRated !== oppRated) return false;
+  if (selfRated && !(selfEntry.userId && entry.userId)) return false;
+  return true;
+}
+
 function mmPickOpponent(ws, selfEntry) {
   for (const [ows, entry] of mmQueue) {
     if (ows === ws) continue;
+    if (!mmSameType(selfEntry, entry)) continue;
     const colors = resolveMatchColors(selfEntry?.color, entry?.color);
     if (colors) return { ws: ows, entry, colors };
   }
@@ -681,6 +732,7 @@ function mmRequiredColor(ws, selfEntry) {
   let hasConflict = false;
   for (const [ows, entry] of mmQueue) {
     if (ows === ws) continue;
+    if (!mmSameType(selfEntry, entry)) continue;   /* بس الطوابير من نفس النوع */
     const oppColor = normalizeMatchColor(entry?.color);
     if (oppColor === 'r') return null;
     if (oppColor !== selfColor) return null;
@@ -700,7 +752,7 @@ function mmStartGame(aWs, aInfo, aColor, bWs, bInfo, bColor) {
     code,
     hostId: aId,
     guestId: bId,
-    rated: !!(aId && bId),   // طابور الماتش‑ميكينج مصنّف طالما الطرفين مسجّلين
+    rated: !!(aInfo?.rated && bInfo?.rated && aId && bId),   // مصنّفة بس لو الطرفين اختاروا "مصنّفة" واتسجّلوا
     host: makeMember(aWs, aColor, aInfo?.name || '', aInfo?.deviceId || ''),
     guest: makeMember(bWs, bColor, bInfo?.name || '', bInfo?.deviceId || ''),
     guestColor: bColor,
@@ -1450,7 +1502,7 @@ wss.on('connection', (ws, req) => {
           /* حفلة مقفولة (send_policy='admins'): المشرفون بس يقدروا يبعتوا. */
           const gpol = (db.prepare('SELECT send_policy FROM groups WHERE id = ?').get(gid) || {}).send_policy;
           if (gpol === 'admins' && !groupsRouter.isAdmin(gid, me)) {
-            send(ws, { type: 'group:error', reason: 'closed', client_id: clientId });
+            send(ws, { type: 'group:error', reason: 'closed', client_id: clientId, group_id: gid });
             break;
           }
           const { row } = pushGroupMessage(gid, me, spec, clientId);
@@ -1519,6 +1571,7 @@ wss.on('connection', (ws, req) => {
           /* الماتش‑ميكينج بيجري على سوكت اللعب اللي مش مصادَق عليه بالضرورة،
              فبنقبل التوكن في الرسالة كمصدر بديل للهوية عشان الغرفة تتصنّف. */
           userId: socketUser.get(ws) || userIdFromToken(msg.token) || null,
+          rated: !!msg.rated,
           createdAt: Date.now(),
         };
         mmQueue.set(ws, entry);

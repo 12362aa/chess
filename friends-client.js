@@ -159,7 +159,7 @@ const amkhFriends = {
   /* ── دعوة لمباراة ──
      بتمشي على الـWebSocket مش HTTP: السيرفر لازم يوصّلها للطرف التاني
      لحظيًا، ونفس السوكت هو اللي هيبدأ المباراة لو قبل. */
-  inviteFriend(friendId, name, color) {
+  inviteFriend(friendId, name, color, rated) {
     const ws = this._socket();
     if (!ws) {
       window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت وحاول تاني.', 'غير متصل', '◈');
@@ -168,7 +168,7 @@ const amkhFriends = {
     /* الداعي بيختار لونه زي الأونلاين العادي: أبيض/أسود/عشوائي. السيرفر
        بياخد ده كلون المضيف (الداعي) والمدعو بياخد العكس. */
     const c = (color === 'w' || color === 'b') ? color : 'r';
-    ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: c }));
+    ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: c, rated: !!rated }));
     this._outgoingInvite = { friend_id: friendId, name, at: Date.now() };
     window.amkhUI.notify(`تم إرسال الدعوة لـ${name} — استنى يقبل`, 'تم', '◉');
     return true;
@@ -262,6 +262,7 @@ const amkhFriends = {
         <div class="ds-dialog__icon" aria-hidden="true"><i class="ico ico--online"></i></div>
         <h2 class="ds-dialog__title">دعوة لمباراة</h2>
         <p class="ds-dialog__message"><b class="fr-invite__name"></b> بيدعيك للعب دلوقتي</p>
+        ${invite.rated ? '<p class="fr-invite__rated">★ مباراة مصنّفة — هتأثّر على تقييمك</p>' : ''}
         <div class="fr-invite__timer" aria-hidden="true"><span class="fr-invite__bar"></span></div>
         <p class="fr-invite__left"><span class="fr-invite__n">${seconds}</span> ثانية</p>
         <div class="ds-dialog__actions" style="flex-direction:column;">
@@ -362,6 +363,9 @@ const amkhFriends = {
       const el = document.getElementById(id);
       if (el) { try { U.close(el); } catch (e) { try { el.remove(); } catch (e2) {} } }
     });
+    /* لو أي close رمى خطأ وشِلنا العنصر يدويًا، نعيد حساب قفل التمرير عشان
+       مايتعلّقش overflow:hidden ويجمّد الصفحة. */
+    try { if (window.DSOverlay && window.DSOverlay._syncBodyLock) window.DSOverlay._syncBodyLock(); } catch (e) {}
     this._sheet = null;
   },
 
@@ -372,6 +376,7 @@ const amkhFriends = {
     const U = window.amkhUI;
     return new Promise((resolve) => {
       let chosen = null;
+      let rated = false;
       const overlay = U.mount('amkh-color-modal', `
         <div class="ds-dialog fr-color">
           <div class="ds-dialog__icon" aria-hidden="true">♟</div>
@@ -391,11 +396,20 @@ const amkhFriends = {
               <span class="fr-color__lbl">أسود</span>
             </button>
           </div>
+          <p class="fr-color__sub">نوع المباراة</p>
+          <div class="fr-color__type">
+            <button class="fr-color__tbtn is-active" data-rated="0">ودّية</button>
+            <button class="fr-color__tbtn" data-rated="1">مصنّفة</button>
+          </div>
           <div class="ds-dialog__actions">
             <button class="ds-btn ds-btn--ghost ds-btn--block" data-cancel>إلغاء</button>
           </div>
-        </div>`, { sfx: 'account', onDismiss: () => resolve(chosen) });
+        </div>`, { sfx: 'account', onDismiss: () => resolve(chosen ? { color: chosen, rated } : null) });
       overlay.querySelector('.fr-color__name').textContent = name || 'صديق';
+      const tbtns = overlay.querySelectorAll('[data-rated]');
+      tbtns.forEach((b) => {
+        b.onclick = () => { U.sfx(); rated = b.dataset.rated === '1'; tbtns.forEach(x => x.classList.toggle('is-active', x === b)); };
+      });
       overlay.querySelectorAll('[data-color]').forEach((b) => {
         b.onclick = () => { U.sfx(); chosen = b.dataset.color; overlay._dismiss(); };
       });
@@ -568,21 +582,25 @@ const amkhFriends = {
 
     const info = document.createElement('div');
     info.className = 'fr-row__info';
+    /* صف الاسم: الاسم (يتقصّ لو طويل) + شارة التقييم كعنصر شقيق له مساحته
+       الخاصة، عشان الاسم الطويل مايبلعش التقييم زي ما كان بيحصل. */
+    const nmRow = document.createElement('div');
+    nmRow.className = 'fr-row__nmrow';
     const nm = document.createElement('span');
     nm.className = 'fr-row__name';
     nm.textContent = label;
+    nmRow.appendChild(nm);
     /* شارة تقييم صغيرة جنب الاسم — بتظهر لكل مستخدم زي chess.com */
     if (user && isFinite(user.rating)) {
       const rt = document.createElement('span');
       rt.className = 'fr-row__rating';
       rt.textContent = Math.round(user.rating) + (user.provisional ? '؟' : '');
-      nm.appendChild(document.createTextNode(' '));
-      nm.appendChild(rt);
+      nmRow.appendChild(rt);
     }
     const st = document.createElement('span');
     st.className = 'fr-row__status' + (statusClass ? ' ' + statusClass : '');
     st.textContent = statusText;
-    info.appendChild(nm);
+    info.appendChild(nmRow);
     info.appendChild(st);
     row.appendChild(info);
 
@@ -624,10 +642,10 @@ const amkhFriends = {
     inviteBtn.disabled = !f.online || f.status === 'in-game';
     inviteBtn.onclick = async () => {
       U.sfx();
-      /* اختيار اللون قبل الدعوة — نافذة متخصصة بالثيم */
-      const color = await this._colorChoice(f.display_name || f.username);
-      if (!color) return;
-      if (this.inviteFriend(f.id, f.display_name || f.username, color)) {
+      /* اختيار اللون ونوع المباراة قبل الدعوة — نافذة متخصصة بالثيم */
+      const choice = await this._colorChoice(f.display_name || f.username);
+      if (!choice) return;
+      if (this.inviteFriend(f.id, f.display_name || f.username, choice.color, choice.rated)) {
         inviteBtn.disabled = true;
         inviteBtn.textContent = 'مستني…';
         setTimeout(() => { inviteBtn.disabled = !f.online; inviteBtn.textContent = 'العب'; }, 90000);
@@ -797,7 +815,7 @@ const amkhFriends = {
   /* وقت نسبي بالعربي — نفس صيغ الشاشة الرئيسية */
   _ago(iso) {
     if (!iso) return 'غير متصل';
-    const t = Date.parse(iso);
+    const t = this._parseTs(iso);
     if (!t) return 'غير متصل';
     const m = Math.floor((Date.now() - t) / 60000);
     if (m < 1) return 'كان هنا الآن';
@@ -810,6 +828,18 @@ const amkhFriends = {
     if (d === 1) return 'أمس';
     if (d < 30) return `منذ ${d} يوم`;
     return 'مش متصل من فترة';
+  },
+
+  /* توقيت SQLite (datetime('now')) بيرجع UTC ساذج "YYYY-MM-DD HH:MM:SS" من غير Z،
+     فالمتصفح بيفسّره كتوقيت محلّي → فرق ساعات وهمي في "آخر ظهور".
+     نكشف الصيغة الساذجة ونعتبرها UTC. أما ISO اللي فيه Z/T فبيتفسّر صح. */
+  _parseTs(s) {
+    if (!s) return NaN;
+    s = String(s).trim();
+    if (/[zZ]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s)) return Date.parse(s);
+    const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/.exec(s);
+    if (m) return Date.parse(`${m[1]}T${m[2]}Z`);
+    return Date.parse(s);
   },
 };
 

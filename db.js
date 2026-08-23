@@ -225,6 +225,9 @@ function migrate() {
   if (addColumn('users', 'losses', 'INTEGER DEFAULT 0')) added.push('users.losses');
   if (addColumn('users', 'draws', 'INTEGER DEFAULT 0')) added.push('users.draws');
 
+  /* ── دولة اللاعب (اختيار يدوي من الإعدادات) — كود ISO 3166-1 alpha-2 لعلَم لوحة الصدارة ── */
+  if (addColumn('users', 'country', 'TEXT')) added.push('users.country');
+
   /* ── خصوصية على مستوى الحساب (زي واتساب، تفضل للأبد) ──
      JSON فيه مفاتيح enum: Everyone|Friends|Nobody. القيم الفاضية = الافتراضي. */
   if (addColumn('users', 'privacy_json', 'TEXT')) added.push('users.privacy_json');

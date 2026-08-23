@@ -1612,7 +1612,9 @@ body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
 /* شارة التقييم جنب اسم اللاعب في شريط المباراة */
 .pb-nm .pb-rt{display:inline-block;font-size:11px;font-weight:700;opacity:.85;color:var(--gold2,#e0b34d);vertical-align:middle;}
 .acct-rating__val{font-size:22px;font-weight:800;color:var(--gold2,#e0b34d);}
-.fr-row__rating{display:inline-block;font-size:11px;font-weight:700;color:var(--gold2,#e0b34d);opacity:.9;}
+.fr-row__nmrow{display:flex;align-items:baseline;gap:6px;width:100%;min-width:0;}
+.fr-row__nmrow .fr-row__name{flex:1 1 auto;min-width:0;}
+.fr-row__rating{flex:0 0 auto;display:inline-block;font-size:11px;font-weight:700;color:var(--gold2,#e0b34d);opacity:.9;white-space:nowrap;}
 /* قائمة الخصوصية داخل نافذة الإعدادات */
 .priv-sheet{text-align:right;}
 .priv-list{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px;max-height:56vh;overflow:auto;}
@@ -1623,6 +1625,22 @@ body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
 .priv-row__label{font-size:14px;font-weight:600;}
 .priv-row__val{font-size:12px;font-weight:800;color:var(--gold2,#e0b34d);white-space:nowrap;}
 .priv-opt{margin-bottom:6px;}
+/* اختيار الدولة (يتبع الثيم — نافذة إعدادات) */
+.acct-country__val{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--gold2,#e0b34d);}
+.acct-country__flag{border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.12);display:block;}
+.acct-country__none{opacity:.6;font-weight:600;}
+.country-sheet{text-align:right;}
+.country-search{width:100%;margin:8px 0 6px;}
+.country-list{display:flex;flex-direction:column;gap:2px;max-height:52vh;overflow:auto;}
+.country-row{display:flex;align-items:center;gap:10px;width:100%;
+  background:color-mix(in srgb,var(--gold,#e0b34d) 6%,transparent);border:1px solid color-mix(in srgb,var(--gold,#e0b34d) 14%,transparent);
+  border-radius:10px;padding:10px 12px;cursor:pointer;color:inherit;font:inherit;text-align:right;}
+.country-row:active{transform:scale(.99);}
+.country-row.is-active{border-color:var(--gold2,#e0b34d);background:color-mix(in srgb,var(--gold,#e0b34d) 16%,transparent);}
+.country-row__flag{border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.12);display:block;flex:0 0 auto;}
+.country-row__name{font-size:14px;font-weight:600;}
+.country-row--clear{justify-content:center;color:var(--danger,#e0574d);font-weight:700;}
+.country-empty{text-align:center;opacity:.6;padding:16px;font-size:13px;}
 .chat-msg.voice{background:color-mix(in srgb,var(--teal) 15%,transparent);color:var(--teal2);border:1px solid color-mix(in srgb,var(--teal) 25%,transparent);align-self:flex-start;cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;min-width:120px;}
 .chat-msg.voice.opp{align-self:flex-end;background:color-mix(in srgb,var(--gold) 12%,transparent);border-color:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold2);}
 .chat-msg.voice .v-play{width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--teal) 25%,transparent);display:flex;align-items:center;justify-content:center;font-size:10px;}
@@ -3384,6 +3402,15 @@ body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
         <span class="home-tile__desc">مع صديق في أي مكان</span>
       </button>
 
+      <button class="home-tile" type="button" data-mode="leaderboard"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); Leaderboard.open()">
+        <span class="home-tile__icon" aria-hidden="true">
+          <i class="ico ico--levels" aria-hidden="true"></i>
+        </span>
+        <span class="home-tile__title">لوحة الصدارة</span>
+        <span class="home-tile__desc">أفضل اللاعبين حول العالم</span>
+      </button>
+
       <button class="home-tile" type="button" data-mode="bluetooth"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.bluetooth()">
         <span class="home-tile__icon" aria-hidden="true">
@@ -3787,7 +3814,13 @@ body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
         <div class="copt" id="mco-r" onclick="OL.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
       </div>
       <div id="st-m" class="ost"></div>
-      <div style="display:flex;gap:8px">
+      <p class="flbl" style="margin-top:12px">نوع المباراة</p>
+      <div class="copts" id="mrated-opts">
+        <div class="copt on" id="mrt-casual" onclick="OL.setRated(false)"><span class="ic-t2">◷</span>ودّية</div>
+        <div class="copt"    id="mrt-rated"  onclick="OL.setRated(true)"><span class="ic-t2">★</span>مصنّفة</div>
+      </div>
+      <div class="p2p" style="margin-top:4px;font-size:11px;opacity:.85">المصنّفة تطابقك مع لاعب اختار "مصنّفة" كمان، وتحتاج تسجيل الدخول للطرفين.</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">⊕ ابحث عن خصم</button>
         <button class="btnb" id="btn-mc" style="flex:1;display:none" onclick="OL.mmCancel()">◆ إلغاء</button>
       </div>
@@ -5129,6 +5162,7 @@ const SettingsAccount = {
     box.appendChild(this._identityRow(u));
     box.appendChild(this._usernameRow(u));
     box.appendChild(this._ratingRow(u));
+    box.appendChild(this._countryRow(u));
     box.appendChild(this._privacyRow());
     box.appendChild(this._friendsRow());
     box.appendChild(this._blockedRow());
@@ -5251,6 +5285,141 @@ const SettingsAccount = {
     })();
     return item;
   },
+
+  /* ── الدولة (اختيار يدوي) — بتظهر كعلَم في لوحة الصدارة زي chess.com ──
+     بتتخزّن كود ISO alpha-2 على الحساب، وبتفضل للأبد. */
+  _countryRow(u){
+    const { item } = this._row('دولتك', 'اختَر دولتك عشان يظهر علمك في لوحة الصدارة. اختياري.');
+    item.style.cursor = 'pointer';
+    const val = document.createElement('span');
+    val.className = 'acct-country__val';
+    const paint = (code)=>{
+      val.innerHTML = '';
+      const cc = (code||'').toUpperCase();
+      const entry = cc ? this._COUNTRIES.find(x=>x.c===cc) : null;
+      if(entry){
+        const img = document.createElement('img');
+        img.className = 'acct-country__flag';
+        img.src = `https://flagcdn.com/24x18/${cc.toLowerCase()}.png`;
+        img.srcset = `https://flagcdn.com/48x36/${cc.toLowerCase()}.png 2x`;
+        img.width = 24; img.height = 18; img.alt = '';
+        img.onerror = ()=>{ img.style.display='none'; };
+        val.appendChild(img);
+        const nm = document.createElement('span');
+        nm.textContent = entry.ar;
+        val.appendChild(nm);
+      } else {
+        const nm = document.createElement('span');
+        nm.className = 'acct-country__none';
+        nm.textContent = 'غير محدّدة';
+        val.appendChild(nm);
+      }
+    };
+    paint(u.country);
+    item.appendChild(val);
+    const chev = document.createElement('i');
+    chev.className = 'ico ico--chev';
+    item.appendChild(chev);
+    item.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); this._openCountrySheet(u, paint); };
+    return item;
+  },
+
+  _openCountrySheet(u, onSaved){
+    const U = window.amkhUI;
+    const cur = (u.country||'').toUpperCase();
+    const overlay = U.mount('amkh-country-sheet', `
+      <div class="ds-dialog country-sheet">
+        <h2 class="ds-dialog__title">اختَر دولتك</h2>
+        <input type="text" class="ds-input country-search" placeholder="ابحث عن دولة…" dir="rtl">
+        <div class="ds-list country-list"></div>
+        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--ghost ds-btn--block" data-close>إلغاء</button></div>
+      </div>`, { sfx:'privacy', sheet:true });
+    const list = overlay.querySelector('.country-list');
+    const search = overlay.querySelector('.country-search');
+    const rowHtml = (e)=>`
+      <button class="ds-list__item country-row${e.c===cur?' is-active':''}" data-code="${e.c}">
+        <img class="country-row__flag" src="https://flagcdn.com/24x18/${e.c.toLowerCase()}.png" srcset="https://flagcdn.com/48x36/${e.c.toLowerCase()}.png 2x" width="24" height="18" alt="" onerror="this.style.display='none'">
+        <span class="country-row__name">${e.ar}</span>
+      </button>`;
+    const draw = (q)=>{
+      const qq = (q||'').trim();
+      const items = qq ? this._COUNTRIES.filter(e=>e.ar.includes(qq)||e.c===qq.toUpperCase()) : this._COUNTRIES;
+      let html = '';
+      if(cur && !qq) html += `<button class="ds-list__item country-row country-row--clear" data-code="">مسح الدولة</button>`;
+      html += items.map(rowHtml).join('') || '<div class="country-empty">مفيش نتيجة</div>';
+      list.innerHTML = html;
+      list.querySelectorAll('.country-row').forEach(btn=>{
+        btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); this._saveCountry(btn.dataset.code, u, onSaved, overlay); };
+      });
+    };
+    draw('');
+    search.oninput = ()=> draw(search.value);
+  },
+
+  async _saveCountry(code, u, onSaved, overlay){
+    const U = window.amkhUI;
+    const cc = (code||'').toUpperCase();
+    try{
+      const res = await fetch(`${window.getApiBase()}/country`, {
+        method:'POST',
+        headers:{ 'Authorization':'Bearer '+window.amkhAuth.token, 'ngrok-skip-browser-warning':'true', 'Content-Type':'application/json' },
+        body: JSON.stringify({ country: cc }),
+      });
+      if(res.ok){
+        const d = await res.json().catch(()=>({}));
+        const saved = d.country || null;
+        u.country = saved;
+        try{ if(window.amkhAuth.user){ window.amkhAuth.user.country = saved; localStorage.setItem('amkh_user', JSON.stringify(window.amkhAuth.user)); } }catch(e){}
+        if(onSaved) onSaved(saved);
+        U.close(overlay);
+      } else {
+        U.notify('تعذّر الحفظ', 'لم يتم', '◈');
+      }
+    }catch(e){ U.notify('تأكد من الإنترنت', 'لم يتم', '◈'); }
+  },
+
+
+  /* قائمة الدول (ISO 3166-1 alpha-2) بأسماء عربية — للاختيار اليدوي وعلَم الصدارة */
+  _COUNTRIES: [
+    {c:'EG',ar:'مصر'},{c:'SA',ar:'السعودية'},{c:'AE',ar:'الإمارات'},{c:'QA',ar:'قطر'},
+    {c:'KW',ar:'الكويت'},{c:'BH',ar:'البحرين'},{c:'OM',ar:'عُمان'},{c:'YE',ar:'اليمن'},
+    {c:'IQ',ar:'العراق'},{c:'SY',ar:'سوريا'},{c:'JO',ar:'الأردن'},{c:'LB',ar:'لبنان'},
+    {c:'PS',ar:'فلسطين'},{c:'SD',ar:'السودان'},{c:'LY',ar:'ليبيا'},{c:'TN',ar:'تونس'},
+    {c:'DZ',ar:'الجزائر'},{c:'MA',ar:'المغرب'},{c:'MR',ar:'موريتانيا'},{c:'SO',ar:'الصومال'},
+    {c:'DJ',ar:'جيبوتي'},{c:'KM',ar:'جزر القمر'},{c:'TR',ar:'تركيا'},{c:'IR',ar:'إيران'},
+    {c:'US',ar:'الولايات المتحدة'},{c:'GB',ar:'بريطانيا'},{c:'CA',ar:'كندا'},{c:'FR',ar:'فرنسا'},
+    {c:'DE',ar:'ألمانيا'},{c:'IT',ar:'إيطاليا'},{c:'ES',ar:'إسبانيا'},{c:'PT',ar:'البرتغال'},
+    {c:'NL',ar:'هولندا'},{c:'BE',ar:'بلجيكا'},{c:'CH',ar:'سويسرا'},{c:'AT',ar:'النمسا'},
+    {c:'SE',ar:'السويد'},{c:'NO',ar:'النرويج'},{c:'DK',ar:'الدنمارك'},{c:'FI',ar:'فنلندا'},
+    {c:'IE',ar:'أيرلندا'},{c:'IS',ar:'آيسلندا'},{c:'PL',ar:'بولندا'},{c:'CZ',ar:'التشيك'},
+    {c:'SK',ar:'سلوفاكيا'},{c:'HU',ar:'المجر'},{c:'RO',ar:'رومانيا'},{c:'BG',ar:'بلغاريا'},
+    {c:'GR',ar:'اليونان'},{c:'HR',ar:'كرواتيا'},{c:'RS',ar:'صربيا'},{c:'SI',ar:'سلوفينيا'},
+    {c:'BA',ar:'البوسنة والهرسك'},{c:'MK',ar:'مقدونيا الشمالية'},{c:'AL',ar:'ألبانيا'},{c:'ME',ar:'الجبل الأسود'},
+    {c:'UA',ar:'أوكرانيا'},{c:'RU',ar:'روسيا'},{c:'BY',ar:'بيلاروسيا'},{c:'LT',ar:'ليتوانيا'},
+    {c:'LV',ar:'لاتفيا'},{c:'EE',ar:'إستونيا'},{c:'MD',ar:'مولدوفا'},{c:'GE',ar:'جورجيا'},
+    {c:'AM',ar:'أرمينيا'},{c:'AZ',ar:'أذربيجان'},{c:'CY',ar:'قبرص'},{c:'MT',ar:'مالطا'},
+    {c:'LU',ar:'لوكسمبورغ'},
+    {c:'CN',ar:'الصين'},{c:'JP',ar:'اليابان'},{c:'KR',ar:'كوريا الجنوبية'},{c:'KP',ar:'كوريا الشمالية'},
+    {c:'IN',ar:'الهند'},{c:'PK',ar:'باكستان'},{c:'BD',ar:'بنغلاديش'},{c:'LK',ar:'سريلانكا'},
+    {c:'NP',ar:'نيبال'},{c:'AF',ar:'أفغانستان'},{c:'ID',ar:'إندونيسيا'},{c:'MY',ar:'ماليزيا'},
+    {c:'SG',ar:'سنغافورة'},{c:'TH',ar:'تايلاند'},{c:'VN',ar:'فيتنام'},{c:'PH',ar:'الفلبين'},
+    {c:'MM',ar:'ميانمار'},{c:'KH',ar:'كمبوديا'},{c:'LA',ar:'لاوس'},{c:'MN',ar:'منغوليا'},
+    {c:'KZ',ar:'كازاخستان'},{c:'UZ',ar:'أوزبكستان'},{c:'TM',ar:'تركمانستان'},{c:'KG',ar:'قيرغيزستان'},
+    {c:'TJ',ar:'طاجيكستان'},{c:'AU',ar:'أستراليا'},{c:'NZ',ar:'نيوزيلندا'},{c:'FJ',ar:'فيجي'},
+    {c:'BR',ar:'البرازيل'},{c:'AR',ar:'الأرجنتين'},{c:'CL',ar:'تشيلي'},{c:'CO',ar:'كولومبيا'},
+    {c:'PE',ar:'بيرو'},{c:'VE',ar:'فنزويلا'},{c:'EC',ar:'الإكوادور'},{c:'BO',ar:'بوليفيا'},
+    {c:'PY',ar:'باراغواي'},{c:'UY',ar:'أوروغواي'},{c:'MX',ar:'المكسيك'},{c:'CU',ar:'كوبا'},
+    {c:'DO',ar:'الدومينيكان'},{c:'GT',ar:'غواتيمالا'},{c:'CR',ar:'كوستاريكا'},{c:'PA',ar:'بنما'},
+    {c:'NG',ar:'نيجيريا'},{c:'GH',ar:'غانا'},{c:'KE',ar:'كينيا'},{c:'ET',ar:'إثيوبيا'},
+    {c:'TZ',ar:'تنزانيا'},{c:'UG',ar:'أوغندا'},{c:'ZA',ar:'جنوب أفريقيا'},{c:'ZW',ar:'زيمبابوي'},
+    {c:'ZM',ar:'زامبيا'},{c:'AO',ar:'أنغولا'},{c:'MZ',ar:'موزمبيق'},{c:'CM',ar:'الكاميرون'},
+    {c:'CI',ar:'ساحل العاج'},{c:'SN',ar:'السنغال'},{c:'ML',ar:'مالي'},{c:'NE',ar:'النيجر'},
+    {c:'TD',ar:'تشاد'},{c:'BF',ar:'بوركينا فاسو'},{c:'RW',ar:'رواندا'},{c:'MG',ar:'مدغشقر'},
+    {c:'SS',ar:'جنوب السودان'},{c:'ER',ar:'إريتريا'},{c:'GA',ar:'الغابون'},{c:'CG',ar:'الكونغو'},
+    {c:'CD',ar:'الكونغو الديمقراطية'},{c:'BJ',ar:'بنين'},{c:'TG',ar:'توغو'},{c:'GN',ar:'غينيا'},
+    {c:'MW',ar:'مالاوي'},{c:'BW',ar:'بوتسوانا'},{c:'NA',ar:'ناميبيا'},{c:'MU',ar:'موريشيوس'},
+  ],
+
 
   _row(label, desc){
     const item = document.createElement('div');
@@ -6388,7 +6557,22 @@ function getPlayerDisplayName(){
    والظهور بكلاس is-open عشان الأنيميشن يشتغل في الاتجاهين.
 ══════════════════════════════════════ */
 const DSOverlay={
-  _openCount:0,
+
+  /* قفل تمرير الصفحة بيتحسب من حالة الـDOM الفعلية (أي نافذة .is-open أو
+     نافذة لعب .open) مش من عدّاد. كده لو أي كود شال نافذة مفتوحة من غير
+     close() (زي amkhUI.mount وهو بيعيد البناء) القفل بيتصحّح لوحده ولا
+     يعلَق → مافيش تجمّد تمرير في التطبيق كله. */
+  _syncBodyLock(){
+    const anyOpen = document.querySelector('.ds-overlay.is-open, .is-open')
+      || document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open');
+    if(anyOpen){
+      document.body.classList.add('amkh-modal-open');
+      document.body.style.overflow='hidden';
+    }else{
+      document.body.style.removeProperty('overflow');
+      document.body.classList.remove('amkh-modal-open');
+    }
+  },
 
   open(el){
     if(typeof el==='string')el=document.getElementById(el);
@@ -6402,7 +6586,6 @@ const DSOverlay={
     el.classList.add('is-open');
     /* صوت الفتح المميز — النوع من data-sfx على النافذة (افتراضي default) */
     try{ if(window.SFX&&SFX.modalOpen) SFX.modalOpen(el.dataset.sfx||'default'); }catch(e){}
-    this._openCount++;
     document.body.style.overflow='hidden';
   },
 
@@ -6410,14 +6593,8 @@ const DSOverlay={
     if(typeof el==='string')el=document.getElementById(el);
     if(!el||!el.classList.contains('is-open'))return;
     el.classList.remove('is-open');
-    this._openCount=Math.max(0,this._openCount-1);
-    if(this._openCount===0){
-      /* التجميد بيتشال بس لو مافيش نافذة لعب مفتوحة كمان */
-      if(!document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open')){
-        document.body.style.removeProperty('overflow');
-        document.body.classList.remove('amkh-modal-open');   // آخر نافذة اتقفلت: الحركة ترجع
-      }
-    }
+    /* التجميد بيتشال بس لو مافيش نافذة تانية (خصوصية/لعب) مفتوحة */
+    this._syncBodyLock();
   },
 
   isOpen(el){
@@ -6487,7 +6664,10 @@ function amkhGrabModalFreeze(){
   document.body.style.overflow='hidden';
 }
 function amkhReleaseModalFreeze(){
-  if(DSOverlay._openCount>0)return;
+  /* بيعيد الحساب من حالة الـDOM: لو لسه فيه أي نافذة مفتوحة (DSOverlay
+     أو لعب) القفل يفضل، غير كده يتشال. نفس منطق DSOverlay عشان مايتعارضوش. */
+  try{ if(window.DSOverlay&&DSOverlay._syncBodyLock){ DSOverlay._syncBodyLock(); return; } }catch(e){}
+  if(document.querySelector('.is-open'))return;
   if(document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open'))return;
   document.body.style.removeProperty('overflow');
   document.body.classList.remove('amkh-modal-open');
@@ -6682,6 +6862,73 @@ const ENGINE_PICKER={
     this.close();
     G.startEngineGame(level);
   }
+};
+
+/* ══ لوحة الصدارة العالمية — تصميم فاخر ثابت لا يتبع الثيم ══ */
+const Leaderboard = {
+  _esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
+  _flag(cc){
+    if(!cc || !/^[A-Za-z]{2}$/.test(cc)) return '';
+    const c = cc.toLowerCase();
+    return `<img class="lb-flag" loading="lazy" alt="${this._esc(cc)}" src="https://flagcdn.com/24x18/${c}.png" srcset="https://flagcdn.com/48x36/${c}.png 2x" onerror="this.style.display='none'">`;
+  },
+  _avStyle(url){ return url ? ` style="background-image:url('${String(url).replace(/'/g,"%27")}')"` : ''; },
+  _initial(name){ return this._esc((String(name||'؟').trim()[0]||'؟').toUpperCase()); },
+  async open(){
+    const U = window.amkhUI;
+    if(!U){ return; }
+    try{ if(window.amkhEnsureServer) await window.amkhEnsureServer(); }catch(e){}
+    const meId = (window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id) || null;
+    const overlay = U.mount('amkh-leaderboard', `
+      <div class="lb-root" role="dialog" aria-label="لوحة الصدارة">
+        <div class="lb-head">
+          <button class="lb-head__close" data-close aria-label="إغلاق">✕</button>
+          <span class="lb-head__crown" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l4.5 3L12 5l4.5 6L21 8l-1.6 10.2a1 1 0 0 1-1 .8H5.6a1 1 0 0 1-1-.8L3 8z"/></svg></span>
+          <h2 class="lb-head__title">لوحة الصدارة</h2>
+          <p class="lb-head__sub">أفضل اللاعبين حول العالم — تقييم مصنّف</p>
+        </div>
+        <div class="lb-scroll" id="lb-scroll"><div class="lb-empty">جارٍ التحميل…</div></div>
+      </div>`, { sfx: 'account' });
+    const box = overlay.querySelector('#lb-scroll');
+    try{
+      const res = await fetch(`${window.getApiBase()}/leaderboard?limit=100`, { headers:{ 'ngrok-skip-browser-warning':'true' } });
+      const data = await res.json();
+      const players = (data && data.players) || [];
+      box.innerHTML = this._render(players, meId);
+    }catch(e){
+      box.innerHTML = '<div class="lb-empty">تعذّر تحميل لوحة الصدارة. تأكد من الاتصال وحاول تاني.</div>';
+    }
+  },
+  _render(players, meId){
+    if(!players.length) return '<div class="lb-empty">لسه مفيش مباريات مصنّفة. العب مباراة مصنّفة أونلاين عشان تظهر هنا.</div>';
+    const top = players.slice(0, 3);
+    const rest = players.slice(3);
+    let html = '';
+    if(top.length){
+      const pod = p => `
+        <div class="lb-pod lb-pod--${p.rank}">
+          <div class="lb-pod__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}<span class="lb-pod__medal">${p.rank}</span></div>
+          <div class="lb-pod__name">${this._flag(p.country)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(p.name)}</span></div>
+          <div class="lb-pod__rating">${p.rating}${p.provisional?'<span class="lb-prov">؟</span>':''}</div>
+        </div>`;
+      html += '<div class="lb-podium">' + top.map(pod).join('') + '</div>';
+    }
+    html += rest.map(p => {
+      const wl = `${p.wins}ف ${p.losses}خ ${p.draws}ت`;
+      const me = (meId!=null && p.id===meId) ? ' lb-row--me' : '';
+      return `
+        <div class="lb-row${me}">
+          <div class="lb-row__rank">${p.rank}</div>
+          <div class="lb-row__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}</div>
+          <div class="lb-row__mid">
+            <div class="lb-row__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span></div>
+            <div class="lb-row__meta">${p.games} مباراة · ${wl}</div>
+          </div>
+          <div class="lb-row__rating">${p.rating}${p.provisional?'<small>مبدئي</small>':''}</div>
+        </div>`;
+    }).join('');
+    return html;
+  },
 };
 
 const IDB=(()=>{
@@ -10145,7 +10392,9 @@ const G={
     let opp='';
     try{
       const oc=(S.myCol==='b')?'w':'b';
-      opp=document.getElementById(oc==='w'?'nm-w':'nm-b')?.textContent||'';
+      const bar=document.getElementById(oc==='w'?'nm-w':'nm-b');
+      /* الاسم بس من غير شارة التقييم (لو موجودة) */
+      opp=(bar?.querySelector('.pb-nm-text')?.textContent ?? bar?.textContent ?? '');
     }catch(e){}
     Rec.add({
       mode:S.mode,
@@ -10858,7 +11107,14 @@ const OL=(()=>{
      تخطيط الشريط: الشارة span سطري صغير جوّه نفس عنصر الاسم. */
   function setBarName(barId,name,rating){
     const el=document.getElementById(barId); if(!el) return;
-    el.textContent=name||'';
+    /* الاسم في span مستقل (pb-nm-text) عشان نقدر نقرا الاسم لوحده من غير
+       شارة التقييم — سجل «آخر المباريات» كان بيلقط textContent كله فيطلع
+       «الخصم 1500؟». */
+    el.textContent='';
+    const t=document.createElement('span');
+    t.className='pb-nm-text';
+    t.textContent=name||'';
+    el.appendChild(t);
     if(rating && isFinite(rating.rating)){
       const s=document.createElement('span');
       s.className='pb-rt';
@@ -11034,7 +11290,7 @@ const OL=(()=>{
           try{document.getElementById('btn-mm').style.display='none';}catch(e){}
           try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
           try{
-            send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced,token:OL._tok()});
+            send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced,rated:!!OL.rt,token:OL._tok()});
           }catch(e){
             try{document.getElementById('btn-mm').style.display='inline-flex';}catch(err){}
             try{document.getElementById('btn-mc').style.display='none';}catch(err){}
@@ -11198,6 +11454,9 @@ const OL=(()=>{
       const cas=document.getElementById('rt-casual'), rat=document.getElementById('rt-rated');
       if(cas)cas.classList.toggle('on',!this.rt);
       if(rat)rat.classList.toggle('on',this.rt);
+      const mcas=document.getElementById('mrt-casual'), mrat=document.getElementById('mrt-rated');
+      if(mcas)mcas.classList.toggle('on',!this.rt);
+      if(mrat)mrat.classList.toggle('on',this.rt);
     },
     getHttpBase(){return SERVER_HTTP||'';},
     init(){
@@ -11255,7 +11514,7 @@ const OL=(()=>{
     mmFind(){
       SFX.btn();
       connect(()=>{
-        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w',token:this._tok()});
+        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w',rated:!!this.rt,token:this._tok()});
       });
     },
     mmCancel(){

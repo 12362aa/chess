@@ -364,7 +364,14 @@ const amkhChat = {
       case 'group:updated': return this._onGroupUpdated(d);
       case 'group:error':
         this._onSendError(d, true);
-        window.amkhUI.notify(d.reason === 'not-member' ? 'مش عضو في الحفلة' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
+        if (d.reason === 'closed') {
+          const gid = d.group_id;
+          if (gid != null && this._gmeta[gid]) this._gmeta[gid].send_policy = 'admins';
+          if (gid != null) this._applyChatLock(gid);
+          window.amkhUI.notify('قفل المشرفون الشات — الإرسال متاح للمشرفين فقط', 'الشات مقفول', '◈');
+        } else {
+          window.amkhUI.notify(d.reason === 'not-member' ? 'مش عضو في الحفلة' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
+        }
         return true;
       default: return false;
     }
@@ -948,7 +955,7 @@ const amkhChat = {
       end.appendChild(badge);
     }
     row.appendChild(end);
-    row.onclick = () => { if (window.amkhUI) window.amkhUI.sfx(); this.openGroup({ id: g.id, name: g.name, members_count: g.members_count, owner_id: g.owner_id, avatar_url: g.avatar_url || null }); };
+    row.onclick = () => { if (window.amkhUI) window.amkhUI.sfx(); this.openGroup({ id: g.id, name: g.name, members_count: g.members_count, owner_id: g.owner_id, avatar_url: g.avatar_url || null, send_policy: g.send_policy, my_role: g.my_role }); };
     return row;
   },
 
@@ -1194,9 +1201,11 @@ const amkhChat = {
     if (this._gmeta[gid]) {
       if ('avatar_url' in d) this._gmeta[gid].avatar_url = d.avatar_url || null;
       if (d.name) this._gmeta[gid].name = d.name;
+      if ('send_policy' in d) this._gmeta[gid].send_policy = d.send_policy || 'all';
     }
     if (this._openGroup === gid && this._sheet) {
       this._paintGroupAvatar(this._sheet.querySelector('#ch-grp-av'), this._gmeta[gid] || { avatar_url: d.avatar_url || null });
+      if ('send_policy' in d) this._applyChatLock(gid);
     }
     if (this._sheet && this._sheet.dataset.view === 'inbox') this.showInbox();
     return true;
@@ -1265,7 +1274,7 @@ const amkhChat = {
     const U = window.amkhUI;
     const gid = group.id;
     const _prev = this._gmeta[gid] || {};
-    this._gmeta[gid] = { name: group.name || _prev.name || 'حفلة شطرنجية', members_count: group.members_count || _prev.members_count || 0, owner_id: group.owner_id || _prev.owner_id, avatar_url: (group.avatar_url != null ? group.avatar_url : _prev.avatar_url) || null };
+    this._gmeta[gid] = { name: group.name || _prev.name || 'حفلة شطرنجية', members_count: group.members_count || _prev.members_count || 0, owner_id: group.owner_id || _prev.owner_id, avatar_url: (group.avatar_url != null ? group.avatar_url : _prev.avatar_url) || null, send_policy: (group.send_policy != null ? group.send_policy : _prev.send_policy) || 'all', my_role: group.my_role || _prev.my_role || 'member' };
 
     const overlay = U.mount('amkh-chat-modal', `
       <div class="ds-sheet ch-conv ch-conv--group" id="amkh-chat-panel">
@@ -1339,6 +1348,35 @@ const amkhChat = {
 
     await this._loadGroupHistory(gid, false);
     this._markGroupRead(gid);
+    this._applyChatLock(gid);
+  },
+
+  /* ── غلق الشات زي واتساب: نستبدل حقل الإرسال بشريط ثابت للأعضاء العاديين ── */
+  _applyChatLock(gid) {
+    if (this._openGroup !== gid || !this._sheet) return;
+    const panel = this._sheet.querySelector('#amkh-chat-panel');
+    const input = this._sheet.querySelector('#ch-input');
+    if (!panel || !input) return;
+    const meta = this._gmeta[gid] || {};
+    const isAdmin = meta.my_role === 'owner' || meta.my_role === 'admin';
+    const closed = meta.send_policy === 'admins' && !isAdmin;
+    let banner = this._sheet.querySelector('#ch-closed');
+    if (closed) {
+      /* لو كان بيسجّل صوت، نوقف التسجيل قبل ما نخفي الحقل */
+      if (this._recording) { try { this._stopVoiceRec(false); } catch (e) {} }
+      input.hidden = true;
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'ch-closed';
+        banner.className = 'ch-closed';
+        banner.innerHTML = `<span class="ch-closed__ic">${this.ICONS.lock}</span><span>قفل المشرفون الشات — الإرسال متاح للمشرفين فقط</span>`;
+        panel.appendChild(banner);
+      }
+      banner.hidden = false;
+    } else {
+      input.hidden = false;
+      if (banner) banner.hidden = true;
+    }
   },
 
   _paintGroupSub(el, meta) {
@@ -1677,7 +1715,24 @@ const amkhChat = {
   async _inviteLinkFlow(gid) {
     const U = window.amkhUI;
     let cur = await this._gget(`/${gid}/invite`);
-    const linkOf = t => t ? `${location.origin}${location.pathname}#join=${t}` : '';
+    /* الرابط لازم يفتح من أي مكان في العالم. جوّه التطبيق (Capacitor) بيكون
+       location.origin = https://localhost، وده رابط مالوش أي معنى بره الجهاز.
+       فلو احنا جوّه التطبيق نبني الرابط على موقع الويب العام (GitHub Pages)
+       اللي بيخدم نفس index.html وبيفهم ‎#join=‎. على الويب العادي نفضل نستخدم
+       نفس الصفحة الحالية. */
+    const siteBase = () => {
+      const origin = (location.origin || '');
+      const isApp = /^https?:\/\/localhost/i.test(origin) || /^capacitor:/i.test(origin) || origin === 'null' || origin === '';
+      if (isApp) return (window.SITE_URL || 'https://12362aa.github.io/chess/');
+      let b = origin + location.pathname;
+      return b;
+    };
+    const linkOf = t => {
+      if (!t) return '';
+      let b = siteBase();
+      if (!/\/$/.test(b)) b += (/\.[a-z0-9]+$/i.test(b) ? '' : '/'); // نخلي فيه / قبل الـhash لو مفيش امتداد ملف
+      return `${b}#join=${t}`;
+    };
     const render = (token) => {
       const link = linkOf(token);
       const overlay = U.mount('amkh-grp-invite', `

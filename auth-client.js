@@ -89,7 +89,13 @@ const amkhUI = {
   /* بيرجّع الـoverlay جاهز ومفتوح. الإغلاق بالضغط على الخلفية أو Escape. */
   mount(id, innerHTML, opts) {
     const old = document.getElementById(id);
-    if (old) old.remove();
+    /* لو النافذة القديمة لسه مفتوحة، نقفلها صح الأول عشان قفل التمرير
+       يتصحّح — مش بس نشيلها من الـDOM (ده كان بيخلي التمرير يتجمّد). */
+    if (old) {
+      try { if (window.DSOverlay) window.DSOverlay.close(old); } catch (e) {}
+      old.remove();
+      try { if (window.DSOverlay && window.DSOverlay._syncBodyLock) window.DSOverlay._syncBodyLock(); } catch (e) {}
+    }
     const overlay = document.createElement('div');
     overlay.id = id;
     overlay.className = 'ds-overlay' + ((opts && opts.sheet) ? ' ds-overlay--sheet' : '');
