@@ -8,6 +8,16 @@
 'use strict';
 
 require('dotenv').config();
+
+/* إصلاح دائم لاتصال الذكاء الاصطناعي (نور) عبر Groq:
+   على البيئة دي مفيش مسار IPv6 شغّال لـ api.groq.com (Cloudflare)، فـ fetch
+   بتاع Node كان بيحاول IPv6 ويعلّق لحد ETIMEDOUT رغم إن IPv4 شغّال (curl ينجح).
+   بنجبر Node يفضّل IPv4 ويوقف happy-eyeballs عشان كل النداءات الصادرة
+   (Groq + Firebase…) تمشي على IPv4 مباشرة من غير تعليق. اتأكدنا حيًّا: allam-2-7b
+   بيرجّع 200 بعد الإصلاح، وكان بيرجّع "fetch failed / ETIMEDOUT" قبله. */
+try { require('dns').setDefaultResultOrder('ipv4first'); } catch (e) {}
+try { require('net').setDefaultAutoSelectFamily(false); } catch (e) {}
+
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
