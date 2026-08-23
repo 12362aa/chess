@@ -1590,17 +1590,10 @@ body[data-ui-theme="glass"] .mc-tag{
 .chat-mic.recording{background:rgba(248,113,113,.6);border-color:rgba(248,113,113,.5);color:#fff;animation:pulse 1s infinite;}
 .chat-mic .rec-timer{font-size:10px;margin-right:4px;min-width:24px;text-align:center;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
-/* شات الاونلاين وقت فتح الكيبورد: نثبّت اللوحة فوق الكيبورد بالظبط
-   (بمقدار --kb اللي بنحسبه من visualViewport) عشان تختفي الفجوة/العته
-   البصري ولا تتغطّى خانة الكتابة. الرقعة وتخطيط شاشة اللعب ما بيتغيّروش. */
-body.kb-chat .chat-wrap.show{
-  position:fixed;left:0;right:0;top:auto;bottom:var(--kb,0);
-  width:100%;max-width:100%;height:min(46vh,300px);min-height:0;
-  margin:0;border-radius:14px 14px 0 0;z-index:9999;
-  box-shadow:0 -10px 34px rgba(0,0,0,.55);
-  transition:bottom .12s ease-out;
-}
-body.kb-chat .chat-wrap.show .chat-msgs{flex:1;min-height:0;}
+/* ملاحظة: اتشال تثبيت لوحة الشات كـ overlay فوق الكيبورد (body.kb-chat)
+   لأنه كان بيحوّل الشات لـ position:fixed بارتفاع 46vh عائم فوق الرقعة على
+   الأندرويد (الكيبورد مش بيصغّر visualViewport في الويب-فيو)، فيقصّ الرقعة
+   ويعمل عته بصري. رجّعنا الشات لسلوكه الأصلي: لوحة داخل تدفّق شاشة اللعب. */
 /* نافذة تحديث التقييم (مصنّفة) — تتبع الثيم عبر متغيّرات التصميم */
 .ds-dialog.rtu{text-align:center;}
 .rtu-big{font-size:44px;font-weight:800;line-height:1.1;margin:6px 0 2px;letter-spacing:.5px;}
@@ -12375,34 +12368,11 @@ try{
 try{LAN.restoreSession();}catch(e){}
 
 /* ══════════════════════════════════════════════════════════════
-   شات الاونلاين + الكيبورد: على الأندرويد فتح الكيبورد بيزحلق الشاشة
-   (adjustPan) فتظهر فجوة/عته بصري فوق الكيبورد وخانة الكتابة تتغطّى.
-   بنستخدم visualViewport عشان نثبّت لوحة الشات فوق الكيبورد بالظبط
-   طول ما خانة الكتابة مركّز عليها، وبنرجّعها زي ما كانت أول ما يتقفل
-   الكيبورد — من غير ما نلمس مقاس الرقعة أو تخطيط شاشة اللعب إطلاقًا.
+   (اتشال ChatKB اللي كان بيثبّت لوحة الشات فوق الكيبورد)
+   كان بيضيف body.kb-chat عند التركيز على خانة الكتابة فيحوّل الشات
+   لـ overlay ثابت عائم فوق الرقعة ويبوّظ التخطيط. الشات دلوقتي لوحة
+   عادية داخل تدفّق شاشة اللعب زي ما كان بالظبط.
 ══════════════════════════════════════════════════════════════ */
-const ChatKB={
-  init(){
-    const vv=window.visualViewport;
-    document.addEventListener('focusin',e=>{ if(e.target&&e.target.id==='chat-inp'){ document.body.classList.add('kb-chat'); this._sync(); setTimeout(()=>this._sync(),250);} });
-    document.addEventListener('focusout',e=>{ if(e.target&&e.target.id==='chat-inp') setTimeout(()=>{ if(document.activeElement&&document.activeElement.id==='chat-inp')return; this._off(); },80); });
-    if(vv){ vv.addEventListener('resize',()=>this._sync()); vv.addEventListener('scroll',()=>this._sync()); }
-  },
-  _sync(){
-    if(!document.body.classList.contains('kb-chat'))return;
-    const vv=window.visualViewport;
-    let kb=0;
-    if(vv) kb=Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
-    document.body.style.setProperty('--kb', kb+'px');
-    const el=document.getElementById('chat-msgs');
-    if(el) el.scrollTop=el.scrollHeight;
-  },
-  _off(){
-    document.body.classList.remove('kb-chat');
-    document.body.style.removeProperty('--kb');
-  }
-};
-try{ ChatKB.init(); }catch(e){}
 
 window.addEventListener('beforeunload',()=>{
   try{CHAT._stopRecording();}catch(e){}
