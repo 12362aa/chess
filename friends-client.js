@@ -11,6 +11,17 @@
      بتتحمّل مرة وبعد كده أي تغيير جاي من السيرفر بيعدّل السطر بس.
    • كل زر بيتقفل وهو شغّال، عشان دبل-كليك مايبعتش طلبين.
 ══════════════════════════════════════════════════════════════════════ */
+
+/* اسم العرض الموحّد في الأونلاين (#145): مسجّل بجوجل → اسم جوجل (display_name)؛
+   مسجّل يدوي (بريد/باسورد) → الاسم المستعار (username) اللي بيتعدّل من الإعدادات.
+   السبب: التسجيل اليدوي بيخزّن display_name وقت التسجيل، وتغيير الاسم المستعار
+   بيحدّث username بس — فلو قدّمنا display_name كان هيظهر الاسم القديم بدل المستعار. */
+window.amkhName = function (u) {
+  if (!u) return 'صديق';
+  if (u.provider === 'google') return u.display_name || u.username || 'صديق';
+  return u.username || u.display_name || 'صديق';
+};
+
 const amkhFriends = {
   _friends: [],
   _requests: { incoming: [], outgoing: [] },
@@ -194,11 +205,11 @@ const amkhFriends = {
       }
       case 'friend:request-received':
         this.loadRequests().then(() => { if (this._sheet) this._render(); });
-        if (d.from) window.amkhUI.notify(`${d.from.display_name || d.from.username} عايز يضيفك صديق`, 'طلب صداقة', '◉');
+        if (d.from) window.amkhUI.notify(`${window.amkhName(d.from)} عايز يضيفك صديق`, 'طلب صداقة', '◉');
         return true;
       case 'friend:added':
         this.loadFriends().then(() => { if (this._sheet) this._render(); });
-        if (d.friend) window.amkhUI.notify(`${d.friend.display_name || d.friend.username} بقى صديقك`, 'صداقة جديدة', '◉');
+        if (d.friend) window.amkhUI.notify(`${window.amkhName(d.friend)} بقى صديقك`, 'صداقة جديدة', '◉');
         return true;
       case 'friend:removed':
         this.loadFriends().then(() => { if (this._sheet) this._render(); });
@@ -254,7 +265,7 @@ const amkhFriends = {
     const U = window.amkhUI;
     this._invites = this._invites.filter(i => i.id !== invite.id).concat([invite]);
     const from = invite.from || {};
-    const name = from.display_name || from.username || 'صديق';
+    const name = window.amkhName(from);
     const seconds = Number(invite.expires_in) || 90;
 
     const overlay = U.mount('amkh-invite-modal', `
@@ -579,7 +590,7 @@ const amkhFriends = {
     const av = document.createElement('span');
     av.className = 'fr-row__av';
     av.setAttribute('aria-hidden', 'true');
-    const label = String(user.display_name || user.username || '؟').trim();
+    const label = String(window.amkhName(user) || '؟').trim();
     const initial = label.slice(0, 1).toUpperCase();
     /* أفاتار حقيقي لو الخادم رجّع صورة (data URL للمستخدم العادي أو رابط
        جوجل)، وإلا الحرف الأول. أي فشل تحميل يرجع للحرف تلقائيًا. */
@@ -659,9 +670,9 @@ const amkhFriends = {
     inviteBtn.onclick = async () => {
       U.sfx();
       /* اختيار اللون ونوع المباراة قبل الدعوة — نافذة متخصصة بالثيم */
-      const choice = await this._colorChoice(f.display_name || f.username);
+      const choice = await this._colorChoice(window.amkhName(f));
       if (!choice) return;
-      if (this.inviteFriend(f.id, f.display_name || f.username, choice.color, choice.rated, choice.tc)) {
+      if (this.inviteFriend(f.id, window.amkhName(f), choice.color, choice.rated, choice.tc)) {
         inviteBtn.disabled = true;
         inviteBtn.textContent = 'مستني…';
         setTimeout(() => { inviteBtn.disabled = !f.online; inviteBtn.textContent = 'العب'; }, 90000);
@@ -677,7 +688,7 @@ const amkhFriends = {
     more.textContent = '⋯';
     more.onclick = async () => {
       U.sfx();
-      const name = f.display_name || f.username;
+      const name = window.amkhName(f);
       const choice = await this._menu(more, [
         { key: 'remove', label: 'إزالة من الأصدقاء' },
         { key: 'block', label: 'حظر' },

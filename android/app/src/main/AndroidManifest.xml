@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -48,12 +49,33 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- #151: خدمة FCM مخصّصة تورث خدمة إضافة Capacitor وتفوّض ليها كل
+             الرسايل العادية، وتبني إشعار مكالمة بأزرار رد/رفض للـ kind=call.
+             نشيل تسجيل خدمة الإضافة (نفس فلتر MESSAGING_EVENT) عشان خدمتنا هي
+             الوحيدة اللي تستقبل، وهي أصلاً بتنادي super فمفيش تغيير في السلوك. -->
+        <service
+            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
+            tools:node="remove" />
+        <service
+            android:name=".FcmService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <receiver
+            android:name=".CallActionReceiver"
+            android:exported="false" />
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- #151: إشعار المكالمة الواردة بملء الشاشة (مطلوب على أندرويد 14+) + اهتزاز -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Microphone: online voice chat (getUserMedia in the WebView).
          Capacitor's WebChromeClient maps the WebView audio-capture request to
@@ -62,6 +84,16 @@
          «لا يمكن الوصول للميكروفون». -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- Camera: video calls (getUserMedia video in the WebView) #160.
+         Capacitor's WebChromeClient.onPermissionRequest maps the WebView
+         video-capture request to this runtime permission and prompts the
+         user — without it declared getUserMedia({video}) throws NotAllowed.
+         camera hardware is optional so the app still installs on cameraless
+         devices (audio calls keep working). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
     <!-- Bluetooth Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />

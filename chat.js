@@ -27,6 +27,15 @@ function toId(v) {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+/* اسم العرض في الأونلاين: مستخدم جوجل → الاسم من جوجل (display_name)؛ غير كده
+   → الاسم المستعار (username) من الإعدادات. نفس قاعدة resolveOnlineName في
+   server.js/groups.js عشان الاسم يبقى موحَّد. */
+function resolveOnlineName(row) {
+  if (!row) return 'صديق';
+  if (row.provider === 'google') return row.display_name || row.username || 'صديق';
+  return row.username || row.display_name || 'صديق';
+}
+
 /* مفتاح المحادثة: نفس القيمة للطرفين مهما كان اتجاه الرسالة. */
 function convoKey(a, b) {
   const x = Number(a), y = Number(b);
@@ -115,9 +124,9 @@ router.get('/history', authenticateToken, (req, res) => {
     if (!id) return null;
     const r = db.prepare('SELECT id, sender_id, body, kind FROM messages WHERE id = ?').get(id);
     if (!r) return null;
-    const u = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(r.sender_id) || {};
+    const u = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(r.sender_id) || {};
     const preview = r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120);
-    return { id: r.id, from: r.sender_id, name: u.display_name || u.username || 'صديق', kind: r.kind || 'text', preview };
+    return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview };
   };
 
   try {
@@ -212,10 +221,10 @@ router.get('/message-info', authenticateToken, (req, res) => {
     if (m.sender_id !== me) return res.status(403).json({ error: 'مش متاح' });
     let listened = [];
     if (m.kind === 'voice') {
-      listened = db.prepare(`SELECT v.user_id AS id, v.played_at AS at, u.display_name, u.username, u.avatar_url
+      listened = db.prepare(`SELECT v.user_id AS id, v.played_at AS at, u.display_name, u.username, u.provider, u.avatar_url
                              FROM voice_plays v JOIN users u ON u.id = v.user_id
                              WHERE v.scope = 'dm' AND v.message_id = ? ORDER BY v.played_at ASC`).all(id)
-                   .map(r => ({ id: r.id, name: r.display_name || r.username || 'صديق', avatar_url: r.avatar_url || null, at: r.at }));
+                   .map(r => ({ id: r.id, name: resolveOnlineName(r), avatar_url: r.avatar_url || null, at: r.at }));
     }
     res.json({
       scope: 'friend', kind: m.kind || 'text',

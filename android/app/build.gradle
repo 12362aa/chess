@@ -7,7 +7,7 @@ android {
         applicationId "com.amkh.chess"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 17
+        versionCode 21
         versionName "3.10"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -41,6 +41,11 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
     implementation 'com.google.android.gms:play-services-nearby:19.3.0'
+    // #151: firebase-messaging على مسار ترجمة موديول التطبيق عشان نقدر نرِث
+    //       MessagingService (اللي بترث FirebaseMessagingService) في FcmService.
+    //       إضافة الـpush بتضمّنه كـimplementation فمابيتصدّرش للتطبيق. نفس
+    //       الإصدار والنُّسق بالظبط عشان يتحلّ لنسخة واحدة بلا تعارض.
+    implementation "com.google.firebase:firebase-messaging:${project.hasProperty('firebaseMessagingVersion') ? rootProject.ext.firebaseMessagingVersion : '25.0.1'}"
 }
 
 apply from: 'capacitor.build.gradle'

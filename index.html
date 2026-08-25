@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
 <meta name="screen-orientation" content="portrait">
 <meta name="theme-color" content="#0a0a14">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -41,6 +41,12 @@
   --glow-teal:rgba(45,212,191,.3);
   --custom-board: none;
 }
+/* ── View Transition لتبديل الثيم: تلاشٍ ذرّي (fade) بين الثيم القديم
+   والجديد. بيمنع «الوميض» اللي كان بيبان لما الـWebView يعيد رسم الصفحة
+   كلها عند تغيير متغيّرات الثيم. مربوط بكلاس vt-theme اللي بيتحط لحظيًا في
+   uiTheme(). مدّة قصيرة عشان يحس فوري مش بطيء. */
+html.vt-theme::view-transition-old(root),
+html.vt-theme::view-transition-new(root){ animation-duration:.22s; animation-timing-function:ease; }
 /* ── متغيّرات كل ثيم على body — نفس قيم UI_THEMES بالظبط ──
    وجودها في CSS (مش في JS بس) بيخلّي الثيم يظهر صح من أول رسم، من غير
    وميض مظهر amkh الافتراضي (اللي في :root) لحد ما الـJS يشتغل — خصوصًا
@@ -95,16 +101,30 @@ body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;
   min-height:100dvh;overflow-x:hidden;overflow-y:auto;
   -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;}
 
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+/* #140: طبقات خلفية الثيم مثبّتة على 100lvh (الارتفاع الأكبر الثابت) بدل
+   inset:0. مع viewport=resizes-content الكيبورد بيصغّر الـlayout viewport
+   (وده مقصود عشان لوحة الشات تفضل فوقه)، فطبقة fixed:inset:0 كان بيتغيّر
+   ارتفاعها فتتعاد رسمة الخلفية التقيلة = ومضة (أوضحها gaming/cyber/anime).
+   100lvh ثابت مهما ظهر الكيبورد فالخلفية ما تتغيّرش أبدًا، وtranslateZ
+   بيعزلها على طبقة GPU مستقلة فالـresize بيعيد تركيبها لا رسمها. */
+body::before{content:'';position:fixed;left:0;right:0;top:0;height:100vh;height:100lvh;z-index:0;pointer-events:none;transform:translateZ(0);-webkit-transform:translateZ(0);
   background:
     radial-gradient(ellipse 80% 50% at 10% 10%,rgba(201,168,76,.1) 0%,transparent 55%),
     radial-gradient(ellipse 60% 40% at 90% 90%,rgba(45,212,191,.07) 0%,transparent 55%),
     radial-gradient(ellipse 50% 60% at 50% 50%,rgba(96,165,250,.03) 0%,transparent 60%);
   animation:bgShift 12s ease-in-out infinite alternate;}
 @keyframes bgShift{0%{opacity:1;}50%{opacity:.7;}100%{opacity:1;}}
-body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+body::after{content:'';position:fixed;left:0;right:0;top:0;height:100vh;height:100lvh;z-index:0;pointer-events:none;transform:translateZ(0);-webkit-transform:translateZ(0);
   background-image:linear-gradient(rgba(201,168,76,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.018) 1px,transparent 1px);
   background-size:48px 48px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);}
+
+/* #140: لحظة ظهور/اختفاء الكيبورد نجمّد أنيميشن الطبقات الزخرفية فقط
+   (الخلفية + الجسيمات) عشان ما يحصلش أي حركة أثناء تغيّر التخطيط المفاجئ.
+   كلاس مؤقت (~260ms) يضيفه/يشيله JS حوالين تغيّر ارتفاع الـviewport.
+   مابنلمسش الـbackdrop-filter (تعطيله بيعمل ومضة عكسية) ولا التخطيط. */
+html.kb-shift body::before,
+html.kb-shift body::after,
+html.kb-shift .particle{animation-play-state:paused !important;}
 
 /* UI theme effect layers */
 body[data-ui-theme="cyberpunk"]::before{
@@ -565,7 +585,7 @@ body[data-ui-theme="cyberpunk"] .rv-close{
 }
 
 .particle{position:fixed;pointer-events:none;z-index:0;border-radius:50%;animation:particleFloat linear infinite;}
-@keyframes particleFloat{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:.4;}100%{transform:translateY(-10vh) rotate(720deg);opacity:0;}}
+@keyframes particleFloat{0%{transform:translateY(100lvh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:.4;}100%{transform:translateY(-10lvh) rotate(720deg);opacity:0;}}
 
 /* ══════════ BANNER ══════════ */
 #banner{position:fixed;top:0;left:0;right:0;height:36px;z-index:9999;
@@ -3788,8 +3808,8 @@ body[data-ui-theme="glass"] .mc-tag{
       <p class="flbl" style="margin-top:10px">زمن المباراة</p>
       <div class="copts tc-opts" id="tc-time-opts">
         <div class="copt on" id="tcp-none"  onclick="OL.setTC('none')"><span class="ic-t2">∞</span>بدون</div>
-        <div class="copt"    id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2">⚡</span>1+0</div>
-        <div class="copt"    id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2">⚡</span>3+2</div>
+        <div class="copt"    id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>1+0</div>
+        <div class="copt"    id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>3+2</div>
         <div class="copt"    id="tcp-5+0"   onclick="OL.setTC('5+0')"><span class="ic-t2">◷</span>5+0</div>
         <div class="copt"    id="tcp-10+0"  onclick="OL.setTC('10+0')"><span class="ic-t2">◷</span>10+0</div>
         <div class="copt"    id="tcp-15+10" onclick="OL.setTC('15+10')"><span class="ic-t2">♞</span>15+10</div>
@@ -3829,8 +3849,8 @@ body[data-ui-theme="glass"] .mc-tag{
       <p class="flbl" style="margin-top:12px">زمن المباراة</p>
       <div class="copts tc-opts" id="mtc-time-opts">
         <div class="copt on" id="mtcp-none"  onclick="OL.setTC('none')"><span class="ic-t2">∞</span>بدون</div>
-        <div class="copt"    id="mtcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2">⚡</span>1+0</div>
-        <div class="copt"    id="mtcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2">⚡</span>3+2</div>
+        <div class="copt"    id="mtcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>1+0</div>
+        <div class="copt"    id="mtcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>3+2</div>
         <div class="copt"    id="mtcp-5+0"   onclick="OL.setTC('5+0')"><span class="ic-t2">◷</span>5+0</div>
         <div class="copt"    id="mtcp-10+0"  onclick="OL.setTC('10+0')"><span class="ic-t2">◷</span>10+0</div>
         <div class="copt"    id="mtcp-15+10" onclick="OL.setTC('15+10')"><span class="ic-t2">♞</span>15+10</div>
@@ -5603,12 +5623,12 @@ const SettingsAccount = {
       row.className = 'fr-row';
       const av = document.createElement('span');
       av.className = 'fr-row__av';
-      av.textContent = String(u.display_name || u.username || '؟').trim().slice(0,1).toUpperCase();
+      av.textContent = String(window.amkhName(u) || '؟').trim().slice(0,1).toUpperCase();
       const info = document.createElement('div');
       info.className = 'fr-row__info';
       const nm = document.createElement('span');
       nm.className = 'fr-row__name';
-      nm.textContent = u.display_name || u.username;
+      nm.textContent = window.amkhName(u);
       const sub = document.createElement('span');
       sub.className = 'fr-row__status';
       sub.textContent = '@' + (u.username || '');
@@ -5987,30 +6007,48 @@ const Cfg={
   uiTheme(name,save=true){
     const nm=UI_THEMES[name]?name:'amkh';
     this.data.uiTheme=nm;
-    document.querySelectorAll('.ui-opt').forEach(e=>e.classList.remove('on'));
-    const el=document.getElementById('ui-'+nm);if(el)el.classList.add('on');
-    const t=UI_THEMES[nm]||UI_THEMES.amkh;
-    const r=document.documentElement.style;
-    document.body.dataset.uiTheme=nm;
-    r.setProperty('--bg',t.bg);
-    r.setProperty('--bg2',t.bg2);
-    r.setProperty('--bg3',t.bg3);
-    r.setProperty('--bg4',t.bg4);
-    r.setProperty('--gold',t.gold);
-    r.setProperty('--gold2',t.gold2);
-    r.setProperty('--gold3',t.gold3);
-    r.setProperty('--teal',t.teal);
-    r.setProperty('--teal2',t.teal2);
-    r.setProperty('--accent',t.accent||t.gold);
-    r.setProperty('--accent2',t.accent2||t.teal);
-    r.setProperty('--fx-glow',t.fxGlow||'rgba(201,168,76,.28)');
-    r.setProperty('--fx-neon',t.fxNeon||'rgba(45,212,191,.22)');
-    r.setProperty('--red',t.red);
-    r.setProperty('--green',t.green);
-    r.setProperty('--blue',t.blue);
-    r.setProperty('--text',t.text);
-    r.setProperty('--text2',t.text2);
-    r.setProperty('--text3',t.text3);
+    /* كل تغييرات المظهر متجمّعة في paint(). تغيير ~20 متغيّر CSS على :root
+       بيعمل إعادة رسم للصفحة كلها؛ وعلى WebView ممكن يبان فريم فاضي (الطبقة
+       الزخرفية العارية) لحظة إعادة الـrasterize — ده كان جزء من «الوميض». */
+    const paint=()=>{
+      document.querySelectorAll('.ui-opt').forEach(e=>e.classList.remove('on'));
+      const el=document.getElementById('ui-'+nm);if(el)el.classList.add('on');
+      const t=UI_THEMES[nm]||UI_THEMES.amkh;
+      const r=document.documentElement.style;
+      document.body.dataset.uiTheme=nm;
+      r.setProperty('--bg',t.bg);
+      r.setProperty('--bg2',t.bg2);
+      r.setProperty('--bg3',t.bg3);
+      r.setProperty('--bg4',t.bg4);
+      r.setProperty('--gold',t.gold);
+      r.setProperty('--gold2',t.gold2);
+      r.setProperty('--gold3',t.gold3);
+      r.setProperty('--teal',t.teal);
+      r.setProperty('--teal2',t.teal2);
+      r.setProperty('--accent',t.accent||t.gold);
+      r.setProperty('--accent2',t.accent2||t.teal);
+      r.setProperty('--fx-glow',t.fxGlow||'rgba(201,168,76,.28)');
+      r.setProperty('--fx-neon',t.fxNeon||'rgba(45,212,191,.22)');
+      r.setProperty('--red',t.red);
+      r.setProperty('--green',t.green);
+      r.setProperty('--blue',t.blue);
+      r.setProperty('--text',t.text);
+      r.setProperty('--text2',t.text2);
+      r.setProperty('--text3',t.text3);
+    };
+    /* View Transition: بيلتقط لقطة للوضع القديم، يطبّق paint، ثم يعمل تلاشي
+       ناعم للجديد — فمستحيل يظهر فريم فاضي بينهما. لو الـAPI مش مدعوم أو
+       «تقليل الحركة» مفعّل، بنطبّق مباشرة (نفس السلوك القديم، بلا انحدار). */
+    let reduce=false; try{ reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+    if(document.startViewTransition && !reduce){
+      const root=document.documentElement;
+      root.classList.add('vt-theme');
+      const cleanup=()=>{ try{root.classList.remove('vt-theme');}catch(e){} };
+      let vt; try{ vt=document.startViewTransition(paint); }catch(e){ paint(); cleanup(); }
+      if(vt&&vt.finished&&vt.finished.then){ vt.finished.then(cleanup,cleanup); } else { setTimeout(cleanup,450); }
+    }else{
+      paint();
+    }
     if(save){this._persist();}
   },
   removeProfileImage(){
@@ -6829,8 +6867,10 @@ window.Modal = Modal;
    الثيم وصوت «update» خاص، وزرّها بيفتح رابط الـAPK الدائم. بنسأل مرّة
    كل إقلاع بس، ولو المستخدم قال «لاحقًا» ما نضايقهوش تاني نفس الجلسة. */
 const APP_VERSION = '3.10';
-const APP_VERSION_CODE = 17;
-let _updateChecked = false;
+const APP_VERSION_CODE = 21;
+let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
+let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
+let _lastUpdateAttempt = 0;       /* آخر محاولة فحص (throttle) */
 function _showUpdateNotice(info){
   const modal=document.getElementById('custom-modal');
   if(!modal){ return; }
@@ -6856,7 +6896,13 @@ function _showUpdateNotice(info){
   DSOverlay.open(modal);
 }
 async function checkForAppUpdate(){
-  if(_updateChecked)return; _updateChecked=true;
+  /* #150: قبل كده كان بيتفحص مرة واحدة بس بعد الإقلاع بـ6ث؛ لو السيرفر كان
+     بارد/مقطوع في اللحظة دي مكانش بيعيد المحاولة أبدًا، فإشعار «نسخة جديدة»
+     مايظهرش. دلوقتي: منزعجش المستخدم بعد ما نعرضه، ونعيد الفحص كل ما التطبيق
+     يرجع للواجهة (resume/visibility) مع throttle، ونثبّت «تم» على النجاح بس. */
+  if(_updateNoticeShown || _updateChecking) return;
+  if(Date.now() - _lastUpdateAttempt < 45000) return;
+  _updateChecking = true; _lastUpdateAttempt = Date.now();
   try{
     if(window.amkhEnsureServer) await window.amkhEnsureServer();
     const base=window.getApiBase?window.getApiBase():'/api';
@@ -6865,11 +6911,18 @@ async function checkForAppUpdate(){
     const info=await res.json();
     const newer=(typeof info.versionCode==='number' && info.versionCode>APP_VERSION_CODE)
               || (info.version && info.version!==APP_VERSION && !info.versionCode);
-    if(newer) _showUpdateNotice(info);
+    if(newer){ _updateNoticeShown = true; _showUpdateNotice(info); }
   }catch(e){}
+  finally{ _updateChecking = false; }
 }
-/* فحص التحديث بعد الإقلاع بهدوء (بعد ما تخلص شاشة البداية والصوت جاهز) */
+/* فحص أول بعد الإقلاع بهدوء (بعد ما تخلص شاشة البداية والصوت جاهز) */
 setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 6000);
+/* أعد الفحص كل ما التطبيق يرجع للواجهة — يغطّي فشل السيرفر البارد أول مرة (#150). */
+try{
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 1500); });
+  const _CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+  if(_CapApp&&_CapApp.addListener) _CapApp.addListener('resume', ()=>{ setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 1500); });
+}catch(e){}
 
 
 /* ══════════════════════════════════════
@@ -10128,6 +10181,9 @@ const R={
     const sg=document.getElementById('s-game');
     const bc=document.getElementById('board-container');
     if(!sg||!bc||!sg.classList.contains('active'))return;
+    /* #140: الكيبورد فاتح/بيتحرّك → ماتعيدش حساب الحشو (يمنع نطّ الرقعة).
+       بيتفكّ القفل ويتعمل حساب واحد نضيف بعد ما الـviewport يستقر (تحت). */
+    if(this._kbLock)return;
     const cs=getComputedStyle(sg);
     /* تخطيطات الشبكة (ديسكتوب/تابلت أفقي) بتوسّط الرقعة بنفسها */
     if(cs.display!=='flex'||cs.flexDirection!=='column'){
@@ -10166,11 +10222,48 @@ const R={
   },
   async all(){this.board();this.status();await this.players();this.hist();this.toolbar();updatePlayerImages();this.balance();}
 };
-/* المقاس بيتغيّر مع الدوران وظهور لوحة المفاتيح — نعيد الحساب وقتها بس */
+/* #140: المقاس بيتغيّر مع الدوران (عرض+ارتفاع) وكمان مع فتح/قفل الكيبورد
+   (ارتفاع بس). إعادة حساب توازن الرقعة على تغيّر الارتفاع لوحده بتنطّط
+   الرقعة كل ما الكيبورد يظهر/يختفي — وده الوميض اللي في كل الثيمات. فنعيد
+   الحساب بس لما العرض يتغيّر فعلاً (دوران/تابلت)؛ الكيبورد (ارتفاع بس)
+   بيتقفل عبر R._kbLock تحت ويتعمل حساب واحد بعد ما يستقر. */
+let _lastBalW=window.innerWidth;
 ['resize','orientationchange'].forEach(ev=>{
   let t=null;
-  window.addEventListener(ev,()=>{clearTimeout(t);t=setTimeout(()=>R.balance(true),120);});
+  window.addEventListener(ev,()=>{
+    const w=window.innerWidth;
+    if(ev==='resize'&&w===_lastBalW)return; /* ارتفاع بس (كيبورد) → تجاهل */
+    _lastBalW=w;
+    clearTimeout(t);t=setTimeout(()=>{_lastBalW=window.innerWidth;R.balance(true);},120);
+  });
 });
+/* #140: قفل توازن الرقعة أثناء تغيّر ارتفاع الـviewport (الكيبورد بيظهر/
+   يختفي) — ده جذر الوميض/النطّ في كل الثيمات: إعادة حساب حشو الرقعة على كل
+   تغيّر ارتفاع كانت بتزقّ الرقعة لفوق وتحت. بنكتشف التغيّر الرأسي الملموس
+   (>80px) عبر visualViewport (الأدق للكيبورد) مع fallback على window: نقفل
+   balance طول الحركة، ونفكّ القفل ونعمل حساب واحد نضيف بعد ما الـviewport
+   يستقر. كلاس kb-shift كمان بيجمّد أنيميشن الطبقات الزخرفية لحظة الانتقال. */
+(()=>{
+  const root=document.documentElement;
+  const vv=window.visualViewport;
+  let lastH=vv?vv.height:window.innerHeight, tmr=null;
+  const onR=()=>{
+    const h=vv?vv.height:window.innerHeight;
+    if(Math.abs(h-lastH)>80){
+      root.classList.add('kb-shift');
+      if(typeof R!=='undefined')R._kbLock=true;
+    }
+    lastH=h;
+    if(tmr)clearTimeout(tmr);
+    tmr=setTimeout(()=>{
+      tmr=null;root.classList.remove('kb-shift');
+      /* استقرّ الـviewport → فكّ القفل واضبط التوازن مرة واحدة بس */
+      if(typeof R!=='undefined'){R._kbLock=false;R.balance(true);}
+    },260);
+  };
+  if(vv)vv.addEventListener('resize',onR);
+  else window.addEventListener('resize',onR);
+})();
 /* أول رسمة بتحصل والخطوط (Cairo/Amiri) لسه بتتحمّل، فارتفاعات الأشرطة
    بتكبر بعد ما نكون حسبنا التوازن. بدل ما نعيد القياس مع كل نقلة —
    وده اللي كان هيبطّأ النقل — بنراقب العناصر متغيّرة الارتفاع بس
@@ -12437,7 +12530,17 @@ const Notifications={
       });
       PN.addListener('registrationError',(e)=>{ console.log('[push] registrationError',e); });
       PN.addListener('pushNotificationActionPerformed',(a)=>{
-        try{ const data=(a&&a.notification&&a.notification.data)||{}; if(data.link) location.href=data.link; else if(data.room) this._autoJoinRoom(data.room); }catch(e){}
+        try{
+          const data=(a&&a.notification&&a.notification.data)||{};
+          /* #147: نقر إشعار مكالمة واردة والتطبيق كان مقفول. نضمن إن سوكت
+             الحضور اتصل — الداعي بيعيد الدعوة كل 3ث طول مهلة الرنين، فأول ما
+             السوكت يتصل هتوصل دعوة جديدة وتظهر واجهة الوارد تلقائيًا (زي واتساب). */
+          if(data.kind==='call'){
+            try{ if(window.amkhAuth&&window.amkhAuth.connectPresence) window.amkhAuth.connectPresence(); }catch(e){}
+            return;
+          }
+          if(data.link) location.href=data.link; else if(data.room) this._autoJoinRoom(data.room);
+        }catch(e){}
       });
       await PN.register();
     }catch(e){ console.log('[push] native register failed',e); this._nativePushWired=false; }

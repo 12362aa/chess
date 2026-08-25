@@ -2560,6 +2560,26 @@ html.amkh-native body[data-ui-theme="anime"]::before{
   -webkit-backface-visibility: hidden;
 }
 
+/* ── #140: وميض فتح الكيبورد في شات الأصدقاء (كل الثيمات إلا amkh) ──
+   لما الكيبورد يفتح والورقة السفلية (شات) مفتوحة، WebView أندرويد بيصغّر
+   الـviewport فيحصل reflow يعيد ضمّ الطبقات. glass عنده طبقة كاوستِكس
+   متحركة (tfxCaustic) وminimal عنده تدرّج مكرّر تقيل بقناع — الاتنين مش
+   مُرقّيين على GPU (بعكس gaming/cyberpunk/anime فوق)، فوقت التصغير بيتضمّوا
+   في طبقة المحتوى فيومض الشات. نثبّتهم كطبقات GPU مستقلة بنفس آلية الثيمات
+   التقيلة → التصغير يعيد رسم طبقتهم لوحدها من غير ما يلمس رسم المحتوى.
+   ملاحظة: التثبيت هنا دائم عشان يفضل شغّال حتى وقت ما amkh-modal-open
+   بيوقف الأنيميشن (لو ساب الطبقة تترجّع لطبقة المحتوى يرجع الوميض). */
+html.amkh-native body[data-ui-theme="glass"] #theme-fx,
+html.amkh-native body[data-ui-theme="glass"] #theme-fx > i,
+html.amkh-native body[data-ui-theme="minimal"] #theme-fx,
+html.amkh-native body[data-ui-theme="minimal"] #theme-fx > i{
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    15.1 amkh — الهندسة الإسلامية
    ──────────────────────────────────────────────────────────────────────
@@ -3797,12 +3817,23 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 .ch-empty{ text-align: center; color: var(--color-text-secondary, #9aa); padding: var(--space-4, 16px); }
 
 .ch-bubble{
+  position: relative;                 /* عشان أيقونة السحب-للرد المطلقة */
   max-width: 78%; padding: 8px 11px;
   border-radius: 14px;
   word-break: break-word; white-space: pre-wrap;
   background: var(--color-surface-raised, rgba(255,255,255,.08));
   color: var(--color-text-primary, #fff);
 }
+/* أيقونة السهم اللي بتظهر تحت الإصبع وأنت بتسحب الرسالة للرد (زي واتساب) */
+.ch-swipe-ic{
+  position: absolute; inset-inline-start: 8px; top: 50%; margin-top: -13px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-bg-elevated, rgba(0,0,0,.35));
+  color: var(--color-primary, #6fd1ff);
+  opacity: 0; pointer-events: none;
+}
+.ch-swipe-ic svg{ width: 15px; height: 15px; }
 .ch-bubble--their{ align-self: flex-start; border-bottom-inline-start: 3px solid transparent; }
 .ch-bubble--mine{
   align-self: flex-end;
@@ -3836,6 +3867,35 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 }
 .ch-input[hidden]{ display: none; }
 .ch-text{ flex: 1 1 auto; resize: none; max-height: 120px; line-height: 1.4; }
+
+/* ── شريط الرد على رسالة (#141) ──
+   شقيق فوق حقل الكتابة جوّه .ch-conv — مش جوّه صف الأزرار عشان ما يبوّظش شكله. */
+.ch-reply{
+  display: flex; align-items: center; gap: var(--space-2, 8px);
+  flex: 0 0 auto;
+  padding: 8px var(--space-3, 12px);
+  border-top: 1px solid var(--color-border, rgba(255,255,255,.1));
+  background: var(--color-bg-elevated, var(--color-surface-raised, rgba(255,255,255,.06)));
+  animation: chReplyIn .16s ease;
+}
+@keyframes chReplyIn{ from{ transform: translateY(6px); opacity: 0; } to{ transform: translateY(0); opacity: 1; } }
+.ch-reply__body{
+  flex: 1 1 auto; min-width: 0; overflow: hidden;
+  border-inline-start: 3px solid var(--color-primary, #4c7cf3);
+  padding-inline-start: 8px;
+}
+.ch-reply__name{ font-size: .74rem; font-weight: 700; color: var(--color-primary, #6fd1ff); }
+.ch-reply__preview{
+  font-size: .8rem; opacity: .8;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ch-reply__x{
+  flex: 0 0 auto; width: 32px; height: 32px; padding: 0; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; color: var(--color-text-secondary, #9aa); cursor: pointer;
+}
+.ch-reply__x:hover{ background: var(--color-surface-raised, rgba(255,255,255,.08)); }
+.ch-reply__x svg{ width: 17px; height: 17px; }
 
 /* ── شريط "الأدمن قفل الشات" (بديل حقل الإرسال زي واتساب) ── */
 .ch-closed{
@@ -3907,6 +3967,19 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 
 /* ── فقاعة رسالة صوتية ── */
 .ch-bubble--voice{ min-width: 190px; }
+
+/* ── فقاعة سجل مكالمة (#153/#155) — أيقونة SVG + نص، تتبع ثيم التطبيق.
+   اسم فريد (ch-callmsg) لتفادي تصادم .ch-call الخاص بزر المكالمة في رأس المحادثة
+   (اللي كان بيفرض 36×36px دائرة على الرسالة → نص عمودي خارج الفقاعة). ── */
+.ch-bubble--call{ min-width: 0; }
+.ch-callmsg{ display: flex; align-items: center; gap: var(--space-2, 8px); width: 100%; }
+.ch-callmsg__ic{ flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(128,128,128,.2); color: currentColor; }
+.ch-callmsg__ic svg{ width: 18px; height: 18px; }
+.ch-callmsg__txt{ flex: 0 1 auto; font-size: .9rem; color: currentColor; font-weight: 600; white-space: nowrap; }
+.ch-callmsg--missed .ch-callmsg__ic{ background: rgba(255,91,106,.22); color: var(--color-danger, #ff5b6a); }
+.ch-callmsg--missed .ch-callmsg__txt{ color: var(--color-danger, #ff5b6a); }
 .ch-voice{ display: flex; align-items: center; gap: var(--space-2, 8px); }
 .ch-voice__play{
   flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;

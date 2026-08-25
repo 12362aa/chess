@@ -12,7 +12,12 @@
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:background">@null</item>
+        <!-- خلفية النافذة معتمة غامقة (مش @null) عشان لو الـWebView ما رسمش
+             فريم أثناء تبديل الثيم/فتح الكيبورد/التنقل، يبان لون غامق قريب من
+             خلفية كل الثيمات — مش أسود صافي كان بيعمل «وميض» واضح. -->
+        <item name="android:windowBackground">#ff0a0a12</item>
+        <item name="android:background">#ff0a0a12</item>
+        <item name="android:colorBackground">#ff0a0a12</item>
     </style>
 
 

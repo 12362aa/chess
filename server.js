@@ -132,28 +132,43 @@ function sendPushToTokens(tokens, payload) {
   const body = String(payload?.body || 'تنبيه جديد');
   const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
   const link = _buildLink(payload);
+  const dataOnly = !!payload?.dataOnly;
 
-  const message = {
-    tokens,
-    notification: { title, body },
-    data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
-    android: {
-      priority: 'high',
-      notification: { channelId: 'chess-amkh', sound: 'default', defaultSound: true },
-    },
-    webpush: {
-      headers: { Urgency: 'high' },
-      notification: {
-        title,
-        body,
-        icon: _absUrl('/icon_v2.png?v=2'),
-        badge: _absUrl('/icon_v2.png?v=2'),
-        tag: payload?.tag ? String(payload.tag) : 'nour-daily',
-        requireInteraction: false,
+  let message;
+  if (dataOnly) {
+    /* رسالة data-only (#151): من غير أي notification block خالص، عشان
+       onMessageReceived يشتغل والتطبيق في الخلفية/مقفول فتقدر خدمتنا المخصّصة
+       (FcmService) تبني إشعار المكالمة بأزرار رد/رفض + ملء الشاشة زيّ واتساب.
+       بنطوي العنوان/النص جوه data عشان الخدمة تقراهم. ttl قصير: المكالمة
+       لحظية مالهاش أي لازمة بعد دقيقة. */
+    message = {
+      tokens,
+      data: Object.fromEntries(Object.entries({ ...data, link, title, body }).map(([k, v]) => [String(k), String(v)])),
+      android: { priority: 'high', ttl: 60000 },
+    };
+  } else {
+    message = {
+      tokens,
+      notification: { title, body },
+      data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
+      android: {
+        priority: 'high',
+        notification: { channelId: 'chess-amkh', sound: 'default', defaultSound: true },
       },
-      fcmOptions: link ? { link } : undefined,
-    },
-  };
+      webpush: {
+        headers: { Urgency: 'high' },
+        notification: {
+          title,
+          body,
+          icon: _absUrl('/icon_v2.png?v=2'),
+          badge: _absUrl('/icon_v2.png?v=2'),
+          tag: payload?.tag ? String(payload.tag) : 'nour-daily',
+          requireInteraction: false,
+        },
+        fcmOptions: link ? { link } : undefined,
+      },
+    };
+  }
 
   return admin.messaging().sendEachForMulticast(message)
     .then(resp => {
@@ -442,13 +457,67 @@ app.get('/api/webrtc-config', async (req, res) => {
   res.json({ iceServers: stun, ttl, turn: false, provider: 'stun' });
 });
 
+/* ══ رفض المكالمة والتطبيق مقفول (#159) ══
+   لما المستخدم يضغط «رفض» في إشعار المكالمة والتطبيق مقفول، مفيش سوكت
+   مفتوح عنده يبعت call:reject للداعي — فكان الداعي يفضل رانن لحد المهلة.
+   الإشعار بيحمل reject_token موقّعًا (JWT قصير العمر 120ث) بيثبت هوية
+   المكالمة (الداعي/المستقبِل/معرّف المكالمة)، والتطبيق بيعمل POST هنا،
+   فنرحّل call:reject لسوكتات الداعي فورًا فيتوقف الرنين عنده حالًا. */
+app.post('/api/call/reject', express.json({ limit: '4kb' }), (req, res) => {
+  try {
+    const token = req.body && req.body.token;
+    if (!token || typeof token !== 'string') return res.status(400).json({ ok: false, error: 'no-token' });
+    let d;
+    try { d = jwt.verify(token, JWT_SECRET); } catch (e) { return res.status(401).json({ ok: false, error: 'bad-token' }); }
+    if (!d || d.t !== 'cr') return res.status(400).json({ ok: false, error: 'bad-type' });
+    const caller = Number(d.f), me = Number(d.u);
+    const callId = d.c || null;
+    const grp = d.g ? Number(d.g) : null;
+    if (!Number.isInteger(caller) || caller <= 0) return res.status(400).json({ ok: false, error: 'bad-caller' });
+    let sent = 0;
+    for (const s of socketsOf(caller)) {
+      if (s.readyState === WebSocket.OPEN) { send(s, { type: 'call:reject', from: me, callId, group: grp }); sent++; }
+    }
+    return res.json({ ok: true, sent });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: 'server' });
+  }
+});
+
+/* ══ قبول المكالمة من إشعارها والتطبيق مقفول (#159) ══
+   زر «رد» بيفتح التطبيق، بس سوكت الحضور بياخد لحظات يتصل وممكن الداعي يكون
+   قرّب يخلّص مهلته. فأول ما يُضغط «رد» التطبيق بيعمل POST هنا بتوكيع قبول
+   موقّع (JWT قصير 120ث)، فنرحّل call:answering لسوكتات الداعي فورًا — فيعيد
+   ضبط مهلته ويفضل يعيد الدعوة لحد ما سوكت المستقبِل يتصل ويقبل فعليًا. نظير
+   الرفض بالظبط، بس بدل ما يوقف الرنين بيمدّه لحد ما الرد الحقيقي يوصل. */
+app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
+  try {
+    const token = req.body && req.body.token;
+    if (!token || typeof token !== 'string') return res.status(400).json({ ok: false, error: 'no-token' });
+    let d;
+    try { d = jwt.verify(token, JWT_SECRET); } catch (e) { return res.status(401).json({ ok: false, error: 'bad-token' }); }
+    if (!d || d.t !== 'ca') return res.status(400).json({ ok: false, error: 'bad-type' });
+    const caller = Number(d.f), me = Number(d.u);
+    const callId = d.c || null;
+    const grp = d.g ? Number(d.g) : null;
+    if (!Number.isInteger(caller) || caller <= 0) return res.status(400).json({ ok: false, error: 'bad-caller' });
+    let sent = 0;
+    for (const s of socketsOf(caller)) {
+      if (s.readyState === WebSocket.OPEN) { send(s, { type: 'call:answering', from: me, callId, group: grp }); sent++; }
+    }
+    return res.json({ ok: true, sent });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: 'server' });
+  }
+});
+
 /* ══ إصدار التطبيق (#136) ══
    العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
    أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الرابط دائم:
    دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
    وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
 const LATEST_VERSION = '3.10';
-const LATEST_CODE = 17;
+const LATEST_CODE = 21;
 const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
 app.get('/api/version', (req, res) => {
   res.json({
@@ -456,7 +525,7 @@ app.get('/api/version', (req, res) => {
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'مكالمات صوتية (فردي + حفلة)، توقيت للمباريات الأونلاين، وتحسينات الشات.',
+    notes: 'إصلاح مكالمة الفيديو (بتوصل فيديو فعلاً للطرف التاني مش صوت)، وإشعار مكالمة الفيديو بقى مميّز، وأزرار «رد/رفض» في إشعار المكالمة بتشتغل فعليًا والتطبيق مقفول (رد = قبول ودخول فوري، رفض = إنهاء)، مع تقليل قوي لوميض/نطّ الشاشة عند فتح وقفل الكيبورد في كل الثيمات.',
   });
 });
 
@@ -489,7 +558,7 @@ app.get('/api/leaderboard', (req, res) => {
     if (!isFinite(limit) || limit <= 0) limit = 100;
     limit = Math.min(limit, 200);
     const rows = db.prepare(`
-      SELECT id, display_name, username, avatar_url, country,
+      SELECT id, display_name, username, provider, avatar_url, country,
              rating, rating_rd, rating_games, rating_peak, wins, losses, draws
       FROM users
       WHERE rating_games >= 1
@@ -500,7 +569,7 @@ app.get('/api/leaderboard', (req, res) => {
       return {
         rank: i + 1,
         id: u.id,
-        name: u.display_name || u.username || 'لاعب',
+        name: resolveOnlineName(u),
         avatar_url: u.avatar_url || null,
         country: u.country || null,
         rating: Math.round(isFinite(u.rating) ? u.rating : 1500),
@@ -879,8 +948,8 @@ function mmStartGame(aWs, aInfo, aColor, bWs, bInfo, bColor) {
     hostId: aId,
     guestId: bId,
     rated: !!(aInfo?.rated && bInfo?.rated && aId && bId),   // مصنّفة بس لو الطرفين اختاروا "مصنّفة" واتسجّلوا
-    host: makeMember(aWs, aColor, aInfo?.name || '', aInfo?.deviceId || ''),
-    guest: makeMember(bWs, bColor, bInfo?.name || '', bInfo?.deviceId || ''),
+    host: makeMember(aWs, aColor, resolveOnlineNameById(aId, aInfo?.name), aInfo?.deviceId || ''),
+    guest: makeMember(bWs, bColor, resolveOnlineNameById(bId, bInfo?.name), bInfo?.deviceId || ''),
     guestColor: bColor,
     createdAt: Date.now(),
     started: true,
@@ -1140,6 +1209,29 @@ groupsRouter.setRealtime({
 
 /* إرسال رسالة جروب: بتخزّن الأول وبعدين بتوزّع على كل الأعضاء المتصلين،
    ولأي عضو غير متصل بتبعتله إشعار دفع. spec زي رسالة الدردشة الفردية. */
+/* الاسم الظاهر للأصدقاء في الأونلاين (#145): مستخدم داخل بجوجل → اسم جوجل
+   (display_name)؛ غير كده → الاسم المستعار (username) اللي بيتعدّل من الإعدادات
+   ("اسمك للأصدقاء"). الاسم المستعار للعرض في الأونلاين بس. مفيش رجوع لـ"صديق"
+   إلا لو مفيش أي اسم أصلًا. */
+function resolveOnlineName(row) {
+  if (!row) return 'صديق';
+  if (row.provider === 'google') return row.display_name || row.username || 'صديق';
+  return row.username || row.display_name || 'صديق';
+}
+
+/* نفس القاعدة لكن بالـ id: للأونلاين (لاعب مسجَّل) نجيب الاسم من قاعدة البيانات
+   عشان اسم الخصم على الشريط يبقى صحيح مهما بعت العميل. لو مش مسجَّل (LAN/ضيف)
+   نرجع للاسم اللي بعته العميل. */
+function resolveOnlineNameById(userId, fallbackName) {
+  if (userId) {
+    try {
+      const row = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(userId);
+      if (row) return resolveOnlineName(row);
+    } catch (e) {}
+  }
+  return fallbackName || 'لاعب';
+}
+
 /* لقطة مختصرة للرسالة الأصل عند الرد عليها (#130): اسم صاحبها + معاينة.
    scope='chat' يقرأ من messages، scope='group' من group_messages. */
 function replySnippet(scope, id) {
@@ -1147,12 +1239,12 @@ function replySnippet(scope, id) {
     const tbl = scope === 'group' ? 'group_messages' : 'messages';
     const r = db.prepare(`SELECT id, sender_id, body, kind FROM ${tbl} WHERE id = ?`).get(id);
     if (!r) return null;
-    const u = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(r.sender_id) || {};
+    const u = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(r.sender_id) || {};
     const preview = r.kind === 'voice' ? 'رسالة صوتية'
                   : r.kind === 'image' ? 'صورة'
                   : r.kind === 'video' ? 'فيديو'
                   : String(r.body || '').slice(0, 120);
-    return { id: r.id, from: r.sender_id, name: u.display_name || u.username || 'صديق', kind: r.kind || 'text', preview };
+    return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview };
   } catch (e) { return null; }
 }
 
@@ -1174,8 +1266,8 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
                  .run(groupId, fromId, kind, body, audio, duration, mime, replyTo);
   const row = db.prepare(`SELECT id, created_at FROM group_messages WHERE id = ?`).get(info.lastInsertRowid);
-  const sender = db.prepare('SELECT display_name, username, avatar_url FROM users WHERE id = ?').get(fromId) || {};
-  const senderName = sender.display_name || sender.username || 'صديق';
+  const sender = db.prepare('SELECT display_name, username, avatar_url, provider FROM users WHERE id = ?').get(fromId) || {};
+  const senderName = resolveOnlineName(sender);
   const payload = {
     type: 'group:message', id: row.id, group_id: groupId,
     from: fromId, sender_name: senderName, sender_avatar: sender.avatar_url || null,
@@ -1260,9 +1352,11 @@ function pushChatMessage(fromId, toId, spec, clientId) {
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
                  .run(key, fromId, toId, body, kind, audio, duration, mime, replyTo);
   const row = db.prepare(`SELECT id, created_at FROM messages WHERE id = ?`).get(info.lastInsertRowid);
+  const senderRow = db.prepare('SELECT display_name, username, avatar_url, provider FROM users WHERE id = ?').get(fromId) || {};
   const payload = {
     type: 'chat:message', id: row.id, convo_key: key,
-    from: fromId, to: toId, kind, body, created_at: row.created_at, client_id: clientId || null,
+    from: fromId, sender_name: resolveOnlineName(senderRow), sender_avatar: senderRow.avatar_url || null,
+    to: toId, kind, body, created_at: row.created_at, client_id: clientId || null,
     reply_to: replyTo, reply: replyTo ? replySnippet('chat', replyTo) : null,
   };
   if (hasMedia) { payload.audio = audio; payload.duration = duration || 0; payload.mime = mime; }
@@ -1292,8 +1386,8 @@ function sendChatPushToUser(fromId, toId, kind, body) {
   const tokens = getTokensForUser(toId);
   console.log('[push] chat push -> user %s : %d linked token(s)', toId, tokens.length);
   if (!tokens.length) return;
-  const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(fromId) || {};
-  const name = sender.display_name || sender.username || 'صديق';
+  const sender = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(fromId) || {};
+  const name = resolveOnlineName(sender);
   const preview = kind === 'voice' ? 'رسالة صوتية'
                 : kind === 'image' ? 'صورة'
                 : kind === 'video' ? 'فيديو'
@@ -1303,6 +1397,64 @@ function sendChatPushToUser(fromId, toId, kind, body) {
     body: preview,
     tag: 'chat-' + fromId,
     data: { kind: 'chat', from_id: String(fromId) },
+  });
+}
+
+/* إشعار دفع بمكالمة واردة لمستخدم غير متصل بأي سوكت (التطبيق/التلفون مقفول) — #147.
+   بيستعمل نفس مسار FCM الشغّال بأولوية عالية وصوت. الوسم فريد لكل داعٍ عشان
+   إشعار المكالمة ما يستبدلش إشعارات الرسايل. */
+const _callPushAt = new Map();   // آخر وقت بعتنا فيه إشعار مكالمة لكل (داعٍ→مستقبِل)
+function sendCallPushToUser(fromId, toId, group, callId, callType) {
+  if (!_adminReady) return;
+  /* الداعي بيعيد الدعوة كل ~3ث (#147) — منخنق إشعار الدفع لمرة كل 25ث لكل
+     زوج (داعٍ→مستقبِل) عشان ما نغرقش المستخدم بإشعارات مكررة لنفس المكالمة. */
+  const now = Date.now();
+  const key = fromId + ':' + toId;
+  if (now - (_callPushAt.get(key) || 0) < 25000) return;
+  _callPushAt.set(key, now);
+  if (_callPushAt.size > 200) { for (const [k, t] of _callPushAt) { if (now - t > 60000) _callPushAt.delete(k); } }
+  const tokens = getTokensForUser(toId);
+  console.log('[push] call push -> user %s : %d linked token(s)', toId, tokens.length);
+  if (!tokens.length) return;
+  const sender = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(fromId) || {};
+  const name = resolveOnlineName(sender);
+  const isVideo = callType === 'video';
+  const body = isVideo
+    ? (group ? 'يدعوك لمكالمة فيديو في حفلة…' : 'مكالمة فيديو واردة…')
+    : (group ? 'يدعوك لمكالمة صوتية في حفلة…' : 'مكالمة صوتية واردة…');
+  /* توكيع رفض قصير العمر: يثبت هوية المكالمة عشان زر «رفض» في الإشعار
+     يقدر يرحّل call:reject للداعي حتى والتطبيق مقفول (#159). */
+  let rejectToken = '';
+  try {
+    rejectToken = jwt.sign(
+      { t: 'cr', f: fromId, u: toId, c: callId ? String(callId) : '', g: group ? String(group) : '' },
+      JWT_SECRET, { expiresIn: '120s' }
+    );
+  } catch (e) {}
+  /* توكيع قبول قصير العمر: زر «رد» يبلّغ الداعي فورًا إن المستقبِل جايّ
+     (POST /api/call/answering) فيعيد ضبط مهلته ويفضل ينادي لحد ما يتصل (#159). */
+  let acceptToken = '';
+  try {
+    acceptToken = jwt.sign(
+      { t: 'ca', f: fromId, u: toId, c: callId ? String(callId) : '', g: group ? String(group) : '' },
+      JWT_SECRET, { expiresIn: '120s' }
+    );
+  } catch (e) {}
+  sendPushToTokens(tokens, {
+    title: name,
+    body,
+    tag: 'call-' + fromId,
+    dataOnly: true,
+    data: {
+      kind: 'call',
+      from_id: String(fromId),
+      from_name: name,
+      group: group ? String(group) : '',
+      call_id: callId ? String(callId) : '',
+      call_type: isVideo ? 'video' : 'audio',
+      reject_token: rejectToken,
+      accept_token: acceptToken,
+    },
   });
 }
 
@@ -1338,8 +1490,8 @@ function beginFriendGame(invite, hostWs, guestWs) {
   if (hostColor !== 'w' && hostColor !== 'b') hostColor = Math.random() < 0.5 ? 'w' : 'b';
   const guestColor = hostColor === 'w' ? 'b' : 'w';
 
-  const hostRow = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(invite.from_id) || {};
-  const guestRow = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(invite.to_id) || {};
+  const hostRow = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(invite.from_id) || {};
+  const guestRow = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(invite.to_id) || {};
 
   leaveRoom(hostWs);
   leaveRoom(guestWs);
@@ -1351,8 +1503,8 @@ function beginFriendGame(invite, hostWs, guestWs) {
     hostId: invite.from_id,
     guestId: invite.to_id,
     rated: !!invite.rated,
-    host: makeMember(hostWs, hostColor, hostRow.display_name || hostRow.username || 'صديق', ''),
-    guest: makeMember(guestWs, guestColor, guestRow.display_name || guestRow.username || 'صديق', ''),
+    host: makeMember(hostWs, hostColor, resolveOnlineName(hostRow), ''),
+    guest: makeMember(guestWs, guestColor, resolveOnlineName(guestRow), ''),
     guestColor,
     createdAt: Date.now(),
     started: false,
@@ -1824,7 +1976,7 @@ wss.on('connection', (ws, req) => {
           callId: msg.callId || null,
           group: groupId || null,
         };
-        if (msg.type === 'call:invite') { out.kind = 'audio'; out.members = Array.isArray(msg.members) ? msg.members.slice(0, 12).map(Number) : null; }
+        if (msg.type === 'call:invite') { out.kind = (msg.callType === 'video') ? 'video' : 'audio'; out.members = Array.isArray(msg.members) ? msg.members.slice(0, 12).map(Number) : null; }
         if (sdp) out.sdp = sdp;
         if (cand) out.candidate = cand;
 
@@ -1833,7 +1985,12 @@ wss.on('connection', (ws, req) => {
           if (s.readyState === WebSocket.OPEN) { send(s, out); delivered = true; }
         }
         /* رجّع للداعي حالة التوصيل عشان يعرف الطرف متصل ولا لأ */
-        if (msg.type === 'call:invite') send(ws, { type: 'call:invite-ack', to, callId: msg.callId || null, delivered });
+        if (msg.type === 'call:invite') {
+          send(ws, { type: 'call:invite-ack', to, callId: msg.callId || null, delivered });
+          /* الطرف مش متصل بأي سوكت (تطبيق مقفول) → إشعار دفع بمكالمة واردة (#147)
+             مع نوع المكالمة + توكيع رفض عشان أزرار الإشعار تشتغل فعليًا (#159/#160) */
+          if (!delivered) { try { sendCallPushToUser(me, to, groupId, msg.callId, msg.callType); } catch (e) {} }
+        }
         break;
       }
 
@@ -1970,8 +2127,8 @@ wss.on('connection', (ws, req) => {
         if (!me || !Number.isInteger(gid) || gid <= 0) break;
         try {
           if (!groupsRouter.isMember(gid, me)) break;
-          const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(me) || {};
-          const name = sender.display_name || sender.username || '';
+          const sender = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(me) || {};
+          const name = resolveOnlineName(sender);
           for (const uid of groupsRouter.memberIds(gid)) {
             if (uid === me) continue;
             for (const s of socketsOf(uid)) send(s, { type: 'group:typing', group_id: gid, from: me, name });
@@ -1986,8 +2143,8 @@ wss.on('connection', (ws, req) => {
         if (!me || !Number.isInteger(gid) || gid <= 0) break;
         try {
           if (!groupsRouter.isMember(gid, me)) break;
-          const sender = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(me) || {};
-          const name = sender.display_name || sender.username || '';
+          const sender = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(me) || {};
+          const name = resolveOnlineName(sender);
           for (const uid of groupsRouter.memberIds(gid)) {
             if (uid === me) continue;
             for (const s of socketsOf(uid)) send(s, { type: 'group:recording', group_id: gid, from: me, name, on: !!msg.on });
@@ -2088,7 +2245,7 @@ wss.on('connection', (ws, req) => {
           code,
           hostId,
           rated: roomKind === 'online' && msg.rated === true && !!hostId,
-          host: makeMember(ws, hostColor, msg.name || '', msg.deviceId || ''),
+          host: makeMember(ws, hostColor, resolveOnlineNameById(hostId, msg.name), msg.deviceId || ''),
           guest: null,
           guestColor,
           createdAt: Date.now(),
@@ -2131,8 +2288,9 @@ wss.on('connection', (ws, req) => {
 
         leaveRoom(ws);
 
-        room.guest = makeMember(ws, room.guestColor, msg.name || '', msg.deviceId || '');
-        room.guestId = socketUser.get(ws) || userIdFromToken(msg.token) || null;
+        const guestId = socketUser.get(ws) || userIdFromToken(msg.token) || null;
+        room.guest = makeMember(ws, room.guestColor, resolveOnlineNameById(guestId, msg.name), msg.deviceId || '');
+        room.guestId = guestId;
         // مباراة مصنّفة تحتاج الطرفين مسجّلين
         if (room.rated && !(room.hostId && room.guestId)) room.rated = false;
         clientRoom.set(ws, code);

@@ -42,6 +42,15 @@ function toId(v) {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+/* اسم العرض في الأونلاين: مستخدم جوجل → الاسم من جوجل (display_name)؛
+   غير كده → الاسم المستعار (username) اللي بيتعدّل من الإعدادات. نفس قاعدة
+   resolveOnlineName في server.js عشان الاسم يبقى موحَّد في كل مكان. */
+function resolveOnlineName(row) {
+  if (!row) return 'صديق';
+  if (row.provider === 'google') return row.display_name || row.username || 'صديق';
+  return row.username || row.display_name || 'صديق';
+}
+
 function areFriends(a, b) {
   return !!db.prepare('SELECT 1 FROM friendships WHERE user_id = ? AND friend_id = ?').get(a, b);
 }
@@ -88,13 +97,14 @@ function memberInfo(row) {
     id: row.id,
     username: row.username,
     display_name: row.display_name,
+    provider: row.provider || null,
     avatar_url: row.avatar_url || null,
   };
 }
 
 /* قائمة أعضاء الجروب (هوية عامة) — لعرض صور القراء في الإيصالات. */
 function memberList(groupId) {
-  const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.avatar_url
+  const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.provider, u.avatar_url
                            FROM group_members gm JOIN users u ON u.id = gm.user_id
                            WHERE gm.group_id = ?`).all(groupId);
   return rows.map(memberInfo);
@@ -116,7 +126,7 @@ function groupSummary(groupId, me) {
   const g = db.prepare('SELECT id, name, owner_id, avatar_url, created_at, send_policy FROM groups WHERE id = ?').get(groupId);
   if (!g) return null;
   const count = db.prepare('SELECT COUNT(*) AS c FROM group_members WHERE group_id = ?').get(groupId).c;
-  const last = db.prepare(`SELECT m.id, m.sender_id, m.body, m.kind, m.created_at, u.display_name, u.username
+  const last = db.prepare(`SELECT m.id, m.sender_id, m.body, m.kind, m.created_at, u.display_name, u.username, u.provider
                            FROM group_messages m JOIN users u ON u.id = m.sender_id
                            WHERE m.group_id = ? ORDER BY m.id DESC LIMIT 1`).get(groupId);
   const lastRead = (db.prepare('SELECT last_read_id FROM group_reads WHERE group_id = ? AND user_id = ?').get(groupId, me) || {}).last_read_id || 0;
@@ -131,7 +141,7 @@ function groupSummary(groupId, me) {
     my_role: roleOf(groupId, me),
     last_message: last ? (last.kind === 'voice' ? 'رسالة صوتية' : last.kind === 'image' ? 'صورة' : last.kind === 'video' ? 'فيديو' : last.body) : null,
     last_kind: last ? (last.kind || 'text') : null,
-    last_sender: last ? (last.display_name || last.username) : null,
+    last_sender: last ? resolveOnlineName(last) : null,
     last_from_me: last ? (last.sender_id === me) : false,
     last_at: last ? last.created_at : g.created_at,
     last_id: last ? last.id : 0,
@@ -222,7 +232,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
   try {
     const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at,
-                  u.username, u.display_name, u.avatar_url`;
+                  u.username, u.display_name, u.provider, u.avatar_url`;
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM group_messages m JOIN users u ON u.id = m.sender_id
                     WHERE m.group_id = ? AND m.id < ? ORDER BY m.id DESC LIMIT ?`).all(gid, before, limit)
@@ -234,15 +244,15 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       if (!id) return null;
       const r = db.prepare('SELECT id, sender_id, body, kind FROM group_messages WHERE id = ?').get(id);
       if (!r) return null;
-      const u = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(r.sender_id) || {};
+      const u = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(r.sender_id) || {};
       const preview = r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120);
-      return { id: r.id, from: r.sender_id, name: u.display_name || u.username || 'صديق', kind: r.kind || 'text', preview };
+      return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview };
     };
     const messages = rows.map(m => ({
       id: m.id,
       from: m.sender_id,
       mine: m.sender_id === me,
-      sender_name: m.display_name || m.username,
+      sender_name: resolveOnlineName(m),
       sender_avatar: m.avatar_url || null,
       kind: m.kind || 'text',
       body: m.body,
@@ -311,15 +321,15 @@ router.get('/:id/message-info', authenticateToken, (req, res) => {
     receiptsSnapshot(gid).forEach(r => { reads[r.user_id] = r; });
     const members = memberList(gid).filter(u => u.id !== me).map(u => {
       const r = reads[u.id] || { last_read_id: 0, last_delivered_id: 0 };
-      return { id: u.id, name: u.display_name || u.username || 'صديق', avatar_url: u.avatar_url || null,
+      return { id: u.id, name: resolveOnlineName(u), avatar_url: u.avatar_url || null,
                delivered: (r.last_delivered_id || 0) >= mid, read: (r.last_read_id || 0) >= mid };
     });
     let listened = [];
     if (m.kind === 'voice') {
-      listened = db.prepare(`SELECT v.user_id AS id, v.played_at AS at, u.display_name, u.username, u.avatar_url
+      listened = db.prepare(`SELECT v.user_id AS id, v.played_at AS at, u.display_name, u.username, u.provider, u.avatar_url
                              FROM voice_plays v JOIN users u ON u.id = v.user_id
                              WHERE v.scope = 'grp' AND v.message_id = ? ORDER BY v.played_at ASC`).all(mid)
-                   .map(r => ({ id: r.id, name: r.display_name || r.username || 'صديق', avatar_url: r.avatar_url || null, at: r.at }));
+                   .map(r => ({ id: r.id, name: resolveOnlineName(r), avatar_url: r.avatar_url || null, at: r.at }));
     }
     res.json({ scope: 'group', kind: m.kind || 'text', members, listened });
   } catch (e) {
@@ -439,7 +449,7 @@ function sendPartyInvite(partyId, inviterId, inviteeId) {
       inviteId = info.lastInsertRowid;
     }
     const g = db.prepare('SELECT name, avatar_url FROM groups WHERE id = ?').get(partyId) || {};
-    const from = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(inviterId) || {};
+    const from = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(inviterId) || {};
     try {
       realtime.notifyUser && realtime.notifyUser(inviteeId, {
         type: 'party:invite',
@@ -448,7 +458,7 @@ function sendPartyInvite(partyId, inviterId, inviteeId) {
         party_name: g.name || 'حفلة',
         party_avatar: g.avatar_url || null,
         from_id: inviterId,
-        from_name: from.display_name || from.username || 'صديق',
+        from_name: resolveOnlineName(from),
       });
     } catch (e) {}
     return true;
@@ -465,7 +475,7 @@ router.get('/party-invites', authenticateToken, (req, res) => {
   try {
     const rows = db.prepare(`SELECT pi.id, pi.party_id, pi.inviter_id, pi.created_at, pi.expires_at,
                                     g.name AS party_name, g.avatar_url AS party_avatar,
-                                    u.display_name, u.username
+                                    u.display_name, u.username, u.provider
                              FROM party_invites pi
                              JOIN groups g ON g.id = pi.party_id
                              JOIN users  u ON u.id = pi.inviter_id
@@ -477,7 +487,7 @@ router.get('/party-invites', authenticateToken, (req, res) => {
       party_name: r.party_name,
       party_avatar: r.party_avatar || null,
       from_id: r.inviter_id,
-      from_name: r.display_name || r.username,
+      from_name: resolveOnlineName(r),
       created_at: r.created_at,
       expires_at: r.expires_at,
     })));
