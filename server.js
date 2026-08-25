@@ -407,7 +407,20 @@ app.get('/api/webrtc-config', async (req, res) => {
     }
   }
 
-  // (2) coturn ذاتي
+  // (2) بيانات اعتماد TURN ثابتة من أي مزوّد مجاني بدون كارت
+  //     (ExpressTURN أو Metered static): بنمرّرها زي ما هي.
+  //     TURN_STATIC_URLS = قائمة مفصولة بفواصل، + USERNAME + CREDENTIAL
+  const sUrls = process.env.TURN_STATIC_URLS;
+  const sUser = process.env.TURN_STATIC_USERNAME;
+  const sCred = process.env.TURN_STATIC_CREDENTIAL;
+  if (sUrls && sUser && sCred) {
+    const urls = sUrls.split(',').map(u => u.trim()).filter(Boolean);
+    if (urls.length) {
+      return res.json({ iceServers: stun.concat([{ urls, username: sUser, credential: sCred }]), ttl, turn: true, provider: 'static' });
+    }
+  }
+
+  // (3) coturn ذاتي
   const host = process.env.TURN_HOST;
   const secret = process.env.TURN_SECRET;
   if (host && secret) {
@@ -425,7 +438,7 @@ app.get('/api/webrtc-config', async (req, res) => {
     } catch (e) { console.error('[webrtc] turn cred error:', e.message); }
   }
 
-  // (3) STUN بس
+  // (4) STUN بس
   res.json({ iceServers: stun, ttl, turn: false, provider: 'stun' });
 });
 
@@ -435,7 +448,7 @@ app.get('/api/webrtc-config', async (req, res) => {
    دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
    وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
 const LATEST_VERSION = '3.10';
-const LATEST_CODE = 16;
+const LATEST_CODE = 17;
 const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
 app.get('/api/version', (req, res) => {
   res.json({
