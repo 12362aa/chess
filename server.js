@@ -351,21 +351,67 @@ const privacyRouter = require('./privacy');
 app.use('/api/privacy', privacyRouter);
 // Health check
 /* ══ إعداد WebRTC (STUN + TURN) للمكالمة الصوتية (#135) ══
-   بنرجّع iceServers للعميل. STUN مجاني دايمًا. TURN اختياري: لو
-   متظبّط في البيئة (TURN_HOST + TURN_SECRET) بنولّد بيانات اعتماد
-   مؤقتة بأسلوب coturn REST (use-auth-secret): username = "انتهاء:اسم"
-   وcredential = base64(HMAC-SHA1(secret, username)). كده مفيش سر
-   بيتسرّب للعميل، والبيانات بتنتهي تلقائيًا. من غير TURN بترجع STUN بس
-   (المكالمة تنفع على WiFi/الشبكات المنزلية، وممكن تفشل خلف NAT متماثل). */
-app.get('/api/webrtc-config', (req, res) => {
-  const iceServers = [
-    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+   بنرجّع iceServers للعميل عشان المكالمة تشتغل على أي شبكة زي واتساب.
+
+   الأولوية 1 — Cloudflare Realtime TURN (المُوصى به): ريلاي عالمي، أول
+   1000GB/شهر مجانًا، ونفس حساب Cloudflare بتاع النفق. بنولّد بيانات
+   اعتماد مؤقتة من السيرفر (السر مايتسربش للعميل) وبنكاشها ~50 دقيقة.
+   محتاج متغيّرين بس: CF_TURN_KEY_ID + CF_TURN_API_TOKEN.
+
+   الأولوية 2 — coturn ذاتي (TURN_HOST + TURN_SECRET) بأسلوب REST
+   (use-auth-secret): username="انتهاء:اسم"، credential=base64(HMAC-SHA1).
+
+   من غير أي من الاتنين → STUN بس (يشتغل على نفس الشبكة، وممكن يفشل خلف
+   NAT متماثل). STUN من Cloudflare وGoogle. */
+let _cfIceCache = null; // { at, servers }
+async function cfGenerateIceServers(keyId, apiToken, ttl) {
+  const resp = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${keyId}/credentials/generate-ice-servers`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ttl }),
+  });
+  const txt = await resp.text();
+  if (!resp.ok) throw new Error(`cloudflare ${resp.status}: ${txt.slice(0, 200)}`);
+  const j = JSON.parse(txt);
+  let servers = Array.isArray(j.iceServers) ? j.iceServers : [];
+  // بورت 53 محجوب من المتصفحات → نشيله عشان مايعلّقش ICE
+  servers = servers
+    .map(s => {
+      if (!s || !s.urls) return s;
+      const urls = (Array.isArray(s.urls) ? s.urls : [s.urls]).filter(u => !/:53(\?|$)/.test(u));
+      return Object.assign({}, s, { urls });
+    })
+    .filter(s => !s.urls || s.urls.length);
+  return servers;
+}
+app.get('/api/webrtc-config', async (req, res) => {
+  const stun = [
+    { urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
   ];
+  const ttl = 3600; // ساعة
+
+  // (1) Cloudflare TURN
+  const cfKey = process.env.CF_TURN_KEY_ID;
+  const cfTok = process.env.CF_TURN_API_TOKEN;
+  if (cfKey && cfTok) {
+    try {
+      if (_cfIceCache && (Date.now() - _cfIceCache.at) < 50 * 60 * 1000) {
+        return res.json({ iceServers: _cfIceCache.servers, ttl, turn: true, provider: 'cloudflare' });
+      }
+      const servers = await cfGenerateIceServers(cfKey, cfTok, ttl);
+      _cfIceCache = { at: Date.now(), servers };
+      return res.json({ iceServers: servers, ttl, turn: true, provider: 'cloudflare' });
+    } catch (e) {
+      console.error('[webrtc] cloudflare turn error:', e.message);
+      _cfIceCache = null; // نجرّب تاني في الطلب الجاي
+    }
+  }
+
+  // (2) coturn ذاتي
   const host = process.env.TURN_HOST;
   const secret = process.env.TURN_SECRET;
   if (host && secret) {
     try {
-      const ttl = 3600; // ساعة
       const username = `${Math.floor(Date.now() / 1000) + ttl}:amkh`;
       const credential = require('crypto').createHmac('sha1', secret).update(username).digest('base64');
       const udpPort = process.env.TURN_PORT || '3478';
@@ -375,10 +421,12 @@ app.get('/api/webrtc-config', (req, res) => {
         `turn:${host}:${udpPort}?transport=tcp`,
       ];
       if (process.env.TURN_TLS === '1') urls.push(`turns:${host}:${tlsPort}?transport=tcp`);
-      iceServers.push({ urls, username, credential });
+      return res.json({ iceServers: stun.concat([{ urls, username, credential }]), ttl, turn: true, provider: 'coturn' });
     } catch (e) { console.error('[webrtc] turn cred error:', e.message); }
   }
-  res.json({ iceServers, ttl: 3600, turn: !!(host && secret) });
+
+  // (3) STUN بس
+  res.json({ iceServers: stun, ttl, turn: false, provider: 'stun' });
 });
 
 /* ══ إصدار التطبيق (#136) ══

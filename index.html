@@ -6839,9 +6839,9 @@ function _showUpdateNotice(info){
   const iconEl=document.getElementById('modal-icon');
   const okBtn=document.getElementById('modal-btn-ok');
   const cancelBtn=document.getElementById('modal-btn-cancel');
-  titleEl.textContent='تحديث جديد متاح ✦';
+  titleEl.textContent='تحديث جديد متاح';
   msgEl.textContent=(info && info.notes ? info.notes+'\n\n' : '')+'نزّل أحدث نسخة من التطبيق دلوقتي.';
-  iconEl.textContent='⤓';
+  iconEl.innerHTML='<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
   cancelBtn.style.display='';
   cancelBtn.textContent='لاحقًا';
   okBtn.textContent='تحديث الآن';
