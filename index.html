@@ -1515,6 +1515,8 @@ body[data-ui-theme="glass"] .mc-tag{
 .finp:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
 .finp::placeholder{letter-spacing:1px;color:var(--text3);}
 .copts{display:flex;gap:6px;margin-bottom:11px;}
+.tc-opts{flex-wrap:wrap;}
+.tc-opts .copt{flex:1 1 28%;padding:8px 4px;font-size:12px;}
 .copt{flex:1;padding:9px 5px;background:var(--bg3);border:2px solid rgba(201,168,76,.1);border-radius:9px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);text-align:center;font-family:'Cairo',sans-serif;font-size:12px;color:var(--text2);}
 .copt:hover{border-color:rgba(201,168,76,.3);transform:scale(1.03);}
 .copt.on{border-color:var(--gold);background:rgba(201,168,76,.08);color:var(--gold2);box-shadow:0 0 12px rgba(201,168,76,.12);}
@@ -1729,6 +1731,10 @@ body[data-ui-theme="glass"] .mc-tag{
 .pb-undo:hover{border-color:rgba(201,168,76,.4);color:var(--gold2);}
 .pb-undo:disabled{opacity:.3;cursor:not-allowed;}
 .pb-timer{font-family:'Amiri',serif;font-size:16px;font-weight:700;color:var(--gold2);min-width:42px;text-align:center;}
+.pb-timer.tmr-live{filter:brightness(1.15);text-shadow:0 0 10px currentColor;}
+.pb-timer.tmr-low{color:#f87171 !important;animation:tmrPulse 1s ease-in-out infinite;}
+.pb-timer.tmr-flag{color:#ef4444 !important;opacity:.7;}
+@keyframes tmrPulse{0%,100%{opacity:1}50%{opacity:.45}}
 .pbar.is-win{border-color:rgba(250,204,21,.34);box-shadow:none;}
 .pbar.is-loss{border-color:rgba(248,113,113,.24);background:rgba(248,113,113,.03);}
 .pbar.is-draw{border-color:rgba(148,163,184,.22);background:rgba(148,163,184,.04);}
@@ -3779,6 +3785,16 @@ body[data-ui-theme="glass"] .mc-tag{
         <div class="copt"    id="rt-rated"  onclick="OL.setRated(true)"><span class="ic-t2">★</span>مصنّفة</div>
       </div>
       <div class="p2p" id="rt-hint" style="margin-top:4px;font-size:11px;opacity:.85">المباراة الودّية لا تؤثّر على تقييمك. المصنّفة تحتاج تسجيل الدخول للطرفين.</div>
+      <p class="flbl" style="margin-top:10px">زمن المباراة</p>
+      <div class="copts tc-opts" id="tc-time-opts">
+        <div class="copt on" id="tcp-none"  onclick="OL.setTC('none')"><span class="ic-t2">∞</span>بدون</div>
+        <div class="copt"    id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2">⚡</span>1+0</div>
+        <div class="copt"    id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2">⚡</span>3+2</div>
+        <div class="copt"    id="tcp-5+0"   onclick="OL.setTC('5+0')"><span class="ic-t2">◷</span>5+0</div>
+        <div class="copt"    id="tcp-10+0"  onclick="OL.setTC('10+0')"><span class="ic-t2">◷</span>10+0</div>
+        <div class="copt"    id="tcp-15+10" onclick="OL.setTC('15+10')"><span class="ic-t2">♞</span>15+10</div>
+      </div>
+      <div class="p2p" style="margin-top:4px;font-size:11px;opacity:.85">عند نفاد وقت أحد اللاعبين يفوز الخصم — وإن تعادلت النقاط فتعادل.</div>
       <div id="rbox" class="rbox">
         <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
         <div class="rb-c" id="rcode">—</div>
@@ -3810,6 +3826,16 @@ body[data-ui-theme="glass"] .mc-tag{
         <div class="copt"    id="mrt-rated"  onclick="OL.setRated(true)"><span class="ic-t2">★</span>مصنّفة</div>
       </div>
       <div class="p2p" style="margin-top:4px;font-size:11px;opacity:.85">المصنّفة تطابقك مع لاعب اختار "مصنّفة" كمان، وتحتاج تسجيل الدخول للطرفين.</div>
+      <p class="flbl" style="margin-top:12px">زمن المباراة</p>
+      <div class="copts tc-opts" id="mtc-time-opts">
+        <div class="copt on" id="mtcp-none"  onclick="OL.setTC('none')"><span class="ic-t2">∞</span>بدون</div>
+        <div class="copt"    id="mtcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2">⚡</span>1+0</div>
+        <div class="copt"    id="mtcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2">⚡</span>3+2</div>
+        <div class="copt"    id="mtcp-5+0"   onclick="OL.setTC('5+0')"><span class="ic-t2">◷</span>5+0</div>
+        <div class="copt"    id="mtcp-10+0"  onclick="OL.setTC('10+0')"><span class="ic-t2">◷</span>10+0</div>
+        <div class="copt"    id="mtcp-15+10" onclick="OL.setTC('15+10')"><span class="ic-t2">♞</span>15+10</div>
+      </div>
+      <div class="p2p" style="margin-top:4px;font-size:11px;opacity:.85">يطابقك النظام مع لاعب اختار نفس زمن المباراة.</div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">⊕ ابحث عن خصم</button>
         <button class="btnb" id="btn-mc" style="flex:1;display:none" onclick="OL.mmCancel()">◆ إلغاء</button>
@@ -4448,6 +4474,20 @@ const SFX=(()=>{
     privacy:[{f:466.16,t0:0,dur:0.10,vol:0.09},{f:622.25,t0:0.07,dur:0.16,vol:0.10}],
     /* اختيار خصوصية: نقرة تأكيد واحدة قصيرة */
     privacyPick:[{f:698.46,t0:0,dur:0.08,vol:0.09},{f:932.33,t0:0.06,dur:0.13,vol:0.10}],
+    /* معلومات الرسالة: نغمتان استفهاميتان لطيفتان (تريانجل) */
+    msgInfo:[{f:659.25,t0:0,dur:0.09,type:'triangle',vol:0.09},{f:830.61,t0:0.07,dur:0.15,type:'triangle',vol:0.10}],
+    /* تثبيت رسالة: نقرة «دبّوس» قصيرة حازمة */
+    pin:[{f:880,t0:0,dur:0.06,vol:0.10},{f:1174.66,t0:0.05,dur:0.12,vol:0.11}],
+    /* مكالمة واردة (فتح النافذة): جِنجل رنين صاعد دافئ */
+    callIncoming:[{f:587.33,t0:0,dur:0.12,vol:0.11},{f:880,t0:0.10,dur:0.12,vol:0.12},{f:1174.66,t0:0.22,dur:0.20,vol:0.12}],
+    /* مكالمة صادرة (فتح النافذة): نغمتان هادئتان «بننادي» */
+    callOutgoing:[{f:659.25,t0:0,dur:0.12,vol:0.10},{f:987.77,t0:0.10,dur:0.18,vol:0.11}],
+    /* اتصلت المكالمة: نغمتان صاعدتان لامعتان «تم الوصل» */
+    callConnected:[{f:783.99,t0:0,dur:0.10,vol:0.11},{f:1318.51,t0:0.08,dur:0.20,vol:0.12}],
+    /* انتهت المكالمة: نغمتان هابطتان لطيفتان */
+    callEnded:[{f:659.25,t0:0,dur:0.12,type:'sine',vol:0.10,f2:440},{f:329.63,t0:0.12,dur:0.20,type:'sine',vol:0.09}],
+    /* تحديث متاح (#136): ٣ نغمات صاعدة لامعة «في جديد» */
+    update:[{f:659.25,t0:0,dur:0.10,vol:0.10},{f:987.77,t0:0.09,dur:0.10,vol:0.11},{f:1318.51,t0:0.19,dur:0.22,vol:0.12}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -4485,6 +4525,12 @@ const SFX=(()=>{
     },
     /* صوت فتح نافذة — kind من MODAL_SFX (default لو مش معروف) */
     modalOpen(kind){ playModalSfx(kind); },
+    /* أصوات المكالمة (#135): دورة رنين واحدة تتكرّر بمؤقّت من وحدة المكالمة،
+       ونغمات الوصل/الإنهاء. dir='in' رنين وارد، 'out' نغمة نداء صادرة. */
+    callRing(dir){ if(!Cfg.data.sound)return; tones(dir==='out'?[{f:523.25,t0:0,dur:0.28,vol:0.09},{f:523.25,t0:0.4,dur:0.28,vol:0.09}]:[{f:880,t0:0,dur:0.18,vol:0.12},{f:1174.66,t0:0.22,dur:0.18,vol:0.12}]); },
+    callConnected(){ tones(MODAL_SFX.callConnected); },
+    callEnded(){ tones(MODAL_SFX.callEnded); },
+    update(){ tones(MODAL_SFX.update); },
     init(){_init();}
   };
   window.SFX = api;
@@ -6775,6 +6821,56 @@ const Modal={
 };
 /* نفس السبب: نعرّض Modal على window عشان amkhUI.notify/confirm يلاقوه. */
 window.Modal = Modal;
+
+/* ══════════════════════════════════════
+   إصدار التطبيق + إشعار التحديث (#136)
+   APP_VERSION/APP_VERSION_CODE لازم يتزامنوا مع android/app/build.gradle.
+   وقت الإقلاع بنسأل /api/version؛ لو المنشور أحدث بنعرض نافذة بستايل
+   الثيم وصوت «update» خاص، وزرّها بيفتح رابط الـAPK الدائم. بنسأل مرّة
+   كل إقلاع بس، ولو المستخدم قال «لاحقًا» ما نضايقهوش تاني نفس الجلسة. */
+const APP_VERSION = '3.10';
+const APP_VERSION_CODE = 16;
+let _updateChecked = false;
+function _showUpdateNotice(info){
+  const modal=document.getElementById('custom-modal');
+  if(!modal){ return; }
+  const titleEl=document.getElementById('modal-title');
+  const msgEl=document.getElementById('modal-message');
+  const iconEl=document.getElementById('modal-icon');
+  const okBtn=document.getElementById('modal-btn-ok');
+  const cancelBtn=document.getElementById('modal-btn-cancel');
+  titleEl.textContent='تحديث جديد متاح ✦';
+  msgEl.textContent=(info && info.notes ? info.notes+'\n\n' : '')+'نزّل أحدث نسخة من التطبيق دلوقتي.';
+  iconEl.textContent='⤓';
+  cancelBtn.style.display='';
+  cancelBtn.textContent='لاحقًا';
+  okBtn.textContent='تحديث الآن';
+  const url=(info && info.url) || 'https://github.com/12362aa/chess/releases/latest';
+  okBtn.onclick=()=>{
+    if(typeof SFX!=='undefined')SFX.btn();
+    DSOverlay.close(modal);
+    try{ window.open(url,'_system'); }catch(e){ try{ window.open(url,'_blank'); }catch(e2){} }
+  };
+  cancelBtn.onclick=()=>{ if(typeof SFX!=='undefined')SFX.btn(); DSOverlay.close(modal); };
+  modal.dataset.sfx='update';
+  DSOverlay.open(modal);
+}
+async function checkForAppUpdate(){
+  if(_updateChecked)return; _updateChecked=true;
+  try{
+    if(window.amkhEnsureServer) await window.amkhEnsureServer();
+    const base=window.getApiBase?window.getApiBase():'/api';
+    const res=await fetch(base+'/version',{headers:{'ngrok-skip-browser-warning':'1'}});
+    if(!res.ok)return;
+    const info=await res.json();
+    const newer=(typeof info.versionCode==='number' && info.versionCode>APP_VERSION_CODE)
+              || (info.version && info.version!==APP_VERSION && !info.versionCode);
+    if(newer) _showUpdateNotice(info);
+  }catch(e){}
+}
+/* فحص التحديث بعد الإقلاع بهدوء (بعد ما تخلص شاشة البداية والصوت جاهز) */
+setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 6000);
+
 
 /* ══════════════════════════════════════
    INDEXEDDB STORAGE (Levels fallback)
@@ -11186,6 +11282,93 @@ const OL=(()=>{
   let _oppRatingSnap=null;
   let _myRatingSnap=null;
 
+  /* ══ ساعة المباراة (#134) ══
+     السيرفر هو السلطة على الوقت؛ العميل بيعرض عدّاد محلي بيتصحّح مع كل
+     رسالة clock. سقوط العلم بيتحسب سيرفر‑سايد (game:flag) والفايز بيتحدّد
+     بالنقاط في العميل (كلا الطرفين يشوف نفس الرقعة فيتفقوا). */
+  const _CLK_PRESETS={
+    'none':null,
+    '1+0':{base:60,inc:0},
+    '3+2':{base:180,inc:2},
+    '5+0':{base:300,inc:0},
+    '10+0':{base:600,inc:0},
+    '15+10':{base:900,inc:10},
+  };
+  let _clk=null;           /* { w,b (ms), turn, running, syncAt } — الحالة المعروضة */
+  let _clkTimer=null;      /* setInterval للعرض المحلي السلس */
+  function _fmtClock(ms){
+    if(ms==null) return '—';
+    if(ms<0) ms=0;
+    const m=Math.floor(ms/60000);
+    const s=Math.floor((ms%60000)/1000);
+    if(ms<10000){ const tenths=Math.floor((ms%1000)/100); return `${m}:${String(s).padStart(2,'0')}.${tenths}`; }
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+  function _renderClock(){
+    const elW=document.getElementById('tmr-w'), elB=document.getElementById('tmr-b');
+    if(!_clk){
+      [elW,elB].forEach(el=>{ if(el){ el.textContent='—'; el.classList.remove('tmr-live','tmr-low','tmr-flag'); } });
+      return;
+    }
+    const now=performance.now();
+    [['w',elW],['b',elB]].forEach(([c,el])=>{
+      if(!el) return;
+      let ms=_clk[c];
+      if(_clk.running && _clk.turn===c) ms-=(now-_clk.syncAt);
+      if(ms<0) ms=0;
+      el.textContent=_fmtClock(ms);
+      el.classList.toggle('tmr-live', _clk.running && _clk.turn===c);
+      el.classList.toggle('tmr-low', ms<=10000);
+      el.classList.toggle('tmr-flag', ms<=0 && !_clk.running);
+    });
+  }
+  function _startClockLoop(){ if(!_clkTimer) _clkTimer=setInterval(_renderClock,100); }
+  function _stopClockLoop(){ if(_clkTimer){ clearInterval(_clkTimer); _clkTimer=null; } }
+  function _resetClockDisplay(){ _stopClockLoop(); _clk=null; _renderClock(); }
+  function _onClockMsg(d){
+    _clk={ w:d.w, b:d.b, turn:d.turn, running:!!d.running, syncAt:performance.now() };
+    if(_clk.running) _startClockLoop(); else _stopClockLoop();
+    _renderClock();
+  }
+  /* الفايز بالنقاط عند سقوط العلم (قاعدة البيت: أكتر مادة يكسب، تساوي=تعادل).
+     قيم ثابتة ومعلومة للاعب: بيدق 1، حصان/فيل 3، طابية 5، وزير 9. */
+  function _materialWinner(){
+    const val={P:1,N:3,B:3,R:5,Q:9,K:0};
+    let s=0;
+    try{
+      const bd=S.bd;
+      for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+        const p=bd[r][c]; if(!p) continue;
+        s+=(E.col(p)==='w'?1:-1)*(val[E.tp(p)]||0);
+      }
+    }catch(e){ return 'draw'; }
+    return s>0?'w':(s<0?'b':'draw');
+  }
+  function _onFlag(d){
+    _stopClockLoop();
+    if(_clk){ _clk.running=false; if(d && (d.loser==='w'||d.loser==='b')) _clk[d.loser]=0; }
+    _renderClock();
+    if(S.mode!=='online' || S.over) return;
+    S.over=true;
+    const winner=_materialWinner();                 /* 'w'|'b'|'draw' مطلق */
+    const iFlagged = d && d.loser===S.myCol;
+    const tone = winner==='draw' ? 'draw' : (winner===S.myCol ? 'win' : 'loss');
+    try{ tone==='win'?SFX.win():tone==='loss'?SFX.loss():SFX.draw(); }catch(e){}
+    const flagName = iFlagged ? 'انتهى وقتك' : 'انتهى وقت الخصم';
+    let message, detail;
+    if(winner==='draw'){
+      message='انتهى الوقت — تعادل بالنقاط';
+      detail='سقط العلم، لكن النقاط على الرقعة متساوية فحُسمت المباراة تعادلاً.';
+    }else if(tone==='win'){
+      message=`${flagName} — فزت بالنقاط`;
+      detail='سقط العلم وكانت أفضلية المادة في صفك، فحُسمت المباراة لصالحك.';
+    }else{
+      message=`${flagName} — خسرت بالنقاط`;
+      detail='سقط العلم وكانت أفضلية المادة للخصم، فحُسمت المباراة له.';
+    }
+    G.showOver({ winner: winner==='draw'?null:winner, tone, reason:'timeout', message, detail });
+  }
+
   /* اكتب اسم اللاعب في الشريط + شارة تقييمه (لو متوفّرة) من غير ما نغيّر
      تخطيط الشريط: الشارة span سطري صغير جوّه نفس عنصر الاسم. */
   function setBarName(barId,name,rating){
@@ -11373,7 +11556,7 @@ const OL=(()=>{
           try{document.getElementById('btn-mm').style.display='none';}catch(e){}
           try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
           try{
-            send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced,rated:!!OL.rt,token:OL._tok()});
+            send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced,rated:!!OL.rt,tc:OL.tc||null,token:OL._tok()});
           }catch(e){
             try{document.getElementById('btn-mm').style.display='inline-flex';}catch(err){}
             try{document.getElementById('btn-mc').style.display='none';}catch(err){}
@@ -11492,6 +11675,14 @@ const OL=(()=>{
         try{ showRatingUpdate(d); }catch(e){}
         break;
 
+      case 'clock':
+        _onClockMsg(d);
+        break;
+
+      case 'game:flag':
+        _onFlag(d);
+        break;
+
       case 'pong': break;
       default: break;
     }
@@ -11505,6 +11696,7 @@ const OL=(()=>{
     };
     const oc=E.opp(mc);
     G._reset('online',0);
+    _resetClockDisplay();
     S.mode='online';S.levelId=-1;S.myCol=mc;
     GameIdentity.setTitle('أونلاين');
     const myName=normName(Cfg.data.playerName,'أنا');
@@ -11527,6 +11719,8 @@ const OL=(()=>{
   return{
     pc:'w',
     rt:false,   // نوع غرفة الإنشاء: false=ودّية، true=مصنّفة
+    tcKey:'none',   // مفتاح التوقيت المختار (#134)
+    tc:null,        // { base, inc } بالثواني أو null = بدون توقيت
     _tok(){ try{ return (window.amkhAuth&&window.amkhAuth.token)||''; }catch(e){ return ''; } },
     setRated(v){
       SFX.btn();
@@ -11543,6 +11737,18 @@ const OL=(()=>{
       if(mcas)mcas.classList.toggle('on',!this.rt);
       if(mrat)mrat.classList.toggle('on',this.rt);
     },
+    /* اختيار زمن المباراة (#134) — بيزامن مجموعتَي الأزرار (إنشاء + مطابقة). */
+    setTC(key,silent=false){
+      if(!silent)SFX.btn();
+      if(!(key in _CLK_PRESETS)) key='none';
+      this.tcKey=key;
+      this.tc=_CLK_PRESETS[key];
+      ['none','1+0','3+2','5+0','10+0','15+10'].forEach(k=>{
+        const a=document.getElementById('tcp-'+k), b=document.getElementById('mtcp-'+k);
+        if(a)a.classList.toggle('on',k===key);
+        if(b)b.classList.toggle('on',k===key);
+      });
+    },
     getHttpBase(){return SERVER_HTTP||'';},
     init(){
       setSt('c','');setSt('j','');
@@ -11553,6 +11759,8 @@ const OL=(()=>{
       _roomCode='';
       destroy();
       this.col(this.pc||'w',true);
+      this.setTC(this.tcKey||'none',true);
+      _resetClockDisplay();
     },
     tab(n){
       SFX.btn();
@@ -11577,7 +11785,7 @@ const OL=(()=>{
       _myCol=col;
       document.getElementById('btn-create').disabled=true;
       connect(()=>{
-        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),rated:!!this.rt,token:this._tok()});
+        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),rated:!!this.rt,tc:this.tc||null,token:this._tok()});
         // Send profile image if available
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
@@ -11599,7 +11807,7 @@ const OL=(()=>{
     mmFind(){
       SFX.btn();
       connect(()=>{
-        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w',rated:!!this.rt,token:this._tok()});
+        send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w',rated:!!this.rt,tc:this.tc||null,token:this._tok()});
       });
     },
     mmCancel(){
@@ -12413,6 +12621,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="auth-client.js"></script>
   <script src="friends-client.js?v=20260813-websocket-fix-2"></script>
   <script src="chat-client.js?v=20260822-chat-1"></script>
+  <script src="call-client.js?v=20260825-call-1"></script>
 <script>
 const BLEManager = {
   isHost: false,

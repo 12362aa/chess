@@ -20,6 +20,7 @@ const requiredFiles = new Set([
   'auth-client.js',
   'friends-client.js',
   'chat-client.js',
+  'call-client.js',
   'stockfish-18-lite-single.js',
   'stockfish-18-lite-single.wasm',
   'ble-bundle.js',

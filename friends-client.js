@@ -159,7 +159,7 @@ const amkhFriends = {
   /* ── دعوة لمباراة ──
      بتمشي على الـWebSocket مش HTTP: السيرفر لازم يوصّلها للطرف التاني
      لحظيًا، ونفس السوكت هو اللي هيبدأ المباراة لو قبل. */
-  inviteFriend(friendId, name, color, rated) {
+  inviteFriend(friendId, name, color, rated, tc) {
     const ws = this._socket();
     if (!ws) {
       window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت وحاول تاني.', 'غير متصل', '◈');
@@ -168,7 +168,7 @@ const amkhFriends = {
     /* الداعي بيختار لونه زي الأونلاين العادي: أبيض/أسود/عشوائي. السيرفر
        بياخد ده كلون المضيف (الداعي) والمدعو بياخد العكس. */
     const c = (color === 'w' || color === 'b') ? color : 'r';
-    ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: c, rated: !!rated }));
+    ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: c, rated: !!rated, tc: tc || null }));
     this._outgoingInvite = { friend_id: friendId, name, at: Date.now() };
     window.amkhUI.notify(`تم إرسال الدعوة لـ${name} — استنى يقبل`, 'تم', '◉');
     return true;
@@ -263,6 +263,7 @@ const amkhFriends = {
         <h2 class="ds-dialog__title">دعوة لمباراة</h2>
         <p class="ds-dialog__message"><b class="fr-invite__name"></b> بيدعيك للعب دلوقتي</p>
         ${invite.rated ? '<p class="fr-invite__rated">★ مباراة مصنّفة — هتأثّر على تقييمك</p>' : ''}
+        ${invite.tc ? `<p class="fr-invite__rated">⏱ زمن المباراة: ${Math.round(invite.tc.base / 60)} دقيقة${invite.tc.inc ? ` + ${invite.tc.inc} ث/نقلة` : ''}</p>` : ''}
         <div class="fr-invite__timer" aria-hidden="true"><span class="fr-invite__bar"></span></div>
         <p class="fr-invite__left"><span class="fr-invite__n">${seconds}</span> ثانية</p>
         <div class="ds-dialog__actions" style="flex-direction:column;">
@@ -374,9 +375,11 @@ const amkhFriends = {
      بترجّع 'w' | 'b' | 'r'، أو null لو اتلغت أو اتقفلت. */
   _colorChoice(name) {
     const U = window.amkhUI;
+    const TC_PRESETS = { 'none': null, '1+0': { base: 60, inc: 0 }, '3+2': { base: 180, inc: 2 }, '5+0': { base: 300, inc: 0 }, '10+0': { base: 600, inc: 0 }, '15+10': { base: 900, inc: 10 } };
     return new Promise((resolve) => {
       let chosen = null;
       let rated = false;
+      let tcKey = 'none';
       const overlay = U.mount('amkh-color-modal', `
         <div class="ds-dialog fr-color">
           <div class="ds-dialog__icon" aria-hidden="true">♟</div>
@@ -401,14 +404,27 @@ const amkhFriends = {
             <button class="fr-color__tbtn is-active" data-rated="0">ودّية</button>
             <button class="fr-color__tbtn" data-rated="1">مصنّفة</button>
           </div>
+          <p class="fr-color__sub">زمن المباراة</p>
+          <div class="fr-color__type fr-color__tc">
+            <button class="fr-color__tbtn is-active" data-tc="none">بدون</button>
+            <button class="fr-color__tbtn" data-tc="1+0">1+0</button>
+            <button class="fr-color__tbtn" data-tc="3+2">3+2</button>
+            <button class="fr-color__tbtn" data-tc="5+0">5+0</button>
+            <button class="fr-color__tbtn" data-tc="10+0">10+0</button>
+            <button class="fr-color__tbtn" data-tc="15+10">15+10</button>
+          </div>
           <div class="ds-dialog__actions">
             <button class="ds-btn ds-btn--ghost ds-btn--block" data-cancel>إلغاء</button>
           </div>
-        </div>`, { sfx: 'account', onDismiss: () => resolve(chosen ? { color: chosen, rated } : null) });
+        </div>`, { sfx: 'account', onDismiss: () => resolve(chosen ? { color: chosen, rated, tc: TC_PRESETS[tcKey] || null } : null) });
       overlay.querySelector('.fr-color__name').textContent = name || 'صديق';
       const tbtns = overlay.querySelectorAll('[data-rated]');
       tbtns.forEach((b) => {
         b.onclick = () => { U.sfx(); rated = b.dataset.rated === '1'; tbtns.forEach(x => x.classList.toggle('is-active', x === b)); };
+      });
+      const tcbtns = overlay.querySelectorAll('[data-tc]');
+      tcbtns.forEach((b) => {
+        b.onclick = () => { U.sfx(); tcKey = b.dataset.tc; tcbtns.forEach(x => x.classList.toggle('is-active', x === b)); };
       });
       overlay.querySelectorAll('[data-color]').forEach((b) => {
         b.onclick = () => { U.sfx(); chosen = b.dataset.color; overlay._dismiss(); };
@@ -645,7 +661,7 @@ const amkhFriends = {
       /* اختيار اللون ونوع المباراة قبل الدعوة — نافذة متخصصة بالثيم */
       const choice = await this._colorChoice(f.display_name || f.username);
       if (!choice) return;
-      if (this.inviteFriend(f.id, f.display_name || f.username, choice.color, choice.rated)) {
+      if (this.inviteFriend(f.id, f.display_name || f.username, choice.color, choice.rated, choice.tc)) {
         inviteBtn.disabled = true;
         inviteBtn.textContent = 'مستني…';
         setTimeout(() => { inviteBtn.disabled = !f.online; inviteBtn.textContent = 'العب'; }, 90000);

@@ -235,6 +235,11 @@ function migrate() {
   /* دعوة اللعب بين الأصدقاء ممكن تكون مصنّفة (تأثّر على التقييم) */
   if (addColumn('game_invites', 'rated', 'INTEGER DEFAULT 0')) added.push('game_invites.rated');
 
+  /* التحكّم بالوقت للدعوة (#134): tc_base = الأساس بالثواني، tc_inc = الزيادة/نقلة.
+     NULL في الاتنين = مباراة بدون توقيت (السلوك الافتراضي القديم). */
+  if (addColumn('game_invites', 'tc_base', 'INTEGER')) added.push('game_invites.tc_base');
+  if (addColumn('game_invites', 'tc_inc', 'INTEGER')) added.push('game_invites.tc_inc');
+
   /* لازم بعد إضافة الأعمدة (عشان الجدول الجديد ياخد نسخة كاملة) وقبل
      إنشاء الفهارس تحت (عشان الفهارس بتتمسح مع الجدول القديم وتترجع) */
   if (dropUsersPasswordHashNotNull()) added.push('users.password_hash → nullable');
@@ -252,6 +257,16 @@ function migrate() {
   if (addColumn('messages', 'audio_data', 'TEXT')) added.push('messages.audio_data');
   if (addColumn('messages', 'duration', 'INTEGER')) added.push('messages.duration');
   if (addColumn('messages', 'mime', 'TEXT')) added.push('messages.mime');
+
+  /* ── علامات الإرسال المتقدمة + الرد + التثبيت (زي واتساب/ماسنجر) ──
+     delivered_at: وصلت لجهاز المستلم (✓✓ دائم — قبل كده الوصول كان
+       بيتحسب لحظيًا ومايتخزّنش، فبيرجع ✓ واحدة بعد إعادة الفتح؛ ده سبب
+       «اختفاء الصح». read_at الموجود أصلاً = اتقرت (تنزل صورة القارئ).
+     reply_to: id الرسالة اللي بيتم الرد عليها (اقتباس). NULL = مفيش رد.
+     pinned_at: وقت التثبيت (فردي: أي طرف، حفلة: الأدمن). NULL = مش مثبّتة. */
+  if (addColumn('messages', 'delivered_at', 'TEXT')) added.push('messages.delivered_at');
+  if (addColumn('messages', 'reply_to', 'INTEGER')) added.push('messages.reply_to');
+  if (addColumn('messages', 'pinned_at', 'TEXT')) added.push('messages.pinned_at');
 
   /* ── جروبات الأصدقاء (شات جماعي) ──
      groups: الجروب نفسه. group_members: العضوية. group_messages: الرسايل
@@ -289,6 +304,29 @@ function migrate() {
     );
     CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
     CREATE INDEX IF NOT EXISTS idx_group_messages_grp ON group_messages(group_id, id);
+  `);
+
+  /* ── جروبات: رد + تثبيت + وصول لكل عضو ──
+     reply_to/pinned_at زي الفردي بالظبط. last_delivered_id في group_reads
+     = أعلى id وصل للعضو (يقابل last_read_id بتاع القراءة) عشان نحسب ✓✓
+     للحفلة ومعلومات «مين وصلته». group_messages وgroup_reads اتعملوا
+     قبل كده بـCREATE IF NOT EXISTS فالأعمدة الجديدة لازم ALTER محمي. */
+  if (addColumn('group_messages', 'reply_to', 'INTEGER')) added.push('group_messages.reply_to');
+  if (addColumn('group_messages', 'pinned_at', 'TEXT')) added.push('group_messages.pinned_at');
+  if (addColumn('group_reads', 'last_delivered_id', 'INTEGER DEFAULT 0')) added.push('group_reads.last_delivered_id');
+
+  /* ── مين استمع لنوتة صوتية (فردي + جروب) ──
+     القراءة تراكمية (high-water)، لكن الاستماع لرسالة صوتية بعينها حدث
+     مستقل مش تراكمي، فمحتاج جدول صريح. scope: 'dm' | 'grp' عشان id
+     الرسالة مايتلغبطش بين جدول messages وgroup_messages. */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS voice_plays (
+      scope      TEXT NOT NULL,            -- 'dm' | 'grp'
+      message_id INTEGER NOT NULL,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      played_at  TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (scope, message_id, user_id)
+    );
   `);
 
   /* ── سجل المباريات المصنّفة (audit + إعادة حساب) ──

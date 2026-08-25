@@ -350,6 +350,56 @@ app.use('/api/groups', groupsRouter);
 const privacyRouter = require('./privacy');
 app.use('/api/privacy', privacyRouter);
 // Health check
+/* ══ إعداد WebRTC (STUN + TURN) للمكالمة الصوتية (#135) ══
+   بنرجّع iceServers للعميل. STUN مجاني دايمًا. TURN اختياري: لو
+   متظبّط في البيئة (TURN_HOST + TURN_SECRET) بنولّد بيانات اعتماد
+   مؤقتة بأسلوب coturn REST (use-auth-secret): username = "انتهاء:اسم"
+   وcredential = base64(HMAC-SHA1(secret, username)). كده مفيش سر
+   بيتسرّب للعميل، والبيانات بتنتهي تلقائيًا. من غير TURN بترجع STUN بس
+   (المكالمة تنفع على WiFi/الشبكات المنزلية، وممكن تفشل خلف NAT متماثل). */
+app.get('/api/webrtc-config', (req, res) => {
+  const iceServers = [
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+  ];
+  const host = process.env.TURN_HOST;
+  const secret = process.env.TURN_SECRET;
+  if (host && secret) {
+    try {
+      const ttl = 3600; // ساعة
+      const username = `${Math.floor(Date.now() / 1000) + ttl}:amkh`;
+      const credential = require('crypto').createHmac('sha1', secret).update(username).digest('base64');
+      const udpPort = process.env.TURN_PORT || '3478';
+      const tlsPort = process.env.TURN_TLS_PORT || '5349';
+      const urls = [
+        `turn:${host}:${udpPort}?transport=udp`,
+        `turn:${host}:${udpPort}?transport=tcp`,
+      ];
+      if (process.env.TURN_TLS === '1') urls.push(`turns:${host}:${tlsPort}?transport=tcp`);
+      iceServers.push({ urls, username, credential });
+    } catch (e) { console.error('[webrtc] turn cred error:', e.message); }
+  }
+  res.json({ iceServers, ttl: 3600, turn: !!(host && secret) });
+});
+
+/* ══ إصدار التطبيق (#136) ══
+   العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
+   أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الرابط دائم:
+   دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
+   وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
+const LATEST_VERSION = '3.10';
+const LATEST_CODE = 16;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: LATEST_VERSION,
+    versionCode: LATEST_CODE,
+    url: APK_URL,
+    mandatory: false,
+    notes: 'مكالمات صوتية (فردي + حفلة)، توقيت للمباريات الأونلاين، وتحسينات الشات.',
+  });
+});
+
+
 app.get('/api/health', (req, res) => {
   /* تشخيص الإشعارات بدون أي أسرار: هل Firebase admin متهيّأ؟ وكام توكِن
      متخزّن؟ وكام منهم مربوط بحساب فعلاً؟ ده بيخلّينا نعرف سبب عدم وصول
@@ -627,6 +677,7 @@ function clearDisconnectTimer(member) {
 function cleanupRoom(code) {
   const room = rooms.get(code);
   if (!room) return;
+  stopClock(room);
   ['host', 'guest'].forEach((side) => {
     const member = room[side];
     if (!member) return;
@@ -653,6 +704,7 @@ function sendStart(room) {
     oppName: room.guest.name || 'الخصم',
     room: room.code,
     rated: !!room.rated,
+    tc: room.tc || null,
     oppRating: ratingOf(room.guestId),
     myRating: ratingOf(room.hostId),
   });
@@ -662,9 +714,11 @@ function sendStart(room) {
     oppName: room.host.name || 'الخصم',
     room: room.code,
     rated: !!room.rated,
+    tc: room.tc || null,
     oppRating: ratingOf(room.hostId),
     myRating: ratingOf(room.guestId),
   });
+  startClock(room);
 }
 
 function finalizeLanDisconnect(code, side) {
@@ -718,11 +772,12 @@ function mmRemove(ws) {
 
 function mmSameType(selfEntry, entry) {
   /* نوع المباراة لازم يتطابق: مصنّفة مع مصنّفة، وودّية مع ودّية.
-     والمصنّفة تتطلب تسجيل دخول الطرفين. */
+     والمصنّفة تتطلب تسجيل دخول الطرفين. ونفس التحكّم بالوقت (#134). */
   const selfRated = !!(selfEntry && selfEntry.rated);
   const oppRated = !!(entry && entry.rated);
   if (selfRated !== oppRated) return false;
   if (selfRated && !(selfEntry.userId && entry.userId)) return false;
+  if (!tcEqual(selfEntry && selfEntry.tc, entry && entry.tc)) return false;
   return true;
 }
 
@@ -771,6 +826,8 @@ function mmStartGame(aWs, aInfo, aColor, bWs, bInfo, bColor) {
     ended: false,
     state: null,
   };
+  room.tc = (aInfo && aInfo.tc) || (bInfo && bInfo.tc) || null;   /* الطرفان بنفس النوع (mmSameType) */
+  initClock(room);
   rooms.set(code, room);
   clientRoom.set(aWs, code);
   clientRoom.set(bWs, code);
@@ -817,6 +874,123 @@ function send(ws, obj) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   التحكّم بالوقت (#134) — ساعة موثوقة من السيرفر
+   ──────────────────────────────────────────────────────────────────────
+   • room.tc = { base, inc } بالثواني، أو null = مباراة بدون توقيت.
+   • room.clock = { w, b (ميلي ثانية), turn, lastTs, running, timer }.
+   • السيرفر بيشوف كل نقلة (relay) فبيقدر يمشّي الساعة من فرق التوقيت:
+     وقت ما يوصل بلاغ نقلة، بيخصم اللي فات من ساعة اللي لعب ويزوّد الـinc
+     ويقلب الدور ويسلّح مؤقّت السقوط للطرف التاني.
+   • لما ساعة توصل صفر بيبعت game:flag؛ النتيجة النهائية بتتحسب في العميل
+     (الفايز بالنقاط) وتتبعت على مسار game:over الموجود — عشان منطق
+     التقييم (finalizeRatedGame) مايتلمسش خالص. */
+
+/* بيقبل { base, inc } من العميل ويطبّعه لثواني صحيحة أو null. */
+function parseTC(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const base = Math.round(Number(raw.base));
+  const inc = Math.round(Number(raw.inc));
+  if (!Number.isFinite(base) || base < 10 || base > 10800) return null; /* 10ث .. 3 ساعات */
+  if (!Number.isFinite(inc) || inc < 0 || inc > 180) return null;
+  return { base, inc };
+}
+
+/* تساوي إعدادَي وقت (للماتش‑ميكينج: نفس النوع لازم يتقابل بنفس النوع). */
+function tcEqual(a, b) {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return a.base === b.base && a.inc === b.inc;
+}
+
+function initClock(room) {
+  if (!room || !room.tc) return;
+  const base = room.tc.base * 1000;
+  room.clock = { w: base, b: base, turn: 'w', lastTs: 0, running: false, timer: null };
+}
+
+/* الوقت المتبقّي للون معيّن دلوقتي (بيخصم اللي بيجري لو الدور عليه). */
+function clockRemaining(room, color, now) {
+  const c = room.clock;
+  let ms = c[color];
+  if (c.running && c.turn === color && c.lastTs) ms -= (now - c.lastTs);
+  return ms < 0 ? 0 : ms;
+}
+
+function sendBoth(room, obj) {
+  if (room.host && room.host.ws) send(room.host.ws, obj);
+  if (room.guest && room.guest.ws) send(room.guest.ws, obj);
+}
+
+function broadcastClock(room, extra) {
+  const c = room.clock; if (!c) return;
+  const now = Date.now();
+  sendBoth(room, Object.assign({
+    type: 'clock',
+    w: clockRemaining(room, 'w', now),
+    b: clockRemaining(room, 'b', now),
+    turn: c.turn,
+    running: c.running,
+    ts: now,
+  }, extra || {}));
+}
+
+function armFlagTimer(room) {
+  const c = room.clock; if (!c) return;
+  if (c.timer) { clearTimeout(c.timer); c.timer = null; }
+  if (!c.running) return;
+  const remaining = clockRemaining(room, c.turn, Date.now());
+  const loser = c.turn;
+  c.timer = setTimeout(() => onFlag(room, loser), Math.max(0, remaining));
+}
+
+function startClock(room) {
+  const c = room.clock; if (!c || c.running) return;
+  c.turn = 'w';                 /* ساعة الأبيض بتبدأ مع بداية المباراة */
+  c.lastTs = Date.now();
+  c.running = true;
+  broadcastClock(room);
+  armFlagTimer(room);
+}
+
+function stopClock(room) {
+  const c = room && room.clock; if (!c) return;
+  if (c.timer) { clearTimeout(c.timer); c.timer = null; }
+  if (c.running && c.lastTs) {
+    const now = Date.now();
+    let ms = c[c.turn] - (now - c.lastTs);
+    if (ms < 0) ms = 0;
+    c[c.turn] = ms;              /* ثبّت المتبقّي للطرف اللي كان دوره */
+  }
+  c.running = false;
+  broadcastClock(room);          /* العملاء يوقفوا عدّادهم المحلي */
+}
+
+/* نقلة اتلعبت: moverColor لازم يساوي الدور الحالي (نتجاهل أي نقلة برّه الدور). */
+function onClockMove(room, moverColor) {
+  const c = room && room.clock; if (!c || !c.running) return;
+  if (moverColor !== c.turn) return;
+  const now = Date.now();
+  let ms = c[moverColor] - (c.lastTs ? (now - c.lastTs) : 0);
+  if (ms < 0) ms = 0;
+  ms += room.tc.inc * 1000;      /* الزيادة بعد النقلة */
+  c[moverColor] = ms;
+  c.turn = moverColor === 'w' ? 'b' : 'w';
+  c.lastTs = now;
+  broadcastClock(room);
+  armFlagTimer(room);
+}
+
+function onFlag(room, loserColor) {
+  const c = room && room.clock; if (!c) return;
+  stopClock(room);
+  c[loserColor] = 0;
+  room.flagged = loserColor;
+  broadcastClock(room, { flagged: loserColor });
+  sendBoth(room, { type: 'game:flag', loser: loserColor });
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
    جسر الوقت الحقيقي لنظام الأصدقاء
    ──────────────────────────────────────────────────────────────────────
    friends.js بيتعامل مع HTTP بس، ومحتاج يوصّل حاجة لمستخدم متصل
@@ -844,6 +1018,29 @@ function liveStatus(userId) {
     return !!(room && room.started && !room.ended);
   });
   return inGame ? 'in-game' : 'online';
+}
+
+/* ══ تصريح إشارات المكالمة (#135) ══
+   إشارات WebRTC (offer/answer/ice/invite…) لازم تتصرّح قبل ما تتنقل:
+   • مكالمة فردية (من غير group): لازم الطرفين أصدقاء ومش متحاظرين.
+   • مكالمة حفلة (group موجود): لازم الطرفين أعضاء في نفس الحفلة.
+   بترجّع true لو مسموح. ده بيمنع أي حد يبعت إشارة لأي مستخدم عشوائي. */
+function callPeerAllowed(meId, peerId, groupId) {
+  if (!meId || !peerId || meId === peerId) return false;
+  try {
+    if (groupId) {
+      const gid = Number(groupId);
+      const a = db.prepare('SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?').get(gid, meId);
+      const b = db.prepare('SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?').get(gid, peerId);
+      return !!(a && b);
+    }
+    const friend = db.prepare('SELECT 1 FROM friendships WHERE user_id = ? AND friend_id = ?').get(meId, peerId);
+    if (!friend) return false;
+    const blocked = db.prepare(`SELECT 1 FROM friend_blocks
+                                WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)`)
+      .get(meId, peerId, peerId, meId);
+    return !blocked;
+  } catch (e) { return false; }
 }
 
 friendsRouter.setRealtime({
@@ -882,6 +1079,22 @@ groupsRouter.setRealtime({
 
 /* إرسال رسالة جروب: بتخزّن الأول وبعدين بتوزّع على كل الأعضاء المتصلين،
    ولأي عضو غير متصل بتبعتله إشعار دفع. spec زي رسالة الدردشة الفردية. */
+/* لقطة مختصرة للرسالة الأصل عند الرد عليها (#130): اسم صاحبها + معاينة.
+   scope='chat' يقرأ من messages، scope='group' من group_messages. */
+function replySnippet(scope, id) {
+  try {
+    const tbl = scope === 'group' ? 'group_messages' : 'messages';
+    const r = db.prepare(`SELECT id, sender_id, body, kind FROM ${tbl} WHERE id = ?`).get(id);
+    if (!r) return null;
+    const u = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(r.sender_id) || {};
+    const preview = r.kind === 'voice' ? 'رسالة صوتية'
+                  : r.kind === 'image' ? 'صورة'
+                  : r.kind === 'video' ? 'فيديو'
+                  : String(r.body || '').slice(0, 120);
+    return { id: r.id, from: r.sender_id, name: u.display_name || u.username || 'صديق', kind: r.kind || 'text', preview };
+  } catch (e) { return null; }
+}
+
 function pushGroupMessage(groupId, fromId, spec, clientId) {
   const kind = spec && ['voice', 'image', 'video'].includes(spec.kind) ? spec.kind : 'text';
   const hasMedia = kind !== 'text';
@@ -889,9 +1102,16 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
   const audio = hasMedia ? String((spec && spec.audio) || '') : null;
   const duration = kind === 'voice' ? (parseInt(spec && spec.duration) || 0) : null;
   const mime = hasMedia ? String((spec && spec.mime) || '') : null;
-  const info = db.prepare(`INSERT INTO group_messages (group_id, sender_id, kind, body, audio_data, duration, mime)
-                           VALUES (?, ?, ?, ?, ?, ?, ?)`)
-                 .run(groupId, fromId, kind, body, audio, duration, mime);
+  /* رد على رسالة (#130): نتحقق إن الرسالة الأصل من نفس الحفلة قبل ما نخزّنها. */
+  let replyTo = null;
+  const rt = parseInt(spec && spec.reply_to);
+  if (Number.isInteger(rt) && rt > 0) {
+    const orig = db.prepare('SELECT id FROM group_messages WHERE id = ? AND group_id = ?').get(rt, groupId);
+    if (orig) replyTo = rt;
+  }
+  const info = db.prepare(`INSERT INTO group_messages (group_id, sender_id, kind, body, audio_data, duration, mime, reply_to)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+                 .run(groupId, fromId, kind, body, audio, duration, mime, replyTo);
   const row = db.prepare(`SELECT id, created_at FROM group_messages WHERE id = ?`).get(info.lastInsertRowid);
   const sender = db.prepare('SELECT display_name, username, avatar_url FROM users WHERE id = ?').get(fromId) || {};
   const senderName = sender.display_name || sender.username || 'صديق';
@@ -899,21 +1119,41 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
     type: 'group:message', id: row.id, group_id: groupId,
     from: fromId, sender_name: senderName, sender_avatar: sender.avatar_url || null,
     kind, body, created_at: row.created_at, client_id: clientId || null,
+    reply_to: replyTo, reply: replyTo ? replySnippet('group', replyTo) : null,
   };
   if (hasMedia) { payload.audio = audio; payload.duration = duration || 0; payload.mime = mime; }
 
   const members = groupsRouter.memberIds(groupId);
   const offline = [];
+  const deliveredTo = [];
   for (const uid of members) {
     const socks = socketsOf(uid).filter(s => s.readyState === WebSocket.OPEN);
-    if (socks.length) { for (const s of socks) send(s, payload); }
+    if (socks.length) { for (const s of socks) send(s, payload); if (uid !== fromId) deliveredTo.push(uid); }
     else if (uid !== fromId) offline.push(uid);
   }
   /* إشعار دفع للأعضاء غير المتصلين (#64 للجروبات). */
   if (offline.length) {
     try { sendGroupPushToUsers(groupId, fromId, senderName, kind, body, offline); } catch (e) {}
   }
+  /* تثبيت الوصول (✓✓) للأعضاء المتصلين بنظام high-water عشان مايختفيش بعد
+     إعادة فتح الحفلة، وبعدين نبثّ لقطة الإيصالات لكل الأعضاء. */
+  if (deliveredTo.length) {
+    const up = db.prepare(`INSERT INTO group_reads (group_id, user_id, last_delivered_id) VALUES (?, ?, ?)
+                           ON CONFLICT(group_id, user_id) DO UPDATE SET last_delivered_id = MAX(last_delivered_id, excluded.last_delivered_id)`);
+    for (const uid of deliveredTo) { try { up.run(groupId, uid, row.id); } catch (e) {} }
+  }
+  try { broadcastGroupReceipts(groupId); } catch (e) {}
   return { row };
+}
+
+/* بثّ لقطة إيصالات الجروب لكل الأعضاء المتصلين. كل عميل بيحسب منها ✓/✓✓
+   وصور القراء المكدّسة (نمط ماسنجر) على رسايله. */
+function broadcastGroupReceipts(groupId) {
+  const reads = groupsRouter.receiptsSnapshot(groupId);
+  const payload = { type: 'group:receipts', group_id: groupId, reads };
+  for (const uid of groupsRouter.memberIds(groupId)) {
+    for (const s of socketsOf(uid)) send(s, payload);
+  }
 }
 
 /* إشعار دفع برسالة جروب لأعضاء غير متصلين. العنوان = اسم الجروب،
@@ -948,20 +1188,36 @@ function pushChatMessage(fromId, toId, spec, clientId) {
   const duration = kind === 'voice' ? (parseInt(spec && spec.duration) || 0) : null;
   const mime = hasMedia ? String((spec && spec.mime) || '') : null;
   const key = chatRouter.convoKey(fromId, toId);
-  const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body, kind, audio_data, duration, mime)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
-                 .run(key, fromId, toId, body, kind, audio, duration, mime);
+  /* رد على رسالة (#130): لازم الأصل يكون من نفس المحادثة. */
+  let replyTo = null;
+  const rt = parseInt(spec && spec.reply_to);
+  if (Number.isInteger(rt) && rt > 0) {
+    const orig = db.prepare('SELECT id FROM messages WHERE id = ? AND convo_key = ?').get(rt, key);
+    if (orig) replyTo = rt;
+  }
+  const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body, kind, audio_data, duration, mime, reply_to)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                 .run(key, fromId, toId, body, kind, audio, duration, mime, replyTo);
   const row = db.prepare(`SELECT id, created_at FROM messages WHERE id = ?`).get(info.lastInsertRowid);
   const payload = {
     type: 'chat:message', id: row.id, convo_key: key,
     from: fromId, to: toId, kind, body, created_at: row.created_at, client_id: clientId || null,
+    reply_to: replyTo, reply: replyTo ? replySnippet('chat', replyTo) : null,
   };
   if (hasMedia) { payload.audio = audio; payload.duration = duration || 0; payload.mime = mime; }
-  for (const s of socketsOf(fromId)) send(s, payload);   /* صدى لكل أجهزة المُرسِل */
+  /* نسلّم للمستقبِل الأول عشان نعرف إذا وصلت (delivered) قبل ما نصدّي للمُرسِل،
+     فالصدى بيوصل للمُرسِل ومعاه علامة ✓✓ صح من أول لحظة. */
   let delivered = false;
   for (const s of socketsOf(toId)) {
     if (s.readyState === WebSocket.OPEN) { send(s, payload); delivered = true; }
   }
+  if (delivered) {
+    /* تثبيت الوصول دائمًا: قبل كده كان بيتحسب لحظيًا ومايتخزّنش، فبترجع ✓
+       واحدة بعد إعادة فتح الشات (اختفاء الـ✓✓). دلوقتي متخزّنة للأبد. */
+    db.prepare(`UPDATE messages SET delivered_at = datetime('now') WHERE id = ? AND delivered_at IS NULL`).run(row.id);
+  }
+  payload.delivered = delivered;
+  for (const s of socketsOf(fromId)) send(s, payload);   /* صدى لكل أجهزة المُرسِل */
   /* لو الطرف التاني مش متصل بأي سوكت مفتوح — إشعار دفع لهاتفه (#64). */
   if (!delivered) { try { sendChatPushToUser(fromId, toId, kind, body); } catch (e) {} }
   else { console.log('[push] SKIP chat push: user %s has an OPEN socket (delivered live)', toId); }
@@ -1042,6 +1298,8 @@ function beginFriendGame(invite, hostWs, guestWs) {
     ended: false,
     state: null,
   };
+  room.tc = (invite.tc_base != null) ? { base: invite.tc_base, inc: invite.tc_inc || 0 } : null;
+  initClock(room);
   rooms.set(code, room);
 
   /* الكارثة القديمة: كنا بنبعت start لسوكت واحد بس (socketsOf(...).find(OPEN)).
@@ -1065,8 +1323,9 @@ function beginFriendGame(invite, hostWs, guestWs) {
   room.ended = false;
   const frRating = (id) => { if (!id) return null; try { const row = ratingStore.getUserRating.get(id); return row ? ratingStore.publicRating(row) : null; } catch (e) { return null; } };
   const hR = frRating(room.hostId), gR = frRating(room.guestId);
-  for (const s of hostSockets) send(s, { type: 'start', yourColor: room.host.color, oppName: room.guest.name || 'الخصم', room: code, rated: !!room.rated, oppRating: gR, myRating: hR });
-  for (const s of guestSockets) send(s, { type: 'start', yourColor: room.guest.color, oppName: room.host.name || 'الخصم', room: code, rated: !!room.rated, oppRating: hR, myRating: gR });
+  for (const s of hostSockets) send(s, { type: 'start', yourColor: room.host.color, oppName: room.guest.name || 'الخصم', room: code, rated: !!room.rated, tc: room.tc || null, oppRating: gR, myRating: hR });
+  for (const s of guestSockets) send(s, { type: 'start', yourColor: room.guest.color, oppName: room.host.name || 'الخصم', room: code, rated: !!room.rated, tc: room.tc || null, oppRating: hR, myRating: gR });
+  startClock(room);
   console.log(`[friends] invite ${invite.id} -> room ${code} (host socks ${hostSockets.length}, guest socks ${guestSockets.length})`);
 
   /* الاتنين بقوا جوه مباراة، فأصدقاؤهم يشوفوا الحالة الجديدة */
@@ -1180,6 +1439,7 @@ function handleGameResult(ws, msg) {
   room.reports = room.reports || {};
   room.reports[side] = winnerColor;
   room.ended = true;
+  stopClock(room);
 
   const other = side === 'host' ? 'guest' : 'host';
   const reason = (msg.reason || '').toString().slice(0, 40) || 'game-over';
@@ -1199,6 +1459,7 @@ function handleGameResult(ws, msg) {
 /* استسلام أو قطع اتصال = خسارة للطرف ده (سلطة كافية، بلا انتظار). */
 function finalizeOnLeave(room, side, reason) {
   if (!room || room.kind !== 'online' || room.ratingDone) return;
+  stopClock(room);
   const other = side === 'host' ? 'guest' : 'host';
   // لو الطرف التاني أبلغ نتيجة قبل كده، نحترمها بدل ما نفترض خسارة
   if (room.reports && room.reports[other]) {
@@ -1291,6 +1552,45 @@ wss.on('connection', (ws, req) => {
               send(ws, { type: 'chat:unread', total, by_friend: rows });
             } catch (e) {}
 
+            /* ✓✓ للوصول المؤجّل: الرسايل اللي اتبعتت والمستخدم ده كان
+               مقفول (delivered_at IS NULL) — دلوقتي اتصل يبقى وصلت. نثبّت
+               الوصول ونبلّغ كل مُرسِل (لو متصل) عشان علامته تقلب ✓✓ فورًا،
+               زي واتساب لما الطرف يفتح النت. */
+            try {
+              const undel = db.prepare(`SELECT id, sender_id, convo_key FROM messages
+                                        WHERE recipient_id = ? AND delivered_at IS NULL`).all(userId);
+              if (undel.length) {
+                db.prepare(`UPDATE messages SET delivered_at = datetime('now')
+                            WHERE recipient_id = ? AND delivered_at IS NULL`).run(userId);
+                /* نجمّع الـids حسب المُرسِل + مفتاح المحادثة */
+                const bySender = new Map();   /* senderId -> { convo_key, ids:[] } */
+                for (const m of undel) {
+                  if (!bySender.has(m.sender_id)) bySender.set(m.sender_id, { convo_key: m.convo_key, ids: [] });
+                  bySender.get(m.sender_id).ids.push(m.id);
+                }
+                for (const [senderId, g] of bySender) {
+                  for (const s of socketsOf(senderId)) {
+                    send(s, { type: 'chat:delivered', convo_key: g.convo_key, ids: g.ids });
+                  }
+                }
+              }
+            } catch (e) {}
+
+            /* ✓✓ للجروبات كمان: أول ما يتصل، كل رسايل الحفلات اللي هو عضو
+               فيها تعتبر وصلته (delivered high-water = آخر رسالة). بنبثّ
+               الإيصالات لكل حفلة عشان علامات باقي الأعضاء تتحدّث فورًا. */
+            try {
+              const myGroups = db.prepare('SELECT group_id FROM group_members WHERE user_id = ?').all(userId).map(r => r.group_id);
+              for (const gid of myGroups) {
+                const maxId = (db.prepare('SELECT MAX(id) AS m FROM group_messages WHERE group_id = ?').get(gid) || {}).m || 0;
+                if (maxId > 0) {
+                  db.prepare(`INSERT INTO group_reads (group_id, user_id, last_delivered_id) VALUES (?, ?, ?)
+                              ON CONFLICT(group_id, user_id) DO UPDATE SET last_delivered_id = MAX(last_delivered_id, excluded.last_delivered_id)`).run(gid, userId, maxId);
+                }
+                try { broadcastGroupReceipts(gid); } catch (e) {}
+              }
+            } catch (e) {}
+
             /* لو الطرف كان جوه مباراة صداقة والسوكت اتقطع لحظة القبول: نعيد
                ربطه بالغرفة الشغّالة ونبعتله start تاني. ده بيضمن إن الداعي
                يدخل المباراة حتى لو سوكته كان بيعيد الاتصال وقت القبول. */
@@ -1350,14 +1650,16 @@ wss.on('connection', (ws, req) => {
 
           const color = ['w', 'b', 'r'].includes(msg.color) ? msg.color : 'r';
           const rated = msg.rated === true ? 1 : 0;
-          const info = db.prepare(`INSERT INTO game_invites (from_id, to_id, color, rated, expires_at)
-                                   VALUES (?, ?, ?, ?, datetime('now', '+90 seconds'))`).run(senderId, friendId, color, rated);
+          const tc = parseTC(msg.tc);
+          const info = db.prepare(`INSERT INTO game_invites (from_id, to_id, color, rated, tc_base, tc_inc, expires_at)
+                                   VALUES (?, ?, ?, ?, ?, ?, datetime('now', '+90 seconds'))`)
+                         .run(senderId, friendId, color, rated, tc ? tc.base : null, tc ? tc.inc : null);
           const inviteId = info.lastInsertRowid;
           const sender = db.prepare('SELECT id, username, display_name, avatar_url FROM users WHERE id = ?').get(senderId);
 
           let delivered = false;
           for (const fws of socketsOf(friendId)) {
-            send(fws, { type: 'friend:invite-received', invite: { id: inviteId, from: sender, color, rated: !!rated, expires_in: 90 } });
+            send(fws, { type: 'friend:invite-received', invite: { id: inviteId, from: sender, color, rated: !!rated, tc: tc || null, expires_in: 90 } });
             delivered = true;
           }
           send(ws, { type: 'friend:invite-sent', invite_id: inviteId, delivered, expires_in: 90 });
@@ -1419,6 +1721,61 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
+      /* ══════════════════════════════════════════════════════════════
+         إشارات المكالمة الصوتية (WebRTC) — #135
+         السيرفر بيتصرّف كوسيط إشارات بس: بينقل SDP/ICE بين مستخدمين
+         متصلين بعد التحقق (أصدقاء/نفس الحفلة). الوسائط نفسها P2P
+         (STUN/TURN) ومابتعدّيش على السيرفر. كل رسالة فيها:
+           to      = userId الطرف الآخر
+           callId  = معرّف المكالمة (يولّده الطرف الداعي)
+           group   = (اختياري) معرّف الحفلة لمكالمة جماعية
+         مكالمة الحفلة = شبكة كاملة: كل زوج بيتبادل offer/answer/ice
+         مستقل بنفس الرسائل دي والـ to بيبقى الطرف المحدّد.
+      ══════════════════════════════════════════════════════════════ */
+      case 'call:invite':
+      case 'call:accept':
+      case 'call:reject':
+      case 'call:cancel':
+      case 'call:end':
+      case 'call:busy':
+      case 'call:offer':
+      case 'call:answer':
+      case 'call:ice': {
+        const me = socketUser.get(ws);
+        const to = Number(msg.to);
+        if (!me) { send(ws, { type: 'call:error', reason: 'auth', callId: msg.callId || null }); break; }
+        if (!Number.isInteger(to) || to <= 0) break;
+        const groupId = msg.group != null ? Number(msg.group) : null;
+        if (!callPeerAllowed(me, to, groupId)) {
+          send(ws, { type: 'call:error', reason: 'not-allowed', callId: msg.callId || null });
+          break;
+        }
+        /* حد أقصى لحجم الحمولة (SDP بيبقى بضع كيلوبايت؛ ICE أصغر) */
+        const sdp = typeof msg.sdp === 'string' ? msg.sdp.slice(0, 100000) : null;
+        const cand = (msg.candidate && typeof msg.candidate === 'object') ? msg.candidate : null;
+
+        const sender = db.prepare('SELECT id, username, display_name, avatar_url FROM users WHERE id = ?').get(me);
+        /* نوع الرسالة الواصلة للطرف الآخر = نفس نوع الإشارة (السيرفر شفّاف) */
+        const out = {
+          type: msg.type,
+          from: me,
+          fromUser: sender || null,
+          callId: msg.callId || null,
+          group: groupId || null,
+        };
+        if (msg.type === 'call:invite') { out.kind = 'audio'; out.members = Array.isArray(msg.members) ? msg.members.slice(0, 12).map(Number) : null; }
+        if (sdp) out.sdp = sdp;
+        if (cand) out.candidate = cand;
+
+        let delivered = false;
+        for (const s of socketsOf(to)) {
+          if (s.readyState === WebSocket.OPEN) { send(s, out); delivered = true; }
+        }
+        /* رجّع للداعي حالة التوصيل عشان يعرف الطرف متصل ولا لأ */
+        if (msg.type === 'call:invite') send(ws, { type: 'call:invite-ack', to, callId: msg.callId || null, delivered });
+        break;
+      }
+
       /* ══ دردشة الأصدقاء ══ */
       case 'chat:send': {
         const me = socketUser.get(ws);
@@ -1438,6 +1795,7 @@ wss.on('connection', (ws, req) => {
           if (!body) break;
           spec = { kind: 'text', body: body.slice(0, 4000) };
         }
+        if (msg.reply_to != null) spec.reply_to = msg.reply_to;
         try {
           if (!chatRouter.areFriends(me, to) || chatRouter.blockedBetween(me, to)) {
             send(ws, { type: 'chat:error', reason: 'not-friend', client_id: clientId });
@@ -1464,6 +1822,26 @@ wss.on('connection', (ws, req) => {
           if (info.changes > 0) {
             for (const s of socketsOf(from)) send(s, { type: 'chat:read-receipt', by: me, convo_key: key });
           }
+        } catch (e) {}
+        break;
+      }
+
+      /* ══ تثبيت/فك تثبيت رسالة 1:1 (#132): الطرفان يقدروا ══ */
+      case 'chat:pin': {
+        const me = socketUser.get(ws);
+        const to = Number(msg.to);
+        const id = Number(msg.id);
+        const pin = !!msg.pin;
+        if (!me || !Number.isInteger(to) || to <= 0 || !Number.isInteger(id) || id <= 0) break;
+        try {
+          if (!chatRouter.areFriends(me, to) || chatRouter.blockedBetween(me, to)) break;
+          const key = chatRouter.convoKey(me, to);
+          const m = db.prepare('SELECT id FROM messages WHERE id = ? AND convo_key = ?').get(id, key);
+          if (!m) break;
+          db.prepare(`UPDATE messages SET pinned_at = ${pin ? "datetime('now')" : 'NULL'} WHERE id = ?`).run(id);
+          const payload = { type: 'chat:pinned', convo_key: key, with: me, id, pinned: pin, by: me };
+          for (const s of socketsOf(me)) send(s, Object.assign({}, payload, { with: to }));
+          for (const s of socketsOf(to)) send(s, Object.assign({}, payload, { with: me }));
         } catch (e) {}
         break;
       }
@@ -1504,6 +1882,7 @@ wss.on('connection', (ws, req) => {
           if (!body) break;
           spec = { kind: 'text', body: body.slice(0, 4000) };
         }
+        if (msg.reply_to != null) spec.reply_to = msg.reply_to;
         try {
           if (!groupsRouter.isMember(gid, me)) {
             send(ws, { type: 'group:error', reason: 'not-member', client_id: clientId });
@@ -1563,8 +1942,29 @@ wss.on('connection', (ws, req) => {
         try {
           if (!groupsRouter.isMember(gid, me)) break;
           const last = db.prepare('SELECT MAX(id) AS m FROM group_messages WHERE group_id = ?').get(gid).m || 0;
-          db.prepare(`INSERT INTO group_reads (group_id, user_id, last_read_id) VALUES (?, ?, ?)
-                      ON CONFLICT(group_id, user_id) DO UPDATE SET last_read_id = excluded.last_read_id`).run(gid, me, last);
+          /* القراءة بتثبّت الوصول كمان (لو قريت يبقى وصلتك) — high-water للاتنين. */
+          db.prepare(`INSERT INTO group_reads (group_id, user_id, last_read_id, last_delivered_id) VALUES (?, ?, ?, ?)
+                      ON CONFLICT(group_id, user_id) DO UPDATE SET last_read_id = MAX(last_read_id, excluded.last_read_id),
+                                                                   last_delivered_id = MAX(last_delivered_id, excluded.last_delivered_id)`).run(gid, me, last, last);
+          try { broadcastGroupReceipts(gid); } catch (e) {}
+        } catch (e) {}
+        break;
+      }
+
+      /* ══ تثبيت/فك تثبيت رسالة حفلة (#132): المشرفون بس ══ */
+      case 'group:pin': {
+        const me = socketUser.get(ws);
+        const gid = Number(msg.group_id);
+        const id = Number(msg.id);
+        const pin = !!msg.pin;
+        if (!me || !Number.isInteger(gid) || gid <= 0 || !Number.isInteger(id) || id <= 0) break;
+        try {
+          if (!groupsRouter.isAdmin(gid, me)) { send(ws, { type: 'group:error', reason: 'admins-only', group_id: gid }); break; }
+          const m = db.prepare('SELECT id FROM group_messages WHERE id = ? AND group_id = ?').get(id, gid);
+          if (!m) break;
+          db.prepare(`UPDATE group_messages SET pinned_at = ${pin ? "datetime('now')" : 'NULL'} WHERE id = ?`).run(id);
+          const payload = { type: 'group:pinned', group_id: gid, id, pinned: pin, by: me };
+          for (const uid of groupsRouter.memberIds(gid)) for (const s of socketsOf(uid)) send(s, payload);
         } catch (e) {}
         break;
       }
@@ -1582,6 +1982,7 @@ wss.on('connection', (ws, req) => {
              فبنقبل التوكن في الرسالة كمصدر بديل للهوية عشان الغرفة تتصنّف. */
           userId: socketUser.get(ws) || userIdFromToken(msg.token) || null,
           rated: !!msg.rated,
+          tc: parseTC(msg.tc),
           createdAt: Date.now(),
         };
         mmQueue.set(ws, entry);
@@ -1634,6 +2035,8 @@ wss.on('connection', (ws, req) => {
           ended: false,
           state: null,
         };
+        room.tc = roomKind === 'online' ? parseTC(msg.tc) : null;   /* #134 توقيت اختياري (أونلاين بس) */
+        initClock(room);
         rooms.set(code, room);
         clientRoom.set(ws, code);
 
@@ -1760,9 +2163,13 @@ wss.on('connection', (ws, req) => {
           const { room, side } = info;
           if (msg.type === 'resign') {
             room.ended = true;
+            stopClock(room);
             finalizeOnLeave(room, side, 'resign');   // المنسحب يخسر (لو مصنّفة)
           }
-          if (msg.type === 'move') recordMove(room, msg.move != null ? msg.move : (msg.san || msg.uci || null));
+          if (msg.type === 'move') {
+            recordMove(room, msg.move != null ? msg.move : (msg.san || msg.uci || null));
+            if (room.clock) onClockMove(room, room[side] && room[side].color);
+          }
           if (msg.type === 'name') {
             const nm = (msg.name || '').slice(0, 20);
             if (room[side]) room[side].name = nm;

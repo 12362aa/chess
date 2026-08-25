@@ -390,6 +390,8 @@ const amkhAuth = {
         }
       }
     } catch (e) {}
+    /* امسح كاش المحادثات المحلي (#133) عشان ميتشافش لحساب تاني على نفس الجهاز. */
+    try { if (window.amkhChat && typeof window.amkhChat._clearCache === 'function') window.amkhChat._clearCache(); } catch (e) {}
   },
 
   async promptMigration() {
@@ -591,6 +593,11 @@ const amkhAuth = {
          على سوكت الحضور — بنمرّرها لوحدة الأصدقاء اللي بتعرض الكارت. */
       if (d.type.indexOf('party:') === 0) {
         try { if (window.amkhFriends) window.amkhFriends.handleSocketMessage(d); } catch (e) {}
+        return;
+      }
+      /* إشارات المكالمة الصوتية (WebRTC) — بتتنقل لوحدة المكالمة (#135) */
+      if (d.type.indexOf('call:') === 0) {
+        try { if (window.amkhCall) window.amkhCall.handleSocketMessage(d); } catch (e) {}
         return;
       }
       /* start / move / resign / chat / name / pimg… رسائل مباراة جاية على

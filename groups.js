@@ -92,6 +92,25 @@ function memberInfo(row) {
   };
 }
 
+/* قائمة أعضاء الجروب (هوية عامة) — لعرض صور القراء في الإيصالات. */
+function memberList(groupId) {
+  const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.avatar_url
+                           FROM group_members gm JOIN users u ON u.id = gm.user_id
+                           WHERE gm.group_id = ?`).all(groupId);
+  return rows.map(memberInfo);
+}
+
+/* لقطة إيصالات الجروب: لكل عضو أعلى رسالة وصلته (delivered) وقراها (read)
+   بنظام high-water. الافتراضي 0 لعضو لسه ماقراش/ماوصلوش حاجة. ده أساس
+   حساب ✓/✓✓ لكل الأعضاء + صور القراء (نمط ماسنجر). */
+function receiptsSnapshot(groupId) {
+  const rows = db.prepare(`SELECT gm.user_id, gr.last_read_id, gr.last_delivered_id
+                           FROM group_members gm
+                           LEFT JOIN group_reads gr ON gr.group_id = gm.group_id AND gr.user_id = gm.user_id
+                           WHERE gm.group_id = ?`).all(groupId);
+  return rows.map(r => ({ user_id: r.user_id, last_read_id: r.last_read_id || 0, last_delivered_id: r.last_delivered_id || 0 }));
+}
+
 /* ملخّص جروب لواجهة القائمة: آخر رسالة + غير المقروء + عدد الأعضاء. */
 function groupSummary(groupId, me) {
   const g = db.prepare('SELECT id, name, owner_id, avatar_url, created_at, send_policy FROM groups WHERE id = ?').get(groupId);
@@ -202,7 +221,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
   let limit = Number(req.query.limit) || 30;
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
   try {
-    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at,
+    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at,
                   u.username, u.display_name, u.avatar_url`;
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM group_messages m JOIN users u ON u.id = m.sender_id
@@ -210,6 +229,15 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       : db.prepare(`SELECT ${cols} FROM group_messages m JOIN users u ON u.id = m.sender_id
                     WHERE m.group_id = ? ORDER BY m.id DESC LIMIT ?`).all(gid, limit);
     rows.reverse();
+    /* لقطة الرسالة الأصل عند الرد (#130). */
+    const replySnippet = (id) => {
+      if (!id) return null;
+      const r = db.prepare('SELECT id, sender_id, body, kind FROM group_messages WHERE id = ?').get(id);
+      if (!r) return null;
+      const u = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(r.sender_id) || {};
+      const preview = r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120);
+      return { id: r.id, from: r.sender_id, name: u.display_name || u.username || 'صديق', kind: r.kind || 'text', preview };
+    };
     const messages = rows.map(m => ({
       id: m.id,
       from: m.sender_id,
@@ -222,8 +250,11 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       duration: m.duration || 0,
       mime: m.mime || '',
       created_at: m.created_at,
+      reply_to: m.reply_to || null,
+      reply: replySnippet(m.reply_to),
+      pinned: !!m.pinned_at,
     }));
-    res.json({ messages, has_more: rows.length === limit });
+    res.json({ messages, has_more: rows.length === limit, members: memberList(gid), reads: receiptsSnapshot(gid) });
   } catch (e) {
     console.error('[groups] history failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
@@ -242,6 +273,57 @@ router.post('/:id/read', authenticateToken, (req, res) => {
     res.json({ ok: true, last_read_id: last });
   } catch (e) {
     console.error('[groups] read failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── تسجيل الاستماع لرسالة صوتية في الجروب (#131) — scope='grp' ── */
+router.post('/:id/played', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  const mid = toId(req.body && req.body.id);
+  if (!mid) return res.status(400).json({ error: 'رسالة غير صالحة' });
+  try {
+    const m = db.prepare('SELECT sender_id, kind FROM group_messages WHERE id = ? AND group_id = ?').get(mid, gid);
+    if (!m || m.kind !== 'voice') return res.status(404).json({ error: 'مش متاح' });
+    if (m.sender_id !== me) db.prepare(`INSERT OR IGNORE INTO voice_plays (scope, message_id, user_id) VALUES ('grp', ?, ?)`).run(mid, me);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[groups] played failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── معلومات رسالة الجروب (#131): مين وصلته/قراها لكل عضو + مين سمع (للصوت) ──
+   متاح لأي عضو (مش للمشرفين بس)، بس لرسالة العضو نفسه (رسايلي أنا). */
+router.get('/:id/message-info', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  const mid = toId(req.query.id);
+  if (!mid) return res.status(400).json({ error: 'رسالة غير صالحة' });
+  try {
+    const m = db.prepare('SELECT sender_id, kind FROM group_messages WHERE id = ? AND group_id = ?').get(mid, gid);
+    if (!m) return res.status(404).json({ error: 'مش موجودة' });
+    if (m.sender_id !== me) return res.status(403).json({ error: 'مش متاح' });
+    const reads = {};
+    receiptsSnapshot(gid).forEach(r => { reads[r.user_id] = r; });
+    const members = memberList(gid).filter(u => u.id !== me).map(u => {
+      const r = reads[u.id] || { last_read_id: 0, last_delivered_id: 0 };
+      return { id: u.id, name: u.display_name || u.username || 'صديق', avatar_url: u.avatar_url || null,
+               delivered: (r.last_delivered_id || 0) >= mid, read: (r.last_read_id || 0) >= mid };
+    });
+    let listened = [];
+    if (m.kind === 'voice') {
+      listened = db.prepare(`SELECT v.user_id AS id, v.played_at AS at, u.display_name, u.username, u.avatar_url
+                             FROM voice_plays v JOIN users u ON u.id = v.user_id
+                             WHERE v.scope = 'grp' AND v.message_id = ? ORDER BY v.played_at ASC`).all(mid)
+                   .map(r => ({ id: r.id, name: r.display_name || r.username || 'صديق', avatar_url: r.avatar_url || null, at: r.at }));
+    }
+    res.json({ scope: 'group', kind: m.kind || 'text', members, listened });
+  } catch (e) {
+    console.error('[groups] message-info failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
   }
 });
@@ -558,3 +640,5 @@ module.exports.blockedBetween = blockedBetween;
 module.exports.groupSummary = groupSummary;
 module.exports.roleOf = roleOf;
 module.exports.isAdmin = isAdmin;
+module.exports.receiptsSnapshot = receiptsSnapshot;
+module.exports.memberList = memberList;

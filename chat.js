@@ -110,8 +110,18 @@ router.get('/history', authenticateToken, (req, res) => {
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
   const key = convoKey(me, other);
 
+  /* لقطة الرسالة الأصل عند الرد (#130): اسم صاحبها + معاينة مختصرة. */
+  const replySnippet = (id) => {
+    if (!id) return null;
+    const r = db.prepare('SELECT id, sender_id, body, kind FROM messages WHERE id = ?').get(id);
+    if (!r) return null;
+    const u = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(r.sender_id) || {};
+    const preview = r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120);
+    return { id: r.id, from: r.sender_id, name: u.display_name || u.username || 'صديق', kind: r.kind || 'text', preview };
+  };
+
   try {
-    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, kind, audio_data, duration, mime';
+    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, delivered_at, reply_to, pinned_at, kind, audio_data, duration, mime';
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM messages
                     WHERE convo_key = ? AND id < ? ORDER BY id DESC LIMIT ?`).all(key, before, limit)
@@ -130,6 +140,10 @@ router.get('/history', authenticateToken, (req, res) => {
       mime: m.mime || '',
       created_at: m.created_at,
       read: !!m.read_at,
+      delivered: !!m.delivered_at,
+      reply_to: m.reply_to || null,
+      reply: replySnippet(m.reply_to),
+      pinned: !!m.pinned_at,
     }));
     res.json({ messages, has_more: rows.length === limit });
   } catch (e) {
@@ -165,6 +179,52 @@ router.post('/read', authenticateToken, (req, res) => {
     res.json({ ok: true, updated: info.changes });
   } catch (e) {
     console.error('[chat] read failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── تسجيل الاستماع لرسالة صوتية (#131) ──
+   حدث مستقل مش تراكمي: بنسجّله في voice_plays scope='dm'. */
+router.post('/played', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const id = toId(req.body && req.body.id);
+  if (!id) return res.status(400).json({ error: 'رسالة غير صالحة' });
+  try {
+    const m = db.prepare('SELECT sender_id, recipient_id, kind FROM messages WHERE id = ?').get(id);
+    if (!m || m.kind !== 'voice') return res.status(404).json({ error: 'مش متاح' });
+    if (m.recipient_id !== me) return res.status(403).json({ error: 'مش متاح' }); /* بتستمع لرسالة موجّهة ليك بس */
+    db.prepare(`INSERT OR IGNORE INTO voice_plays (scope, message_id, user_id) VALUES ('dm', ?, ?)`).run(id, me);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[chat] played failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── معلومات الرسالة (#131): تسليم/قراءة + مين سمع (للصوت) — لرسايلي أنا بس ── */
+router.get('/message-info', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const id = toId(req.query.id);
+  if (!id) return res.status(400).json({ error: 'رسالة غير صالحة' });
+  try {
+    const m = db.prepare('SELECT sender_id, recipient_id, kind, delivered_at, read_at FROM messages WHERE id = ?').get(id);
+    if (!m) return res.status(404).json({ error: 'مش موجودة' });
+    if (m.sender_id !== me) return res.status(403).json({ error: 'مش متاح' });
+    let listened = [];
+    if (m.kind === 'voice') {
+      listened = db.prepare(`SELECT v.user_id AS id, v.played_at AS at, u.display_name, u.username, u.avatar_url
+                             FROM voice_plays v JOIN users u ON u.id = v.user_id
+                             WHERE v.scope = 'dm' AND v.message_id = ? ORDER BY v.played_at ASC`).all(id)
+                   .map(r => ({ id: r.id, name: r.display_name || r.username || 'صديق', avatar_url: r.avatar_url || null, at: r.at }));
+    }
+    res.json({
+      scope: 'friend', kind: m.kind || 'text',
+      delivered_at: m.delivered_at || null,
+      read_at: m.read_at || null,
+      listened,
+    });
+  } catch (e) {
+    console.error('[chat] message-info failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
   }
 });

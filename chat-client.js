@@ -19,11 +19,15 @@ const amkhChat = {
   _gmsgs: {},             /* groupId → [رسايل] */
   _gunread: {},           /* groupId → عدد غير مقروء */
   _gmeta: {},             /* groupId → {name, members_count} */
+  _gmembers: {},          /* groupId → { userId → {id,username,display_name,avatar_url} } لصور القراء */
+  _greads: {},            /* groupId → { userId → {read, delivered} } (high-water) للإيصالات */
+  _reply: null,           /* هدف الرد الحالي {scope:'friend'|'group', id, name, preview, kind} (#130) */
 
   /* أيقونات مرسومة (Lucide-style، نفس ستايل MODE_ICONS في index.html).
      stroke=currentColor فبتاخد لون النص/الزر تلقائيًا وتشتغل في كل الثيمات. */
   ICONS: {
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+    call: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.5 15.5c-1.3 0-2.6-.2-3.8-.6-.4-.1-.8 0-1.1.3l-2 2a15.3 15.3 0 0 1-6.6-6.6l2-2c.3-.3.4-.7.3-1.1-.4-1.2-.6-2.5-.6-3.8 0-.6-.4-1-1-1H4.2c-.6 0-1 .4-1 1 0 9.4 7.6 17 17 17 .6 0 1-.4 1-1v-3.2c0-.6-.4-1-1-1z"/></svg>',
     chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>',
@@ -44,6 +48,9 @@ const amkhChat = {
     userMinus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="17" y1="11" x2="23" y2="11"/></svg>',
     copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
     refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    reply: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a2 2 0 0 0-2-2H8.5a2 2 0 0 0-2 2v6.5z"/></svg>',
   },
 
   _key(a, b) { const x = Number(a), y = Number(b); return Math.min(x, y) + ':' + Math.max(x, y); },
@@ -73,6 +80,75 @@ const amkhChat = {
       return await res.json();
     } catch (e) { return null; }
   },
+  async _post(path, body) {
+    const headers = await this._getAuthHeader();
+    if (!headers) return null;
+    try {
+      const res = await fetch(`${window.getApiBase()}/chat${path}`, {
+        method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify(body || {}),
+      });
+      const data = await res.json().catch(() => null);
+      return res.ok ? (data || { ok: true }) : { error: (data && data.error) || 'خطأ' };
+    } catch (e) { return { error: 'اتصال' }; }
+  },
+
+  /* ── تخزين محلي للمحادثات (IndexedDB) #133 ──
+     بنحتفظ بآخر الرسائل على الجهاز عشان تظهر فورًا أول ما تفتح المحادثة
+     وكمان تفضل ظاهرة من غير نت لحد ما التاريخ الحقيقي يوصل. */
+  _DB_NAME: 'amkh-chat',
+  _DB_VER: 1,
+  _CACHE_MAX: 30,
+  _idbOpen() {
+    if (this._dbP) return this._dbP;
+    this._dbP = new Promise((resolve) => {
+      try {
+        if (!window.indexedDB) return resolve(null);
+        const req = indexedDB.open(this._DB_NAME, this._DB_VER);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('dm')) db.createObjectStore('dm', { keyPath: 'key' });
+          if (!db.objectStoreNames.contains('grp')) db.createObjectStore('grp', { keyPath: 'key' });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch (e) { resolve(null); }
+    });
+    return this._dbP;
+  },
+  async _cacheGet(store, key) {
+    try {
+      const db = await this._idbOpen(); if (!db) return null;
+      return await new Promise((resolve) => {
+        const rq = db.transaction(store, 'readonly').objectStore(store).get(String(key));
+        rq.onsuccess = () => resolve(rq.result && Array.isArray(rq.result.messages) ? rq.result.messages : null);
+        rq.onerror = () => resolve(null);
+      });
+    } catch (e) { return null; }
+  },
+  async _cachePut(store, key, messages) {
+    try {
+      const db = await this._idbOpen(); if (!db) return;
+      /* آخر N رسالة فقط، وبدون المتفائلة اللي لسه بتتبعت (id == null). */
+      const clean = (messages || []).filter(m => m && m.id != null).slice(-this._CACHE_MAX)
+        .map(m => Object.assign({}, m, { pending: false }));
+      db.transaction(store, 'readwrite').objectStore(store).put({ key: String(key), messages: clean, updated_at: Date.now() });
+    } catch (e) {}
+  },
+  /* يحفظ الحالة الحالية للمحادثة/الحفلة في الكاش المحلي (بدون انتظار). */
+  _persist(scope, key) {
+    try {
+      if (scope === 'grp') this._cachePut('grp', key, this._gmsgs[key] || []);
+      else this._cachePut('dm', key, this._msgs[key] || []);
+    } catch (e) {}
+  },
+  /* يمسح كل الكاش المحلي (عند تسجيل الخروج). */
+  async _clearCache() {
+    try {
+      const db = await this._idbOpen(); if (!db) return;
+      ['dm', 'grp'].forEach(s => { try { db.transaction(s, 'readwrite').objectStore(s).clear(); } catch (e) {} });
+    } catch (e) {}
+  },
 
   /* وقت قصير للفقاعة */
   _time(iso) {
@@ -94,10 +170,11 @@ const amkhChat = {
     if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت.', 'غير متصل', '◈'); return; }
     const clientId = 'c' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
-    const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind: 'text', body, created_at: new Date().toISOString(), read: false, pending: true };
+    const r = this._takeReply('friend');
+    const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind: 'text', body, created_at: new Date().toISOString(), read: false, delivered: false, pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     if (this._openWith === friendId) this._appendBubble(msg, true);
-    try { ws.send(JSON.stringify({ type: 'chat:send', to: friendId, body, client_id: clientId })); } catch (e) {}
+    try { ws.send(JSON.stringify({ type: 'chat:send', to: friendId, body, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -198,10 +275,11 @@ const amkhChat = {
     if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
     const clientId = 'v' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
-    const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind: 'voice', body: '', audio: audioB64, duration: durationSec, mime, created_at: new Date().toISOString(), read: false, pending: true };
+    const r = this._takeReply('friend');
+    const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind: 'voice', body: '', audio: audioB64, duration: durationSec, mime, created_at: new Date().toISOString(), read: false, pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     if (this._openWith === friendId) this._appendBubble(msg, true);
-    try { ws.send(JSON.stringify({ type: 'chat:send', kind: 'voice', to: friendId, audio: audioB64, duration: durationSec, mime, client_id: clientId })); } catch (e) {}
+    try { ws.send(JSON.stringify({ type: 'chat:send', kind: 'voice', to: friendId, audio: audioB64, duration: durationSec, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -300,10 +378,11 @@ const amkhChat = {
     if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
     const clientId = 'm' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
-    const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), read: false, pending: true };
+    const r = this._takeReply('friend');
+    const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), read: false, pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     if (this._openWith === friendId) this._appendBubble(msg, true);
-    try { ws.send(JSON.stringify({ type: 'chat:send', kind, to: friendId, audio: b64, mime, client_id: clientId })); } catch (e) {}
+    try { ws.send(JSON.stringify({ type: 'chat:send', kind, to: friendId, audio: b64, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -348,7 +427,9 @@ const amkhChat = {
     switch (d.type) {
       case 'chat:message': return this._onMessage(d);
       case 'chat:sent': return this._onSent(d);
+      case 'chat:delivered': return this._onDelivered(d);
       case 'chat:read-receipt': return this._onReadReceipt(d);
+      case 'chat:pinned': return this._onPinned(d);
       case 'chat:typing': return this._onTyping(d);
       case 'chat:recording': return this._onRecording(d);
       case 'chat:unread': return this._onUnreadSnapshot(d);
@@ -358,6 +439,8 @@ const amkhChat = {
         return true;
       case 'group:message': return this._onGroupMessage(d);
       case 'group:sent': return this._onGroupSent(d);
+      case 'group:receipts': return this._onGroupReceipts(d);
+      case 'group:pinned': return this._onGroupPinned(d);
       case 'group:typing': return this._onGroupTyping(d);
       case 'group:recording': return this._onGroupRecording(d);
       case 'group:created': return this._onGroupCreated(d);
@@ -390,8 +473,9 @@ const amkhChat = {
     /* حماية من الازدواج: لو نفس الرسالة وصلت مرتين (سوكتين مفتوحين أو
        إعادة اتصال) نتجاهل النسخة التانية بمعرّف السيرفر. */
     if (d.id && (this._msgs[key] || []).some(m => m.id === d.id)) return true;
-    const msg = { id: d.id, client_id: d.client_id || null, from: d.from, to: d.to, mine, kind: d.kind || 'text', body: d.body, audio: d.audio || null, duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at, read: false };
+    const msg = { id: d.id, client_id: d.client_id || null, from: d.from, to: d.to, mine, kind: d.kind || 'text', body: d.body, audio: d.audio || null, duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at, read: false, delivered: !!d.delivered, reply_to: d.reply_to || null, reply: d.reply || null };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
+    this._persist('dm', key);
 
     if (this._openWith === friendId) {
       this._appendBubble(msg, false);
@@ -412,15 +496,37 @@ const amkhChat = {
     const key = this._key(this._me(), d.to);
     const arr = this._msgs[key] || [];
     const m = arr.find(x => x.client_id === d.client_id);
-    if (m) { m.id = d.id; m.pending = false; m.created_at = d.created_at || m.created_at; }
+    if (m) { m.id = d.id; m.pending = false; m.created_at = d.created_at || m.created_at; m.delivered = !!d.delivered; }
+    this._persist('dm', key);
     if (this._openWith === d.to) {
       const el = this._sheet && this._sheet.querySelector(`[data-cid="${d.client_id}"]`);
       if (el) {
         el.classList.remove('is-pending');
         el.dataset.mid = String(d.id);
         const tick = el.querySelector('.ch-tick');
-        if (tick) { tick.classList.remove('is-pending'); tick.textContent = d.delivered ? '✓✓' : '✓'; }
+        if (tick) {
+          tick.classList.remove('is-pending');
+          if (d.delivered) tick.classList.add('is-delivered');
+          tick.textContent = d.delivered ? '✓✓' : '✓';
+        }
       }
+    }
+    return true;
+  },
+
+  /* ✓✓ للوصول المؤجّل: السيرفر بيبعت ده لما المستقبِل يفتح النت وتتسلّم
+     رسايلي اللي كانت متبعتة وهو مقفول. نقلب العلامة لـ✓✓ (لو لسه ماتقرتش). */
+  _onDelivered(d) {
+    if (!d || !d.convo_key || !Array.isArray(d.ids)) return true;
+    const set = new Set(d.ids.map(Number));
+    const arr = this._msgs[d.convo_key] || [];
+    arr.forEach(m => { if (m.mine && m.id != null && set.has(Number(m.id))) m.delivered = true; });
+    const me = this._me();
+    if (this._sheet && this._openWith != null && this._key(me, this._openWith) === d.convo_key) {
+      set.forEach(id => {
+        const el = this._sheet.querySelector(`.ch-bubble--mine[data-mid="${id}"] .ch-tick`);
+        if (el && !el.classList.contains('is-read')) { el.textContent = '✓✓'; el.classList.add('is-delivered'); }
+      });
     }
     return true;
   },
@@ -445,15 +551,53 @@ const amkhChat = {
   },
 
   _onReadReceipt(d) {
-    /* الطرف التاني قرا كل رسايلي: كل التشيكات تبقى ✓✓ */
+    /* الطرف التاني قرا رسايلي: كلها تبقى ✓✓، وصورته «تنزل» على آخر رسالة
+       اتقرت (زي ماسنجر). _applyReadAvatar بيتكفّل بالصورة على الـDOM. */
     const me = this._me();
     if (!d.convo_key) return true;
     const arr = this._msgs[d.convo_key] || [];
-    arr.forEach(m => { if (m.mine) m.read = true; });
+    arr.forEach(m => { if (m.mine) { m.read = true; m.delivered = true; } });
     if (this._sheet && this._openWith != null && this._key(me, this._openWith) === d.convo_key) {
       this._sheet.querySelectorAll('.ch-bubble--mine .ch-tick').forEach(t => { t.textContent = '✓✓'; t.classList.add('is-read'); });
+      this._applyReadAvatar(this._openWith);
     }
     return true;
+  },
+
+  /* صورة «تمت المشاهدة» على آخر رسالة قراها الصديق (نمط ماسنجر): بنشيل أي
+     صورة قديمة، نرجّع التشيكات المخفية، وبعدين نلاقي آخر رسالة مني اتقرت
+     ونحط صورة الصديق مكان التشيك عليها. */
+  _applyReadAvatar(friendId) {
+    if (!this._sheet || this._openWith !== friendId) return;
+    this._sheet.querySelectorAll('.ch-seen-ava').forEach(e => e.remove());
+    this._sheet.querySelectorAll('.ch-bubble--mine .ch-tick').forEach(t => { t.style.display = ''; });
+    const arr = this._msgs[this._key(this._me(), friendId)] || [];
+    let last = null;
+    for (let i = arr.length - 1; i >= 0; i--) { if (arr[i].mine && arr[i].read) { last = arr[i]; break; } }
+    if (!last) return;
+    let bubble = null;
+    if (last.id != null) bubble = this._sheet.querySelector(`.ch-bubble--mine[data-mid="${last.id}"]`);
+    if (!bubble && last.client_id) bubble = this._sheet.querySelector(`.ch-bubble--mine[data-cid="${last.client_id}"]`);
+    if (!bubble) return;
+    const meta = bubble.querySelector('.ch-bubble__meta');
+    if (!meta) return;
+    const tick = meta.querySelector('.ch-tick');
+    if (tick) tick.style.display = 'none';
+    const fm = this._friendMeta[friendId] || {};
+    const initial = String(fm.name || '؟').trim().slice(0, 1).toUpperCase();
+    const ava = document.createElement('span');
+    ava.className = 'ch-seen-ava';
+    ava.title = 'تمت المشاهدة';
+    ava.style.cssText = 'width:15px;height:15px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;line-height:1;background:var(--color-primary,#4a90d9);color:#fff;margin-inline-start:5px;vertical-align:middle;flex:0 0 auto;';
+    if (fm.avatar_url) {
+      const img = document.createElement('img');
+      img.alt = ''; img.loading = 'lazy';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      img.onerror = () => { img.remove(); ava.textContent = initial; };
+      img.src = fm.avatar_url;
+      ava.appendChild(img);
+    } else ava.textContent = initial;
+    meta.appendChild(ava);
   },
 
   _onTyping(d) {
@@ -538,6 +682,7 @@ const amkhChat = {
             <span class="ch-conv__name"></span>
             <span class="ch-conv__sub"></span>
           </div>
+          <button class="ch-call" id="ch-call" aria-label="مكالمة صوتية" title="مكالمة صوتية">${this.ICONS.call || ''}</button>
         </div>
         <div class="ch-scroll" id="ch-scroll">
           <div class="ch-loadmore" id="ch-loadmore" hidden><button class="ds-btn ds-btn--ghost ds-btn--sm">عرض الأقدم</button></div>
@@ -558,15 +703,19 @@ const amkhChat = {
           <button class="ds-btn ds-btn--ghost ch-mic" id="ch-mic" aria-label="تسجيل صوتي">${this.ICONS.mic}</button>
           <button class="ds-btn ds-btn--primary ch-send" id="ch-send" aria-label="إرسال" hidden>${this.ICONS.send}</button>
         </div>
-      </div>`, { sheet: true, sfx: 'default', onDismiss: () => { try { this._stopVoicePlay(); } catch (e) {} if (this._recording) { try { this._stopVoiceRec(false); } catch (e) {} } this._openWith = null; this._sheet = null; } });
+      </div>`, { sheet: true, sfx: 'default', onDismiss: () => { try { this._stopVoicePlay(); } catch (e) {} if (this._recording) { try { this._stopVoiceRec(false); } catch (e) {} } this._openWith = null; this._sheet = null; this._reply = null; } });
 
     overlay.dataset.view = 'conv';
     this._sheet = overlay;
     this._openWith = fid;
+    this._reply = null;
 
     overlay.querySelector('.ch-conv__name').textContent = name;
     this._paintAvatar(overlay.querySelector('.ch-conv__av'), this._friendMeta[fid]);
     this._paintSub(overlay.querySelector('.ch-conv__sub'), this._friendMeta[fid]);
+
+    const callBtn = overlay.querySelector('#ch-call');
+    if (callBtn) callBtn.onclick = () => { U.sfx(); if (window.amkhCall) window.amkhCall.startCall(fid, name, this._friendMeta[fid].avatar_url); };
 
     const ta = overlay.querySelector('#ch-text');
     const sendBtn = overlay.querySelector('#ch-send');
@@ -595,6 +744,19 @@ const amkhChat = {
     if (recSend) recSend.onclick = () => { U.sfx(); this._stopVoiceRec(true); };
     if (recCancel) recCancel.onclick = () => { U.sfx(); this._stopVoiceRec(false); };
     overlay.querySelector('#ch-loadmore button').onclick = () => { U.sfx(); this._loadHistory(fid, true); };
+
+    /* اعرض الكاش المحلي فورًا (#133) — يظهر التاريخ من غير انتظار النت وحتى أوفلاين. */
+    try {
+      const key = this._key(this._me(), fid);
+      if (!(this._msgs[key] || []).length) {
+        const cached = await this._cacheGet('dm', key);
+        if (cached && cached.length && this._openWith === fid && !(this._msgs[key] || []).length) {
+          this._msgs[key] = cached;
+          this._renderMessages(fid);
+          this._scrollBottom();
+        }
+      }
+    } catch (e) {}
 
     await this._loadHistory(fid, false);
     this._markRead(fid);
@@ -660,6 +822,7 @@ const amkhChat = {
       }
       const loadMore = this._sheet.querySelector('#ch-loadmore');
       if (loadMore) loadMore.hidden = !data.has_more;
+      this._persist('dm', key);
     }
     this._renderMessages(friendId);
     if (older && scroll) { scroll.scrollTop = scroll.scrollHeight - prevH; }
@@ -679,17 +842,21 @@ const amkhChat = {
       return;
     }
     arr.forEach(m => listEl.appendChild(this._bubbleEl(m)));
+    this._applyReadAvatar(friendId);   /* صورة «تمت المشاهدة» على آخر رسالة اتقرت */
+    this._renderPinnedBar('friend');
   },
 
   _bubbleEl(m) {
     const b = document.createElement('div');
     b.className = 'ch-bubble ' + (m.mine ? 'ch-bubble--mine' : 'ch-bubble--their');
     if (m.pending) b.classList.add('is-pending');
+    if (m.pinned) b.classList.add('ch-bubble--pinned');
     if (m.client_id) b.dataset.cid = m.client_id;
     if (m.id) b.dataset.mid = String(m.id);
+    if (m.reply) b.appendChild(this._replyQuoteEl(m.reply));
     if (m.kind === 'voice') {
       b.classList.add('ch-bubble--voice');
-      b.appendChild(this._voiceEl(m));
+      b.appendChild(this._voiceEl(m, 'dm'));
     } else if (m.kind === 'image' || m.kind === 'video') {
       b.classList.add('ch-bubble--media');
       b.appendChild(this._mediaEl(m));
@@ -707,17 +874,278 @@ const amkhChat = {
     meta.appendChild(time);
     if (m.mine) {
       const tick = document.createElement('span');
-      tick.className = 'ch-tick' + (m.read ? ' is-read' : '') + (m.pending ? ' is-pending' : '');
+      let cls = 'ch-tick';
+      if (m.pending) cls += ' is-pending';
+      else if (m.failed) cls += ' is-failed';
+      else if (m.read) cls += ' is-read';
+      else if (m.delivered) cls += ' is-delivered';
+      tick.className = cls;
       if (m.pending) tick.innerHTML = this.ICONS.clock;   /* أيقونة ساعة مرسومة */
-      else tick.textContent = m.read ? '✓✓' : '✓';
+      else if (m.failed) tick.textContent = '✗';
+      else tick.textContent = (m.delivered || m.read) ? '✓✓' : '✓';
       meta.appendChild(tick);
     }
     b.appendChild(meta);
+    this._bindMsgActions(b, 'friend', m);
     return b;
   },
 
-  /* عنصر وسائط (صورة/فيديو): بنحط الـbase64 كـdata URL. الصورة تفتح بملء
-     الشاشة عند الضغط؛ الفيديو بعناصر التحكم القياسية. */
+  /* ══ رد على رسالة (#130) ══ */
+
+  _msgPreview(m) {
+    if (!m) return '';
+    if (m.kind === 'voice') return 'رسالة صوتية';
+    if (m.kind === 'image') return 'صورة';
+    if (m.kind === 'video') return 'فيديو';
+    return String(m.body || '');
+  },
+  _msgAuthorName(scope, m) {
+    if (m.mine) return 'أنت';
+    if (scope === 'group') {
+      if (m.sender_name) return m.sender_name;
+      const mem = (this._gmembers[this._openGroup] || {})[m.from];
+      return mem ? (mem.display_name || mem.username) : 'صديق';
+    }
+    const meta = this._friendMeta[this._openWith];
+    return (meta && meta.name) || 'صديق';
+  },
+
+  /* بلوك الاقتباس اللي بيظهر جوه الفقاعة فوق نص الرسالة (نمط واتساب). */
+  _replyQuoteEl(reply) {
+    const q = document.createElement('div');
+    q.className = 'ch-quote';
+    q.style.cssText = 'border-inline-start:3px solid var(--color-primary,#4a90d9);background:rgba(127,127,127,.14);border-radius:6px;padding:3px 7px;margin-bottom:4px;cursor:pointer;max-width:100%;overflow:hidden;';
+    const nm = document.createElement('div');
+    nm.style.cssText = 'font-size:11px;font-weight:700;color:var(--color-primary,#4a90d9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    nm.textContent = reply.name || 'صديق';
+    const pv = document.createElement('div');
+    pv.style.cssText = 'font-size:12px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    pv.textContent = (reply.kind === 'voice' ? '🎤 ' : reply.kind === 'image' ? '📷 ' : reply.kind === 'video' ? '🎬 ' : '') + (reply.preview || '');
+    q.appendChild(nm); q.appendChild(pv);
+    q.onclick = (e) => { e.stopPropagation(); this._scrollToMsg(reply.id); };
+    return q;
+  },
+
+  /* لمسة مطوّلة/كليك يمين على الفقاعة تفتح قائمة إجراءات الرسالة. */
+  _bindMsgActions(bubbleEl, scope, m) {
+    let timer = null, moved = false;
+    const open = () => this._openMsgMenu(scope, m);
+    bubbleEl.addEventListener('contextmenu', (e) => { e.preventDefault(); open(); });
+    bubbleEl.addEventListener('touchstart', () => { moved = false; timer = setTimeout(() => { if (!moved) open(); }, 480); }, { passive: true });
+    bubbleEl.addEventListener('touchmove', () => { moved = true; if (timer) { clearTimeout(timer); timer = null; } }, { passive: true });
+    bubbleEl.addEventListener('touchend', () => { if (timer) { clearTimeout(timer); timer = null; } }, { passive: true });
+  },
+
+  /* قائمة إجراءات الرسالة (رد + معلومات لرسايلي + تثبيت). */
+  _openMsgMenu(scope, m) {
+    const U = window.amkhUI;
+    if (!U || m.id == null) return;
+    const infoBtn = m.mine ? `<button class="grp-act__btn" data-do="info">${this.ICONS.info}<span>معلومات</span></button>` : '';
+    /* التثبيت: في الحفلة للمشرفين بس؛ في 1:1 للطرفين. */
+    const canPin = scope === 'group' ? this._groupIsAdmin(this._openGroup) : true;
+    const pinBtn = canPin ? `<button class="grp-act__btn" data-do="pin">${this.ICONS.pin}<span>${m.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span></button>` : '';
+    const overlay = U.mount('amkh-msg-act', `
+      <div class="ds-dialog grp-act">
+        <div class="grp-act__list">
+          <button class="grp-act__btn" data-do="reply">${this.ICONS.reply}<span>رد</span></button>
+          ${infoBtn}
+          ${pinBtn}
+          <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إلغاء</span></button>
+        </div>
+      </div>`, { sfx: 'sheet' });
+    overlay.querySelectorAll('[data-do]').forEach(b => b.onclick = () => {
+      U.sfx();
+      const act = b.dataset.do;
+      try { overlay._dismiss(); } catch (e) {}
+      if (act === 'reply') this._startReply(scope, m);
+      else if (act === 'info') this._openMsgInfo(scope, m);
+      else if (act === 'pin') this._pinMsg(scope, m, !m.pinned);
+    });
+  },
+
+  _groupIsAdmin(gid) {
+    const meta = this._gmeta[gid] || {};
+    return meta.my_role === 'owner' || meta.my_role === 'admin';
+  },
+
+  /* تثبيت/فك تثبيت رسالة (#132) — بيبعت على السوكت والسيرفر بيبثّ للطرفين. */
+  _pinMsg(scope, m, pin) {
+    const ws = this._socket();
+    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    try { if (window.SFX) window.SFX.modalOpen('pin'); } catch (e) {}
+    if (scope === 'group') {
+      const gid = this._openGroup; if (gid == null) return;
+      try { ws.send(JSON.stringify({ type: 'group:pin', group_id: gid, id: m.id, pin: !!pin })); } catch (e) {}
+    } else {
+      const to = this._openWith; if (to == null) return;
+      try { ws.send(JSON.stringify({ type: 'chat:pin', to, id: m.id, pin: !!pin })); } catch (e) {}
+    }
+  },
+
+  _onPinned(d) {
+    if (!d || d.id == null) return true;
+    const friendId = d.with;
+    const key = this._key(this._me(), friendId);
+    const arr = this._msgs[key]; if (arr) { const m = arr.find(x => x.id === d.id); if (m) m.pinned = !!d.pinned; }
+    this._persist('dm', key);
+    if (this._openWith === friendId) { this._markBubblePinned(d.id, !!d.pinned); this._renderPinnedBar('friend'); }
+    return true;
+  },
+  _onGroupPinned(d) {
+    if (!d || d.id == null || d.group_id == null) return true;
+    const arr = this._gmsgs[d.group_id]; if (arr) { const m = arr.find(x => x.id === d.id); if (m) m.pinned = !!d.pinned; }
+    this._persist('grp', d.group_id);
+    if (this._openGroup === d.group_id) { this._markBubblePinned(d.id, !!d.pinned); this._renderPinnedBar('group'); }
+    return true;
+  },
+
+  _markBubblePinned(id, pinned) {
+    if (!this._sheet) return;
+    const b = this._sheet.querySelector(`.ch-bubble[data-mid="${id}"]`);
+    if (b) b.classList.toggle('ch-bubble--pinned', !!pinned);
+  },
+
+  /* شريط الرسايل المثبّتة أعلى المحادثة (زي واتساب): أحدث رسالة مثبّتة
+     + عدّاد، والضغط بيقفز للرسالة. */
+  _renderPinnedBar(scope) {
+    if (!this._sheet) return;
+    const arr = scope === 'group' ? (this._gmsgs[this._openGroup] || []) : (this._msgs[this._key(this._me(), this._openWith)] || []);
+    const pinned = arr.filter(m => m.pinned && m.id != null);
+    let bar = this._sheet.querySelector('#ch-pinned');
+    if (!pinned.length) { if (bar) bar.remove(); return; }
+    const last = pinned[pinned.length - 1];
+    const scroll = this._sheet.querySelector('#ch-scroll');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'ch-pinned';
+      bar.className = 'ch-pinned';
+      bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(127,127,127,.14);border-inline-start:3px solid var(--color-primary,#4a90d9);cursor:pointer;font-size:13px;';
+      if (scroll && scroll.parentNode) scroll.parentNode.insertBefore(bar, scroll);
+    }
+    const preview = (last.kind === 'voice' ? '🎤 رسالة صوتية' : last.kind === 'image' ? '📷 صورة' : last.kind === 'video' ? '🎬 فيديو' : (last.body || ''));
+    const esc = (window.amkhUI && window.amkhUI.esc) ? window.amkhUI.esc : (s => String(s));
+    bar.innerHTML = `<span style="opacity:.8;">${this.ICONS.pin}</span>`
+      + `<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pinned.length > 1 ? `<b>${pinned.length} مثبّتة · </b>` : '<b>مثبّتة · </b>'}${esc(preview)}</span>`;
+    bar.onclick = () => { try { window.amkhUI.sfx(); } catch (e) {} this._scrollToMsg(last.id); };
+  },
+
+  /* تسجيل استماع رسالة صوتية مرة واحدة (#131) — مش لرسايلي أنا. */
+  _reportPlayed(info) {
+    if (!info || info.mine || info.mid == null) return;
+    const scope = info.scope || 'dm';
+    this._played = this._played || {};
+    const tag = scope + ':' + info.mid;
+    if (this._played[tag]) return;
+    this._played[tag] = true;
+    if (scope === 'grp') { const gid = this._openGroup; if (gid != null) this._gpost(`/${gid}/played`, { id: info.mid }); }
+    else this._post('/played', { id: info.mid });
+  },
+
+  /* نافذة معلومات الرسالة (#131): تسليم/قراءة + مين سمع الصوتية. */
+  async _openMsgInfo(scope, m) {
+    const U = window.amkhUI;
+    if (!U) return;
+    const data = scope === 'group'
+      ? await this._gget(`/${this._openGroup}/message-info?id=${m.id}`)
+      : await this._get(`/message-info?id=${m.id}`);
+    if (!data || data.error) { U.notify('تعذّر جلب معلومات الرسالة', 'تنبيه', '◈'); return; }
+    const fmt = (iso) => iso ? this._time(iso) : '—';
+    const avaHtml = (u) => u.avatar_url
+      ? `<img src="${u.avatar_url}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+      : `<span style="width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--color-primary,#4a90d9);color:#fff;font-weight:700;">${(u.name || '؟').slice(0,1)}</span>`;
+    const rowHtml = (u, right) => `<div style="display:flex;align-items:center;gap:10px;padding:6px 2px;">${avaHtml(u)}<div style="flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.name}</div><div style="opacity:.7;font-size:12px;">${right}</div></div>`;
+    let inner = '';
+    if (scope === 'group') {
+      const readList = (data.members || []).filter(u => u.read);
+      const delivList = (data.members || []).filter(u => u.delivered && !u.read);
+      const pendList = (data.members || []).filter(u => !u.delivered);
+      inner += `<div style="font-weight:800;margin:8px 0 4px;">مقروءة (${readList.length})</div>`;
+      inner += readList.length ? readList.map(u => rowHtml(u, '✓✓')).join('') : `<div style="opacity:.6;font-size:13px;">لا أحد بعد</div>`;
+      if (delivList.length) { inner += `<div style="font-weight:800;margin:10px 0 4px;">تم التسليم (${delivList.length})</div>` + delivList.map(u => rowHtml(u, '✓')).join(''); }
+      if (pendList.length) { inner += `<div style="font-weight:800;margin:10px 0 4px;">لسه (${pendList.length})</div>` + pendList.map(u => rowHtml(u, '…')).join(''); }
+    } else {
+      const line = (label, val) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 2px;border-bottom:1px solid rgba(127,127,127,.15);"><span style="font-weight:700;">${label}</span><span style="opacity:.75;">${val}</span></div>`;
+      inner += line('تم التسليم', fmt(data.delivered_at));
+      inner += line('تمت القراءة', fmt(data.read_at));
+    }
+    if (data.kind === 'voice') {
+      const L = data.listened || [];
+      inner += `<div style="font-weight:800;margin:10px 0 4px;">استمعوا (${L.length})</div>`;
+      inner += L.length ? L.map(u => rowHtml(u, this._time(u.at))).join('') : `<div style="opacity:.6;font-size:13px;">لا أحد بعد</div>`;
+    }
+    U.mount('amkh-msg-info', `
+      <div class="ds-dialog">
+        <div class="ds-dialog__head"><h3 style="margin:0;">معلومات الرسالة</h3></div>
+        <div class="ds-dialog__body" style="max-height:60vh;overflow:auto;">${inner}</div>
+        <div class="ds-dialog__foot"><button class="ds-btn" data-close>تمام</button></div>
+      </div>`, { sfx: 'msgInfo' });
+  },
+
+  _startReply(scope, m) {
+    this._reply = { scope, id: m.id, name: this._msgAuthorName(scope, m), preview: this._msgPreview(m).slice(0, 120), kind: m.kind || 'text' };
+    this._showReplyBar();
+  },
+
+  _showReplyBar() {
+    if (!this._sheet || !this._reply) return;
+    const input = this._sheet.querySelector('#ch-input');
+    if (!input) return;
+    let bar = input.querySelector('#ch-reply');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'ch-reply';
+      bar.className = 'ch-reply';
+      bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;margin-bottom:4px;border-inline-start:3px solid var(--color-primary,#4a90d9);background:rgba(127,127,127,.12);border-radius:8px;';
+      input.insertBefore(bar, input.firstChild);
+    }
+    const r = this._reply;
+    bar.innerHTML = '';
+    const body = document.createElement('div');
+    body.style.cssText = 'flex:1;min-width:0;overflow:hidden;';
+    const nm = document.createElement('div');
+    nm.style.cssText = 'font-size:11px;font-weight:700;color:var(--color-primary,#4a90d9);';
+    nm.textContent = 'رد على ' + r.name;
+    const pv = document.createElement('div');
+    pv.style.cssText = 'font-size:12px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    pv.textContent = (r.kind === 'voice' ? '🎤 ' : r.kind === 'image' ? '📷 ' : r.kind === 'video' ? '🎬 ' : '') + r.preview;
+    body.appendChild(nm); body.appendChild(pv);
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'ch-reply__x';
+    x.setAttribute('aria-label', 'إلغاء الرد');
+    x.style.cssText = 'background:none;border:none;color:inherit;font-size:18px;cursor:pointer;opacity:.7;line-height:1;padding:2px 6px;';
+    x.textContent = '✕';
+    x.onclick = () => { try { window.amkhUI.sfx(); } catch (e) {} this._clearReply(); };
+    bar.appendChild(body); bar.appendChild(x);
+    const ta = this._sheet.querySelector('#ch-text');
+    if (ta) ta.focus();
+  },
+
+  _clearReply() {
+    this._reply = null;
+    const bar = this._sheet && this._sheet.querySelector('#ch-reply');
+    if (bar) bar.remove();
+  },
+
+  /* بياخد هدف الرد لو من نفس النطاق ويصفّي الشريط — بيتنادى وقت الإرسال. */
+  _takeReply(scope) {
+    const r = this._reply;
+    if (r && r.scope === scope) { this._clearReply(); return r; }
+    return null;
+  },
+
+  /* التمرير لرسالة أصلية عند الضغط على الاقتباس + وميض بسيط. */
+  _scrollToMsg(id) {
+    if (!this._sheet || id == null) return;
+    const el = this._sheet.querySelector(`.ch-bubble[data-mid="${id}"]`);
+    if (!el) return;
+    try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { el.scrollIntoView(); }
+    el.style.transition = 'background-color .3s';
+    const prev = el.style.backgroundColor;
+    el.style.backgroundColor = 'rgba(74,144,217,.25)';
+    setTimeout(() => { el.style.backgroundColor = prev; }, 700);
+  },
+
   _mediaEl(m) {
     const wrap = document.createElement('div');
     wrap.className = 'ch-media';
@@ -750,10 +1178,10 @@ const amkhChat = {
 
   /* عنصر رسالة صوتية: زر تشغيل + شريط تقدّم + مدة. الصوت (base64) مخزّن
      كخاصية JS على العنصر مش attribute عشان مايتخزنش نص ضخم في الـDOM. */
-  _voiceEl(m) {
+  _voiceEl(m, scope) {
     const wrap = document.createElement('div');
     wrap.className = 'ch-voice';
-    wrap._voice = { audio: m.audio, duration: m.duration || 0, mime: m.mime || '' };
+    wrap._voice = { audio: m.audio, duration: m.duration || 0, mime: m.mime || '', mid: m.id, scope: scope || (this._openGroup != null ? 'grp' : 'dm'), mine: !!m.mine };
     const btn = document.createElement('button');
     btn.className = 'ch-voice__play';
     btn.type = 'button';
@@ -806,6 +1234,7 @@ const amkhChat = {
       // مرة واحدة بس، وميتنفّذش لو المحاولة اتلغت (توقّف/تبديل) أثناء الترميز.
       if (started || tok !== this._vTok) return;
       started = true; this._vPending = false;
+      try { this._reportPlayed(wrap._voice); } catch (e) {}
       const src = ctx.createBufferSource();
       src.buffer = audioBuf;
       src.connect(ctx.destination);
@@ -1124,8 +1553,10 @@ const amkhChat = {
       sender_name: d.sender_name || 'صديق', sender_avatar: d.sender_avatar || null,
       kind: d.kind || 'text', body: d.body, audio: d.audio || null,
       duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at,
+      reply_to: d.reply_to || null, reply: d.reply || null,
     };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
+    this._persist('grp', gid);
     if (this._openGroup === gid) {
       this._appendGroupBubble(msg);
       this._clearTypingRow();
@@ -1144,6 +1575,7 @@ const amkhChat = {
     const arr = this._gmsgs[d.group_id] || [];
     const m = arr.find(x => x.client_id === d.client_id);
     if (m) { m.id = d.id; m.pending = false; m.created_at = d.created_at || m.created_at; }
+    this._persist('grp', d.group_id);
     if (this._openGroup === d.group_id) {
       const el = this._sheet && this._sheet.querySelector(`[data-cid="${d.client_id}"]`);
       if (el) {
@@ -1152,8 +1584,89 @@ const amkhChat = {
         const tick = el.querySelector('.ch-tick');
         if (tick) { tick.classList.remove('is-pending'); tick.textContent = '✓'; }
       }
+      /* لقطة الإيصالات ممكن تكون وصلت قبل ما اترجّع الـid — طبّقها دلوقتي */
+      this._applyGroupReceipts(d.group_id);
     }
     return true;
+  },
+
+  /* لقطة إيصالات الحفلة: بنخزّنها ونعيد رسم العلامات + صور القراء لو مفتوحة. */
+  _onGroupReceipts(d) {
+    if (!d || d.group_id == null || !Array.isArray(d.reads)) return true;
+    this._setGroupReads(d.group_id, d.reads);
+    if (this._openGroup === d.group_id) this._applyGroupReceipts(d.group_id);
+    return true;
+  },
+
+  _setGroupReads(gid, reads) {
+    const map = {};
+    reads.forEach(r => { map[r.user_id] = { read: r.last_read_id || 0, delivered: r.last_delivered_id || 0 }; });
+    this._greads[gid] = map;
+  },
+
+  /* حساب ورسم إيصالات الحفلة (نمط واتساب/ماسنجر):
+     • علامة رسايلي: ✓ لسه، ✓✓ رمادية لما توصل كل الأعضاء، ✓✓ زرقا لما
+       يقروها كلهم.
+     • صور القراء مكدّسة على آخر رسالة مني قراها كل عضو (نمط ماسنجر). */
+  _applyGroupReceipts(gid) {
+    if (this._openGroup !== gid || !this._sheet) return;
+    const reads = this._greads[gid] || {};
+    const members = this._gmembers[gid] || {};
+    const me = this._me();
+    const others = Object.keys(reads).map(Number).filter(id => id !== me);
+    const total = others.length;
+    const arr = this._gmsgs[gid] || [];
+
+    /* 1) علامات الإرسال على رسايلي */
+    arr.forEach(m => {
+      if (!m.mine || m.id == null || m.pending) return;
+      const bubble = this._sheet.querySelector(`.ch-bubble[data-mid="${m.id}"]`);
+      if (!bubble) return;
+      const tick = bubble.querySelector('.ch-tick');
+      if (!tick) return;
+      let dc = 0, rc = 0;
+      others.forEach(uid => { const r = reads[uid] || {}; if ((r.delivered || 0) >= m.id) dc++; if ((r.read || 0) >= m.id) rc++; });
+      tick.classList.remove('is-delivered', 'is-read');
+      if (total > 0 && rc >= total) { tick.textContent = '✓✓'; tick.classList.add('is-read'); }
+      else if (total > 0 && dc >= total) { tick.textContent = '✓✓'; tick.classList.add('is-delivered'); }
+      else tick.textContent = '✓';
+    });
+
+    /* 2) صور القراء: لكل عضو، أكبر رسالة مني قراها → نكدّس صورته عليها */
+    this._sheet.querySelectorAll('.ch-seen-ava').forEach(e => e.remove());
+    const myIds = arr.filter(m => m.mine && m.id != null).map(m => m.id).sort((a, b) => a - b);
+    const byMsg = {};   /* msgId → [uid,...] */
+    others.forEach(uid => {
+      const rid = (reads[uid] || {}).read || 0;
+      if (rid <= 0) return;
+      let target = 0;
+      for (const id of myIds) { if (id <= rid) target = id; else break; }
+      if (target > 0) (byMsg[target] = byMsg[target] || []).push(uid);
+    });
+    Object.keys(byMsg).forEach(mid => {
+      const bubble = this._sheet.querySelector(`.ch-bubble[data-mid="${mid}"]`);
+      if (!bubble) return;
+      const meta = bubble.querySelector('.ch-bubble__meta');
+      if (!meta) return;
+      byMsg[mid].forEach(uid => {
+        const mm = members[uid] || {};
+        const nm = mm.display_name || mm.username || '؟';
+        const ava = document.createElement('span');
+        ava.className = 'ch-seen-ava';
+        ava.title = nm + ' شاف';
+        ava.style.cssText = 'width:14px;height:14px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;line-height:1;background:var(--color-primary,#4a90d9);color:#fff;margin-inline-start:3px;vertical-align:middle;flex:0 0 auto;';
+        const initial = String(nm).trim().slice(0, 1).toUpperCase();
+        if (mm.avatar_url) {
+          const img = document.createElement('img');
+          img.alt = ''; img.loading = 'lazy';
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+          img.onerror = () => { img.remove(); ava.textContent = initial; };
+          img.src = mm.avatar_url;
+          ava.appendChild(img);
+        } else ava.textContent = initial;
+        meta.appendChild(ava);
+      });
+    });
   },
 
   _onGroupTyping(d) {
@@ -1226,10 +1739,11 @@ const amkhChat = {
     const ws = this._socket();
     if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت.', 'غير متصل', '◈'); return; }
     const clientId = 'g' + (++this._cid) + '_' + Date.now();
-    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'text', body, created_at: new Date().toISOString(), pending: true };
+    const r = this._takeReply('group');
+    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'text', body, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
-    try { ws.send(JSON.stringify({ type: 'group:send', group_id: gid, body, client_id: clientId })); } catch (e) {}
+    try { ws.send(JSON.stringify({ type: 'group:send', group_id: gid, body, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -1237,10 +1751,11 @@ const amkhChat = {
     const ws = this._socket();
     if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
     const clientId = 'gv' + (++this._cid) + '_' + Date.now();
-    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'voice', body: '', audio: audioB64, duration: durationSec, mime, created_at: new Date().toISOString(), pending: true };
+    const r = this._takeReply('group');
+    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'voice', body: '', audio: audioB64, duration: durationSec, mime, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
-    try { ws.send(JSON.stringify({ type: 'group:send', kind: 'voice', group_id: gid, audio: audioB64, duration: durationSec, mime, client_id: clientId })); } catch (e) {}
+    try { ws.send(JSON.stringify({ type: 'group:send', kind: 'voice', group_id: gid, audio: audioB64, duration: durationSec, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -1248,10 +1763,11 @@ const amkhChat = {
     const ws = this._socket();
     if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
     const clientId = 'gm' + (++this._cid) + '_' + Date.now();
-    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), pending: true };
+    const r = this._takeReply('group');
+    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
-    try { ws.send(JSON.stringify({ type: 'group:send', kind, group_id: gid, audio: b64, mime, client_id: clientId })); } catch (e) {}
+    try { ws.send(JSON.stringify({ type: 'group:send', kind, group_id: gid, audio: b64, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -1285,6 +1801,7 @@ const amkhChat = {
             <span class="ch-conv__name"></span>
             <span class="ch-conv__sub"></span>
           </div>
+          <button class="ch-call" id="ch-grp-call" aria-label="مكالمة جماعية" title="مكالمة جماعية">${this.ICONS.call || ''}</button>
           <button class="ch-conv__info" id="ch-grp-info" aria-label="أعضاء الحفلة">⋯</button>
         </div>
         <div class="ch-scroll" id="ch-scroll">
@@ -1306,16 +1823,24 @@ const amkhChat = {
           <button class="ds-btn ds-btn--ghost ch-mic" id="ch-mic" aria-label="تسجيل صوتي">${this.ICONS.mic}</button>
           <button class="ds-btn ds-btn--primary ch-send" id="ch-send" aria-label="إرسال" hidden>${this.ICONS.send}</button>
         </div>
-      </div>`, { sheet: true, sfx: 'group', onDismiss: () => { try { this._stopVoicePlay(); } catch (e) {} if (this._recording) { try { this._stopVoiceRec(false); } catch (e) {} } this._openGroup = null; this._sheet = null; } });
+      </div>`, { sheet: true, sfx: 'group', onDismiss: () => { try { this._stopVoicePlay(); } catch (e) {} if (this._recording) { try { this._stopVoiceRec(false); } catch (e) {} } this._openGroup = null; this._sheet = null; this._reply = null; } });
 
     overlay.dataset.view = 'group';
     this._sheet = overlay;
     this._openGroup = gid;
+    this._reply = null;
     this._openWith = null;
 
     overlay.querySelector('.ch-conv__name').textContent = this._gmeta[gid].name;
     this._paintGroupAvatar(overlay.querySelector('#ch-grp-av'), this._gmeta[gid]);
     this._paintGroupSub(overlay.querySelector('.ch-conv__sub'), this._gmeta[gid]);
+
+    const gCallBtn = overlay.querySelector('#ch-grp-call');
+    if (gCallBtn) gCallBtn.onclick = () => {
+      U.sfx();
+      const ids = Object.keys(this._gmembers[gid] || {}).map(Number).filter(Boolean);
+      if (window.amkhCall) window.amkhCall.startGroupCall(gid, this._gmeta[gid].name, ids);
+    };
 
     const ta = overlay.querySelector('#ch-text');
     const sendBtn = overlay.querySelector('#ch-send');
@@ -1345,6 +1870,18 @@ const amkhChat = {
     const infoBtn = overlay.querySelector('#ch-grp-info');
     if (infoBtn) infoBtn.onclick = () => { U.sfx(); this._showGroupMembers(gid); };
     overlay.querySelector('#ch-loadmore button').onclick = () => { U.sfx(); this._loadGroupHistory(gid, true); };
+
+    /* اعرض الكاش المحلي فورًا (#133). */
+    try {
+      if (!(this._gmsgs[gid] || []).length) {
+        const cached = await this._cacheGet('grp', gid);
+        if (cached && cached.length && this._openGroup === gid && !(this._gmsgs[gid] || []).length) {
+          this._gmsgs[gid] = cached;
+          this._renderGroupMessages(gid);
+          this._scrollBottom();
+        }
+      }
+    } catch (e) {}
 
     await this._loadGroupHistory(gid, false);
     this._markGroupRead(gid);
@@ -1399,7 +1936,15 @@ const amkhChat = {
       else { const pend = existing.filter(m => m.pending); this._gmsgs[gid] = data.messages.concat(pend); }
       const loadMore = this._sheet.querySelector('#ch-loadmore');
       if (loadMore) loadMore.hidden = !data.has_more;
+      this._persist('grp', gid);
     }
+    /* خزّن أعضاء الحفلة ولقطة الإيصالات (لصور القراء والعلامات) */
+    if (data && Array.isArray(data.members)) {
+      const mm = {};
+      data.members.forEach(x => { mm[x.id] = x; });
+      this._gmembers[gid] = mm;
+    }
+    if (data && Array.isArray(data.reads)) this._setGroupReads(gid, data.reads);
     this._renderGroupMessages(gid);
     if (older && scroll) scroll.scrollTop = scroll.scrollHeight - prevH;
     else this._scrollBottom();
@@ -1423,6 +1968,8 @@ const amkhChat = {
       listEl.appendChild(this._groupBubbleEl(m, showHead));
       lastFrom = m.from;
     });
+    this._applyGroupReceipts(gid);
+    this._renderPinnedBar('group');
   },
 
   /* فقاعة جروب: للرسايل من غيري نعرض صورة صاحبها + اسمه فوق الفقاعة. */
@@ -1442,6 +1989,7 @@ const amkhChat = {
     const b = document.createElement('div');
     b.className = 'ch-bubble ' + (m.mine ? 'ch-bubble--mine' : 'ch-bubble--their');
     if (m.pending) b.classList.add('is-pending');
+    if (m.pinned) b.classList.add('ch-bubble--pinned');
     if (m.client_id) b.dataset.cid = m.client_id;
     if (m.id) b.dataset.mid = String(m.id);
     if (showHead) {
@@ -1450,7 +1998,8 @@ const amkhChat = {
       nm.textContent = m.sender_name;
       b.appendChild(nm);
     }
-    if (m.kind === 'voice') { b.classList.add('ch-bubble--voice'); b.appendChild(this._voiceEl(m)); }
+    if (m.reply) b.appendChild(this._replyQuoteEl(m.reply));
+    if (m.kind === 'voice') { b.classList.add('ch-bubble--voice'); b.appendChild(this._voiceEl(m, 'grp')); }
     else if (m.kind === 'image' || m.kind === 'video') { b.classList.add('ch-bubble--media'); b.appendChild(this._mediaEl(m)); }
     else { const body = document.createElement('div'); body.className = 'ch-bubble__body'; body.textContent = m.body; b.appendChild(body); }
     const meta = document.createElement('div');
@@ -1465,6 +2014,7 @@ const amkhChat = {
       meta.appendChild(tick);
     }
     b.appendChild(meta);
+    this._bindMsgActions(b, 'group', m);
     wrap.appendChild(b);
     return wrap;
   },
@@ -1480,6 +2030,7 @@ const amkhChat = {
     const showHead = !m.mine && (!prev || prev.from !== m.from);
     listEl.appendChild(this._groupBubbleEl(m, showHead));
     this._scrollBottom();
+    this._applyGroupReceipts(this._openGroup);
   },
 
   async _showGroupMembers(gid) {

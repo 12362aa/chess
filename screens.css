@@ -2330,6 +2330,8 @@ body[data-ui-theme="anime"]{
 /* نوع المباراة داخل نافذة الدعوة (ودّية/مصنّفة) */
 .fr-color__sub{ margin: 14px 0 6px; font-size: 12px; opacity: .8; text-align: center; }
 .fr-color__type{ display: flex; gap: 10px; margin-bottom: 4px; }
+.fr-color__tc{ flex-wrap: wrap; gap: 6px; }
+.fr-color__tc .fr-color__tbtn{ flex: 1 1 26%; padding: 8px 4px; font-size: 13px; }
 .fr-color__tbtn{
   flex: 1; padding: 10px 8px;
   background: var(--color-surface-raised);
@@ -3783,7 +3785,7 @@ body[data-ui-theme="glass"] .app-modal-overlay{
   background: var(--color-primary, #4c7cf3);
 }
 .ch-conv__av-img, .ch-inbox__av-img{ width: 100%; height: 100%; object-fit: cover; }
-.ch-conv__id{ display: flex; flex-direction: column; min-width: 0; }
+.ch-conv__id{ display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
 .ch-conv__name{ font-weight: 700; color: var(--color-text-primary, #fff); }
 .ch-conv__sub{ font-size: .78rem; color: var(--color-text-secondary, #9aa); }
 .ch-conv__sub.is-online{ color: var(--color-success, #45c463); }
@@ -4011,6 +4013,18 @@ body[data-ui-theme="glass"] .app-modal-overlay{
   color: var(--color-text-primary, #fff);
 }
 .ch-conv__info:hover{ background: var(--color-surface, rgba(255,255,255,.08)); }
+
+/* زر المكالمة الصوتية في رأس المحادثة/الحفلة (#135) */
+.ch-call{
+  flex: 0 0 auto;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--color-primary, #4c7cf3);
+}
+.ch-call svg{ width: 20px; height: 20px; }
+.ch-call:hover{ background: var(--color-surface, rgba(255,255,255,.08)); }
+.ch-call:active{ transform: scale(.9); }
 
 /* صف الرسالة في الجروب: صورة المرسِل جنب الفقاعة */
 .ch-grow{ display: flex; align-items: flex-end; gap: 6px; max-width: 100%; }
