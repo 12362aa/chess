@@ -517,7 +517,7 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
    وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
 const LATEST_VERSION = '3.10';
-const LATEST_CODE = 21;
+const LATEST_CODE = 22;
 const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
 app.get('/api/version', (req, res) => {
   res.json({
@@ -525,7 +525,7 @@ app.get('/api/version', (req, res) => {
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'إصلاح مكالمة الفيديو (بتوصل فيديو فعلاً للطرف التاني مش صوت)، وإشعار مكالمة الفيديو بقى مميّز، وأزرار «رد/رفض» في إشعار المكالمة بتشتغل فعليًا والتطبيق مقفول (رد = قبول ودخول فوري، رفض = إنهاء)، مع تقليل قوي لوميض/نطّ الشاشة عند فتح وقفل الكيبورد في كل الثيمات.',
+    notes: 'ثيم جديد بالكامل: «ثيم الشطرنج» بيحلّ محل ثيم Anime — أيقونات ونوافذ بروح الشطرنج ومن غير أي إيموجي. وصندوق الكتابة في الشات بقى ملزوق في الكيبورد تمامًا (خلاص الفراغ الأسود) على كل الأجهزة. وإصلاح ظهور المؤقّت بالغلط في أوضاع من غير وقت (لاعبان/نور/بلوتوث) بعد مباراة أونلاين فيها وقت.',
   });
 });
 

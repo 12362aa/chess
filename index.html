@@ -87,14 +87,15 @@ body[data-ui-theme="gaming"]{
   --accent:#ff4655;--accent2:#00e5ff;
   --fx-glow:rgba(255,70,85,.28);--fx-neon:rgba(0,229,255,.26);
 }
-body[data-ui-theme="anime"]{
-  --bg:#0a0908;--bg2:#141110;--bg3:#1e1a19;--bg4:#2a2523;
-  --gold:#e01e37;--gold2:#f5405a;--gold3:#ff8a9c;
-  --teal:#3ac8ff;--teal2:#8cdfff;
-  --red:#e01e37;--green:#5ad48a;--blue:#3ac8ff;
-  --text:#f7f3ee;--text2:#a9a29b;--text3:#6b655f;
-  --accent:#3ac8ff;--accent2:#e01e37;
-  --fx-glow:rgba(58,200,255,.26);--fx-neon:rgba(224,30,55,.24);
+/* ── ثيم الشطرنج — أبنوس/جوز + نحاس ذهبي + عاجي + أخضر البطولات ── */
+body[data-ui-theme="chess"]{
+  --bg:#14100b;--bg2:#1e1810;--bg3:#281f15;--bg4:#34291c;
+  --gold:#c9a24b;--gold2:#e3c069;--gold3:#f3dca0;
+  --teal:#6ea36f;--teal2:#a9cf9f;
+  --red:#c05a3e;--green:#6ea36f;--blue:#c9a24b;
+  --text:#f3e8d0;--text2:#bcae90;--text3:#7d7157;
+  --accent:#c9a24b;--accent2:#6ea36f;
+  --fx-glow:rgba(201,162,75,.26);--fx-neon:rgba(110,163,111,.22);
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;
@@ -104,7 +105,7 @@ body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;
 /* #140: طبقات خلفية الثيم مثبّتة على 100lvh (الارتفاع الأكبر الثابت) بدل
    inset:0. مع viewport=resizes-content الكيبورد بيصغّر الـlayout viewport
    (وده مقصود عشان لوحة الشات تفضل فوقه)، فطبقة fixed:inset:0 كان بيتغيّر
-   ارتفاعها فتتعاد رسمة الخلفية التقيلة = ومضة (أوضحها gaming/cyber/anime).
+   ارتفاعها فتتعاد رسمة الخلفية التقيلة = ومضة (أوضحها gaming/cyber/chess).
    100lvh ثابت مهما ظهر الكيبورد فالخلفية ما تتغيّرش أبدًا، وtranslateZ
    بيعزلها على طبقة GPU مستقلة فالـresize بيعيد تركيبها لا رسمها. */
 body::before{content:'';position:fixed;left:0;right:0;top:0;height:100vh;height:100lvh;z-index:0;pointer-events:none;transform:translateZ(0);-webkit-transform:translateZ(0);
@@ -282,65 +283,67 @@ body[data-ui-theme="glass"] .lp-card{
   backdrop-filter:blur(14px) saturate(140%) !important;
   border-color:rgba(255,255,255,.12) !important;
 }
-body[data-ui-theme="anime"]::before{
+body[data-ui-theme="chess"]::before{
   background:
-    radial-gradient(circle at 18% 18%,rgba(58,200,255,.18) 0%,transparent 32%),
-    radial-gradient(circle at 82% 24%,rgba(224,30,55,.15) 0%,transparent 28%),
-    radial-gradient(circle at 50% 75%,rgba(58,200,255,.09) 0%,transparent 30%),
-    linear-gradient(180deg,#0a0908 0%,#0f0d0c 36%,#140f10 100%);
+    radial-gradient(circle at 18% 18%,rgba(201,162,75,.16) 0%,transparent 32%),
+    radial-gradient(circle at 82% 24%,rgba(110,163,111,.12) 0%,transparent 28%),
+    radial-gradient(circle at 50% 78%,rgba(201,162,75,.08) 0%,transparent 32%),
+    linear-gradient(180deg,#14100b 0%,#181209 36%,#1d1710 100%);
 }
-body[data-ui-theme="anime"]::after{
+/* ::after = تلميح رقعة شطرنج باهت (مربّعات متبادلة) + غبار ذهبي ناعم */
+body[data-ui-theme="chess"]::after{
   background-image:
-    linear-gradient(115deg,transparent 0 42%,rgba(247,243,238,.03) 42% 44%,transparent 44% 100%),
-    linear-gradient(25deg,transparent 0 58%,rgba(58,200,255,.03) 58% 60%,transparent 60% 100%),
-    radial-gradient(circle at 12% 22%,rgba(247,243,238,.12) 0 1px,transparent 1.5px),
-    radial-gradient(circle at 78% 14%,rgba(247,243,238,.10) 0 1.5px,transparent 2px),
-    radial-gradient(circle at 64% 72%,rgba(58,200,255,.12) 0 1.5px,transparent 2px);
-  background-size:100% 100%,100% 100%,140px 140px,170px 170px,160px 160px;
-  opacity:.9;
+    linear-gradient(45deg,rgba(201,162,75,.04) 25%,transparent 25% 75%,rgba(201,162,75,.04) 75%),
+    linear-gradient(45deg,rgba(201,162,75,.04) 25%,transparent 25% 75%,rgba(201,162,75,.04) 75%),
+    radial-gradient(circle at 12% 22%,rgba(243,220,160,.12) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 78% 14%,rgba(243,220,160,.10) 0 1.5px,transparent 2px),
+    radial-gradient(circle at 64% 72%,rgba(110,163,111,.10) 0 1.5px,transparent 2px);
+  background-size:120px 120px,120px 120px,140px 140px,170px 170px,160px 160px;
+  background-position:0 0,60px 60px,0 0,0 0,0 0;
+  opacity:.85;
   mask-image:none;
 }
-body[data-ui-theme="anime"] .logo-ic{
-  filter:drop-shadow(0 0 22px rgba(58,200,255,.3)) drop-shadow(0 0 52px rgba(224,30,55,.18));
+body[data-ui-theme="chess"] .logo-ic{
+  filter:drop-shadow(0 0 20px rgba(201,162,75,.34)) drop-shadow(0 0 46px rgba(110,163,111,.16));
 }
-body[data-ui-theme="anime"] #banner,
-body[data-ui-theme="anime"] .settings-section,
-body[data-ui-theme="anime"] .settings-tabs,
-body[data-ui-theme="anime"] .mc,
-body[data-ui-theme="anime"] .oc,
-body[data-ui-theme="anime"] .gobox,
-body[data-ui-theme="anime"] .learn-card,
-body[data-ui-theme="anime"] .lvl-hdr,
-body[data-ui-theme="anime"] .lp-card{
-  box-shadow:0 18px 48px rgba(0,0,0,.42),0 0 0 1px rgba(247,243,238,.04),0 0 28px rgba(58,200,255,.08);
+body[data-ui-theme="chess"] #banner,
+body[data-ui-theme="chess"] .settings-section,
+body[data-ui-theme="chess"] .settings-tabs,
+body[data-ui-theme="chess"] .mc,
+body[data-ui-theme="chess"] .oc,
+body[data-ui-theme="chess"] .gobox,
+body[data-ui-theme="chess"] .learn-card,
+body[data-ui-theme="chess"] .lvl-hdr,
+body[data-ui-theme="chess"] .lp-card{
+  box-shadow:0 18px 48px rgba(0,0,0,.46),0 0 0 1px rgba(201,162,75,.1),0 0 28px rgba(201,162,75,.08);
 }
-body[data-ui-theme="anime"] .settings-section,
-body[data-ui-theme="anime"] .mc,
-body[data-ui-theme="anime"] .oc,
-body[data-ui-theme="anime"] .gobox,
-body[data-ui-theme="anime"] .learn-card{
+body[data-ui-theme="chess"] .settings-section,
+body[data-ui-theme="chess"] .mc,
+body[data-ui-theme="chess"] .oc,
+body[data-ui-theme="chess"] .gobox,
+body[data-ui-theme="chess"] .learn-card{
   background:
-    linear-gradient(180deg,rgba(247,243,238,.045),rgba(247,243,238,.012)),
-    linear-gradient(135deg,rgba(14,12,11,.94),rgba(28,20,20,.92)) !important;
-  border-color:rgba(58,200,255,.2) !important;
+    linear-gradient(180deg,rgba(243,220,160,.05),rgba(243,220,160,.012)),
+    linear-gradient(135deg,rgba(20,16,11,.95),rgba(40,31,21,.93)) !important;
+  border-color:rgba(201,162,75,.24) !important;
 }
-body[data-ui-theme="anime"] .settings-tab.active,
-body[data-ui-theme="anime"] .settings-action-btn,
-body[data-ui-theme="anime"] .btnp{
-  background:linear-gradient(135deg,#7bdcff 0%,#1d9fd4 100%) !important;
-  color:#0a0908 !important;
-  box-shadow:0 12px 26px rgba(58,200,255,.24) !important;
+body[data-ui-theme="chess"] .settings-tab.active,
+body[data-ui-theme="chess"] .settings-action-btn,
+body[data-ui-theme="chess"] .btnp{
+  background:linear-gradient(135deg,#e3c069 0%,#b98a34 100%) !important;
+  color:#14100b !important;
+  box-shadow:0 12px 26px rgba(201,162,75,.28) !important;
 }
-body[data-ui-theme="anime"] .settings-tab:hover,
-body[data-ui-theme="anime"] .ui-opt:hover,
-body[data-ui-theme="anime"] .pc-opt:hover{
-  box-shadow:0 10px 24px rgba(58,200,255,.12);
+body[data-ui-theme="chess"] .settings-tab:hover,
+body[data-ui-theme="chess"] .ui-opt:hover,
+body[data-ui-theme="chess"] .pc-opt:hover{
+  box-shadow:0 10px 24px rgba(201,162,75,.14);
 }
-body[data-ui-theme="anime"] .settings-tab,
-body[data-ui-theme="anime"] .setting-label,
-body[data-ui-theme="anime"] .pc-lbl,
-body[data-ui-theme="anime"] .section-title,
-body[data-ui-theme="anime"] .settings-headline{
+body[data-ui-theme="chess"] .settings-tab,
+body[data-ui-theme="chess"] .setting-label,
+body[data-ui-theme="chess"] .pc-lbl,
+body[data-ui-theme="chess"] .section-title,
+body[data-ui-theme="chess"] .settings-headline{
   letter-spacing:.01em;
 }
 
@@ -399,47 +402,44 @@ body[data-ui-theme="gaming"] .rv-loadcard{
 body[data-ui-theme="gaming"] .pbar.myturn{
   box-shadow:none;
 }
-body[data-ui-theme="anime"] #banner{
+body[data-ui-theme="chess"] #banner{
   background:
-    linear-gradient(90deg,rgba(10,9,8,.96),rgba(20,15,15,.94)),
-    linear-gradient(120deg,rgba(58,200,255,.08),transparent 36%,rgba(224,30,55,.08) 72%,transparent 100%) !important;
-  box-shadow:0 1px 0 rgba(58,200,255,.18),0 12px 32px rgba(0,0,0,.22);
+    linear-gradient(90deg,rgba(20,16,11,.96),rgba(30,24,16,.94)),
+    linear-gradient(120deg,rgba(201,162,75,.1),transparent 36%,rgba(110,163,111,.08) 72%,transparent 100%) !important;
+  box-shadow:0 1px 0 rgba(201,162,75,.22),0 12px 32px rgba(0,0,0,.24);
 }
-body[data-ui-theme="anime"] .bnm,
-body[data-ui-theme="anime"] .rv-title{
-  letter-spacing:.08em;
-  text-shadow:0 0 18px rgba(58,200,255,.18),0 0 24px rgba(224,30,55,.12);
+body[data-ui-theme="chess"] .bnm,
+body[data-ui-theme="chess"] .rv-title{
+  letter-spacing:.06em;
+  text-shadow:0 0 18px rgba(201,162,75,.2),0 1px 0 rgba(0,0,0,.5);
 }
-body[data-ui-theme="anime"] .bwrap{
-  box-shadow:0 0 0 4px rgba(10,9,8,.96),0 0 0 8px rgba(58,200,255,.17),0 0 28px rgba(224,30,55,.12),0 26px 56px rgba(0,0,0,.6);
+/* الرقعة بإطار خشبي مزدوج: حلقة أبنوس + خيط نحاسي + لمسة أخضر بطولات */
+body[data-ui-theme="chess"] .bwrap{
+  box-shadow:0 0 0 4px rgba(20,16,11,.98),0 0 0 8px rgba(201,162,75,.5),0 0 0 10px rgba(110,163,111,.22),0 26px 56px rgba(0,0,0,.62);
 }
-body[data-ui-theme="anime"] .pbar,
-body[data-ui-theme="anime"] .gtbar .tbb2,
-body[data-ui-theme="anime"] .chat-wrap,
-body[data-ui-theme="anime"] .rv-card,
-body[data-ui-theme="anime"] .rv-coach,
-body[data-ui-theme="anime"] .rv-loadcard,
-body[data-ui-theme="anime"] .go-score-pill{
+body[data-ui-theme="chess"] .pbar,
+body[data-ui-theme="chess"] .gtbar .tbb2,
+body[data-ui-theme="chess"] .chat-wrap,
+body[data-ui-theme="chess"] .rv-card,
+body[data-ui-theme="chess"] .rv-coach,
+body[data-ui-theme="chess"] .rv-loadcard,
+body[data-ui-theme="chess"] .go-score-pill{
   background:
-    linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),
-    linear-gradient(135deg,rgba(14,12,11,.94),rgba(28,20,20,.92)) !important;
-  border-color:rgba(58,200,255,.22) !important;
-  box-shadow:0 14px 34px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.03),0 0 24px rgba(224,30,55,.07);
+    linear-gradient(180deg,rgba(243,220,160,.06),rgba(243,220,160,.015)),
+    linear-gradient(135deg,rgba(20,16,11,.95),rgba(40,31,21,.93)) !important;
+  border-color:rgba(201,162,75,.26) !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.32),0 0 0 1px rgba(201,162,75,.06),0 0 24px rgba(110,163,111,.06);
 }
-body[data-ui-theme="anime"] .pbar{
+body[data-ui-theme="chess"] .pbar{
   position:relative;
   overflow:hidden;
 }
-body[data-ui-theme="anime"] .pbar::before{
+body[data-ui-theme="chess"] .pbar::before{
   content:none;
   animation:none;
 }
-body[data-ui-theme="anime"] .pbar.myturn{
-  box-shadow:none;
-}
-@keyframes animePanelSweep{
-  0%,74%,100%{transform:translateX(-130%);}
-  34%{transform:translateX(130%);}
+body[data-ui-theme="chess"] .pbar.myturn{
+  box-shadow:0 0 0 1px rgba(201,162,75,.5),0 0 20px rgba(201,162,75,.18);
 }
 
 /* Clearer high-identity theme polish */
@@ -508,66 +508,66 @@ body[data-ui-theme="gaming"] .pbar::before{
   animation:none;
 }
 
-body[data-ui-theme="anime"] .logo-t{
-  background:linear-gradient(90deg,#3ac8ff 0%,#e01e37 42%,#e01e37 100%);
+body[data-ui-theme="chess"] .logo-t{
+  background:linear-gradient(90deg,#e3c069 0%,#c9a24b 42%,#6ea36f 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
   text-shadow:none;
 }
-body[data-ui-theme="anime"] .mc,
-body[data-ui-theme="anime"] .oc,
-body[data-ui-theme="anime"] .settings-section,
-body[data-ui-theme="anime"] .gobox,
-body[data-ui-theme="anime"] .rv-loadcard,
-body[data-ui-theme="anime"] .rv-card,
-body[data-ui-theme="anime"] .rv-coach{
+body[data-ui-theme="chess"] .mc,
+body[data-ui-theme="chess"] .oc,
+body[data-ui-theme="chess"] .settings-section,
+body[data-ui-theme="chess"] .gobox,
+body[data-ui-theme="chess"] .rv-loadcard,
+body[data-ui-theme="chess"] .rv-card,
+body[data-ui-theme="chess"] .rv-coach{
   position:relative;
   overflow:hidden;
   border-radius:24px !important;
 }
-body[data-ui-theme="anime"] .mc::before,
-body[data-ui-theme="anime"] .oc::before,
-body[data-ui-theme="anime"] .settings-section::before{
+body[data-ui-theme="chess"] .mc::before,
+body[data-ui-theme="chess"] .oc::before,
+body[data-ui-theme="chess"] .settings-section::before{
   content:'';
   position:absolute;
   inset:-18%;
   background:
-    radial-gradient(circle at 18% 20%,rgba(255,166,207,.22),transparent 22%),
-    radial-gradient(circle at 82% 22%,rgba(224,30,55,.22),transparent 24%),
-    radial-gradient(circle at 54% 86%,rgba(255,209,102,.18),transparent 22%);
+    radial-gradient(circle at 18% 20%,rgba(243,220,160,.2),transparent 22%),
+    radial-gradient(circle at 82% 22%,rgba(110,163,111,.18),transparent 24%),
+    radial-gradient(circle at 54% 86%,rgba(201,162,75,.18),transparent 22%);
   pointer-events:none;
   filter:blur(2px);
 }
-body[data-ui-theme="anime"] .mc::after{
+body[data-ui-theme="chess"] .mc::after{
   content:'';
   position:absolute;
   inset:auto -18% 12% 46%;
   height:44px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);
+  background:linear-gradient(90deg,transparent,rgba(243,220,160,.16),transparent);
   transform:rotate(-18deg);
   pointer-events:none;
 }
-body[data-ui-theme="anime"] .mc-ic{
-  filter:drop-shadow(0 0 18px rgba(58,200,255,.3)) drop-shadow(0 0 24px rgba(224,30,55,.2));
+body[data-ui-theme="chess"] .mc-ic{
+  filter:drop-shadow(0 0 16px rgba(201,162,75,.34)) drop-shadow(0 0 22px rgba(110,163,111,.16));
 }
-body[data-ui-theme="anime"] .mc-t{
-  letter-spacing:.05em;
+body[data-ui-theme="chess"] .mc-t{
+  letter-spacing:.03em;
 }
-body[data-ui-theme="anime"] .mc-d{
-  color:#e8e2db;
+body[data-ui-theme="chess"] .mc-d{
+  color:#e8ddc4;
 }
-body[data-ui-theme="anime"] .gtbar .tbb2,
-body[data-ui-theme="anime"] .bgp,
-body[data-ui-theme="anime"] .bgs,
-body[data-ui-theme="anime"] .rv-close{
+body[data-ui-theme="chess"] .gtbar .tbb2,
+body[data-ui-theme="chess"] .bgp,
+body[data-ui-theme="chess"] .bgs,
+body[data-ui-theme="chess"] .rv-close{
   border-radius:18px !important;
-  box-shadow:0 10px 24px rgba(16,18,40,.28);
+  box-shadow:0 10px 24px rgba(20,16,11,.4);
 }
-body[data-ui-theme="anime"] .gtbar .tbb2{
-  background:linear-gradient(135deg,rgba(58,200,255,.14),rgba(224,30,55,.1)) !important;
-  border-color:rgba(58,200,255,.18) !important;
-  color:#fff6fb;
+body[data-ui-theme="chess"] .gtbar .tbb2{
+  background:linear-gradient(135deg,rgba(201,162,75,.16),rgba(110,163,111,.1)) !important;
+  border-color:rgba(201,162,75,.2) !important;
+  color:#f3e8d0;
 }
 
 body[data-ui-theme="cyberpunk"] .mc,
@@ -902,37 +902,39 @@ body[data-ui-theme="gaming"] .bwrap{
   box-shadow:0 0 0 4px rgba(10,18,25,.98),0 0 0 9px rgba(255,70,85,.3),0 0 0 13px rgba(0,229,255,.08),0 30px 70px rgba(0,0,0,.66);
 }
 
-body[data-ui-theme="anime"] #banner,
-body[data-ui-theme="anime"] .settings-hero,
-body[data-ui-theme="anime"] .settings-section,
-body[data-ui-theme="anime"] .lvl-hdr,
-body[data-ui-theme="anime"] .lp-card,
-body[data-ui-theme="anime"] .mc,
-body[data-ui-theme="anime"] .oc,
-body[data-ui-theme="anime"] .gobox,
-body[data-ui-theme="anime"] .rv-loadcard,
-body[data-ui-theme="anime"] .rv-card,
-body[data-ui-theme="anime"] .rv-coach{
+body[data-ui-theme="chess"] #banner,
+body[data-ui-theme="chess"] .settings-hero,
+body[data-ui-theme="chess"] .settings-section,
+body[data-ui-theme="chess"] .lvl-hdr,
+body[data-ui-theme="chess"] .lp-card,
+body[data-ui-theme="chess"] .mc,
+body[data-ui-theme="chess"] .oc,
+body[data-ui-theme="chess"] .gobox,
+body[data-ui-theme="chess"] .rv-loadcard,
+body[data-ui-theme="chess"] .rv-card,
+body[data-ui-theme="chess"] .rv-coach{
   background:
-    radial-gradient(circle at top right,rgba(58,200,255,.18),transparent 34%),
-    radial-gradient(circle at bottom left,rgba(224,30,55,.16),transparent 24%),
-    linear-gradient(145deg,rgba(14,12,11,.95),rgba(28,20,20,.92)) !important;
-  border-color:rgba(58,200,255,.24) !important;
-  box-shadow:0 22px 50px rgba(10,9,8,.42),0 0 0 1px rgba(255,255,255,.04),0 0 26px rgba(224,30,55,.1);
+    repeating-linear-gradient(90deg,rgba(201,162,75,.45) 0 14px,transparent 14px 28px) top left/100% 3px no-repeat,
+    radial-gradient(circle at top right,rgba(201,162,75,.16),transparent 34%),
+    radial-gradient(circle at bottom left,rgba(110,163,111,.14),transparent 24%),
+    linear-gradient(145deg,rgba(20,16,11,.95),rgba(40,31,21,.93)) !important;
+  border-color:rgba(201,162,75,.26) !important;
+  box-shadow:0 22px 50px rgba(10,8,5,.44),0 0 0 1px rgba(201,162,75,.08),0 0 26px rgba(110,163,111,.08);
 }
-body[data-ui-theme="anime"] .mc{
+body[data-ui-theme="chess"] .mc{
   border-radius:30px !important;
   overflow:hidden;
 }
-body[data-ui-theme="anime"] .mc::before{
-  opacity:1;
+body[data-ui-theme="chess"] .mc::before{
+  opacity:.5;
+  filter:none;
   background:
-    radial-gradient(rgba(255,255,255,.11) 1px,transparent 1px),
-    linear-gradient(115deg,transparent 0 46%,rgba(255,255,255,.14) 46% 48%,transparent 48% 100%);
-  background-size:12px 12px,100% 100%;
-  mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent 88%);
+    conic-gradient(rgba(201,162,75,.16) 90deg,transparent 90deg 180deg,rgba(201,162,75,.16) 180deg 270deg,transparent 270deg);
+  background-size:16px 16px;
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.5),transparent 82%);
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.5),transparent 82%);
 }
-body[data-ui-theme="anime"] .mc::after{
+body[data-ui-theme="chess"] .mc::after{
   content:'';
   position:absolute;
   inset:auto -16% 18px 48%;
@@ -940,22 +942,22 @@ body[data-ui-theme="anime"] .mc::after{
   height:54px;
   top:auto;
   left:48%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+  background:linear-gradient(90deg,transparent,rgba(243,220,160,.4),transparent);
   border:none;
   border-radius:0;
-  opacity:.55;
+  opacity:.5;
   transform:skewX(-28deg);
 }
-body[data-ui-theme="anime"] .mc-tag{
-  background:linear-gradient(135deg,#3ac8ff,#e01e37,#e01e37);
-  color:#0b1022;
+body[data-ui-theme="chess"] .mc-tag{
+  background:linear-gradient(135deg,#e3c069,#c9a24b,#6ea36f);
+  color:#14100b;
   border-color:transparent;
-  box-shadow:0 8px 20px rgba(58,200,255,.2);
+  box-shadow:0 8px 20px rgba(201,162,75,.24);
 }
-body[data-ui-theme="anime"] .logo-s,
-body[data-ui-theme="anime"] .mc-d{color:#c9c2ba;}
-body[data-ui-theme="anime"] .bwrap{
-  box-shadow:0 0 0 4px rgba(20,15,15,.96),0 0 0 9px rgba(58,200,255,.26),0 0 0 13px rgba(224,30,55,.08),0 30px 68px rgba(0,0,0,.64);
+body[data-ui-theme="chess"] .logo-s,
+body[data-ui-theme="chess"] .mc-d{color:#c9bfa6;}
+body[data-ui-theme="chess"] .bwrap{
+  box-shadow:0 0 0 4px rgba(20,16,11,.98),0 0 0 9px rgba(201,162,75,.5),0 0 0 13px rgba(110,163,111,.16),0 30px 68px rgba(0,0,0,.66);
 }
 
 body[data-ui-theme="cyberpunk"] #banner,
@@ -1774,7 +1776,7 @@ body[data-ui-theme="glass"] .mc-tag{
   box-shadow:0 0 0 4px var(--bg3),0 0 0 8px rgba(201,168,76,.26),0 26px 60px rgba(0,0,0,.65),0 0 40px rgba(201,168,76,.06);
   display:inline-block;line-height:0;transition:box-shadow .3s;
   /* ترقية الرقعة لطبقة compositing ثابتة خاصة بيها. الطبقات الزخرفية في
-     ثيمات gaming/cyberpunk/anime بترسم كل فريم، وأي reflow (فتح شات مثلًا)
+     ثيمات gaming/cyberpunk/chess بترسم كل فريم، وأي reflow (فتح شات مثلًا)
      كان بيخلّي WebView أندرويد يعيد بناء شجرة الطبقات فتُرسم الرقعة من جديد
      وتبان فاضية لفريم = الوميض. الترقية الساكنة دي بتفصل الرقعة عن الشجرة
      دي فمابتتأثرش بإعادة البناء. نفس النمط المستخدم للنوافذ. */
@@ -2174,349 +2176,6 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-chip.mistake{border-color:rgba(248,113,113,.35);color:var(--red);}
 .rv-chip.blunder{border-color:rgba(255,50,50,.4);color:#ff5555;}
 
-/* Authentic Japanese Anime Theme */
-[data-theme="anime"] {
-  --anime-primary: #FF1493;
-  --anime-secondary: #FF69B4;
-  --anime-accent: #00CED1;
-  --anime-dark: #1A0033;
-  --anime-light: #FFE4E1;
-  --anime-gold: #FFD700;
-  --anime-shadow: rgba(0, 0, 51, 0.8);
-  --anime-glow: 0 0 20px rgba(255, 20, 147, 0.4);
-  --anime-text: #FFFFFF;
-  --anime-border: #FF69B4;
-}
-
-/* Anime-style background with sakura petals theme */
-[data-theme="anime"]::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(255, 20, 147, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 105, 180, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(0, 206, 209, 0.08) 0%, transparent 60%),
-    linear-gradient(135deg, var(--anime-dark) 0%, #2D1B69 100%);
-  pointer-events: none;
-  z-index: -2;
-}
-
-/* Floating sakura petals animation */
-[data-theme="anime"]::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(255, 182, 193, 0.6) 2px, transparent 2px),
-    radial-gradient(circle at 90% 30%, rgba(255, 228, 225, 0.6) 2px, transparent 2px),
-    radial-gradient(circle at 50% 70%, rgba(255, 209, 220, 0.6) 2px, transparent 2px),
-    radial-gradient(circle at 30% 90%, rgba(255, 179, 186, 0.6) 2px, transparent 2px),
-    radial-gradient(circle at 70% 10%, rgba(255, 154, 158, 0.6) 2px, transparent 2px);
-  background-size: 80px 80px, 60px 60px, 100px 100px, 90px 90px, 70px 70px;
-  pointer-events: none;
-  z-index: -1;
-  animation: animeSakuraFall 15s linear infinite;
-}
-
-/* Enhanced board with Japanese anime aesthetics */
-[data-theme="anime"] #board {
-  background: 
-    linear-gradient(135deg, 
-      rgba(255, 20, 147, 0.05) 0%, 
-      rgba(255, 105, 180, 0.03) 50%, 
-      rgba(0, 206, 209, 0.04) 100%);
-  box-shadow: 
-    var(--anime-glow),
-    0 0 40px rgba(255, 105, 180, 0.2),
-    inset 0 0 30px rgba(255, 20, 147, 0.1),
-    0 10px 40px rgba(0, 0, 51, 0.4);
-  border: 3px solid var(--anime-border);
-  border-radius: 8px;
-  position: relative;
-  overflow: hidden;
-}
-
-[data-theme="anime"] #board::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 8px;
-  background: linear-gradient(45deg, 
-    rgba(255, 20, 147, 0.3) 0%, 
-    rgba(255, 105, 180, 0.2) 25%, 
-    rgba(0, 206, 209, 0.15) 50%,
-    rgba(255, 228, 225, 0.1) 75%,
-    rgba(255, 154, 158, 0.2) 100%);
-  z-index: -1;
-  animation: animeBorderFlow 8s linear infinite;
-}
-
-/* Anime-style pieces with enhanced effects */
-[data-theme="anime"] .piece {
-  filter: 
-    drop-shadow(0 3px 6px rgba(0, 0, 51, 0.6))
-    drop-shadow(0 0 12px rgba(255, 20, 147, 0.4));
-  animation: animePieceFloat 4s ease-in-out infinite;
-  transform-style: preserve-3d;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-[data-theme="anime"] .piece:hover {
-  filter: 
-    drop-shadow(0 6px 12px rgba(0, 0, 51, 0.8))
-    drop-shadow(0 0 20px rgba(255, 20, 147, 0.7))
-    drop-shadow(0 0 30px rgba(255, 105, 180, 0.5));
-  transform: scale(1.2) translateY(-4px) rotate(2deg);
-  animation: animePieceGlow 0.8s ease-in-out;
-}
-
-/* Enhanced squares with anime effects */
-[data-theme="anime"] .sq:hover {
-  background: radial-gradient(circle at center, 
-    rgba(255, 20, 147, 0.3) 0%, 
-    rgba(255, 105, 180, 0.2) 40%, 
-    rgba(0, 206, 209, 0.15) 70%, 
-    transparent 100%) !important;
-  box-shadow: 
-    inset 0 0 25px rgba(255, 20, 147, 0.25),
-    0 0 20px rgba(255, 105, 180, 0.15);
-  transform: scale(1.03);
-  border: 1px solid rgba(255, 228, 225, 0.3);
-}
-
-[data-theme="anime"] .sq.SL, [data-theme="anime"] .sq.SD {
-  background: 
-    radial-gradient(circle at 25% 25%, rgba(255, 209, 220, 0.4) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(255, 20, 147, 0.35) 0%, transparent 60%) !important;
-  animation: animeSquarePulse 3s ease-in-out infinite;
-  border: 1px solid rgba(255, 154, 158, 0.4);
-}
-
-/* Enhanced UI elements with Japanese anime styling */
-[data-theme="anime"] .btn {
-  background: linear-gradient(135deg, 
-    var(--anime-primary) 0%, 
-    var(--anime-secondary) 50%, 
-    var(--anime-accent) 100%);
-  border: 2px solid var(--anime-border);
-  border-radius: 25px;
-  color: var(--anime-text);
-  font-weight: 700;
-  font-family: 'Cairo', sans-serif;
-  text-shadow: 
-    0 2px 4px rgba(0, 0, 51, 0.8),
-    0 0 15px rgba(255, 20, 147, 0.6);
-  box-shadow: 
-    0 6px 20px rgba(255, 20, 147, 0.4),
-    0 0 30px rgba(255, 105, 180, 0.3),
-    inset 0 2px 10px rgba(255, 255, 255, 0.2);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding: 12px 24px;
-  letter-spacing: 1px;
-}
-
-[data-theme="anime"] .btn::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.3), 
-    transparent);
-  transform: rotate(45deg);
-  transition: all 0.8s;
-}
-
-[data-theme="anime"] .btn:hover::before {
-  animation: animeKiraShine 1s ease-in-out;
-}
-
-[data-theme="anime"] .btn:hover {
-  transform: scale(1.1) translateY(-5px) rotate(-1deg);
-  box-shadow: 
-    0 12px 35px rgba(255, 20, 147, 0.6),
-    0 0 45px rgba(255, 105, 180, 0.4),
-    inset 0 3px 15px rgba(255, 255, 255, 0.3);
-  border-color: var(--anime-gold);
-  text-shadow: 
-    0 3px 6px rgba(0, 0, 51, 0.9),
-    0 0 25px rgba(255, 215, 0, 0.8);
-}
-
-/* Enhanced screens with Japanese anime atmosphere */
-[data-theme="anime"] .screen {
-  background: 
-    radial-gradient(ellipse at center top, rgba(255, 20, 147, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse at center bottom, rgba(0, 206, 209, 0.06) 0%, transparent 60%),
-    linear-gradient(180deg, var(--anime-dark) 0%, #2D1B69 100%);
-  position: relative;
-  border: 1px solid rgba(255, 105, 180, 0.2);
-}
-
-[data-theme="anime"] .screen::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: 
-    repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255, 20, 147, 0.03) 4px, rgba(255, 20, 147, 0.03) 8px),
-    repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0, 206, 209, 0.02) 4px, rgba(0, 206, 209, 0.02) 8px);
-  pointer-events: none;
-  animation: animeScreenScan 30s linear infinite;
-}
-
-/* Enhanced cards and containers */
-[data-theme="anime"] .learn-card,
-[data-theme="anime"] .mc,
-[data-theme="anime"] .oc,
-[data-theme="anime"] .gobox {
-  background: linear-gradient(135deg, 
-    rgba(26, 0, 51, 0.9) 0%, 
-    rgba(45, 0, 77, 0.8) 100%);
-  border: 2px solid var(--anime-border);
-  border-radius: 20px;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 51, 0.6),
-    0 0 40px rgba(255, 20, 147, 0.3),
-    inset 0 2px 15px rgba(255, 255, 255, 0.1);
-}
-
-/* Enhanced progress bars */
-[data-theme="anime"] .pbar {
-  background: linear-gradient(90deg, 
-    rgba(255, 20, 147, 0.2) 0%, 
-    rgba(0, 206, 209, 0.15) 100%);
-  border: 2px solid var(--anime-border);
-  box-shadow: 
-    0 0 20px rgba(255, 20, 147, 0.3),
-    inset 0 0 15px rgba(255, 105, 180, 0.2);
-  border-radius: 30px;
-  position: relative;
-  overflow: hidden;
-}
-
-[data-theme="anime"] .pbar::before {
-  content:none;
-  animation:none;
-}
-
-/* Japanese anime animations */
-@keyframes animePieceFloat {
-  0%, 100% { 
-    opacity: 1; 
-    transform: scale(1) translateY(0) rotate(0deg); 
-  }
-  25% { 
-    opacity: 0.95; 
-    transform: scale(1.01) translateY(-2px) rotate(1deg); 
-  }
-  50% { 
-    opacity: 0.9; 
-    transform: scale(1.02) translateY(-4px) rotate(2deg); 
-  }
-  75% { 
-    opacity: 0.95; 
-    transform: scale(1.01) translateY(-2px) rotate(1deg); 
-  }
-}
-
-@keyframes animePieceGlow {
-  0% { 
-    filter: drop-shadow(0 0 12px rgba(255, 20, 147, 0.7));
-  }
-  33% { 
-    filter: drop-shadow(0 0 25px rgba(255, 105, 180, 0.8));
-  }
-  66% { 
-    filter: drop-shadow(0 0 20px rgba(0, 206, 209, 0.6));
-  }
-  100% { 
-    filter: drop-shadow(0 0 12px rgba(255, 20, 147, 0.7));
-  }
-}
-
-@keyframes animeSquarePulse {
-  0%, 100% { 
-    opacity: 0.85; 
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 1; 
-    transform: scale(1.01);
-  }
-}
-
-@keyframes animeBorderFlow {
-  0% { 
-    background-position: 0% 0%; 
-  }
-  100% { 
-    background-position: 100% 100%; 
-  }
-}
-
-@keyframes animeKiraShine {
-  0% { 
-    transform: translateX(-150%) translateY(-150%) rotate(45deg); 
-    opacity: 0;
-  }
-  50% { 
-    opacity: 1;
-  }
-  100% { 
-    transform: translateX(150%) translateY(150%) rotate(45deg); 
-    opacity: 0;
-  }
-}
-
-@keyframes animeScreenScan {
-  0% { 
-    transform: translateY(0) scaleY(1); 
-  }
-  50% { 
-    transform: translateY(15px) scaleY(0.98); 
-  }
-  100% { 
-    transform: translateY(30px) scaleY(1); 
-  }
-}
-
-@keyframes animeSakuraFall {
-  0% { 
-    transform: translateY(-10vh) translateX(0) rotate(0deg); 
-    opacity: 0;
-  }
-  10% { 
-    opacity: 1;
-  }
-  90% { 
-    opacity: 1;
-  }
-  100% { 
-    transform: translateY(110vh) translateX(50px) rotate(360deg); 
-    opacity: 0;
-  }
-}
-
-@keyframes animeBarShine {
-  0% { 
-    transform: translateX(-100%); 
-  }
-  100% { 
-    transform: translateX(100%); 
-  }
-}
 /* summary */
 .rv-sumbar{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
 .rv-sum-col{flex:1;text-align:center;}
@@ -3311,7 +2970,7 @@ body[data-ui-theme="glass"] .mc-tag{
    المظهر يظبط فورًا قبل أي رسم. الـJS بعدين بيعيد تأكيد نفس الثيم. */
 (function(){
   try{
-    var ok={amkh:1,minimal:1,cyberpunk:1,glass:1,gaming:1,anime:1};
+    var ok={amkh:1,minimal:1,cyberpunk:1,glass:1,gaming:1,chess:1};
     var c=JSON.parse(localStorage.getItem('chess-cfg-v6')||'{}')||{};
     document.body.dataset.uiTheme=ok[c.uiTheme]?c.uiTheme:'amkh';
   }catch(e){ document.body.dataset.uiTheme='amkh'; }
@@ -3574,7 +3233,7 @@ body[data-ui-theme="glass"] .mc-tag{
                   <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#040604"></div><div class="sw" style="background:#00ff66"></div><div class="sw" style="background:#ffb020"></div></div>Cyber</div>
                   <div class="ui-opt" id="ui-glass" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('glass')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,.10)"></div><div class="sw" style="background:#93c5fd"></div></div>Glass</div>
                   <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#0f1923"></div><div class="sw" style="background:#ff4655"></div><div class="sw" style="background:#00e5ff"></div></div>Gaming</div>
-                  <div class="ui-opt" id="ui-anime" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('anime')"><div class="th-sw"><div class="sw" style="background:#0a0908"></div><div class="sw" style="background:#3ac8ff"></div><div class="sw" style="background:#e01e37"></div></div>Anime</div>
+                  <div class="ui-opt" id="ui-chess" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('chess')"><div class="th-sw"><div class="sw" style="background:#14100b"></div><div class="sw" style="background:#c9a24b"></div><div class="sw" style="background:#6ea36f"></div></div>شطرنج</div>
                 </div>
               </div>
 
@@ -4700,20 +4359,15 @@ const UI_THEMES={
     text:'#ece8e1',text2:'#9ba8b4',text3:'#5f6f7c',
     accent:'#ff4655',accent2:'#00e5ff',fxGlow:'rgba(255,70,85,.28)',fxNeon:'rgba(0,229,255,.26)'
   },
-  /* أنمي — حِبر أسود + سماوي الطاقة الملعونة + قرمزي سوكونا.
-     الوردي اتشال؛ مالوش علاقة بالأنمي وكان مجرد بستيل عام. */
-  anime:{
-    bg:'#0a0908',bg2:'#141110',bg3:'#1e1a19',bg4:'#2a2523',
-    gold:'#e01e37',gold2:'#f5405a',gold3:'#ff8a9c',
-    teal:'#3ac8ff',teal2:'#8cdfff',
-    red:'#e01e37',green:'#5ad48a',blue:'#3ac8ff',
-    text:'#f7f3ee',text2:'#a9a29b',text3:'#6b655f',
-    accent:'#3ac8ff',accent2:'#e01e37',fxGlow:'rgba(58,200,255,.26)',fxNeon:'rgba(224,30,55,.24)',
-    // Anime-specific styles
-    animeStyle:true,
-    boardGlow:true,
-    pieceGlow:true,
-    particleEffect:true
+  /* الشطرنج — أبنوس/جوز داكن + نحاس ذهبي + عاجي + أخضر البطولات.
+     هوية بطولية دافئة: إطار رقعة، نسيج مربّعات، وحوافّ رُتب ذهبية. */
+  chess:{
+    bg:'#14100b',bg2:'#1e1810',bg3:'#281f15',bg4:'#34291c',
+    gold:'#c9a24b',gold2:'#e3c069',gold3:'#f3dca0',
+    teal:'#6ea36f',teal2:'#a9cf9f',
+    red:'#c05a3e',green:'#6ea36f',blue:'#c9a24b',
+    text:'#f3e8d0',text2:'#bcae90',text3:'#7d7157',
+    accent:'#c9a24b',accent2:'#6ea36f',fxGlow:'rgba(201,162,75,.26)',fxNeon:'rgba(110,163,111,.22)'
   }
 };
 
@@ -6867,7 +6521,7 @@ window.Modal = Modal;
    الثيم وصوت «update» خاص، وزرّها بيفتح رابط الـAPK الدائم. بنسأل مرّة
    كل إقلاع بس، ولو المستخدم قال «لاحقًا» ما نضايقهوش تاني نفس الجلسة. */
 const APP_VERSION = '3.10';
-const APP_VERSION_CODE = 21;
+const APP_VERSION_CODE = 22;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
 let _lastUpdateAttempt = 0;       /* آخر محاولة فحص (throttle) */
@@ -10260,7 +9914,15 @@ let _lastBalW=window.innerWidth;
     &&window.Capacitor.Plugins&&window.Capacitor.Plugins.Keyboard;
   if(KB&&KB.addListener){
     KB.addListener('keyboardWillShow', info=>{
-      root.style.setProperty('--kb', ((info&&info.keyboardHeight)||0)+'px');
+      /* keyboardHeight = ime inset من أسفل النافذة الكاملة، فيشمل ارتفاع شريط
+         التنقّل السفلي (nav bar) مع إن الـWebView ما بيمتدش خلفه → لو رفعنا
+         بالقيمة الكاملة يفضل فراغ أسود بمقدار nav bar بين الصندوق والكيبورد.
+         نطرح --nav-bottom (محقون من MainActivity بقيمة الجهاز الفعلية) عشان
+         --kb يبقى = التغطية الحقيقية للكيبورد جوّه الـWebView → الصندوق يلزق
+         في الكيبورد تمامًا (زي واتساب) على أي جهاز. [[flicker-root-cause-fix]] */
+      const kbFull=(info&&info.keyboardHeight)||0;
+      const nav=parseFloat(getComputedStyle(root).getPropertyValue('--nav-bottom'))||0;
+      root.style.setProperty('--kb', Math.max(0, kbFull-nav)+'px');
       root.classList.add('kb-open','kb-shift');
       if(typeof R!=='undefined')R._kbLock=true;
       raiseActive();
@@ -10704,6 +10366,10 @@ const G={
   },
   _reset(mode,diff){
     this._cancelEngineThink();
+    /* #165: صفّر ساعة أي مباراة أونلاين سابقة عند بدء أي لعبة. الأوضاع
+       المحلية (لاعبان/نور/بلوتوث) بلا توقيت فيفضل المؤقّت مخفيًا؛ الأونلاين
+       المؤقّت بيرجع يظهر لما السيرفر يبعت رسالة clock. */
+    try{ if(typeof OL!=='undefined'&&OL.resetClock) OL.resetClock(); }catch(e){}
     S.mode=mode;S.diff=diff;S.myCol='both';S.levelId=-1;S.moveCount=0;
     S.bd=INIT_BD.map(r=>[...r]);S.turn='w';S.sel=null;S.legal=[];
     S.cas={w:{K:true,Q:true},b:{K:true,Q:true}};S.ep=null;
@@ -11428,12 +11094,15 @@ const OL=(()=>{
   function _renderClock(){
     const elW=document.getElementById('tmr-w'), elB=document.getElementById('tmr-b');
     if(!_clk){
-      [elW,elB].forEach(el=>{ if(el){ el.textContent='—'; el.classList.remove('tmr-live','tmr-low','tmr-flag'); } });
+      /* بلا ساعة نشطة (لاعبان/نور/بلوتوث/أونلاين بلا توقيت): نُخفي المؤقّت
+         تمامًا — الوقت ملهوش علاقة بالوضع ده — بدل ما نسيب رقم متسرّب أو '—'. */
+      [elW,elB].forEach(el=>{ if(el){ el.textContent='—'; el.style.display='none'; el.classList.remove('tmr-live','tmr-low','tmr-flag'); } });
       return;
     }
     const now=performance.now();
     [['w',elW],['b',elB]].forEach(([c,el])=>{
       if(!el) return;
+      el.style.display='';   // ساعة نشطة: أظهِر المؤقّت
       let ms=_clk[c];
       if(_clk.running && _clk.turn===c) ms-=(now-_clk.syncAt);
       if(ms<0) ms=0;
@@ -11842,6 +11511,9 @@ const OL=(()=>{
     rt:false,   // نوع غرفة الإنشاء: false=ودّية، true=مصنّفة
     tcKey:'none',   // مفتاح التوقيت المختار (#134)
     tc:null,        // { base, inc } بالثواني أو null = بدون توقيت
+    /* إعادة ضبط عرض الساعة — يُستدعى مركزيًا من G._reset مع كل بداية لعبة
+       عشان ما يتسربش وقت مباراة أونلاين سابقة لأوضاع محلية بلا توقيت (#165). */
+    resetClock(){ _resetClockDisplay(); },
     _tok(){ try{ return (window.amkhAuth&&window.amkhAuth.token)||''; }catch(e){ return ''; } },
     setRated(v){
       SFX.btn();
@@ -12274,7 +11946,7 @@ window.addEventListener('beforeunload',e=>{
 const IS_CAPACITOR_NATIVE=Boolean(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform());
 /* علامة على <html> عشان الـCSS يقدر يفرّق التطبيق عن الويب. الوميض
    (اختفاء عناصر لفريم) بيحصل على WebView أندرويد بس — مش على الويب —
-   بسبب الطبقات الزخرفية المتحركة كل فريم في ثيمات gaming/cyberpunk/anime.
+   بسبب الطبقات الزخرفية المتحركة كل فريم في ثيمات gaming/cyberpunk/chess.
    على التطبيق فقط بنعزل الزخرفة والمحتوى في طبقتين GPU مستقلتين عبر هذه
    العلامة، فالحركة تفضل شغّالة والوميض بيختفي (شوف screens.css). */
 try{ if(IS_CAPACITOR_NATIVE) document.documentElement.classList.add('amkh-native'); }catch(e){}

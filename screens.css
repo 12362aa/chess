@@ -1952,41 +1952,41 @@ body[data-ui-theme="gaming"]{
   --color-focus-ring:         rgba(255,70,85,.58);
 }
 
-/* ── Anime — وردي + سماوي على كحلي بنفسجي ── */
-body[data-ui-theme="anime"]{
-  --color-primary:            #3AC8FF;
-  --color-primary-hover:      #7BDCFF;
-  --color-primary-pressed:    #1D9FD4;
-  --color-primary-subtle:     rgba(58,200,255,.13);
-  --color-primary-border:     rgba(58,200,255,.32);
-  --color-primary-text:       #8CDFFF;
-  --color-on-primary:         #0A0908;
+/* ── Chess — أبنوس/جوز + نحاس ذهبي + عاجي + أخضر البطولات ── */
+body[data-ui-theme="chess"]{
+  --color-primary:            #C9A24B;
+  --color-primary-hover:      #E3C069;
+  --color-primary-pressed:    #A9822F;
+  --color-primary-subtle:     rgba(201,162,75,.13);
+  --color-primary-border:     rgba(201,162,75,.32);
+  --color-primary-text:       #F3DCA0;
+  --color-on-primary:         #14100B;
 
-  --color-secondary:          #E01E37;
-  --color-secondary-hover:    #F5405A;
-  --color-secondary-pressed:  #A81428;
-  --color-secondary-subtle:   rgba(224,30,55,.12);
-  --color-secondary-border:   rgba(224,30,55,.28);
-  --color-secondary-text:     #FF8A9C;
-  --color-on-secondary:       #F7F3EE;
+  --color-secondary:          #6EA36F;
+  --color-secondary-hover:    #A9CF9F;
+  --color-secondary-pressed:  #4E7C50;
+  --color-secondary-subtle:   rgba(110,163,111,.12);
+  --color-secondary-border:   rgba(110,163,111,.28);
+  --color-secondary-text:     #A9CF9F;
+  --color-on-secondary:       #14100B;
 
-  --color-bg-base:            #0A0908;
-  --color-bg-elevated:        #141110;
-  --color-surface:            #1E1A19;
-  --color-surface-raised:     #2A2523;
-  --color-surface-sunken:     #050404;
-  --color-overlay:            rgba(5,4,4,.84);
+  --color-bg-base:            #14100B;
+  --color-bg-elevated:        #1E1810;
+  --color-surface:            #281F15;
+  --color-surface-raised:     #34291C;
+  --color-surface-sunken:     #0D0A06;
+  --color-overlay:            rgba(13,10,6,.84);
 
-  --color-border:             #302A28;
-  --color-border-subtle:      #201C1B;
-  --color-border-strong:      rgba(58,200,255,.30);
+  --color-border:             #3A2F20;
+  --color-border-subtle:      #26200F;
+  --color-border-strong:      rgba(201,162,75,.30);
 
-  --color-text-primary:       #F7F3EE;
-  --color-text-secondary:     #A9A29B;
-  --color-text-disabled:      #6B655F;
-  --color-text-inverse:       #0A0908;
+  --color-text-primary:       #F3E8D0;
+  --color-text-secondary:     #BCAE90;
+  --color-text-disabled:      #7D7157;
+  --color-text-inverse:       #14100B;
 
-  --color-focus-ring:         rgba(58,200,255,.60);
+  --color-focus-ring:         rgba(201,162,75,.60);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -2466,7 +2466,7 @@ body[data-ui-theme="anime"]{
   contain: strict;
   /* الانتقال بين الشاشات بيغيّر عتامة طبقة الزخرفة (كاملة على الرئيسية،
      .35 على اللعب). من غير transition العتامة بتقفز فجأة، وفي الثيمات
-     المزحومة (gaming/cyberpunk/anime) قفزة إضاءة الجسيمات المتحركة دي
+     المزحومة (gaming/cyberpunk/chess) قفزة إضاءة الجسيمات المتحركة دي
      بتتقري كوميض لحظي عند الرجوع للرئيسية — وده اللي المستخدم بيشوفه في
      «كل الثيمات إلا amkh»، لأن زخرفة amkh هادية فالقفزة مش باينة فيها.
      الـtransition بيحوّل القفزة لتلاشي ناعم فيختفي الوميض في كل الثيمات. */
@@ -2518,7 +2518,7 @@ body.amkh-modal-open #particles > *{
    ──────────────────────────────────────────────────────────────────────
    المستخدم أكّد: الوميض (اختفاء عناصر لجزء من الثانية) موجود في أماكن
    كتير مش الرقعة بس، وموجود على التطبيق فقط (مش الويب) وفي ثيمات
-   gaming/cyberpunk/anime فقط (مش amkh).
+   gaming/cyberpunk/chess فقط (مش amkh).
 
    السبب المقيس: على WebView أندرويد، الطبقات الزخرفية الكاملة اللي بتتحرك
    كل فريم (مطر البيانات، السكانر، الشيفرون، خطوط السرعة، البتلات، الوهج،
@@ -2542,9 +2542,9 @@ html.amkh-native body[data-ui-theme="gaming"] #particles,
 html.amkh-native body[data-ui-theme="cyberpunk"] #theme-fx,
 html.amkh-native body[data-ui-theme="cyberpunk"] #theme-fx > i,
 html.amkh-native body[data-ui-theme="cyberpunk"] #particles,
-html.amkh-native body[data-ui-theme="anime"] #theme-fx,
-html.amkh-native body[data-ui-theme="anime"] #theme-fx > i,
-html.amkh-native body[data-ui-theme="anime"] #particles{
+html.amkh-native body[data-ui-theme="chess"] #theme-fx,
+html.amkh-native body[data-ui-theme="chess"] #theme-fx > i,
+html.amkh-native body[data-ui-theme="chess"] #particles{
   will-change: transform;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -2554,7 +2554,7 @@ html.amkh-native body[data-ui-theme="anime"] #particles{
 /* خلفية bgShift المتحركة (طبقة كاملة فوق الشاشة) تتثبّت هي كمان */
 html.amkh-native body[data-ui-theme="gaming"]::before,
 html.amkh-native body[data-ui-theme="cyberpunk"]::before,
-html.amkh-native body[data-ui-theme="anime"]::before{
+html.amkh-native body[data-ui-theme="chess"]::before{
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -2564,7 +2564,7 @@ html.amkh-native body[data-ui-theme="anime"]::before{
    لما الكيبورد يفتح والورقة السفلية (شات) مفتوحة، WebView أندرويد بيصغّر
    الـviewport فيحصل reflow يعيد ضمّ الطبقات. glass عنده طبقة كاوستِكس
    متحركة (tfxCaustic) وminimal عنده تدرّج مكرّر تقيل بقناع — الاتنين مش
-   مُرقّيين على GPU (بعكس gaming/cyberpunk/anime فوق)، فوقت التصغير بيتضمّوا
+   مُرقّيين على GPU (بعكس gaming/cyberpunk/chess فوق)، فوقت التصغير بيتضمّوا
    في طبقة المحتوى فيومض الشات. نثبّتهم كطبقات GPU مستقلة بنفس آلية الثيمات
    التقيلة → التصغير يعيد رسم طبقتهم لوحدها من غير ما يلمس رسم المحتوى.
    ملاحظة: التثبيت هنا دائم عشان يفضل شغّال حتى وقت ما amkh-modal-open
@@ -2789,122 +2789,120 @@ body[data-ui-theme="cyberpunk"] .home-hero__fill{
   color: var(--color-primary);
 }
 /* ══════════════════════════════════════════════════════════════════════
-   15.3 anime — لغة الأنمي الحقيقية
+   15.3 chess — لغة الشطرنج الحقيقية
    ──────────────────────────────────────────────────────────────────────
-   «انمي يعني انميات مثل جوجيتسو كايسن». اللي بيخلّي كادر أنمي أنمي
-   مش الوردي — هو أدوات الرسم نفسها:
-   • خطوط السرعة (集中線): خطوط شعاعية بتطلع من نقطة، بتستخدم في
-     لحظات التوتر.
-   • الهاف تون (screentone): نقط رمادية متساوية بتعمل التظليل —
-     ده أشهر توقيع في المانجا كلها.
-   • البتلات المتطايرة: الكادر الهادي الكلاسيكي.
-   • الطاقة الملعونة: وهج بنفسجي داكن بيتنفّس، الطابع البصري
-     لجوجيتسو كايسن.
-   المحصلة صفحة مرسومة، مش صفحة ملوّنة وردي.
+   «شطرنج فعلاً — كل حاجة شطرنج». اللي بيخلّي الكادر شطرنجي مش اللون —
+   هو أدوات اللعبة نفسها:
+   • الرقعة: مربّعات متبادلة بتنجرف بهدوء في العمق زي رقعة بطولة مائلة.
+   • شبكة الرُّتب والأعمدة (ranks/files): خطوط نحاسية محفورة رفيعة،
+     زي إحداثيات الرقعة.
+   • قطع الشطرنج الطائرة: ظلال مرسومة (بيدق/حصان/طابية/ملك/فيل/وزير)
+     بتطفو بهدوء — التوقيع البصري «كل حاجة شطرنج».
+   • وهج البطولة: نحاسي ذهبي + أخضر البُسط بيتنفّس بدفء.
+   المحصلة صفحة شطرنجية مرسومة بالكامل — بلا أي إيموجي.
 ══════════════════════════════════════════════════════════════════════ */
 
-/* خطوط السرعة — شعاعية من أعلى المنتصف.
-   شريحتين بفترات زاوية مختلفة عشان السماكات تتنوّع؛ الرسّام مابيرسمش
-   الخطوط كلها بنفس السُمك، والتنوّع هو اللي بيخلّيها تقرا «مرسومة».
-   conic-gradient أرخص بكتير من 60 عنصر منفصل. */
-body[data-ui-theme="anime"] #theme-fx > i:nth-child(1){
+/* الرقعة المنجرفة — مربّعات متبادلة (conic أرخص من مئات العناصر).
+   الطبقة مكبّرة scale(1.5) فبتفيض برّه الشاشة، والانجراف بمقدار بلاطة
+   كاملة (54px) قطريًا يخلّي اللفة سلسة بلا حواف بادية ولا قفزة لون. */
+body[data-ui-theme="chess"] #theme-fx > i:nth-child(1){
   background-image:
-    repeating-conic-gradient(from 0deg at 50% 26%,
-      rgba(255,255,255,.22) 0deg .5deg, transparent .5deg 2.6deg),
-    repeating-conic-gradient(from 1.3deg at 50% 26%,
-      rgba(140,223,255,.2) 0deg 1.1deg, transparent 1.1deg 9deg);
-  opacity: .62;
-  /* القناع بيفضّي النص في الوسط ويسيب الخطوط على الحواف — بالظبط زي
-     ما الرسّام بيسيب وش الشخصية نضيف وسط خطوط السرعة */
-  mask-image: radial-gradient(ellipse 62% 50% at 50% 26%, transparent 26%, black 88%);
-  -webkit-mask-image: radial-gradient(ellipse 62% 50% at 50% 26%, transparent 26%, black 88%);
-  animation: tfxSpeed 20s linear infinite;
+    conic-gradient(rgba(201,162,75,.11) 90deg, transparent 90deg 180deg,
+      rgba(201,162,75,.11) 180deg 270deg, transparent 270deg);
+  background-size: 54px 54px;
+  opacity: .5;
+  /* القناع بيفضّي الوسط ويسيب الرقعة على الحواف — النص يفضل نضيف */
+  mask-image: radial-gradient(ellipse 66% 56% at 50% 32%, transparent 24%, black 90%);
+  -webkit-mask-image: radial-gradient(ellipse 66% 56% at 50% 32%, transparent 24%, black 90%);
+  animation: tfxBoard 24s linear infinite;
 }
-@keyframes tfxSpeed{
-  from{ transform: rotate(0deg) scale(1.7); }
-  to  { transform: rotate(360deg) scale(1.7); }
+@keyframes tfxBoard{
+  from{ transform: translate3d(0,0,0) scale(1.5); }
+  to  { transform: translate3d(-54px,-54px,0) scale(1.5); }
 }
 
-/* الهاف تون — ساكن، هو التظليل نفسه مش حركة */
-body[data-ui-theme="anime"] #theme-fx > i:nth-child(2){
-  background-image: radial-gradient(circle, rgba(255,255,255,.4) 0 1.1px, transparent 1.6px);
-  background-size: 7px 7px;
-  opacity: .22;
+/* شبكة الرُّتب والأعمدة — خطوط محفورة ساكنة (هي الإحداثيات نفسها مش حركة) */
+body[data-ui-theme="chess"] #theme-fx > i:nth-child(2){
+  background-image:
+    repeating-linear-gradient(90deg, rgba(201,162,75,.16) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(0deg,  rgba(201,162,75,.16) 0 1px, transparent 1px 46px);
+  opacity: .2;
   mask-image: linear-gradient(150deg, black 0%, transparent 46%, transparent 62%, black 100%);
   -webkit-mask-image: linear-gradient(150deg, black 0%, transparent 46%, transparent 62%, black 100%);
 }
 
-/* البتلات المتطايرة.
-   طبقة أكبر من الشاشة ببلاطة كاملة، والحركة transform بمقدار البلاطة
-   بالظبط (260px قطريًا) — لفة سلسة ورسم مرة واحدة. لو حرّكنا
-   background-position بدل كده كانت الطبقة بتتعاد رسمها كل فريم. */
-body[data-ui-theme="anime"] #theme-fx::before{
+/* قطع الشطرنج الطائرة — ظلال مرسومة بمسارات SVG (مش إيموجي).
+   طبقة أكبر من الشاشة ببلاطة كاملة، والحركة transform بمق��ار البلاطة
+   بالظبط (260px قطريًا) — لفة سلسة ورسم مرة واحدة. */
+body[data-ui-theme="chess"] #theme-fx::before{
   content: '';
   position: absolute;
   inset: -260px;
-  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g fill='%238cdfff'><ellipse cx='36' cy='30' rx='9' ry='5' transform='rotate(-24 36 30)'/><ellipse cx='168' cy='72' rx='7.5' ry='4.2' transform='rotate(38 168 72)'/><ellipse cx='96' cy='140' rx='10' ry='5.6' transform='rotate(-52 96 140)'/><ellipse cx='222' cy='186' rx='8' ry='4.4' transform='rotate(16 222 186)'/><ellipse cx='52' cy='224' rx='9' ry='5' transform='rotate(-8 52 224)'/></g><g fill='%23ff8a9c' opacity='.72'><ellipse cx='210' cy='24' rx='6.6' ry='3.6' transform='rotate(-40 210 24)'/><ellipse cx='128' cy='206' rx='7.4' ry='4' transform='rotate(28 128 206)'/></g><g fill='%23f5405a' opacity='.6'><ellipse cx='250' cy='118' rx='6' ry='3.2' transform='rotate(-30 250 118)'/><ellipse cx='8' cy='96' rx='5.6' ry='3' transform='rotate(44 8 96)'/></g></svg>") repeat;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g fill='%23c9a24b'><g transform='translate(22,18) rotate(-12)'><circle cx='14' cy='6' r='5'/><path d='M9 11 q5 3 10 0 l-2 12 h-6 z'/><rect x='5' y='22' width='18' height='5' rx='2'/></g><g transform='translate(66,128) rotate(8)'><path d='M4 4 h4 v3 h4 v-3 h4 v3 h4 v-3 h4 v8 h-2 l-2 14 h-12 l-2 -14 h-2 z'/><rect x='2' y='27' width='24' height='5' rx='1'/></g><g transform='translate(192,164) rotate(-6)'><rect x='12' y='0' width='4' height='10'/><rect x='8' y='3' width='12' height='4'/><path d='M6 14 q8 -6 16 0 l-2 14 h-12 z'/><rect x='4' y='28' width='20' height='5' rx='2'/></g></g><g fill='%236ea36f' opacity='.82'><g transform='translate(150,42) rotate(10)'><path d='M6 30 q0 -18 12 -22 q-3 -3 -1 -6 q4 4 8 4 q6 2 7 12 q1 8 -3 12 z'/><rect x='3' y='30' width='26' height='4' rx='1'/></g><g transform='translate(36,192) rotate(-8)'><circle cx='14' cy='4' r='2.5'/><path d='M14 6 q9 6 5 18 h-10 q-4 -12 5 -18 z'/><rect x='6' y='24' width='16' height='5' rx='2'/></g></g><g fill='%23f3dca0' opacity='.6'><g transform='translate(118,92) rotate(4)'><path d='M4 8 l4 14 h12 l4 -14 l-5 7 l-3 -9 l-3 9 z'/><circle cx='4' cy='6' r='2'/><circle cx='14' cy='4' r='2'/><circle cx='24' cy='6' r='2'/><rect x='5' y='22' width='18' height='5' rx='2'/></g></g></svg>") repeat;
   background-size: 260px 260px;
-  opacity: .8;
-  animation: tfxPetals 26s linear infinite;
+  opacity: .5;
+  animation: tfxDrift 30s linear infinite;
 }
-@keyframes tfxPetals{
+@keyframes tfxDrift{
   from{ transform: translate3d(0, -260px, 0); }
   to  { transform: translate3d(-260px, 260px, 0); }
 }
 
-/* الطاقة الملعونة — وهج بيتنفّس */
-body[data-ui-theme="anime"] #theme-fx > i:nth-child(3){
+/* وهج البطولة — نحاسي + أخضر بيتنفّس بدفء */
+body[data-ui-theme="chess"] #theme-fx > i:nth-child(3){
   background-image:
-    radial-gradient(ellipse 54% 40% at 14% 8%,  rgba(58,200,255,.2),  transparent 62%),
-    radial-gradient(ellipse 46% 38% at 88% 18%, rgba(224,30,55,.17), transparent 60%),
-    radial-gradient(ellipse 62% 44% at 50% 104%, rgba(224,30,55,.22), transparent 66%);
-  animation: tfxCursed 6.5s ease-in-out infinite alternate;
+    radial-gradient(ellipse 54% 40% at 14% 8%,  rgba(201,162,75,.2),  transparent 62%),
+    radial-gradient(ellipse 46% 38% at 88% 18%, rgba(110,163,111,.16), transparent 60%),
+    radial-gradient(ellipse 62% 44% at 50% 104%, rgba(201,162,75,.2), transparent 66%);
+  animation: tfxGlow 7s ease-in-out infinite alternate;
 }
-@keyframes tfxCursed{
-  from{ opacity: .72; transform: scale(1); }
-  to  { opacity: 1;   transform: scale(1.06); }
+@keyframes tfxGlow{
+  from{ opacity: .74; transform: scale(1); }
+  to  { opacity: 1;   transform: scale(1.05); }
 }
-/* ── الأسطح: لوحات مانجا ──
-   حواف حادة من ناحية البداية (زي إطار الكادر)، وشريط أكسنت سميك،
-   ولمعة قطرية زي اللي بتترسم على الزجاج في الأنمي. */
-body[data-ui-theme="anime"] .home-hero,
-body[data-ui-theme="anime"] .home-tile{
+/* ── الأسطح: نوافذ بإطار رقعة ──
+   حافة رقعة نحاسية من ناحية البداية، لمعة ذهبية قطرية، وركن مربّعات
+   رقعة — النافذة نفسها بتاخد سِمة شطرنجية. */
+body[data-ui-theme="chess"] .home-hero,
+body[data-ui-theme="chess"] .home-tile{
   position: relative;
   overflow: hidden;
   border-inline-start: 3px solid var(--color-primary-border);
 }
-body[data-ui-theme="anime"] .home-hero::after,
-body[data-ui-theme="anime"] .home-tile::after{
+body[data-ui-theme="chess"] .home-hero::after,
+body[data-ui-theme="chess"] .home-tile::after{
   content: '';
   position: absolute;
   inset-block: -30%;
   inset-inline-end: -14%;
   width: 42px;
-  background: linear-gradient(180deg, transparent, rgba(255,255,255,.1), transparent);
+  background: linear-gradient(180deg, transparent, rgba(243,220,160,.12), transparent);
   transform: rotate(18deg);
   pointer-events: none;
 }
-/* هاف تون خفيف في ركن البطاقة الرئيسية — التظليل بتاع المانجا */
-body[data-ui-theme="anime"] .home-hero::before{
+/* ركن مربّعات رقعة في البطاقة الرئيسية — النقش الشطرنجي */
+body[data-ui-theme="chess"] .home-hero::before{
   content: '';
   position: absolute;
   inset-block-end: 0;
   inset-inline-end: 0;
   width: 46%;
   height: 62%;
-  background-image: radial-gradient(circle, rgba(140,223,255,.55) 0 1.2px, transparent 1.8px);
-  background-size: 8px 8px;
+  background-image:
+    conic-gradient(rgba(201,162,75,.5) 90deg, transparent 90deg 180deg,
+      rgba(201,162,75,.5) 180deg 270deg, transparent 270deg);
+  background-size: 15px 15px;
   mask-image: radial-gradient(ellipse at 100% 100%, black 8%, transparent 72%);
   -webkit-mask-image: radial-gradient(ellipse at 100% 100%, black 8%, transparent 72%);
-  opacity: .5;
+  opacity: .4;
   pointer-events: none;
 }
-/* العناوين بحدّ خارجي خفيف — أقرب للّيترينج المرسوم */
-body[data-ui-theme="anime"] .home-hero__title,
-body[data-ui-theme="anime"] .logo-t{
-  text-shadow: 0 2px 0 rgba(10,9,8,.55), 0 0 22px rgba(58,200,255,.28);
+/* العناوين بحفر نحاسي خفيف — أقرب للّيترينج المحفور على درع البطولة */
+body[data-ui-theme="chess"] .home-hero__title,
+body[data-ui-theme="chess"] .logo-t{
+  text-shadow: 0 2px 0 rgba(13,10,6,.55), 0 0 22px rgba(201,162,75,.28);
 }
-body[data-ui-theme="anime"] .home-hero__eyebrow{
+body[data-ui-theme="chess"] .home-hero__eyebrow{
   letter-spacing: .14em;
 }
 
@@ -3105,12 +3103,12 @@ body[data-ui-theme="minimal"] .home-hero{
   background-size: 32px 32px, auto;
   opacity: .8;
 }
-#s-settings #ui-anime .th-sw::after{
+#s-settings #ui-chess .th-sw::after{
   background-image:
-    repeating-conic-gradient(from 0deg at 50% 118%, rgba(255,255,255,.55) 0deg 1deg, transparent 1deg 5deg),
-    radial-gradient(circle, rgba(224,30,55,.45) 0 1px, transparent 1.5px);
-  background-size: auto, 6px 6px;
-  opacity: .7;
+    conic-gradient(rgba(201,162,75,.6) 90deg, transparent 90deg 180deg, rgba(201,162,75,.6) 180deg 270deg, transparent 270deg),
+    radial-gradient(circle at 70% 30%, rgba(110,163,111,.5) 0 30%, transparent 60%);
+  background-size: 8px 8px, auto;
+  opacity: .8;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -3133,7 +3131,7 @@ body[data-ui-theme="minimal"] .home-hero{
    لغة كل ثيم:
      amkh      هندسة إسلامية — مثمّنات ومعيّنات بدل الدوائر
      cyberpunk تيرمينال — أقواس زوايا وخطوط مقطّعة وسُدس
-     anime     حبر مانجا — خط سميك وشرارة طاقة
+     chess     شطرنج محفور — قطع ورقعة وحواف نحاسية
      gaming    إسبورتس — زوايا مشطوفة وقطعيات 45°
      glass     زجاج — أشكال ناعمة مفتوحة
      minimal   الفراغ — خط شعرة وهندسة مجرّدة وصفر زخرفة
@@ -3229,25 +3227,26 @@ body[data-ui-theme="cyberpunk"]{
   --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='square'><path d='M4.6 9 H19.4 V19.4 H4.6 Z'/><path d='M12 9 V5.6'/><path d='M10 2.6 H14 V5.6 H10 Z'/><path d='M8.6 13.4 H10.2 M13.8 13.4 H15.4'/><path d='M9.4 16.6 H14.6'/></svg>");
 }
 
-/* ── 16.3 anime — حبر مانجا ──────────────────────────────────────────
-   لغة الطقم: خط سميك (2.5) بأطراف مدوّرة زي ضربة الفرشاة، وشرارة طاقة
-   قطرية على الحواف — نفس منطق «الطاقة الملعونة» في لوحة المانجا. */
-body[data-ui-theme="anime"]{
-  --icon-levels:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='8.4' r='6'/><path d='M12 5.6 V11.2'/><path d='M8.4 14.6 L7 22.4 L12 19.6 L17 22.4 L15.6 14.6'/><path d='M20 3 L22.4 1.4 M21.2 6.6 H23.4'/></svg>");
-  --icon-engine:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><rect x='4.6' y='4.6' width='14.8' height='14.8' rx='2.6'/><path d='M9.6 9.6 H14.4 V14.4 H9.6 Z'/><path d='M9.4 1.8 V4.6 M14.6 1.8 V4.6 M9.4 19.4 V22.2 M14.6 19.4 V22.2 M1.8 9.4 H4.6 M1.8 14.6 H4.6 M19.4 9.4 H22.2 M19.4 14.6 H22.2'/></svg>");
-  --icon-local:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='8.8' cy='6.8' r='3.6'/><path d='M2.6 20.4 V19 A5.6 5.6 0 0 1 8.2 13.4 H9.4 A5.6 5.6 0 0 1 15 19 V20.4'/><path d='M16.4 3.6 A3.6 3.6 0 0 1 16.4 10'/><path d='M18 13.8 A4.6 4.6 0 0 1 21.4 18.2 V20.4'/></svg>");
-  --icon-online:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9.2'/><path d='M2.8 12 H21.2'/><path d='M12 2.8 C15.4 6.4 15.4 17.6 12 21.2 C8.6 17.6 8.6 6.4 12 2.8 Z'/></svg>");
-  --icon-bluetooth: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2 V22'/><path d='M12 2 L17.4 7.4 L6.6 18.2'/><path d='M12 22 L17.4 16.6 L6.6 5.8'/><path d='M20.4 3.6 L22.6 1.6'/></svg>");
-  --icon-daily:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.8'/><circle cx='12' cy='12' r='4.4'/><path d='M12 11.4 V12.6'/><path d='M19.6 4.4 L22.4 1.6'/></svg>");
-  --icon-streak:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22.4 C15.8 22.4 18.8 19.4 18.8 15.6 C18.8 10.6 14.6 6.8 12 1.6 C9.4 6.8 5.2 10.6 5.2 15.6 C5.2 19.4 8.2 22.4 12 22.4 Z'/><path d='M12 18.4 C13.4 18.4 14.6 17.2 14.6 15.8 C14.6 13.8 13 12.4 12 10.6 C11 12.4 9.4 13.8 9.4 15.8 C9.4 17.2 10.6 18.4 12 18.4 Z'/></svg>");
-  --icon-recent:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.8'/><path d='M12 6.8 V12 L15.6 14.2'/></svg>");
-  --icon-host:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20 V11.6'/><circle cx='12' cy='21.4' r='1.6'/><path d='M8.2 15 A5.4 5.4 0 0 1 15.8 15'/><path d='M5 11.6 A9.8 9.8 0 0 1 19 11.6'/></svg>");
-  --icon-join:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.6' cy='10.6' r='7.2'/><path d='M15.8 15.8 L21.4 21.4'/></svg>");
-  --icon-device:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><rect x='5.6' y='2.4' width='12.8' height='19.2' rx='2.8'/><path d='M10.6 18.4 H13.4'/></svg>");
-  --icon-chev:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15.4 4.6 L8.2 12 L15.4 19.4'/></svg>");
-  --icon-back:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M21 12 H4.2'/><path d='M11 4.6 L3.6 12 L11 19.4'/></svg>");
-  --icon-settings:  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3.4'/><path d='M12 1.8 V5 M12 19 V22.2 M1.8 12 H5 M19 12 H22.2 M4.8 4.8 L7.1 7.1 M16.9 16.9 L19.2 19.2 M19.2 4.8 L16.9 7.1 M7.1 16.9 L4.8 19.2'/></svg>");
-  --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><rect x='4' y='8.4' width='16' height='11.2' rx='2.8'/><path d='M12 8.4 V5.4'/><circle cx='12' cy='3.4' r='1.8'/><path d='M9 13.6 H9.1 M15 13.6 H15.1'/><path d='M9.8 16.8 H14.2'/></svg>");
+/* ── 16.3 chess — شطرنج محفور ──────────────────────────────────────────
+   لغة الطقم: خط محفور نظيف (2) بأطراف مدوّرة، وقطع شطرنج حقيقية مكان
+   الأيقونات اللي تحتمل المعنى (مراحل=ملك، محرّك=طابية، لاعبان=بيدقان،
+   بوت=حصان)، والباقي رموز واضحة بنفس الحفر عشان تفضل مقروءة. */
+body[data-ui-theme="chess"]{
+  --icon-levels:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2 V5.4'/><path d='M10 3.4 H14'/><path d='M5 20 L6.4 11 L9.6 14 L12 8.6 L14.4 14 L17.6 11 L19 20 Z'/></svg>");
+  --icon-engine:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 3.6 H8.2 V5.4 H10.9 V3.6 H13.1 V5.4 H15.8 V3.6 H18 V8.2 H16 V16 H18 V20.4 H6 V16 H8 V8.2 H6 Z'/></svg>");
+  --icon-local:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='8.6' cy='7' r='2.6'/><path d='M6 20 Q6 12.8 8.6 10.4 Q11.2 12.8 11.2 20'/><circle cx='15.6' cy='8.2' r='2.3'/><path d='M13.6 20 Q13.6 14 15.6 11.8 Q17.6 14 17.6 20'/><path d='M4.8 20.4 H19'/></svg>");
+  --icon-online:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M3.2 12 H20.8'/><path d='M12 3 C15 6.6 15 17.4 12 21 C9 17.4 9 6.6 12 3 Z'/></svg>");
+  --icon-bluetooth: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2.4 V21.6'/><path d='M12 2.4 L17 7.4 L7 17.4'/><path d='M12 21.6 L17 16.6 L7 6.6'/></svg>");
+  --icon-daily:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.6'/><circle cx='12' cy='12' r='4.6'/><path d='M12 11.6 V12.4'/></svg>");
+  --icon-streak:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22.2 C15.6 22.2 18.6 19.2 18.6 15.6 C18.6 10.8 14.6 7 12 2 C9.4 7 5.4 10.8 5.4 15.6 C5.4 19.2 8.4 22.2 12 22.2 Z'/><path d='M12 18.2 A2.6 2.6 0 0 0 14.6 15.6 C14.6 13.8 13 12.4 12 10.8 C11 12.4 9.4 13.8 9.4 15.6 A2.6 2.6 0 0 0 12 18.2 Z'/></svg>");
+  --icon-recent:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.6'/><path d='M12 7.4 V12 L15.2 13.8'/></svg>");
+  --icon-host:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19.6 V11.8'/><circle cx='12' cy='21.2' r='1.4'/><path d='M8.6 15.2 A5 5 0 0 1 15.4 15.2'/><path d='M5.6 12 A9.2 9.2 0 0 1 18.4 12'/></svg>");
+  --icon-join:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.8' cy='10.8' r='7'/><path d='M15.8 15.8 L21 21'/></svg>");
+  --icon-device:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5.8' y='2.6' width='12.4' height='18.8' rx='4.4'/><path d='M10.6 18 H13.4'/></svg>");
+  --icon-chev:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'><path d='M15.2 4.8 L8.4 12 L15.2 19.2'/></svg>");
+  --icon-back:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M20.6 12 H4.4'/><path d='M10.8 5 L3.8 12 L10.8 19'/></svg>");
+  --icon-settings:  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3.6'/><path d='M12 2.4 V5.2 M12 18.8 V21.6 M2.4 12 H5.2 M18.8 12 H21.6 M5.2 5.2 L7.2 7.2 M16.8 16.8 L18.8 18.8 M18.8 5.2 L16.8 7.2 M7.2 16.8 L5.2 18.8'/></svg>");
+  --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7.5 20.5 H16.5 L16 16 C18 13 17.5 7.5 13.5 5.5 C13.8 4.5 13.5 4 13 3.5 C12 4 11.3 4.8 11 6 L9 7.5 C7.5 9 8 10.5 9 11 L7.7 12.5 C7 14.5 7.3 18 7.5 20.5 Z'/></svg>");
 }
 
 /* ── 16.4 gaming — واجهة إسبورتس ─────────────────────────────────────
@@ -3736,7 +3735,7 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 @media (max-width: 700px){
   body[data-ui-theme="cyberpunk"] .mc-ic,
   body[data-ui-theme="gaming"] .mc-ic,
-  body[data-ui-theme="anime"] .mc-ic,
+  body[data-ui-theme="chess"] .mc-ic,
   body[data-ui-theme="glass"] .mc-ic,
   body[data-ui-theme="minimal"] .mc-ic{
     filter: drop-shadow(0 0 14px currentColor) !important;
@@ -3755,19 +3754,45 @@ body[data-ui-theme="glass"] .app-modal-overlay{
    تصغير الـWebView خالص (مفيش إعادة بناء طبقة = مفيش وميض من أصله). لكن
    ساعتها الكيبورد بيطلع فوق المحتوى، فلازم نرفع صندوق الكتابة يدويًا فوقه
    عشان يفضل باين (طلب أحمد). متغيّر --kb (ارتفاع الكيبورد بالبكسل) بيتحط
-   على <html> من حدث keyboardWillShow (index.html)، ونرفع بيه:
-   • الأوراق السفلية (شات الأصدقاء/الحفلة، إنشاء حفلة…) — كلها فيها صندوق
-     كتابة تحت، فترتفع بالكامل فوق الكيبورد.
-   • شات اللعبة #chat-wrap (مدمج في s-game، مش ورقة [[game-screen-layout-rules]])
-     — يرتفع كمان لأنه مع resize:none مابيترفعش تلقائيًا زي ما كان بالـresize
-     القديم، فكان الكيبورد هيغطّيه.
-   transform (مش bottom/top) عشان يفضل على المُركِّب بلا reflow ولا وميض. أي
-   input تاني (دخول/إعدادات/بحث) بيتزقّ بـscrollIntoView من نفس الحدث. */
+   على <html> من حدث keyboardWillShow (index.html) — بعد ما نطرح منه ارتفاع
+   شريط التنقّل السفلي (--nav-bottom المحقون من MainActivity)، لأن قيمة الـ
+   plugin بتشمل الشريط والـWebView ما بيمتدش خلفه، فلو ما طرحناهوش يفضل فراغ
+   أسود بين الصندوق والكيبورد. نرفع بـ--kb المصحَّح:
+   • الأوراق السفلية (شات الأصدقاء/الحفلة، إنشاء حفلة…): ماننقلش الورقة كلها
+     (ده كان بيطلّع الهيدر — اسم/صورة الشخص وشريط المكالمة — برّة الشاشة من
+     فوق، ويسيب فراغ خلفية باين من تحت). بدلها نرفع "قاع" الورقة فوق الكيبورد
+     بـpadding-bottom على الحاوية، ونقيّد ارتفاع الورقة بالمساحة المرئية فوق
+     الكيبورد بـmax-height. النتيجة: الهيدر (flex:none) يفضل مثبّت فوق، جسم
+     الرسائل (flex:1;overflow:auto) يتقلّص ويفضل بيتمرّر، وصندوق الكتابة يقف
+     فوق الكيبورد مباشرة. متكيّف مع أي حجم شاشة/كيبورد بلا مقاسات ثابتة.
+   • شات اللعبة #chat-wrap (مدمج في s-game، position:static، مش ورقة fixed
+     [[game-screen-layout-rules]] #90): الطريقة الوحيدة لإطلاعه فوق الكيبورد
+     بدون كسر تخطيطه هي رفعه بصريًا بـtransform (مايأثّرش على الـlayout).
+   أي input تاني (دخول/إعدادات/بحث) بيتزقّ بـscrollIntoView من نفس الحدث. */
 html.kb-open .ds-overlay--sheet{
-  transform: translateY(calc(-1 * var(--kb, 0px)));
+  /* ارفع قاع الورقة فوق الكيبورد (flex-end بيحاذيها لآخر الـcontent-box).
+     transition متزامن مع max-height تحت عشان الحركة تمشي مع انزلاق الكيبورد */
+  padding-bottom: var(--kb, 0px);
+  transition: padding-bottom .22s var(--easing-standard, ease);
+}
+html.kb-open .ds-overlay--sheet .ds-sheet{
+  /* قيّد الارتفاع بالمساحة فوق الكيبورد + 12px هامش علوي بسيط → الهيدر
+     يفضل باين فوق، والرسائل تتقلّص وتتمرّر بدل ما تدفع الهيدر برّة */
+  max-height: calc(100vh - var(--kb, 0px) - 12px);
+  /* نحافظ على transition الـtransform الأصلي (فتح/غلق الورقة) ونضيف
+     max-height — عشان ما تحصلش قفزة لو الورقة اتقفلت والكيبورد لسه مفتوح */
+  transition: transform var(--duration-slow) var(--easing-decelerate),
+              max-height .22s var(--easing-standard, ease);
 }
 html.kb-open #chat-wrap.show{
   transform: translateY(calc(-1 * var(--kb, 0px)));
+}
+/* وقت ما الكيبورد مفتوح، شريط التنقّل السفلي بيبقى متغطّي بالكيبورد، فحشو
+   safe-area تحت صندوق الكتابة (اللي بيساوي ارتفاع الشريط على أجهزة الإيماءات)
+   بيبقى فراغ زيادة. نرجّعه لحشو بسيط عشان الصندوق يلزق في الكيبورد. على أجهزة
+   الأزرار الـsafe-area أصلًا صفر فمفيش فرق. */
+html.kb-open .ch-input{
+  padding-bottom: var(--space-3, 12px);
 }
 
 /* ══════════════════════════════════════════════════════════════════════

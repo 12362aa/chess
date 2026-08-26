@@ -77,6 +77,12 @@ fs.mkdirSync(webDir, { recursive: true });
 const copied = [];
 for (const entry of fs.readdirSync(projectRoot, { withFileTypes: true })) {
   if (!entry.isFile()) continue;
+  /* ملفات التشخيص المؤقتة (لقطات/فيديوهات الجهاز) كلها تبدأ بشرطة سفلية «_»
+     — وهي الاتفاقية المتبعة في المشروع (زي `_sc_*.jpg`, `_shot_*.png`,
+     `_flick*.mp4`). ماننسخهاش للحزمة عشان ماتتسربش لملف الـAPK وتضخّمه
+     بعشرات الميجابايت. مافيش أصل حقيقي في الجذر بيبدأ بـ«_» (الرقعة/الأصوات/
+     الأيقونات كلها بأسماء عادية زي blue.png / move.mp3 / icon.png). */
+  if (entry.name.startsWith('_')) continue;
 
   const extension = path.extname(entry.name).toLowerCase();
   if (!requiredFiles.has(entry.name) && !assetExtensions.has(extension)) continue;
