@@ -17,5 +17,10 @@
   "android": {
     "allowMixedContent": true,
     "backgroundColor": "#0a0a12"
+  },
+  "plugins": {
+    "Keyboard": {
+      "resizeOnFullScreen": false
+    }
   }
 }

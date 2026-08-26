@@ -10237,32 +10237,60 @@ let _lastBalW=window.innerWidth;
     clearTimeout(t);t=setTimeout(()=>{_lastBalW=window.innerWidth;R.balance(true);},120);
   });
 });
-/* #140: قفل توازن الرقعة أثناء تغيّر ارتفاع الـviewport (الكيبورد بيظهر/
-   يختفي) — ده جذر الوميض/النطّ في كل الثيمات: إعادة حساب حشو الرقعة على كل
-   تغيّر ارتفاع كانت بتزقّ الرقعة لفوق وتحت. بنكتشف التغيّر الرأسي الملموس
-   (>80px) عبر visualViewport (الأدق للكيبورد) مع fallback على window: نقفل
-   balance طول الحركة، ونفكّ القفل ونعمل حساب واحد نضيف بعد ما الـviewport
-   يستقر. كلاس kb-shift كمان بيجمّد أنيميشن الطبقات الزخرفية لحظة الانتقال. */
+/* #140: جذر الوميض — فتح/قفل الكيبورد كان بيصغّر WebView الـviewport
+   (adjustResize) فيعيد بناء طبقة التركيب من الصفر ويرسمها ناقصة لإطار واحد.
+   الحل: بلاجن @capacitor/keyboard بـresize:'none' يمنع التصغير خالص (مفيش
+   إعادة بناء = مفيش وميض)، وبنرفع الأوراق/شات اللعبة يدويًا فوق الكيبورد عبر
+   متغيّر --kb (CSS) عشان صندوق الكتابة يفضل باين. أي input تاني بنزقّه
+   بـscrollIntoView. kb-shift بيجمّد أنيميشن الطبقات، وR._kbLock بيقفل توازن
+   الرقعة أثناء الحركة (مع resize:none الرقعة أصلًا مابتتحركش، لكنه أمان). */
 (()=>{
   const root=document.documentElement;
-  const vv=window.visualViewport;
-  let lastH=vv?vv.height:window.innerHeight, tmr=null;
-  const onR=()=>{
-    const h=vv?vv.height:window.innerHeight;
-    if(Math.abs(h-lastH)>80){
-      root.classList.add('kb-shift');
-      if(typeof R!=='undefined')R._kbLock=true;
-    }
-    lastH=h;
-    if(tmr)clearTimeout(tmr);
-    tmr=setTimeout(()=>{
-      tmr=null;root.classList.remove('kb-shift');
-      /* استقرّ الـviewport → فكّ القفل واضبط التوازن مرة واحدة بس */
-      if(typeof R!=='undefined'){R._kbLock=false;R.balance(true);}
-    },260);
+  /* الشاشات العامة (دخول/إعدادات/بحث): نزقّ العنصر المركّز فوق الكيبورد.
+     الأوراق و#chat-wrap مستثناة لأنها بترتفع عبر --kb في CSS. */
+  const raiseActive=()=>{
+    const ae=document.activeElement;
+    if(!ae)return;
+    const tag=ae.tagName;
+    if(tag!=='INPUT'&&tag!=='TEXTAREA'&&!ae.isContentEditable)return;
+    if(ae.closest('.ds-overlay--sheet, #chat-wrap'))return;
+    setTimeout(()=>{ try{ ae.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} },60);
   };
-  if(vv)vv.addEventListener('resize',onR);
-  else window.addEventListener('resize',onR);
+  const KB=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()
+    &&window.Capacitor.Plugins&&window.Capacitor.Plugins.Keyboard;
+  if(KB&&KB.addListener){
+    KB.addListener('keyboardWillShow', info=>{
+      root.style.setProperty('--kb', ((info&&info.keyboardHeight)||0)+'px');
+      root.classList.add('kb-open','kb-shift');
+      if(typeof R!=='undefined')R._kbLock=true;
+      raiseActive();
+    });
+    KB.addListener('keyboardWillHide', ()=>{
+      root.style.setProperty('--kb','0px');
+      root.classList.remove('kb-open','kb-shift');
+      if(typeof R!=='undefined'){R._kbLock=false;R.balance(true);}
+    });
+  }else{
+    /* الويب: المتصفح بيتكفّل بالـresize بنفسه؛ نكتفي بتجميد أنيميشن الطبقات
+       وقفل توازن الرقعة أثناء حركة الكيبورد (السلوك الأصلي، بدون --kb). */
+    const vv=window.visualViewport;
+    let lastH=vv?vv.height:window.innerHeight, tmr=null;
+    const onR=()=>{
+      const h=vv?vv.height:window.innerHeight;
+      if(Math.abs(h-lastH)>80){
+        root.classList.add('kb-shift');
+        if(typeof R!=='undefined')R._kbLock=true;
+      }
+      lastH=h;
+      if(tmr)clearTimeout(tmr);
+      tmr=setTimeout(()=>{
+        tmr=null;root.classList.remove('kb-shift');
+        if(typeof R!=='undefined'){R._kbLock=false;R.balance(true);}
+      },260);
+    };
+    if(vv)vv.addEventListener('resize',onR);
+    else window.addEventListener('resize',onR);
+  }
 })();
 /* أول رسمة بتحصل والخطوط (Cairo/Amiri) لسه بتتحمّل، فارتفاعات الأشرطة
    بتكبر بعد ما نكون حسبنا التوازن. بدل ما نعيد القياس مع كل نقلة —
