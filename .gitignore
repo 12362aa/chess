@@ -31,6 +31,11 @@ _g*.js
 # APKs now ship as GitHub Release assets, not repo blobs
 *.apk
 
+# محرّك الشبكة الكبيرة (Stockfish الكامل، ~108MB): أكبر من حدّ GitHub الصارم
+# (100MB لكل ملف) — لو اترفع لـgit هيترفض الـpush. بيتضمّن في الـAPK من نسخة
+# الشغل مباشرة (مش محتاج يكون في الريبو)، ونسخة lite الأخف المتتبَّعة تكفي كسقوط.
+stockfish-18-single.wasm
+
 # بروفايل المتصفح المستخدم في القياس بـCDP
 .chrome-prof-w/
 

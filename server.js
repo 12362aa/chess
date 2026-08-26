@@ -203,64 +203,391 @@ function sendPushToTokens(tokens, payload) {
     });
 }
 
-const _dailySent = new Set();
-function _todayKey(token, slot) {
-  const d = new Date();
-  const keyDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  return keyDate + '|' + slot + '|' + token;
+/* ══════════════════════════════════════════════════════════════════════
+   نظام الإشعارات التكيّفي (#173)
+   ──────────────────────────────────────────────────────────────────────
+   بديل نظام النوافذ الثابتة القديم اللي كان بيبعت نفس الجُمل المعلّبة
+   للكل. هنا مفيش أي نص ثابت خالص: كل إشعار (العنوان + النص) بيتبني لحظة
+   الإرسال من حالة المستخدم الحيّة في القاعدة — اسمه، تقييمه، نجوم نور،
+   أصحابه المتصلين دلوقتي، غيابه بالأيام، رسايله غير المقروءة، دعواته،
+   نتيجة آخر مباراة... فكل رسالة فيها قيمة حيّة على الأقل ومفيش رسالتين
+   متطابقتين. بيغطّي كل أوضاع اللعب: أونلاين، StockFish، ونور.
+
+   بيعيد استخدام sendPushToTokens نفسها (آلية FCM الموجودة، مافيش آلية
+   تانية). التوقيت ذكي: لكل مستخدم فتحات موزّعة عبر اليوم بأحزمة متساوية
+   (مشتقّة بهاش ثابت من id+اليوم عشان ماتتكدّسش ولا تتطابق بين المستخدمين)،
+   بحدّ أقصى NOTIF.maxPerDay/يوم وفجوة دنيا بين أي إشعارين، وبنتجاهل
+   المستخدم لو هو أصلاً متصل/جوه مباراة دلوقتي (مش محتاج نداء). المستخدم
+   المجهول (بدون حساب) بياخد «نبضة مجتمعية» حيّة (عدد المتصلين/المتصدّر). */
+
+const NOTIF = {
+  activeStartHour: 9,             // مانبعتش قبلها (صبح بدري)
+  activeEndHour: 23,              // ولا بعدها (بالليل متأخّر)
+  tickMs: 17 * 60 * 1000,         // نفحص الحالة كل ~17 دقيقة
+  minGapMs: 100 * 60 * 1000,      // ساعة و40 دقيقة على الأقل بين إشعارين لنفس الحساب
+  maxPerDay: 5,                   // سقف الإشعارات المخصّصة للمستخدم/يوم (زدنا العدد)
+  communityPerDay: 3,             // نبضات مجتمعية للمجهول/يوم
+  communityMinOnline: 2,          // ماننادّيش المجهول إلا لو فيه ناس بتلعب فعلًا
+  lapsedDays: 3,                  // بعد كام يوم غياب نعتبره «راجع»
+};
+
+/* حالة الإرسال لكل حساب (والمجتمع تحت مفتاح 'community') لليوم الحالي */
+const _notif = new Map(); // key -> { day, fired:Set<slotIndex>, lastMs }
+
+function _firstName(s) {
+  const t = String(s || '').trim();
+  if (!t) return 'صديقي';
+  return t.split(/\s+/)[0].slice(0, 20);
 }
 
-function scheduleDailyNourPushes() {
-  const windows = [
-    { slot: 'morning', startHour: 10, endHour: 12, title: 'تحدي نور الصباح ♟', bodies: ['تحدي سريع: حاول تكسب المرحلة اليوم بـ 3 نجوم!', 'نور يقول: افتح اللعبة وخليّنا نتمرّن 5 دقايق بس.', 'جاهز لنقلة ذكية؟ نور ينتظرك 👀'] },
-    { slot: 'afternoon', startHour: 16, endHour: 18, title: 'تحدي نور العصر ♟', bodies: ['معلومة سريعة: ركّز على الأمان قبل الهجوم… وجربها الآن.', 'نور: تعال نعمل مباراة تدريب قصيرة 💬', 'تحدي: افوز على نور بدون ما تخسر وزيرك 😄'] },
-    { slot: 'night', startHour: 21, endHour: 23, title: 'تحدي نور الليلي ♟', bodies: ['قبل النوم… نقلة واحدة صح ممكن تغيّر كل شيء. افتح اللعبة!', 'نور: دقيقة تدريب = فرق كبير بكرة ✨', 'تحدي الليلة: العب أونلاين مباراة واحدة بس!'] },
-  ];
+/* رقم اليوم المحلي (يتغيّر منتصف الليل) — أساس توزيع الفتحات وتصفير العدّاد */
+function _dayNum(d) {
+  return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000);
+}
 
-  function msUntil(hourMin) {
-    const now = new Date();
-    const target = new Date(now);
-    target.setHours(hourMin.h, hourMin.m, 0, 0);
-    if (target <= now) target.setDate(target.getDate() + 1);
-    return target.getTime() - now.getTime();
+/* هاش ثابت 32-bit (FNV-1a) — يدّينا فتحات/تنويعات ثابتة لنفس (المستخدم، اليوم) */
+function _hash(str) {
+  let h = 2166136261 >>> 0;
+  const s = String(str);
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+/* فتحات الإرسال (دقيقة-في-اليوم) موزّعة على نطاق النشاط بأحزمة متساوية عشان
+   تحترم الفجوة الدنيا ومتتكدّسش، مع إزاحة عشوائية-ثابتة جوه كل حزمة */
+function _slotMinutes(userKey, day, count) {
+  const startMin = NOTIF.activeStartHour * 60;
+  const windowMin = (NOTIF.activeEndHour - NOTIF.activeStartHour) * 60;
+  const band = Math.floor(windowMin / Math.max(1, count));
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const jitter = band > 1 ? (_hash(userKey + ':' + day + ':' + i) % band) : 0;
+    out.push(startMin + i * band + jitter);
   }
+  return out;
+}
 
-  function pickTime(startHour, endHour) {
-    const h = startHour + Math.floor(Math.random() * Math.max(1, (endHour - startHour)));
-    const m = Math.floor(Math.random() * 60);
-    return { h, m };
-  }
+/* فرق الأيام من طابع زمني SQLite (UTC) لحد دلوقتي */
+function _daysSince(sqliteTs) {
+  if (!sqliteTs) return null;
+  const t = Date.parse(String(sqliteTs).replace(' ', 'T') + 'Z');
+  if (!isFinite(t)) return null;
+  return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+}
 
-  async function runSlot(win) {
-    const all = safeReadTokens();
-    const tokens = all.map(t => t && t.token).filter(Boolean);
-    if (!tokens.length) return;
+/* لقطة حالة المستخدم من القاعدة — كل الأرقام حيّة لحظة النداء */
+function buildUserSnapshot(userId) {
+  const u = db.prepare(`SELECT display_name, username, rating, rating_games, rating_peak,
+                               wins, losses, draws, last_login_at
+                        FROM users WHERE id = ?`).get(userId);
+  if (!u) return null;
 
-    const body = win.bodies[Math.floor(Math.random() * win.bodies.length)];
-    const toSend = tokens.filter(tk => !_dailySent.has(_todayKey(tk, win.slot)));
-    if (!toSend.length) return;
+  const nour = db.prepare(`SELECT COUNT(*) AS done, COALESCE(SUM(stars),0) AS stars,
+                                  COALESCE(MAX(stage_number),0) AS maxStage, MAX(completed_at) AS lastAt
+                           FROM nour_progress WHERE user_id = ? AND completed = 1`).get(userId) || {};
 
-    const resp = await sendPushToTokens(toSend, {
-      title: win.title,
-      body,
-      tag: 'nour-daily-' + win.slot,
-      data: { kind: 'nour_daily', slot: win.slot },
-    });
+  const pres = db.prepare(`SELECT is_online, in_game, last_seen_at FROM presence WHERE user_id = ?`).get(userId) || {};
 
-    if (resp && resp.ok && Array.isArray(resp.responses)) {
-      resp.responses.forEach((r, i) => {
-        if (r && r.success) _dailySent.add(_todayKey(toSend[i], win.slot));
-      });
+  const friendsOnline = (db.prepare(`SELECT COUNT(*) AS c FROM friendships f
+                                     JOIN presence p ON p.user_id = f.friend_id
+                                     WHERE f.user_id = ? AND p.is_online = 1`).get(userId) || {}).c || 0;
+
+  const unread = (db.prepare(`SELECT COUNT(*) AS c FROM messages
+                              WHERE recipient_id = ? AND read_at IS NULL`).get(userId) || {}).c || 0;
+
+  const invites = (db.prepare(`SELECT COUNT(*) AS c FROM game_invites
+                               WHERE to_id = ? AND status = 'pending'
+                                 AND (expires_at IS NULL OR expires_at > datetime('now'))`).get(userId) || {}).c || 0;
+
+  const last = db.prepare(`SELECT winner, white_id, black_id FROM rated_games
+                           WHERE white_id = ? OR black_id = ? ORDER BY id DESC LIMIT 1`).get(userId, userId);
+  let lastResult = null;
+  if (last) {
+    if (last.winner === 'draw') lastResult = 'draw';
+    else {
+      const isWhite = Number(last.white_id) === Number(userId);
+      const won = (last.winner === 'white' && isWhite) || (last.winner === 'black' && !isWhite);
+      lastResult = won ? 'win' : 'loss';
     }
   }
 
-  windows.forEach(win => {
-    const t = pickTime(win.startHour, win.endHour);
-    setTimeout(() => {
-      runSlot(win).catch(() => {});
-      setInterval(() => runSlot(win).catch(() => {}), 24 * 60 * 60 * 1000);
-    }, msUntil(t));
-  });
+  const rating = Math.round(isFinite(u.rating) ? u.rating : 1500);
+  const peak = Math.round(isFinite(u.rating_peak) ? u.rating_peak : rating);
+  const awayLogin = _daysSince(u.last_login_at);
+  const awaySeen = _daysSince(pres.last_seen_at);
+  const away = Math.min(awayLogin == null ? 9999 : awayLogin, awaySeen == null ? 9999 : awaySeen);
+
+  return {
+    userId,
+    name: _firstName(u.display_name || u.username),
+    rating, peak,
+    ratingGames: u.rating_games || 0,
+    wins: u.wins || 0, losses: u.losses || 0, draws: u.draws || 0,
+    nourStars: nour.stars || 0,
+    nourStages: nour.done || 0,
+    nourNext: (nour.maxStage || 0) + 1,
+    isOnline: !!pres.is_online,
+    inGame: !!pres.in_game,
+    friendsOnline, unread, invites,
+    lastResult,
+    daysAway: away === 9999 ? null : away,
+  };
+}
+
+/* مستوى StockFish مقترح على قدّ تقييم اللاعب */
+function _sfLevel(r) {
+  r = r || 1500;
+  if (r < 1000) return 3;
+  if (r < 1200) return 5;
+  if (r < 1400) return 7;
+  if (r < 1600) return 9;
+  if (r < 1800) return 12;
+  if (r < 2000) return 15;
+  return 18;
+}
+
+/* كام إشعار للمستخدم ده النهارده — أذكى: فيه سبب فوري = أكتر، غايب = أقل */
+function _plannedCount(s) {
+  if (s.friendsOnline > 0 || s.unread > 0 || s.invites > 0) return NOTIF.maxPerDay;
+  if (s.daysAway != null && s.daysAway >= NOTIF.lapsedDays) return 2; // راجع: مانلحّش
+  if (s.ratingGames === 0 && s.nourStars === 0) return 3;             // جديد
+  return 4;                                                          // نشِط
+}
+
+/* ترتيب الفئات المتاحة حسب الحالة؛ بنختار بالترتيب (index=عدد اللي اتبعت)
+   عشان نلفّ على أنواع مختلفة خلال اليوم بدل تكرار نفس النوع */
+function _categories(s) {
+  const cats = [];
+  if (s.daysAway != null && s.daysAway >= NOTIF.lapsedDays) cats.push('comeback');
+  if (s.friendsOnline > 0) cats.push('friends');
+  if (s.invites > 0) cats.push('invite');
+  if (s.unread > 0) cats.push('unread');
+  if (s.ratingGames > 0) cats.push('rating');
+  if (s.nourStars === 0 || s.nourStages < 30) cats.push('nour');
+  cats.push('stockfish'); // تدريب ضد المحرّك متاح دايمًا
+  return cats.length ? cats : ['stockfish'];
+}
+
+/* يبني {title, body} من الفئة + اللقطة. كل صيغة فيها قيمة حيّة على الأقل،
+   والتنويع مشتقّ بهاش من (المستخدم، اليوم، الفتحة، الفئة) فمفيش تكرار حرفي. */
+function _renderNotif(cat, s, slotIndex, day) {
+  const nm = s.name;
+  const pick = (arr) => arr[_hash(s.userId + ':' + day + ':' + slotIndex + ':' + cat) % arr.length];
+
+  switch (cat) {
+    case 'comeback': {
+      const d = s.daysAway || 1;
+      return {
+        title: `${nm}.. بقالك ${d} يوم`,
+        body: pick([
+          `${nm}، غِبت ${d} يوم — تقييمك ${s.rating} لسه مستنّيك ترجعله ♟`,
+          `${d} يوم من غير شطرنج يا ${nm}؟ سجلك ${s.wins} فوز مش هيزيد لوحده 😉`,
+          `رجوعك بيفرق يا ${nm}: آخر ظهور من ${d} يوم والبورد فاضي بدونك`,
+        ]),
+        data: { kind: 'adaptive', cat, days: String(d) }, tag: 'amkh-comeback',
+      };
+    }
+    case 'friends': {
+      const f = s.friendsOnline;
+      return {
+        title: `${f} من أصحابك أونلاين`,
+        body: pick([
+          `${nm}، فيه ${f} من أصحابك متصلين دلوقتي — تحدّى واحد فيهم ♟`,
+          `${f} صاحب ليك online يا ${nm}. مباراة سريعة قبل ما يقفلوا؟`,
+        ]),
+        data: { kind: 'adaptive', cat, friends: String(f) }, tag: 'amkh-friends',
+      };
+    }
+    case 'invite': {
+      const p = s.invites;
+      return {
+        title: `${p} دعوة لعب مستنّية`,
+        body: pick([
+          `${nm}، عندك ${p} دعوة لعب مستنّية ردّك — افتح واقبل التحدّي ♟`,
+          `${p} تحدّي جاهز ليك يا ${nm}. صاحبك مستنّي تبدأ المباراة`,
+        ]),
+        data: { kind: 'adaptive', cat, invites: String(p) }, tag: 'amkh-invite',
+      };
+    }
+    case 'unread': {
+      const c = s.unread;
+      return {
+        title: `${c} رسالة مستنّية`,
+        body: pick([
+          `${nm} عندك ${c} رسالة لسه ماقريتهاش — رُد وابدأ مباراة معاهم`,
+          `${c} رسالة جديدة يا ${nm}. صحابك بيكلّموك — تعال شوف`,
+        ]),
+        data: { kind: 'adaptive', cat, unread: String(c) }, tag: 'amkh-unread',
+      };
+    }
+    case 'rating': {
+      const next = (Math.floor(s.rating / 100) + 1) * 100;
+      const gap = next - s.rating;
+      const variants = [
+        `${nm} تقييمك ${s.rating} — ناقصك ${gap} نقطة بس توصل ${next}. مباراة مصنّفة واحدة تعملها ♟`,
+        `سجلك ${s.wins} فوز و${s.losses} خسارة يا ${nm} — خلّي الفوز يزيد النهارده`,
+      ];
+      if (s.peak > s.rating)
+        variants.push(`أعلى تقييم وصلتله ${s.peak} يا ${nm}، وإنت دلوقتي ${s.rating} — رجّعه النهارده`);
+      if (s.lastResult === 'win')
+        variants.push(`آخر مباراة كسبتها يا ${nm} (تقييمك بقى ${s.rating}) — استمر، مباراة كمان؟`);
+      if (s.lastResult === 'loss')
+        variants.push(`${nm} آخر مباراة خسرتها — رُدّ اعتبارك، تقييمك ${s.rating} مستنّي تعويض`);
+      return {
+        title: `تقييمك ${s.rating} ♟`,
+        body: pick(variants),
+        data: { kind: 'adaptive', cat, rating: String(s.rating) }, tag: 'amkh-rating',
+      };
+    }
+    case 'nour': {
+      if (s.nourStars === 0) {
+        return {
+          title: `نور مستنّي ${nm} ♟`,
+          body: pick([
+            `${nm}، رحلتك مع نور لسه ما بدأتش — أول مرحلة و3 نجوم مستنّيينك`,
+            `نور جاهز يعلّمك يا ${nm} — ابدأ المرحلة 1 وكل نجمة بتقرّبك للاحتراف`,
+          ]),
+          data: { kind: 'adaptive', cat, stage: '1' }, tag: 'amkh-nour',
+        };
+      }
+      const n = s.nourNext;
+      return {
+        title: `${nm}.. المرحلة ${n} مع نور`,
+        body: pick([
+          `${nm} جمعت ${s.nourStars} نجمة مع نور — المرحلة ${n} مستنّياك تكمّل`,
+          `وصلت ${s.nourStages} مرحلة يا ${nm}؛ المرحلة ${n} أصعب شوية، تجرّبها؟`,
+        ]),
+        data: { kind: 'adaptive', cat, stage: String(n), stars: String(s.nourStars) }, tag: 'amkh-nour',
+      };
+    }
+    case 'stockfish':
+    default: {
+      const lvl = _sfLevel(s.rating);
+      const variants = [
+        `${nm} تقييمك ${s.rating} — جرّب StockFish مستوى ${lvl} النهارده، تحدّي على قدّك ♟`,
+        `تدريب سريع يا ${nm}: StockFish مستوى ${lvl} يشحذ حساباتك قبل مباراة مصنّفة`,
+      ];
+      if (s.ratingGames === 0)
+        variants.push(`${nm}، جرّب تلعب ضد StockFish — ابدأ بمستوى ${lvl} وشوف مستواك فين`);
+      return {
+        title: `تحدّي StockFish ${lvl}`,
+        body: pick(variants),
+        data: { kind: 'adaptive', cat: 'stockfish', level: String(lvl) }, tag: 'amkh-stockfish',
+      };
+    }
+  }
+}
+
+/* لقطة مجتمعية حيّة للمستخدم المجهول (بدون حساب) */
+function _communitySnapshot() {
+  const online = (db.prepare(`SELECT COUNT(*) AS c FROM presence WHERE is_online = 1`).get() || {}).c || 0;
+  const inGame = (db.prepare(`SELECT COUNT(*) AS c FROM presence WHERE in_game = 1`).get() || {}).c || 0;
+  const top = db.prepare(`SELECT display_name, username, rating FROM users
+                          WHERE rating_games > 0 ORDER BY rating DESC LIMIT 1`).get();
+  return {
+    online, inGame,
+    topName: top ? _firstName(top.display_name || top.username) : null,
+    topRating: top ? Math.round(top.rating) : null,
+  };
+}
+
+function _renderCommunity(c, day, slot) {
+  const variants = [];
+  if (c.online >= NOTIF.communityMinOnline)
+    variants.push({ title: `${c.online} لاعب متصل دلوقتي`,
+                    body: `فيه ${c.online} لاعب أونلاين دلوقتي — ادخل وخُش مباراة سريعة ♟` });
+  if (c.inGame >= 2)
+    variants.push({ title: `${c.inGame} لاعب في مباراة`,
+                    body: `${c.inGame} لاعب بيلعبوا دلوقتي — دورك تدخل الحلبة ♟` });
+  if (c.topName && c.topRating)
+    variants.push({ title: `أعلى تقييم: ${c.topRating}`,
+                    body: `${c.topName} متصدّر بتقييم ${c.topRating} — تقدر توصله؟ ابدأ دلوقتي` });
+  if (!variants.length) return null;
+  const v = variants[_hash('community:' + day + ':' + slot) % variants.length];
+  return { title: v.title, body: v.body, data: { kind: 'community' }, tag: 'amkh-community' };
+}
+
+async function _notifTick() {
+  if (!_adminReady) return;
+  const now = new Date();
+  const hour = now.getHours();
+  if (hour < NOTIF.activeStartHour || hour >= NOTIF.activeEndHour) return;
+  const day = _dayNum(now);
+  const nowMin = hour * 60 + now.getMinutes();
+  const nowMs = now.getTime();
+
+  let all;
+  try { all = safeReadTokens(); } catch (e) { return; }
+  if (!all || !all.length) return;
+
+  // جمّع التوكِنات حسب المستخدم؛ اللي من غير حساب = مجتمع
+  const byUser = new Map();
+  const anon = [];
+  for (const t of all) {
+    if (!t || !t.token) continue;
+    if (t.userId != null) {
+      const k = String(t.userId);
+      if (!byUser.has(k)) byUser.set(k, []);
+      byUser.get(k).push(t.token);
+    } else anon.push(t.token);
+  }
+
+  const getRec = (key) => {
+    let r = _notif.get(key);
+    if (!r || r.day !== day) { r = { day, fired: new Set(), lastMs: 0 }; _notif.set(key, r); }
+    return r;
+  };
+  // الفتحة الأولى اللي عدّى وقتها ولسه ماتبعتش
+  const dueSlot = (slots, fired) => {
+    for (let i = 0; i < slots.length; i++) if (!fired.has(i) && nowMin >= slots[i]) return i;
+    return -1;
+  };
+
+  // ── مستخدمون مسجّلون: محتوى مخصّص ──
+  for (const [uid, toks] of byUser) {
+    let snap;
+    try { snap = buildUserSnapshot(Number(uid)); } catch (e) { snap = null; }
+    if (!snap) continue;
+    if (snap.isOnline || snap.inGame) continue;        // شغّال دلوقتي، مانزعجوش
+
+    const rec = getRec('u' + uid);
+    const planned = _plannedCount(snap);
+    if (rec.fired.size >= planned) continue;
+    if (nowMs - rec.lastMs < NOTIF.minGapMs) continue;
+
+    const si = dueSlot(_slotMinutes('u' + uid, day, planned), rec.fired);
+    if (si < 0) continue;
+
+    const cats = _categories(snap);
+    const cat = cats[rec.fired.size % cats.length];
+    const msg = _renderNotif(cat, snap, si, day);
+    try { await sendPushToTokens(toks, msg); } catch (e) {}
+    rec.fired.add(si);
+    rec.lastMs = nowMs;
+  }
+
+  // ── مجهولون (بدون حساب): نبضة مجتمعية حيّة ──
+  if (anon.length) {
+    const rec = getRec('community');
+    if (rec.fired.size < NOTIF.communityPerDay && nowMs - rec.lastMs >= NOTIF.minGapMs) {
+      const si = dueSlot(_slotMinutes('community', day, NOTIF.communityPerDay), rec.fired);
+      if (si >= 0) {
+        let csnap; try { csnap = _communitySnapshot(); } catch (e) { csnap = null; }
+        const msg = csnap ? _renderCommunity(csnap, day, si) : null;
+        if (msg) {
+          try { await sendPushToTokens(anon, msg); } catch (e) {}
+          rec.fired.add(si);
+          rec.lastMs = nowMs;
+        }
+      }
+    }
+  }
+}
+
+function startAdaptiveNotifications() {
+  // فحص أول بعد 45 ثانية من الإقلاع، وبعدين كل NOTIF.tickMs
+  setTimeout(() => { _notifTick().catch(() => {}); }, 45 * 1000);
+  setInterval(() => { _notifTick().catch(() => {}); }, NOTIF.tickMs);
 }
 
 function getTokensForDeviceId(deviceId) {
@@ -517,7 +844,7 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
    وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
 const LATEST_VERSION = '3.10';
-const LATEST_CODE = 22;
+const LATEST_CODE = 23;
 const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
 app.get('/api/version', (req, res) => {
   res.json({
@@ -525,7 +852,7 @@ app.get('/api/version', (req, res) => {
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'ثيم جديد بالكامل: «ثيم الشطرنج» بيحلّ محل ثيم Anime — أيقونات ونوافذ بروح الشطرنج ومن غير أي إيموجي. وصندوق الكتابة في الشات بقى ملزوق في الكيبورد تمامًا (خلاص الفراغ الأسود) على كل الأجهزة. وإصلاح ظهور المؤقّت بالغلط في أوضاع من غير وقت (لاعبان/نور/بلوتوث) بعد مباراة أونلاين فيها وقت.',
+    notes: 'محرّك شطرنج أقوى بمراحل (شبكة عصبية كاملة) لتحليل ولعب أعلى، مع سقوط تلقائي على الأجهزة المحدودة. وتحديات يومية ذكية تشمل كل أوضاع اللعب مع تتبّع الإنجاز وسلسلة الأيام. وإشعارات ذكية تتكيّف مع نشاطك بدل الرسائل الثابتة. وعلم دولتك بقى محفوظ بعد تسجيل الخروج والدخول. وإصلاح فراغ الكيبورد في الشات على التابلت.',
   });
 });
 
@@ -589,58 +916,51 @@ app.get('/api/leaderboard', (req, res) => {
 });
 
 // Groq proxy (keep API key off the frontend)
+/* مولّد نصّي عام عبر Groq — allam-2-7b هو الوحيد اللي بيرد عربي موثوق
+   (اتأكدنا حيًّا: gpt-oss بيرد كوري/إنجليزي وqwen روسي). بنحصّن بسلسلة
+   بدائل: لو الموديل اتشال (404/model_not_found) أو رجّع محتوى فاضي
+   (موديلات التفكير بتضيّع التوكنز) نجرّب اللي بعده فالميزة ماتقفش.
+   مستخدَم من /api/groq/chat (شات نور) ومن محرّك الإشعارات الذكي (#173). */
+async function groqComplete(messages, opts = {}) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return { content: null, raw: null, detail: 'no-key' };
+  const requested = typeof opts.model === 'string' && opts.model.trim() ? opts.model.trim() : 'allam-2-7b';
+  const chain = [requested, 'allam-2-7b', 'openai/gpt-oss-120b'].filter((m, i, a) => a.indexOf(m) === i);
+  let lastDetail = 'no attempt';
+  for (const model of chain) {
+    const payload = { model, messages };
+    if (Number.isFinite(opts.max_tokens)) payload.max_tokens = Math.max(1, Math.min(2048, Math.floor(opts.max_tokens)));
+    if (Number.isFinite(opts.temperature)) payload.temperature = Math.max(0, Math.min(2, opts.temperature));
+    /* gpt-oss بيضيّع كل التوكنز في «التفكير» ويرجّع فاضي — reasoning_effort:low بيخلّيه يرجّع نص */
+    if (model.indexOf('gpt-oss') !== -1) payload.reasoning_effort = 'low';
+    let resp;
+    try {
+      resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify(payload),
+      });
+    } catch (netErr) { lastDetail = `[${model}] network: ${netErr.message}`; continue; }
+    const text = await resp.text();
+    if (!resp.ok) { lastDetail = `[${model}] ${resp.status}: ${text.slice(0, 160)}`; continue; }
+    let content = '';
+    try { const j = JSON.parse(text); content = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || ''; }
+    catch (e) { lastDetail = `[${model}] bad json`; continue; }
+    if (!content.trim()) { lastDetail = `[${model}] empty content`; continue; }
+    return { content, raw: text, model, detail: 'ok' };
+  }
+  return { content: null, raw: null, detail: lastDetail };
+}
+
 app.post('/api/groq/chat', async (req, res) => {
   try {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
-
+    if (!process.env.GROQ_API_KEY) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     const messages = Array.isArray(body.messages) ? body.messages : null;
-    const max_tokens = Number.isFinite(body.max_tokens) ? body.max_tokens : undefined;
-    const temperature = Number.isFinite(body.temperature) ? body.temperature : undefined;
     if (!messages || !messages.length) return res.status(400).json({ error: 'Missing messages[]' });
-
-    /* سلسلة موديلات نجرّبها بالترتيب.
-       allam-2-7b هو الوحيد على Groq اللي بيرد عربي موثوق — اتأكدنا حيًّا:
-       gpt-oss بيرد كوري/إنجليزي، qwen بيرد روسي، رغم الأمر الصريح بالعربية.
-       بس allam مش مُدرج في التوثيق الرسمي، والموديل القديم
-       (llama-4-scout) اتشال فجأة وبقى model_not_found — فبنحصّن نفسنا:
-       لو الموديل المطلوب رجّع خطأ (اتشال/404) أو رجّع محتوى فاضي (موديلات
-       التفكير بتضيّع التوكنز)، بنجرّب البديل تلقائيًا فالميزة ماتقفش. */
-    const requested = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'allam-2-7b';
-    const chain = [requested, 'allam-2-7b', 'openai/gpt-oss-120b'].filter((m, i, a) => a.indexOf(m) === i);
-
-    let lastDetail = 'no attempt';
-    for (const model of chain) {
-      const payload = { model, messages };
-      if (typeof max_tokens === 'number') payload.max_tokens = Math.max(1, Math.min(2048, Math.floor(max_tokens)));
-      if (typeof temperature === 'number') payload.temperature = Math.max(0, Math.min(2, temperature));
-      /* gpt-oss بيضيّع كل التوكنز في «التفكير» ويرجّع محتوى فاضي —
-         reasoning_effort:low بيخلّيه يرجّع نص فعلي */
-      if (model.indexOf('gpt-oss') !== -1) payload.reasoning_effort = 'low';
-
-      let resp;
-      try {
-        resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-          body: JSON.stringify(payload),
-        });
-      } catch (netErr) { lastDetail = `[${model}] network: ${netErr.message}`; continue; }
-
-      const text = await resp.text();
-      if (!resp.ok) { lastDetail = `[${model}] ${resp.status}: ${text.slice(0, 160)}`; continue; }
-
-      /* رد 200 بمحتوى فاضي (كل التوكنز راحت في التفكير) نعتبره فشل */
-      let content = '';
-      try { const j = JSON.parse(text); content = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || ''; }
-      catch (e) { lastDetail = `[${model}] bad json`; continue; }
-      if (!content.trim()) { lastDetail = `[${model}] empty content`; continue; }
-
-      res.setHeader('Content-Type', 'application/json');
-      return res.status(200).send(text);
-    }
-    return res.status(502).json({ error: 'كل موديلات الذكاء الاصطناعي فشلت', detail: lastDetail });
+    const r = await groqComplete(messages, { model: body.model, max_tokens: body.max_tokens, temperature: body.temperature });
+    if (r.content && r.raw) { res.setHeader('Content-Type', 'application/json'); return res.status(200).send(r.raw); }
+    return res.status(502).json({ error: 'كل موديلات الذكاء الاصطناعي فشلت', detail: r.detail });
   } catch (e) {
     return res.status(500).json({ error: 'Groq proxy error', detail: String(e && e.message ? e.message : e) });
   }
@@ -2569,9 +2889,19 @@ try {
   db.prepare(`UPDATE presence SET is_online = 0, status = 'offline', in_game = 0`).run();
 } catch (e) { console.error('[presence] startup reset failed:', e.message); }
 
-server.listen(PORT, () => {
-  console.log(`♟ Chess server running on port ${PORT}`);
-  try{
-    if (_adminReady) scheduleDailyNourPushes();
-  }catch(e){}
-});
+/* منفذ اختبار: لو AMKH_NO_LISTEN=1 مابنسمعش على البورت وبنصدّر دوال محرّك
+   الإشعارات التكيّفي (#173) عشان نختبرها على قاعدة مؤقتة من غير ما نشغّل
+   السيرفر كامل. في التشغيل العادي مافيش أي فرق. */
+if (process.env.AMKH_NO_LISTEN === '1') {
+  module.exports = {
+    buildUserSnapshot, _renderNotif, _categories, _plannedCount,
+    _slotMinutes, _sfLevel, _communitySnapshot, _renderCommunity, _notifTick,
+  };
+} else {
+  server.listen(PORT, () => {
+    console.log(`♟ Chess server running on port ${PORT}`);
+    try{
+      if (_adminReady) startAdaptiveNotifications();
+    }catch(e){}
+  });
+}

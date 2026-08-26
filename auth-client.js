@@ -264,6 +264,10 @@ const amkhAuth = {
     const data = await res.json();
     if (res.ok) {
       this.setToken(data.token, data.user);
+      /* #172: علم الدولة (وباقي بيانات الحساب) مربوط بالحساب على الخادم.
+         نجيب /me بعد الدخول عشان auth.user يبقى النسخة الكاملة (فيها country)
+         فيفضل العلم ثابت بعد أي خروج/دخول وعلى أي جهاز. */
+      await this.fetchMe();
       return { success: true };
     }
     return { success: false, error: data.error };
@@ -326,6 +330,7 @@ const amkhAuth = {
     const data = await res.json().catch(() => ({}));
     if (res.ok && data.token) {
       this.setToken(data.token, data.user);
+      await this.fetchMe();   // #172: هيدرَيت auth.user من /me (فيه country) فالعلم يفضل ثابت
       await this.promptMigration();
       return { success: true };
     }

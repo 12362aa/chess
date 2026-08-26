@@ -51,15 +51,6 @@ html.vt-theme::view-transition-new(root){ animation-duration:.22s; animation-tim
    وجودها في CSS (مش في JS بس) بيخلّي الثيم يظهر صح من أول رسم، من غير
    وميض مظهر amkh الافتراضي (اللي في :root) لحد ما الـJS يشتغل — خصوصًا
    بعد تسجيل الخروج اللي بيعمل reload. الـattribute بيتحط في أول <body>. */
-body[data-ui-theme="minimal"]{
-  --bg:#0a1017;--bg2:#111923;--bg3:#17212d;--bg4:#1d2937;
-  --gold:#f8fafc;--gold2:#dbe4ef;--gold3:#ffffff;
-  --teal:#8fa3ba;--teal2:#c5d0dc;
-  --red:#fda4af;--green:#a7f3d0;--blue:#bfd7ff;
-  --text:#edf2f7;--text2:#9aa9bc;--text3:#6f8196;
-  --accent:#f8fafc;--accent2:#bfd7ff;
-  --fx-glow:rgba(219,228,239,.14);--fx-neon:rgba(191,215,255,.14);
-}
 body[data-ui-theme="cyberpunk"]{
   --bg:#040604;--bg2:#0a0f0b;--bg3:#101711;--bg4:#17211a;
   --gold:#ffb020;--gold2:#ffc65c;--gold3:#ffe0a0;
@@ -86,16 +77,6 @@ body[data-ui-theme="gaming"]{
   --text:#ece8e1;--text2:#9ba8b4;--text3:#5f6f7c;
   --accent:#ff4655;--accent2:#00e5ff;
   --fx-glow:rgba(255,70,85,.28);--fx-neon:rgba(0,229,255,.26);
-}
-/* ── ثيم الشطرنج — أبنوس/جوز + نحاس ذهبي + عاجي + أخضر البطولات ── */
-body[data-ui-theme="chess"]{
-  --bg:#14100b;--bg2:#1e1810;--bg3:#281f15;--bg4:#34291c;
-  --gold:#c9a24b;--gold2:#e3c069;--gold3:#f3dca0;
-  --teal:#6ea36f;--teal2:#a9cf9f;
-  --red:#c05a3e;--green:#6ea36f;--blue:#c9a24b;
-  --text:#f3e8d0;--text2:#bcae90;--text3:#7d7157;
-  --accent:#c9a24b;--accent2:#6ea36f;
-  --fx-glow:rgba(201,162,75,.26);--fx-neon:rgba(110,163,111,.22);
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;
@@ -221,38 +202,6 @@ body[data-ui-theme="gaming"] .mc::after{
   pointer-events:none;
 }
 body[data-ui-theme="gaming"] .mc:hover{box-shadow:0 14px 44px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06) !important;}
-body[data-ui-theme="minimal"]::before{
-  background:
-    radial-gradient(circle at 22% 18%,rgba(255,255,255,.08) 0%,transparent 24%),
-    radial-gradient(circle at 84% 82%,rgba(148,163,184,.08) 0%,transparent 25%),
-    linear-gradient(180deg,#0a1017 0%,#111923 100%);
-}
-body[data-ui-theme="minimal"]::after{
-  background-image:linear-gradient(180deg,rgba(255,255,255,.02) 1px,transparent 1px);
-  background-size:100% 30px;
-  opacity:.4;
-  mask-image:none;
-}
-body[data-ui-theme="minimal"] #banner,
-body[data-ui-theme="minimal"] .settings-section,
-body[data-ui-theme="minimal"] .settings-tabs,
-body[data-ui-theme="minimal"] .mc,
-body[data-ui-theme="minimal"] .oc,
-body[data-ui-theme="minimal"] .gobox,
-body[data-ui-theme="minimal"] .learn-card,
-body[data-ui-theme="minimal"] .lvl-hdr,
-body[data-ui-theme="minimal"] .lp-card{
-  background:linear-gradient(180deg,rgba(17,25,35,.96),rgba(15,21,29,.92)) !important;
-  border-color:rgba(255,255,255,.08) !important;
-  box-shadow:0 16px 36px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.03);
-}
-body[data-ui-theme="minimal"] .settings-tab.active,
-body[data-ui-theme="minimal"] .settings-action-btn,
-body[data-ui-theme="minimal"] .btnp{
-  background:linear-gradient(135deg,#f8fafc 0%,#cbd5e1 100%) !important;
-  color:#0f172a !important;
-  box-shadow:0 12px 24px rgba(148,163,184,.16) !important;
-}
 body[data-ui-theme="glass"]::before{
   background:
     radial-gradient(circle at 14% 18%,rgba(147,197,253,.18) 0%,transparent 28%),
@@ -282,69 +231,6 @@ body[data-ui-theme="glass"] .lp-card{
   background:rgba(255,255,255,.06) !important;
   backdrop-filter:blur(14px) saturate(140%) !important;
   border-color:rgba(255,255,255,.12) !important;
-}
-body[data-ui-theme="chess"]::before{
-  background:
-    radial-gradient(circle at 18% 18%,rgba(201,162,75,.16) 0%,transparent 32%),
-    radial-gradient(circle at 82% 24%,rgba(110,163,111,.12) 0%,transparent 28%),
-    radial-gradient(circle at 50% 78%,rgba(201,162,75,.08) 0%,transparent 32%),
-    linear-gradient(180deg,#14100b 0%,#181209 36%,#1d1710 100%);
-}
-/* ::after = تلميح رقعة شطرنج باهت (مربّعات متبادلة) + غبار ذهبي ناعم */
-body[data-ui-theme="chess"]::after{
-  background-image:
-    linear-gradient(45deg,rgba(201,162,75,.04) 25%,transparent 25% 75%,rgba(201,162,75,.04) 75%),
-    linear-gradient(45deg,rgba(201,162,75,.04) 25%,transparent 25% 75%,rgba(201,162,75,.04) 75%),
-    radial-gradient(circle at 12% 22%,rgba(243,220,160,.12) 0 1px,transparent 1.5px),
-    radial-gradient(circle at 78% 14%,rgba(243,220,160,.10) 0 1.5px,transparent 2px),
-    radial-gradient(circle at 64% 72%,rgba(110,163,111,.10) 0 1.5px,transparent 2px);
-  background-size:120px 120px,120px 120px,140px 140px,170px 170px,160px 160px;
-  background-position:0 0,60px 60px,0 0,0 0,0 0;
-  opacity:.85;
-  mask-image:none;
-}
-body[data-ui-theme="chess"] .logo-ic{
-  filter:drop-shadow(0 0 20px rgba(201,162,75,.34)) drop-shadow(0 0 46px rgba(110,163,111,.16));
-}
-body[data-ui-theme="chess"] #banner,
-body[data-ui-theme="chess"] .settings-section,
-body[data-ui-theme="chess"] .settings-tabs,
-body[data-ui-theme="chess"] .mc,
-body[data-ui-theme="chess"] .oc,
-body[data-ui-theme="chess"] .gobox,
-body[data-ui-theme="chess"] .learn-card,
-body[data-ui-theme="chess"] .lvl-hdr,
-body[data-ui-theme="chess"] .lp-card{
-  box-shadow:0 18px 48px rgba(0,0,0,.46),0 0 0 1px rgba(201,162,75,.1),0 0 28px rgba(201,162,75,.08);
-}
-body[data-ui-theme="chess"] .settings-section,
-body[data-ui-theme="chess"] .mc,
-body[data-ui-theme="chess"] .oc,
-body[data-ui-theme="chess"] .gobox,
-body[data-ui-theme="chess"] .learn-card{
-  background:
-    linear-gradient(180deg,rgba(243,220,160,.05),rgba(243,220,160,.012)),
-    linear-gradient(135deg,rgba(20,16,11,.95),rgba(40,31,21,.93)) !important;
-  border-color:rgba(201,162,75,.24) !important;
-}
-body[data-ui-theme="chess"] .settings-tab.active,
-body[data-ui-theme="chess"] .settings-action-btn,
-body[data-ui-theme="chess"] .btnp{
-  background:linear-gradient(135deg,#e3c069 0%,#b98a34 100%) !important;
-  color:#14100b !important;
-  box-shadow:0 12px 26px rgba(201,162,75,.28) !important;
-}
-body[data-ui-theme="chess"] .settings-tab:hover,
-body[data-ui-theme="chess"] .ui-opt:hover,
-body[data-ui-theme="chess"] .pc-opt:hover{
-  box-shadow:0 10px 24px rgba(201,162,75,.14);
-}
-body[data-ui-theme="chess"] .settings-tab,
-body[data-ui-theme="chess"] .setting-label,
-body[data-ui-theme="chess"] .pc-lbl,
-body[data-ui-theme="chess"] .section-title,
-body[data-ui-theme="chess"] .settings-headline{
-  letter-spacing:.01em;
 }
 
 /* Stronger signature for showcase themes */
@@ -401,45 +287,6 @@ body[data-ui-theme="gaming"] .rv-loadcard{
 }
 body[data-ui-theme="gaming"] .pbar.myturn{
   box-shadow:none;
-}
-body[data-ui-theme="chess"] #banner{
-  background:
-    linear-gradient(90deg,rgba(20,16,11,.96),rgba(30,24,16,.94)),
-    linear-gradient(120deg,rgba(201,162,75,.1),transparent 36%,rgba(110,163,111,.08) 72%,transparent 100%) !important;
-  box-shadow:0 1px 0 rgba(201,162,75,.22),0 12px 32px rgba(0,0,0,.24);
-}
-body[data-ui-theme="chess"] .bnm,
-body[data-ui-theme="chess"] .rv-title{
-  letter-spacing:.06em;
-  text-shadow:0 0 18px rgba(201,162,75,.2),0 1px 0 rgba(0,0,0,.5);
-}
-/* الرقعة بإطار خشبي مزدوج: حلقة أبنوس + خيط نحاسي + لمسة أخضر بطولات */
-body[data-ui-theme="chess"] .bwrap{
-  box-shadow:0 0 0 4px rgba(20,16,11,.98),0 0 0 8px rgba(201,162,75,.5),0 0 0 10px rgba(110,163,111,.22),0 26px 56px rgba(0,0,0,.62);
-}
-body[data-ui-theme="chess"] .pbar,
-body[data-ui-theme="chess"] .gtbar .tbb2,
-body[data-ui-theme="chess"] .chat-wrap,
-body[data-ui-theme="chess"] .rv-card,
-body[data-ui-theme="chess"] .rv-coach,
-body[data-ui-theme="chess"] .rv-loadcard,
-body[data-ui-theme="chess"] .go-score-pill{
-  background:
-    linear-gradient(180deg,rgba(243,220,160,.06),rgba(243,220,160,.015)),
-    linear-gradient(135deg,rgba(20,16,11,.95),rgba(40,31,21,.93)) !important;
-  border-color:rgba(201,162,75,.26) !important;
-  box-shadow:0 14px 34px rgba(0,0,0,.32),0 0 0 1px rgba(201,162,75,.06),0 0 24px rgba(110,163,111,.06);
-}
-body[data-ui-theme="chess"] .pbar{
-  position:relative;
-  overflow:hidden;
-}
-body[data-ui-theme="chess"] .pbar::before{
-  content:none;
-  animation:none;
-}
-body[data-ui-theme="chess"] .pbar.myturn{
-  box-shadow:0 0 0 1px rgba(201,162,75,.5),0 0 20px rgba(201,162,75,.18);
 }
 
 /* Clearer high-identity theme polish */
@@ -508,67 +355,6 @@ body[data-ui-theme="gaming"] .pbar::before{
   animation:none;
 }
 
-body[data-ui-theme="chess"] .logo-t{
-  background:linear-gradient(90deg,#e3c069 0%,#c9a24b 42%,#6ea36f 100%);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  text-shadow:none;
-}
-body[data-ui-theme="chess"] .mc,
-body[data-ui-theme="chess"] .oc,
-body[data-ui-theme="chess"] .settings-section,
-body[data-ui-theme="chess"] .gobox,
-body[data-ui-theme="chess"] .rv-loadcard,
-body[data-ui-theme="chess"] .rv-card,
-body[data-ui-theme="chess"] .rv-coach{
-  position:relative;
-  overflow:hidden;
-  border-radius:24px !important;
-}
-body[data-ui-theme="chess"] .mc::before,
-body[data-ui-theme="chess"] .oc::before,
-body[data-ui-theme="chess"] .settings-section::before{
-  content:'';
-  position:absolute;
-  inset:-18%;
-  background:
-    radial-gradient(circle at 18% 20%,rgba(243,220,160,.2),transparent 22%),
-    radial-gradient(circle at 82% 22%,rgba(110,163,111,.18),transparent 24%),
-    radial-gradient(circle at 54% 86%,rgba(201,162,75,.18),transparent 22%);
-  pointer-events:none;
-  filter:blur(2px);
-}
-body[data-ui-theme="chess"] .mc::after{
-  content:'';
-  position:absolute;
-  inset:auto -18% 12% 46%;
-  height:44px;
-  background:linear-gradient(90deg,transparent,rgba(243,220,160,.16),transparent);
-  transform:rotate(-18deg);
-  pointer-events:none;
-}
-body[data-ui-theme="chess"] .mc-ic{
-  filter:drop-shadow(0 0 16px rgba(201,162,75,.34)) drop-shadow(0 0 22px rgba(110,163,111,.16));
-}
-body[data-ui-theme="chess"] .mc-t{
-  letter-spacing:.03em;
-}
-body[data-ui-theme="chess"] .mc-d{
-  color:#e8ddc4;
-}
-body[data-ui-theme="chess"] .gtbar .tbb2,
-body[data-ui-theme="chess"] .bgp,
-body[data-ui-theme="chess"] .bgs,
-body[data-ui-theme="chess"] .rv-close{
-  border-radius:18px !important;
-  box-shadow:0 10px 24px rgba(20,16,11,.4);
-}
-body[data-ui-theme="chess"] .gtbar .tbb2{
-  background:linear-gradient(135deg,rgba(201,162,75,.16),rgba(110,163,111,.1)) !important;
-  border-color:rgba(201,162,75,.2) !important;
-  color:#f3e8d0;
-}
 
 body[data-ui-theme="cyberpunk"] .mc,
 body[data-ui-theme="cyberpunk"] .oc,
@@ -902,63 +688,6 @@ body[data-ui-theme="gaming"] .bwrap{
   box-shadow:0 0 0 4px rgba(10,18,25,.98),0 0 0 9px rgba(255,70,85,.3),0 0 0 13px rgba(0,229,255,.08),0 30px 70px rgba(0,0,0,.66);
 }
 
-body[data-ui-theme="chess"] #banner,
-body[data-ui-theme="chess"] .settings-hero,
-body[data-ui-theme="chess"] .settings-section,
-body[data-ui-theme="chess"] .lvl-hdr,
-body[data-ui-theme="chess"] .lp-card,
-body[data-ui-theme="chess"] .mc,
-body[data-ui-theme="chess"] .oc,
-body[data-ui-theme="chess"] .gobox,
-body[data-ui-theme="chess"] .rv-loadcard,
-body[data-ui-theme="chess"] .rv-card,
-body[data-ui-theme="chess"] .rv-coach{
-  background:
-    repeating-linear-gradient(90deg,rgba(201,162,75,.45) 0 14px,transparent 14px 28px) top left/100% 3px no-repeat,
-    radial-gradient(circle at top right,rgba(201,162,75,.16),transparent 34%),
-    radial-gradient(circle at bottom left,rgba(110,163,111,.14),transparent 24%),
-    linear-gradient(145deg,rgba(20,16,11,.95),rgba(40,31,21,.93)) !important;
-  border-color:rgba(201,162,75,.26) !important;
-  box-shadow:0 22px 50px rgba(10,8,5,.44),0 0 0 1px rgba(201,162,75,.08),0 0 26px rgba(110,163,111,.08);
-}
-body[data-ui-theme="chess"] .mc{
-  border-radius:30px !important;
-  overflow:hidden;
-}
-body[data-ui-theme="chess"] .mc::before{
-  opacity:.5;
-  filter:none;
-  background:
-    conic-gradient(rgba(201,162,75,.16) 90deg,transparent 90deg 180deg,rgba(201,162,75,.16) 180deg 270deg,transparent 270deg);
-  background-size:16px 16px;
-  mask-image:linear-gradient(180deg,rgba(0,0,0,.5),transparent 82%);
-  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.5),transparent 82%);
-}
-body[data-ui-theme="chess"] .mc::after{
-  content:'';
-  position:absolute;
-  inset:auto -16% 18px 48%;
-  width:auto;
-  height:54px;
-  top:auto;
-  left:48%;
-  background:linear-gradient(90deg,transparent,rgba(243,220,160,.4),transparent);
-  border:none;
-  border-radius:0;
-  opacity:.5;
-  transform:skewX(-28deg);
-}
-body[data-ui-theme="chess"] .mc-tag{
-  background:linear-gradient(135deg,#e3c069,#c9a24b,#6ea36f);
-  color:#14100b;
-  border-color:transparent;
-  box-shadow:0 8px 20px rgba(201,162,75,.24);
-}
-body[data-ui-theme="chess"] .logo-s,
-body[data-ui-theme="chess"] .mc-d{color:#c9bfa6;}
-body[data-ui-theme="chess"] .bwrap{
-  box-shadow:0 0 0 4px rgba(20,16,11,.98),0 0 0 9px rgba(201,162,75,.5),0 0 0 13px rgba(110,163,111,.16),0 30px 68px rgba(0,0,0,.66);
-}
 
 body[data-ui-theme="cyberpunk"] #banner,
 body[data-ui-theme="cyberpunk"] .settings-hero,
@@ -1057,16 +786,6 @@ body[data-ui-theme="cyberpunk"] .mc::after{
 }
 body[data-ui-theme="cyberpunk"] .mc-d{color:#a8c9b3;}
 
-body[data-ui-theme="minimal"] .mc,
-body[data-ui-theme="minimal"] .settings-section,
-body[data-ui-theme="minimal"] .lvl-hdr,
-body[data-ui-theme="minimal"] .lp-card{
-  border-radius:20px !important;
-}
-body[data-ui-theme="minimal"] .mc-tag{
-  background:rgba(255,255,255,.06);
-  color:#dfe6ee;
-}
 body[data-ui-theme="glass"] .mc,
 body[data-ui-theme="glass"] .settings-section,
 body[data-ui-theme="glass"] .lvl-hdr,
@@ -2970,7 +2689,7 @@ body[data-ui-theme="glass"] .mc-tag{
    المظهر يظبط فورًا قبل أي رسم. الـJS بعدين بيعيد تأكيد نفس الثيم. */
 (function(){
   try{
-    var ok={amkh:1,minimal:1,cyberpunk:1,glass:1,gaming:1,chess:1};
+    var ok={amkh:1,cyberpunk:1,glass:1,gaming:1};
     var c=JSON.parse(localStorage.getItem('chess-cfg-v6')||'{}')||{};
     document.body.dataset.uiTheme=ok[c.uiTheme]?c.uiTheme:'amkh';
   }catch(e){ document.body.dataset.uiTheme='amkh'; }
@@ -3096,12 +2815,13 @@ body[data-ui-theme="glass"] .mc-tag{
       </button>
     </div>
 
-    <!-- ══ تحدي اليوم ══
-         نفس فكرة «puzzle of the day» في lichess و«daily streak» في
-         chess.com: هدف واحد واضح بيتغيّر كل يوم يدّي سبب للرجوع بكرة.
+    <!-- ══ تحديات اليوم ══
+         نفس فكرة «daily streak» في chess.com و«puzzle of the day» في
+         lichess، بس أكبر: مجموعة أهداف يومية مولّدة (Challenges) بتغطّي
+         كل أوضاع اللعب وبتتكيّف مع اللاعب، بتدّي سبب للرجوع بكرة.
          مقصود إنه قسم ثابت مش سلايد في كاروسيل — chess.com جرّبوا
          يدفنوا العادة اليومية جوه كاروسيل والتجربة رجعت لورا لأن
-         حد ماكانش بيلاقيها. الهدف بيتقاس على سجل المباريات الحقيقي
+         حد ماكانش بيلاقيها. الأهداف بتتقاس على سجل المباريات الحقيقي
          (Rec) مش على قاعدة ألغاز محتاجة نت. -->
     <section class="home-daily" id="home-daily" aria-labelledby="home-daily-title">
       <div class="home-daily__head">
@@ -3109,7 +2829,7 @@ body[data-ui-theme="glass"] .mc-tag{
           <i class="ico ico--daily" aria-hidden="true"></i>
         </span>
         <span class="home-daily__heading">
-          <span class="home-sec__eyebrow">تحدي اليوم</span>
+          <span class="home-sec__eyebrow">تحديات اليوم</span>
           <span class="home-daily__title" id="home-daily-title">—</span>
         </span>
         <!-- سلسلة الأيام: بتظهر بس لما تبقى موجودة فعلًا، عشان الرقم
@@ -3119,8 +2839,7 @@ body[data-ui-theme="glass"] .mc-tag{
           <b id="home-daily-streak-n">0</b>
         </span>
       </div>
-      <span class="home-daily__track" aria-hidden="true"><span class="home-daily__fill" id="home-daily-fill"></span></span>
-      <p class="home-daily__state" id="home-daily-state">0 / 1</p>
+      <div class="home-daily__list" id="home-daily-list"></div>
     </section>
 
     <!-- ══ إحصاءاتك ══ أربع أرقام من سجل المباريات المحلي -->
@@ -3229,11 +2948,9 @@ body[data-ui-theme="glass"] .mc-tag{
                 <div class="setting-description">يتغير فوراً بدون إعادة تحميل</div>
                 <div class="ui-grid">
                   <div class="ui-opt on" id="ui-amkh" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('amkh')"><div class="th-sw"><div class="sw" style="background:#0a0a14"></div><div class="sw" style="background:#c9a84c"></div></div>Amkh</div>
-                  <div class="ui-opt" id="ui-minimal" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('minimal')"><div class="th-sw"><div class="sw" style="background:#0b0f14"></div><div class="sw" style="background:#e5e7eb"></div></div>Minimal</div>
                   <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#040604"></div><div class="sw" style="background:#00ff66"></div><div class="sw" style="background:#ffb020"></div></div>Cyber</div>
                   <div class="ui-opt" id="ui-glass" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('glass')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,.10)"></div><div class="sw" style="background:#93c5fd"></div></div>Glass</div>
                   <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#0f1923"></div><div class="sw" style="background:#ff4655"></div><div class="sw" style="background:#00e5ff"></div></div>Gaming</div>
-                  <div class="ui-opt" id="ui-chess" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('chess')"><div class="th-sw"><div class="sw" style="background:#14100b"></div><div class="sw" style="background:#c9a24b"></div><div class="sw" style="background:#6ea36f"></div></div>شطرنج</div>
                 </div>
               </div>
 
@@ -4324,14 +4041,6 @@ const UI_THEMES={
     text:'#ede8dc',text2:'#9a9080',text3:'#5a5040',
     accent:'#c9a84c',accent2:'#2dd4bf',fxGlow:'rgba(201,168,76,.28)',fxNeon:'rgba(45,212,191,.22)'
   },
-  minimal:{
-    bg:'#0a1017',bg2:'#111923',bg3:'#17212d',bg4:'#1d2937',
-    gold:'#f8fafc',gold2:'#dbe4ef',gold3:'#ffffff',
-    teal:'#8fa3ba',teal2:'#c5d0dc',
-    red:'#fda4af',green:'#a7f3d0',blue:'#bfd7ff',
-    text:'#edf2f7',text2:'#9aa9bc',text3:'#6f8196',
-    accent:'#f8fafc',accent2:'#bfd7ff',fxGlow:'rgba(219,228,239,.14)',fxNeon:'rgba(191,215,255,.14)'
-  },
   /* سايبر سكيورتي — تيرمنال أخضر فوسفوري على أسود صافي.
      الماجنتا والبنفسجي اتشالوا: دول ألوان synthwave مش أمن معلوماتي. */
   cyberpunk:{
@@ -4359,16 +4068,6 @@ const UI_THEMES={
     text:'#ece8e1',text2:'#9ba8b4',text3:'#5f6f7c',
     accent:'#ff4655',accent2:'#00e5ff',fxGlow:'rgba(255,70,85,.28)',fxNeon:'rgba(0,229,255,.26)'
   },
-  /* الشطرنج — أبنوس/جوز داكن + نحاس ذهبي + عاجي + أخضر البطولات.
-     هوية بطولية دافئة: إطار رقعة، نسيج مربّعات، وحوافّ رُتب ذهبية. */
-  chess:{
-    bg:'#14100b',bg2:'#1e1810',bg3:'#281f15',bg4:'#34291c',
-    gold:'#c9a24b',gold2:'#e3c069',gold3:'#f3dca0',
-    teal:'#6ea36f',teal2:'#a9cf9f',
-    red:'#c05a3e',green:'#6ea36f',blue:'#c9a24b',
-    text:'#f3e8d0',text2:'#bcae90',text3:'#7d7157',
-    accent:'#c9a24b',accent2:'#6ea36f',fxGlow:'rgba(201,162,75,.26)',fxNeon:'rgba(110,163,111,.22)'
-  }
 };
 
 // Comprehensive chess.com piece themes
@@ -5974,17 +5673,89 @@ const Rec={
   }
 };
 
-/* تحدي اليوم — نفس مبدأ «puzzle of the day» في lichess و«daily streak»
-   في chess.com: هدف واحد واضح يتغيّر كل يوم ويدي سبب للرجوع. بس هنا
-   الهدف بيتقاس على سجل المباريات الحقيقي بدل قاعدة ألغاز محتاجة نت. */
-const DAILY_GOALS=[
-  {t:'اربح مباراة واحدة اليوم',            need:1, hit:g=>g.filter(x=>x.res==='win').length},
-  {t:'العب ثلاث مباريات اليوم',            need:3, hit:g=>g.length},
-  {t:'اربح مباراة في أقل من 30 نقلة',      need:1, hit:g=>g.filter(x=>x.res==='win'&&x.moves&&x.moves<30).length},
-  {t:'اهزم نور في أي مرحلة',               need:1, hit:g=>g.filter(x=>x.res==='win'&&x.mode==='bot').length},
-  {t:'اربح مواجهة ضد Stockfish',           need:1, hit:g=>g.filter(x=>x.res==='win'&&x.mode==='engine').length},
-  {t:'العب مباراتين بدون خسارة',           need:2, hit:g=>g.some(x=>x.res==='loss')?0:g.length}
-];
+/* تحديات اليوم (#174) — نظام مولّد ذكي بدل القائمة الثابتة القديمة.
+   بدل ٦ أهداف معلّبة بتتكرّر بالترتيب، بنولّد كل يوم مجموعة من ٣ تحدّيات
+   متنوّعة بتغطّي كل أوضاع اللعب (أونلاين/تصنيف، StockFish، بلوتوث، نور،
+   لاعبَان) + تحدّي مهارة. الاختيار محسوم برقم اليوم (ثابت طول اليوم،
+   بيتغيّر بكرة، وأوضاع اليوم نفسها لكل الأجهزة عبر تدوير مضمون)، والأرقام
+   المستهدَفة بتتكيّف مع نشاط اللاعب ومستواه — فمفيش نص ثابت أعمى. التقدّم
+   بيتقاس على سجل المباريات المحلي Rec زيّ الأول، فبيشتغل أوفلاين بالكامل. */
+const Challenges={
+  MODE_LABEL:{online:'أونلاين',engine:'StockFish',bluetooth:'بلوتوث',bot:'نور',local:'لاعبَان',any:'أي وضع'},
+
+  /* عدّاد عربي طبيعي: 1→مباراة، 2→مباراتين، غيرهم→«N مباريات» */
+  _n(n,one,two,many){ return n===1?one : n===2?two : (n+' '+many); },
+  _matches(n){ return this._n(n,'مباراة','مباراتين','مباريات'); },
+  _times(n){ return this._n(n,'مرة','مرتين','مرات'); },
+
+  /* PRNG محسوم من بذرة (mulberry32) — نفس البذرة = نفس الناتج كل مرة */
+  _rng(seed){
+    let a=(seed>>>0)||1;
+    return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+  },
+
+  /* ملف اللاعب من سجله: خبرته بالأوضاع + مؤشّر نشاط/مهارة نكيّف بيه الأهداف */
+  _profile(games){
+    games=games||[];
+    const seen={}; let wins=0, played=games.length;
+    for(const x of games){ seen[x.mode]=true; if(x.res==='win')wins++; }
+    let perDay=1;
+    try{ const days=new Set(games.map(x=>Rec._dayKey(x.t))); perDay=days.size?played/days.size:1; }catch(e){}
+    const active = perDay>=3?2 : perDay>=1.3?1 : 0;   // 0 عادي، 1 نشِط، 2 نشِط جدًا
+    return { seen, wins, played, active };
+  },
+
+  /* هدف عددي متكيّف: القاعدة + زيادة حسب النشاط بحدّ أقصى */
+  _tgt(base,prof,max){ return Math.min(max||9, base + (prof?prof.active:0)); },
+
+  /* مولّد تحدّي لوضع معيّن — بيرجّع {mode,need,text,hit} */
+  _makeMode(mode,prof,rng){
+    const T=this._tgt(1,prof,3);
+    switch(mode){
+      case 'online': return rng()<0.5
+        ? {mode,need:T,   text:`اكسب ${this._matches(T)} أونلاين وارفع تصنيفك`, hit:g=>g.filter(x=>x.mode==='online'&&x.res==='win').length}
+        : {mode,need:T+1, text:`العب ${this._matches(T+1)} أونلاين النهارده`,   hit:g=>g.filter(x=>x.mode==='online').length};
+      case 'engine': return rng()<0.5
+        ? {mode,need:T,   text:`اكسب ${this._times(T)} ضد StockFish`,           hit:g=>g.filter(x=>x.mode==='engine'&&x.res==='win').length}
+        : {mode,need:T+1, text:`تدرّب ${this._matches(T+1)} على StockFish`,      hit:g=>g.filter(x=>x.mode==='engine').length};
+      case 'bluetooth': return {mode,need:Math.max(1,T), text:`العب ${this._matches(Math.max(1,T))} بلوتوث مع اللي جنبك`, hit:g=>g.filter(x=>x.mode==='bluetooth').length};
+      case 'bot': return rng()<0.5
+        ? {mode,need:T,   text:`اهزم نور ${this._times(T)}`,                     hit:g=>g.filter(x=>x.mode==='bot'&&x.res==='win').length}
+        : {mode,need:1,   text:`اهزم نور في أقل من 25 نقلة`,                     hit:g=>g.filter(x=>x.mode==='bot'&&x.res==='win'&&x.moves&&x.moves<25).length};
+      case 'local': default: return {mode:'local',need:T+1, text:`العب ${this._matches(T+1)} لاعبَان على نفس الجهاز`, hit:g=>g.filter(x=>x.mode==='local').length};
+    }
+  },
+
+  /* تحدّي مهارة (أي وضع) */
+  _makeSkill(prof,rng){
+    const r=rng();
+    if(r<0.34){ const T=this._tgt(2,prof,4); return {mode:'any',need:T,text:`اكسب ${this._matches(T)} النهارده`,hit:g=>g.filter(x=>x.res==='win').length}; }
+    if(r<0.67){ const MV=prof.wins>10?25:35; return {mode:'any',need:1,text:`اكسب مباراة في أقل من ${MV} نقلة`,hit:g=>g.filter(x=>x.res==='win'&&x.moves&&x.moves<MV).length}; }
+    const T=this._tgt(2,prof,3); return {mode:'any',need:T,text:`العب ${this._matches(T)} من غير ما تخسر`,hit:g=>g.some(x=>x.res==='loss')?0:g.filter(x=>x.res==='win'||x.res==='draw'||x.res==='two').length};
+  },
+
+  ROTATE:['online','engine','bluetooth','bot','local'],
+
+  /* مجموعة اليوم: وضع اليوم (تدوير مضمون يمرّ على كل الأوضاع) + مهارة + وضع تاني مختلف */
+  forDay(dayIndex,games){
+    const prof=this._profile(games);
+    const rng=this._rng(((dayIndex>>>0)*2654435761)>>>0);
+    const list=[];
+    const idx=((dayIndex%this.ROTATE.length)+this.ROTATE.length)%this.ROTATE.length;
+    const m1=this.ROTATE[idx];
+    list.push(this._makeMode(m1,prof,rng));
+    list.push(this._makeSkill(prof,rng));
+    const others=this.ROTATE.filter(m=>m!==m1);
+    const m2=others[Math.floor(rng()*others.length)]||others[0];
+    list.push(this._makeMode(m2,prof,rng));
+    return list.map((c,i)=>({id:'d'+dayIndex+'_'+i,mode:c.mode,text:c.text,need:Math.max(1,c.need|0),hit:c.hit}));
+  },
+
+  /* تقييم المجموعة على مباريات النهاردة */
+  evaluate(list,todayGames){
+    return list.map(c=>{ let h=0; try{h=c.hit(todayGames)|0;}catch(e){} const have=Math.min(h,c.need); return {id:c.id,mode:c.mode,text:c.text,need:c.need,have,done:have>=c.need}; });
+  }
+};
 
 /* =====================================
    HOME — تعبئة بيانات الشاشة الرئيسية
@@ -6045,25 +5816,67 @@ const Home={
     }
   },
 
-  /* ── تحدي اليوم ──
-     التحدي بيتختار برقم اليوم مش عشوائيًا، فهو ثابت طول اليوم ومابيتغيّرش
-     كل ما الشاشة تترسم تاني، وكل الأجهزة تشوف نفس التحدي في نفس اليوم. */
+  /* ── تحديات اليوم ──
+     مجموعة اليوم بتتولّد من Challenges (محسومة برقم اليوم، أرقامها متكيّفة
+     مع اللاعب)، والتقدّم بيتقاس على مباريات النهاردة من السجل المحلي. */
   async _daily(games){
     const sec=document.getElementById('home-daily');
-    if(!sec||typeof Rec==='undefined'||typeof DAILY_GOALS==='undefined')return;
-    const goal=DAILY_GOALS[Rec.dayIndex()%DAILY_GOALS.length];
+    if(!sec||typeof Rec==='undefined'||typeof Challenges==='undefined')return;
     const today=Rec._dayKey(Date.now());
     const mine=(games||[]).filter(x=>Rec._dayKey(x.t)===today);
-    const have=Math.min(goal.hit(mine),goal.need);
-    const done=have>=goal.need;
+    const list=Challenges.evaluate(Challenges.forDay(Rec.dayIndex(),games||[]),mine);
+    const total=list.length;
+    const doneCount=list.filter(c=>c.done).length;
+    const allDone=total>0&&doneCount>=total;
 
     const t=document.getElementById('home-daily-title');
-    if(t)t.textContent=goal.t;
-    const fill=document.getElementById('home-daily-fill');
-    if(fill)fill.style.width=Math.round(have/goal.need*100)+'%';
-    const state=document.getElementById('home-daily-state');
-    if(state)state.textContent=done?'تم — نشوفك بكرة':have+' من '+goal.need;
-    sec.dataset.done=done?'1':'0';
+    if(t)t.textContent=allDone?'تم — نشوفك بكرة':(doneCount+' / '+total+' مكتمل');
+    sec.dataset.done=allDone?'1':'0';
+
+    /* القائمة تتباني DOM (نص التحدّي مولّد داخليًا فآمن، بس بنبنيه عناصر
+       بدل innerHTML عشان نحدّث بكفاءة ونتجنّب أي حقن). بصمة عشان مانعيدش
+       البناء إلا لو التقدّم اتغيّر فعلًا (نفس منطق مكافحة الوميض في _recent). */
+    const box=document.getElementById('home-daily-list');
+    if(box){
+      const sig=list.map(c=>c.id+':'+c.have+'/'+c.need).join('|');
+      if(box._sig!==sig){
+        box._sig=sig;
+        box.textContent='';
+        for(const c of list){
+          const row=document.createElement('div');
+          row.className='home-daily__item';
+          row.dataset.done=c.done?'1':'0';
+
+          const chk=document.createElement('span');
+          chk.className='home-daily__item-check';
+          chk.setAttribute('aria-hidden','true');
+
+          const body=document.createElement('span');
+          body.className='home-daily__item-body';
+          const tx=document.createElement('span');
+          tx.className='home-daily__item-text';
+          tx.textContent=c.text;
+          const tr=document.createElement('span');
+          tr.className='home-daily__item-track';
+          const fl=document.createElement('span');
+          fl.className='home-daily__item-fill';
+          fl.style.width=Math.round(c.have/c.need*100)+'%';
+          tr.appendChild(fl);
+          body.appendChild(tx); body.appendChild(tr);
+
+          const chip=document.createElement('span');
+          chip.className='home-daily__item-chip';
+          chip.textContent=Challenges.MODE_LABEL[c.mode]||c.mode;
+
+          const cnt=document.createElement('span');
+          cnt.className='home-daily__item-count';
+          cnt.textContent=c.have+'/'+c.need;
+
+          row.appendChild(chk); row.appendChild(body); row.appendChild(chip); row.appendChild(cnt);
+          box.appendChild(row);
+        }
+      }
+    }
 
     /* السلسلة بتظهر بس لما تكون موجودة فعلًا. صفر ثابت مكانه هيقرا
        كعطل أو كتوبيخ، والاتنين مش مطلوبين على الشاشة الرئيسية. */
@@ -6521,7 +6334,7 @@ window.Modal = Modal;
    الثيم وصوت «update» خاص، وزرّها بيفتح رابط الـAPK الدائم. بنسأل مرّة
    كل إقلاع بس، ولو المستخدم قال «لاحقًا» ما نضايقهوش تاني نفس الجلسة. */
 const APP_VERSION = '3.10';
-const APP_VERSION_CODE = 22;
+const APP_VERSION_CODE = 23;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
 let _lastUpdateAttempt = 0;       /* آخر محاولة فحص (throttle) */
@@ -7053,6 +6866,16 @@ const SF=(()=>{
   let _queue=[];
   let _active=null;
   let _jobId=0;
+  /* تدرّج المحرّك: نبدأ بالنسخة الكاملة (شبكة NNUE الكبيرة ~108MB = أقوى
+     بفارق كبير في اللعب والتحليل)، ولو الجهاز عجز عن تحميلها ننزل تلقائيًا
+     لنسخة lite الأخف (7MB)، وأي فشل بعد كده بيسقط للمقيّم المحلي داخل
+     evaluate/bestMove. الاتنين متضمّنان في الحزمة — مفيش أي تنزيل وقت التشغيل. */
+  const _ENGINES=['stockfish-18-single.js','stockfish-18-lite-single.js'];
+  /* مهلة تهيئة كل محرّك: الكبير سخيّ (تجهيز/ترجمة wasm ~108MB على معالج
+     محمول بطيء لكنه قادر ممكن ياخد وقت — منستعجلش الهبوط)، والأخف أقصر لأنه
+     7MB بيجهز بسرعة. لو عدّت المهلة نسقط للتالي ثم للمقيّم المحلي. */
+  const _INIT_TIMEOUT=[45000,15000];
+  let _engIdx=0;
 
   function bdToFen(bd,turn,cas,ep){
     const pMap={
@@ -7202,40 +7025,85 @@ const SF=(()=>{
     }
   }
 
+  /* محاولة تحميل محرّك واحد من مصدره. بترجّع Promise يتحلّ بالـworker عند
+     readyok أو يُرفَض عند الفشل. أثناء التهيئة الفشل بيُرفَض فقط (init هو اللي
+     بيقرّر الهبوط للأخف)؛ بعد ما يبقى شغّال أي انهيار بيرجّع الطلب النشط
+     للـfallback ويفتح الباب لإعادة تهيئة. */
+  function _initOnce(src,timeoutMs){
+    return new Promise((resolve,reject)=>{
+      let settled=false;
+      let w;
+      let to=null;
+      const clearTO=()=>{ if(to){clearTimeout(to);to=null;} };
+      try{ w=new Worker(src); }catch(e){ return reject(e); }
+      _worker=w;
+      _ready=false;
+      /* حاجز زمني للتهيئة: لو المحرّك مااوصلش readyok خلال المهلة (تعليق صامت
+         وقت تجهيز wasm ضخمة على جهاز محدود، بلا onerror) نُرفِض فيسقط init
+         للأخف تلقائيًا. من غيره ممكن الوعد ميتحلّش أبدًا والتطبيق يعلّق. */
+      if(timeoutMs){
+        to=setTimeout(()=>{
+          if(settled)return;
+          settled=true;
+          try{w.terminate?.();}catch(_){}
+          if(_worker===w){_worker=null;_ready=false;}
+          reject(new Error('Stockfish init timeout: '+src));
+        },timeoutMs);
+      }
+      w.onmessage=(e)=>{
+        const msg=String(e.data||'');
+        if(msg.trim()==='readyok'&&!settled){
+          settled=true;
+          clearTO();
+          resolve(w);
+        }
+        _handleMessage(msg);
+      };
+      w.onerror=(e)=>{
+        console.error('Stockfish worker error:',src,e);
+        clearTO();
+        const active=_active;
+        _active=null;
+        const wasReady=_ready;
+        try{w.terminate?.();}catch(_){}
+        if(_worker===w){_worker=null;_ready=false;}
+        if(wasReady){
+          /* انهيار بعد ما كان شغّال → ارجع الطلب للـfallback واسمح بإعادة تهيئة */
+          _initPromise=null;
+          if(active)_resolveActiveFromFallback(active);
+        }
+        if(!settled){
+          settled=true;
+          reject(new Error('Stockfish worker failed: '+src));
+        }
+      };
+      w.postMessage('uci');
+      w.postMessage('isready');
+    });
+  }
+
   function init(){
     if(_worker&&_ready)return Promise.resolve(_worker);
     if(_initPromise)return _initPromise;
-    _initPromise=new Promise((resolve,reject)=>{
-      try{
-        let settled=false;
-        _worker=new Worker('stockfish-18-lite-single.js');
-        _ready=false;
-        _worker.onmessage=(e)=>{
-          const msg=String(e.data||'');
-          if(msg.trim()==='readyok'&&!settled){
-            settled=true;
-            resolve(_worker);
-          }
-          _handleMessage(msg);
-        };
-        _worker.onerror=(e)=>{
-          console.error('Stockfish worker error:',e);
-          const active=_active;
-          _active=null;
-          _resetWorker();
-          if(active)_resolveActiveFromFallback(active);
-          if(!settled){
-            settled=true;
-            reject(new Error('Stockfish worker failed'));
-          }
-        };
-        _worker.postMessage('uci');
-        _worker.postMessage('isready');
-      }catch(e){
-        _resetWorker();
-        reject(e);
+    /* نمشي على المحرّكات من الأقوى للأخف؛ أول واحد يوصل readyok نثبت عليه
+       (_engIdx) فالمرات الجاية تبدأ منه مباشرة. بنمسك _initPromise طول المشوار
+       عشان أي استدعاء متوازي ياخد نفس الوعد بدل ما يفتح أكتر من worker. */
+    _initPromise=(async()=>{
+      let lastErr=null;
+      for(let i=_engIdx;i<_ENGINES.length;i++){
+        try{
+          const w=await _initOnce(_ENGINES[i],_INIT_TIMEOUT[i]||20000);
+          _engIdx=i;
+          return w;
+        }catch(e){
+          lastErr=e;
+          try{_worker?.terminate?.();}catch(_){}
+          _worker=null; _ready=false;
+          if(i<_ENGINES.length-1) console.warn('SF: تعذّر تحميل',_ENGINES[i],'— هبوط للمحرّك الأخف');
+        }
       }
-    }).finally(()=>{
+      throw lastErr||new Error('Stockfish unavailable');
+    })().finally(()=>{
       if(!_ready)_initPromise=null;
     });
     return _initPromise;

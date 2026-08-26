@@ -105,7 +105,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
     
-    res.json({ token, user: { id: user.id, email: user.email, display_name: user.display_name, username: user.username, provider: user.provider, avatar_url: user.avatar_url } });
+    res.json({ token, user: { id: user.id, email: user.email, display_name: user.display_name, username: user.username, provider: user.provider, avatar_url: user.avatar_url, country: user.country } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -251,6 +251,7 @@ router.post('/google', async (req, res) => {
       user: {
         id: user.id, email: user.email, display_name: user.display_name,
         username: user.username, provider: user.provider, avatar_url: user.avatar_url,
+        country: user.country,
       },
     });
   } catch (error) {

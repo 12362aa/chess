@@ -660,6 +660,94 @@
   color: var(--color-text-secondary);
 }
 
+/* ── قائمة تحديات اليوم (#174) ── صفوف مدمجة: علامة إنجاز + نص + شريط
+   تقدّم رفيع + شارة الوضع + عدّاد. كل صف بياخد لون النجاح لما يخلص. */
+.home-daily__list{
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.home-daily__item{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.home-daily__item-check{
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  position: relative;
+}
+.home-daily__item[data-done="1"] .home-daily__item-check{
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+.home-daily__item[data-done="1"] .home-daily__item-check::before{
+  content: '';
+  position: absolute;
+  left: 5px; top: 2px;
+  width: 4px; height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.home-daily__item-body{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.home-daily__item-text{
+  font-size: var(--font-size-caption);
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+.home-daily__item[data-done="1"] .home-daily__item-text{
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+.home-daily__item-track{
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+.home-daily__item-fill{
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  transition: width var(--duration-normal) var(--easing-decelerate);
+}
+.home-daily__item[data-done="1"] .home-daily__item-fill{ background: var(--color-success); }
+.home-daily__item-chip{
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+.home-daily__item-count{
+  flex-shrink: 0;
+  min-width: 34px;
+  text-align: center;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 /* ── شريط الإحصاءات ──
    إطار واحد متقسّم بفواصل 1px بدل أربع بطاقات منفصلة: الأربع أرقام
    دي وحدة واحدة، وفصلهم كان بيخلّيهم يتقروا كأربع أزرار. */
@@ -1795,43 +1883,6 @@
    amkh مالوش قسم هنا لأنه هو نفسه القيم الافتراضية.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* ── Minimal — رمادي مصمت، الأكسنت أبيض مكسور ── */
-body[data-ui-theme="minimal"]{
-  --color-primary:            #E5E7EB;
-  --color-primary-hover:      #F8FAFC;
-  --color-primary-pressed:    #CBD5E1;
-  --color-primary-subtle:     rgba(226,232,240,.10);
-  --color-primary-border:     rgba(226,232,240,.26);
-  --color-primary-text:       #E8ECF2;
-  --color-on-primary:         #0F172A;
-
-  --color-secondary:          #94A3B8;
-  --color-secondary-hover:    #B6C2D2;
-  --color-secondary-pressed:  #74839A;
-  --color-secondary-subtle:   rgba(148,163,184,.10);
-  --color-secondary-border:   rgba(148,163,184,.24);
-  --color-secondary-text:     #C3CEDC;
-  --color-on-secondary:       #0F172A;
-
-  --color-bg-base:            #0A1017;
-  --color-bg-elevated:        #111923;
-  --color-surface:            #18212D;
-  --color-surface-raised:     #222D3C;
-  --color-surface-sunken:     #070C12;
-  --color-overlay:            rgba(6,10,15,.80);
-
-  --color-border:             #263141;
-  --color-border-subtle:      #1B2430;
-  --color-border-strong:      #3A4757;
-
-  --color-text-primary:       #EEF2F7;
-  --color-text-secondary:     #9AA6B4;
-  --color-text-disabled:      #5E6975;
-  --color-text-inverse:       #0F172A;
-
-  --color-focus-ring:         rgba(226,232,240,.45);
-}
-
 /* ── Cyberpunk — فيروزي نيون + ماجنتا ── */
 body[data-ui-theme="cyberpunk"]{
   --color-primary:            #00FF66;
@@ -1950,43 +2001,6 @@ body[data-ui-theme="gaming"]{
   --color-text-inverse:       #0F1923;
 
   --color-focus-ring:         rgba(255,70,85,.58);
-}
-
-/* ── Chess — أبنوس/جوز + نحاس ذهبي + عاجي + أخضر البطولات ── */
-body[data-ui-theme="chess"]{
-  --color-primary:            #C9A24B;
-  --color-primary-hover:      #E3C069;
-  --color-primary-pressed:    #A9822F;
-  --color-primary-subtle:     rgba(201,162,75,.13);
-  --color-primary-border:     rgba(201,162,75,.32);
-  --color-primary-text:       #F3DCA0;
-  --color-on-primary:         #14100B;
-
-  --color-secondary:          #6EA36F;
-  --color-secondary-hover:    #A9CF9F;
-  --color-secondary-pressed:  #4E7C50;
-  --color-secondary-subtle:   rgba(110,163,111,.12);
-  --color-secondary-border:   rgba(110,163,111,.28);
-  --color-secondary-text:     #A9CF9F;
-  --color-on-secondary:       #14100B;
-
-  --color-bg-base:            #14100B;
-  --color-bg-elevated:        #1E1810;
-  --color-surface:            #281F15;
-  --color-surface-raised:     #34291C;
-  --color-surface-sunken:     #0D0A06;
-  --color-overlay:            rgba(13,10,6,.84);
-
-  --color-border:             #3A2F20;
-  --color-border-subtle:      #26200F;
-  --color-border-strong:      rgba(201,162,75,.30);
-
-  --color-text-primary:       #F3E8D0;
-  --color-text-secondary:     #BCAE90;
-  --color-text-disabled:      #7D7157;
-  --color-text-inverse:       #14100B;
-
-  --color-focus-ring:         rgba(201,162,75,.60);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -2466,7 +2480,7 @@ body[data-ui-theme="chess"]{
   contain: strict;
   /* الانتقال بين الشاشات بيغيّر عتامة طبقة الزخرفة (كاملة على الرئيسية،
      .35 على اللعب). من غير transition العتامة بتقفز فجأة، وفي الثيمات
-     المزحومة (gaming/cyberpunk/chess) قفزة إضاءة الجسيمات المتحركة دي
+     المزحومة (gaming/cyberpunk) قفزة إضاءة الجسيمات المتحركة دي
      بتتقري كوميض لحظي عند الرجوع للرئيسية — وده اللي المستخدم بيشوفه في
      «كل الثيمات إلا amkh»، لأن زخرفة amkh هادية فالقفزة مش باينة فيها.
      الـtransition بيحوّل القفزة لتلاشي ناعم فيختفي الوميض في كل الثيمات. */
@@ -2518,7 +2532,7 @@ body.amkh-modal-open #particles > *{
    ──────────────────────────────────────────────────────────────────────
    المستخدم أكّد: الوميض (اختفاء عناصر لجزء من الثانية) موجود في أماكن
    كتير مش الرقعة بس، وموجود على التطبيق فقط (مش الويب) وفي ثيمات
-   gaming/cyberpunk/chess فقط (مش amkh).
+   gaming/cyberpunk فقط (مش amkh).
 
    السبب المقيس: على WebView أندرويد، الطبقات الزخرفية الكاملة اللي بتتحرك
    كل فريم (مطر البيانات، السكانر، الشيفرون، خطوط السرعة، البتلات، الوهج،
@@ -2541,10 +2555,7 @@ html.amkh-native body[data-ui-theme="gaming"] #theme-fx > i,
 html.amkh-native body[data-ui-theme="gaming"] #particles,
 html.amkh-native body[data-ui-theme="cyberpunk"] #theme-fx,
 html.amkh-native body[data-ui-theme="cyberpunk"] #theme-fx > i,
-html.amkh-native body[data-ui-theme="cyberpunk"] #particles,
-html.amkh-native body[data-ui-theme="chess"] #theme-fx,
-html.amkh-native body[data-ui-theme="chess"] #theme-fx > i,
-html.amkh-native body[data-ui-theme="chess"] #particles{
+html.amkh-native body[data-ui-theme="cyberpunk"] #particles{
   will-change: transform;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -2553,8 +2564,7 @@ html.amkh-native body[data-ui-theme="chess"] #particles{
 }
 /* خلفية bgShift المتحركة (طبقة كاملة فوق الشاشة) تتثبّت هي كمان */
 html.amkh-native body[data-ui-theme="gaming"]::before,
-html.amkh-native body[data-ui-theme="cyberpunk"]::before,
-html.amkh-native body[data-ui-theme="chess"]::before{
+html.amkh-native body[data-ui-theme="cyberpunk"]::before{
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -2563,16 +2573,14 @@ html.amkh-native body[data-ui-theme="chess"]::before{
 /* ── #140: وميض فتح الكيبورد في شات الأصدقاء (كل الثيمات إلا amkh) ──
    لما الكيبورد يفتح والورقة السفلية (شات) مفتوحة، WebView أندرويد بيصغّر
    الـviewport فيحصل reflow يعيد ضمّ الطبقات. glass عنده طبقة كاوستِكس
-   متحركة (tfxCaustic) وminimal عنده تدرّج مكرّر تقيل بقناع — الاتنين مش
-   مُرقّيين على GPU (بعكس gaming/cyberpunk/chess فوق)، فوقت التصغير بيتضمّوا
+   متحركة (tfxCaustic) مش
+   مُرقّيين على GPU (بعكس gaming/cyberpunk فوق)، فوقت التصغير بيتضمّوا
    في طبقة المحتوى فيومض الشات. نثبّتهم كطبقات GPU مستقلة بنفس آلية الثيمات
    التقيلة → التصغير يعيد رسم طبقتهم لوحدها من غير ما يلمس رسم المحتوى.
    ملاحظة: التثبيت هنا دائم عشان يفضل شغّال حتى وقت ما amkh-modal-open
    بيوقف الأنيميشن (لو ساب الطبقة تترجّع لطبقة المحتوى يرجع الوميض). */
 html.amkh-native body[data-ui-theme="glass"] #theme-fx,
-html.amkh-native body[data-ui-theme="glass"] #theme-fx > i,
-html.amkh-native body[data-ui-theme="minimal"] #theme-fx,
-html.amkh-native body[data-ui-theme="minimal"] #theme-fx > i{
+html.amkh-native body[data-ui-theme="glass"] #theme-fx > i{
   will-change: transform;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -2788,123 +2796,6 @@ body[data-ui-theme="cyberpunk"] .home-hero__fill{
   background-image: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 9px);
   color: var(--color-primary);
 }
-/* ══════════════════════════════════════════════════════════════════════
-   15.3 chess — لغة الشطرنج الحقيقية
-   ──────────────────────────────────────────────────────────────────────
-   «شطرنج فعلاً — كل حاجة شطرنج». اللي بيخلّي الكادر شطرنجي مش اللون —
-   هو أدوات اللعبة نفسها:
-   • الرقعة: مربّعات متبادلة بتنجرف بهدوء في العمق زي رقعة بطولة مائلة.
-   • شبكة الرُّتب والأعمدة (ranks/files): خطوط نحاسية محفورة رفيعة،
-     زي إحداثيات الرقعة.
-   • قطع الشطرنج الطائرة: ظلال مرسومة (بيدق/حصان/طابية/ملك/فيل/وزير)
-     بتطفو بهدوء — التوقيع البصري «كل حاجة شطرنج».
-   • وهج البطولة: نحاسي ذهبي + أخضر البُسط بيتنفّس بدفء.
-   المحصلة صفحة شطرنجية مرسومة بالكامل — بلا أي إيموجي.
-══════════════════════════════════════════════════════════════════════ */
-
-/* الرقعة المنجرفة — مربّعات متبادلة (conic أرخص من مئات العناصر).
-   الطبقة مكبّرة scale(1.5) فبتفيض برّه الشاشة، والانجراف بمقدار بلاطة
-   كاملة (54px) قطريًا يخلّي اللفة سلسة بلا حواف بادية ولا قفزة لون. */
-body[data-ui-theme="chess"] #theme-fx > i:nth-child(1){
-  background-image:
-    conic-gradient(rgba(201,162,75,.11) 90deg, transparent 90deg 180deg,
-      rgba(201,162,75,.11) 180deg 270deg, transparent 270deg);
-  background-size: 54px 54px;
-  opacity: .5;
-  /* القناع بيفضّي الوسط ويسيب الرقعة على الحواف — النص يفضل نضيف */
-  mask-image: radial-gradient(ellipse 66% 56% at 50% 32%, transparent 24%, black 90%);
-  -webkit-mask-image: radial-gradient(ellipse 66% 56% at 50% 32%, transparent 24%, black 90%);
-  animation: tfxBoard 24s linear infinite;
-}
-@keyframes tfxBoard{
-  from{ transform: translate3d(0,0,0) scale(1.5); }
-  to  { transform: translate3d(-54px,-54px,0) scale(1.5); }
-}
-
-/* شبكة الرُّتب والأعمدة — خطوط محفورة ساكنة (هي الإحداثيات نفسها مش حركة) */
-body[data-ui-theme="chess"] #theme-fx > i:nth-child(2){
-  background-image:
-    repeating-linear-gradient(90deg, rgba(201,162,75,.16) 0 1px, transparent 1px 46px),
-    repeating-linear-gradient(0deg,  rgba(201,162,75,.16) 0 1px, transparent 1px 46px);
-  opacity: .2;
-  mask-image: linear-gradient(150deg, black 0%, transparent 46%, transparent 62%, black 100%);
-  -webkit-mask-image: linear-gradient(150deg, black 0%, transparent 46%, transparent 62%, black 100%);
-}
-
-/* قطع الشطرنج الطائرة — ظلال مرسومة بمسارات SVG (مش إيموجي).
-   طبقة أكبر من الشاشة ببلاطة كاملة، والحركة transform بمق��ار البلاطة
-   بالظبط (260px قطريًا) — لفة سلسة ورسم مرة واحدة. */
-body[data-ui-theme="chess"] #theme-fx::before{
-  content: '';
-  position: absolute;
-  inset: -260px;
-  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g fill='%23c9a24b'><g transform='translate(22,18) rotate(-12)'><circle cx='14' cy='6' r='5'/><path d='M9 11 q5 3 10 0 l-2 12 h-6 z'/><rect x='5' y='22' width='18' height='5' rx='2'/></g><g transform='translate(66,128) rotate(8)'><path d='M4 4 h4 v3 h4 v-3 h4 v3 h4 v-3 h4 v8 h-2 l-2 14 h-12 l-2 -14 h-2 z'/><rect x='2' y='27' width='24' height='5' rx='1'/></g><g transform='translate(192,164) rotate(-6)'><rect x='12' y='0' width='4' height='10'/><rect x='8' y='3' width='12' height='4'/><path d='M6 14 q8 -6 16 0 l-2 14 h-12 z'/><rect x='4' y='28' width='20' height='5' rx='2'/></g></g><g fill='%236ea36f' opacity='.82'><g transform='translate(150,42) rotate(10)'><path d='M6 30 q0 -18 12 -22 q-3 -3 -1 -6 q4 4 8 4 q6 2 7 12 q1 8 -3 12 z'/><rect x='3' y='30' width='26' height='4' rx='1'/></g><g transform='translate(36,192) rotate(-8)'><circle cx='14' cy='4' r='2.5'/><path d='M14 6 q9 6 5 18 h-10 q-4 -12 5 -18 z'/><rect x='6' y='24' width='16' height='5' rx='2'/></g></g><g fill='%23f3dca0' opacity='.6'><g transform='translate(118,92) rotate(4)'><path d='M4 8 l4 14 h12 l4 -14 l-5 7 l-3 -9 l-3 9 z'/><circle cx='4' cy='6' r='2'/><circle cx='14' cy='4' r='2'/><circle cx='24' cy='6' r='2'/><rect x='5' y='22' width='18' height='5' rx='2'/></g></g></svg>") repeat;
-  background-size: 260px 260px;
-  opacity: .5;
-  animation: tfxDrift 30s linear infinite;
-}
-@keyframes tfxDrift{
-  from{ transform: translate3d(0, -260px, 0); }
-  to  { transform: translate3d(-260px, 260px, 0); }
-}
-
-/* وهج البطولة — نحاسي + أخضر بيتنفّس بدفء */
-body[data-ui-theme="chess"] #theme-fx > i:nth-child(3){
-  background-image:
-    radial-gradient(ellipse 54% 40% at 14% 8%,  rgba(201,162,75,.2),  transparent 62%),
-    radial-gradient(ellipse 46% 38% at 88% 18%, rgba(110,163,111,.16), transparent 60%),
-    radial-gradient(ellipse 62% 44% at 50% 104%, rgba(201,162,75,.2), transparent 66%);
-  animation: tfxGlow 7s ease-in-out infinite alternate;
-}
-@keyframes tfxGlow{
-  from{ opacity: .74; transform: scale(1); }
-  to  { opacity: 1;   transform: scale(1.05); }
-}
-/* ── الأسطح: نوافذ بإطار رقعة ──
-   حافة رقعة نحاسية من ناحية البداية، لمعة ذهبية قطرية، وركن مربّعات
-   رقعة — النافذة نفسها بتاخد سِمة شطرنجية. */
-body[data-ui-theme="chess"] .home-hero,
-body[data-ui-theme="chess"] .home-tile{
-  position: relative;
-  overflow: hidden;
-  border-inline-start: 3px solid var(--color-primary-border);
-}
-body[data-ui-theme="chess"] .home-hero::after,
-body[data-ui-theme="chess"] .home-tile::after{
-  content: '';
-  position: absolute;
-  inset-block: -30%;
-  inset-inline-end: -14%;
-  width: 42px;
-  background: linear-gradient(180deg, transparent, rgba(243,220,160,.12), transparent);
-  transform: rotate(18deg);
-  pointer-events: none;
-}
-/* ركن مربّعات رقعة في البطاقة الرئيسية — النقش الشطرنجي */
-body[data-ui-theme="chess"] .home-hero::before{
-  content: '';
-  position: absolute;
-  inset-block-end: 0;
-  inset-inline-end: 0;
-  width: 46%;
-  height: 62%;
-  background-image:
-    conic-gradient(rgba(201,162,75,.5) 90deg, transparent 90deg 180deg,
-      rgba(201,162,75,.5) 180deg 270deg, transparent 270deg);
-  background-size: 15px 15px;
-  mask-image: radial-gradient(ellipse at 100% 100%, black 8%, transparent 72%);
-  -webkit-mask-image: radial-gradient(ellipse at 100% 100%, black 8%, transparent 72%);
-  opacity: .4;
-  pointer-events: none;
-}
-/* العناوين بحفر نحاسي خفيف — أقرب للّيترينج المحفور على درع البطولة */
-body[data-ui-theme="chess"] .home-hero__title,
-body[data-ui-theme="chess"] .logo-t{
-  text-shadow: 0 2px 0 rgba(13,10,6,.55), 0 0 22px rgba(201,162,75,.28);
-}
-body[data-ui-theme="chess"] .home-hero__eyebrow{
-  letter-spacing: .14em;
-}
 
 /* ══════════════════════════════════════════════════════════════════════
    15.4 gaming — واجهة إسبورتس
@@ -3038,27 +2929,6 @@ body[data-ui-theme="glass"] .home-tile::before{
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   15.6 minimal — الفراغ هو الهوية
-   ──────────────────────────────────────────────────────────────────────
-   الثيم الوحيد اللي إضافة نقش عليه بتخالف اسمه. فبدل ما نزوّد،
-   بنشيل: مافيش طبقات، ومسطرة أفقية واحدة رفيعة جدًا تدّي إحساس
-   الورقة المسطّرة، والأسطح بتتعرّف بخط واحد مش بظل.
-══════════════════════════════════════════════════════════════════════ */
-body[data-ui-theme="minimal"] #theme-fx > i:nth-child(1){
-  background-image: repeating-linear-gradient(180deg, rgba(255,255,255,.022) 0 1px, transparent 1px 32px);
-  mask-image: linear-gradient(180deg, transparent, black 24%, black 76%, transparent);
-  -webkit-mask-image: linear-gradient(180deg, transparent, black 24%, black 76%, transparent);
-}
-body[data-ui-theme="minimal"] .home-hero,
-body[data-ui-theme="minimal"] .home-tile{
-  box-shadow: none;
-  border-radius: var(--radius-md);
-}
-body[data-ui-theme="minimal"] .home-hero{
-  background: var(--color-bg-elevated);
-}
-
-/* ══════════════════════════════════════════════════════════════════════
    15.7 معاينة الثيم في الإعدادات
    ──────────────────────────────────────────────────────────────────────
    شريط الألوان لوحده مابيقولش إن «سايبر» فيه مطر بيانات ولا إن
@@ -3080,12 +2950,6 @@ body[data-ui-theme="minimal"] .home-hero{
   background-size: 48px 48px;
   opacity: .55;
 }
-/* الشريط نصّه غامق ونصّه فاتح، فالنقش لازم لونه يكون في النُص عشان
-   يبان على الاتنين. لون غامق بيختفي على النص الأسود، وأبيض بيختفي
-   على النص الفاتح — فالمتوسط هو الحل الوحيد اللي بيشتغل على الجهتين. */
-#s-settings #ui-minimal .th-sw::after{
-  background-image: repeating-linear-gradient(180deg, rgba(130,140,155,.6) 0 1px, transparent 1px 8px);
-}
 #s-settings #ui-cyberpunk .th-sw::after{
   background-image:
     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='48'><g fill='none' stroke='%2300FF66' stroke-width='1.2'><path d='M14 0 L28 8 L28 24 L14 32 L0 24 L0 8 Z'/><path d='M14 32 L28 40 L28 56 M14 32 L0 40 L0 56'/></g></svg>"),
@@ -3101,13 +2965,6 @@ body[data-ui-theme="minimal"] .home-hero{
     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><g fill='none' stroke='%2300E5FF' stroke-width='2.2'><path d='M0 22 L16 10 L32 22'/><path d='M0 32 L16 20 L32 32'/></g></svg>"),
     repeating-linear-gradient(60deg, rgba(140,110,90,.3) 0 1px, transparent 1px 9px);
   background-size: 32px 32px, auto;
-  opacity: .8;
-}
-#s-settings #ui-chess .th-sw::after{
-  background-image:
-    conic-gradient(rgba(201,162,75,.6) 90deg, transparent 90deg 180deg, rgba(201,162,75,.6) 180deg 270deg, transparent 270deg),
-    radial-gradient(circle at 70% 30%, rgba(110,163,111,.5) 0 30%, transparent 60%);
-  background-size: 8px 8px, auto;
   opacity: .8;
 }
 
@@ -3131,10 +2988,8 @@ body[data-ui-theme="minimal"] .home-hero{
    لغة كل ثيم:
      amkh      هندسة إسلامية — مثمّنات ومعيّنات بدل الدوائر
      cyberpunk تيرمينال — أقواس زوايا وخطوط مقطّعة وسُدس
-     chess     شطرنج محفور — قطع ورقعة وحواف نحاسية
      gaming    إسبورتس — زوايا مشطوفة وقطعيات 45°
      glass     زجاج — أشكال ناعمة مفتوحة
-     minimal   الفراغ — خط شعرة وهندسة مجرّدة وصفر زخرفة
 ══════════════════════════════════════════════════════════════════════ */
 .ico{
   display: inline-block;
@@ -3227,28 +3082,6 @@ body[data-ui-theme="cyberpunk"]{
   --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='square'><path d='M4.6 9 H19.4 V19.4 H4.6 Z'/><path d='M12 9 V5.6'/><path d='M10 2.6 H14 V5.6 H10 Z'/><path d='M8.6 13.4 H10.2 M13.8 13.4 H15.4'/><path d='M9.4 16.6 H14.6'/></svg>");
 }
 
-/* ── 16.3 chess — شطرنج محفور ──────────────────────────────────────────
-   لغة الطقم: خط محفور نظيف (2) بأطراف مدوّرة، وقطع شطرنج حقيقية مكان
-   الأيقونات اللي تحتمل المعنى (مراحل=ملك، محرّك=طابية، لاعبان=بيدقان،
-   بوت=حصان)، والباقي رموز واضحة بنفس الحفر عشان تفضل مقروءة. */
-body[data-ui-theme="chess"]{
-  --icon-levels:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2 V5.4'/><path d='M10 3.4 H14'/><path d='M5 20 L6.4 11 L9.6 14 L12 8.6 L14.4 14 L17.6 11 L19 20 Z'/></svg>");
-  --icon-engine:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 3.6 H8.2 V5.4 H10.9 V3.6 H13.1 V5.4 H15.8 V3.6 H18 V8.2 H16 V16 H18 V20.4 H6 V16 H8 V8.2 H6 Z'/></svg>");
-  --icon-local:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='8.6' cy='7' r='2.6'/><path d='M6 20 Q6 12.8 8.6 10.4 Q11.2 12.8 11.2 20'/><circle cx='15.6' cy='8.2' r='2.3'/><path d='M13.6 20 Q13.6 14 15.6 11.8 Q17.6 14 17.6 20'/><path d='M4.8 20.4 H19'/></svg>");
-  --icon-online:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M3.2 12 H20.8'/><path d='M12 3 C15 6.6 15 17.4 12 21 C9 17.4 9 6.6 12 3 Z'/></svg>");
-  --icon-bluetooth: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2.4 V21.6'/><path d='M12 2.4 L17 7.4 L7 17.4'/><path d='M12 21.6 L17 16.6 L7 6.6'/></svg>");
-  --icon-daily:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.6'/><circle cx='12' cy='12' r='4.6'/><path d='M12 11.6 V12.4'/></svg>");
-  --icon-streak:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22.2 C15.6 22.2 18.6 19.2 18.6 15.6 C18.6 10.8 14.6 7 12 2 C9.4 7 5.4 10.8 5.4 15.6 C5.4 19.2 8.4 22.2 12 22.2 Z'/><path d='M12 18.2 A2.6 2.6 0 0 0 14.6 15.6 C14.6 13.8 13 12.4 12 10.8 C11 12.4 9.4 13.8 9.4 15.6 A2.6 2.6 0 0 0 12 18.2 Z'/></svg>");
-  --icon-recent:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.6'/><path d='M12 7.4 V12 L15.2 13.8'/></svg>");
-  --icon-host:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19.6 V11.8'/><circle cx='12' cy='21.2' r='1.4'/><path d='M8.6 15.2 A5 5 0 0 1 15.4 15.2'/><path d='M5.6 12 A9.2 9.2 0 0 1 18.4 12'/></svg>");
-  --icon-join:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.8' cy='10.8' r='7'/><path d='M15.8 15.8 L21 21'/></svg>");
-  --icon-device:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5.8' y='2.6' width='12.4' height='18.8' rx='4.4'/><path d='M10.6 18 H13.4'/></svg>");
-  --icon-chev:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'><path d='M15.2 4.8 L8.4 12 L15.2 19.2'/></svg>");
-  --icon-back:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M20.6 12 H4.4'/><path d='M10.8 5 L3.8 12 L10.8 19'/></svg>");
-  --icon-settings:  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3.6'/><path d='M12 2.4 V5.2 M12 18.8 V21.6 M2.4 12 H5.2 M18.8 12 H21.6 M5.2 5.2 L7.2 7.2 M16.8 16.8 L18.8 18.8 M18.8 5.2 L16.8 7.2 M7.2 16.8 L5.2 18.8'/></svg>");
-  --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7.5 20.5 H16.5 L16 16 C18 13 17.5 7.5 13.5 5.5 C13.8 4.5 13.5 4 13 3.5 C12 4 11.3 4.8 11 6 L9 7.5 C7.5 9 8 10.5 9 11 L7.7 12.5 C7 14.5 7.3 18 7.5 20.5 Z'/></svg>");
-}
-
 /* ── 16.4 gaming — واجهة إسبورتس ─────────────────────────────────────
    لغة الطقم: زوايا مشطوفة 45° بدل الأركان القائمة، ووصلات mitre حادة،
    وقطعية قطرية في جسم الشكل — منطق واجهات Valorant وشعارات الفِرَق. */
@@ -3291,26 +3124,6 @@ body[data-ui-theme="glass"]{
   --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='4.2' y='8.6' width='15.6' height='11' rx='4.4'/><path d='M12 8.6 V5.6'/><circle cx='12' cy='3.6' r='1.6'/><path d='M9.2 13.8 H9.3 M14.8 13.8 H14.9'/></svg>");
 }
 
-/* ── 16.6 minimal — الفراغ هو الهوية ────────────────────────────────
-   لغة الطقم: خط شعرة (1.2)، هندسة مجرّدة، صفر زخرفة وصفر تفاصيل
-   زيادة — الأيقونة أخف عنصر في الشاشة عن قصد. */
-body[data-ui-theme="minimal"]{
-  --icon-levels:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='8.6' r='6.2'/><path d='M8.4 15 L7.4 22 L12 19.6 L16.6 22 L15.6 15'/></svg>");
-  --icon-engine:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='5' width='14' height='14'/><rect x='9.8' y='9.8' width='4.4' height='4.4'/><path d='M9.6 2.6 V5 M14.4 2.6 V5 M9.6 19 V21.4 M14.4 19 V21.4 M2.6 9.6 H5 M2.6 14.4 H5 M19 9.6 H21.4 M19 14.4 H21.4'/></svg>");
-  --icon-local:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='7' r='3.2'/><path d='M3.2 20.4 V19 A5.4 5.4 0 0 1 8.6 13.6 H9.4 A5.4 5.4 0 0 1 14.8 19 V20.4'/><path d='M16.4 4.2 A3.2 3.2 0 0 1 16.4 9.8'/><path d='M17.8 14 A4.8 4.8 0 0 1 21 18.6 V20.4'/></svg>");
-  --icon-online:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round'><circle cx='12' cy='12' r='9'/><path d='M3 12 H21'/><path d='M12 3 C15 6.6 15 17.4 12 21 C9 17.4 9 6.6 12 3 Z'/></svg>");
-  --icon-bluetooth: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2.4 V21.6'/><path d='M12 2.4 L17 7.4 L7 17.4'/><path d='M12 21.6 L17 16.6 L7 6.6'/></svg>");
-  --icon-daily:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round'><circle cx='12' cy='12' r='8.8'/><circle cx='12' cy='12' r='4.4'/><path d='M12 11.8 V12.2'/></svg>");
-  --icon-streak:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22.2 C15.6 22.2 18.6 19.2 18.6 15.6 C18.6 10.8 14.6 7 12 2 C9.4 7 5.4 10.8 5.4 15.6 C5.4 19.2 8.4 22.2 12 22.2 Z'/></svg>");
-  --icon-recent:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.8'/><path d='M12 7.2 V12 L15.4 14'/></svg>");
-  --icon-host:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20 V11.8'/><circle cx='12' cy='21.4' r='1.2'/><path d='M8.6 15.2 A5 5 0 0 1 15.4 15.2'/><path d='M5.6 12 A9.2 9.2 0 0 1 18.4 12'/></svg>");
-  --icon-join:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.3' stroke-linecap='round'><circle cx='10.8' cy='10.8' r='7'/><path d='M15.8 15.8 L21 21'/></svg>");
-  --icon-device:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><rect x='6.2' y='2.8' width='11.6' height='18.4'/><path d='M10.6 18.4 H13.4'/></svg>");
-  --icon-chev:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M15 5 L8.6 12 L15 19'/></svg>");
-  --icon-back:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M20.6 12 H4.6'/><path d='M10.8 5.2 L4 12 L10.8 18.8'/></svg>");
-  --icon-settings:  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3.4'/><path d='M12 2.6 V5.4 M12 18.6 V21.4 M2.6 12 H5.4 M18.6 12 H21.4'/></svg>");
-  --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><rect x='4.6' y='8.8' width='14.8' height='10.6'/><path d='M12 8.8 V5.8'/><circle cx='12' cy='4.2' r='1.4'/><path d='M9.4 13.8 H9.5 M14.6 13.8 H14.7'/></svg>");
-}
 /* ══════════════════════════════════════════════════════════════════════
    18. شاشة الإعدادات — توحيد على توكنز الثيم
    ──────────────────────────────────────────────────────────────────────
@@ -3735,9 +3548,7 @@ body[data-ui-theme="glass"] .app-modal-overlay{
 @media (max-width: 700px){
   body[data-ui-theme="cyberpunk"] .mc-ic,
   body[data-ui-theme="gaming"] .mc-ic,
-  body[data-ui-theme="chess"] .mc-ic,
-  body[data-ui-theme="glass"] .mc-ic,
-  body[data-ui-theme="minimal"] .mc-ic{
+  body[data-ui-theme="glass"] .mc-ic{
     filter: drop-shadow(0 0 14px currentColor) !important;
   }
 }
@@ -3779,6 +3590,13 @@ html.kb-open .ds-overlay--sheet .ds-sheet{
   /* قيّد الارتفاع بالمساحة فوق الكيبورد + 12px هامش علوي بسيط → الهيدر
      يفضل باين فوق، والرسائل تتقلّص وتتمرّر بدل ما تدفع الهيدر برّة */
   max-height: calc(100vh - var(--kb, 0px) - 12px);
+  /* #170: صفّر حشو safe-area السفلي بتاع الورقة نفسها وقت الكيبورد. الحشو ده
+     (padding-bottom: env(safe-area-inset-bottom) في .ds-sheet الأساسي) بيقعد
+     تحت صندوق الكتابة جوه الورقة؛ وبما إن قاع الورقة اترفع لحدّ قمة الكيبورد،
+     يبقى الحشو فراغ أسود بين الصندوق والكيبورد — واضح جدًا على التابلت لأن
+     safe-area أكبر. قمة الكيبورد بتغطّي شريط التنقّل أصلًا فالحشو ملوش لازمة
+     هنا (نفس منطق html.kb-open .ch-input تحت). */
+  padding-bottom: 0;
   /* نحافظ على transition الـtransform الأصلي (فتح/غلق الورقة) ونضيف
      max-height — عشان ما تحصلش قفزة لو الورقة اتقفلت والكيبورد لسه مفتوح */
   transition: transform var(--duration-slow) var(--easing-decelerate),

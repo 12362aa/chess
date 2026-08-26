@@ -21,6 +21,12 @@ const requiredFiles = new Set([
   'friends-client.js',
   'chat-client.js',
   'call-client.js',
+  /* محرّكان متضمّنان: النسخة الكاملة بشبكة NNUE الكبيرة (single = بلا
+     SharedArrayBuffer، تشتغل في أي WebView) هي الأقوى ويُحاول تحميلها أولًا؛
+     ونسخة lite الأخف تفضل موجودة كسقوط آمن للأجهزة المحدودة. الاتنين محتوى
+     حقيقي يُستخدَم وقت التشغيل — مش حشو. */
+  'stockfish-18-single.js',
+  'stockfish-18-single.wasm',
   'stockfish-18-lite-single.js',
   'stockfish-18-lite-single.wasm',
   'ble-bundle.js',

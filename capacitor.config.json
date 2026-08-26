@@ -20,6 +20,7 @@
   },
   "plugins": {
     "Keyboard": {
+      "resize": "none",
       "resizeOnFullScreen": false
     }
   }
