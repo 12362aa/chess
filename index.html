@@ -2671,7 +2671,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260823-flicker-layers-2">
+<link rel="stylesheet" href="screens.css?v=20260828-chat-kb-scroll">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3160,7 +3160,7 @@ body[data-ui-theme="glass"] .mc-tag{
 <div id="s-online" class="screen">
   <div class="oc">
     <h2><span class="ic-teal">⊕</span> أونلاين</h2>
-    <p class="oc-sub">اتصال عبر سيرفر مركزي — يعمل مع واي فاي وداتا</p>
+    <p class="oc-sub">اتصال عبر خادم مركزي — يعمل مع الواي فاي وبيانات الهاتف</p>
     <div class="p2p">يستخدم <strong>WebSocket Server</strong> — اتصال مستقر ومضمون ◈<br><span style="font-size:11px;opacity:.8">أنشئ غرفة وشارك الكود مع صديقك</span></div>
     <div class="tabs">
       <button class="tbb on" id="tb-c" onclick="OL.tab('c')">إنشاء غرفة</button>
@@ -3265,7 +3265,7 @@ body[data-ui-theme="glass"] .mc-tag{
         </span>
         <span class="bt-role__text">
           <span class="bt-role__title">استضافة</span>
-          <span class="bt-role__desc">تفتح مباراة وتستنى صاحبك</span>
+          <span class="bt-role__desc">تفتح مباراة وتنتظر صديقك</span>
         </span>
       </button>
 
@@ -3276,7 +3276,7 @@ body[data-ui-theme="glass"] .mc-tag{
         </span>
         <span class="bt-role__text">
           <span class="bt-role__title">انضمام</span>
-          <span class="bt-role__desc">تدوّر على جهاز فاتح مباراة</span>
+          <span class="bt-role__desc">تبحث عن جهاز فتح مباراة</span>
         </span>
       </button>
     </div>
@@ -3291,7 +3291,7 @@ body[data-ui-theme="glass"] .mc-tag{
     <div class="bt-devices">
       <div class="bt-devices__title">الأجهزة القريبة</div>
       <div id="bt-devices-list" class="bt-devices__list"></div>
-      <p class="bt-devices__empty">لسه مفيش أجهزة. خلّي الجهاز التاني يفتح نفس الشاشة ويختار "استضافة".</p>
+      <p class="bt-devices__empty">لا توجد أجهزة بعد. اجعل الجهاز الآخر يفتح الشاشة نفسها ويختار "استضافة".</p>
     </div>
 
     <button type="button" class="ds-btn ds-btn--ghost ds-btn--block"
@@ -4557,7 +4557,7 @@ const SettingsAccount = {
       const p = document.createElement('p');
       p.className = 'setting-description';
       p.style.marginBottom = '12px';
-      p.textContent = 'سجّل دخولك عشان تزامن تقدمك على أي جهاز، وتضيف أصدقاء وتلعب معاهم.';
+      p.textContent = 'سجّل دخولك لمزامنة تقدّمك على أي جهاز، ولإضافة أصدقاء واللعب معهم.';
       const btn = document.createElement('button');
       btn.className = 'ds-btn ds-btn--primary ds-btn--block';
       btn.textContent = 'تسجيل الدخول أو إنشاء حساب';
@@ -4681,7 +4681,7 @@ const SettingsAccount = {
       if(!d || !isFinite(d.rating)) return;
       val.textContent = Math.round(d.rating);
       const w=d.wins||0, l=d.losses||0, dr=d.draws||0, g=d.rating_games||0;
-      rec.textContent = `فوز ${w} · خسارة ${l} · تعادل ${dr}` + (d.rating_peak?` · أعلى تقييم ${Math.round(d.rating_peak)}`:'') + (g?'':' · لسه مالعبتش مباراة مصنّفة');
+      rec.textContent = `فوز ${w} · خسارة ${l} · تعادل ${dr}` + (d.rating_peak?` · أعلى تقييم ${Math.round(d.rating_peak)}`:'') + (g?'':' · لم تلعب مباراة مصنّفة بعد');
       try{ window.__myRating={rating:Math.round(d.rating),rd:d.rating_rd,provisional:d.provisional}; }catch(e){}
     };
     // لو عندنا نسخة مخبّأة نعرضها فورًا، وبعدين نحدّث من السيرفر
@@ -4698,7 +4698,7 @@ const SettingsAccount = {
   /* ── الدولة (اختيار يدوي) — بتظهر كعلَم في لوحة الصدارة زي chess.com ──
      بتتخزّن كود ISO alpha-2 على الحساب، وبتفضل للأبد. */
   _countryRow(u){
-    const { item } = this._row('دولتك', 'اختَر دولتك عشان يظهر علمك في لوحة الصدارة. اختياري.');
+    const { item } = this._row('دولتك', 'اختَر دولتك ليظهر علمك في لوحة الصدارة. اختياري.');
     item.style.cursor = 'pointer';
     const val = document.createElement('span');
     val.className = 'acct-country__val';
@@ -4755,7 +4755,7 @@ const SettingsAccount = {
       const items = qq ? this._COUNTRIES.filter(e=>e.ar.includes(qq)||e.c===qq.toUpperCase()) : this._COUNTRIES;
       let html = '';
       if(cur && !qq) html += `<button class="ds-list__item country-row country-row--clear" data-code="">مسح الدولة</button>`;
-      html += items.map(rowHtml).join('') || '<div class="country-empty">مفيش نتيجة</div>';
+      html += items.map(rowHtml).join('') || '<div class="country-empty">لا توجد نتائج</div>';
       list.innerHTML = html;
       list.querySelectorAll('.country-row').forEach(btn=>{
         btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); this._saveCountry(btn.dataset.code, u, onSaved, overlay); };
@@ -4861,7 +4861,7 @@ const SettingsAccount = {
 
   /* الاسم العام — ده اللي بيتبحث بيه، فليه سطر خاص */
   _usernameRow(u){
-    const { item } = this._row('اسمك للأصدقاء', 'الأصدقاء بيلاقوك بالاسم ده. البريد الإلكتروني مش ظاهر لأي حد.');
+    const { item } = this._row('اسمك للأصدقاء', 'يجدك الأصدقاء بهذا الاسم. بريدك الإلكتروني غير ظاهر لأحد.');
     const wrap = document.createElement('div');
     wrap.className = 'acct-uname';
     const val = document.createElement('code');
@@ -4940,7 +4940,7 @@ const SettingsAccount = {
   },
 
   _blockedRow(){
-    const { item } = this._row('اللاعبون المحظورون', 'مش هيقدروا يبعتوا لك طلب ولا دعوة');
+    const { item } = this._row('اللاعبون المحظورون', 'لن يستطيعوا إرسال طلب أو دعوة إليك');
     const btn = document.createElement('button');
     btn.className = 'ds-btn ds-btn--ghost ds-btn--sm';
     btn.textContent = 'إدارة';
@@ -4970,7 +4970,7 @@ const SettingsAccount = {
       rows = res.ok ? await res.json() : [];
     }catch(e){ rows = []; }
     list.innerHTML = '';
-    if(!rows.length){ list.innerHTML = '<p class="fr-empty">مفيش حد محظور.</p>'; return; }
+    if(!rows.length){ list.innerHTML = '<p class="fr-empty">لا يوجد أحد محظور.</p>'; return; }
     rows.forEach(u=>{
       const row = document.createElement('div');
       row.className = 'fr-row';
@@ -5000,7 +5000,7 @@ const SettingsAccount = {
             body: JSON.stringify({ user_id: u.id })
           });
           row.remove();
-          if(!list.querySelector('.fr-row')) list.innerHTML = '<p class="fr-empty">مفيش حد محظور.</p>';
+          if(!list.querySelector('.fr-row')) list.innerHTML = '<p class="fr-empty">لا يوجد أحد محظور.</p>';
         }catch(e){ un.disabled = false; }
       };
       acts.appendChild(un);
@@ -5010,13 +5010,13 @@ const SettingsAccount = {
   },
 
   _signOutRow(){
-    const { item } = this._row('تسجيل الخروج', 'تقدمك المحفوظ على السيرفر مش بيتأثر');
+    const { item } = this._row('تسجيل الخروج', 'تقدّمك المحفوظ على الخادم لا يتأثّر');
     const btn = document.createElement('button');
     btn.className = 'ds-btn ds-btn--ghost ds-btn--sm acct-danger';
     btn.textContent = 'خروج';
     btn.onclick = async ()=>{
       if(typeof SFX!=='undefined')SFX.btn();
-      const yes = await window.amkhUI.confirm('تسجيل الخروج', 'متأكد؟ هتحتاج تسجّل دخول تاني عشان تلعب مع أصدقائك.', 'خروج', 'إلغاء');
+      const yes = await window.amkhUI.confirm('تسجيل الخروج', 'هل أنت متأكد؟ ستحتاج إلى تسجيل الدخول مرّة أخرى للّعب مع أصدقائك.', 'خروج', 'إلغاء');
       if(!yes) return;
       try{ window.amkhAuth.logout(); }catch(e){}
       this.render();
@@ -5683,8 +5683,8 @@ const Rec={
 const Challenges={
   MODE_LABEL:{online:'أونلاين',engine:'StockFish',bluetooth:'بلوتوث',bot:'نور',local:'لاعبَان',any:'أي وضع'},
 
-  /* عدّاد عربي طبيعي: 1→مباراة، 2→مباراتين، غيرهم→«N مباريات» */
-  _n(n,one,two,many){ return n===1?one : n===2?two : (n+' '+many); },
+  /* عدّاد عربي فصيح (منصوب لأنه يأتي مفعولًا): 1→مباراة، 2→مباراتين، 3–10→«N مباريات»، 11+→«N مباراة» */
+  _n(n,one,two,many){ return n===1?one : n===2?two : (n<=10 ? (n+' '+many) : (n+' '+one)); },
   _matches(n){ return this._n(n,'مباراة','مباراتين','مباريات'); },
   _times(n){ return this._n(n,'مرة','مرتين','مرات'); },
 
@@ -5714,11 +5714,11 @@ const Challenges={
     switch(mode){
       case 'online': return rng()<0.5
         ? {mode,need:T,   text:`اكسب ${this._matches(T)} أونلاين وارفع تصنيفك`, hit:g=>g.filter(x=>x.mode==='online'&&x.res==='win').length}
-        : {mode,need:T+1, text:`العب ${this._matches(T+1)} أونلاين النهارده`,   hit:g=>g.filter(x=>x.mode==='online').length};
+        : {mode,need:T+1, text:`العب ${this._matches(T+1)} أونلاين اليوم`,   hit:g=>g.filter(x=>x.mode==='online').length};
       case 'engine': return rng()<0.5
         ? {mode,need:T,   text:`اكسب ${this._times(T)} ضد StockFish`,           hit:g=>g.filter(x=>x.mode==='engine'&&x.res==='win').length}
         : {mode,need:T+1, text:`تدرّب ${this._matches(T+1)} على StockFish`,      hit:g=>g.filter(x=>x.mode==='engine').length};
-      case 'bluetooth': return {mode,need:Math.max(1,T), text:`العب ${this._matches(Math.max(1,T))} بلوتوث مع اللي جنبك`, hit:g=>g.filter(x=>x.mode==='bluetooth').length};
+      case 'bluetooth': return {mode,need:Math.max(1,T), text:`العب ${this._matches(Math.max(1,T))} بلوتوث مع مَن حولك`, hit:g=>g.filter(x=>x.mode==='bluetooth').length};
       case 'bot': return rng()<0.5
         ? {mode,need:T,   text:`اهزم نور ${this._times(T)}`,                     hit:g=>g.filter(x=>x.mode==='bot'&&x.res==='win').length}
         : {mode,need:1,   text:`اهزم نور في أقل من 25 نقلة`,                     hit:g=>g.filter(x=>x.mode==='bot'&&x.res==='win'&&x.moves&&x.moves<25).length};
@@ -5729,9 +5729,9 @@ const Challenges={
   /* تحدّي مهارة (أي وضع) */
   _makeSkill(prof,rng){
     const r=rng();
-    if(r<0.34){ const T=this._tgt(2,prof,4); return {mode:'any',need:T,text:`اكسب ${this._matches(T)} النهارده`,hit:g=>g.filter(x=>x.res==='win').length}; }
+    if(r<0.34){ const T=this._tgt(2,prof,4); return {mode:'any',need:T,text:`اكسب ${this._matches(T)} اليوم`,hit:g=>g.filter(x=>x.res==='win').length}; }
     if(r<0.67){ const MV=prof.wins>10?25:35; return {mode:'any',need:1,text:`اكسب مباراة في أقل من ${MV} نقلة`,hit:g=>g.filter(x=>x.res==='win'&&x.moves&&x.moves<MV).length}; }
-    const T=this._tgt(2,prof,3); return {mode:'any',need:T,text:`العب ${this._matches(T)} من غير ما تخسر`,hit:g=>g.some(x=>x.res==='loss')?0:g.filter(x=>x.res==='win'||x.res==='draw'||x.res==='two').length};
+    const T=this._tgt(2,prof,3); return {mode:'any',need:T,text:`العب ${this._matches(T)} دون أن تخسر`,hit:g=>g.some(x=>x.res==='loss')?0:g.filter(x=>x.res==='win'||x.res==='draw'||x.res==='two').length};
   },
 
   ROTATE:['online','engine','bluetooth','bot','local'],
@@ -5925,7 +5925,7 @@ const Home={
     if(!games||!games.length){
       const p=document.createElement('p');
       p.className='home-recent__empty';
-      p.textContent='لسه مالعبتش مباراة — ابدأ من فوق وهتلاقي مبارياتك هنا.';
+      p.textContent='لم تلعب أي مباراة بعد — ابدأ من الأعلى وستجد مبارياتك هنا.';
       box.appendChild(p);
       return;
     }
@@ -6334,7 +6334,7 @@ window.Modal = Modal;
    الثيم وصوت «update» خاص، وزرّها بيفتح رابط الـAPK الدائم. بنسأل مرّة
    كل إقلاع بس، ولو المستخدم قال «لاحقًا» ما نضايقهوش تاني نفس الجلسة. */
 const APP_VERSION = '3.10';
-const APP_VERSION_CODE = 23;
+const APP_VERSION_CODE = 24;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
 let _lastUpdateAttempt = 0;       /* آخر محاولة فحص (throttle) */
@@ -6347,7 +6347,7 @@ function _showUpdateNotice(info){
   const okBtn=document.getElementById('modal-btn-ok');
   const cancelBtn=document.getElementById('modal-btn-cancel');
   titleEl.textContent='تحديث جديد متاح';
-  msgEl.textContent=(info && info.notes ? info.notes+'\n\n' : '')+'نزّل أحدث نسخة من التطبيق دلوقتي.';
+  msgEl.textContent=(info && info.notes ? info.notes+'\n\n' : '')+'نزّل أحدث نسخة من التطبيق الآن.';
   iconEl.innerHTML='<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
   cancelBtn.style.display='';
   cancelBtn.textContent='لاحقًا';
@@ -6508,11 +6508,11 @@ const Leaderboard = {
       this._players = players;
       box.innerHTML = this._render(players, meId) + this._selfBar(players, meId);
     }catch(e){
-      box.innerHTML = '<div class="lb-empty">تعذّر تحميل لوحة الصدارة. تأكد من الاتصال وحاول تاني.</div>';
+      box.innerHTML = '<div class="lb-empty">تعذّر تحميل لوحة الصدارة. تأكّد من الاتصال ثم أعِد المحاولة.</div>';
     }
   },
   _render(players, meId){
-    if(!players.length) return '<div class="lb-empty">لسه مفيش مباريات مصنّفة. العب مباراة مصنّفة أونلاين عشان تظهر هنا.</div>';
+    if(!players.length) return '<div class="lb-empty">لا توجد مباريات مصنّفة بعد. العب مباراة مصنّفة أونلاين لتظهر هنا.</div>';
     const CROWN='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8l4.5 3L12 5l4.5 6L21 8l-1.6 9.4a1 1 0 0 1-1 .82H5.6a1 1 0 0 1-1-.82L3 8z"/></svg>';
     const top = players.slice(0, 3);
     const rest = players.slice(3);
@@ -6562,7 +6562,7 @@ const Leaderboard = {
     return `
       <div class="lb-self">
         <div class="lb-self__lbl">ترتيبك</div>
-        <div class="lb-self__mid"><span class="lb-self__name">${name}</span><span class="lb-self__note">لسه مش ضمن أفضل ${players.length}</span></div>
+        <div class="lb-self__mid"><span class="lb-self__name">${name}</span><span class="lb-self__note">لست بعد ضمن أفضل ${players.length}</span></div>
         <div class="lb-self__rating">${r}</div>
       </div>`;
   },
@@ -6587,9 +6587,9 @@ const Leaderboard = {
       </div>`, { sfx: 'account' });
     const acts = ov.querySelector('.lb-prof__actions');
     if(isMe){
-      acts.innerHTML = '<div class="lb-prof__hint">ده أنت</div>';
+      acts.innerHTML = '<div class="lb-prof__hint">هذا أنت</div>';
     }else if(!signedIn){
-      acts.innerHTML = '<div class="lb-prof__hint">سجّل الدخول عشان تبعت طلب صداقة</div>';
+      acts.innerHTML = '<div class="lb-prof__hint">سجّل الدخول لإرسال طلب صداقة</div>';
     }else{
       const btn = document.createElement('button');
       btn.type='button'; btn.className='ds-btn ds-btn--primary lb-prof__add';
@@ -9769,7 +9769,7 @@ let _lastBalW=window.innerWidth;
 (()=>{
   const root=document.documentElement;
   /* الشاشات العامة (دخول/إعدادات/بحث): نزقّ العنصر المركّز فوق الكيبورد.
-     الأوراق و#chat-wrap مستثناة لأنها بترتفع عبر --kb في CSS. */
+     الأوراق بترتفع عبر --kb في CSS، وشات اللعبة بيرتفع بالتمرير (raiseChat). */
   const raiseActive=()=>{
     const ae=document.activeElement;
     if(!ae)return;
@@ -9778,6 +9778,36 @@ let _lastBalW=window.innerWidth;
     if(ae.closest('.ds-overlay--sheet, #chat-wrap'))return;
     setTimeout(()=>{ try{ ae.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} },60);
   };
+  /* شات اللعبة: مايترفعش بـtransform (كان بيركب فوق الرقعة والبارات لأن
+     التخطيط مابيتحركش معاه). CSS بيزوّد حشو سفلي = ارتفاع الكيبورد، وإحنا
+     بنمرّر الصفحة بالمقدار اللي يوقّف صندوق الكتابة فوق الكيبورد بالظبط.
+     كل العناصر بتتحرّك مع بعضها فمفيش تراكب. rAF مزدوج عشان نقيس بعد ما
+     المتصفح يطبّق الحشو الجديد. */
+  let _preKbScroll=null;
+  const raiseChat=()=>{
+    const wrap=document.getElementById('chat-wrap');
+    if(!wrap||!wrap.classList.contains('show'))return;
+    const row=wrap.querySelector('.chat-inp-row');
+    if(!row)return;
+    if(_preKbScroll===null)_preKbScroll=window.scrollY||0;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const kb=parseFloat(getComputedStyle(root).getPropertyValue('--kb'))||0;
+      const line=window.innerHeight-kb-8;               /* قمة الكيبورد ناقص هامش */
+      const delta=Math.round(row.getBoundingClientRect().bottom-line);
+      if(Math.abs(delta)>2){
+        try{ window.scrollBy({top:delta,behavior:'smooth'}); }
+        catch(e){ window.scrollBy(0,delta); }
+      }
+    }));
+  };
+  const dropChat=()=>{
+    const y=_preKbScroll; _preKbScroll=null;
+    if(y===null)return;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      try{ window.scrollTo({top:y,behavior:'smooth'}); }catch(e){ window.scrollTo(0,y); }
+    }));
+  };
+  window.AMKH_raiseChat=raiseChat;                       /* للقياس/الاختبار */
   const KB=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()
     &&window.Capacitor.Plugins&&window.Capacitor.Plugins.Keyboard;
   if(KB&&KB.addListener){
@@ -9794,8 +9824,10 @@ let _lastBalW=window.innerWidth;
       root.classList.add('kb-open','kb-shift');
       if(typeof R!=='undefined')R._kbLock=true;
       raiseActive();
+      raiseChat();
     });
     KB.addListener('keyboardWillHide', ()=>{
+      dropChat();
       root.style.setProperty('--kb','0px');
       root.classList.remove('kb-open','kb-shift');
       if(typeof R!=='undefined'){R._kbLock=false;R.balance(true);}
@@ -11117,8 +11149,8 @@ const OL=(()=>{
       setSt('j','◌ جاري تحميل بيانات الخادم...','conn');
       loadServerUrl().then(()=>{
         if(!SERVER_URL){
-          setSt('c','◆ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
-          setSt('j','◆ السيرفر غير متاح حالياً — تأكد أن الجهاز شغّال','err');
+          setSt('c','◆ الخادم غير متاح حالياً — تأكّد من أن الجهاز يعمل','err');
+          setSt('j','◆ الخادم غير متاح حالياً — تأكّد من أن الجهاز يعمل','err');
           try{document.getElementById('btn-create').disabled=false;}catch(e){}
           return;
         }
@@ -12312,7 +12344,7 @@ const BLEManager = {
   async init() {
     const nearby = this.getNearby();
     if (!nearby) {
-      if (typeof Modal !== 'undefined') Modal.show("اللعب عبر Bluetooth متاح في تطبيق الموبايل فقط، مش في المتصفح.", "غير متاح هنا", "✕");
+      if (typeof Modal !== 'undefined') Modal.show("اللعب عبر Bluetooth متاح في تطبيق الهاتف فقط، وليس في المتصفح.", "غير متاح هنا", "✕");
       return false;
     }
     // Set up event listeners
@@ -12378,7 +12410,7 @@ const BLEManager = {
         }
       } else {
         this.setPhase('idle');
-        this.fail("لم يتم الاتصال بالجهاز الآخر. تأكد إن الجهازين قريبين من بعض وحاول تاني.");
+        this.fail("لم يتم الاتصال بالجهاز الآخر. تأكّد من أن الجهازين قريبان أحدهما من الآخر ثم أعِد المحاولة.");
       }
     });
 
@@ -12464,7 +12496,7 @@ const BLEManager = {
       this.setStatus("في انتظار انضمام لاعب آخر…");
     } catch (e) {
       this.setPhase('idle');
-      this.fail("مش قادر يبدأ الاستضافة. تأكد إن البلوتوث والواي فاي والموقع مفتوحين، وجرّب تاني.", e);
+      this.fail("تعذّر بدء الاستضافة. تأكّد من تشغيل البلوتوث والواي فاي وخدمة الموقع، ثم أعِد المحاولة.", e);
     }
   },
 
@@ -12485,7 +12517,7 @@ const BLEManager = {
       await nearby.startDiscovering();
     } catch (e) {
       this.setPhase('idle');
-      this.fail("مش قادر يبحث عن أجهزة. تأكد إن البلوتوث والواي فاي والموقع مفتوحين، وجرّب تاني.", e);
+      this.fail("تعذّر البحث عن أجهزة. تأكّد من تشغيل البلوتوث والواي فاي وخدمة الموقع، ثم أعِد المحاولة.", e);
     }
   },
 
@@ -12503,7 +12535,7 @@ const BLEManager = {
       await nearby.requestConnection({ endpointId: endpointId, name: this._myName() });
     } catch (e) {
       this.setPhase('found');
-      this.fail("مش قادر يوصل بالجهاز ده. تأكد إنه لسه فاتح الشاشة وقريب منك، وجرّب تاني.", e);
+      this.fail("تعذّر الاتصال بهذا الجهاز. تأكّد من أنه لا يزال على الشاشة نفسها وقريبًا منك، ثم أعِد المحاولة.", e);
     }
   },
 
@@ -12737,8 +12769,8 @@ const BLEManager = {
 
     this.ackTimeout = setTimeout(() => {
       if (typeof Modal !== 'undefined') {
-        GameIdentity.setConnection('lost', 'الجهاز الآخر مش بيرد');
-        Modal.show("الجهاز الآخر مش بيرد. تأكد إنه لسه فاتح اللعبة وقريب منك.", "الاتصال بطيء", "✕");
+        GameIdentity.setConnection('lost', 'الجهاز الآخر لا يستجيب');
+        Modal.show("الجهاز الآخر لا يستجيب. تأكّد من أن اللعبة ما زالت مفتوحة عنده وأنه قريب منك.", "الاتصال بطيء", "✕");
       }
     }, 3000);
 

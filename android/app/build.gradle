@@ -7,7 +7,7 @@ android {
         applicationId "com.amkh.chess"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 23
+        versionCode 24
         versionName "3.10"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -16,8 +16,27 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // مفتاح رفع Google Play. القيم من android/app/keystore.properties (مستثنى من git).
+        // لو الملف مش موجود (نسخة نظيفة) نتخطّى التوقيع فيفضل البناء شغّال.
+        release {
+            def kFile = file('keystore.properties')
+            if (kFile.exists()) {
+                def kProps = new Properties()
+                kProps.load(new FileInputStream(kFile))
+                storeFile file(kProps['storeFile'])
+                storePassword kProps['storePassword']
+                keyAlias kProps['keyAlias']
+                keyPassword kProps['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            def kFile = file('keystore.properties')
+            if (kFile.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

@@ -91,7 +91,7 @@ router.post('/login', async (req, res) => {
        خطأ سيرفر مبهم. */
     if (!user.password_hash) {
       return res.status(409).json({
-        error: 'الحساب ده مسجّل بجوجل — استخدم زر «الدخول بجوجل»',
+        error: 'هذا الحساب مسجَّل بجوجل — استخدم زرّ «الدخول بجوجل»',
         provider: user.provider || 'google',
       });
     }
@@ -264,10 +264,10 @@ router.post('/google', async (req, res) => {
 router.post('/username', authenticateToken, (req, res) => {
   const raw = String((req.body && req.body.username) || '').trim();
   if (!/^[a-zA-Z0-9_]{3,16}$/.test(raw)) {
-    return res.status(400).json({ error: 'الاسم لازم يكون 3–16 حرف إنجليزي أو رقم أو _' });
+    return res.status(400).json({ error: 'يجب أن يكون الاسم من 3 إلى 16 حرفًا إنجليزيًا أو رقمًا أو _' });
   }
   const clash = db.prepare('SELECT id FROM users WHERE lower(username) = lower(?) AND id <> ?').get(raw, req.user.id);
-  if (clash) return res.status(409).json({ error: 'الاسم محجوز، جرّب غيره' });
+  if (clash) return res.status(409).json({ error: 'الاسم محجوز، جرّب اسمًا آخر' });
   db.prepare('UPDATE users SET username = ? WHERE id = ?').run(raw, req.user.id);
   res.json({ username: raw });
 });

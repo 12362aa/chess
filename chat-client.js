@@ -2,9 +2,9 @@
    دردشة الأصدقاء — العميل
    ──────────────────────────────────────────────────────────────────────
    شات 1:1 دائم بين الأصدقاء، بستايل التطبيق (نفس توكنز ومكوّنات amkhUI).
-   • الرسايل محفوظة في الحساب على السيرفر — تسجّل خروج وترجع تلاقيها.
+   • الرسائل محفوظة في الحساب على السيرفر — تسجّل خروج وترجع تلاقيها.
    • بتمشي على نفس سوكت الحضور (chat:*)، والسجل/العدّادات على HTTP.
-   • الأسماء والرسايل بـtextContent دايمًا (مفيش innerHTML لمحتوى المستخدم).
+   • الأسماء والرسائل بـtextContent دايمًا (مفيش innerHTML لمحتوى المستخدم).
    • إرسال متفائل: بنعرض الرسالة فورًا بمعرّف مؤقت (client_id) ونصلّحه لما
      يرجع chat:sent. الحضور بيتحدّث من friend:presence-update زي القائمة.
 ══════════════════════════════════════════════════════════════════════ */
@@ -238,7 +238,7 @@ const amkhChat = {
     body = String(body || '').trim();
     if (!body) return;
     const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت.', 'غير متصل', '◈'); return; }
     const clientId = 'c' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
     const r = this._takeReply('friend');
@@ -267,7 +267,7 @@ const amkhChat = {
     if (typeof target === 'number') target = { kind: 'friend', id: target };
     if (this._recording || this._recStarting) return;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      window.amkhUI.notify('جهازك مايدعمش التسجيل الصوتي', 'غير متاح', '◈'); return;
+      window.amkhUI.notify('جهازك لا يدعم التسجيل الصوتي', 'غير متاح', '◈'); return;
     }
     this._recStarting = true;
     try {
@@ -343,7 +343,7 @@ const amkhChat = {
 
   sendVoice(friendId, audioB64, durationSec, mime) {
     const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     const clientId = 'v' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
     const r = this._takeReply('friend');
@@ -446,7 +446,7 @@ const amkhChat = {
   },
 
   sendMedia(friendId, b64, mime, kind) {    const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     const clientId = 'm' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
     const r = this._takeReply('friend');
@@ -524,7 +524,7 @@ const amkhChat = {
           if (gid != null) this._applyChatLock(gid);
           window.amkhUI.notify('قفل المشرفون الشات — الإرسال متاح للمشرفين فقط', 'الشات مقفول', '◈');
         } else {
-          window.amkhUI.notify(d.reason === 'not-member' ? 'مش عضو في الحفلة' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
+          window.amkhUI.notify(d.reason === 'not-member' ? 'لست عضوًا في الحفلة' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
         }
         return true;
       default: return false;
@@ -729,7 +729,7 @@ const amkhChat = {
 
   _unreadTotal() { return Object.values(this._unread).reduce((s, n) => s + (n || 0), 0); },
 
-  /* شارة على زر الأصدقاء/الإعدادات في الشريط العلوي (رقم الرسايل غير المقروءة) */
+  /* شارة على زر الأصدقاء/الإعدادات في الشريط العلوي (رقم الرسائل غير المقروءة) */
   _updateBadge() {
     const btn = document.getElementById('appbar-friends') || document.getElementById('appbar-settings');
     if (!btn) return;
@@ -746,7 +746,7 @@ const amkhChat = {
   /* ── فتح محادثة مع صديق ── */
   async openChat(friend) {
     if (!window.amkhAuth || !window.amkhAuth.token) {
-      window.amkhUI.notify('سجّل دخولك الأول عشان تراسل أصحابك', 'محتاج حساب', '◈');
+      window.amkhUI.notify('سجّل دخولك أولًا لمراسلة أصدقائك', 'محتاج حساب', '◈');
       if (window.amkhAuth) window.amkhAuth.showLoginModal();
       return;
     }
@@ -905,7 +905,7 @@ const amkhChat = {
       if (older) {
         this._msgs[key] = data.messages.concat(existing);
       } else {
-        /* دمج: نحافظ على الرسايل المتفائلة + سجلات المكالمات المحلية (#156)
+        /* دمج: نحافظ على الرسائل المتفائلة + سجلات المكالمات المحلية (#156)
            اللي مالهاش وجود على السيرفر عشان ماتختفيش عند الطرف التاني عند إعادة التحميل. */
         const kept = existing.filter(m => m.pending || m.local);
         this._msgs[key] = this._mergeChrono(data.messages, kept);
@@ -1124,7 +1124,7 @@ const amkhChat = {
   /* تثبيت/فك تثبيت رسالة (#132) — بيبعت على السوكت والسيرفر بيبثّ للطرفين. */
   _pinMsg(scope, m, pin) {
     const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     try { if (window.SFX) window.SFX.modalOpen('pin'); } catch (e) {}
     if (scope === 'group') {
       const gid = this._openGroup; if (gid == null) return;
@@ -1158,7 +1158,7 @@ const amkhChat = {
     if (b) b.classList.toggle('ch-bubble--pinned', !!pinned);
   },
 
-  /* شريط الرسايل المثبّتة أعلى المحادثة (زي واتساب): أحدث رسالة مثبّتة
+  /* شريط الرسائل المثبّتة أعلى المحادثة (زي واتساب): أحدث رسالة مثبّتة
      + عدّاد، والضغط بيقفز للرسالة. */
   _renderPinnedBar(scope) {
     if (!this._sheet) return;
@@ -1215,7 +1215,7 @@ const amkhChat = {
       inner += `<div style="font-weight:800;margin:8px 0 4px;">مقروءة (${readList.length})</div>`;
       inner += readList.length ? readList.map(u => rowHtml(u, '✓✓')).join('') : `<div style="opacity:.6;font-size:13px;">لا أحد بعد</div>`;
       if (delivList.length) { inner += `<div style="font-weight:800;margin:10px 0 4px;">تم التسليم (${delivList.length})</div>` + delivList.map(u => rowHtml(u, '✓')).join(''); }
-      if (pendList.length) { inner += `<div style="font-weight:800;margin:10px 0 4px;">لسه (${pendList.length})</div>` + pendList.map(u => rowHtml(u, '…')).join(''); }
+      if (pendList.length) { inner += `<div style="font-weight:800;margin:10px 0 4px;">قيد الانتظار (${pendList.length})</div>` + pendList.map(u => rowHtml(u, '…')).join(''); }
     } else {
       const line = (label, val) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 2px;border-bottom:1px solid rgba(127,127,127,.15);"><span style="font-weight:700;">${label}</span><span style="opacity:.75;">${val}</span></div>`;
       inner += line('تم التسليم', fmt(data.delivered_at));
@@ -1366,9 +1366,9 @@ const amkhChat = {
     if (this._vWrap === wrap && (this._vSource || this._vPending)) { this._stopVoicePlay(); return; }
     this._stopVoicePlay();
     const info = wrap._voice || {};
-    if (!info.audio) { window.amkhUI.notify('التسجيل مش متاح', 'تنبيه', '◈'); return; }
+    if (!info.audio) { window.amkhUI.notify('التسجيل غير متاح', 'تنبيه', '◈'); return; }
     const ctx = this._ensureAudioCtx();
-    if (!ctx) { window.amkhUI.notify('جهازك مايدعمش تشغيل الصوت', 'تنبيه', '◈'); return; }
+    if (!ctx) { window.amkhUI.notify('جهازك لا يدعم تشغيل الصوت', 'تنبيه', '◈'); return; }
     let buf;
     try { buf = this._base64ToArrayBuffer(info.audio); } catch (e) { window.amkhUI.notify('تعذّر قراءة التسجيل', 'تنبيه', '◈'); return; }
     // توكن يميّز محاولة التشغيل دي؛ أي إيقاف/تبديل بيزوّده فيلغي أي فكّ ترميز جارٍ.
@@ -1440,7 +1440,7 @@ const amkhChat = {
   /* ── صندوق الوارد: كل المحادثات اللي فيها رسايل ── */
   async showInbox() {
     if (!window.amkhAuth || !window.amkhAuth.token) {
-      window.amkhUI.notify('سجّل دخولك الأول عشان تشوف رسايلك', 'محتاج حساب', '◈');
+      window.amkhUI.notify('سجّل دخولك أولًا لعرض رسائلك', 'محتاج حساب', '◈');
       if (window.amkhAuth) window.amkhAuth.showLoginModal();
       return;
     }
@@ -1449,11 +1449,11 @@ const amkhChat = {
       <div class="ds-sheet ch-inbox" id="amkh-chat-panel">
         <div class="ch-inbox__head">
           <button class="ch-back" data-close aria-label="رجوع">›</button>
-          <h2 class="ch-inbox__title">الرسايل</h2>
+          <h2 class="ch-inbox__title">الرسائل</h2>
         </div>
         <div class="ch-inbox__head">
           <button class="ch-back" data-close aria-label="رجوع">›</button>
-          <h2 class="ch-inbox__title">الرسايل</h2>
+          <h2 class="ch-inbox__title">الرسائل</h2>
           <button class="ch-inbox__new" id="ch-new-group" aria-label="حفلة شطرنجية جديدة">＋</button>
         </div>
         <div class="ch-inbox__list" id="ch-inbox-list">
@@ -1494,7 +1494,7 @@ const amkhChat = {
     if (!items.length) {
       const e = document.createElement('p');
       e.className = 'ch-empty';
-      e.textContent = 'مفيش رسايل لسه — افتح محادثة مع صاحبك، أو اعمل حفلة شطرنجية جديدة من زر ＋.';
+      e.textContent = 'لا توجد رسائل بعد — افتح محادثة مع صديقك، أو أنشئ حفلة شطرنجية جديدة من زرّ ＋.';
       listEl.appendChild(e);
       this._updateBadge();
       return;
@@ -1889,7 +1889,7 @@ const amkhChat = {
     body = String(body || '').trim();
     if (!body) return;
     const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت.', 'غير متصل', '◈'); return; }
     const clientId = 'g' + (++this._cid) + '_' + Date.now();
     const r = this._takeReply('group');
     const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'text', body, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
@@ -1901,7 +1901,7 @@ const amkhChat = {
 
   sendGroupVoice(gid, audioB64, durationSec, mime) {
     const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     const clientId = 'gv' + (++this._cid) + '_' + Date.now();
     const r = this._takeReply('group');
     const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'voice', body: '', audio: audioB64, duration: durationSec, mime, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
@@ -1913,7 +1913,7 @@ const amkhChat = {
 
   sendGroupMedia(gid, b64, mime, kind) {
     const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     const clientId = 'gm' + (++this._cid) + '_' + Date.now();
     const r = this._takeReply('group');
     const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
@@ -2117,7 +2117,7 @@ const amkhChat = {
     if (!arr.length) {
       const e = document.createElement('p');
       e.className = 'ch-empty';
-      e.textContent = 'مفيش رسايل لسه — ابدأ الكلام مع الحفلة';
+      e.textContent = 'لا توجد رسائل بعد — ابدأ الحديث مع الحفلة';
       listEl.appendChild(e);
       return;
     }
@@ -2485,7 +2485,7 @@ const amkhChat = {
       /* محاولات سريعة قليلة تحسبًا إن الحساب لسه بيتحمّل عند الإقلاع. */
       if (t < 8) { setTimeout(() => this.joinByInvite(token, t + 1), 500); return; }
       /* بعد كده نبطّل اللف الصامت ونطلب الدخول بوضوح — التوكِن محفوظ. */
-      if (U) U.notify('سجّل الدخول الأول عشان تنضم للحفلة، وهنكمّل تلقائيًا', 'دعوة حفلة', '◈');
+      if (U) U.notify('سجّل الدخول أولًا للانضمام إلى الحفلة، وسنكمل تلقائيًا', 'دعوة حفلة', '◈');
       return;
     }
     /* لازم رابط السيرفر يكون متاح قبل النداء — على الموقع (GitHub Pages)
@@ -2493,13 +2493,13 @@ const amkhChat = {
        لـ github.io/api (404) والحفلة ماتتفتحش. _gpost بيضمنه عبر
        _getAuthHeader، بس بنأكّده هنا كمان قبل إظهار أي مؤشّر. */
     try { if (window.amkhEnsureServer) await window.amkhEnsureServer(); } catch (e) {}
-    if (U) U.notify('بنضمّك للحفلة…', 'دعوة حفلة', '◉');
+    if (U) U.notify('جارٍ إضافتك إلى الحفلة…', 'دعوة حفلة', '◉');
     const r = await this._gpost(`/join/${token}`, {});
     if (r && !r.error && r.group_id) {
       try { sessionStorage.removeItem('amkh_pending_invite'); } catch (e) {}
       const s = r.summary || {};
       this._gmeta[r.group_id] = { name: s.name, members_count: s.members_count, owner_id: s.owner_id, avatar_url: s.avatar_url || null };
-      if (r.already) { if (U) U.notify('أنت عضو في الحفلة دي بالفعل', 'دعوة حفلة', '◉'); }
+      if (r.already) { if (U) U.notify('أنت عضو في هذه الحفلة بالفعل', 'دعوة حفلة', '◉'); }
       this.openGroup({ id: r.group_id, name: s.name, members_count: s.members_count, owner_id: s.owner_id, avatar_url: s.avatar_url || null });
     } else {
       /* فشل حقيقي (رابط منتهي/شبكة): نمسح التوكِن المعلّق عشان ما نلفّش عليه

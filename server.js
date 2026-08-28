@@ -369,7 +369,16 @@ function _categories(s) {
 }
 
 /* يبني {title, body} من الفئة + اللقطة. كل صيغة فيها قيمة حيّة على الأقل،
-   والتنويع مشتقّ بهاش من (المستخدم، اليوم، الفتحة، الفئة) فمفيش تكرار حرفي. */
+   والتنويع مشتقّ بهاش من (المستخدم، اليوم، الفتحة، الفئة) فمفيش تكرار حرفي.
+   كل النصوص عربية فصحى — التطبيق عربي لكل الناطقين بالعربية، مش مصري. */
+const _nDays    = n => n === 1 ? 'يومًا واحدًا' : n === 2 ? 'يومين' : (n <= 10 ? `${n} أيام` : `${n} يومًا`);
+const _nMsgs    = n => n === 1 ? 'رسالة واحدة' : n === 2 ? 'رسالتان' : (n <= 10 ? `${n} رسائل` : `${n} رسالة`);
+const _nInvites = n => n === 1 ? 'دعوة واحدة' : n === 2 ? 'دعوتان' : (n <= 10 ? `${n} دعوات` : `${n} دعوة`);
+const _nPlayers = n => n === 1 ? 'لاعب واحد' : n === 2 ? 'لاعبان' : (n <= 10 ? `${n} لاعبين` : `${n} لاعبًا`);
+const _nFriends = n => n === 1 ? 'صديق واحد' : n === 2 ? 'صديقان' : (n <= 10 ? `${n} أصدقاء` : `${n} صديقًا`);
+const _nStars   = n => n === 1 ? 'نجمة واحدة' : n === 2 ? 'نجمتين' : (n <= 10 ? `${n} نجوم` : `${n} نجمة`);
+const _nPoints  = n => n === 1 ? 'نقطة واحدة' : n === 2 ? 'نقطتان' : (n <= 10 ? `${n} نقاط` : `${n} نقطة`);
+const _nStages  = n => n === 1 ? 'مرحلة واحدة' : n === 2 ? 'مرحلتين' : (n <= 10 ? `${n} مراحل` : `${n} مرحلة`);
 function _renderNotif(cat, s, slotIndex, day) {
   const nm = s.name;
   const pick = (arr) => arr[_hash(s.userId + ':' + day + ':' + slotIndex + ':' + cat) % arr.length];
@@ -378,11 +387,11 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'comeback': {
       const d = s.daysAway || 1;
       return {
-        title: `${nm}.. بقالك ${d} يوم`,
+        title: `${nm}.. غِبتَ ${_nDays(d)}`,
         body: pick([
-          `${nm}، غِبت ${d} يوم — تقييمك ${s.rating} لسه مستنّيك ترجعله ♟`,
-          `${d} يوم من غير شطرنج يا ${nm}؟ سجلك ${s.wins} فوز مش هيزيد لوحده 😉`,
-          `رجوعك بيفرق يا ${nm}: آخر ظهور من ${d} يوم والبورد فاضي بدونك`,
+          `${nm}، غِبتَ ${_nDays(d)} — وتقييمك ${s.rating} ما زال ينتظر عودتك ♟`,
+          `${_nDays(d)} بلا شطرنج يا ${nm}؟ سجلّك: ${s.wins} فوز، ولن يزداد من تلقاء نفسه 😉`,
+          `عودتك تُحدث فرقًا يا ${nm}: آخر ظهور لك منذ ${_nDays(d)}، والرقعة تخلو منك`,
         ]),
         data: { kind: 'adaptive', cat, days: String(d) }, tag: 'amkh-comeback',
       };
@@ -390,10 +399,10 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'friends': {
       const f = s.friendsOnline;
       return {
-        title: `${f} من أصحابك أونلاين`,
+        title: `${_nFriends(f)} على الشبكة`,
         body: pick([
-          `${nm}، فيه ${f} من أصحابك متصلين دلوقتي — تحدّى واحد فيهم ♟`,
-          `${f} صاحب ليك online يا ${nm}. مباراة سريعة قبل ما يقفلوا؟`,
+          `${nm}، عدد أصدقائك المتصلين الآن ${f} — تحدَّ أحدهم في مباراة ♟`,
+          `أصدقاؤك على الشبكة الآن (${f}) يا ${nm} — مباراة سريعة قبل أن ينصرفوا؟`,
         ]),
         data: { kind: 'adaptive', cat, friends: String(f) }, tag: 'amkh-friends',
       };
@@ -401,10 +410,10 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'invite': {
       const p = s.invites;
       return {
-        title: `${p} دعوة لعب مستنّية`,
+        title: `لديك ${_nInvites(p)} للعب`,
         body: pick([
-          `${nm}، عندك ${p} دعوة لعب مستنّية ردّك — افتح واقبل التحدّي ♟`,
-          `${p} تحدّي جاهز ليك يا ${nm}. صاحبك مستنّي تبدأ المباراة`,
+          `${nm}، لديك ${_nInvites(p)} للعب — افتح التطبيق واقبل التحدّي ♟`,
+          `تحدٍّ جاهز لك يا ${nm} — عدد الدعوات ${p}، وخصمك ينتظر بدء المباراة`,
         ]),
         data: { kind: 'adaptive', cat, invites: String(p) }, tag: 'amkh-invite',
       };
@@ -412,10 +421,10 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'unread': {
       const c = s.unread;
       return {
-        title: `${c} رسالة مستنّية`,
+        title: `${_nMsgs(c)} بانتظارك`,
         body: pick([
-          `${nm} عندك ${c} رسالة لسه ماقريتهاش — رُد وابدأ مباراة معاهم`,
-          `${c} رسالة جديدة يا ${nm}. صحابك بيكلّموك — تعال شوف`,
+          `${nm}، لديك ${c} من الرسائل غير المقروءة — ردّ وابدأ مباراة ♟`,
+          `رسائل جديدة تنتظرك يا ${nm} (${c}) — أصدقاؤك يحدّثونك، تفضّل بالردّ`,
         ]),
         data: { kind: 'adaptive', cat, unread: String(c) }, tag: 'amkh-unread',
       };
@@ -424,15 +433,15 @@ function _renderNotif(cat, s, slotIndex, day) {
       const next = (Math.floor(s.rating / 100) + 1) * 100;
       const gap = next - s.rating;
       const variants = [
-        `${nm} تقييمك ${s.rating} — ناقصك ${gap} نقطة بس توصل ${next}. مباراة مصنّفة واحدة تعملها ♟`,
-        `سجلك ${s.wins} فوز و${s.losses} خسارة يا ${nm} — خلّي الفوز يزيد النهارده`,
+        `${nm}، تقييمك ${s.rating} — تفصلك ${_nPoints(gap)} فقط عن ${next}. مباراة مصنّفة واحدة تكفي ♟`,
+        `سجلّك: ${s.wins} فوز · ${s.losses} خسارة يا ${nm} — زِد رصيد انتصاراتك اليوم`,
       ];
       if (s.peak > s.rating)
-        variants.push(`أعلى تقييم وصلتله ${s.peak} يا ${nm}، وإنت دلوقتي ${s.rating} — رجّعه النهارده`);
+        variants.push(`أعلى تقييم بلغته ${s.peak} يا ${nm}، وتقييمك الآن ${s.rating} — استعِده اليوم`);
       if (s.lastResult === 'win')
-        variants.push(`آخر مباراة كسبتها يا ${nm} (تقييمك بقى ${s.rating}) — استمر، مباراة كمان؟`);
+        variants.push(`آخر مباراة انتهت بفوزك يا ${nm} (تقييمك الآن ${s.rating}) — واصل، مباراة أخرى؟`);
       if (s.lastResult === 'loss')
-        variants.push(`${nm} آخر مباراة خسرتها — رُدّ اعتبارك، تقييمك ${s.rating} مستنّي تعويض`);
+        variants.push(`${nm}، خسرت مباراتك الأخيرة — استردّ اعتبارك، وتقييمك ${s.rating} ينتظر التعويض`);
       return {
         title: `تقييمك ${s.rating} ♟`,
         body: pick(variants),
@@ -442,10 +451,10 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'nour': {
       if (s.nourStars === 0) {
         return {
-          title: `نور مستنّي ${nm} ♟`,
+          title: `نور ينتظر ${nm} ♟`,
           body: pick([
-            `${nm}، رحلتك مع نور لسه ما بدأتش — أول مرحلة و3 نجوم مستنّيينك`,
-            `نور جاهز يعلّمك يا ${nm} — ابدأ المرحلة 1 وكل نجمة بتقرّبك للاحتراف`,
+            `${nm}، لم تبدأ رحلتك مع نور بعد — المرحلة الأولى وثلاث نجوم تنتظرك`,
+            `نور مستعدّ لتعليمك يا ${nm} — ابدأ المرحلة الأولى، وكل نجمة تقرّبك من الاحتراف`,
           ]),
           data: { kind: 'adaptive', cat, stage: '1' }, tag: 'amkh-nour',
         };
@@ -454,8 +463,8 @@ function _renderNotif(cat, s, slotIndex, day) {
       return {
         title: `${nm}.. المرحلة ${n} مع نور`,
         body: pick([
-          `${nm} جمعت ${s.nourStars} نجمة مع نور — المرحلة ${n} مستنّياك تكمّل`,
-          `وصلت ${s.nourStages} مرحلة يا ${nm}؛ المرحلة ${n} أصعب شوية، تجرّبها؟`,
+          `${nm}، جمعت ${_nStars(s.nourStars)} مع نور — والمرحلة ${n} تنتظر إكمالك`,
+          `أنجزت ${_nStages(s.nourStages)} يا ${nm}؛ والمرحلة ${n} أصعب قليلًا، هل تجرّبها؟`,
         ]),
         data: { kind: 'adaptive', cat, stage: String(n), stars: String(s.nourStars) }, tag: 'amkh-nour',
       };
@@ -464,11 +473,11 @@ function _renderNotif(cat, s, slotIndex, day) {
     default: {
       const lvl = _sfLevel(s.rating);
       const variants = [
-        `${nm} تقييمك ${s.rating} — جرّب StockFish مستوى ${lvl} النهارده، تحدّي على قدّك ♟`,
-        `تدريب سريع يا ${nm}: StockFish مستوى ${lvl} يشحذ حساباتك قبل مباراة مصنّفة`,
+        `${nm}، تقييمك ${s.rating} — جرّب StockFish بالمستوى ${lvl} اليوم، تحدٍّ في مستواك ♟`,
+        `تدريب سريع يا ${nm}: StockFish بالمستوى ${lvl} يصقل حساباتك قبل مباراة مصنّفة`,
       ];
       if (s.ratingGames === 0)
-        variants.push(`${nm}، جرّب تلعب ضد StockFish — ابدأ بمستوى ${lvl} وشوف مستواك فين`);
+        variants.push(`${nm}، جرّب اللعب ضد StockFish — ابدأ بالمستوى ${lvl} واكتشف مستواك`);
       return {
         title: `تحدّي StockFish ${lvl}`,
         body: pick(variants),
@@ -494,14 +503,14 @@ function _communitySnapshot() {
 function _renderCommunity(c, day, slot) {
   const variants = [];
   if (c.online >= NOTIF.communityMinOnline)
-    variants.push({ title: `${c.online} لاعب متصل دلوقتي`,
-                    body: `فيه ${c.online} لاعب أونلاين دلوقتي — ادخل وخُش مباراة سريعة ♟` });
+    variants.push({ title: `${_nPlayers(c.online)} على الشبكة`,
+                    body: `يوجد ${_nPlayers(c.online)} على الشبكة الآن — ادخل والعب مباراة سريعة ♟` });
   if (c.inGame >= 2)
-    variants.push({ title: `${c.inGame} لاعب في مباراة`,
-                    body: `${c.inGame} لاعب بيلعبوا دلوقتي — دورك تدخل الحلبة ♟` });
+    variants.push({ title: `${_nPlayers(c.inGame)} في مباراة`,
+                    body: `عدد اللاعبين في مباريات الآن ${c.inGame} — حان دورك لدخول الحلبة ♟` });
   if (c.topName && c.topRating)
     variants.push({ title: `أعلى تقييم: ${c.topRating}`,
-                    body: `${c.topName} متصدّر بتقييم ${c.topRating} — تقدر توصله؟ ابدأ دلوقتي` });
+                    body: `${c.topName} يتصدّر بتقييم ${c.topRating} — هل تستطيع الوصول إليه؟ ابدأ الآن` });
   if (!variants.length) return null;
   const v = variants[_hash('community:' + day + ':' + slot) % variants.length];
   return { title: v.title, body: v.body, data: { kind: 'community' }, tag: 'amkh-community' };
@@ -844,7 +853,7 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
    وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
 const LATEST_VERSION = '3.10';
-const LATEST_CODE = 23;
+const LATEST_CODE = 24;
 const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
 app.get('/api/version', (req, res) => {
   res.json({
@@ -852,7 +861,7 @@ app.get('/api/version', (req, res) => {
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'محرّك شطرنج أقوى بمراحل (شبكة عصبية كاملة) لتحليل ولعب أعلى، مع سقوط تلقائي على الأجهزة المحدودة. وتحديات يومية ذكية تشمل كل أوضاع اللعب مع تتبّع الإنجاز وسلسلة الأيام. وإشعارات ذكية تتكيّف مع نشاطك بدل الرسائل الثابتة. وعلم دولتك بقى محفوظ بعد تسجيل الخروج والدخول. وإصلاح فراغ الكيبورد في الشات على التابلت.',
+    notes: 'تنسيق أفضل لدردشة المباراة: الصندوق يلتصق بصفّ الأزرار بلا فراغ، ولا يعلو فوق الرقعة عند ظهور لوحة المفاتيح — على الهاتف واللوح الرقمي في جميع الأوضاع. وجميع نصوص الإشعارات والتحديثات صارت بالعربية الفصحى.',
   });
 });
 
@@ -2732,7 +2741,7 @@ wss.on('connection', (ws, req) => {
 
             if (msg.type === 'move') {
               title = 'دورك الآن';
-              body = `${fromName} لعب نقلة. افتح المباراة ورد بسرعة!`;
+              body = `${fromName} أدّى نقلته. افتح المباراة وردّ عليه`;
               tag = 'your-turn';
             } else if (msg.type === 'chat') {
               title = 'رسالة جديدة';
@@ -2740,7 +2749,7 @@ wss.on('connection', (ws, req) => {
               tag = 'chat';
             } else if (msg.type === 'voice') {
               title = 'رسالة صوتية';
-              body = `${fromName} أرسل لك ريكورد… افتح الشات واسمعها!`;
+              body = `${fromName} أرسل إليك رسالة صوتية — افتح المحادثة للاستماع`;
               tag = 'voice';
             }
 

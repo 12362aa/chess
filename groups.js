@@ -200,7 +200,7 @@ router.post('/', authenticateToken, (req, res) => {
 router.get('/:id/members', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
   try {
     const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.avatar_url, gm.role
                              FROM group_members gm JOIN users u ON u.id = gm.user_id
@@ -226,7 +226,7 @@ router.get('/:id/members', authenticateToken, (req, res) => {
 router.get('/:id/history', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
   const before = toId(req.query.before);
   let limit = Number(req.query.limit) || 30;
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
@@ -275,7 +275,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
 router.post('/:id/read', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
   try {
     const last = db.prepare('SELECT MAX(id) AS m FROM group_messages WHERE group_id = ?').get(gid).m || 0;
     db.prepare(`INSERT INTO group_reads (group_id, user_id, last_read_id) VALUES (?, ?, ?)
@@ -291,12 +291,12 @@ router.post('/:id/read', authenticateToken, (req, res) => {
 router.post('/:id/played', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
   const mid = toId(req.body && req.body.id);
   if (!mid) return res.status(400).json({ error: 'رسالة غير صالحة' });
   try {
     const m = db.prepare('SELECT sender_id, kind FROM group_messages WHERE id = ? AND group_id = ?').get(mid, gid);
-    if (!m || m.kind !== 'voice') return res.status(404).json({ error: 'مش متاح' });
+    if (!m || m.kind !== 'voice') return res.status(404).json({ error: 'غير متاح' });
     if (m.sender_id !== me) db.prepare(`INSERT OR IGNORE INTO voice_plays (scope, message_id, user_id) VALUES ('grp', ?, ?)`).run(mid, me);
     res.json({ ok: true });
   } catch (e) {
@@ -310,13 +310,13 @@ router.post('/:id/played', authenticateToken, (req, res) => {
 router.get('/:id/message-info', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
   const mid = toId(req.query.id);
   if (!mid) return res.status(400).json({ error: 'رسالة غير صالحة' });
   try {
     const m = db.prepare('SELECT sender_id, kind FROM group_messages WHERE id = ? AND group_id = ?').get(mid, gid);
-    if (!m) return res.status(404).json({ error: 'مش موجودة' });
-    if (m.sender_id !== me) return res.status(403).json({ error: 'مش متاح' });
+    if (!m) return res.status(404).json({ error: 'غير موجودة' });
+    if (m.sender_id !== me) return res.status(403).json({ error: 'غير متاح' });
     const reads = {};
     receiptsSnapshot(gid).forEach(r => { reads[r.user_id] = r; });
     const members = memberList(gid).filter(u => u.id !== me).map(u => {
@@ -342,7 +342,7 @@ router.get('/:id/message-info', authenticateToken, (req, res) => {
 router.post('/:id/leave', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
   try {
     db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').run(gid, me);
     /* لو المالك مشي وفضل أعضاء، ننقل الملكية لأقدم عضو؛ لو فضي نمسح الجروب. */
@@ -365,9 +365,9 @@ router.post('/:id/leave', authenticateToken, (req, res) => {
 router.post('/:id/avatar', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid) return res.status(400).json({ error: 'مش متاح' });
+  if (!gid) return res.status(400).json({ error: 'غير متاح' });
   const g = db.prepare('SELECT owner_id FROM groups WHERE id = ?').get(gid);
-  if (!g) return res.status(404).json({ error: 'الحفلة مش موجودة' });
+  if (!g) return res.status(404).json({ error: 'الحفلة غير موجودة' });
   if (g.owner_id !== me) return res.status(403).json({ error: 'المالك بس يقدر يغيّر الصورة' });
   /* data URL صغيرة (128px JPEG). سقف أمان ~200KB عشان مايتخزنش نص ضخم. */
   let url = String((req.body && req.body.avatar_url) || '').trim();
@@ -392,7 +392,7 @@ router.post('/:id/avatar', authenticateToken, (req, res) => {
 router.post('/:id/members', authenticateToken, (req, res) => {
   const me = req.user.id;
   const gid = toId(req.params.id);
-  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'مش متاح' });
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
   const raw = Array.isArray(req.body && req.body.members) ? req.body.members : [];
   const added = [], invited = [];
   const gname = (db.prepare('SELECT name FROM groups WHERE id = ?').get(gid) || {}).name || '';
@@ -539,8 +539,8 @@ router.delete('/:id/members/:uid', authenticateToken, (req, res) => {
   const gid = toId(req.params.id);
   const uid = toId(req.params.uid);
   if (!gid || !uid || !isAdmin(gid, me)) return res.status(403).json({ error: 'المشرفون بس' });
-  if (uid === ownerOf(gid)) return res.status(400).json({ error: 'ماينفعش تشيل مالك الحفلة' });
-  if (!isMember(gid, uid)) return res.status(404).json({ error: 'مش عضو' });
+  if (uid === ownerOf(gid)) return res.status(400).json({ error: 'لا يمكن إزالة مالك الحفلة' });
+  if (!isMember(gid, uid)) return res.status(404).json({ error: 'لست عضوًا' });
   try {
     db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').run(gid, uid);
     try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:updated', group_id: gid }, null); } catch (e) {}
@@ -560,7 +560,7 @@ router.post('/:id/admins', authenticateToken, (req, res) => {
   const make = !!(req.body && req.body.make);
   if (!gid || !uid || !isAdmin(gid, me)) return res.status(403).json({ error: 'المشرفون بس' });
   if (uid === ownerOf(gid)) return res.status(400).json({ error: 'مالك الحفلة سوبر أدمن دايماً' });
-  if (!isMember(gid, uid)) return res.status(404).json({ error: 'مش عضو' });
+  if (!isMember(gid, uid)) return res.status(404).json({ error: 'لست عضوًا' });
   try {
     db.prepare('UPDATE group_members SET role = ? WHERE group_id = ? AND user_id = ?')
       .run(make ? 'admin' : 'member', gid, uid);

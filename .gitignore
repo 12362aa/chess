@@ -51,6 +51,12 @@ tokens.json
 cloudflared
 cloudflared*
 
+# مفاتيح توقيع أندرويد (رفع Google Play) — أسرار، ممنوع ترفع لـgit إطلاقًا.
+*.jks
+*.keystore
+keystore.properties
+key.properties
+
 # لوجات وملفات مؤقتة محلية
 logs/
 tunnel.out
@@ -59,3 +65,12 @@ tunnel.err
 git-push.bat
 kill-all.bat
 start-all.bat
+*.aab
+
+# ملفات تشخيص وقياس محلية (كلها ببادئة _) + بروفايل المتصفح بتاع القياس
+_*
+.chrome-prof-kb/
+
+# فولدر تسليم Google Play (بناء + صور المتجر) — مايتحفظش في المستودع
+play-store/
+play-store-amkh.zip

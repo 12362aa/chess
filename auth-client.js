@@ -212,7 +212,7 @@ const amkhAuth = {
         /* offline: السيرفر مش متاح دلوقتي. الجلسة بتفضل والتطبيق يشتغل،
            وبنحاول تاني بعد شوية. مسح التوكن هنا كان بيطلّع المستخدم من
            حسابه على أول فشل شبكة. */
-        console.log('[auth] الحساب محفوظ، السيرفر مش متاح دلوقتي — هنحاول تاني');
+        console.log('[auth] الحساب محفوظ، الخادم غير متاح حاليًا — ستُعاد المحاولة');
         setTimeout(() => { this.init(); }, 15000);
       }
     } else {
@@ -254,7 +254,7 @@ const amkhAuth = {
     /* الرابط لازم يكون متاح قبل النداء، وإلا الطلب بيروح لمسار نسبي
        مش موجود في الـAPK */
     if (!await window.amkhEnsureServer()) {
-      return { success: false, error: 'تعذّر الوصول للسيرفر. تأكد من الإنترنت وحاول تاني.' };
+      return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
     }
     const res = await fetch(`${window.getApiBase()}/login`, {
       method: 'POST',
@@ -275,7 +275,7 @@ const amkhAuth = {
 
   async register(email, password, displayName) {
     if (!await window.amkhEnsureServer()) {
-      return { success: false, error: 'تعذّر الوصول للسيرفر. تأكد من الإنترنت وحاول تاني.' };
+      return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
     }
     const res = await fetch(`${window.getApiBase()}/register`, {
       method: 'POST',
@@ -300,7 +300,7 @@ const amkhAuth = {
      نسيبه يضغط زر مايحصلش منه حاجة. */
   async loginWithGoogle() {
     if (!await window.amkhEnsureServer()) {
-      return { success: false, error: 'تعذّر الوصول للسيرفر. تأكد من الإنترنت وحاول تاني.' };
+      return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
     }
     const g = window.amkhGoogleAuth;
     if (!g || !g.available) {
@@ -402,7 +402,7 @@ const amkhAuth = {
   async promptMigration() {
     const wantsSync = await amkhUI.confirm(
       'ربط تقدمك الحالي',
-      'تم إنشاء الحساب. تحب نربط التقدم والإعدادات المحفوظة على الجهاز ده بحسابك الجديد؟',
+      'تم إنشاء الحساب. هل تريد ربط التقدّم والإعدادات المحفوظة على هذا الجهاز بحسابك الجديد؟',
       'اربط الآن', 'لاحقًا'
     );
     if (wantsSync) {
@@ -682,7 +682,7 @@ const amkhAuth = {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <h2 class="ds-dialog__title" id="auth-modal-title">تسجيل الدخول</h2>
-        <p class="ds-dialog__message" id="auth-modal-sub">سجّل دخولك عشان تقدر تزامن تقدمك وتلعب مع أصدقائك</p>
+        <p class="ds-dialog__message" id="auth-modal-sub">سجّل دخولك لمزامنة تقدّمك واللعب مع أصدقائك</p>
 
         <div class="ds-field">
           <input type="email" id="auth-email" class="ds-input" placeholder="البريد الإلكتروني"
@@ -761,7 +761,7 @@ const amkhAuth = {
         toggleBtn.textContent = 'لديك حساب بالفعل؟ سجّل الدخول';
       } else {
         titleEl.textContent = 'تسجيل الدخول';
-        subEl.textContent = 'سجّل دخولك عشان تقدر تزامن تقدمك وتلعب مع أصدقائك';
+        subEl.textContent = 'سجّل دخولك لمزامنة تقدّمك واللعب مع أصدقائك';
         nameField.style.display = 'none';
         loginBtn.textContent = 'تسجيل الدخول';
         toggleBtn.textContent = 'ليس لديك حساب؟ أنشئ حسابًا';
@@ -787,7 +787,7 @@ const amkhAuth = {
           ? await amkhAuth.register(email, pass, name)
           : await amkhAuth.login(email, pass);
       } catch (e) {
-        res = { success: false, error: 'تعذّر الاتصال بالخادم. تأكد من الإنترنت وحاول تاني.' };
+        res = { success: false, error: 'تعذّر الاتصال بالخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
       }
 
       loginBtn.disabled = false;
@@ -818,7 +818,7 @@ const amkhAuth = {
 
     overlay.querySelector('#btn-logout').onclick = async () => {
       amkhUI.sfx();
-      const sure = await amkhUI.confirm('تسجيل الخروج', 'هتخرج من حسابك على الجهاز ده. متأكد؟', 'خروج', 'إلغاء');
+      const sure = await amkhUI.confirm('تسجيل الخروج', 'سيتم تسجيل خروجك من حسابك على هذا الجهاز. هل أنت متأكد؟', 'خروج', 'إلغاء');
       if (sure) { overlay._dismiss(); this.logout(); }
     };
 

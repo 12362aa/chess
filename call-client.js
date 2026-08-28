@@ -189,7 +189,7 @@
         this._mic = null;
       }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        this._notify(wantVideo ? 'جهازك مايدعمش مكالمات الفيديو' : 'جهازك مايدعمش المكالمات الصوتية', 'غير متاح', '◈');
+        this._notify(wantVideo ? 'جهازك لا يدعم مكالمات الفيديو' : 'جهازك لا يدعم المكالمات الصوتية', 'غير متاح', '◈');
         throw new Error('no-getusermedia');
       }
       const audio = {
@@ -294,9 +294,9 @@
     async startCall(peerId, name, avatar, opts) {
       peerId = Number(peerId);
       const video = !!(opts && opts.video);
-      if (!this.me()) { this._notify('سجّل الدخول عشان تتصل', 'غير متصل', '◈'); return; }
-      if (this._call) { this._notify('في مكالمة شغّالة بالفعل', 'المكالمة', '◈'); return; }
-      if (!this._socket()) { this._notify('مفيش اتصال بالسيرفر دلوقتي', 'غير متصل', '◈'); return; }
+      if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '◈'); return; }
+      if (this._call) { this._notify('هناك مكالمة جارية بالفعل', 'المكالمة', '◈'); return; }
+      if (!this._socket()) { this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '◈'); return; }
       const callId = 'c' + this.me() + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
       this._call = {
         id: callId, group: null, isCaller: true, status: 'outgoing', video, camOff: false,
@@ -305,7 +305,7 @@
       };
       if (video) this._facing = 'user';
       try { await this._getMic(); }
-      catch (e) { this._call = null; this._notify(video ? 'مقدرناش نفتح الكاميرا/الميكروفون — فعّل الأذونات' : 'مقدرناش نفتح الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '◈'); return; }
+      catch (e) { this._call = null; this._notify(video ? 'تعذّر تشغيل الكاميرا أو الميكروفون — فعّل الأذونات' : 'تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '◈'); return; }
       this._send({ type: 'call:invite', to: peerId, callId, group: null, members: [this.me(), peerId], callType: video ? 'video' : 'audio' });
       this._showActive();
       this._startRing('out');
@@ -319,11 +319,11 @@
     async startGroupCall(groupId, name, memberIds, opts) {
       groupId = Number(groupId);
       const video = !!(opts && opts.video);
-      if (!this.me()) { this._notify('سجّل الدخول عشان تتصل', 'غير متصل', '◈'); return; }
-      if (this._call) { this._notify('في مكالمة شغّالة بالفعل', 'المكالمة', '◈'); return; }
-      if (!this._socket()) { this._notify('مفيش اتصال بالسيرفر دلوقتي', 'غير متصل', '◈'); return; }
+      if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '◈'); return; }
+      if (this._call) { this._notify('هناك مكالمة جارية بالفعل', 'المكالمة', '◈'); return; }
+      if (!this._socket()) { this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '◈'); return; }
       const others = (memberIds || []).map(Number).filter(id => id && id !== this.me());
-      if (!others.length) { this._notify('مفيش أعضاء تانيين في الحفلة', 'المكالمة', '◈'); return; }
+      if (!others.length) { this._notify('لا يوجد أعضاء آخرون في الحفلة', 'المكالمة', '◈'); return; }
       const callId = 'g' + groupId + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
       const members = [this.me(), ...others];
       this._call = {
@@ -333,7 +333,7 @@
       };
       if (video) this._facing = 'user';
       try { await this._getMic(); }
-      catch (e) { this._call = null; this._notify(video ? 'مقدرناش نفتح الكاميرا/الميكروفون — فعّل الأذونات' : 'مقدرناش نفتح الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '◈'); return; }
+      catch (e) { this._call = null; this._notify(video ? 'تعذّر تشغيل الكاميرا أو الميكروفون — فعّل الأذونات' : 'تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '◈'); return; }
       others.forEach(id => this._send({ type: 'call:invite', to: id, callId, group: groupId, members, callType: video ? 'video' : 'audio' }));
       this._showActive();
       this._startRing('out');
@@ -348,7 +348,7 @@
       const call = this._call; if (!call || call.status !== 'incoming') return;
       try { SFX.btn(); } catch (e) {}
       try { await this._getMic(); }
-      catch (e) { this.reject(); this._notify('مقدرناش نفتح الميكروفون — فعّل إذن الميكروفون', 'الميكروفون', '◈'); return; }
+      catch (e) { this.reject(); this._notify('تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', 'الميكروفون', '◈'); return; }
       call.status = 'connecting';
       this._stopRing();
       this._clearRingTimeout();

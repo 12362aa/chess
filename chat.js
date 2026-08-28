@@ -112,7 +112,7 @@ router.get('/history', authenticateToken, (req, res) => {
   const me = req.user.id;
   const other = toId(req.query.with);
   if (!other) return res.status(400).json({ error: 'صديق غير صالح' });
-  if (!areFriends(me, other) || blockedBetween(me, other)) return res.status(403).json({ error: 'مش متاح' });
+  if (!areFriends(me, other) || blockedBetween(me, other)) return res.status(403).json({ error: 'غير متاح' });
 
   const before = toId(req.query.before);
   let limit = Number(req.query.limit) || 30;
@@ -200,8 +200,8 @@ router.post('/played', authenticateToken, (req, res) => {
   if (!id) return res.status(400).json({ error: 'رسالة غير صالحة' });
   try {
     const m = db.prepare('SELECT sender_id, recipient_id, kind FROM messages WHERE id = ?').get(id);
-    if (!m || m.kind !== 'voice') return res.status(404).json({ error: 'مش متاح' });
-    if (m.recipient_id !== me) return res.status(403).json({ error: 'مش متاح' }); /* بتستمع لرسالة موجّهة ليك بس */
+    if (!m || m.kind !== 'voice') return res.status(404).json({ error: 'غير متاح' });
+    if (m.recipient_id !== me) return res.status(403).json({ error: 'غير متاح' }); /* بتستمع لرسالة موجّهة ليك بس */
     db.prepare(`INSERT OR IGNORE INTO voice_plays (scope, message_id, user_id) VALUES ('dm', ?, ?)`).run(id, me);
     res.json({ ok: true });
   } catch (e) {
@@ -217,8 +217,8 @@ router.get('/message-info', authenticateToken, (req, res) => {
   if (!id) return res.status(400).json({ error: 'رسالة غير صالحة' });
   try {
     const m = db.prepare('SELECT sender_id, recipient_id, kind, delivered_at, read_at FROM messages WHERE id = ?').get(id);
-    if (!m) return res.status(404).json({ error: 'مش موجودة' });
-    if (m.sender_id !== me) return res.status(403).json({ error: 'مش متاح' });
+    if (!m) return res.status(404).json({ error: 'غير موجودة' });
+    if (m.sender_id !== me) return res.status(403).json({ error: 'غير متاح' });
     let listened = [];
     if (m.kind === 'voice') {
       listened = db.prepare(`SELECT v.user_id AS id, v.played_at AS at, u.display_name, u.username, u.provider, u.avatar_url

@@ -50,7 +50,7 @@ const amkhFriends = {
 
   async _post(path, body) {
     const headers = await this.getAuthHeader();
-    if (!headers) return { ok: false, error: 'مش مسجّل دخول' };
+    if (!headers) return { ok: false, error: 'لم تسجّل الدخول' };
     try {
       const res = await fetch(`${window.getApiBase()}${path}`, {
         method: 'POST',
@@ -128,7 +128,7 @@ const amkhFriends = {
   },
 
   async removeFriend(userId, name) {
-    const yes = await window.amkhUI.confirm('إزالة صديق', `متأكد إنك عايز تشيل ${name} من أصدقائك؟`, 'شيله', 'إلغاء');
+    const yes = await window.amkhUI.confirm('إزالة صديق', `هل أنت متأكد من إزالة ${name} من أصدقائك؟`, 'إزالة', 'إلغاء');
     if (!yes) return;
     const headers = await this.getAuthHeader();
     try {
@@ -139,7 +139,7 @@ const amkhFriends = {
   },
 
   async blockUser(userId, name) {
-    const yes = await window.amkhUI.confirm('حظر لاعب', `${name} مش هيقدر يبعتلك طلب ولا دعوة، ومش هيلاقيك في البحث.`, 'احظره', 'إلغاء');
+    const yes = await window.amkhUI.confirm('حظر لاعب', `لن يستطيع ${name} إرسال طلب أو دعوة إليك، ولن يجدك في البحث.`, 'احظر', 'إلغاء');
     if (!yes) return;
     const r = await this._post('/friends/block', { user_id: userId });
     if (r.ok) {
@@ -173,7 +173,7 @@ const amkhFriends = {
   inviteFriend(friendId, name, color, rated, tc) {
     const ws = this._socket();
     if (!ws) {
-      window.amkhUI.notify('مفيش اتصال بالسيرفر دلوقتي. تأكد من الإنترنت وحاول تاني.', 'غير متصل', '◈');
+      window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.', 'غير متصل', '◈');
       return false;
     }
     /* الداعي بيختار لونه زي الأونلاين العادي: أبيض/أسود/عشوائي. السيرفر
@@ -205,11 +205,11 @@ const amkhFriends = {
       }
       case 'friend:request-received':
         this.loadRequests().then(() => { if (this._sheet) this._render(); });
-        if (d.from) window.amkhUI.notify(`${window.amkhName(d.from)} عايز يضيفك صديق`, 'طلب صداقة', '◉');
+        if (d.from) window.amkhUI.notify(`${window.amkhName(d.from)} يريد إضافتك صديقًا`, 'طلب صداقة', '◉');
         return true;
       case 'friend:added':
         this.loadFriends().then(() => { if (this._sheet) this._render(); });
-        if (d.friend) window.amkhUI.notify(`${window.amkhName(d.friend)} بقى صديقك`, 'صداقة جديدة', '◉');
+        if (d.friend) window.amkhUI.notify(`${window.amkhName(d.friend)} أصبح صديقك`, 'صداقة جديدة', '◉');
         return true;
       case 'friend:removed':
         this.loadFriends().then(() => { if (this._sheet) this._render(); });
@@ -219,12 +219,12 @@ const amkhFriends = {
         return true;
       case 'friend:invite-sent':
         if (d.delivered === false) {
-          window.amkhUI.notify('صاحبك مش متصل دلوقتي — هيلاقي الدعوة أول ما يفتح التطبيق', 'الدعوة مسجّلة', '◈');
+          window.amkhUI.notify('صديقك غير متصل حاليًا — سيجد الدعوة بمجرّد فتحه التطبيق', 'الدعوة مسجّلة', '◈');
         }
         return true;
       case 'friend:invite-declined': {
         const n = this._outgoingInvite && this._outgoingInvite.name;
-        window.amkhUI.notify(n ? `${n} رفض الدعوة` : 'الدعوة اترفضت', 'مرفوضة', '◈');
+        window.amkhUI.notify(n ? `${n} رفض الدعوة` : 'تم رفض الدعوة', 'مرفوضة', '◈');
         this._outgoingInvite = null;
         return true;
       }
@@ -239,7 +239,7 @@ const amkhFriends = {
       case 'friend:invite-error': {
         const map = {
           'not-friend': 'لازم يكون صديقك الأول',
-          'blocked': 'مش ممكن إرسال الدعوة',
+          'blocked': 'لا يمكن إرسال الدعوة',
           'expired': 'الدعوة انتهت',
           'host-offline': 'اللاعب قفل التطبيق',
         };
@@ -272,8 +272,8 @@ const amkhFriends = {
       <div class="ds-dialog fr-invite" data-invite="${Number(invite.id)}">
         <div class="ds-dialog__icon" aria-hidden="true"><i class="ico ico--online"></i></div>
         <h2 class="ds-dialog__title">دعوة لمباراة</h2>
-        <p class="ds-dialog__message"><b class="fr-invite__name"></b> بيدعيك للعب دلوقتي</p>
-        ${invite.rated ? '<p class="fr-invite__rated">★ مباراة مصنّفة — هتأثّر على تقييمك</p>' : ''}
+        <p class="ds-dialog__message"><b class="fr-invite__name"></b> يدعوك إلى اللعب الآن</p>
+        ${invite.rated ? '<p class="fr-invite__rated">★ مباراة مصنّفة — ستؤثّر على تقييمك</p>' : ''}
         ${invite.tc ? `<p class="fr-invite__rated">⏱ زمن المباراة: ${Math.round(invite.tc.base / 60)} دقيقة${invite.tc.inc ? ` + ${invite.tc.inc} ث/نقلة` : ''}</p>` : ''}
         <div class="fr-invite__timer" aria-hidden="true"><span class="fr-invite__bar"></span></div>
         <p class="fr-invite__left"><span class="fr-invite__n">${seconds}</span> ثانية</p>
@@ -325,7 +325,7 @@ const amkhFriends = {
       <div class="ds-dialog fr-invite" data-party-invite="${iid}">
         <div class="ds-dialog__icon" aria-hidden="true"><i class="ico ico--join"></i></div>
         <h2 class="ds-dialog__title">دعوة لحفلة</h2>
-        <p class="ds-dialog__message"><b class="fr-invite__name"></b> بيدعيك تنضم لحفلة «<b class="fr-invite__party"></b>»</p>
+        <p class="ds-dialog__message"><b class="fr-invite__name"></b> يدعوك للانضمام إلى حفلة «<b class="fr-invite__party"></b>»</p>
         <div class="ds-dialog__actions" style="flex-direction:column;">
           <button class="ds-btn ds-btn--primary ds-btn--block" data-accept>انضمام</button>
           <button class="ds-btn ds-btn--ghost ds-btn--block" data-decline>رفض</button>
@@ -459,7 +459,7 @@ const amkhFriends = {
   async showFriendsModal() {
     const U = window.amkhUI;
     if (!window.amkhAuth || !window.amkhAuth.token) {
-      U.notify('سجّل دخولك الأول عشان تضيف أصدقاء وتلعب معاهم', 'محتاج حساب', '◈');
+      U.notify('سجّل دخولك أولًا لإضافة أصدقاء واللعب معهم', 'يلزمك حساب', '◈');
       if (window.amkhAuth) window.amkhAuth.showLoginModal();
       return;
     }
@@ -469,7 +469,7 @@ const amkhFriends = {
         <div class="ds-sheet__handle" aria-hidden="true"></div>
         <div class="ds-sheet__header">
           <h3 class="ds-sheet__title">الأصدقاء</h3>
-          <button class="ds-sheet__inbox" data-inbox aria-label="الرسايل">${(window.amkhChat && window.amkhChat.ICONS.chat) || '✉'}</button>
+          <button class="ds-sheet__inbox" data-inbox aria-label="الرسائل">${(window.amkhChat && window.amkhChat.ICONS.chat) || '✉'}</button>
           <button class="ds-sheet__close" data-close aria-label="إغلاق">✕</button>
         </div>
         <div class="fr-tabs" role="tablist">
@@ -487,7 +487,7 @@ const amkhFriends = {
                      placeholder="ابحث باسم اللاعب…" autocomplete="off" inputmode="search">
               <button id="btn-friend-search" class="ds-btn ds-btn--secondary">بحث</button>
             </div>
-            <p class="fr-hint">اللاعبين بيتلاقوا باسم المستخدم — البريد الإلكتروني مش ظاهر لأي حد.</p>
+            <p class="fr-hint">يُعثَر على اللاعبين باسم المستخدم — البريد الإلكتروني غير ظاهر لأحد.</p>
             <div id="friend-search-results" class="fr-group"></div>
           </div>
         </div>
@@ -499,7 +499,7 @@ const amkhFriends = {
       try { window.DSOverlay.makeSheetDraggable('amkh-friends-modal', 'amkh-friends-panel'); } catch (e) {}
     }
 
-    /* زر صندوق الرسايل في رأس القائمة */
+    /* زر صندوق الرسائل في رأس القائمة */
     const inboxBtn = overlay.querySelector('[data-inbox]');
     if (inboxBtn) inboxBtn.onclick = () => { U.sfx(); if (window.amkhChat) window.amkhChat.showInbox(); };
 
@@ -525,7 +525,7 @@ const amkhFriends = {
       resDiv.innerHTML = '<p class="fr-empty">جاري البحث…</p>';
       const results = await this.searchUsers(q);
       resDiv.innerHTML = '';
-      if (!results.length) { resDiv.innerHTML = '<p class="fr-empty">مفيش لاعب بالاسم ده</p>'; return; }
+      if (!results.length) { resDiv.innerHTML = '<p class="fr-empty">لا يوجد لاعب بهذا الاسم</p>'; return; }
       results.forEach(u => resDiv.appendChild(this._searchRow(u)));
     };
     overlay.querySelector('#btn-friend-search').onclick = () => { U.sfx(); runSearch(); };
@@ -570,7 +570,7 @@ const amkhFriends = {
     /* الأصدقاء */
     listDiv.innerHTML = '';
     if (!this._friends.length) {
-      listDiv.innerHTML = '<p class="fr-empty">لسه مفيش أصدقاء. دوّر على صاحبك من تبويب «إضافة صديق».</p>';
+      listDiv.innerHTML = '<p class="fr-empty">لا يوجد أصدقاء بعد. ابحث عن صديقك من تبويب «إضافة صديق».</p>';
       return;
     }
     const h2 = document.createElement('h4');
@@ -702,7 +702,7 @@ const amkhFriends = {
 
   _requestRow(r) {
     const U = window.amkhUI;
-    const { row, acts } = this._baseRow(r, 'عايز يضيفك صديق', '');
+    const { row, acts } = this._baseRow(r, 'يريد إضافتك صديقًا', '');
     const yes = document.createElement('button');
     yes.type = 'button';
     yes.className = 'ds-btn ds-btn--primary ds-btn--sm';
@@ -854,7 +854,7 @@ const amkhFriends = {
     const d = Math.floor(h / 24);
     if (d === 1) return 'أمس';
     if (d < 30) return `منذ ${d} يوم`;
-    return 'مش متصل من فترة';
+    return 'غير متصل منذ مدة';
   },
 
   /* توقيت SQLite (datetime('now')) بيرجع UTC ساذج "YYYY-MM-DD HH:MM:SS" من غير Z،

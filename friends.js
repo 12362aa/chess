@@ -145,14 +145,14 @@ router.post('/request', authenticateToken, (req, res) => {
     if (row) target = row.id;
   }
   if (!target) return res.status(400).json({ error: 'مستخدم غير صحيح' });
-  if (target === me) return res.status(400).json({ error: 'مش ممكن تضيف نفسك' });
+  if (target === me) return res.status(400).json({ error: 'لا يمكنك إضافة نفسك' });
 
   const receiver = db.prepare('SELECT id, username, display_name FROM users WHERE id = ?').get(target);
-  if (!receiver) return res.status(404).json({ error: 'اللاعب مش موجود' });
+  if (!receiver) return res.status(404).json({ error: 'اللاعب غير موجود' });
 
   /* الحظر مايرجّعش رسالة تفرّق بين «محظور» و«مش موجود»، عشان الحظر
      مايتحوّلش لأداة يعرف بيها الطرف التاني إنه اتحظر */
-  if (blockedBetween(me, target)) return res.status(403).json({ error: 'مش ممكن إرسال الطلب' });
+  if (blockedBetween(me, target)) return res.status(403).json({ error: 'لا يمكن إرسال الطلب' });
   if (areFriends(me, target)) return res.status(409).json({ error: 'أنتم أصدقاء بالفعل' });
 
   const incoming = db.prepare(`SELECT id FROM friend_requests WHERE sender_id = ? AND receiver_id = ? AND status = 'pending'`).get(target, me);
@@ -170,7 +170,7 @@ router.post('/request', authenticateToken, (req, res) => {
     /* خصوصية المستلِم: مين مسموح له يبعتله طلب صداقة (Everyone/Nobody).
        بنرجّع نفس رسالة الحظر المبهمة عشان الإعداد مايتحوّلش لأداة كشف. */
     if (!privacy.canFriendRequest(me, target)) {
-      return res.status(403).json({ error: 'مش ممكن إرسال الطلب' });
+      return res.status(403).json({ error: 'لا يمكن إرسال الطلب' });
     }
     /* طلب مرفوض قبل كده بيرجع pending تاني بدل ما يقف عند UNIQUE */
     const prev = db.prepare('SELECT id, status FROM friend_requests WHERE sender_id = ? AND receiver_id = ?').get(me, target);
@@ -224,7 +224,7 @@ router.post('/respond', authenticateToken, (req, res) => {
   if (action !== 'accept' && action !== 'decline') return res.status(400).json({ error: 'إجراء غير معروف' });
 
   const request = db.prepare(`SELECT id, sender_id FROM friend_requests WHERE id = ? AND receiver_id = ? AND status = 'pending'`).get(id, me);
-  if (!request) return res.status(404).json({ error: 'الطلب مش موجود أو اترد عليه' });
+  if (!request) return res.status(404).json({ error: 'الطلب غير موجود أو تم الردّ عليه' });
 
   if (action === 'accept') {
     db.transaction(() => {
@@ -285,11 +285,11 @@ router.post('/invite', authenticateToken, (req, res) => {
   const to = toId(req.body && (req.body.friend_id || req.body.to));
   const color = ['w', 'b', 'r'].includes(req.body && req.body.color) ? req.body.color : 'r';
   if (!to) return res.status(400).json({ error: 'صديق غير صحيح' });
-  if (to === me) return res.status(400).json({ error: 'مش ممكن تدعي نفسك' });
+  if (to === me) return res.status(400).json({ error: 'لا يمكنك دعوة نفسك' });
   if (!areFriends(me, to)) return res.status(403).json({ error: 'ينفع تدعي أصدقاءك بس' });
-  if (blockedBetween(me, to)) return res.status(403).json({ error: 'مش ممكن إرسال الدعوة' });
+  if (blockedBetween(me, to)) return res.status(403).json({ error: 'لا يمكن إرسال الدعوة' });
   /* خصوصية المدعوّ: مين مسموح له يبعتله دعوة لعب (Everyone/Friends/Nobody). */
-  if (!privacy.canGameInvite(me, to)) return res.status(403).json({ error: 'إعدادات الخصوصية عند صاحبك مابتسمحش بالدعوة' });
+  if (!privacy.canGameInvite(me, to)) return res.status(403).json({ error: 'إعدادات الخصوصية لدى صديقك لا تسمح بالدعوة' });
 
   /* دعوة واحدة حيّة بين الاتنين في الاتجاه ده */
   const live = db.prepare(`SELECT id FROM game_invites WHERE from_id = ? AND to_id = ? AND status = 'pending'`).get(me, to);
@@ -337,7 +337,7 @@ router.post('/invite/respond', authenticateToken, (req, res) => {
   if (!['accept', 'decline'].includes(action)) return res.status(400).json({ error: 'إجراء غير معروف' });
 
   const inv = db.prepare(`SELECT * FROM game_invites WHERE id = ? AND to_id = ? AND status = 'pending'`).get(id, me);
-  if (!inv) return res.status(404).json({ error: 'الدعوة انتهت أو مش موجودة' });
+  if (!inv) return res.status(404).json({ error: 'انتهت الدعوة أو أنها غير موجودة' });
 
   if (action === 'decline') {
     db.prepare(`UPDATE game_invites SET status = 'declined', responded_at = datetime('now') WHERE id = ?`).run(id);
@@ -358,7 +358,7 @@ router.post('/invite/cancel', authenticateToken, (req, res) => {
   const id = toId(req.body && req.body.invite_id);
   if (!id) return res.status(400).json({ error: 'دعوة غير صحيحة' });
   const inv = db.prepare(`SELECT to_id FROM game_invites WHERE id = ? AND from_id = ? AND status = 'pending'`).get(id, me);
-  if (!inv) return res.status(404).json({ error: 'الدعوة مش موجودة' });
+  if (!inv) return res.status(404).json({ error: 'الدعوة غير موجودة' });
   db.prepare(`UPDATE game_invites SET status = 'cancelled', responded_at = datetime('now') WHERE id = ?`).run(id);
   realtime.push(inv.to_id, { type: 'friend:invite-cancelled', invite_id: id });
   res.json({ success: true });
@@ -373,7 +373,7 @@ router.post('/block', authenticateToken, (req, res) => {
   const me = req.user.id;
   const target = toId(req.body && (req.body.user_id || req.body.friend_id));
   if (!target || target === me) return res.status(400).json({ error: 'مستخدم غير صحيح' });
-  if (!db.prepare('SELECT 1 FROM users WHERE id = ?').get(target)) return res.status(404).json({ error: 'اللاعب مش موجود' });
+  if (!db.prepare('SELECT 1 FROM users WHERE id = ?').get(target)) return res.status(404).json({ error: 'اللاعب غير موجود' });
 
   db.transaction(() => {
     db.prepare('INSERT OR IGNORE INTO friend_blocks (blocker_id, blocked_id) VALUES (?, ?)').run(me, target);
@@ -426,7 +426,7 @@ router.delete('/:friendId', authenticateToken, (req, res) => {
     return a.changes;
   })();
 
-  if (!info) return res.status(404).json({ error: 'مش في قائمة أصدقاءك' });
+  if (!info) return res.status(404).json({ error: 'ليس في قائمة أصدقائك' });
   realtime.push(friendId, { type: 'friend:removed', user_id: me });
   res.json({ success: true });
 });
