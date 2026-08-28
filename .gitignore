@@ -19,7 +19,7 @@ ngrok
 
 .claude/settings.local.json
 .tmp-cdp/
-.chrome-prof/
+.chrome-prof*/
 _shot_*.png
 _run.js
 _shoot.js
@@ -67,9 +67,8 @@ kill-all.bat
 start-all.bat
 *.aab
 
-# ملفات تشخيص وقياس محلية (كلها ببادئة _) + بروفايل المتصفح بتاع القياس
+# ملفات تشخيص وقياس محلية (كلها ببادئة _)
 _*
-.chrome-prof-kb/
 
 # فولدر تسليم Google Play (بناء + صور المتجر) — مايتحفظش في المستودع
 play-store/
