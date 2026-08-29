@@ -853,7 +853,7 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
    وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
 const LATEST_VERSION = '3.10';
-const LATEST_CODE = 24;
+const LATEST_CODE = 25;
 const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
 app.get('/api/version', (req, res) => {
   res.json({
@@ -861,7 +861,7 @@ app.get('/api/version', (req, res) => {
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'تنسيق أفضل لدردشة المباراة: الصندوق يلتصق بصفّ الأزرار بلا فراغ، ولا يعلو فوق الرقعة عند ظهور لوحة المفاتيح — على الهاتف واللوح الرقمي في جميع الأوضاع. وجميع نصوص الإشعارات والتحديثات صارت بالعربية الفصحى.',
+    notes: 'إصلاح الدخول بحساب جوجل في النسخة الموقّعة للنشر، ورسائل عربية واضحة إذا تعذّر الدخول بدلًا من الفشل الصامت. وتنسيق أفضل لدردشة المباراة مع لوحة المفاتيح.',
   });
 });
 

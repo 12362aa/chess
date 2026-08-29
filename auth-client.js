@@ -298,6 +298,32 @@ const amkhAuth = {
      على المتصفح مافيش plugin: جوجل بترفض OAuth جوه WebView وفي المتصفح
      العادي محتاج تدفق مختلف، فبنقول للمستخدم يستخدم التطبيق بدل ما
      نسيبه يضغط زر مايحصلش منه حاجة. */
+  /* ── تصنيف أخطاء الدخول بجوجل ──
+     الـplugin بيرمي رسائل إنجليزية طويلة موجّهة للمطوّر (فيها Logcat وOAuth
+     consent screen وغيره). عرضها للمستخدم كان خطأ: نصّ إنجليزي جوّه تطبيق
+     عربي ومافيهوش أي إرشاد مفيد. بنترجم السبب لرسالة عربية قصيرة تقول
+     للمستخدم يعمل إيه، وبنسيب التفصيل الكامل في console للتشخيص، مع كود
+     رقمي مختصر بين قوسين عشان نعرف السبب من صورة الشاشة. */
+  _googleErr(raw) {
+    const m = String(raw || '');
+    const code = (m.match(/\[(\d{1,5})\]/) || m.match(/(?:^|\s)(\d{1,5}):/) || [])[1] || '';
+    const tail = code ? ` (${code})` : '';
+    /* إعداد المشروع/التوقيع: بصمة التوقيع غير مسجّلة أو شاشة الموافقة مقيّدة */
+    if (/Account reauth failed|Developer console|28444|\[10\]|(?:^|\s)10:/i.test(m)) {
+      return 'تعذّر الدخول بحساب جوجل في هذا الإصدار من التطبيق. استخدم البريد الإلكتروني وكلمة المرور الآن' + tail;
+    }
+    if (/no credential|NoCredential|no accounts|GetCredentialUnsupported/i.test(m)) {
+      return 'لا يوجد حساب جوجل مُضاف على هذا الجهاز. أضف حسابك من إعدادات الجهاز ثم أعِد المحاولة' + tail;
+    }
+    if (/network|timeout|unable to resolve host|7:/i.test(m)) {
+      return 'تعذّر الوصول إلى خدمات جوجل. تأكّد من اتصال الإنترنت ثم أعِد المحاولة' + tail;
+    }
+    if (/main activity|scopes/i.test(m)) {
+      return 'تعذّر بدء الدخول بحساب جوجل. استخدم البريد الإلكتروني وكلمة المرور' + tail;
+    }
+    return 'تعذّر الدخول بحساب جوجل. أعِد المحاولة، أو استخدم البريد الإلكتروني وكلمة المرور' + tail;
+  },
+
   async loginWithGoogle() {
     if (!await window.amkhEnsureServer()) {
       return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
@@ -307,18 +333,22 @@ const amkhAuth = {
       return { success: false, error: 'الدخول بجوجل متاح في تطبيق الأندرويد' };
     }
     let idToken;
+    const t0 = Date.now();
     try {
       const r = await g.signIn();
       idToken = r && r.idToken;
     } catch (e) {
       const m = String((e && e.message) || '');
-      /* إلغاء المستخدم مش خطأ — مانزعّجهوش برسالة */
-      if (/cancel|closed|12501|user_cancel/i.test(m)) return { success: false, cancelled: true };
-      console.error('[auth] google sign-in failed:', m);
-      /* السبب بيظهر في الرسالة كاملًا: تشخيص فشل الدخول بجوجل على تليفون
-         بعيد من غير سبب مكتوب كان شبه مستحيل. مابنقصّش الرسالة كتير عشان
-         رسائل الـplugin الأصلية (زي «10:» أو «main activity») تبان كلها. */
-      return { success: false, error: 'تعذّر الدخول بجوجل — ' + (m.slice(0, 200) || 'سبب غير معروف') };
+      const ms = Date.now() - t0;
+      console.error('[auth] google sign-in failed after', ms, 'ms:', m);
+      /* إلغاء المستخدم مش خطأ — مانزعّجهوش برسالة. لكن لازم نفرّق: لمّا
+         الإعداد يكون ناقصًا، «ورقة اختيار الحساب» بتتقفل وحدها في أقل من
+         ثانية وجوجل بترجّع نفس استثناء الإلغاء — فكان الزر بيفشل بصمت
+         تمامًا من غير أي رسالة. لو الإلغاء جا أسرع من أن يكون المستخدم
+         شافها واختار، بنعرض رسالة إرشادية بدل الصمت. */
+      const cancelled = /cancel|closed|12501|user_cancel|dismiss/i.test(m);
+      if (cancelled && ms >= 1200) return { success: false, cancelled: true };
+      return { success: false, error: this._googleErr(m) };
     }
     if (!idToken) return { success: false, error: 'تعذّر الحصول على هوية جوجل' };
 
@@ -741,7 +771,7 @@ const amkhAuth = {
           if (r.success) {
             amkhUI.close(overlay);
             amkhAuth.updateUI();
-            amkhUI.notify('اهلاً بك! تم تسجيل الدخول', 'تم', '◉');
+            amkhUI.notify('أهلًا بك! تم تسجيل الدخول', 'تم', '◉');
           } else if (!r.cancelled) {
             errDiv.textContent = r.error || 'تعذّر الدخول';
           }
@@ -755,7 +785,7 @@ const amkhAuth = {
       errDiv.textContent = '';
       if (isRegisterMode) {
         titleEl.textContent = 'إنشاء حساب جديد';
-        subEl.textContent = 'حسابك بيحفظ تقدمك في المراحل وإعداداتك على أي جهاز';
+        subEl.textContent = 'حسابك يحفظ تقدّمك في المراحل وإعداداتك على أي جهاز';
         nameField.style.display = '';
         loginBtn.textContent = 'إنشاء الحساب';
         toggleBtn.textContent = 'لديك حساب بالفعل؟ سجّل الدخول';
