@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "467677566583-1gsioml9kdpe22maojv2v5ijh670l3nl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chess",
+            "certificate_hash": "a84988f38222e8b41b458265aa2f9ef2ec02a04a"
+          }
+        },
+        {
           "client_id": "467677566583-au657gjemdqdlkbtu8270m7vkpuu6s6v.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
