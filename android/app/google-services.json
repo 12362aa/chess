@@ -31,11 +31,27 @@
           }
         },
         {
+          "client_id": "467677566583-fu5o0inpb70fv5j4mr03rcolqknsp33b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chess",
+            "certificate_hash": "72b1235f709a7e3568c970eb4ac525f2081ee5cb"
+          }
+        },
+        {
           "client_id": "467677566583-qvomumj54rbnevog8n92rgl6f4pcl014.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.amkh.chess",
             "certificate_hash": "0b33f747933af3c6c32bbd694a35e4b14a0d708a"
+          }
+        },
+        {
+          "client_id": "467677566583-tqimsvqnkeff2mefpt3uqourglvn7995.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chess",
+            "certificate_hash": "9332de48cb0acf8b0458b84b607fae29824ed8c9"
           }
         },
         {
