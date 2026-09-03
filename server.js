@@ -853,7 +853,7 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
    وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
 const LATEST_VERSION = '3.10';
-const LATEST_CODE = 25;
+const LATEST_CODE = 26;
 const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
 app.get('/api/version', (req, res) => {
   res.json({
@@ -861,7 +861,7 @@ app.get('/api/version', (req, res) => {
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'إصلاح الدخول بحساب جوجل في النسخة الموقّعة للنشر، ورسائل عربية واضحة إذا تعذّر الدخول بدلًا من الفشل الصامت. وتنسيق أفضل لدردشة المباراة مع لوحة المفاتيح.',
+    notes: 'إصلاح جوهري لحالة «في مباراة» التي كانت تبقى عالقة فتمنع إعادة الدعوة، وإضافة الإشارة إلى الأصدقاء (@) والتفاعل بالرموز وتثبيت المحادثات وترتيب صندوق الرسائل بالأحدث، ووضع المشاهدة لمباريات الأصدقاء، ولوحة تصنيف متكاملة وصفحة لاعب مفصّلة.',
   });
 });
 
@@ -887,21 +887,37 @@ app.get('/api/health', (req, res) => {
 /* ══ لوحة الصدارة العالمية ══
    ترتيب حسب "التقييم المتحفّظ" (r − 2·RD) بين اللي لعبوا مباراة مصنّفة واحدة على الأقل،
    وده بيدفع التقييمات المبدئية (RD عالي) لتحت تلقائيًا. حساب-مربوط: الاسم + الأفاتار +
-   التقييم + علَم الدولة (اختيار يدوي). التصميم فاخر وثابت (مش تابع للثيم) على العميل. */
+   التقييم + علَم الدولة (اختيار يدوي). التصميم فاخر وثابت (مش تابع للثيم) على العميل.
+
+   #12 — «لوحة التصنيف يجب أن تكون متكاملة»: الأرقام كانت ناقصة لسببين:
+   (أ) الشرط كان rating_games >= 1 فاللي لعبوا مباريات ودّية بس ماكانوش
+       بيظهروا خالص رغم إن عندهم انتصارات حقيقية.
+   (ب) العمود «مباريات» كان rating_games (المصنّفة بس) بينما
+       فوز/خسارة/تعادل بتحسب كل المباريات، فالمجموع مايطابقش العدد.
+   دلوقتي: games = فوز+خسارة+تعادل (كل المباريات)، وrated_games منفصل،
+   ونسبة الفوز محسوبة على السيرفر، وترتيب اختياري (sort). */
 app.get('/api/leaderboard', (req, res) => {
   try {
     let limit = parseInt(req.query.limit, 10);
     if (!isFinite(limit) || limit <= 0) limit = 100;
     limit = Math.min(limit, 200);
+    const sort = ['rating', 'wins', 'games'].includes(String(req.query.sort || '')) ? String(req.query.sort) : 'rating';
+    const order = sort === 'wins'
+      ? 'wins DESC, (rating - 2 * rating_rd) DESC'
+      : sort === 'games'
+        ? '(wins + losses + draws) DESC, (rating - 2 * rating_rd) DESC'
+        : '(rating - 2 * rating_rd) DESC, rating_games DESC, wins DESC';
     const rows = db.prepare(`
       SELECT id, display_name, username, provider, avatar_url, country,
              rating, rating_rd, rating_games, rating_peak, wins, losses, draws
       FROM users
-      WHERE rating_games >= 1
-      ORDER BY (rating - 2 * rating_rd) DESC, rating_games DESC
+      WHERE rating_games >= 1 OR (COALESCE(wins,0) + COALESCE(losses,0) + COALESCE(draws,0)) >= 1
+      ORDER BY ${order}
       LIMIT ?`).all(limit);
     const out = rows.map((u, i) => {
       const rd = isFinite(u.rating_rd) ? u.rating_rd : 350;
+      const wins = u.wins || 0, losses = u.losses || 0, draws = u.draws || 0;
+      const games = wins + losses + draws;
       return {
         rank: i + 1,
         id: u.id,
@@ -909,17 +925,62 @@ app.get('/api/leaderboard', (req, res) => {
         avatar_url: u.avatar_url || null,
         country: u.country || null,
         rating: Math.round(isFinite(u.rating) ? u.rating : 1500),
-        provisional: rd > 110,
+        provisional: rd > 110 || !(u.rating_games > 0),
         peak: Math.round(isFinite(u.rating_peak) ? u.rating_peak : 1500),
-        games: u.rating_games || 0,
-        wins: u.wins || 0,
-        losses: u.losses || 0,
-        draws: u.draws || 0,
+        games,
+        rated_games: u.rating_games || 0,
+        wins, losses, draws,
+        win_rate: games ? Math.round((wins / games) * 100) : 0,
       };
     });
-    res.json({ players: out, updated_at: new Date().toISOString() });
+    res.json({ players: out, sort, updated_at: new Date().toISOString() });
   } catch (e) {
     console.error('[leaderboard] failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ══ ملف لاعب عام (#17) ══
+   بيغذّي صفحة «الملف الشخصي» جوه المباراة على نمط chess.com: التقييم
+   والأعلى والسلسلة الحالية وتوزيع الألوان وآخر المباريات. عام (بدون
+   توكن) لأنه بيانات لعب مش بيانات خاصة — ومافيهوش إيميل ولا أي هوية
+   خاصة، بالضبط زي بقية الواجهات العامة. */
+app.get('/api/profile/:id', (req, res) => {
+  const uid = parseInt(req.params.id, 10);
+  if (!Number.isInteger(uid) || uid <= 0) return res.status(400).json({ error: 'لاعب غير صالح' });
+  try {
+    const u = db.prepare(`SELECT id, display_name, username, provider, avatar_url, country, created_at,
+                                 rating, rating_rd, rating_vol, rating_games, rating_peak, wins, losses, draws
+                            FROM users WHERE id = ?`).get(uid);
+    if (!u) return res.status(404).json({ error: 'لاعب غير موجود' });
+    const stats = ratingStore.statsOf(uid);
+    const games = ratingStore.recentGames(uid, 12);
+    /* الترتيب العالمي: عدد اللي أمامه بالتقييم المتحفّظ + 1 */
+    let rank = null;
+    try {
+      const rd = isFinite(u.rating_rd) ? u.rating_rd : 350;
+      const me = (isFinite(u.rating) ? u.rating : 1500) - 2 * rd;
+      const ahead = db.prepare(`SELECT COUNT(*) AS c FROM users
+                                 WHERE (rating_games >= 1 OR (COALESCE(wins,0)+COALESCE(losses,0)+COALESCE(draws,0)) >= 1)
+                                   AND (rating - 2 * rating_rd) > ?`).get(me).c;
+      rank = ahead + 1;
+    } catch (e) {}
+    res.json({
+      player: {
+        id: u.id,
+        name: resolveOnlineName(u),
+        avatar_url: u.avatar_url || null,
+        country: u.country || null,
+        joined_at: u.created_at || null,
+        status: liveStatus(u.id) || 'offline',
+      },
+      rating: ratingStore.publicRating(u),
+      rank,
+      stats,
+      games,
+    });
+  } catch (e) {
+    console.error('[profile] failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
   }
 });
@@ -1145,7 +1206,15 @@ function cleanupRoom(code) {
     member.ws = null;
     member.connected = false;
   });
+  /* مباريات الأصدقاء بتربط كل سوكتات الطرفين بالكود (مش سوكت واحد)،
+     فحذف member.ws لوحده كان بيسيب ربطات شبح تخلّي liveStatus ترجّع
+     «في مباراة» بعد ما الغرفة تتحذف — أصل الباج التدميري. */
+  for (const [s, c] of [...clientRoom]) if (c === code) clientRoom.delete(s);
+  try { endSpectating(room); } catch (e) {}
   rooms.delete(code);
+  for (const uid of [room.hostId, room.guestId]) {
+    if (uid) { try { broadcastPresence(uid); } catch (e) {} }
+  }
 }
 
 function sendStart(room) {
@@ -1166,6 +1235,9 @@ function sendStart(room) {
     tc: room.tc || null,
     oppRating: ratingOf(room.guestId),
     myRating: ratingOf(room.hostId),
+    /* #17: هوية الخصم عشان شريط اللاعب يفتح بطاقته الكاملة جوّه المباراة */
+    oppId: room.guestId || null,
+    myId: room.hostId || null,
   });
   send(room.guest.ws, {
     type: 'start',
@@ -1176,6 +1248,8 @@ function sendStart(room) {
     tc: room.tc || null,
     oppRating: ratingOf(room.hostId),
     myRating: ratingOf(room.guestId),
+    oppId: room.hostId || null,
+    myId: room.guestId || null,
   });
   startClock(room);
 }
@@ -1446,6 +1520,10 @@ function onFlag(room, loserColor) {
   room.flagged = loserColor;
   broadcastClock(room, { flagged: loserColor });
   sendBoth(room, { type: 'game:flag', loser: loserColor });
+  toSpectators(room, { type: 'spectate:flag', loser: loserColor });
+  /* سقوط الراية = نهاية مؤكّدة من السيرفر نفسه: نحسمها فورًا (إحصاء
+     وتقييم وتحرير حالة «في مباراة») بدل ما نستنّى بلاغ من الأجهزة. */
+  finalizeGame(room, loserColor === 'w' ? 'b' : 'w', 'timeout');
 }
 
 
@@ -1469,8 +1547,11 @@ function socketsOf(userId) {
 function liveStatus(userId) {
   const socks = socketsOf(userId).filter(s => s.readyState === WebSocket.OPEN);
   if (!socks.length) return null;
-  /* جوه مباراة = عنده سوكت مرتبط بغرفة شغّالة */
+  /* جوه مباراة = عنده سوكت مرتبط بغرفة شغّالة، أو أبلّغ إنه في مباراة
+     محلية (نور/المحرّك/بلوتوث) عبر presence:activity — الأصدقاء لازم
+     يشوفوا «في مباراة» في الحالتين، مش «متصل» فقط. */
   const inGame = socks.some(s => {
+    if (s._localGame) return true;
     const code = clientRoom.get(s);
     if (!code) return false;
     const room = rooms.get(code);
@@ -1514,8 +1595,18 @@ friendsRouter.setRealtime({
   statusOf: liveStatus,
 });
 
-/* الدردشة بتستخدم نفس statusOf عشان قائمة المحادثات تعرض الحضور الحقيقي. */
-chatRouter.setRealtime({ statusOf: liveStatus });
+/* الدردشة بتستخدم نفس statusOf عشان قائمة المحادثات تعرض الحضور الحقيقي،
+   و push عشان التفاعلات (#3) توصل للطرف التاني لحظيًا. */
+chatRouter.setRealtime({
+  statusOf: liveStatus,
+  push(userId, payload) {
+    let delivered = false;
+    for (const s of socketsOf(userId)) {
+      if (s.readyState === WebSocket.OPEN) { send(s, payload); delivered = true; }
+    }
+    return delivered;
+  },
+});
 
 /* جروبات الأصدقاء: بتحتاج توزيع رسالة/إشعار على كل الأعضاء المتصلين،
    وتبليغ عضو باقي (مثلاً جروب جديد). server.js بيحقن الأدوات زي chat. */
@@ -1577,6 +1668,26 @@ function replySnippet(scope, id) {
   } catch (e) { return null; }
 }
 
+/* ── منشِن (@) — #2 ──
+   العميل بيبعت مصفوفة هويات المذكورين مع الرسالة؛ إحنا مانثقش فيها:
+   بنصفّيها على القائمة المسموحة (صاحب المحادثة الفردية أو أعضاء الحفلة)،
+   وبنشيل التكرار وصاحب الرسالة نفسه. النتيجة بتتخزّن JSON في عمود
+   mentions عشان التمييز وعدّاد «ذكروك» يفضلوا بعد إعادة فتح الشات. */
+function sanitizeMentions(raw, allowed, selfId) {
+  if (!Array.isArray(raw) || !raw.length) return [];
+  const ok = new Set((allowed || []).map(Number));
+  const me = Number(selfId);
+  const out = [];
+  for (const v of raw.slice(0, 60)) {
+    const id = Number(v);
+    if (!Number.isInteger(id) || id <= 0 || id === me) continue;
+    if (!ok.has(id) || out.includes(id)) continue;
+    out.push(id);
+    if (out.length >= 30) break;
+  }
+  return out;
+}
+
 function pushGroupMessage(groupId, fromId, spec, clientId) {
   const kind = spec && ['voice', 'image', 'video'].includes(spec.kind) ? spec.kind : 'text';
   const hasMedia = kind !== 'text';
@@ -1591,9 +1702,12 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
     const orig = db.prepare('SELECT id FROM group_messages WHERE id = ? AND group_id = ?').get(rt, groupId);
     if (orig) replyTo = rt;
   }
-  const info = db.prepare(`INSERT INTO group_messages (group_id, sender_id, kind, body, audio_data, duration, mime, reply_to)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
-                 .run(groupId, fromId, kind, body, audio, duration, mime, replyTo);
+  const members = groupsRouter.memberIds(groupId);
+  const mentions = sanitizeMentions(spec && spec.mentions, members, fromId);
+  const info = db.prepare(`INSERT INTO group_messages (group_id, sender_id, kind, body, audio_data, duration, mime, reply_to, mentions)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                 .run(groupId, fromId, kind, body, audio, duration, mime, replyTo,
+                      mentions.length ? JSON.stringify(mentions) : null);
   const row = db.prepare(`SELECT id, created_at FROM group_messages WHERE id = ?`).get(info.lastInsertRowid);
   const sender = db.prepare('SELECT display_name, username, avatar_url, provider FROM users WHERE id = ?').get(fromId) || {};
   const senderName = resolveOnlineName(sender);
@@ -1602,20 +1716,25 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
     from: fromId, sender_name: senderName, sender_avatar: sender.avatar_url || null,
     kind, body, created_at: row.created_at, client_id: clientId || null,
     reply_to: replyTo, reply: replyTo ? replySnippet('group', replyTo) : null,
+    mentions,
   };
   if (hasMedia) { payload.audio = audio; payload.duration = duration || 0; payload.mime = mime; }
 
-  const members = groupsRouter.memberIds(groupId);
   const offline = [];
+  const offlineMentioned = [];
   const deliveredTo = [];
   for (const uid of members) {
     const socks = socketsOf(uid).filter(s => s.readyState === WebSocket.OPEN);
     if (socks.length) { for (const s of socks) send(s, payload); if (uid !== fromId) deliveredTo.push(uid); }
-    else if (uid !== fromId) offline.push(uid);
+    else if (uid !== fromId) (mentions.includes(uid) ? offlineMentioned : offline).push(uid);
   }
   /* إشعار دفع للأعضاء غير المتصلين (#64 للجروبات). */
   if (offline.length) {
     try { sendGroupPushToUsers(groupId, fromId, senderName, kind, body, offline); } catch (e) {}
+  }
+  /* المذكور بالاسم بياخد إشعارًا أوضح («ذكرك») عشان مايفوتهوش (#2). */
+  if (offlineMentioned.length) {
+    try { sendGroupPushToUsers(groupId, fromId, senderName, kind, body, offlineMentioned, true); } catch (e) {}
   }
   /* تثبيت الوصول (✓✓) للأعضاء المتصلين بنظام high-water عشان مايختفيش بعد
      إعادة فتح الحفلة، وبعدين نبثّ لقطة الإيصالات لكل الأعضاء. */
@@ -1640,7 +1759,7 @@ function broadcastGroupReceipts(groupId) {
 
 /* إشعار دفع برسالة جروب لأعضاء غير متصلين. العنوان = اسم الجروب،
    والسطر = «اسم المُرسِل: المعاينة» زي واتساب. */
-function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds) {
+function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds, mentioned) {
   if (!_adminReady) return;
   const g = db.prepare('SELECT name FROM groups WHERE id = ?').get(groupId) || {};
   const groupName = g.name || 'حفلة شطرنجية';
@@ -1653,9 +1772,9 @@ function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds) 
   if (!tokens.length) return;
   sendPushToTokens(tokens, {
     title: groupName,
-    body: senderName + ': ' + preview,
+    body: senderName + (mentioned ? ' ذكرك: ' : ': ') + preview,
     tag: 'group-' + groupId,
-    data: { kind: 'group', group_id: String(groupId), from_id: String(fromId) },
+    data: { kind: 'group', group_id: String(groupId), from_id: String(fromId), group_name: groupName },
   });
 }
 
@@ -1677,9 +1796,11 @@ function pushChatMessage(fromId, toId, spec, clientId) {
     const orig = db.prepare('SELECT id FROM messages WHERE id = ? AND convo_key = ?').get(rt, key);
     if (orig) replyTo = rt;
   }
-  const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body, kind, audio_data, duration, mime, reply_to)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-                 .run(key, fromId, toId, body, kind, audio, duration, mime, replyTo);
+  const mentions = sanitizeMentions(spec && spec.mentions, [toId], fromId);
+  const info = db.prepare(`INSERT INTO messages (convo_key, sender_id, recipient_id, body, kind, audio_data, duration, mime, reply_to, mentions)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                 .run(key, fromId, toId, body, kind, audio, duration, mime, replyTo,
+                      mentions.length ? JSON.stringify(mentions) : null);
   const row = db.prepare(`SELECT id, created_at FROM messages WHERE id = ?`).get(info.lastInsertRowid);
   const senderRow = db.prepare('SELECT display_name, username, avatar_url, provider FROM users WHERE id = ?').get(fromId) || {};
   const payload = {
@@ -1687,6 +1808,7 @@ function pushChatMessage(fromId, toId, spec, clientId) {
     from: fromId, sender_name: resolveOnlineName(senderRow), sender_avatar: senderRow.avatar_url || null,
     to: toId, kind, body, created_at: row.created_at, client_id: clientId || null,
     reply_to: replyTo, reply: replyTo ? replySnippet('chat', replyTo) : null,
+    mentions,
   };
   if (hasMedia) { payload.audio = audio; payload.duration = duration || 0; payload.mime = mime; }
   /* نسلّم للمستقبِل الأول عشان نعرف إذا وصلت (delivered) قبل ما نصدّي للمُرسِل،
@@ -1703,14 +1825,14 @@ function pushChatMessage(fromId, toId, spec, clientId) {
   payload.delivered = delivered;
   for (const s of socketsOf(fromId)) send(s, payload);   /* صدى لكل أجهزة المُرسِل */
   /* لو الطرف التاني مش متصل بأي سوكت مفتوح — إشعار دفع لهاتفه (#64). */
-  if (!delivered) { try { sendChatPushToUser(fromId, toId, kind, body); } catch (e) {} }
+  if (!delivered) { try { sendChatPushToUser(fromId, toId, kind, body, mentions.includes(Number(toId))); } catch (e) {} }
   else { console.log('[push] SKIP chat push: user %s has an OPEN socket (delivered live)', toId); }
   return { row, key, delivered };
 }
 
 /* إشعار دفع برسالة دردشة لمستخدم غير متصل. بنجيب اسم المُرسِل ونبعت
    FCM لكل توكِنات المستقبِل المرتبطة بحسابه. */
-function sendChatPushToUser(fromId, toId, kind, body) {
+function sendChatPushToUser(fromId, toId, kind, body, mentioned) {
   if (!_adminReady) return;
   const tokens = getTokensForUser(toId);
   console.log('[push] chat push -> user %s : %d linked token(s)', toId, tokens.length);
@@ -1723,9 +1845,11 @@ function sendChatPushToUser(fromId, toId, kind, body) {
                 : String(body || '').slice(0, 120);
   sendPushToTokens(tokens, {
     title: name,
-    body: preview,
+    body: mentioned ? ('ذكرك: ' + preview) : preview,
     tag: 'chat-' + fromId,
-    data: { kind: 'chat', from_id: String(fromId) },
+    /* from_name: عشان التطبيق يفتح الشات باسم المرسِل فورًا لما يُنقر
+       الإشعار، من غير ما يستنى قائمة الأصدقاء تتحمّل. */
+    data: { kind: 'chat', from_id: String(fromId), from_name: name },
   });
 }
 
@@ -1811,9 +1935,150 @@ function broadcastPresence(userId, statusOverride) {
   }
 }
 
-/* بدء مباراة بين صديقين بعد قبول الدعوة.
-   الغرفة بتتولّد هنا وقت القبول — مش وقت الدعوة — عشان دعوة مارضيهاش
-   حد ماتسيبش غرفة فاضية معلّقة في الذاكرة. */
+/* ══════════════════════════════════════════════════════════════════════
+   وضع المشاهدة (متفرّج على مباراة صديق)
+   ──────────────────────────────────────────────────────────────────────
+   المتفرّج مش عضو في الغرفة: مايبعتش نقلات ومايقدرش يأثّر على المباراة.
+   بنسجّله في مجموعة متفرّجين للغرفة، ونبعتله لقطة كاملة عند الدخول
+   (الأسماء، الألوان، كل النقلات من البداية، الساعة) وبعدين كل نقلة
+   لحظيًا. اللاعبين بيتبلّغوا بعدد المتفرّجين — مفيش مشاهدة سرّية.
+   الأمان: لازم يكون صديق لأحد اللاعبين، ومش متحاظر، والخصوصية بتسمح.
+══════════════════════════════════════════════════════════════════════ */
+const roomSpectators = new Map();   /* code → Set<ws> */
+const spectatorRoom = new Map();    /* ws → code */
+
+function spectatorsOf(code) {
+  const set = roomSpectators.get(code);
+  return set ? [...set] : [];
+}
+
+function spectatorSnapshot(room) {
+  const nameOf = (side) => (room[side] && room[side].name) || 'لاعب';
+  const hostIsWhite = room.host && room.host.color === 'w';
+  return {
+    type: 'spectate:started',
+    room: room.code,
+    rated: !!room.rated,
+    white: hostIsWhite ? nameOf('host') : nameOf('guest'),
+    black: hostIsWhite ? nameOf('guest') : nameOf('host'),
+    white_id: hostIsWhite ? room.hostId : room.guestId,
+    black_id: hostIsWhite ? room.guestId : room.hostId,
+    moves: (room.mvLog || []).slice(),
+    tc: room.tc || null,
+    clock: room.clock ? { w: room.clock.w, b: room.clock.b, turn: room.clock.turn, running: !!room.clock.running } : null,
+    ended: !!room.ended,
+  };
+}
+
+/* عدد المتفرّجين للاعبين (شفافية) وللمتفرّجين نفسهم */
+function pushWatcherCount(room) {
+  if (!room) return;
+  const count = spectatorsOf(room.code).length;
+  const payload = { type: 'spectate:watchers', count };
+  const seen = new Set();
+  for (const side of ['host', 'guest']) {
+    const uid = side === 'host' ? room.hostId : room.guestId;
+    const list = uid ? socketsOf(uid) : [room[side] && room[side].ws];
+    for (const w of list) {
+      if (!w || seen.has(w) || w.readyState !== WebSocket.OPEN) continue;
+      seen.add(w); send(w, payload);
+    }
+  }
+  for (const s of spectatorsOf(room.code)) {
+    if (s.readyState === WebSocket.OPEN) send(s, payload);
+  }
+}
+
+function toSpectators(room, payload) {
+  if (!room) return;
+  for (const s of spectatorsOf(room.code)) {
+    if (s.readyState === WebSocket.OPEN) send(s, payload);
+    else removeSpectator(s);
+  }
+}
+
+function removeSpectator(ws) {
+  const code = spectatorRoom.get(ws);
+  if (!code) return null;
+  spectatorRoom.delete(ws);
+  const set = roomSpectators.get(code);
+  if (set) { set.delete(ws); if (!set.size) roomSpectators.delete(code); }
+  return code;
+}
+
+function endSpectating(room) {
+  if (!room) return;
+  const code = room.code;
+  for (const s of spectatorsOf(code)) {
+    if (s.readyState === WebSocket.OPEN) send(s, { type: 'spectate:end', reason: 'game-over' });
+    spectatorRoom.delete(s);
+  }
+  roomSpectators.delete(code);
+}
+
+/* الغرفة الشغّالة اللي المستخدم ده جواها دلوقتي (لو موجودة) */
+function activeRoomOfUser(userId) {
+  for (const room of rooms.values()) {
+    if (room.kind !== 'online' || !room.started || room.ended) continue;
+    if (room.hostId === Number(userId) || room.guestId === Number(userId)) return room;
+  }
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   تحرير حالة «في مباراة» عند نهاية المباراة
+   ──────────────────────────────────────────────────────────────────────
+   الباج التدميري: beginFriendGame بيربط كل سوكتات الطرفين بكود الغرفة
+   (clientRoom)، والغرفة بتفضل في الذاكرة، ومحدّش كان بيبثّ الحضور عند
+   نهاية المباراة إلا داخل pushRatingUpdate — واللي مابيتنفّذش أصلًا في
+   المباريات الودّية (غير المصنّفة)، وهي الافتراضي. النتيجة: عمود
+   presence.in_game بيفضل 1 وعملاء الأصدقاء بيفضلوا شايفين «في مباراة»
+   بعد ما المباراة تخلص، فزرّ الدعوة بيقعد مقفول ومايقدروش يلعبوا تاني.
+
+   endOnlineRoom بتقفل الدايرة في كل مسارات النهاية: تعلّم الغرفة منتهية،
+   توقف الساعة، تفكّ ربط كل سوكت مربوط بالكود (عشان liveStatus ماترجّعش
+   'in-game' تاني ولو الغرفة فضلت في الذاكرة)، وتبثّ الحضور الجديد
+   للطرفين. releaseSockets=false بتسيب الربط عشان الشات داخل المباراة
+   والمراجعة يفضلوا شغّالين لحد ما اللاعب يسيب الشاشة. */
+function endOnlineRoom(room, opts) {
+  if (!room) return;
+  const releaseSockets = !!(opts && opts.releaseSockets);
+  try {
+    room.ended = true;
+    if (!room.endedAt) room.endedAt = Date.now();
+    try { stopClock(room); } catch (e) {}
+    if (releaseSockets && room.code) {
+      for (const [s, c] of [...clientRoom]) if (c === room.code) clientRoom.delete(s);
+    }
+    /* المتفرّجين: المباراة خلصت فبنبلّغهم ونفضّهم. */
+    try { endSpectating(room); } catch (e) {}
+    /* البثّ لازم يحصل ولو الغرفة كانت معلّمة منتهية قبل كده — لأن اللي
+       كان ناقص هو البثّ نفسه مش العلامة. */
+    for (const uid of [room.hostId, room.guestId]) {
+      if (uid) { try { broadcastPresence(uid); } catch (e) {} }
+    }
+  } catch (e) {
+    console.error('[presence] endOnlineRoom failed:', e.message);
+  }
+}
+
+/* ── مسّاح ذاتي الإصلاح للحضور ──
+   خط الدفاع الأخير: أي مستخدم مكتوب في القاعدة إنه in_game=1 لكن
+   السوكتات الحقيقية بتقول غير كده (أو مفيش سوكتات خالص) بيتصلّح ويُبثّ
+   من تاني. ده بيصلّح الحسابات المعلّقة من قبل التحديث كمان، بلا أي
+   تدخّل من المستخدم. */
+setInterval(() => {
+  try {
+    const rows = db.prepare(`SELECT user_id, status FROM presence
+                             WHERE in_game = 1 OR is_online = 1`).all();
+    for (const r of rows) {
+      const live = liveStatus(r.user_id) || 'offline';
+      if (live !== r.status) broadcastPresence(r.user_id, live);
+    }
+  } catch (e) {}
+}, 40 * 1000);
+
+
 function beginFriendGame(invite, hostWs, guestWs) {
   let hostColor = invite.color;
   if (hostColor !== 'w' && hostColor !== 'b') hostColor = Math.random() < 0.5 ? 'w' : 'b';
@@ -1865,8 +2130,8 @@ function beginFriendGame(invite, hostWs, guestWs) {
   room.ended = false;
   const frRating = (id) => { if (!id) return null; try { const row = ratingStore.getUserRating.get(id); return row ? ratingStore.publicRating(row) : null; } catch (e) { return null; } };
   const hR = frRating(room.hostId), gR = frRating(room.guestId);
-  for (const s of hostSockets) send(s, { type: 'start', yourColor: room.host.color, oppName: room.guest.name || 'الخصم', room: code, rated: !!room.rated, tc: room.tc || null, oppRating: gR, myRating: hR });
-  for (const s of guestSockets) send(s, { type: 'start', yourColor: room.guest.color, oppName: room.host.name || 'الخصم', room: code, rated: !!room.rated, tc: room.tc || null, oppRating: hR, myRating: gR });
+  for (const s of hostSockets) send(s, { type: 'start', yourColor: room.host.color, oppName: room.guest.name || 'الخصم', room: code, rated: !!room.rated, tc: room.tc || null, oppRating: gR, myRating: hR, oppId: room.guestId || null, myId: room.hostId || null });
+  for (const s of guestSockets) send(s, { type: 'start', yourColor: room.guest.color, oppName: room.host.name || 'الخصم', room: code, rated: !!room.rated, tc: room.tc || null, oppRating: hR, myRating: gR, oppId: room.hostId || null, myId: room.guestId || null });
   startClock(room);
   console.log(`[friends] invite ${invite.id} -> room ${code} (host socks ${hostSockets.length}, guest socks ${guestSockets.length})`);
 
@@ -1936,6 +2201,11 @@ function finalizeRatedGame(room, winnerColor, reason) {
 
 function pushRatingUpdate(userId, oppId, change, outcome, reason, directWs) {
   const oppRow = ratingStore.getUserRating.get(oppId);
+  const myRow = ratingStore.getUserRating.get(userId);
+  /* عدد المباريات المصنّفة بعد دي وكام باقي على نهاية مرحلة المعايرة.
+     اللاعب لازم يعرف إن حركة أول 10 مباريات أكبر عن قصد — ده اللي
+     كان مربكه لما التقييم بيقفز فجأة. */
+  const games = myRow ? (myRow.rating_games || 0) : 0;
   const payload = {
     type: 'rating:update',
     outcome,             // win | loss | draw
@@ -1946,6 +2216,8 @@ function pushRatingUpdate(userId, oppId, change, outcome, reason, directWs) {
     rating: change.after,
     rd: change.rd,
     provisional: change.provisional,
+    games,
+    calib_left: Math.max(0, ratingStore.CALIB_GAMES - games),
     opp: oppRow ? ratingStore.publicRating(oppRow) : null,
   };
   const seen = new Set();
@@ -1956,6 +2228,53 @@ function pushRatingUpdate(userId, oppId, change, outcome, reason, directWs) {
   for (const s of socketsOf(userId)) out(s);
   // حدّث حالة الحضور عشان التقييم الجديد يبان لأصدقائه
   try { broadcastPresence(userId); } catch (e) {}
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   إغلاق المباراة: إحصاء + تقييم + تحرير الحضور — نقطة واحدة لكل المسارات
+   ──────────────────────────────────────────────────────────────────────
+   كان في مسارَي نهاية منفصلين (اتفاق الطرفين / استسلام‑قطع اتصال) وكل
+   واحد بينادي التقييم لوحده، والتقييم بيرجع فورًا لو المباراة ودّية —
+   فلا إحصاء ولا بثّ حضور. finalizeGame بتوحّدهم:
+     1) recordPlayed: تسجّل النتيجة في game_log وتزوّد ف/خ/ت (#12).
+     2) finalizeRatedGame: تقييم Glicko للمصنّفة بس (النزاهة زي ما هي).
+     3) endOnlineRoom: تحرّر حالة «في مباراة» وتبلّغ المتفرّجين (#7).
+══════════════════════════════════════════════════════════════════════ */
+function finalizeGame(room, winnerColor, reason) {
+  if (!room) return;
+  if (!['w', 'b', 'draw'].includes(winnerColor)) { endOnlineRoom(room); return; }
+
+  /* الإحصاء أولًا (مرة واحدة لكل غرفة) */
+  if (!room.statsDone && room.kind === 'online' && room.hostId && room.guestId
+      && room.hostId !== room.guestId) {
+    room.statsDone = true;
+    const hostIsWhite = room.host && room.host.color === 'w';
+    const whiteId = hostIsWhite ? room.hostId : room.guestId;
+    const blackId = hostIsWhite ? room.guestId : room.hostId;
+    const winner = winnerColor === 'draw' ? 'draw' : (winnerColor === 'w' ? 'white' : 'black');
+    try {
+      const st = ratingStore.recordPlayed(whiteId, blackId, winner, reason, {
+        rated: !!room.rated, tc: room.tc || null, moves: room.mvLog || room.moves,
+      });
+      /* المباريات الودّية مالهاش rating:update، فبنبعت تحديث إحصاء
+         عشان أرقام الملف الشخصي ولوحة التصنيف تتجدّد فورًا. */
+      if (st && !room.rated) {
+        pushStatsUpdate(whiteId, st.white, winner === 'draw' ? 'draw' : (winner === 'white' ? 'win' : 'loss'));
+        pushStatsUpdate(blackId, st.black, winner === 'draw' ? 'draw' : (winner === 'black' ? 'win' : 'loss'));
+      }
+    } catch (e) { console.error('[stats] finalizeGame failed:', e.message); }
+  }
+
+  finalizeRatedGame(room, winnerColor, reason);
+  endOnlineRoom(room);
+}
+
+function pushStatsUpdate(userId, stats, outcome) {
+  if (!userId || !stats) return;
+  const payload = { type: 'stats:update', outcome, stats };
+  for (const s of socketsOf(userId)) {
+    if (s.readyState === WebSocket.OPEN) send(s, payload);
+  }
 }
 
 /* استقبل JWT من رسالة لعب على سوكت غير مصادَق (ماتش‑ميكينج/كود) */
@@ -1973,15 +2292,14 @@ function handleGameResult(ws, msg) {
   const info = getRoomAndSide(ws);
   if (!info) return;
   const { room, side } = info;
-  if (room.kind !== 'online' || room.ratingDone) return;
+  if (room.kind !== 'online') return;
+  if (room.ratingDone && room.statsDone) return;
 
   const winnerColor = reportToWinnerColor(room, side, msg.result);
   if (!winnerColor) return;
 
   room.reports = room.reports || {};
   room.reports[side] = winnerColor;
-  room.ended = true;
-  stopClock(room);
 
   const other = side === 'host' ? 'guest' : 'host';
   const reason = (msg.reason || '').toString().slice(0, 40) || 'game-over';
@@ -1989,28 +2307,37 @@ function handleGameResult(ws, msg) {
   if (room.reports[other]) {
     // الطرفان أبلغا: نصنّف بس لو اتفقوا
     if (room.reports[other] === winnerColor) {
-      finalizeRatedGame(room, winnerColor, reason);
+      finalizeGame(room, winnerColor, reason);
     } else {
       console.warn(`[rating] room ${room.code} disputed result — not rated`);
       room.ratingDone = true; // نزاع: نتجنّب التصنيف عشان ماحدش يغش
+      room.statsDone = true;  // ولا إحصاء كمان — النتيجة نفسها مش موثوقة
+      endOnlineRoom(room);    // بس الحضور لازم يتحرّر في كل الأحوال (#7)
     }
+  } else {
+    /* طرف واحد لسه: نستنّى تأكيد الطرف التاني (أو انسحاب/قطع اتصال).
+       بس المباراة خلصت فعلًا على شاشته، فلازم نوقف الساعة ونعلّمها
+       منتهية — والحضور يتحرّر لأن ده كان بيخلّي الاتنين «في مباراة»
+       للأبد لو الطرف التاني قفل التطبيق قبل ما يبلّغ. */
+    stopClock(room);
+    endOnlineRoom(room);
   }
-  // طرف واحد لسه: نستنّى تأكيد الطرف التاني (أو انسحاب/قطع اتصال)
 }
 
 /* استسلام أو قطع اتصال = خسارة للطرف ده (سلطة كافية، بلا انتظار). */
 function finalizeOnLeave(room, side, reason) {
-  if (!room || room.kind !== 'online' || room.ratingDone) return;
+  if (!room || room.kind !== 'online') return;
+  if (room.ratingDone && room.statsDone) { endOnlineRoom(room); return; }
   stopClock(room);
   const other = side === 'host' ? 'guest' : 'host';
   // لو الطرف التاني أبلغ نتيجة قبل كده، نحترمها بدل ما نفترض خسارة
   if (room.reports && room.reports[other]) {
-    finalizeRatedGame(room, room.reports[other], reason || 'reported');
+    finalizeGame(room, room.reports[other], reason || 'reported');
     return;
   }
   const loserColor = room[side] && room[side].color;
   const winnerColor = loserColor === 'w' ? 'b' : 'w';
-  finalizeRatedGame(room, winnerColor, reason || 'resign');
+  finalizeGame(room, winnerColor, reason || 'resign');
 }
 
 /* تنظيف الغرف القديمة كل 5 دقائق (أكثر من 30 دقيقة) */
@@ -2086,12 +2413,31 @@ wss.on('connection', (ws, req) => {
             if (pending && pending.c) send(ws, { type: 'friend:requests-pending', count: pending.c });
 
             /* عدّاد رسايل الدردشة غير المقروءة أول ما يتصل، عشان الشارة
-               تبقى صح لحظة الفتح على أي جهاز. */
+               تبقى صح لحظة الفتح على أي جهاز. الحفلات كانت ناقصة تمامًا
+               (#1): مافيش by_group، فشارة الجروب ماكانتش تظهر غير بعد
+               ما تفتح المحادثة. */
             try {
-              const rows = db.prepare(`SELECT sender_id AS friend_id, COUNT(*) AS count FROM messages
-                                       WHERE recipient_id = ? AND read_at IS NULL GROUP BY sender_id`).all(userId);
-              const total = rows.reduce((s, r) => s + r.count, 0);
-              send(ws, { type: 'chat:unread', total, by_friend: rows });
+              const rows = db.prepare(`SELECT sender_id AS friend_id, COUNT(*) AS count,
+                                              SUM(CASE WHEN mentions LIKE ? THEN 1 ELSE 0 END) AS mentions
+                                       FROM messages
+                                       WHERE recipient_id = ? AND read_at IS NULL GROUP BY sender_id`)
+                                .all(`%"${userId}"%`, userId);
+              let total = rows.reduce((s, r) => s + r.count, 0);
+              let groupRows = [];
+              try {
+                groupRows = db.prepare(`
+                  SELECT m.group_id,
+                         COUNT(*) AS count,
+                         SUM(CASE WHEN m.mentions LIKE ? THEN 1 ELSE 0 END) AS mentions
+                    FROM group_messages m
+                    JOIN group_members gm ON gm.group_id = m.group_id AND gm.user_id = ?
+                    LEFT JOIN group_reads gr ON gr.group_id = m.group_id AND gr.user_id = ?
+                   WHERE m.sender_id <> ?
+                     AND m.id > COALESCE(gr.last_read_id, 0)
+                   GROUP BY m.group_id`).all(`%"${userId}"%`, userId, userId, userId);
+                total += groupRows.reduce((s, r) => s + r.count, 0);
+              } catch (e) {}
+              send(ws, { type: 'chat:unread', total, by_friend: rows, by_group: groupRows });
             } catch (e) {}
 
             /* ✓✓ للوصول المؤجّل: الرسايل اللي اتبعتت والمستخدم ده كان
@@ -2163,6 +2509,114 @@ wss.on('connection', (ws, req) => {
             db.prepare(`UPDATE presence SET is_online = 1, last_seen_at = datetime('now') WHERE user_id = ?`).run(userId);
           } catch (e) {}
         }
+        break;
+      }
+
+      /* ══ نشاط محلي: نور / المحرّك / بلوتوث (#13) ══
+         الأوضاع دي مش غرف على السيرفر، فالصديق كان بيبان «متصل» وهو
+         أصلاً وسط مباراة. العميل بيبلّغ بنفسه، والسيرفر بيعلّم السوكت
+         فـliveStatus ترجّع «في مباراة». العلامة على السوكت نفسه فبتتنظّف
+         تلقائيًا مع أي قطع اتصال. */
+      case 'presence:activity': {
+        const userId = socketUser.get(ws);
+        if (!userId) break;
+        const on = !!msg.in_game;
+        const kind = (msg.kind || '').toString().slice(0, 16);
+        if (ws._localGame === on && ws._localKind === kind) break;
+        ws._localGame = on;
+        ws._localKind = on ? kind : '';
+        try { broadcastPresence(userId); } catch (e) {}
+        break;
+      }
+
+      /* ══ اللاعب سبب شاشة المباراة (#7) ══
+         أهم رسالة في إصلاح الباج التدميري: قبل كده الغرفة كانت تفضل
+         مربوطة بسوكتات الطرفين لحد ما السوكت يقفل — وسوكت الحضور
+         مابيقفلش لأنه مشترك مع الأصدقاء والدردشة. فالاتنين يفضلوا
+         «في مباراة» للأبد. دلوقتي الخروج من الشاشة بيفكّ الربط فورًا. */
+      case 'game:leave': {
+        const code = clientRoom.get(ws);
+        const userId = socketUser.get(ws);
+        const room = code ? rooms.get(code) : null;
+        /* غرف LAN ليها بروتوكول استعادة خاص (resume) فمانلمسهاش */
+        if (room && room.kind === 'lan') break;
+        clientRoom.delete(ws);
+        if (userId && code) {
+          for (const s of socketsOf(userId)) if (clientRoom.get(s) === code) clientRoom.delete(s);
+        }
+        if (room && room.kind === 'online') {
+          /* المباراة خلصت فعلًا؟ نسيبها تنتهي بهدوء. لسه شغّالة؟ يبقى
+             ده انسحاب صريح فبنحسمه لصالح الخصم. */
+          if (room.started && !room.ended && (!room.ratingDone || !room.statsDone)) {
+            const side = room.hostId === userId ? 'host' : (room.guestId === userId ? 'guest' : null);
+            if (side) { try { finalizeOnLeave(room, side, 'leave'); } catch (e) {} }
+            else endOnlineRoom(room, { releaseSockets: true });
+          } else {
+            endOnlineRoom(room, { releaseSockets: true });
+          }
+        }
+        if (userId) { try { broadcastPresence(userId); } catch (e) {} }
+        break;
+      }
+
+      /* ══ وضع المشاهدة (#14) ══
+         المتفرّج بيتفرّج على مباراة صديقه من غير ما يأثّر عليها.
+         الشروط: مسجّل، صديق لأحد اللاعبين، مش متحاظر، والمباراة شغّالة،
+         وخصوصية اللاعب بتسمح. ومحدّش بيتفرّج في السرّ: الطرفين بياخدوا
+         عدد المتفرّجين. */
+      case 'spectate:start': {
+        const me = socketUser.get(ws);
+        if (!me) { send(ws, { type: 'spectate:error', error: 'سجّل الدخول أولًا' }); break; }
+        const target = Number(msg.friend_id || msg.user_id || 0);
+        if (!target) { send(ws, { type: 'spectate:error', error: 'صديق غير صحيح' }); break; }
+        if (target === me) { send(ws, { type: 'spectate:error', error: 'لا يمكنك مشاهدة نفسك' }); break; }
+        let ok = false;
+        try {
+          ok = !!db.prepare('SELECT 1 FROM friendships WHERE user_id = ? AND friend_id = ?').get(me, target);
+          if (ok) {
+            const blocked = db.prepare(`SELECT 1 FROM friend_blocks
+                                        WHERE (blocker_id = ? AND blocked_id = ?)
+                                           OR (blocker_id = ? AND blocked_id = ?)`).get(me, target, target, me);
+            if (blocked) ok = false;
+          }
+        } catch (e) { ok = false; }
+        if (!ok) { send(ws, { type: 'spectate:error', error: 'يمكنك مشاهدة أصدقائك فقط' }); break; }
+        const room = activeRoomOfUser(target);
+        if (!room) { send(ws, { type: 'spectate:error', error: 'صديقك ليس في مباراة الآن' }); break; }
+        /* اللاعب التاني لازم يكون مسموح كمان: لو محاظر المتفرّج مانوريهوش */
+        const otherId = room.hostId === target ? room.guestId : room.hostId;
+        if (otherId && otherId !== me) {
+          try {
+            const b2 = db.prepare(`SELECT 1 FROM friend_blocks
+                                   WHERE (blocker_id = ? AND blocked_id = ?)
+                                      OR (blocker_id = ? AND blocked_id = ?)`).get(me, otherId, otherId, me);
+            if (b2) { send(ws, { type: 'spectate:error', error: 'لا يمكن مشاهدة هذه المباراة' }); break; }
+          } catch (e) {}
+        }
+        if (room.hostId === me || room.guestId === me) {
+          send(ws, { type: 'spectate:error', error: 'أنت أحد لاعبي هذه المباراة' }); break;
+        }
+        removeSpectator(ws);
+        if (!roomSpectators.has(room.code)) roomSpectators.set(room.code, new Set());
+        roomSpectators.get(room.code).add(ws);
+        spectatorRoom.set(ws, room.code);
+        send(ws, spectatorSnapshot(room));
+        pushWatcherCount(room);
+        /* بلاغ لطيف للاعبين بمين دخل يتفرّج */
+        try {
+          const meRow = db.prepare('SELECT display_name, username FROM users WHERE id = ?').get(me) || {};
+          const nm = meRow.display_name || meRow.username || 'صديق';
+          for (const uid of [room.hostId, room.guestId]) {
+            if (!uid) continue;
+            for (const s of socketsOf(uid)) send(s, { type: 'spectate:joined', name: nm, user_id: me });
+          }
+        } catch (e) {}
+        break;
+      }
+
+      case 'spectate:stop': {
+        const code = removeSpectator(ws);
+        if (code) pushWatcherCount(rooms.get(code));
         break;
       }
       
@@ -2343,6 +2797,7 @@ wss.on('connection', (ws, req) => {
           spec = { kind: 'text', body: body.slice(0, 4000) };
         }
         if (msg.reply_to != null) spec.reply_to = msg.reply_to;
+        if (Array.isArray(msg.mentions)) spec.mentions = msg.mentions;
         try {
           if (!chatRouter.areFriends(me, to) || chatRouter.blockedBetween(me, to)) {
             send(ws, { type: 'chat:error', reason: 'not-friend', client_id: clientId });
@@ -2430,6 +2885,7 @@ wss.on('connection', (ws, req) => {
           spec = { kind: 'text', body: body.slice(0, 4000) };
         }
         if (msg.reply_to != null) spec.reply_to = msg.reply_to;
+        if (Array.isArray(msg.mentions)) spec.mentions = msg.mentions;
         try {
           if (!groupsRouter.isMember(gid, me)) {
             send(ws, { type: 'group:error', reason: 'not-member', client_id: clientId });
@@ -2710,13 +3166,25 @@ wss.on('connection', (ws, req) => {
         if (info) {
           const { room, side } = info;
           if (msg.type === 'resign') {
-            room.ended = true;
             stopClock(room);
-            finalizeOnLeave(room, side, 'resign');   // المنسحب يخسر (لو مصنّفة)
+            finalizeOnLeave(room, side, 'resign');   // المنسحب يخسر
+            toSpectators(room, { type: 'spectate:resign', side, color: room[side] && room[side].color });
           }
           if (msg.type === 'move') {
+            /* بنسجّل النقلة بصيغتين: نصّية للأرشيف، وإحداثيات للمتفرّجين
+               عشان يقدروا يعيدوا بناء اللوح من البداية. */
             recordMove(room, msg.move != null ? msg.move : (msg.san || msg.uci || null));
+            if (msg.fr != null && msg.to != null) {
+              if (!room.mvLog) room.mvLog = [];
+              if (room.mvLog.length < 600) {
+                room.mvLog.push({ fr: msg.fr, to: msg.to, promo: msg.promo || null });
+              }
+            }
             if (room.clock) onClockMove(room, room[side] && room[side].color);
+            toSpectators(room, {
+              type: 'spectate:move', fr: msg.fr, to: msg.to, promo: msg.promo || null,
+              clock: room.clock ? { w: room.clock.w, b: room.clock.b, turn: room.clock.turn } : null,
+            });
           }
           if (msg.type === 'name') {
             const nm = (msg.name || '').slice(0, 20);
@@ -2825,13 +3293,19 @@ wss.on('connection', (ws, req) => {
     }
 
     mmRemove(ws);
+    /* المتفرّج مش لاعب: بيتشال من قائمة المشاهدة بلا أي أثر على المباراة */
+    try {
+      const specCode = removeSpectator(ws);
+      if (specCode) pushWatcherCount(rooms.get(specCode));
+    } catch (e) {}
     const info = getRoomAndSide(ws);
     if (info && info.room.kind === 'lan') {
       handleLanDisconnect(ws);
     } else {
-      /* قطع الاتصال في مباراة أونلاين مصنّفة لسه شغّالة = خسارة للمنقطع،
+      /* قطع الاتصال في مباراة أونلاين لسه شغّالة = خسارة للمنقطع،
          بس بشرط إنه اتفصل فعلاً (مش لسه فاتح على جهاز تاني). */
-      if (info && info.room.kind === 'online' && !info.room.ratingDone
+      if (info && info.room.kind === 'online' && info.room.started && !info.room.ended
+          && (!info.room.ratingDone || !info.room.statsDone)
           && userId && !userSockets.has(userId)) {
         try { finalizeOnLeave(info.room, info.side, 'disconnect'); } catch (e) {}
       }
@@ -2854,28 +3328,59 @@ function relay(ws, msg) {
   if (opp) send(opp, msg);
 }
 
-/* ══ مغادرة الغرفة ══ */
+/* ══ مغادرة الغرفة ══
+   مباريات الأصدقاء بتربط كل سوكتات اللاعب بالغرفة، وسوكت الحضور بيتغيّر
+   مع أي رعشة شبكة. فالمقارنة بالسوكت وحدها كانت بتفسّر «سوكت قديم قفل»
+   على إنه «اللاعب مشي»، فتمسح الغرفة أو تصفّر room.guest وسط المباراة —
+   والعكس: تسيب ربطات شبح تخلّي liveStatus ترجّع «في مباراة» للأبد. */
 function leaveRoom(ws) {
   const code = clientRoom.get(ws);
   if (!code) return;
+  clientRoom.delete(ws);
   const room = rooms.get(code);
   if (!room) return;
 
+  const uid = socketUser.get(ws) || null;
+  let side = null;
+  if (room.host && room.host.ws === ws) side = 'host';
+  else if (room.guest && room.guest.ws === ws) side = 'guest';
+  else if (uid && room.hostId === uid) side = 'host';
+  else if (uid && room.guestId === uid) side = 'guest';
+  if (!side) return;
+
+  /* لسه متصل بسوكت تاني على نفس الغرفة (جهاز تاني/إعادة اتصال) →
+     دي مش مغادرة، بس نحدّث السوكت المرجعي للطرف. */
+  if (uid) {
+    const alive = socketsOf(uid).filter(s => s !== ws && s.readyState === WebSocket.OPEN
+      && clientRoom.get(s) === code);
+    if (alive.length) {
+      if (room[side] && room[side].ws === ws) room[side].ws = alive[0];
+      return;
+    }
+  }
+
   /* أبلغ الخصم باستسلام اللاعب */
-  const opp = room.host.ws === ws ? room.guest?.ws : room.host.ws;
+  const oppSide = side === 'host' ? 'guest' : 'host';
+  const opp = room[oppSide] && room[oppSide].ws;
   if (opp && opp.readyState === WebSocket.OPEN) {
     send(opp, { type: 'resign' });
   }
+  toSpectators(room, { type: 'spectate:end', reason: 'player-left' });
 
-  /* لو المضيف غادر نحذف الغرفة */
-  if (room.host.ws === ws) {
+  if (side === 'host') {
+    /* المضيف غادر → الغرفة تنتهي */
+    endOnlineRoom(room, { releaseSockets: true });
     rooms.delete(code);
-    if (room.guest) clientRoom.delete(room.guest.ws);
+    if (room.guest && room.guest.ws) clientRoom.delete(room.guest.ws);
+    try { endSpectating(room); } catch (e) {}
   } else {
-    /* الضيف غادر — نرجع الغرفة لانتظار ضيف جديد */
+    /* الضيف غادر — نرجع الغرفة لانتظار ضيف جديد (ماتش‑ميكينج/كود) */
     room.guest = null;
+    endOnlineRoom(room, { releaseSockets: true });
   }
-  clientRoom.delete(ws);
+  for (const uidX of [room.hostId, room.guestId]) {
+    if (uidX) { try { broadcastPresence(uidX); } catch (e) {} }
+  }
 }
 
 /* ══ Heartbeat — نكتشف العملاء المنقطعين ══ */

@@ -369,32 +369,46 @@ router.post('/progress', authenticateToken, (req, res) => {
 });
 
 // مزامنة البيانات المحلية (Hybrid)
+/* #18: الدمج لازم يكون غير مُدمِّر — دي أساس إن الربط بقى تلقائيًا وبلا
+   نافذة سؤال. مرحلة مكتملة على الخادم مايصحّش صفّ محلي قديم ينزّلها إلى
+   «غير مكتملة»، فبناخد الأعلى في completed زي ما بناخد الأعلى في stars. */
 router.post('/sync-local', authenticateToken, (req, res) => {
   const { progress, settings, overwrite } = req.body;
   const userId = req.user.id;
-  
+
   // دمج تقدم نور
   if (progress && Array.isArray(progress)) {
     const insertOrUpdateProgress = db.prepare(`
       INSERT INTO nour_progress (user_id, stage_number, completed, stars, completed_at)
       VALUES (?, ?, ?, ?, datetime('now'))
       ON CONFLICT(user_id, stage_number) DO UPDATE SET
-      completed = excluded.completed,
+      completed = MAX(nour_progress.completed, excluded.completed),
       stars = MAX(nour_progress.stars, excluded.stars),
       completed_at = datetime('now')
     `);
-    
+
     db.transaction(() => {
       for (const p of progress) {
-        insertOrUpdateProgress.run(userId, p.stage, p.completed ? 1 : 0, p.stars || 0);
+        const stage = Number(p && p.stage);
+        if (!Number.isInteger(stage) || stage <= 0) continue;
+        insertOrUpdateProgress.run(userId, stage, p.completed ? 1 : 0, Number(p.stars) || 0);
       }
     })();
   }
 
   // دمج الإعدادات
   if (settings && typeof settings === 'object') {
+    /* upsert مش UPDATE: الحسابات القديمة ممكن مايكونش عندها صف في
+       user_settings فالتحديث كان بيضيع بصمت. */
+    const save = (json) => db.prepare(`
+      INSERT INTO user_settings (user_id, settings_json, updated_at)
+      VALUES (?, ?, datetime('now'))
+      ON CONFLICT(user_id) DO UPDATE SET
+        settings_json = excluded.settings_json,
+        updated_at = datetime('now')`).run(userId, json);
+
     if (overwrite) {
-      db.prepare("UPDATE user_settings SET settings_json = ?, updated_at = datetime('now') WHERE user_id = ?").run(JSON.stringify(settings), userId);
+      save(JSON.stringify(settings));
     } else {
       // قراءة القديم ودمجه مع الجديد
       const row = db.prepare('SELECT settings_json FROM user_settings WHERE user_id = ?').get(userId);
@@ -403,7 +417,7 @@ router.post('/sync-local', authenticateToken, (req, res) => {
         try { currentSettings = JSON.parse(row.settings_json); } catch (e) {}
       }
       const merged = { ...currentSettings, ...settings };
-      db.prepare("UPDATE user_settings SET settings_json = ?, updated_at = datetime('now') WHERE user_id = ?").run(JSON.stringify(merged), userId);
+      save(JSON.stringify(merged));
     }
   }
 

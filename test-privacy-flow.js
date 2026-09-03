@@ -30,6 +30,26 @@ const post = (p, b, t) => req('POST', BASE + p, b, t);
 const get  = (p, t)    => req('GET',  BASE + p, null, t);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+/* استنى المنفذ يفتح فعلًا بدل انتظار ثابت (الـ migration ساعات بتاخد وقت) */
+function waitBoot(ms){
+  const net = require('net');
+  const t0 = Date.now();
+  const tryOnce = () => new Promise(res => {
+    const s = net.connect(PORT, '127.0.0.1');
+    const done = ok => { try{s.destroy();}catch(e){} res(ok); };
+    s.once('connect', () => done(true));
+    s.once('error', () => done(false));
+    setTimeout(() => done(false), 800);
+  });
+  return (async () => {
+    while (Date.now() - t0 < (ms || 30000)) {
+      if (await tryOnce()) { await sleep(150); return true; }
+      await sleep(250);
+    }
+    throw new Error('server did not start listening in time');
+  })();
+}
+
 (async () => {
   const srv = spawn(process.execPath, [path.join(__dirname, 'server.js')], {
     env: Object.assign({}, process.env, { PORT: String(PORT), AMKH_DB_PATH: TMP, AMKH_DB_VERBOSE: '0' }),
@@ -39,7 +59,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   let failed = false;
   try {
-    await sleep(1200);
+    await waitBoot();
     // سجّل 3 مستخدمين
     const A = (await post('/register', { email: 'a@t.com', password: 'pw123456', display_name: 'Alice' })).json;
     const B = (await post('/register', { email: 'b@t.com', password: 'pw123456', display_name: 'Bob'   })).json;

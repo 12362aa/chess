@@ -28,7 +28,8 @@ const amkhFriends = {
   _invites: [],           /* دعوات واردة لسه صالحة */
   _sheet: null,           /* الورقة المفتوحة دلوقتي، لو مفتوحة */
   _tab: 'friends',
-  _outgoingInvite: null,  /* دعوة أنا باعتها ومستني ردّ */
+  _outgoingInvite: null,  /* دعوة أنا باعتها وأنتظر ردًّا عليها */
+  _inviteWait: Object.create(null),   /* id الصديق → مؤقّت انتظار رد الدعوة (#8) */
 
   async getAuthHeader() {
     if (!window.amkhAuth || !window.amkhAuth.token) return null;
@@ -181,7 +182,7 @@ const amkhFriends = {
     const c = (color === 'w' || color === 'b') ? color : 'r';
     ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: c, rated: !!rated, tc: tc || null }));
     this._outgoingInvite = { friend_id: friendId, name, at: Date.now() };
-    window.amkhUI.notify(`تم إرسال الدعوة لـ${name} — استنى يقبل`, 'تم', '◉');
+    window.amkhUI.notify(`أُرسلت الدعوة إلى ${name} — في انتظار قبوله`, 'تم', '◉');
     return true;
   },
 
@@ -225,6 +226,8 @@ const amkhFriends = {
       case 'friend:invite-declined': {
         const n = this._outgoingInvite && this._outgoingInvite.name;
         window.amkhUI.notify(n ? `${n} رفض الدعوة` : 'تم رفض الدعوة', 'مرفوضة', '◈');
+        /* #8 — إرجاع زر «العب» في الحال بدل انتظار المؤقّت */
+        this._clearInviteWaiting(d.by || (this._outgoingInvite && this._outgoingInvite.friend_id));
         this._outgoingInvite = null;
         return true;
       }
@@ -233,17 +236,19 @@ const amkhFriends = {
         return true;
       case 'friend:invite-room':
         /* المباراة بتبدأ من رسالة start العادية — ده مجرد تأكيد */
+        this._clearInviteWaiting();
         this._outgoingInvite = null;
         this._closeInvite();
         return true;
       case 'friend:invite-error': {
         const map = {
-          'not-friend': 'لازم يكون صديقك الأول',
+          'not-friend': 'يجب أن يكون صديقك أولًا',
           'blocked': 'لا يمكن إرسال الدعوة',
-          'expired': 'الدعوة انتهت',
-          'host-offline': 'اللاعب قفل التطبيق',
+          'expired': 'انتهت صلاحية الدعوة',
+          'host-offline': 'اللاعب أغلق التطبيق',
         };
         window.amkhUI.notify(map[d.reason] || 'تعذّر إتمام الدعوة', 'لم يتم', '◈');
+        this._clearInviteWaiting(this._outgoingInvite && this._outgoingInvite.friend_id);
         this._outgoingInvite = null;
         return true;
       }
@@ -444,15 +449,23 @@ const amkhFriends = {
     });
   },
 
-  /* ── شارة عدد الطلبات على زر الأصدقاء ── */
+  /* ── شارة عدد الطلبات ──
+     #16: بقت على زر الحساب مع عدّاد الرسائل في شارة واحدة (مكانها الطبيعي)،
+     وchat-client هو اللي بيرسمها فبننادي عليه. لو الدردشة لسه ماتحمّلتش
+     بنرسم نقطة بسيطة على نفس الزر. */
   _updateBadge() {
+    if (window.amkhChat && typeof window.amkhChat._updateBadge === 'function') {
+      try { window.amkhChat._updateBadge(); return; } catch (e) {}
+    }
     const n = (this._requests.incoming || []).length;
-    const btn = document.getElementById('appbar-friends');
+    const btn = document.getElementById('amkh-auth-btn');
     if (!btn) return;
-    let dot = btn.querySelector('.amkh-auth-btn__dot');
+    let dot = btn.querySelector('.amkh-chat-badge');
     if (n > 0) {
-      if (!dot) { dot = document.createElement('span'); dot.className = 'amkh-auth-btn__dot'; btn.appendChild(dot); }
-    } else if (dot) dot.remove();
+      if (!dot) { dot = document.createElement('span'); dot.className = 'amkh-chat-badge'; btn.appendChild(dot); }
+      dot.textContent = String(n);
+      btn.classList.add('has-badge');
+    } else if (dot) { dot.remove(); btn.classList.remove('has-badge'); }
   },
 
   /* ── الورقة ── */
@@ -661,24 +674,38 @@ const amkhFriends = {
     };
     acts.appendChild(chatBtn);
 
-    /* دعوة: متاحة لو متصل ومش في مباراة */
+    /* دعوة: متاحة لو متصل ومش في مباراة.
+       #14 — صاحبك في مباراة؟ الزر بيتحوّل «مشاهدة» بدل ما يقعد مطفي بلا
+       فايدة. المشاهدة قراءة فقط والسيرفر بيبلّغ اللاعبين بعدد المتفرّجين. */
+    if (f.status === 'in-game') {
+      const watchBtn = document.createElement('button');
+      watchBtn.type = 'button';
+      watchBtn.className = 'ds-btn ds-btn--primary ds-btn--sm';
+      watchBtn.textContent = 'مشاهدة';
+      watchBtn.onclick = () => {
+        U.sfx();
+        if (window.amkhSpectate) window.amkhSpectate.start(f.id, window.amkhName(f));
+      };
+      acts.appendChild(watchBtn);
+    } else {
     const inviteBtn = document.createElement('button');
     inviteBtn.type = 'button';
     inviteBtn.className = 'ds-btn ds-btn--primary ds-btn--sm';
     inviteBtn.textContent = 'العب';
     inviteBtn.disabled = !f.online || f.status === 'in-game';
+    /* لو الدعوة لسه معلّقة والقائمة أُعيد رسمها — نحافظ على حالة الانتظار */
+    if (this._inviteWait[Number(f.id)]) { inviteBtn.disabled = true; inviteBtn.textContent = 'في انتظار الرد…'; }
     inviteBtn.onclick = async () => {
       U.sfx();
       /* اختيار اللون ونوع المباراة قبل الدعوة — نافذة متخصصة بالثيم */
       const choice = await this._colorChoice(window.amkhName(f));
       if (!choice) return;
       if (this.inviteFriend(f.id, window.amkhName(f), choice.color, choice.rated, choice.tc)) {
-        inviteBtn.disabled = true;
-        inviteBtn.textContent = 'مستني…';
-        setTimeout(() => { inviteBtn.disabled = !f.online; inviteBtn.textContent = 'العب'; }, 90000);
+        this._setInviteWaiting(f.id, true);
       }
     };
     acts.appendChild(inviteBtn);
+    }
 
     /* قائمة صغيرة: إزالة / حظر */
     const more = document.createElement('button');
@@ -689,10 +716,15 @@ const amkhFriends = {
     more.onclick = async () => {
       U.sfx();
       const name = window.amkhName(f);
-      const choice = await this._menu(more, [
-        { key: 'remove', label: 'إزالة من الأصدقاء' },
-        { key: 'block', label: 'حظر' },
-      ]);
+      const items = [{ key: 'profile', label: 'الملف الشخصي' }];
+      if (f.status === 'in-game') items.push({ key: 'watch', label: 'مشاهدة المباراة' });
+      items.push({ key: 'remove', label: 'إزالة من الأصدقاء' });
+      items.push({ key: 'block', label: 'حظر' });
+      const choice = await this._menu(more, items);
+      if (choice === 'profile' && window.PlayerCard) {
+        window.PlayerCard.open(f.id, { name, avatar_url: f.avatar_url, country: f.country, status: f.status });
+      }
+      if (choice === 'watch' && window.amkhSpectate) window.amkhSpectate.start(f.id, name);
       if (choice === 'remove') this.removeFriend(f.id, name);
       if (choice === 'block') this.blockUser(f.id, name);
     };
@@ -771,7 +803,35 @@ const amkhFriends = {
     const st = row.querySelector('.fr-row__status');
     if (st) { st.textContent = s.text; st.className = 'fr-row__status' + (s.cls ? ' ' + s.cls : ''); }
     const btn = row.querySelector('.ds-btn--primary');
-    if (btn && btn.textContent !== 'مستني…') btn.disabled = !f.online || f.status === 'in-game';
+    if (btn && !this._inviteWait[Number(f.id)]) btn.disabled = !f.online || f.status === 'in-game';
+  },
+
+  /* ══ حالة زر «العب» أثناء انتظار رد الصديق (#8) ══
+     الزر كان بيرجع لطبيعته بمؤقّت 90 ثانية فقط، فلو رفض الصديق الدعوة
+     فورًا يبقى الزر «في الانتظار» حتى تُغلق القائمة وتُفتح من جديد.
+     الآن الحالة مركزية: أيّ نهاية للدعوة — رفض أو خطأ أو بدء المباراة —
+     تُعيد الزر في الحال. */
+  _inviteBtnOf(fid) {
+    if (!this._sheet) return null;
+    const row = this._sheet.querySelector(`.fr-row[data-uid="${Number(fid)}"]`);
+    return row ? row.querySelector('.ds-btn--primary') : null;
+  },
+  _setInviteWaiting(fid, on) {
+    const id = Number(fid);
+    if (!id) return;
+    const t = this._inviteWait[id];
+    if (t) { clearTimeout(t); delete this._inviteWait[id]; }
+    if (on) this._inviteWait[id] = setTimeout(() => this._setInviteWaiting(id, false), 90000);
+    const btn = this._inviteBtnOf(id);
+    if (!btn) return;
+    if (on) { btn.disabled = true; btn.textContent = 'في انتظار الرد…'; return; }
+    const f = this._friends.find(x => Number(x.id) === id);
+    btn.textContent = 'العب';
+    btn.disabled = f ? (!f.online || f.status === 'in-game') : false;
+  },
+  _clearInviteWaiting(fid) {
+    if (fid) { this._setInviteWaiting(fid, false); return; }
+    for (const k of Object.keys(this._inviteWait)) this._setInviteWaiting(k, false);
   },
 
   /* قائمة صغيرة جانب زر. بترجّع مفتاح الاختيار أو null */

@@ -16,10 +16,11 @@ const { authenticateToken } = require('./auth');
 
 const router = express.Router();
 
-/* server.js بيحقن statusOf عشان نغني حالة الصديق (نفس فكرة friends.js). */
-let realtime = { statusOf() { return null; } };
+/* server.js بيحقن statusOf عشان نغني حالة الصديق (نفس فكرة friends.js)،
+   و push عشان نبلّغ الطرف التاني بالتفاعلات لحظيًا. */
+let realtime = { statusOf() { return null; }, push() { return false; } };
 function setRealtime(rt) {
-  realtime = Object.assign({ statusOf() { return null; } }, rt || {});
+  realtime = Object.assign({ statusOf() { return null; }, push() { return false; } }, rt || {});
 }
 
 function toId(v) {
@@ -67,7 +68,8 @@ function decorateStatus(row) {
 }
 
 /* ── قائمة المحادثات ──
-   لكل صديق ليه رسايل: بياناته العامة + آخر رسالة + عدد غير المقروء. */
+   لكل صديق ليه رسايل: بياناته العامة + آخر رسالة + عدد غير المقروء
+   + هل المحادثة مثبّتة + عدد الرسايل غير المقروءة اللي فيها منشن ليك. */
 router.get('/conversations', authenticateToken, (req, res) => {
   const me = req.user.id;
   try {
@@ -79,6 +81,14 @@ router.get('/conversations', authenticateToken, (req, res) => {
       LEFT JOIN presence p ON p.user_id = u.id
       WHERE f.user_id = ?`).all(me);
 
+    const pins = new Map();
+    try {
+      for (const r of db.prepare(`SELECT target_id, pinned_at FROM chat_pins
+                                  WHERE user_id = ? AND kind = 'dm'`).all(me)) {
+        pins.set(r.target_id, r.pinned_at);
+      }
+    } catch (e) {}
+
     const out = [];
     for (const fr of friends) {
       const key = convoKey(me, fr.id);
@@ -87,6 +97,12 @@ router.get('/conversations', authenticateToken, (req, res) => {
       if (!last) continue;   /* بس المحادثات اللي فيها رسايل */
       const unread = db.prepare(`SELECT COUNT(*) AS c FROM messages
                                  WHERE convo_key = ? AND recipient_id = ? AND read_at IS NULL`).get(key, me).c;
+      let mentions = 0;
+      try {
+        mentions = db.prepare(`SELECT COUNT(*) AS c FROM messages
+                               WHERE convo_key = ? AND recipient_id = ? AND read_at IS NULL
+                                 AND mentions LIKE ?`).get(key, me, `%"${me}"%`).c;
+      } catch (e) {}
       out.push({
         friend: decorateStatus(fr),
         last_message: (last.kind === 'voice') ? 'رسالة صوتية' : (last.kind === 'image') ? 'صورة' : (last.kind === 'video') ? 'فيديو' : last.body,
@@ -95,10 +111,16 @@ router.get('/conversations', authenticateToken, (req, res) => {
         last_at: last.created_at,
         last_id: last.id,
         unread,
+        mentions,
+        pinned: pins.has(fr.id),
+        pinned_at: pins.get(fr.id) || null,
       });
     }
-    /* الأحدث فوق */
-    out.sort((a, b) => (b.last_id || 0) - (a.last_id || 0));
+    /* المثبّت فوق، وبعده الأحدث بالوقت (مش بالـid: الأرقام في الفردي
+       والحفلات من تسلسلين مختلفين فالمقارنة بينهم بلا معنى — #5). */
+    out.sort((a, b) => (b.pinned - a.pinned)
+      || String(b.last_at || '').localeCompare(String(a.last_at || ''))
+      || (b.last_id || 0) - (a.last_id || 0));
     res.json(out);
   } catch (e) {
     console.error('[chat] conversations failed:', e.message);
@@ -130,13 +152,14 @@ router.get('/history', authenticateToken, (req, res) => {
   };
 
   try {
-    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, delivered_at, reply_to, pinned_at, kind, audio_data, duration, mime';
+    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, delivered_at, reply_to, pinned_at, kind, audio_data, duration, mime, mentions';
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM messages
                     WHERE convo_key = ? AND id < ? ORDER BY id DESC LIMIT ?`).all(key, before, limit)
       : db.prepare(`SELECT ${cols} FROM messages
                     WHERE convo_key = ? ORDER BY id DESC LIMIT ?`).all(key, limit);
     rows.reverse();   /* للعرض: الأقدم فوق */
+    const reactMap = reactionsFor('dm', rows.map(m => m.id), me);
     const messages = rows.map(m => ({
       id: m.id,
       from: m.sender_id,
@@ -153,11 +176,133 @@ router.get('/history', authenticateToken, (req, res) => {
       reply_to: m.reply_to || null,
       reply: replySnippet(m.reply_to),
       pinned: !!m.pinned_at,
+      mentions: parseMentions(m.mentions),
+      reactions: reactMap.get(m.id) || [],
     }));
     res.json({ messages, has_more: rows.length === limit });
   } catch (e) {
     console.error('[chat] history failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════════════
+   تفاعلات الإيموجي (#3) + تثبيت المحادثات (#4)
+   ──────────────────────────────────────────────────────────────────────
+   التفاعل بيتخزّن في message_reactions بمفتاح (scope, message_id, user_id)
+   فتفاعل المستخدم الجديد بيستبدل القديم، وإرسال نفس الإيموجي تاني =
+   إلغاء (toggle). الشكل اللي بيرجع للعميل مجمّع: لكل إيموجي عدده
+   وهل أنا واحد منهم — نفس عرض واتساب.
+══════════════════════════════════════════════════════════════════════ */
+function parseMentions(txt) {
+  if (!txt) return [];
+  try { const a = JSON.parse(txt); return Array.isArray(a) ? a.map(Number).filter(Boolean) : []; }
+  catch (e) { return []; }
+}
+
+/* تفاعلات مجموعة رسايل مرة واحدة (بلا استعلام لكل رسالة) */
+function reactionsFor(scope, ids, me) {
+  const map = new Map();
+  const list = (ids || []).filter(Boolean);
+  if (!list.length) return map;
+  try {
+    const marks = list.map(() => '?').join(',');
+    const rows = db.prepare(`
+      SELECT r.message_id, r.emoji, r.user_id, u.display_name, u.username, u.provider
+        FROM message_reactions r LEFT JOIN users u ON u.id = r.user_id
+       WHERE r.scope = ? AND r.message_id IN (${marks})
+       ORDER BY r.created_at ASC`).all(scope, ...list);
+    for (const r of rows) {
+      if (!map.has(r.message_id)) map.set(r.message_id, []);
+      const arr = map.get(r.message_id);
+      let cell = arr.find(x => x.emoji === r.emoji);
+      if (!cell) { cell = { emoji: r.emoji, count: 0, mine: false, users: [] }; arr.push(cell); }
+      cell.count++;
+      if (r.user_id === me) cell.mine = true;
+      if (cell.users.length < 50) cell.users.push({ id: r.user_id, name: resolveOnlineName(r) });
+    }
+  } catch (e) {}
+  return map;
+}
+
+/* الإيموجي المسموح: محارف قصيرة بلا مسافات (بنمنع أي نصّ طويل) */
+function cleanEmoji(v) {
+  const s = String(v || '').trim();
+  if (!s || s.length > 12 || /\s/.test(s)) return null;
+  return s;
+}
+
+/* ── تفاعل على رسالة فردية ── */
+router.post('/react', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const id = toId(req.body && req.body.id);
+  const emoji = cleanEmoji(req.body && req.body.emoji);
+  if (!id) return res.status(400).json({ error: 'رسالة غير صالحة' });
+  try {
+    const m = db.prepare('SELECT sender_id, recipient_id, convo_key FROM messages WHERE id = ?').get(id);
+    if (!m) return res.status(404).json({ error: 'غير موجودة' });
+    if (m.sender_id !== me && m.recipient_id !== me) return res.status(403).json({ error: 'غير متاح' });
+    const other = m.sender_id === me ? m.recipient_id : m.sender_id;
+    if (blockedBetween(me, other)) return res.status(403).json({ error: 'غير متاح' });
+
+    const cur = db.prepare(`SELECT emoji FROM message_reactions
+                            WHERE scope = 'dm' AND message_id = ? AND user_id = ?`).get(id, me);
+    if (!emoji || (cur && cur.emoji === emoji)) {
+      db.prepare(`DELETE FROM message_reactions WHERE scope = 'dm' AND message_id = ? AND user_id = ?`).run(id, me);
+    } else {
+      db.prepare(`INSERT INTO message_reactions (scope, message_id, user_id, emoji) VALUES ('dm', ?, ?, ?)
+                  ON CONFLICT(scope, message_id, user_id) DO UPDATE SET emoji = excluded.emoji,
+                    created_at = datetime('now')`).run(id, me, emoji);
+    }
+    const list = reactionsFor('dm', [id], me).get(id) || [];
+    /* الطرف التاني يشوف التفاعل فورًا (لو متصل) — بنحسب القائمة من منظوره
+       عشان علم mine يبان على تفاعله هو، لا على تفاعلي. */
+    try {
+      const theirs = reactionsFor('dm', [id], other).get(id) || [];
+      realtime.push(other, { type: 'chat:reaction', convo_key: m.convo_key, id, from: me, reactions: theirs });
+    } catch (e) {}
+    res.json({ ok: true, id, convo_key: m.convo_key, reactions: list, peer: other });
+  } catch (e) {
+    console.error('[chat] react failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── تثبيت/فكّ تثبيت محادثة في صندوق الرسايل (لكل مستخدم لوحده) ── */
+router.post('/pin-chat', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const kind = (req.body && req.body.kind) === 'grp' ? 'grp' : 'dm';
+  const target = toId(req.body && (req.body.target_id || req.body.id));
+  if (!target) return res.status(400).json({ error: 'محادثة غير صالحة' });
+  try {
+    if (kind === 'dm' && !areFriends(me, target)) return res.status(403).json({ error: 'غير متاح' });
+    if (kind === 'grp') {
+      const inGroup = db.prepare('SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?').get(target, me);
+      if (!inGroup) return res.status(403).json({ error: 'غير متاح' });
+    }
+    const exists = db.prepare(`SELECT 1 FROM chat_pins WHERE user_id = ? AND kind = ? AND target_id = ?`).get(me, kind, target);
+    if (exists) {
+      db.prepare(`DELETE FROM chat_pins WHERE user_id = ? AND kind = ? AND target_id = ?`).run(me, kind, target);
+      return res.json({ ok: true, pinned: false });
+    }
+    /* سقف معقول زي واتساب: 5 محادثات مثبّتة */
+    const count = db.prepare('SELECT COUNT(*) AS c FROM chat_pins WHERE user_id = ?').get(me).c;
+    if (count >= 5) return res.status(409).json({ error: 'يمكنك تثبيت 5 محادثات كحدٍّ أقصى' });
+    db.prepare(`INSERT INTO chat_pins (user_id, kind, target_id) VALUES (?, ?, ?)`).run(me, kind, target);
+    res.json({ ok: true, pinned: true });
+  } catch (e) {
+    console.error('[chat] pin-chat failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── كل المحادثات المثبّتة (فردي + حفلات) ── */
+router.get('/pins', authenticateToken, (req, res) => {
+  try {
+    const rows = db.prepare(`SELECT kind, target_id, pinned_at FROM chat_pins WHERE user_id = ?`).all(req.user.id);
+    res.json({ pins: rows });
+  } catch (e) {
+    res.json({ pins: [] });
   }
 });
 
@@ -243,3 +388,6 @@ module.exports.setRealtime = setRealtime;
 module.exports.convoKey = convoKey;
 module.exports.areFriends = areFriends;
 module.exports.blockedBetween = blockedBetween;
+module.exports.reactionsFor = reactionsFor;
+module.exports.parseMentions = parseMentions;
+module.exports.cleanEmoji = cleanEmoji;

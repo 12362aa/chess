@@ -20,6 +20,40 @@ const EPS = 0.000001;            // دقة تقارب حلّ التذبذب
 const PROVISIONAL_RD = 110;      // فوقها التقييم مبدئي (provisional) ويظهر بعلامة ?
 const MAX_RD = 350;              // سقف عدم اليقين
 
+/*
+ * سقف حركة التقييم في المباراة الواحدة.
+ * ─────────────────────────────────────────────────────────────────────
+ * Glicko-2 صافي بيسمح بقفزات مالهاش معنى للاعب أول ما يبدأ: لاعب
+ * rd=350 لو فاز على لاعب 2000 ثابت بياخد +546 نقطة من مباراة واحدة،
+ * ولاعب جمّع نقط من انتصارات على لاعبين مبدئيين ممكن يخسر 200+ نقطة
+ * في مباراة واحدة (وكل الشكاوى اللي وصلتنا كانت من ده بالظبط).
+ * رياضيًا الرقم صحيح — عدم اليقين لسه كبير — بس اللاعب مايقراهوش كده،
+ * ومافيش موقع شطرنج كبير بيعرض حركة بالحجم ده.
+ *
+ * فبنسيب Glicko يحسب RD والتذبذب زي ما هما (دول اللي بيضبطوا سرعة
+ * الاستقرار وترتيب لوحة الصدارة) وبنحدّ الرقم المعروض بس:
+ *   • أول CALIB_GAMES مباراة مصنّفة: 80 نقطة — لسه بنعاير اللاعب،
+ *     فمسموح يتحرّك أسرع (80×10 = مساحة 800 نقطة، أكتر من كفاية).
+ *   • بعد كده: 40 نقطة — قريبة من K=32 المعروفة في Elo.
+ * السقف متماثل: نفس الحد للفوز وللخسارة، فمفيش ميل لأي ناحية.
+ */
+const CALIB_GAMES = 10;
+const CAP_CALIB = 80;
+const CAP_STABLE = 40;
+
+function capFor(games) {
+  return num(games, 0) < CALIB_GAMES ? CAP_CALIB : CAP_STABLE;
+}
+
+/* قصّ حركة التقييم على السقف — بيرجّع التقييم الجديد بعد الحد */
+function capDelta(before, after, games) {
+  const cap = capFor(games);
+  const d = num(after, before) - num(before, DEFAULT_R);
+  if (d > cap) return num(before, DEFAULT_R) + cap;
+  if (d < -cap) return num(before, DEFAULT_R) - cap;
+  return num(after, before);
+}
+
 function g(phi) {
   return 1 / Math.sqrt(1 + (3 * phi * phi) / (Math.PI * Math.PI));
 }
@@ -141,16 +175,19 @@ function num(x, dflt) {
  * راحة لمباراة أونلاين واحدة بين لاعبين: بنحدّث الاتنين ضد بعض
  * باستخدام تقييمات ما قبل المباراة (snapshot) عشان العدل.
  * scoreA = نتيجة A (1/0.5/0)، وB بياخد المكمّل.
+ * a/b ممكن يحملوا games = عدد المباريات المصنّفة قبل دي (لتحديد السقف).
  * بيرجّع { a:{r,rd,vol}, b:{r,rd,vol} }.
  */
 function applyGame(a, b, scoreA) {
   const preA = { r: num(a.r, DEFAULT_R), rd: num(a.rd, DEFAULT_RD), vol: num(a.vol, DEFAULT_VOL) };
   const preB = { r: num(b.r, DEFAULT_R), rd: num(b.rd, DEFAULT_RD), vol: num(b.vol, DEFAULT_VOL) };
   const sA = num(scoreA, 0);
-  return {
-    a: updatePlayer(preA, [{ r: preB.r, rd: preB.rd, score: sA }]),
-    b: updatePlayer(preB, [{ r: preA.r, rd: preA.rd, score: 1 - sA }]),
-  };
+  const outA = updatePlayer(preA, [{ r: preB.r, rd: preB.rd, score: sA }]);
+  const outB = updatePlayer(preB, [{ r: preA.r, rd: preA.rd, score: 1 - sA }]);
+  // السقف على الرقم المعروض بس — RD والتذبذب زي ما Glicko حسبهم
+  outA.r = capDelta(preA.r, outA.r, a.games);
+  outB.r = capDelta(preB.r, outB.r, b.games);
+  return { a: outA, b: outB };
 }
 
 // التقييم "المحافظ" للوحة المتصدّرين (زي TrueSkill): لا نرتّب لاعبًا مبدئيًا
@@ -175,8 +212,13 @@ module.exports = {
   conservative,
   isProvisional,
   expectedScore,
+  capFor,
+  capDelta,
   DEFAULT_R,
   DEFAULT_RD,
   DEFAULT_VOL,
   PROVISIONAL_RD,
+  CALIB_GAMES,
+  CAP_CALIB,
+  CAP_STABLE,
 };

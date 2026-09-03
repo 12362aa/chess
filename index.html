@@ -1345,6 +1345,11 @@ body[data-ui-theme="glass"] .mc-tag{
 .rtu-flow .rtu-arrow{opacity:.5;font-size:18px;}
 .rtu-flow .rtu-after{color:var(--gold2,inherit);}
 .rtu-opp{font-size:13px;opacity:.85;margin-bottom:6px;}
+/* سطر يشرح مرحلة تحديد المستوى — نبرة هادية، مايسحبش الانتباه من الرقم */
+.rtu-note{font-size:12.5px;line-height:1.6;opacity:.8;margin:8px 2px 2px;
+  padding:8px 10px;border-radius:10px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
+.rtu-note b{opacity:1;font-weight:800;}
 /* شارة التقييم جنب اسم اللاعب في شريط المباراة */
 .pb-nm .pb-rt{display:inline-block;font-size:11px;font-weight:700;opacity:.85;color:var(--gold2,#e0b34d);vertical-align:middle;}
 .acct-rating__val{font-size:22px;font-weight:800;color:var(--gold2,#e0b34d);}
@@ -2727,6 +2732,15 @@ body[data-ui-theme="glass"] .mc-tag{
     </div>
 
     <div class="appbar__trail">
+      <!-- الأصدقاء: زر مستقل بجانب زر الحساب. كان مدفونًا جوه نافذة الملف
+           الشخصي، فالرسايل الجديدة كانت بتنوّر على أيقونة الحساب وملهاش
+           مكان واضح. دلوقتي الأصدقاء والشاتات والحفلات ليهم زرّهم،
+           والأرقام الحمراء بتظهر عليه. بيبان بعد تسجيل الدخول فقط. -->
+      <button class="appbar__icon-btn amkh-friends-btn" id="appbar-friends"
+        aria-label="الأصدقاء والدردشة" style="display:none"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.amkhFriends)window.amkhFriends.showFriendsModal()">
+        <i class="ico ico--friends" aria-hidden="true"></i>
+      </button>
       <span id="sf-status">SF ...</span>
       <!-- لوحة الصدارة: مكان ثابت بارز في الشريط العلوي (مش مدفونة في اللعبة).
            تظهر على الشاشة الرئيسية فقط عن طريق AppBar.sync. -->
@@ -3060,6 +3074,11 @@ body[data-ui-theme="glass"] .mc-tag{
                 <div class="setting-label">تأكيد الخروج</div>
                 <div class="setting-description">سؤال قبل الخروج من اللعبة</div>
                 <label class="toggle"><input type="checkbox" id="set-confirm" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
+              </div>
+              <div class="setting-item">
+                <div class="setting-label">تنبيه الرسائل أثناء المباراة</div>
+                <div class="setting-description">شريط صغير برسالة صديقك مع زرّ ردٍّ سريع. عند إيقافه يبقى العدّاد على أيقونة الحساب فقط</div>
+                <label class="toggle"><input type="checkbox" id="set-matchmsg" checked onchange="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.save()"><span class="tsl"></span></label>
               </div>
               <div class="setting-item">
                 <div class="setting-label">لون النقاط</div>
@@ -3884,6 +3903,10 @@ const SFX=(()=>{
     callEnded:[{f:659.25,t0:0,dur:0.12,type:'sine',vol:0.10,f2:440},{f:329.63,t0:0.12,dur:0.20,type:'sine',vol:0.09}],
     /* تحديث متاح (#136): ٣ نغمات صاعدة لامعة «في جديد» */
     update:[{f:659.25,t0:0,dur:0.10,vol:0.10},{f:987.77,t0:0.09,dur:0.10,vol:0.11},{f:1318.51,t0:0.19,dur:0.22,vol:0.12}],
+    /* بطاقة اللاعب (#17): ٣ نغمات «صفحة بتتفتح» — أهدأ من الحساب وأوسع */
+    profile:[{f:493.88,t0:0,dur:0.09,vol:0.09},{f:659.25,t0:0.07,dur:0.10,vol:0.10},{f:987.77,t0:0.15,dur:0.20,vol:0.11}],
+    /* المشاهدة (#14): نغمتان «عين بتفتح» صاعدتان خفيفتان */
+    spectate:[{f:698.46,t0:0,dur:0.10,vol:0.09},{f:1046.5,t0:0.08,dur:0.18,vol:0.11}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -5145,6 +5168,7 @@ const Cfg={
     check:true,
     score:true,
     confirm:true,
+    matchMsg:true,            /* #9: تنبيه رسائل الأصدقاء أثناء المباراة */
     playerName:null,
     playerImage:null,
     engineLevel:4,
@@ -5192,6 +5216,8 @@ const Cfg={
     this.data.check   =document.getElementById('set-check').checked;
     this.data.score   =document.getElementById('set-score').checked;
     this.data.confirm =document.getElementById('set-confirm').checked;
+    const mm=document.getElementById('set-matchmsg');
+    if(mm) this.data.matchMsg=mm.checked;
     this._persist();
     this.apply();
   },
@@ -5226,6 +5252,8 @@ const Cfg={
     document.getElementById('set-check').checked   =this.data.check;
     document.getElementById('set-score').checked   =this.data.score;
     document.getElementById('set-confirm').checked =this.data.confirm;
+    const mmEl=document.getElementById('set-matchmsg');
+    if(mmEl) mmEl.checked=this.data.matchMsg!==false;
     const nameEl=document.getElementById('set-name');if(nameEl)nameEl.value=this.data.playerName||'';
     // Update avatar with both name and image
     this._updateAvatar(this.data.playerName||'');
@@ -6328,13 +6356,19 @@ const Modal={
 window.Modal = Modal;
 
 /* ══════════════════════════════════════
-   إصدار التطبيق + إشعار التحديث (#136)
+   إصدار التطبيق (#136)
    APP_VERSION/APP_VERSION_CODE لازم يتزامنوا مع android/app/build.gradle.
-   وقت الإقلاع بنسأل /api/version؛ لو المنشور أحدث بنعرض نافذة بستايل
-   الثيم وصوت «update» خاص، وزرّها بيفتح رابط الـAPK الدائم. بنسأل مرّة
-   كل إقلاع بس، ولو المستخدم قال «لاحقًا» ما نضايقهوش تاني نفس الجلسة. */
+
+   إشعار التحديث الداخلي معطّل — التطبيق بقى على Google Play، والمتجر هو
+   اللي بيتولّى التحديثات (تلقائي أو بإشعار من المتجر نفسه). نافذة «تحديث
+   جديد متاح» بقت مزعجة ومضلّلة: بتوجّه المستخدم لصفحة GitHub لتنزيل APK
+   يدوي، وده مسار غلط لمستخدم جاي من المتجر (ونسخة الـAPK اليدوية مش
+   بتتوقّع بنفس مفتاح المتجر أصلًا).
+   الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
+   نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '3.10';
-const APP_VERSION_CODE = 25;
+const APP_VERSION_CODE = 26;
+const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
 let _lastUpdateAttempt = 0;       /* آخر محاولة فحص (throttle) */
@@ -6363,6 +6397,7 @@ function _showUpdateNotice(info){
   DSOverlay.open(modal);
 }
 async function checkForAppUpdate(){
+  if(!UPDATE_NOTICE_ENABLED) return;   /* المتجر بيتولّى التحديث — مافيش نوافذ */
   /* #150: قبل كده كان بيتفحص مرة واحدة بس بعد الإقلاع بـ6ث؛ لو السيرفر كان
      بارد/مقطوع في اللحظة دي مكانش بيعيد المحاولة أبدًا، فإشعار «نسخة جديدة»
      مايظهرش. دلوقتي: منزعجش المستخدم بعد ما نعرضه، ونعيد الفحص كل ما التطبيق
@@ -6382,14 +6417,18 @@ async function checkForAppUpdate(){
   }catch(e){}
   finally{ _updateChecking = false; }
 }
-/* فحص أول بعد الإقلاع بهدوء (بعد ما تخلص شاشة البداية والصوت جاهز) */
-setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 6000);
-/* أعد الفحص كل ما التطبيق يرجع للواجهة — يغطّي فشل السيرفر البارد أول مرة (#150). */
-try{
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 1500); });
-  const _CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
-  if(_CapApp&&_CapApp.addListener) _CapApp.addListener('resume', ()=>{ setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 1500); });
-}catch(e){}
+/* الفحص كله مربوط بـUPDATE_NOTICE_ENABLED — مافيش أي طلب شبكة ولا نافذة
+   وهو مقفول، بس الأسلاك متسيبة زي ما هي لو رجّعناه. */
+if(UPDATE_NOTICE_ENABLED){
+  /* فحص أول بعد الإقلاع بهدوء (بعد ما تخلص شاشة البداية والصوت جاهز) */
+  setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 6000);
+  /* أعد الفحص كل ما التطبيق يرجع للواجهة — يغطّي فشل السيرفر البارد أول مرة (#150). */
+  try{
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 1500); });
+    const _CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    if(_CapApp&&_CapApp.addListener) _CapApp.addListener('resume', ()=>{ setTimeout(()=>{ try{ checkForAppUpdate(); }catch(e){} }, 1500); });
+  }catch(e){}
+}
 
 
 /* ══════════════════════════════════════
@@ -6472,6 +6511,9 @@ const ENGINE_PICKER={
 
 /* ══ لوحة الصدارة العالمية — تصميم فاخر ثابت لا يتبع الثيم ══ */
 const Leaderboard = {
+  _seq: 0,          /* رقم آخر طلب — عشان تبويب قديم مايكتبش فوق أحدث */
+  _sort: 'rating',
+  _players: [],
   _esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
   _flag(cc){
     if(!cc || !/^[A-Za-z]{2}$/.test(cc)) return '';
@@ -6484,36 +6526,74 @@ const Leaderboard = {
     const U = window.amkhUI;
     if(!U){ return; }
     try{ if(window.amkhEnsureServer) await window.amkhEnsureServer(); }catch(e){}
-    const meId = (window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id) || null;
     const overlay = U.mount('amkh-leaderboard', `
       <div class="lb-root" role="dialog" aria-label="لوحة الصدارة">
         <div class="lb-head">
           <button class="lb-head__close" data-close aria-label="إغلاق">✕</button>
           <span class="lb-head__crown" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l4.5 3L12 5l4.5 6L21 8l-1.6 10.2a1 1 0 0 1-1 .8H5.6a1 1 0 0 1-1-.8L3 8z"/></svg></span>
           <h2 class="lb-head__title">لوحة الصدارة</h2>
-          <p class="lb-head__sub">أفضل اللاعبين حول العالم — تقييم مصنّف</p>
+          <p class="lb-head__sub" id="lb-sub">أفضل اللاعبين حول العالم — تقييم مصنّف</p>
+        </div>
+        <div class="lb-tabs" id="lb-tabs" role="tablist">
+          <button type="button" class="lb-tab is-on" data-sort="rating" role="tab">التقييم</button>
+          <button type="button" class="lb-tab" data-sort="wins" role="tab">الانتصارات</button>
+          <button type="button" class="lb-tab" data-sort="games" role="tab">المباريات</button>
         </div>
         <div class="lb-scroll" id="lb-scroll"><div class="lb-empty">جارٍ التحميل…</div></div>
       </div>`, { sfx: 'account' });
+    this._ov = overlay;
     const box = overlay.querySelector('#lb-scroll');
-    /* نقر على أي لاعب (منصّة أو صف) يفتح بروفايله للتواصل/إضافة صداقة */
+    /* نقر على أي لاعب (منصّة أو صف) يفتح بطاقته الكاملة */
     box.addEventListener('click', (e) => {
       const el = e.target.closest('[data-uid]');
       if(el){ try{ if(window.SFX) SFX.btn(); }catch(err){} this._openProfile(el.getAttribute('data-uid')); }
     });
+    overlay.querySelector('#lb-tabs').addEventListener('click', (e) => {
+      const t = e.target.closest('.lb-tab');
+      if(!t || t.classList.contains('is-on')) return;
+      try{ if(window.SFX) SFX.btn(); }catch(err){}
+      overlay.querySelectorAll('.lb-tab').forEach(x => x.classList.toggle('is-on', x===t));
+      this._load(t.getAttribute('data-sort'));
+    });
+    this._load('rating');
+  },
+
+  /* التحميل مفصول عن العرض عشان التبويبات تعيد الجلب من غير ما تعيد بناء
+     النافذة. sort بيتبعت للسيرفر — الترتيب بيتحسب هناك مش عندنا. */
+  async _load(sort){
+    const ov = this._ov;
+    if(!ov || !ov.isConnected) return;
+    const box = ov.querySelector('#lb-scroll');
+    const sub = ov.querySelector('#lb-sub');
+    box.innerHTML = '<div class="lb-empty">جارٍ التحميل…</div>';
+    const meId = (window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id) || null;
+    let players = [], token = ++this._seq;
     try{
-      const res = await fetch(`${window.getApiBase()}/leaderboard?limit=100`, { headers:{ 'ngrok-skip-browser-warning':'true' } });
+      const res = await fetch(`${window.getApiBase()}/leaderboard?limit=100&sort=${encodeURIComponent(sort||'rating')}`, { headers:{ 'ngrok-skip-browser-warning':'true' } });
       const data = await res.json();
-      const players = (data && data.players) || [];
-      this._players = players;
-      box.innerHTML = this._render(players, meId) + this._selfBar(players, meId);
+      players = (data && data.players) || [];
     }catch(e){
-      box.innerHTML = '<div class="lb-empty">تعذّر تحميل لوحة الصدارة. تأكّد من الاتصال ثم أعِد المحاولة.</div>';
+      if(token===this._seq && ov.isConnected) box.innerHTML = '<div class="lb-empty">تعذّر تحميل لوحة الصدارة. تأكّد من الاتصال ثم أعِد المحاولة.</div>';
+      return;
     }
+    if(token!==this._seq || !ov.isConnected) return;   /* تبويب أحدث سبقنا */
+    this._players = players;
+    this._sort = sort || 'rating';
+    if(sub) sub.textContent = this._sort==='wins' ? 'الأكثر انتصارًا — مباريات مصنّفة'
+                            : this._sort==='games' ? 'الأكثر لعبًا — مباريات مصنّفة'
+                            : 'أفضل اللاعبين حول العالم — تقييم مصنّف';
+    box.innerHTML = this._render(players, meId) + this._selfBar(players, meId);
+    this._fillSelf(meId);
   },
   _render(players, meId){
     if(!players.length) return '<div class="lb-empty">لا توجد مباريات مصنّفة بعد. العب مباراة مصنّفة أونلاين لتظهر هنا.</div>';
     const CROWN='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8l4.5 3L12 5l4.5 6L21 8l-1.6 9.4a1 1 0 0 1-1 .82H5.6a1 1 0 0 1-1-.82L3 8z"/></svg>';
+    /* الرقم الكبير بيتبع التبويب: مافيش معنى إن التبويب «انتصارات» يرتّب
+       بالانتصارات ويعرض التقييم. القيمة التانية بتظهر في سطر التفاصيل. */
+    const sort = this._sort || 'rating';
+    const big = p => sort==='wins' ? p.wins : sort==='games' ? p.games : Math.round(p.rating);
+    const unit = sort==='wins' ? 'فوز' : sort==='games' ? 'مباراة' : '';
+    const prov = p => p.provisional ? '<span class="lb-prov">مبدئي</span>' : '';
     const top = players.slice(0, 3);
     const rest = players.slice(3);
     let html = '';
@@ -6525,7 +6605,8 @@ const Leaderboard = {
           ${p.rank===1?`<span class="lb-pod__crown" aria-hidden="true">${CROWN}</span>`:''}
           <div class="lb-pod__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}<span class="lb-pod__medal">${p.rank}</span></div>
           <div class="lb-pod__name">${this._flag(p.country)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(p.name)}</span></div>
-          <div class="lb-pod__rating">${Math.round(p.rating)}</div>
+          <div class="lb-pod__rating">${big(p)}${unit?`<i class="lb-pod__u">${unit}</i>`:''}</div>
+          <div class="lb-pod__wr">${p.win_rate!=null?p.win_rate+'% فوز':''}</div>
           <div class="lb-pod__base"><span>${p.rank}</span></div>
         </button>`;
       };
@@ -6534,78 +6615,715 @@ const Leaderboard = {
     if(rest.length){
       html += '<div class="lb-list">' + rest.map(p => {
         const wl = `${p.wins}ف ${p.losses}خ ${p.draws}ت`;
+        const wr = (p.win_rate!=null) ? ` · ${p.win_rate}% فوز` : '';
+        const extra = sort==='rating' ? '' : ` · تقييم ${Math.round(p.rating)}`;
         const me = (meId!=null && p.id===meId) ? ' lb-row--me' : '';
         return `
         <button type="button" class="lb-row${me}" data-uid="${this._esc(p.id)}">
           <div class="lb-row__rank">${p.rank}</div>
           <div class="lb-row__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}</div>
           <div class="lb-row__mid">
-            <div class="lb-row__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span></div>
-            <div class="lb-row__meta">${p.games} مباراة · ${wl}</div>
+            <div class="lb-row__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span>${prov(p)}</div>
+            <div class="lb-row__meta">${p.games} مباراة · ${wl}${wr}${extra}</div>
           </div>
-          <div class="lb-row__rating">${Math.round(p.rating)}</div>
+          <div class="lb-row__rating">${big(p)}</div>
           <span class="lb-row__go" aria-hidden="true">‹</span>
         </button>`;
       }).join('') + '</div>';
     }
     return html;
   },
-  /* شريط «ترتيبك» ثابت أسفل اللوحة لو اللاعب مش ضمن المعروضين */
+  /* شريط «ترتيبك» ثابت أسفل اللوحة لو اللاعب مش ضمن المعروضين.
+     #12: الرقم بقى حقيقي — بييجي من /api/profile/:id (نفس حساب الترتيب
+     اللي اللوحة نفسها بتستخدمه) مش تخمين من الكاش المحلي. */
   _selfBar(players, meId){
     if(meId==null) return '';
-    const inList = players.some(p => p.id===meId);
-    if(inList) return '';
-    const r = (window.__myRating && isFinite(window.__myRating.rating)) ? Math.round(window.__myRating.rating) : null;
-    if(r==null) return '';
-    const me = (window.amkhAuth && window.amkhAuth.user) || {};
-    const name = this._esc(me.display_name || me.username || 'أنت');
+    if(players.some(p => p.id===meId)) return '';
     return `
-      <div class="lb-self">
-        <div class="lb-self__lbl">ترتيبك</div>
-        <div class="lb-self__mid"><span class="lb-self__name">${name}</span><span class="lb-self__note">لست بعد ضمن أفضل ${players.length}</span></div>
-        <div class="lb-self__rating">${r}</div>
+      <div class="lb-self" id="lb-self">
+        <div class="lb-self__lbl" id="lb-self-rank">…</div>
+        <div class="lb-self__mid"><span class="lb-self__name">${this._esc((window.amkhAuth && window.amkhAuth.user && (window.amkhAuth.user.display_name || window.amkhAuth.user.username)) || 'أنت')}</span><span class="lb-self__note" id="lb-self-note">جارٍ حساب ترتيبك…</span></div>
+        <div class="lb-self__rating" id="lb-self-rating">—</div>
       </div>`;
   },
-  /* نافذة بروفايل لاعب من اللوحة — يقدر يبعتله طلب صداقة مباشرة.
-     صوت مخصّص، وستايل فاخر متناسق مع اللوحة (مش تابع الثيم زيّها). */
-  async _openProfile(uid){
-    const U = window.amkhUI; if(!U) return;
-    const p = (this._players||[]).find(x => String(x.id)===String(uid));
-    if(!p) return;
-    const meId = (window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id) || null;
-    const isMe = (meId!=null && String(p.id)===String(meId));
-    const signedIn = !!(window.amkhAuth && window.amkhAuth.token);
-    const wl = `${p.wins} فوز · ${p.losses} خسارة · ${p.draws} تعادل`;
-    const ov = U.mount('lb-profile', `
-      <div class="lb-prof">
-        <button class="lb-prof__close" data-close aria-label="إغلاق">✕</button>
-        <div class="lb-prof__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}</div>
-        <div class="lb-prof__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span></div>
-        <div class="lb-prof__rank">المركز #${p.rank} · تقييم ${Math.round(p.rating)}</div>
-        <div class="lb-prof__stats">${wl}</div>
-        <div class="lb-prof__actions"></div>
-      </div>`, { sfx: 'account' });
-    const acts = ov.querySelector('.lb-prof__actions');
-    if(isMe){
-      acts.innerHTML = '<div class="lb-prof__hint">هذا أنت</div>';
-    }else if(!signedIn){
-      acts.innerHTML = '<div class="lb-prof__hint">سجّل الدخول لإرسال طلب صداقة</div>';
+  async _fillSelf(meId){
+    const ov = this._ov;
+    if(meId==null || !ov || !ov.isConnected || !ov.querySelector('#lb-self')) return;
+    let d = null;
+    try{
+      const res = await fetch(`${window.getApiBase()}/profile/${meId}`, { headers:{ 'ngrok-skip-browser-warning':'true' } });
+      if(res.ok) d = await res.json();
+    }catch(e){}
+    if(!ov.isConnected) return;
+    const bar = ov.querySelector('#lb-self');
+    if(!bar) return;
+    const r = (d && d.rating) || {};
+    const rate = isFinite(r.rating) ? Math.round(r.rating)
+               : (window.__myRating && isFinite(window.__myRating.rating)) ? Math.round(window.__myRating.rating) : null;
+    bar.querySelector('#lb-self-rating').textContent = rate==null ? '—' : rate;
+    const rankEl = bar.querySelector('#lb-self-rank');
+    const noteEl = bar.querySelector('#lb-self-note');
+    if(d && d.rank){
+      rankEl.textContent = '#' + d.rank;
+      noteEl.textContent = `${r.games||0} مباراة مصنّفة` + (r.provisional ? ' · تقييم مبدئي' : '');
     }else{
-      const btn = document.createElement('button');
-      btn.type='button'; btn.className='ds-btn ds-btn--primary lb-prof__add';
-      btn.textContent='إضافة صديق';
-      btn.onclick = async () => {
-        try{ if(window.SFX) SFX.btn(); }catch(e){}
-        btn.disabled = true; btn.textContent = 'بيتبعت…';
-        let ok=false;
-        try{ ok = await window.amkhFriends.sendRequest(p.id); }catch(e){}
-        btn.textContent = ok ? 'تم إرسال الطلب ✓' : 'تعذّر الإرسال';
-        if(!ok) setTimeout(()=>{ btn.disabled=false; btn.textContent='إضافة صديق'; }, 1600);
-      };
-      acts.appendChild(btn);
+      rankEl.textContent = 'ترتيبك';
+      noteEl.textContent = 'العب مباراة مصنّفة لتدخل الترتيب العالمي';
     }
   },
+  /* البروفايل بقى بطاقة واحدة مشتركة (#17): PlayerCard بتقرا
+     /api/profile/:id فتعرض الترتيب وأعلى تقييم والسلسلة وآخر المباريات.
+     بنبعت الصف اللي عندنا كبيانات مبدئية عشان الاسم والصورة يظهروا فورًا. */
+  async _openProfile(uid){
+    const p = (this._players||[]).find(x => String(x.id)===String(uid)) || {};
+    return PlayerCard.open(uid, {
+      name: p.name, avatar_url: p.avatar_url, country: p.country,
+      rating: p.rating, rank: p.rank,
+    });
+  },
 };
+
+/* ══════════════════════════════════════════════════════════════════════
+   بطاقة اللاعب الكاملة (#17) — «تثقف يعني» على نمط chess.com
+   ──────────────────────────────────────────────────────────────────────
+   كانت البطاقة سطرين: الاسم والتقييم وفوز/خسارة/تعادل. دلوقتي بتقرا
+   GET /api/profile/:id فتعرض: الترتيب العالمي، أعلى تقييم، درجة الثبات
+   (مبدئي/مستقر)، نسبة الفوز بشريط ثلاثي، توزيع الألوان، السلسلة الحالية،
+   وآخر ١٢ مباراة بخصمها ونتيجتها ونوعها.
+   نفس البطاقة بتُستخدم من لوحة الصدارة ومن شاشة المباراة وقائمة الأصدقاء
+   — مصدر واحد للحقيقة، وستايل ثابت مش تابع للثيم زي اللوحة.
+══════════════════════════════════════════════════════════════════════ */
+const PlayerCard = {
+  _esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
+  _flag(cc){ return Leaderboard._flag(cc); },
+  _avStyle(url){ return Leaderboard._avStyle(url); },
+  _initial(n){ return Leaderboard._initial(n); },
+
+  _statusText(s){
+    return s==='in-game' ? 'في مباراة' : s==='online' ? 'متصل الآن' : 'غير متصل';
+  },
+  /* «انضم في يوليو ٢٠٢٦» — التاريخ من السيرفر ISO */
+  _joined(at){
+    if(!at) return '';
+    const d = new Date(String(at).replace(' ','T') + (String(at).includes('Z')?'':'Z'));
+    if(isNaN(d)) return '';
+    try{ return 'انضم في ' + d.toLocaleDateString('ar-EG', { month:'long', year:'numeric' }); }
+    catch(e){ return ''; }
+  },
+  _shortDate(at){
+    if(!at) return '';
+    const d = new Date(String(at).replace(' ','T') + (String(at).includes('Z')?'':'Z'));
+    if(isNaN(d)) return '';
+    try{ return d.toLocaleDateString('ar-EG', { day:'numeric', month:'short' }); }
+    catch(e){ return ''; }
+  },
+  _streakText(st){
+    const n = st && st.streak || 0;
+    if(!n || !st.streak_kind) return '—';
+    const k = st.streak_kind==='win' ? 'فوز' : st.streak_kind==='loss' ? 'خسارة' : 'تعادل';
+    return n + ' ' + k + (n>2 ? ' متتالية' : '');
+  },
+
+  /* بيانات احتياطية لو الشبكة فشلت: اللي عندنا من لوحة الصدارة/الأصدقاء */
+  async open(uid, seed){
+    const U = window.amkhUI; if(!U) return;
+    uid = Number(uid);
+    if(!uid) return;
+    const s = seed || {};
+    const ov = U.mount('amkh-player-card', `
+      <div class="pc" role="dialog" aria-label="ملف اللاعب">
+        <button class="pc__close" data-close aria-label="إغلاق">✕</button>
+        <div class="pc__hero">
+          <div class="pc__av"${this._avStyle(s.avatar_url)}>${s.avatar_url?'':this._initial(s.name)}</div>
+          <div class="pc__name">${this._flag(s.country)}<span>${this._esc(s.name||'لاعب')}</span></div>
+          <div class="pc__sub" id="pc-sub">جارٍ التحميل…</div>
+        </div>
+        <div class="pc__body" id="pc-body">
+          <div class="pc__load">جارٍ تحميل الملف…</div>
+        </div>
+        <div class="pc__acts" id="pc-acts"></div>
+      </div>`, { sfx: 'profile' });
+
+    let data = null;
+    try{
+      if(window.amkhEnsureServer) await window.amkhEnsureServer();
+      const res = await fetch(`${window.getApiBase()}/profile/${uid}`, { headers:{ 'ngrok-skip-browser-warning':'true' } });
+      if(res.ok) data = await res.json();
+    }catch(e){}
+    if(!ov.isConnected) return;      /* المستخدم قفلها قبل ما ترد */
+
+    const body = ov.querySelector('#pc-body');
+    const sub  = ov.querySelector('#pc-sub');
+    if(!data || data.error){
+      sub.textContent = '';
+      body.innerHTML = '<div class="pc__load">تعذّر تحميل الملف. تأكّد من الاتصال ثم أعِد المحاولة.</div>';
+      this._actions(ov, uid, s, null);
+      return;
+    }
+    const p = data.player || {};
+    /* الهيرو بيتحدّث بالبيانات الحقيقية (الاسم/الصورة/العلم من السيرفر) */
+    const av = ov.querySelector('.pc__av');
+    if(p.avatar_url){ av.setAttribute('style', `background-image:url('${String(p.avatar_url).replace(/'/g,'%27')}')`); av.textContent=''; }
+    else av.textContent = this._initial(p.name);
+    ov.querySelector('.pc__name').innerHTML = this._flag(p.country) + `<span>${this._esc(p.name||'لاعب')}</span>`;
+    const bits = [this._statusText(p.status)];
+    const j = this._joined(p.joined_at); if(j) bits.push(j);
+    sub.innerHTML = `<span class="pc__dot pc__dot--${this._esc(p.status||'offline')}"></span>` + this._esc(bits.join(' · '));
+    body.innerHTML = this._renderBody(data);
+    this._actions(ov, uid, s, data);
+  },
+
+  _renderBody(d){
+    const r  = d.rating || {};
+    const st = d.stats  || {};
+    const w = st.wins||0, l = st.losses||0, dr = st.draws||0;
+    const tot = w + l + dr;
+    const pct = n => tot ? Math.round((n/tot)*100) : 0;
+    const rank = d.rank ? '#' + d.rank : '—';
+    const stability = r.provisional ? 'تقييم مبدئي' : 'تقييم مستقرّ';
+    let html = `
+      <div class="pc__rating">
+        <div class="pc__rnum">${Math.round(r.rating||1500)}</div>
+        <div class="pc__rmeta">
+          <span class="pc__chip${r.provisional?' pc__chip--warn':''}">${stability}</span>
+          <span class="pc__rline">المركز ${this._esc(rank)} عالميًا · أعلى تقييم ${Math.round(r.peak||1500)}</span>
+          <span class="pc__rline">${r.games||0} مباراة مصنّفة · دقة التقييم ±${Math.round(r.rd||350)}</span>
+        </div>
+      </div>
+      <div class="pc__wl">
+        <div class="pc__bar" role="img" aria-label="نسب النتائج">
+          <span class="pc__bar--w" style="width:${pct(w)}%"></span>
+          <span class="pc__bar--d" style="width:${pct(dr)}%"></span>
+          <span class="pc__bar--l" style="width:${pct(l)}%"></span>
+        </div>
+        <div class="pc__wlrow">
+          <span class="pc__wlv pc__wlv--w">${w} فوز</span>
+          <span class="pc__wlv pc__wlv--d">${dr} تعادل</span>
+          <span class="pc__wlv pc__wlv--l">${l} خسارة</span>
+          <span class="pc__wlpct">${pct(w)}% فوز</span>
+        </div>
+      </div>
+      <div class="pc__grid">
+        ${this._cell('كل المباريات', tot)}
+        ${this._cell('مصنّفة', st.rated||0)}
+        ${this._cell('ودّية', st.friendly||0)}
+        ${this._cell('بالأبيض', st.as_white||0)}
+        ${this._cell('بالأسود', st.as_black||0)}
+        ${this._cell('السلسلة الحالية', this._streakText(st))}
+      </div>`;
+    html += this._renderGames(d.games||[]);
+    return html;
+  },
+
+  _cell(label, val){
+    return `<div class="pc__cell"><span class="pc__cellv">${this._esc(val)}</span>`
+         + `<span class="pc__celll">${this._esc(label)}</span></div>`;
+  },
+
+  /* آخر المباريات — نتيجة، الخصم، اللون، مصنّفة؟، التاريخ */
+  _renderGames(games){
+    if(!games.length){
+      return '<div class="pc__sect">آخر المباريات</div>'
+           + '<div class="pc__empty">لا مباريات مسجَّلة بعد</div>';
+    }
+    const rows = games.slice(0, 12).map(g=>{
+      const res = g.outcome==='win' ? ['ف','win','فوز'] : g.outcome==='loss' ? ['خ','loss','خسارة'] : ['ت','draw','تعادل'];
+      const white = g.color==='w' || g.color==='white';
+      const col = white ? 'أبيض' : 'أسود';
+      const av  = g.opp_avatar ? ` style="background-image:url('${String(g.opp_avatar).replace(/'/g,'%27')}')"` : '';
+      return `<div class="pc__g">
+          <span class="pc__gres pc__gres--${res[1]}" title="${res[2]}">${res[0]}</span>
+          <span class="pc__gav"${av}>${g.opp_avatar?'':this._initial(g.opp_name)}</span>
+          <span class="pc__gopp">${this._esc(g.opp_name||'لاعب')}</span>
+          <span class="pc__gcol pc__gcol--${white?'w':'b'}">${col}</span>
+          ${g.rated?'<span class="pc__grated">مصنّفة</span>':''}
+          <span class="pc__gdate">${this._esc(this._shortDate(g.at))}</span>
+        </div>`;
+    }).join('');
+    return '<div class="pc__sect">آخر المباريات</div><div class="pc__glist">' + rows + '</div>';
+  },
+
+  /* الأزرار بتتغيّر حسب مين بيتفرّج: نفسه، صديق، غريب، أو زائر مش مسجّل */
+  _actions(ov, uid, seed, data){
+    const box = ov.querySelector('#pc-acts');
+    if(!box) return;
+    const me = window.amkhAuth && window.amkhAuth.user;
+    if(me && Number(me.id) === uid){
+      box.innerHTML = '<div class="pc__self">هذا ملفك الشخصي</div>';
+      return;
+    }
+    if(!me){
+      box.innerHTML = '<div class="pc__self">سجّل الدخول لتراسل اللاعبين وتضيفهم أصدقاء</div>';
+      return;
+    }
+    const F = window.amkhFriends;
+    const isFriend = !!(F && F._friends && F._friends.some(x => Number(x.id) === uid));
+    const name = (data && data.player && data.player.name) || seed.name || 'لاعب';
+    const status = (data && data.player && data.player.status) || seed.status || '';
+    const avatar = (data && data.player && data.player.avatar_url) || seed.avatar_url || '';
+    const btns = [];
+    if(isFriend){
+      btns.push('<button class="ds-btn ds-btn--ghost" id="pc-msg">مراسلة</button>');
+      if(status === 'in-game') btns.push('<button class="ds-btn ds-btn--primary" id="pc-spec">مشاهدة المباراة</button>');
+    } else {
+      btns.push('<button class="ds-btn ds-btn--primary" id="pc-add">إضافة صديق</button>');
+    }
+    box.innerHTML = btns.join('');
+    const add = box.querySelector('#pc-add');
+    if(add) add.onclick = async () => {
+      add.disabled = true; add.textContent = 'جارٍ الإرسال…';
+      const ok = F && F.sendRequest ? await F.sendRequest(uid) : false;
+      if(!add.isConnected) return;
+      add.textContent = ok ? 'تم إرسال الطلب' : 'تعذّر الإرسال';
+      if(!ok) add.disabled = false;
+    };
+    const msg = box.querySelector('#pc-msg');
+    if(msg) msg.onclick = () => {
+      ov._dismiss && ov._dismiss();
+      if(window.amkhChat && window.amkhChat.openChat){
+        window.amkhChat.openChat({ id: uid, display_name: name, avatar_url: avatar });
+      }
+    };
+    const spec = box.querySelector('#pc-spec');
+    if(spec) spec.onclick = () => {
+      ov._dismiss && ov._dismiss();
+      if(window.amkhSpectate && window.amkhSpectate.start) window.amkhSpectate.start(uid, name);
+    };
+  },
+};
+/* الملفات المنفصلة (الأصدقاء/الدردشة) بتنادي البطاقة من هنا */
+window.PlayerCard = PlayerCard;
+
+/* ══════════════════════════════════════════════════════════════════════
+   وضع المشاهدة (#14) — تتفرّج على مباراة صديقك لحظة بلحظة
+   ──────────────────────────────────────────────────────────────────────
+   المتفرّج مش عضو في الغرفة: مايبعتش نقلات ومايقدرش يأثّر على المباراة.
+   عند الدخول بياخد لقطة كاملة (الأسماء، الألوان، كل النقلات، الساعة)
+   وبيبني اللوح من أول نقلة بـ E.apply عشان يطلع مطابق للمباراة الأصلية،
+   وبعدين كل نقلة توصله أول ما تتلعب. مفيش مشاهدة سرّية: اللاعبين
+   بياخدوا عدد المتفرّجين ومين دخل.
+══════════════════════════════════════════════════════════════════════ */
+const Spectate={
+  _ov:null,_bd:null,_cas:null,_ep:null,_turn:'w',
+  _white:'الأبيض',_black:'الأسود',_wid:null,_bid:null,
+  _rated:false,_tc:null,_clock:null,_running:false,_lastTs:0,
+  _orient:'w',_ply:0,_hist:[],_last:null,_ended:false,
+  _tick:null,_urls:null,_started:false,_watch:0,_eyeT:null,_target:null,
+
+  /* سوكت الحضور المُوثَّق — مش سوكت المباراة */
+  _ws(){
+    const ws=window.amkhAuth&&window.amkhAuth._presWs;
+    return (ws&&ws.readyState===1)?ws:null;
+  },
+  _send(o){
+    const ws=this._ws();
+    if(!ws)return false;
+    try{ws.send(JSON.stringify(o));return true;}catch(e){return false;}
+  },
+
+  /* بداية المشاهدة: نطلب من السيرفر ونفتح النافذة على وضع تحميل */
+  start(uid,name){
+    const A=window.amkhAuth;
+    if(!A||!A.token||!A.user){
+      amkhUI.notify('سجّل الدخول أولًا لتشاهد مباريات أصدقائك','المشاهدة','⚠');return;
+    }
+    if(!Number(uid)){
+      amkhUI.notify('تعذّر تحديد اللاعب','المشاهدة','⚠');return;
+    }
+    if(!this._send({type:'spectate:start',friend_id:Number(uid)})){
+      amkhUI.notify('لا يوجد اتصال بالخادم الآن — حاول بعد لحظات','المشاهدة','⚠');return;
+    }
+    this._reset();
+    this._target=Number(uid);
+    this._openUI(name||'لاعب');
+  },
+
+  /* خروج المتفرّج — لازم نبلّغ السيرفر عشان العدّاد ينزل عند اللاعبين */
+  stop(){
+    const ov=this._ov;
+    if(ov&&ov._dismiss){try{ov._dismiss();}catch(e){this._onClosed();}}
+    else this._onClosed();
+  },
+
+  /* أي مسار إغلاق بيوصل هنا: الزر، الخلفية، أو Escape */
+  _onClosed(){
+    if(!this._ov&&!this._started)return;
+    this._ov=null;this._started=false;
+    this._stopTick();
+    this._send({type:'spectate:stop'});
+  },
+
+  _reset(){
+    this._bd=INIT_BD.map(r=>[...r]);
+    this._cas={w:{K:true,Q:true},b:{K:true,Q:true}};
+    this._ep=null;this._turn='w';this._ply=0;this._hist=[];this._last=null;
+    this._clock=null;this._running=false;this._lastTs=0;this._ended=false;
+    this._orient='w';this._watch=0;
+    this._white='الأبيض';this._black='الأسود';this._wid=null;this._bid=null;
+    this._rated=false;this._tc=null;
+  },
+  /* النافذة: بتفتح على وضع تحميل لحد ما اللقطة توصل من السيرفر */
+  _openUI(name){
+    const n=amkhUI.esc(name);
+    const html=`
+      <div class="sp" role="document">
+        <div class="sp__head">
+          <span class="sp__live"><i></i>مشاهدة مباشرة</span>
+          <span class="sp__watch" id="sp-watch"></span>
+          <button class="sp__x" id="sp-x" type="button" aria-label="إنهاء المشاهدة">✕</button>
+        </div>
+        <div class="sp__body" id="sp-body">
+          <div class="sp__load">جارٍ الدخول إلى مباراة ${n}…</div>
+        </div>
+      </div>`;
+    this._ov=amkhUI.mount('amkh-spectate',html,{sfx:'spectate',onDismiss:()=>this._onClosed()});
+    const x=this._ov.querySelector('#sp-x');
+    if(x)x.onclick=()=>{amkhUI.sfx();this.stop();};
+  },
+
+  handleSocketMessage(d){
+    if(!d||!d.type)return;
+    switch(d.type){
+      case 'spectate:started': this._onStarted(d);break;
+      case 'spectate:move':    this._onMove(d);break;
+      case 'spectate:watchers':this._onWatchers(d);break;
+      case 'spectate:joined':  this._onJoined(d);break;
+      case 'spectate:resign':  this._onResign(d);break;
+      case 'spectate:flag':    this._onFlag(d);break;
+      case 'spectate:end':     this._onEnd(d);break;
+      case 'spectate:error':   this._onError(d);break;
+    }
+  },
+
+  _onError(d){
+    const msg=(d&&d.error)||'تعذّرت المشاهدة';
+    if(this._ov){const ov=this._ov;this._ov=null;this._started=false;this._stopTick();
+      if(ov._dismiss)try{ov._dismiss();}catch(e){}}
+    amkhUI.notify(msg,'المشاهدة','⚠');
+  },
+
+  /* اللقطة الكاملة: نبني اللوح من كل النقلات ونشغّل الساعة */
+  _onStarted(d){
+    if(!this._ov)return;
+    this._reset();
+    this._started=true;
+    this._white=d.white||'الأبيض';
+    this._black=d.black||'الأسود';
+    this._wid=Number(d.white_id)||null;
+    this._bid=Number(d.black_id)||null;
+    this._rated=!!d.rated;
+    this._tc=d.tc||null;
+    if(d.clock){
+      this._clock={w:Math.max(0,+d.clock.w||0),b:Math.max(0,+d.clock.b||0),
+                   turn:d.clock.turn==='b'?'b':'w'};
+      this._running=!!d.clock.running;
+    }
+    this._lastTs=Date.now();
+    (d.moves||[]).forEach(m=>this._push(m,true));
+    this._ended=!!d.ended;
+    if(this._ended)this._running=false;
+    this._paintShell();
+    this._paintBoard();
+    this._paintClocks();
+    this._paintMoves();
+    this._startTick();
+  },
+  /* نقلة واحدة على لوح المتفرّج. silent = وإحنا بنعيد بناء اللقطة. */
+  _push(m,silent){
+    if(!m||!Array.isArray(m.fr)||!Array.isArray(m.to))return false;
+    const fr=[Number(m.fr[0]),Number(m.fr[1])],to=[Number(m.to[0]),Number(m.to[1])];
+    if(fr.some(v=>!(v>=0&&v<=7))||to.some(v=>!(v>=0&&v<=7)))return false;
+    const p=this._bd[fr[0]][fr[1]];
+    if(!p)return false;          /* نقلة مش متوافقة — نتجاهلها بدل ما نخرّب اللوح */
+    const promo=m.promo||'Q';
+    let note='';
+    try{note=E.notation(this._bd,fr,to,(E.tp(p)==='P'&&(to[0]===0||to[0]===7))?promo:null);}catch(e){}
+    const res=E.apply(this._bd,fr,to,this._cas,this._ep,promo);
+    this._bd=res.bd;this._cas=res.cas;this._ep=res.ep;
+    this._turn=E.opp(E.col(p));
+    this._ply++;
+    this._last={from:fr,to:to};
+    let chk=false,mate=false;
+    try{
+      chk=E.inChk(this._bd,this._turn);
+      if(chk)mate=!E.allLegal(this._bd,this._turn,this._cas,this._ep).length;
+    }catch(e){}
+    this._hist.push({n:this._ply,col:E.col(p),txt:note+(mate?'#':chk?'+':'')});
+    if(!silent){
+      try{
+        if(mate)SFX.checkmate();
+        else if(res.isCas)SFX.castle();
+        else if(res.cap&&chk)SFX.captureCheck();
+        else if(res.cap)SFX.capture();
+        else if(chk)SFX.check();
+        else SFX.move();
+      }catch(e){}
+    }
+    return true;
+  },
+
+  _onMove(d){
+    if(!this._ov||!this._started)return;
+    this._push(d,false);
+    if(d.clock){
+      this._clock={w:Math.max(0,+d.clock.w||0),b:Math.max(0,+d.clock.b||0),
+                   turn:d.clock.turn==='b'?'b':'w'};
+      this._running=!this._ended;
+      this._lastTs=Date.now();
+    }
+    this._paintBoard();
+    this._paintClocks();
+    this._paintMoves();
+  },
+  /* العدد بيوصل للاعبين وللمتفرّجين: كل واحد بيعرضه في مكانه */
+  _onWatchers(d){
+    const n=Math.max(0,Number(d.count)||0);
+    this._watch=n;
+    if(this._ov){this._paintWatch();return;}
+    this._playerBadge(n);
+  },
+
+  /* أنا لاعب: مين دخل يتفرّج على مباراتي */
+  _onJoined(d){
+    if(this._ov)return;
+    const nm=(d&&d.name)||'صديق';
+    this._playerBadge(Math.max(1,this._watch||1),nm+' يشاهد مباراتك');
+  },
+
+  _onResign(d){
+    if(!this._ov)return;
+    const col=d&&(d.color==='w'||d.color==='b')?d.color:null;
+    const who=col?(col==='w'?this._white:this._black):'أحد اللاعبين';
+    this._finish(amkhUI.esc(who)+' انسحب من المباراة');
+  },
+
+  _onFlag(d){
+    if(!this._ov)return;
+    const l=d&&(d.loser==='w'||d.loser==='b')?d.loser:null;
+    if(l&&this._clock){this._clock[l]=0;}
+    const who=l?(l==='w'?this._white:this._black):'أحد اللاعبين';
+    this._paintClocks();
+    this._finish('انتهى وقت '+amkhUI.esc(who));
+  },
+
+  _onEnd(d){
+    if(!this._ov)return;
+    const r=d&&d.reason;
+    this._finish(r==='player-left'?'انسحب أحد اللاعبين وانتهت المباراة':'انتهت المباراة');
+  },
+
+  /* المباراة خلصت: نوقف الساعة ونسيب اللوح مفتوح للمتفرّج يقرأه */
+  _finish(text){
+    this._ended=true;this._running=false;
+    this._stopTick();
+    this._paintClocks();
+    const note=this._ov&&this._ov.querySelector('#sp-note');
+    if(note){note.textContent=text;note.classList.add('is-on');}
+    const live=this._ov&&this._ov.querySelector('.sp__live');
+    if(live){live.classList.add('is-off');live.innerHTML='<i></i>انتهت المباراة';}
+    try{SFX.notify?SFX.notify():SFX.btn();}catch(e){}
+  },
+  /* شارة «متفرّجين» للاعب نفسه جوّه المباراة — شفافية كاملة */
+  _playerBadge(n,flash){
+    let el=document.getElementById('sp-eye');
+    if(!n||n<1){
+      if(el)el.remove();
+      if(this._eyeT){clearTimeout(this._eyeT);this._eyeT=null;}
+      return;
+    }
+    if(!el){
+      el=document.createElement('div');
+      el.id='sp-eye';el.className='sp-eye';
+      document.body.appendChild(el);
+    }
+    const base='◉ '+n+' '+(n===1?'متفرّج':'متفرّجين');
+    el.textContent=flash||base;
+    el.classList.toggle('is-flash',!!flash);
+    if(this._eyeT){clearTimeout(this._eyeT);this._eyeT=null;}
+    if(flash){
+      try{SFX.btn();}catch(e){}
+      this._eyeT=setTimeout(()=>{
+        const e2=document.getElementById('sp-eye');
+        if(e2){e2.textContent=base;e2.classList.remove('is-flash');}
+        this._eyeT=null;
+      },3200);
+    }
+  },
+
+  _startTick(){
+    this._stopTick();
+    this._tick=setInterval(()=>{
+      /* أي مسار إغلاق (خلفية/Escape) بيتصفّى من هنا كمان */
+      if(!this._ov||!this._ov.isConnected){this._onClosed();return;}
+      if(this._running&&this._clock&&!this._ended)this._paintClocks();
+    },250);
+  },
+  _stopTick(){
+    if(this._tick){clearInterval(this._tick);this._tick=null;}
+  },
+
+  /* الوقت المتبقّي دلوقتي: القيمة المخزّنة ناقص اللي فات من وقت آخر تحديث */
+  _left(col){
+    if(!this._clock)return null;
+    let ms=this._clock[col]||0;
+    if(this._running&&!this._ended&&this._clock.turn===col&&this._lastTs)
+      ms-=(Date.now()-this._lastTs);
+    return Math.max(0,ms);
+  },
+  _fmt(ms){
+    if(ms==null)return '';
+    const t=Math.ceil(ms/1000),m=Math.floor(t/60),s=t%60;
+    return m+':'+String(s).padStart(2,'0');
+  },
+  _sideTop(){return this._orient==='w'?'b':'w';},
+  _sideBot(){return this._orient==='w'?'w':'b';},
+  _nameOf(col){return col==='w'?this._white:this._black;},
+  _idOf(col){return col==='w'?this._wid:this._bid;},
+
+  _plRow(col){
+    const id=this._idOf(col);
+    const cls='sp__nm'+(id?' sp__nm--tap':'');
+    const attr=id?' data-uid="'+id+'"':'';
+    return `<div class="sp__pl" data-side="${col}">
+        <span class="sp__dot sp__dot--${col}"></span>
+        <span class="${cls}"${attr}>${amkhUI.esc(this._nameOf(col))}</span>
+        <span class="sp__clk" id="sp-clk-${col}"></span>
+      </div>`;
+  },
+
+  /* هيكل النافذة بعد وصول اللقطة: لاعب فوق، لوح، لاعب تحت، النقلات */
+  _paintShell(){
+    const body=this._ov&&this._ov.querySelector('#sp-body');
+    if(!body)return;
+    /* لو صاحبي اللي بدأنا منه بالأسود نقلب اللوح عشان يبان زي شاشته */
+    if(this._target&&this._bid===this._target)this._orient='b';
+    const t=this._sideTop(),b=this._sideBot();
+    const tcTxt=this._tc?(Math.round((this._tc.base||0)/60)+' د'+((this._tc.inc)?' + '+this._tc.inc+' ث':'')):'بدون وقت';
+    body.innerHTML=`
+      <div class="sp__meta">
+        <span class="sp__chip${this._rated?' sp__chip--rated':''}">${this._rated?'مصنّفة':'ودّية'}</span>
+        <span class="sp__chip">${amkhUI.esc(tcTxt)}</span>
+      </div>
+      ${this._plRow(t)}
+      <div class="sp__brd" id="sp-brd"></div>
+      ${this._plRow(b)}
+      <div class="sp__note" id="sp-note"></div>
+      <div class="sp__mvbox"><div class="sp__mvs" id="sp-mvs"></div></div>
+      <div class="sp__acts">
+        <button class="ds-btn ds-btn--ghost" id="sp-flip" type="button">تدوير اللوح</button>
+        <button class="ds-btn ds-btn--ghost" id="sp-out" type="button">خروج</button>
+      </div>`;
+    const flip=body.querySelector('#sp-flip');
+    if(flip)flip.onclick=()=>{
+      amkhUI.sfx();
+      this._orient=this._orient==='w'?'b':'w';
+      this._paintShell();this._paintBoard();this._paintClocks();this._paintMoves();
+      if(this._ended){
+        const n=body.querySelector('#sp-note');
+        if(n&&!n.textContent){n.textContent='انتهت المباراة';n.classList.add('is-on');}
+      }
+    };
+    const out=body.querySelector('#sp-out');
+    if(out)out.onclick=()=>{amkhUI.sfx();this.stop();};
+    body.querySelectorAll('.sp__nm--tap').forEach(el=>{
+      el.onclick=()=>{
+        const uid=Number(el.dataset.uid);
+        if(!uid||!window.PlayerCard)return;
+        amkhUI.sfx();
+        window.PlayerCard.open(uid,{name:el.textContent});
+      };
+    });
+    this._paintWatch();
+  },
+
+  _paintWatch(){
+    const el=this._ov&&this._ov.querySelector('#sp-watch');
+    if(!el)return;
+    const n=this._watch||0;
+    el.textContent=n>1?('◉ '+n+' متفرّجين'):(n===1?'◉ متفرّج واحد':'');
+  },
+  /* اللوح: نفس ثيم اللوح والقطع بتاع اللاعب — مربعات مرة واحدة، والقطع كل نقلة */
+  _paintBoard(){
+    const box=this._ov&&this._ov.querySelector('#sp-brd');
+    if(!box)return;
+    if(!this._urls){
+      try{this._urls=getPieceUrls(normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo'));}
+      catch(e){this._urls={};}
+    }
+    const flip=this._orient==='b';
+    if(!box.firstChild){
+      try{applyBoardVisual(box,{themeName:Cfg.data.boardTheme,mini:true});}catch(e){}
+      const g=document.createElement('div');g.className='sp-grid';
+      for(let i=0;i<64;i++){
+        const vr=Math.floor(i/8),vc=i%8;
+        const r=flip?7-vr:vr,c=flip?7-vc:vc;
+        const sq=document.createElement('div');
+        sq.className='sp-sq '+((r+c)%2===0?'lt':'dk');
+        sq.dataset.rc=r+'_'+c;
+        g.appendChild(sq);
+      }
+      const l=document.createElement('div');l.className='sp-layer';
+      box.appendChild(g);box.appendChild(l);
+    }
+    const layer=box.querySelector('.sp-layer');
+    if(!layer)return;
+    layer.innerHTML='';
+    for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+      const p=this._bd[r]&&this._bd[r][c];
+      if(!p)continue;
+      const el=document.createElement('div');
+      el.className='sp-pc';
+      const u=this._urls[p];
+      if(u)el.style.backgroundImage='url("'+u+'")';
+      else el.textContent=p;
+      el.style.left=((flip?7-c:c)*12.5)+'%';
+      el.style.top=((flip?7-r:r)*12.5)+'%';
+      layer.appendChild(el);
+    }
+    box.querySelectorAll('.sp-sq.is-lm').forEach(s=>s.classList.remove('is-lm'));
+    if(this._last){
+      [this._last.from,this._last.to].forEach(sq=>{
+        const el=box.querySelector('.sp-sq[data-rc="'+sq[0]+'_'+sq[1]+'"]');
+        if(el)el.classList.add('is-lm');
+      });
+    }
+  },
+
+  _paintClocks(){
+    if(!this._ov)return;
+    ['w','b'].forEach(col=>{
+      const el=this._ov.querySelector('#sp-clk-'+col);
+      if(el){
+        if(!this._clock){el.textContent='—';el.classList.remove('is-run','is-low');}
+        else{
+          const ms=this._left(col);
+          el.textContent=this._fmt(ms);
+          el.classList.toggle('is-run',!!this._running&&!this._ended&&this._clock.turn===col);
+          el.classList.toggle('is-low',ms<20000);
+        }
+      }
+      const row=this._ov.querySelector('.sp__pl[data-side="'+col+'"]');
+      if(row)row.classList.toggle('is-turn',!this._ended&&this._turn===col);
+    });
+  },
+
+  _paintMoves(){
+    const box=this._ov&&this._ov.querySelector('#sp-mvs');
+    if(!box)return;
+    if(!this._hist.length){
+      box.innerHTML='<span class="sp__mvempty">لم تُلعب نقلات بعد</span>';return;
+    }
+    let html='';
+    for(let i=0;i<this._hist.length;i+=2){
+      const a=this._hist[i],b2=this._hist[i+1];
+      html+='<span class="sp__mv"><b>'+((i/2)+1)+'.</b> '+amkhUI.esc(a.txt)
+           +(b2?' <i>'+amkhUI.esc(b2.txt)+'</i>':'')+'</span>';
+    }
+    box.innerHTML=html;
+    box.scrollLeft=box.scrollWidth;
+  },
+};
+window.amkhSpectate=Spectate;
 
 const IDB=(()=>{
   const DB_NAME='NourChessDB',STORE='levels',KV_STORE='kv',VER=2;
@@ -9808,6 +10526,34 @@ let _lastBalW=window.innerWidth;
     }));
   };
   window.AMKH_raiseChat=raiseChat;                       /* للقياس/الاختبار */
+  /* ══ التغطية الحقيقية للكيبورد (#15) ══
+     قيمة البلاجن = إزاحة IME من قاع النافذة الكاملة. على التليفون بملء
+     الشاشة دي هي التغطية بالظبط. على التابلت (نافذة مقسومة/حرّة، أو
+     كيبورد عائم/مقسوم) النافذة نفسها بتتصغّر أو الكيبورد مايغطّيش كل
+     العرض — فالقيمة بتطلع أكبر من الواقع، والورقة بترتفع أكتر من اللازم
+     فيبان فراغ أسود تحتها والهيدر يتقصّ من فوق (ده اللي بان في التابلت).
+     visualViewport بيعرف التغطية الحقيقية جوّه الـWebView، فبناخد الأصغر،
+     وبنحط سقف أمان 62% من الارتفاع عشان الورقة تفضل قابلة للاستخدام. */
+  const kbCover=(raw)=>{
+    let kb=Math.max(0, Math.round(raw)||0);
+    const vv=window.visualViewport;
+    if(vv){
+      const covered=Math.round(window.innerHeight-vv.height-(vv.offsetTop||0));
+      if(covered>40) kb=Math.min(kb, covered);
+    }
+    const cap=Math.round(window.innerHeight*0.62);
+    return Math.min(kb, cap);
+  };
+  /* الكيبورد على التابلت بيتغيّر حجمه وهو مفتوح (عائم ↔ مثبّت) والبلاجن
+     مابيبعتش حدث تاني — نتابع visualViewport طول ما هو مفتوح. */
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',()=>{
+      if(!root.classList.contains('kb-open'))return;
+      const vv=window.visualViewport;
+      const covered=Math.round(window.innerHeight-vv.height-(vv.offsetTop||0));
+      if(covered>40) root.style.setProperty('--kb', kbCover(covered)+'px');
+    });
+  }
   const KB=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()
     &&window.Capacitor.Plugins&&window.Capacitor.Plugins.Keyboard;
   if(KB&&KB.addListener){
@@ -9820,7 +10566,7 @@ let _lastBalW=window.innerWidth;
          في الكيبورد تمامًا (زي واتساب) على أي جهاز. [[flicker-root-cause-fix]] */
       const kbFull=(info&&info.keyboardHeight)||0;
       const nav=parseFloat(getComputedStyle(root).getPropertyValue('--nav-bottom'))||0;
-      root.style.setProperty('--kb', Math.max(0, kbFull-nav)+'px');
+      root.style.setProperty('--kb', kbCover(kbFull-nav)+'px');
       root.classList.add('kb-open','kb-shift');
       if(typeof R!=='undefined')R._kbLock=true;
       raiseActive();
@@ -10299,6 +11045,9 @@ const G={
     /* هوية المود تتضبط مركزيًا هنا عشان كل مسارات البدء تعدي عليها —
        البلوتوث كان مابيعيّنش gmode خالص فكان بيورث عنوان اللعبة السابقة. */
     GameIdentity.apply(mode);
+    /* #13 — الأوضاع المحلية (نور/Stockfish/بلوتوث/لاعبان) تبلّغ السيرفر إنك
+       جوه مباراة؛ الأونلاين بيتعرف من الغرفة نفسها فمانبلّغش عنه. */
+    try{ amkhLocalActivity(mode==='online'?'':mode); }catch(e){}
     document.getElementById('promo-ov').classList.remove('open');
     amkhReleaseModalFreeze();
     document.getElementById('go-next').style.display='none';
@@ -10834,6 +11583,10 @@ const Nav={
     /* شريط حالة الاتصال جزء من شاشة اللعب — الخروج منها بأي مسار
        (رجوع، قائمة، بدء وضع تاني) لازم ينضّفه، مش بس مسار واحد. */
     if(id!=='s-game'){try{GameIdentity.hideConnection();}catch(e){}}
+    /* خرجنا من شاشة اللعب → الأصدقاء مايفضلوش شايفين «في مباراة» (#13) */
+    if(id!=='s-game'){try{amkhLocalActivity('');}catch(e){}}
+    /* شريط تنبيه الرسائل جوّه المباراة بس (#9) */
+    if(id!=='s-game'){const _t=document.getElementById('ch-gtoast');if(_t)_t.remove();}
 
     // Load profile data when settings screen is opened
     if(id === 's-settings'){
@@ -10857,6 +11610,27 @@ const Nav={
 
 function isRemoteMatchMode(mode=S.mode){
   return mode==='online'||mode==='bluetooth';
+}
+
+/* ══ إبلاغ الأصدقاء بمباراة محلية (#13) ══
+   الأصدقاء كانوا يشوفوك «متصل» وأنت جوه مباراة ضد نور أو Stockfish أو
+   عبر بلوتوث، لأن السيرفر بيستنتج «في مباراة» من غرف الأونلاين بس.
+   بنبلّغه صريحًا عبر سوكت الحضور، فحالتك تبقى «في مباراة» في كل الأوضاع.
+   kind فاضي/غير موجود = خرجت من المباراة. */
+let _amkhActivityKind='';
+function amkhLocalActivity(kind){
+  const k=kind||'';
+  if(k===_amkhActivityKind) return;   /* مانغرقش السوكت بتكرار نفس الحالة */
+  _amkhActivityKind=k;
+  try{
+    const ws=(window.amkhAuth&&window.amkhAuth._presWs&&window.amkhAuth._presWs.readyState===1)
+      ? window.amkhAuth._presWs
+      : ((window.chessWs&&window.chessWs.readyState===1)?window.chessWs:null);
+    if(!ws) return;
+    /* الخادم بيقرا in_game (server.js: case 'presence:activity') — كان
+       بيتبعت on بس فالحالة مكانت بتتفعّل أبدًا. */
+    ws.send(JSON.stringify({type:'presence:activity',in_game:!!k,on:!!k,kind:k}));
+  }catch(e){}
 }
 
 /* ترتيب مقاعد شاشة اللعب.
@@ -10968,6 +11742,9 @@ const OL=(()=>{
   /* تقييمات اللاعبين للمباراة الحالية (تظهر في شريط اللاعب) */
   let _oppRatingSnap=null;
   let _myRatingSnap=null;
+  /* #17: هويات المباراة الحالية — الضغط على الشريط يفتح البطاقة الكاملة */
+  let _oppUserId=null;
+  let _myUserId=null;
 
   /* ══ ساعة المباراة (#134) ══
      السيرفر هو السلطة على الوقت؛ العميل بيعرض عدّاد محلي بيتصحّح مع كل
@@ -11085,10 +11862,67 @@ const OL=(()=>{
     if(el){el.className='ost'+(tp?' '+tp:'');el.textContent=msg;}
   }
 
+  /* #17 — «تثقف يعني»: الضغط على أي شريط لاعب جوّه مباراة أونلاين يفتح
+     بطاقته الكاملة (تقييم، ترتيب عالمي، سلسلة، آخر مبارياته). بيتفعّل بس
+     لما يكون عندنا هوية الحساب من رسالة start — في الودّية بين مجهولين
+     مافيش هوية فالشريط يفضل عادي بلا وعد كاذب. */
+  function _wireBarProfiles(mc, myName, oppLabel){
+    const oc=E.opp(mc);
+    const bind=(barId, uid, name)=>{
+      const bar=document.getElementById(barId);
+      if(!bar) return;
+      const l=bar.querySelector('.pb-l');
+      if(!l) return;
+      l.classList.remove('pb-l--tap');
+      l.onclick=null;
+      l.removeAttribute('role');
+      l.removeAttribute('tabindex');
+      l.removeAttribute('aria-label');
+      if(!uid) return;
+      l.classList.add('pb-l--tap');
+      l.setAttribute('role','button');
+      l.setAttribute('tabindex','0');
+      l.setAttribute('aria-label','ملف '+(name||'اللاعب'));
+      const go=()=>{
+        try{ if(window.SFX) SFX.btn(); }catch(e){}
+        if(window.PlayerCard) window.PlayerCard.open(uid, { name, status:'in-game' });
+      };
+      l.onclick=go;
+      l.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } };
+    };
+    bind(mc==='w'?'bar-w':'bar-b', _myUserId, myName);
+    bind(oc==='w'?'bar-w':'bar-b', _oppUserId, oppLabel);
+  }
+
+  /* رجّع الأشرطة لحالتها العادية — الأوضاع الأوفلاين مافيهاش بروفايلات */
+  function _unwireBarProfiles(){
+    for(const id of ['bar-w','bar-b']){
+      const l=document.getElementById(id);
+      const t=l&&l.querySelector('.pb-l');
+      if(!t) continue;
+      t.classList.remove('pb-l--tap');
+      t.onclick=null; t.onkeydown=null;
+      t.removeAttribute('role'); t.removeAttribute('tabindex'); t.removeAttribute('aria-label');
+    }
+  }
+
   function destroy(){
     clearTimeout(_reconnectTimer);
     clearTimeout(_connTimeoutTimer);
     clearInterval(_pingTimer);
+    _oppUserId=null; _myUserId=null;
+    try{ _unwireBarProfiles(); }catch(e){}
+    /* #14: شارة المتفرّجين تختفي مع المباراة */
+    try{ if(window.amkhSpectate) window.amkhSpectate._playerBadge(0); }catch(e){}
+    /* #7 — كارثة «في مباراة» العالقة: السوكت المُعار مابيتقفلش هنا، فالسيرفر
+       ماكانش عنده أي إشارة إن المباراة سابت الجهاز، فيفضل شايف اللاعبين جوه
+       غرفة إلى الأبد ويمنع دعوة جديدة. دلوقتي نبلّغه صريحًا قبل الفكّ. */
+    try{
+      if(ws&&ws.readyState===WebSocket.OPEN&&_roomCode){
+        ws.send(JSON.stringify({type:'game:leave',code:_roomCode}));
+      }
+    }catch(e){}
+    _roomCode='';
     if(ws){
       /* سوكت الحضور مُعار — نفكّه من غير ما نقفله، عشان الحضور
          والدعوات يفضلوا شغّالين بعد ما مباراة الصديق تخلص. */
@@ -11122,6 +11956,18 @@ const OL=(()=>{
     const prov='';
     const opp=d.opp;
     const oppLine=opp?`<div class="rtu-opp">تقييم الخصم: <b>${Math.round(opp.rating)}</b></div>`:'';
+    /* سطر توضيحي: أول 10 مباريات حركة التقييم أوسع عن قصد (بنعاير مستواك)،
+       وبعدها بتضيق وتستقرّ. ده كان أكبر مصدر حيرة للاعبين — الرقم بيتحرّك
+       بسرعة في البداية فيفتكروا إن في خطأ. */
+    const nGames=Number(d.games)||0;
+    const left=Number(d.calib_left);
+    let calibLine='';
+    if(isFinite(left)&&left>0){
+      calibLine=`<div class="rtu-note">مرحلة تحديد المستوى: باقي <b>${left}</b> ${left===1?'مباراة':'مباريات'} مصنّفة.
+        التقييم بيتحرّك أسرع دلوقتي، وبعد كده بيستقرّ.</div>`;
+    } else if(nGames>0){
+      calibLine=`<div class="rtu-note">تقييمك مستقرّ الآن — الحركة في المباراة الواحدة محدودة.</div>`;
+    }
     // حدّث النسخة المحلية عشان تبان فورًا في الحساب/شريط الخصم
     try{ window.__myRating={rating:Math.round(d.after),rd:d.rd,provisional:d.provisional}; }catch(e){}
     const ov=U.mount('rating-update', `
@@ -11135,6 +11981,7 @@ const OL=(()=>{
           <span class="rtu-after">${Math.round(d.after)}${prov}</span>
         </div>
         ${oppLine}
+        ${calibLine}
         <div class="ds-dialog__actions">
           <button class="ds-btn ds-btn--primary" data-close>تمام</button>
         </div>
@@ -11298,6 +12145,8 @@ const OL=(()=>{
            في الودّية مفيش لازمة لعرضه جنب الأسماء. */
         _oppRatingSnap = d.rated ? (d.oppRating||null) : null;
         _myRatingSnap  = d.rated ? (d.myRating||null)  : null;
+        _oppUserId = Number(d.oppId)||null;
+        _myUserId  = Number(d.myId)||null;
         if(d.myRating){ try{ window.__myRating={rating:Math.round(d.myRating.rating),rd:d.myRating.rd,provisional:d.myRating.provisional}; }catch(e){} }
         _go(d.yourColor, d.oppName||'');
         break;
@@ -11373,6 +12222,12 @@ const OL=(()=>{
         _onFlag(d);
         break;
 
+      /* #14: عدّاد المتفرّجين ومَن دخل — بيوصلوا على سوكت المباراة كمان */
+      case 'spectate:watchers':
+      case 'spectate:joined':
+        try{ if(window.amkhSpectate) window.amkhSpectate.handleSocketMessage(d); }catch(e){}
+        break;
+
       case 'pong': break;
       default: break;
     }
@@ -11393,6 +12248,7 @@ const OL=(()=>{
     const oppLabel=normName(oppName,'الخصم');
     setBarName(mc==='w'?'nm-w':'nm-b', myName, _myRatingSnap);
     setBarName(oc==='w'?'nm-w':'nm-b', oppLabel, _oppRatingSnap);
+    _wireBarProfiles(mc, myName, oppLabel);
     fixBars(mc);
     CHAT.show();
     setTimeout(()=>{
@@ -12052,6 +12908,60 @@ const Notifications={
       },220);
     }catch(e){}
   },
+  /* ══ توجيه نقر الإشعار داخل التطبيق (بلا أي تنقّل خارجي) ══
+     كان هنا `location.href = data.link` وده كان بيودّي كارثة: الرابط بيشاور
+     على نسخة الويب (دومين تاني)، والـWebView بيسيب origin التطبيق ويروح
+     هناك. الـlocalStorage مربوط بالـorigin، فالجلسة «تختفي» ويطلع للمستخدم
+     «تسجيل الدخول» — ولما يقفل ويفتح عادي بترجع تاني (عشان الجلسة أصلًا
+     ماتمسحتش، إحنا بس كنا في origin غلط).
+     دلوقتي بنقرا نية الإشعار من data ونفتح الشاشة المناسبة جوه التطبيق. */
+  _openFromPush(data){
+    const d=data||{};
+    /* التطبيق ممكن يكون لسه بيقلع (نقرة على إشعار وهو مقفول)، فنستنى
+       الجلسة تجهز قبل ما نفتح شات أو حفلة — بحد أقصى 8 ثوان. */
+    const ready=()=>{
+      try{
+        const A=window.amkhAuth;
+        if(!A) return false;
+        if(!A.token) return true;   // مش مسجّل أصلًا — مافيش فايدة من الانتظار
+        return !!A.user;            // الجلسة المحلية رجعت
+      }catch(e){ return true; }
+    };
+    const run=()=>{
+      try{
+        const room=d.room?String(d.room).trim():'';
+        if(room){ this._autoJoinRoom(room); return; }
+        const kind=String(d.kind||'');
+        const CH=window.amkhChat, FR=window.amkhFriends;
+        if(kind==='chat'&&d.from_id&&CH&&CH.openChat){
+          const fid=Number(d.from_id);
+          let f=null;
+          try{ f=(FR&&FR._friends||[]).find(x=>Number(x.id)===fid)||null; }catch(e){}
+          CH.openChat(f||{id:fid,display_name:d.from_name||'صديق'});
+          return;
+        }
+        if(kind==='group'&&d.group_id&&CH&&CH.openGroup){
+          CH.openGroup({id:Number(d.group_id),name:d.group_name||'حفلة'});
+          return;
+        }
+        if((kind==='friend'||kind==='invite')&&FR&&FR.showFriendsModal){ FR.showFriendsModal(); return; }
+        /* لو الإشعار جاب رابط، نستخرج منه الـhash ونعالجه محليًا — بدون تنقّل */
+        if(d.link){
+          const s=String(d.link);
+          if(s.indexOf('#')>=0){ this._handleDeepLink(s); return; }
+        }
+        /* أي إشعار تاني: التطبيق اتفتح بالفعل وده كل المطلوب. لو فيه رسايل
+           غير مقروءة نفتح صندوق الرسايل عشان المستخدم يلاقي اللي جابه هنا. */
+        if(kind==='adaptive'&&d.unread&&CH&&CH.showInbox) CH.showInbox();
+      }catch(e){}
+    };
+    let tries=0;
+    const tick=()=>{
+      if(ready()||tries++>40){ run(); return; }
+      setTimeout(tick,200);
+    };
+    tick();
+  },
   _handleDeepLink(srcUrl){
     try{
       /* على الويب: بنقرا الـhash من العنوان الحالي.
@@ -12139,7 +13049,7 @@ const Notifications={
             try{ if(window.amkhAuth&&window.amkhAuth.connectPresence) window.amkhAuth.connectPresence(); }catch(e){}
             return;
           }
-          if(data.link) location.href=data.link; else if(data.room) this._autoJoinRoom(data.room);
+          this._openFromPush(data);
         }catch(e){}
       });
       await PN.register();

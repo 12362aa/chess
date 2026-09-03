@@ -42,6 +42,27 @@ function next(w, type, timeout = 4000) {
 }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
+/* استنى السيرفر يفتح المنفذ فعلًا. الانتظار الثابت (1200ms) كان بيفشل على
+   الأجهزة اللي الـ migration فيها بياخد وقت أطول — فبنجرّب نتّصل بالتكرار. */
+function waitBoot(ms){
+  const net = require('net');
+  const t0 = Date.now();
+  const tryOnce = () => new Promise(res => {
+    const s = net.connect(PORT, '127.0.0.1');
+    const done = ok => { try{s.destroy();}catch(e){} res(ok); };
+    s.once('connect', () => done(true));
+    s.once('error', () => done(false));
+    setTimeout(() => done(false), 800);
+  });
+  return (async () => {
+    while (Date.now() - t0 < (ms || 30000)) {
+      if (await tryOnce()) { await sleep(150); return true; }
+      await sleep(250);
+    }
+    throw new Error('server did not start listening in time');
+  })();
+}
+
 (async () => {
   const srv = spawn(process.execPath, [path.join(__dirname, 'server.js')], {
     env: Object.assign({}, process.env, { PORT: String(PORT), AMKH_DB_PATH: TMP, AMKH_DB_VERBOSE: '0' }),
@@ -52,7 +73,7 @@ function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
   let failed = false;
   try {
-    await sleep(1200);
+    await waitBoot();
     // سجّل مستخدمين
     const a = await post(BASE + '/api/register', { email: 'a@t.com', password: 'pw123456', display_name: 'Alice' });
     const b = await post(BASE + '/api/register', { email: 'b@t.com', password: 'pw123456', display_name: 'Bob' });

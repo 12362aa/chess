@@ -3017,6 +3017,7 @@ body[data-ui-theme="glass"] .home-tile::before{
 .ico--settings { --ico: var(--icon-settings); }
 .ico--bot      { --ico: var(--icon-bot); }
 .ico--trophy   { --ico: var(--icon-trophy); }
+.ico--friends  { --ico: var(--icon-friends); }
 
 /* ── 16.1 الطقم الافتراضي (amkh) — هندسة إسلامية ─────────────────────
    نفس معاني الأيقونات القديمة بلغة الثيم: الدوائر بقت مثمّنات، والقلب
@@ -3039,6 +3040,8 @@ body[data-ui-theme="glass"] .home-tile::before{
   --icon-bot:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M6.4 8.8 H17.6 L19.4 10.6 V17.8 L17.6 19.6 H6.4 L4.6 17.8 V10.6 Z'/><path d='M12 8.8 V5.6'/><path d='M10.4 4 L12 2.4 L13.6 4 L12 5.6 Z'/><path d='M8.8 14 h1 M14.2 14 h1'/></svg>");
   /* كأس/تاج لوحة الصدارة — أيقونة مرسومة (بدون إيموجي) */
   --icon-trophy:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M7 4 H17 V9 A5 5 0 0 1 7 9 Z'/><path d='M7 5.4 H4.2 V7 A3.2 3.2 0 0 0 7 10.1'/><path d='M17 5.4 H19.8 V7 A3.2 3.2 0 0 1 17 10.1'/><path d='M12 14 V17'/><path d='M8.8 20.4 H15.2 L14.4 17.4 H9.6 Z'/></svg>");
+  /* الأصدقاء — زر مستقل في الشريط العلوي (شخصان، رؤوسهم معيّنات زي لغة الثيم) */
+  --icon-friends:   url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M9 3 L12 6.2 L9 9.4 L6 6.2 Z'/><path d='M2.6 19.8 v-1.4 a4.7 4.7 0 0 1 4.7-4.7 h3.4 a4.7 4.7 0 0 1 4.7 4.7 v1.4'/><path d='M16.6 5.4 L19 7.8 L16.6 10.2 L14.2 7.8 Z'/><path d='M17.8 14 a4.1 4.1 0 0 1 3.6 4.1 v1.7'/></svg>");
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -3607,8 +3610,11 @@ html.kb-open .ds-overlay--sheet{
 }
 html.kb-open .ds-overlay--sheet .ds-sheet{
   /* قيّد الارتفاع بالمساحة فوق الكيبورد + 12px هامش علوي بسيط → الهيدر
-     يفضل باين فوق، والرسائل تتقلّص وتتمرّر بدل ما تدفع الهيدر برّة */
-  max-height: calc(100vh - var(--kb, 0px) - 12px);
+     يفضل باين فوق، والرسائل تتقلّص وتتمرّر بدل ما تدفع الهيدر برّة.
+     min() مع 86vh (نفس سقف الورقة الطبيعي): على التابلت الكيبورد بياخد
+     نسبة أقل من الشاشة، فبدون السقف كانت الورقة بتكبر لحد 90vh+ وقت
+     الكيبورد — تقفز وتغطّي الشاشة كلها وشكلها يتلخبط (#15). */
+  max-height: min(86vh, calc(100vh - var(--kb, 0px) - 12px));
   /* #170: صفّر حشو safe-area السفلي بتاع الورقة نفسها وقت الكيبورد. الحشو ده
      (padding-bottom: env(safe-area-inset-bottom) في .ds-sheet الأساسي) بيقعد
      تحت صندوق الكتابة جوه الورقة؛ وبما إن قاع الورقة اترفع لحدّ قمة الكيبورد،
@@ -3672,7 +3678,7 @@ html.kb-open .ch-input{
 /* زر الدردشة داخل صف الصديق */
 .fr-row__chat{ font-size: 1.05rem; line-height: 1; }
 
-/* شارة غير المقروء على زر الأصدقاء في الشريط العلوي */
+/* شارة غير المقروء على زر الحساب في الشريط العلوي (#16) */
 .amkh-chat-badge{
   position: absolute; top: 2px; inset-inline-end: 2px;
   min-width: 18px; height: 18px; padding: 0 5px;
@@ -3684,6 +3690,8 @@ html.kb-open .ch-input{
   pointer-events: none;
 }
 #appbar-friends, #appbar-settings{ position: relative; }
+/* الرقم بياخد مكان نقطة «مسجّل دخول» عشان مايتراكموش فوق بعض */
+.amkh-auth-btn.has-badge .amkh-auth-btn__dot{ display: none; }
 
 /* ── محادثة (conversation) ── */
 .ch-conv{ display: flex; flex-direction: column; height: 100%; min-height: 0; }
@@ -3744,7 +3752,96 @@ html.kb-open .ch-input{
   background: var(--color-primary, #4c7cf3);
   color: var(--color-on-primary, #fff);
 }
+/* ── منشِن @ (#2) ── */
+.ch-ment-tag{
+  font-weight: 700;
+  color: var(--color-primary, #6fd1ff);
+  background: rgba(111, 209, 255, .14);
+  border-radius: 4px; padding: 0 2px;
+}
+.ch-bubble--mine .ch-ment-tag{ color: #fff; background: rgba(255,255,255,.22); }
+/* فقاعة فيها منشن ليّ: شريط جانبي بلون الهوية */
+.ch-bubble--ment{ box-shadow: inset 3px 0 0 var(--color-primary, #6fd1ff); }
+/* لوحة اختيار العضو فوق حقل الكتابة */
+.ch-ment{
+  max-height: 210px; overflow-y: auto;
+  display: flex; flex-direction: column;
+  margin: 0 var(--space-2, 8px);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-bg-elevated, rgba(18,18,22,.98));
+  border: 1px solid var(--color-border, rgba(255,255,255,.14));
+  box-shadow: 0 -6px 20px rgba(0,0,0,.35);
+}
+.ch-ment__row{
+  display: flex; align-items: center; gap: var(--space-2, 8px);
+  padding: 7px 10px; width: 100%;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  color: var(--color-text-primary, #fff);
+}
+.ch-ment__row:hover{ background: var(--color-surface, rgba(255,255,255,.07)); }
+.ch-ment__av{
+  width: 28px; height: 28px; border-radius: 50%; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-surface-raised, rgba(255,255,255,.1));
+  overflow: hidden; font-size: .72rem; font-weight: 700;
+}
+.ch-ment__av svg{ width: 15px; height: 15px; }
+.ch-ment__av img{ width: 100%; height: 100%; object-fit: cover; }
+.ch-ment__name{ font-size: .86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .ch-bubble.is-pending{ opacity: .65; }
+
+/* ── تفاعلات الإيموجي (#3) ──
+   شرائح تحت نصّ الفقاعة: إيموجي + عدّاد لو أكتر من واحد، وتفاعلي أنا
+   بإطار بلون الهوية. مرسومة داخل الفقاعة عشان تتحرّك معاها وقت السحب للرد. */
+.ch-reacts{
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-top: 6px; white-space: normal;
+}
+.ch-react{
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 7px; min-height: 22px;
+  border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--color-border, rgba(255,255,255,.16));
+  background: var(--color-bg-elevated, rgba(0,0,0,.28));
+  color: var(--color-text-primary, #fff);
+  font-size: 12px; line-height: 1;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.ch-react:active{ transform: scale(.92); }
+.ch-react.is-mine{
+  border-color: var(--color-primary, #6fd1ff);
+  background: rgba(111, 209, 255, .2);                                    /* احتياطي */
+  background: color-mix(in srgb, var(--color-primary, #6fd1ff) 22%, transparent);
+}
+.ch-react__em{ font-size: 14px; line-height: 1; }
+.ch-react__n{ font-weight: 700; opacity: .85; font-variant-numeric: tabular-nums; }
+
+/* شريط الاختيار السريع أعلى قائمة إجراءات الرسالة */
+.ch-react__strip{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-1, 4px);
+  margin-bottom: var(--space-3, 12px);
+  padding: var(--space-2, 8px);
+  border-radius: 999px;
+  background: var(--color-surface-raised, rgba(255,255,255,.08));
+  border: 1px solid var(--color-border, rgba(255,255,255,.12));
+}
+.ch-react__pick{
+  flex: 1 1 0; min-width: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 40px; border: 0; border-radius: 50%;
+  background: transparent; cursor: pointer;
+  font-size: 23px; line-height: 1;
+  transition: transform .12s ease, background .12s ease;
+}
+.ch-react__pick:hover{ background: var(--color-surface-strong, rgba(255,255,255,.1)); }
+.ch-react__pick:active{ transform: scale(.88); }
+.ch-react__pick.is-mine{
+  background: rgba(111, 209, 255, .24);                                   /* احتياطي */
+  background: color-mix(in srgb, var(--color-primary, #6fd1ff) 26%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-primary, #6fd1ff);
+}
 .ch-bubble__meta{ display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px; }
 .ch-time{ font-size: .66rem; opacity: .7; }
 .ch-tick{ font-size: .7rem; opacity: .8; }
@@ -3943,6 +4040,21 @@ html.kb-open .ch-input{
 }
 .ch-inbox__end{ display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: 0 0 auto; }
 .ch-inbox__time{ font-size: .68rem; color: var(--color-text-secondary, #9aa); }
+/* صف العلامات: مثبّتة + «ذكرك» + عدّاد غير المقروء (#1/#2/#4) */
+.ch-inbox__marks{ display: inline-flex; align-items: center; gap: 4px; }
+.ch-inbox__marks:empty{ display: none; }
+.ch-inbox__pin{
+  display: inline-flex; color: var(--color-text-secondary, #9aa);
+  transform: rotate(38deg);                 /* ميلة الدبّوس زي واتساب */
+}
+.ch-inbox__pin svg{ width: 13px; height: 13px; }
+.ch-inbox__at{
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  color: #fff; background: var(--color-primary, #4c7cf3);
+}
+.ch-inbox__at svg{ width: 12px; height: 12px; }
+.ch-inbox__row.is-pinned{ background: var(--color-surface, rgba(255,255,255,.05)); }
 .ch-inbox__badge{
   min-width: 18px; height: 18px; padding: 0 5px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -4251,5 +4363,433 @@ html.kb-open .ch-input{
 .lb-prof__actions{ margin-top: 18px; }
 .lb-prof__hint{ font-size: .82rem; color: var(--lb-sub); }
 .lb-prof__add{ min-width: 180px; }
+
+/* ══════════════════════════════════════════════════════════════════
+   شريط تنبيه الرسائل أثناء المباراة + ورقة الردّ السريع (#9 / #10)
+   ──────────────────────────────────────────────────────────────────
+   مش overlay: شريط عايم فوق الرقعة بلا قفل تمرير وبلا حجب للنقلات،
+   وبيقعد تحت الشريط العلوي مع مراعاة نتش الشاشة.
+══════════════════════════════════════════════════════════════════ */
+.ch-gtoast{
+  position: fixed; z-index: 1400;
+  inset-inline: 10px; top: calc(env(safe-area-inset-top, 0px) + 58px);
+  max-width: 520px; margin-inline: auto;
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px; border-radius: 14px;
+  background: var(--color-bg-elevated, #171b26);
+  border: 1px solid var(--color-border, rgba(255,255,255,.12));
+  box-shadow: 0 14px 34px rgba(0,0,0,.5);
+  color: var(--color-text, #eef1f7); direction: rtl;
+  transform: translateY(-140%); opacity: 0;
+  transition: transform .24s cubic-bezier(.2,.9,.3,1), opacity .24s ease;
+}
+.ch-gtoast.is-open{ transform: translateY(0); opacity: 1; }
+.ch-gtoast__av{
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
+  object-fit: cover; background: var(--color-surface-raised, rgba(255,255,255,.12));
+  display: grid; place-items: center;
+  font-weight: 800; font-size: .95rem; color: var(--color-primary, #6c8cff);
+}
+.ch-gtoast__txt{ flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ch-gtoast__name{
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 800; font-size: .82rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ch-gtoast__more{
+  min-width: 17px; height: 17px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .64rem; font-weight: 700; color: #fff;
+  background: var(--color-primary, #4c7cf3); border-radius: 999px;
+}
+.ch-gtoast__body{
+  font-size: .76rem; color: var(--color-text-secondary, #9aa);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ch-gtoast__btn{
+  flex: 0 0 auto; padding: 6px 13px; border-radius: 999px; border: none;
+  font-size: .76rem; font-weight: 800; cursor: pointer;
+  background: var(--color-primary, #4c7cf3); color: #fff;
+}
+.ch-gtoast__x{
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--color-border, rgba(255,255,255,.12));
+  background: transparent; color: var(--color-text-secondary, #9aa);
+  font-size: .72rem; line-height: 1; cursor: pointer;
+}
+
+/* ورقة الردّ السريع */
+.ch-qr{ padding: 14px 14px 18px; display: flex; flex-direction: column; gap: 11px; }
+.ch-qr__head{ display: flex; align-items: center; gap: 8px; }
+.ch-qr__to{
+  flex: 1 1 auto; min-width: 0; font-weight: 800; font-size: .92rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ch-qr__close{
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--color-border, rgba(255,255,255,.12));
+  background: transparent; color: var(--color-text-secondary, #9aa);
+  font-size: .8rem; cursor: pointer;
+}
+.ch-qr__ta{ width: 100%; resize: none; line-height: 1.5; font: inherit; }
+.ch-qr__acts{ display: flex; gap: 9px; }
+.ch-qr__acts .ds-btn{ flex: 1 1 0; }
+
+/* ══════════════════════════════════════════════════════════════════
+   تخطيط الدردشة على التابلت (#15)
+   ──────────────────────────────────────────────────────────────────
+   الشاشة العريضة كانت بتاخد نفس مقاسات التليفون: ورقة ضيّقة في نُصّ
+   شاشة فاضية، فقاعات بتمتد على 78% من الورقة، ومع الكيبورد المفتوح
+   الورقة بتقفز لأنها كانت مقيّدة بالكيبورد بس بلا سقفها الطبيعي.
+══════════════════════════════════════════════════════════════════ */
+@media (min-width: 700px){
+  .ch-scroll{ padding-inline: var(--space-4, 16px); }
+  .ch-ment{ max-height: 40vh; }
+  /* الورقة تفضل مريحة الطول وقت الكيبورد، وماتقلّش عن حدّ يخلّي
+     الرسايل تختفي — من غير ما تتعدّى المساحة المتاحة فوق الكيبورد. */
+  html.kb-open .ds-overlay--sheet .ch-conv{
+    min-height: min(420px, calc(100vh - var(--kb, 0px) - 12px));
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   الشات ملء الشاشة على التابلت/الآيباد — زي واتساب
+   ────────────────────────────────────────────────────────────────────
+   اللاعبون طلبوها صراحة: الورقة كانت 680px في نُصّ شاشة عريضة، فالشات
+   يبان جزيرة صغيرة والفراغ حواليها ميّت. دلوقتي نافذة الشات (شات صديق،
+   شات حفلة، وصندوق الرسائل — كلهم #amkh-chat-modal) بتاخد الشاشة كلها.
+
+   الكيبورد: الورقة العامة بتترفع بـpadding-bottom على الـoverlay. هنا
+   بنلغي الرفع ده ونقصّر ارتفاع الورقة نفسها بمقدار --kb، لأن الورقة
+   بتبدأ من فوق (flex-start) — الرفع بالحشو كان بيسيب فراغ فوقها بنفس
+   ارتفاع الكيبورد. النتيجة: الهيدر ثابت فوق، والرسايل بتتقلّص وتتمرّر
+   وصندوق الكتابة واقف بالظبط فوق الكيبورد (#15).
+════════════════════════════════════════════════════════════════════ */
+@media (min-width: 700px){
+  #amkh-chat-modal{ align-items: flex-start; padding: 0; }
+  #amkh-chat-modal .ds-sheet{
+    max-width: none; max-height: none; height: 100%;
+    border-radius: 0; border-inline: 0; border-top: 0;
+  }
+  html.kb-open #amkh-chat-modal{ padding-bottom: 0; }
+  html.kb-open #amkh-chat-modal .ds-sheet{
+    max-height: none;
+    height: calc(100% - var(--kb, 0px));
+    min-height: 0;
+  }
+  /* الفقاعة مالهاش لازمة تمتد على شاشة 1200px — سقف مطلق يخلّي القراءة
+     مريحة زي واتساب على التابلت. */
+  #amkh-chat-modal .ch-bubble{ max-width: min(66%, 560px); }
+  /* لوحة المنشنات والردود السريعة تتبع نفس العرض الكامل */
+  #amkh-chat-modal .ch-ment{ max-height: 46vh; }
+}
+/* الوضع الأفقي القصير (تابلت مقلوب/تليفون أفقي): الهيدر يرشّق نفسه عشان
+   منطقة الرسايل ماتنقرصش لصفر بين الهيدر والكيبورد. */
+@media (orientation: landscape) and (max-height: 560px){
+  html.kb-open .ds-overlay--sheet .ds-sheet{
+    max-height: calc(100vh - var(--kb, 0px) - 4px);
+  }
+  html.kb-open .ch-conv__head{ padding-block: 6px; }
+  html.kb-open .ch-conv__av{ width: 30px; height: 30px; }
+  html.kb-open .ch-conv__sub{ display: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   #12 — تبويبات لوحة الصدارة (تقييم / انتصارات / مباريات)
+   الترتيب بيتحسب على السيرفر، والتبويب بس بيغيّر ?sort=
+════════════════════════════════════════════════════════════════════ */
+.lb-tabs{
+  display: flex; gap: 6px; padding: 10px 14px 0;
+  border-bottom: 1px solid var(--lb-line, rgba(232,196,121,.16));
+}
+.lb-tab{
+  flex: 1 1 0; padding: 9px 6px; font: inherit; font-size: .8rem; font-weight: 700;
+  color: var(--lb-sub, #9aa4bd); background: transparent; border: 0;
+  border-bottom: 2px solid transparent; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: color .18s, border-color .18s;
+}
+.lb-tab.is-on{ color: var(--lb-gold, #e8c479); border-bottom-color: var(--lb-gold, #e8c479); }
+.lb-pod__u{ font-style: normal; font-size: .62rem; font-weight: 700; color: var(--lb-sub, #9aa4bd); margin-inline-start: 3px; }
+.lb-pod__wr{ font-size: .66rem; color: var(--lb-sub, #9aa4bd); }
+
+/* ════════════════════════════════════════════════════════════════════
+   #17 — بطاقة اللاعب الكاملة (PlayerCard)
+   نفس الهوية الفاخرة الثابتة بتاعة لوحة الصدارة (مش تابعة للثيم) عشان
+   البطاقة تبان واحدة سواء جِت من اللوحة أو من شريط المباراة أو الأصدقاء.
+════════════════════════════════════════════════════════════════════ */
+.pc{
+  --pc-ink: #0a0e1a; --pc-panel: #121a30; --pc-panel2: #0e1526;
+  --pc-gold: #e8c479; --pc-gold2: #b8892f; --pc-txt: #f4f1e8; --pc-sub: #9aa4bd;
+  --pc-line: rgba(232,196,121,.16);
+  --pc-win: #4fd18b; --pc-loss: #e8697d; --pc-draw: #9aa4bd;
+  position: relative; display: flex; flex-direction: column;
+  width: 100%; max-width: 520px; max-height: 92vh; margin: 0 auto;
+  background:
+    radial-gradient(120% 55% at 50% -10%, rgba(232,196,121,.10), transparent 60%),
+    linear-gradient(180deg, #101830 0%, var(--pc-ink) 100%);
+  color: var(--pc-txt);
+  border: 1px solid var(--pc-line); border-radius: 22px; overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+  font-family: inherit; direction: rtl;
+}
+.pc__close{
+  position: absolute; inset-inline-start: 14px; top: 14px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,.06); border: 1px solid var(--pc-line);
+  color: var(--pc-txt); font-size: 15px; line-height: 1; cursor: pointer;
+}
+.pc__hero{
+  padding: 20px 18px 14px; text-align: center;
+  border-bottom: 1px solid var(--pc-line);
+  background: linear-gradient(180deg, rgba(232,196,121,.08), transparent);
+}
+.pc__av{
+  width: 78px; height: 78px; margin: 0 auto 8px; border-radius: 50%;
+  overflow: hidden; background: #1c2540 center/cover no-repeat;
+  border: 3px solid var(--pc-gold); display: grid; place-items: center;
+  color: var(--pc-gold); font-weight: 800; font-size: 1.8rem;
+  box-shadow: 0 10px 26px rgba(232,196,121,.26);
+}
+.pc__name{ display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 1.1rem; }
+.pc__name span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
+.pc__sub{ margin-top: 5px; font-size: .76rem; color: var(--pc-sub); display: flex; align-items: center; justify-content: center; gap: 5px; }
+.pc__dot{ width: 8px; height: 8px; border-radius: 50%; background: var(--pc-sub); flex: 0 0 auto; }
+.pc__dot--online{ background: var(--pc-win); box-shadow: 0 0 0 3px rgba(79,209,139,.16); }
+.pc__dot--in-game{ background: var(--pc-gold); box-shadow: 0 0 0 3px rgba(232,196,121,.16); }
+.pc__body{ overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px; }
+.pc__load{ text-align: center; color: var(--pc-sub); padding: 34px 12px; font-size: .88rem; }
+
+/* التقييم: الرقم الكبير + الترتيب العالمي وأعلى تقييم ودرجة الثبات */
+.pc__rating{
+  display: flex; align-items: center; gap: 14px; padding: 13px 14px;
+  background: linear-gradient(180deg, var(--pc-panel), var(--pc-panel2));
+  border: 1px solid var(--pc-line); border-radius: 16px;
+}
+.pc__rnum{
+  flex: 0 0 auto; font-size: 2.05rem; font-weight: 900; line-height: 1;
+  background: linear-gradient(180deg, #fce7bf, var(--pc-gold2));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.pc__rmeta{ flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pc__rline{ font-size: .72rem; color: var(--pc-sub); }
+.pc__chip{
+  align-self: flex-start; font-size: .64rem; font-weight: 800; padding: 2px 8px;
+  border-radius: 999px; color: #23200f;
+  background: linear-gradient(180deg, #fce7bf, var(--pc-gold2));
+}
+.pc__chip--warn{ background: rgba(154,164,189,.18); color: var(--pc-sub); border: 1px solid rgba(154,164,189,.3); }
+
+/* شريط ثلاثي فوز/تعادل/خسارة */
+.pc__wl{ margin-top: 10px; }
+.pc__bar{ display: flex; height: 9px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.05); }
+.pc__bar span{ display: block; height: 100%; }
+.pc__bar--w{ background: linear-gradient(180deg,#6fe0a5,var(--pc-win)); }
+.pc__bar--d{ background: rgba(154,164,189,.55); }
+.pc__bar--l{ background: linear-gradient(180deg,#f28a99,var(--pc-loss)); }
+.pc__wlrow{ display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: .72rem; }
+.pc__wlv--w{ color: var(--pc-win); } .pc__wlv--d{ color: var(--pc-draw); } .pc__wlv--l{ color: var(--pc-loss); }
+.pc__wlpct{ margin-inline-start: auto; font-weight: 800; color: var(--pc-gold); }
+
+/* شبكة الأرقام */
+.pc__grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.pc__cell{
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 4px; border-radius: 13px;
+  background: linear-gradient(180deg, var(--pc-panel), var(--pc-panel2));
+  border: 1px solid var(--pc-line);
+}
+.pc__cellv{ font-size: 1rem; font-weight: 800; color: var(--pc-gold); text-align: center; }
+.pc__celll{ font-size: .64rem; color: var(--pc-sub); text-align: center; }
+
+/* آخر المباريات */
+.pc__sect{ margin: 16px 2px 8px; font-size: .82rem; font-weight: 800; color: var(--pc-gold); }
+.pc__empty{ text-align: center; color: var(--pc-sub); font-size: .78rem; padding: 16px 8px; border: 1px dashed var(--pc-line); border-radius: 13px; }
+.pc__glist{ display: flex; flex-direction: column; gap: 6px; }
+.pc__g{
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  background: linear-gradient(180deg, var(--pc-panel), var(--pc-panel2));
+  border: 1px solid var(--pc-line); border-radius: 13px;
+}
+.pc__gres{
+  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px;
+  display: grid; place-items: center; font-size: .7rem; font-weight: 900; color: #0a0e1a;
+}
+.pc__gres--win{ background: var(--pc-win); }
+.pc__gres--loss{ background: var(--pc-loss); }
+.pc__gres--draw{ background: var(--pc-draw); }
+.pc__gav{
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; overflow: hidden;
+  background: #1c2540 center/cover no-repeat; border: 1px solid var(--pc-line);
+  display: grid; place-items: center; color: var(--pc-gold); font-size: .7rem; font-weight: 800;
+}
+.pc__gopp{ flex: 1 1 auto; min-width: 0; font-size: .8rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc__gcol{ flex: 0 0 auto; font-size: .62rem; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--pc-line); }
+.pc__gcol--w{ background: rgba(244,241,232,.9); color: #1a1a1a; }
+.pc__gcol--b{ background: rgba(10,14,26,.9); color: #dfe6f5; }
+.pc__grated{ flex: 0 0 auto; font-size: .6rem; font-weight: 800; color: var(--pc-gold); border: 1px solid var(--pc-line); border-radius: 999px; padding: 2px 6px; }
+.pc__gdate{ flex: 0 0 auto; font-size: .64rem; color: var(--pc-sub); }
+
+/* الأزرار أسفل البطاقة */
+.pc__acts{
+  display: flex; gap: 8px; padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--pc-line); background: rgba(10,14,26,.55);
+}
+.pc__acts:empty{ display: none; }
+.pc__acts .ds-btn{ flex: 1 1 0; }
+.pc__self{ flex: 1 1 auto; text-align: center; font-size: .76rem; color: var(--pc-sub); }
+
+@media (max-width: 360px){
+  .pc__grid{ grid-template-columns: repeat(2, 1fr); }
+  .pc__rnum{ font-size: 1.75rem; }
+}
+
+/* شريط اللاعب جوّه المباراة بقى قابل للنقر لفتح البطاقة (#17) */
+.pb-l--tap{ cursor: pointer; border-radius: 10px; -webkit-tap-highlight-color: transparent; }
+.pb-l--tap:active{ opacity: .75; }
+
+/* ════════════════════════════════════════════════════════════════════
+   #14 — وضع المشاهدة: نافذة المتفرّج
+   نفس هوية بطاقة اللاعب (ثابتة، مش تابعة للثيم) — بس اللوح نفسه
+   بيتبع ثيم اللوح والقطع اللي المستخدم مختاره، فبيبان مألوف له.
+════════════════════════════════════════════════════════════════════ */
+.sp{
+  --sp-ink: #0a0e1a; --sp-gold: #e8c479; --sp-txt: #f4f1e8; --sp-sub: #9aa4bd;
+  --sp-line: rgba(232,196,121,.16); --sp-live: #4fd18b;
+  position: relative; display: flex; flex-direction: column;
+  width: 100%; max-width: 460px; max-height: 94vh; margin: 0 auto;
+  background:
+    radial-gradient(120% 55% at 50% -10%, rgba(232,196,121,.10), transparent 60%),
+    linear-gradient(180deg, #101830 0%, var(--sp-ink) 100%);
+  color: var(--sp-txt);
+  border: 1px solid var(--sp-line); border-radius: 22px; overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.sp__head{
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 12px; border-bottom: 1px solid var(--sp-line);
+  background: rgba(255,255,255,.03);
+}
+.sp__live{
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .74rem; font-weight: 700; color: var(--sp-live);
+}
+.sp__live i{
+  width: 7px; height: 7px; border-radius: 50%; background: var(--sp-live);
+  box-shadow: 0 0 0 3px rgba(79,209,139,.18); animation: sp-pulse 1.6s ease-in-out infinite;
+}
+.sp__live.is-off{ color: var(--sp-sub); }
+.sp__live.is-off i{ background: var(--sp-sub); box-shadow: none; animation: none; }
+@keyframes sp-pulse{ 0%,100%{ opacity: 1; } 50%{ opacity: .35; } }
+.sp__watch{ font-size: .72rem; color: var(--sp-sub); margin-inline-start: auto; }
+.sp__x{
+  width: 30px; height: 30px; flex: 0 0 auto; border-radius: 50%;
+  background: rgba(255,255,255,.06); border: 1px solid var(--sp-line);
+  color: var(--sp-txt); font-size: 14px; line-height: 1; cursor: pointer;
+}
+.sp__body{ padding: 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.sp__load{ padding: 34px 10px; text-align: center; color: var(--sp-sub); font-size: .84rem; }
+.sp__meta{ display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
+.sp__chip{
+  font-size: .68rem; padding: 3px 9px; border-radius: 999px;
+  background: rgba(255,255,255,.05); border: 1px solid var(--sp-line); color: var(--sp-sub);
+}
+.sp__chip--rated{ color: var(--sp-gold); border-color: rgba(232,196,121,.34); }
+
+/* صف اللاعب: نقطة اللون، الاسم (بينقر لفتح بطاقته)، والساعة */
+.sp__pl{
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 12px;
+  background: rgba(255,255,255,.035); border: 1px solid transparent;
+}
+.sp__pl.is-turn{ border-color: rgba(232,196,121,.34); background: rgba(232,196,121,.07); }
+.sp__dot{ width: 12px; height: 12px; border-radius: 50%; flex: 0 0 auto; border: 1px solid rgba(0,0,0,.4); }
+.sp__dot--w{ background: #f1ede2; }
+.sp__dot--b{ background: #23262e; border-color: rgba(255,255,255,.28); }
+.sp__nm{
+  flex: 1 1 auto; min-width: 0; font-size: .86rem; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sp__nm--tap{ cursor: pointer; color: var(--sp-gold); }
+.sp__nm--tap:active{ opacity: .7; }
+.sp__clk{
+  font-size: .95rem; font-weight: 800; font-variant-numeric: tabular-nums;
+  padding: 3px 9px; border-radius: 8px; color: var(--sp-sub);
+  background: rgba(0,0,0,.28); border: 1px solid var(--sp-line);
+}
+.sp__clk.is-run{ color: var(--sp-txt); border-color: rgba(232,196,121,.3); }
+.sp__clk.is-low{ color: #e8697d; }
+
+/* اللوح — بيتبع ثيم اللوح والقطع بتاع المستخدم */
+.sp__brd{
+  position: relative; width: 100%; aspect-ratio: 1 / 1;
+  margin: 8px 0; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--sp-line); box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  --mini-light: var(--sq-l); --mini-dark: var(--sq-d);
+}
+.sp-grid{
+  position: absolute; inset: 0; display: grid; z-index: 1;
+  grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
+}
+.sp-sq{ position: relative; }
+.sp-sq.lt{ background: var(--mini-light); }
+.sp-sq.dk{ background: var(--mini-dark); }
+.sp__brd.has-bg-image .sp-sq.lt,
+.sp__brd.has-bg-image .sp-sq.dk{ background: transparent; }
+.sp-sq.is-lm::after{
+  content: ''; position: absolute; inset: 0;
+  background: rgba(232,196,121,.34); box-shadow: inset 0 0 0 2px rgba(232,196,121,.5);
+}
+.sp-layer{ position: absolute; inset: 0; z-index: 2; }
+.sp-pc{
+  position: absolute; width: 12.5%; height: 12.5%;
+  background-size: 86% 86%; background-position: center; background-repeat: no-repeat;
+  display: grid; place-items: center; font-size: .6rem; color: #fff;
+  transition: left .18s ease, top .18s ease;
+}
+
+.sp__note{
+  display: none; margin-top: 8px; padding: 8px 10px; border-radius: 10px;
+  text-align: center; font-size: .8rem; font-weight: 700;
+  color: var(--sp-gold); background: rgba(232,196,121,.08);
+  border: 1px solid rgba(232,196,121,.24);
+}
+.sp__note.is-on{ display: block; }
+
+/* شريط النقلات — الرموز لاتينية فبنخلّي اتجاهه LTR */
+.sp__mvbox{ margin-top: 10px; }
+.sp__mvs{
+  direction: ltr; display: flex; gap: 8px; overflow-x: auto; padding: 7px 9px;
+  border-radius: 10px; background: rgba(0,0,0,.26); border: 1px solid var(--sp-line);
+  font-size: .74rem; white-space: nowrap; scrollbar-width: thin;
+}
+.sp__mvs::-webkit-scrollbar{ height: 4px; }
+.sp__mvs::-webkit-scrollbar-thumb{ background: rgba(232,196,121,.25); border-radius: 4px; }
+.sp__mv{ flex: 0 0 auto; color: var(--sp-txt); font-variant-numeric: tabular-nums; }
+.sp__mv b{ color: var(--sp-sub); font-weight: 600; margin-inline-end: 2px; }
+.sp__mv i{ font-style: normal; color: var(--sp-sub); margin-inline-start: 4px; }
+.sp__mvempty{ color: var(--sp-sub); }
+
+.sp__acts{ display: flex; gap: 8px; margin-top: 11px; }
+.sp__acts .ds-btn{ flex: 1 1 0; }
+
+/* شارة «متفرّجين» اللي اللاعب نفسه بيشوفها وهو بيلعب — مفيش مشاهدة سرّية */
+.sp-eye{
+  position: fixed; z-index: 60; inset-inline-end: 12px;
+  top: calc(env(safe-area-inset-top, 0px) + 58px);
+  padding: 5px 11px; border-radius: 999px; pointer-events: none;
+  font-size: .72rem; font-weight: 700; color: #e8c479;
+  background: rgba(10,14,26,.88); border: 1px solid rgba(232,196,121,.28);
+  box-shadow: 0 6px 20px rgba(0,0,0,.4); backdrop-filter: blur(6px);
+}
+.sp-eye.is-flash{ color: #4fd18b; border-color: rgba(79,209,139,.34); }
+
+@media (max-height: 700px){
+  .sp{ max-width: 380px; }
+  .sp__mvbox{ display: none; }
+}
+@media (max-width: 360px){
+  .sp__clk{ font-size: .85rem; }
+  .sp__nm{ font-size: .8rem; }
+}
 
 

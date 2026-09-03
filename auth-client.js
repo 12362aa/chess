@@ -285,7 +285,7 @@ const amkhAuth = {
     const data = await res.json();
     if (res.ok) {
       this.setToken(data.token, data.user);
-      await this.promptMigration();
+      this.mergeDeviceData();   /* #18: ربط صامت بلا نافذة — بالخلفية */
       return { success: true };
     }
     return { success: false, error: data.error };
@@ -361,7 +361,7 @@ const amkhAuth = {
     if (res.ok && data.token) {
       this.setToken(data.token, data.user);
       await this.fetchMe();   // #172: هيدرَيت auth.user من /me (فيه country) فالعلم يفضل ثابت
-      await this.promptMigration();
+      this.mergeDeviceData();   /* #18: ربط صامت بلا نافذة — بالخلفية */
       return { success: true };
     }
     return { success: false, error: data.error || 'تعذّر تسجيل الدخول' };
@@ -429,15 +429,60 @@ const amkhAuth = {
     try { if (window.amkhChat && typeof window.amkhChat._clearCache === 'function') window.amkhChat._clearCache(); } catch (e) {}
   },
 
-  async promptMigration() {
-    const wantsSync = await amkhUI.confirm(
-      'ربط تقدمك الحالي',
-      'تم إنشاء الحساب. هل تريد ربط التقدّم والإعدادات المحفوظة على هذا الجهاز بحسابك الجديد؟',
-      'اربط الآن', 'لاحقًا'
-    );
-    if (wantsSync) {
-      await this.syncLocalData();
+  /* ── ربط بيانات الجهاز بالحساب (#18) ──
+     كان في نافذة سؤال «هل تريد ربط تقدّمك؟» بعد كل تسجيل دخول وعلى كل
+     جهاز: نصّها غامض، وبتطلب من المستخدم قرارًا مالهوش لازمة أصلًا لأن
+     الدمج في الخادم غير مُدمِّر (النجوم بتاخد الأعلى، والمراحل المكتملة
+     تفضل مكتملة). فبقى الربط تلقائيًا وصامتًا، مرة واحدة لكل حساب على كل
+     جهاز، وبإشعار سطر واحد لو فعلًا اتنقلت بيانات — بلا أي نافذة. */
+  async mergeDeviceData() {
+    const uid = this.user && this.user.id;
+    if (!uid) return;
+    const flag = 'amkh_device_merged_' + uid;
+    try { if (localStorage.getItem(flag) === '1') return; } catch (e) {}
+    let progress = [];
+    try { progress = await this._readLocalProgress(); } catch (e) { progress = []; }
+    try { localStorage.setItem(flag, '1'); } catch (e) {}
+    if (!progress.length) return;                 /* مافيش تقدّم محلي يُربط */
+    try {
+      const res = await fetch(`${window.getApiBase()}/sync-local`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`,
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: JSON.stringify({ progress, overwrite: false }),
+      });
+      if (!res.ok) return;
+      if (window.amkhUI) {
+        window.amkhUI.notify('أُضيف تقدُّمك المحفوظ على هذا الجهاز إلى حسابك', 'تمت المزامنة', '◉');
+      }
+    } catch (e) {
+      try { localStorage.removeItem(flag); } catch (e2) {}   /* نعيد المحاولة لاحقًا */
     }
+  },
+
+  /* تقدّم «نور» المحفوظ محليًا (IndexedDB) */
+  async _readLocalProgress() {
+    return await new Promise((resolve) => {
+      let done = false;
+      const finish = (v) => { if (!done) { done = true; resolve(v || []); } };
+      try {
+        const req = indexedDB.open('ChessNourDB', 1);
+        req.onsuccess = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('nourProgress')) return finish([]);
+          const store = db.transaction('nourProgress', 'readonly').objectStore('nourProgress');
+          const all = store.getAll();
+          all.onsuccess = () => finish(all.result || []);
+          all.onerror = () => finish([]);
+        };
+        req.onerror = () => finish([]);
+        req.onupgradeneeded = () => finish([]);
+        setTimeout(() => finish([]), 4000);
+      } catch (e) { finish([]); }
+    });
   },
 
   async syncLocalData() {
@@ -449,27 +494,7 @@ const amkhAuth = {
     } catch(e) {}
 
     let localProgress = [];
-    try {
-      const dbRequest = indexedDB.open('ChessNourDB', 1);
-      await new Promise((resolve) => {
-        dbRequest.onsuccess = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains('nourProgress')) {
-            resolve(); return;
-          }
-          const tx = db.transaction('nourProgress', 'readonly');
-          const store = tx.objectStore('nourProgress');
-          const getReq = store.getAll();
-          getReq.onsuccess = () => {
-            localProgress = getReq.result || [];
-            resolve();
-          };
-          getReq.onerror = resolve;
-        };
-        dbRequest.onerror = resolve;
-        dbRequest.onupgradeneeded = resolve;
-      });
-    } catch(e) {}
+    try { localProgress = await this._readLocalProgress(); } catch (e) {}
 
     try {
       await fetch(`${window.getApiBase()}/sync-local`, {
@@ -500,6 +525,12 @@ const amkhAuth = {
         if (Object.keys(s).length > 0) {
           localStorage.setItem('chess-cfg-v6', JSON.stringify(s));
           this.lastSyncSettings = JSON.stringify(s);
+        } else {
+          /* #18: الخادم مالوش إعدادات محفوظة (حساب جديد) — نرفع إعدادات
+             الجهاز فورًا بدل ما نستنى دورة العشر ثوانٍ، فأول ما يفتح
+             الحساب على جهاز تاني يلاقي نفس الثيم والصوت. */
+          const cur = localStorage.getItem('chess-cfg-v6');
+          if (cur) { this.lastSyncSettings = cur; this.syncLocalData(); }
         }
       }
 
@@ -635,6 +666,12 @@ const amkhAuth = {
         try { if (window.amkhCall) window.amkhCall.handleSocketMessage(d); } catch (e) {}
         return;
       }
+      /* وضع المشاهدة (#14): اللقطة والنقلات للمتفرّج، وعدّاد المتفرّجين
+         ومن دخل يتفرّج للاعبين. الاتنين على سوكت الحضور المُوثَّق. */
+      if (d.type.indexOf('spectate:') === 0) {
+        try { if (window.amkhSpectate) window.amkhSpectate.handleSocketMessage(d); } catch (e) {}
+        return;
+      }
       /* start / move / resign / chat / name / pimg… رسائل مباراة جاية على
          سوكت الحضور — بتحصل بس في مباريات الأصدقاء. في الأونلاين العادي
          رسائل المباراة بتيجي على سوكتها الخاص مش هنا، فمفيش ازدواج. */
@@ -702,6 +739,17 @@ const amkhAuth = {
       btn.setAttribute('aria-label', 'تسجيل الدخول');
       btn.title = 'تسجيل الدخول';
       btn.onclick = () => { amkhUI.sfx(); this.showLoginModal(); };
+    }
+
+    /* زر الأصدقاء المستقل: مالوش معنى قبل تسجيل الدخول، وبيقف جنب زر
+       الحساب على طول (زر الحساب بيتحقن قبله فيبقى أول واحد). */
+    const fb = document.getElementById('appbar-friends');
+    if (fb) {
+      fb.style.display = this.user ? '' : 'none';
+      if (!this.user) {
+        const bd = fb.querySelector('.amkh-chat-badge');
+        if (bd) bd.remove();
+      }
     }
   },
 
@@ -839,7 +887,7 @@ const amkhAuth = {
         <p class="ds-dialog__message">حسابك متصل — تقدمك وإعداداتك بيتزامنوا تلقائيًا</p>
 
         <div class="ds-dialog__actions" style="flex-direction:column;">
-          <button id="btn-friends" class="ds-btn ds-btn--primary ds-btn--block">قائمة الأصدقاء</button>
+          <button id="btn-profile" class="ds-btn ds-btn--primary ds-btn--block">ملفي الشخصي الكامل</button>
           <button id="btn-sync"    class="ds-btn ds-btn--secondary ds-btn--block">مزامنة بياناتي الآن</button>
           <button id="btn-logout"  class="ds-btn ds-btn--danger ds-btn--block">تسجيل الخروج</button>
           <button class="ds-btn ds-btn--ghost ds-btn--block" data-close>إغلاق</button>
@@ -862,10 +910,18 @@ const amkhAuth = {
       setTimeout(() => { syncBtn.disabled = false; syncBtn.textContent = 'مزامنة بياناتي الآن'; }, 1600);
     };
 
-    overlay.querySelector('#btn-friends').onclick = () => {
+    /* الأصدقاء بقى ليهم زرّهم في الشريط العلوي، فمكانهم هنا اتحوّل
+       للملف الشخصي الكامل (نفس البطاقة اللي بتفتح من لوحة الصدارة). */
+    overlay.querySelector('#btn-profile').onclick = () => {
       amkhUI.sfx();
+      const uid = this.user && Number(this.user.id);
+      if (!uid || !window.PlayerCard) return;
       overlay._dismiss();
-      if (window.amkhFriends) window.amkhFriends.showFriendsModal();
+      window.PlayerCard.open(uid, {
+        name: (this.user.display_name || this.user.email || 'لاعب'),
+        avatar_url: this.user.avatar_url || '',
+        country: this.user.country || '',
+      });
     };
   }
 };

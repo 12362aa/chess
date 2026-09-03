@@ -17,6 +17,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(AudioRoutePlugin.class);   // #158: توجيه صوت المكالمة (سبيكر/سماعة)
         registerPlugin(RingtonePlugin.class);      // #157: نغمة رنين النظام داخل التطبيق
         registerPlugin(CallIntentPlugin.class);    // #159: جسر نية «الرد» من الإشعار
+        registerPlugin(MediaSavePlugin.class);     // #6: حفظ وسائط الدردشة في المعرض
         super.onCreate(savedInstanceState);
         handleCallIntent(getIntent());             // إقلاع بارد من زر «رد» في الإشعار
         setupNavBarInset();                        // #140: احقن ارتفاع شريط التنقّل لـCSS

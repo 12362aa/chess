@@ -18,6 +18,9 @@ const amkhChat = {
   _openGroup: null,       /* id الجروب المفتوح دلوقتي (لو فيه) */
   _gmsgs: {},             /* groupId → [رسايل] */
   _gunread: {},           /* groupId → عدد غير مقروء */
+  _gmentions: {},         /* groupId → عدد غير المقروء اللي فيها منشن ليّ (#2) */
+  _dmentions: {},         /* friendId → نفس الفكرة للمحادثة الفردية */
+  _pins: { dm: {}, grp: {} },   /* محادثات مثبّتة (#4) */
   _gmeta: {},             /* groupId → {name, members_count} */
   _gmembers: {},          /* groupId → { userId → {id,username,display_name,avatar_url} } لصور القراء */
   _greads: {},            /* groupId → { userId → {read, delivered} } (high-water) للإيصالات */
@@ -51,6 +54,9 @@ const amkhChat = {
     reply: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
     pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a2 2 0 0 0-2-2H8.5a2 2 0 0 0-2 2v6.5z"/></svg>',
+    download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    emoji: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+    at: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>',
   },
 
   _key(a, b) { const x = Number(a), y = Number(b); return Math.min(x, y) + ':' + Math.max(x, y); },
@@ -501,6 +507,7 @@ const amkhChat = {
       case 'chat:delivered': return this._onDelivered(d);
       case 'chat:read-receipt': return this._onReadReceipt(d);
       case 'chat:pinned': return this._onPinned(d);
+      case 'chat:reaction': return this._onReaction(d, false);
       case 'chat:typing': return this._onTyping(d);
       case 'chat:recording': return this._onRecording(d);
       case 'chat:unread': return this._onUnreadSnapshot(d);
@@ -512,6 +519,7 @@ const amkhChat = {
       case 'group:sent': return this._onGroupSent(d);
       case 'group:receipts': return this._onGroupReceipts(d);
       case 'group:pinned': return this._onGroupPinned(d);
+      case 'group:reaction': return this._onReaction(d, true);
       case 'group:typing': return this._onGroupTyping(d);
       case 'group:recording': return this._onGroupRecording(d);
       case 'group:created': return this._onGroupCreated(d);
@@ -552,7 +560,7 @@ const amkhChat = {
     /* حماية من الازدواج: لو نفس الرسالة وصلت مرتين (سوكتين مفتوحين أو
        إعادة اتصال) نتجاهل النسخة التانية بمعرّف السيرفر. */
     if (d.id && (this._msgs[key] || []).some(m => m.id === d.id)) return true;
-    const msg = { id: d.id, client_id: d.client_id || null, from: d.from, to: d.to, mine, kind: d.kind || 'text', body: d.body, audio: d.audio || null, duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at, read: false, delivered: !!d.delivered, reply_to: d.reply_to || null, reply: d.reply || null };
+    const msg = { id: d.id, client_id: d.client_id || null, from: d.from, to: d.to, mine, kind: d.kind || 'text', body: d.body, audio: d.audio || null, duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at, read: false, delivered: !!d.delivered, reply_to: d.reply_to || null, reply: d.reply || null, mentions: Array.isArray(d.mentions) ? d.mentions : [] };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     this._persist('dm', key);
 
@@ -562,6 +570,9 @@ const amkhChat = {
       if (!mine) this._markRead(friendId);           /* المحادثة مفتوحة = مقروء فورًا */
     } else if (!mine) {
       this._unread[friendId] = (this._unread[friendId] || 0) + 1;
+      if (msg.mentions.some(x => Number(x) === Number(me))) {
+        this._dmentions[friendId] = (this._dmentions[friendId] || 0) + 1;
+      }
       this._updateBadge();
       /* الاسم من السيرفر (الاسم المستعار للأصدقاء / اسم جوجل) — مش fallback "صديق" (#145).
          نحدّث الكاش كمان عشان باقي الواجهة تفضل متسقة. */
@@ -572,9 +583,132 @@ const amkhChat = {
         if (d.sender_avatar && !this._friendMeta[friendId].avatar_url) this._friendMeta[friendId].avatar_url = d.sender_avatar;
       }
       try { if (window.SFX) window.SFX.chat(); } catch (e) {}
-      window.amkhUI.notify(this._previewOf(d), name, '◉');
+      this._incomingAlert({
+        kind: 'dm', id: friendId, name,
+        avatar: (this._friendMeta[friendId] && this._friendMeta[friendId].avatar_url) || null,
+        preview: this._previewOf(d),
+      });
     }
+    /* #5 — لو الوارد مفتوح: الصفّ يقفز لأعلى بمعاينته الجديدة فورًا */
+    this._bumpInboxRow('dm', friendId, (mine ? 'أنت: ' : '') + this._previewOf(d), d.created_at);
     return true;
+  },
+
+  /* ══════════════════════════════════════════════════════════════════
+     تنبيه رسالة أثناء المباراة (#9 + #10)
+     ──────────────────────────────────────────────────────────────────
+     كانت الرسالة الواردة بتفتح نافذة Modal في نُصّ الشاشة وأنت وسط
+     مباراة: تغطّي الرقعة، تحتاج ضغطة «موافق»، ومافيهاش أي طريقة للرد.
+     الآن جوّه شاشة اللعب بس: شريط صغير فوق، عليه «رد» بيفتح ورقة ردٍّ
+     سريع من غير ما تسيب المباراة، وله مؤقّت اختفاء. وقابل للإيقاف من
+     الإعدادات (Cfg.data.matchMsg) — والعدّاد على أيقونة الحساب يفضل
+     شغّال في كل الأحوال فمافيش رسالة بتضيع.
+  ══════════════════════════════════════════════════════════════════ */
+  _inMatch() {
+    try { return document.body.dataset.screen === 's-game'; } catch (e) { return false; }
+  },
+  _matchMsgOn() {
+    try { return !(window.Cfg && window.Cfg.data && window.Cfg.data.matchMsg === false); }
+    catch (e) { return true; }
+  },
+
+  /* التنبيه الموحَّد للرسالة الواردة: نافذة عادية خارج المباراة، وشريط
+     صغير جوّاها (أو صمت لو المستخدم أوقفه). */
+  _incomingAlert(o) {
+    if (!this._inMatch()) {
+      try { window.amkhUI.notify(o.preview, o.name, '◉'); } catch (e) {}
+      return;
+    }
+    if (!this._matchMsgOn()) return;      /* العدّاد وحده كفاية */
+    this._gameToast(o);
+  },
+
+  _gameToast(o) {
+    const U = window.amkhUI;
+    const same = this._toastKey === (o.kind + ':' + o.id);
+    this._toastKey = o.kind + ':' + o.id;
+    this._toastCount = same ? (this._toastCount || 1) + 1 : 1;
+
+    let el = document.getElementById('ch-gtoast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'ch-gtoast';
+      el.className = 'ch-gtoast';
+      el.setAttribute('role', 'status');
+      document.body.appendChild(el);
+    }
+    const initial = String(o.name || '؟').trim().charAt(0) || '؟';
+    const av = o.avatar
+      ? `<img class="ch-gtoast__av" src="${U.esc(o.avatar)}" alt="">`
+      : `<span class="ch-gtoast__av ch-gtoast__av--txt">${U.esc(initial)}</span>`;
+    const more = this._toastCount > 1 ? `<span class="ch-gtoast__more">${this._toastCount}</span>` : '';
+    el.innerHTML = `
+      ${av}
+      <span class="ch-gtoast__txt">
+        <span class="ch-gtoast__name">${U.esc(o.name || 'صديق')}${more}</span>
+        <span class="ch-gtoast__body">${U.esc(o.preview || '')}</span>
+      </span>
+      <button type="button" class="ch-gtoast__btn" id="ch-gtoast-reply">رد</button>
+      <button type="button" class="ch-gtoast__x" id="ch-gtoast-x" aria-label="إخفاء">✕</button>`;
+
+    const hide = () => {
+      clearTimeout(this._toastTimer);
+      this._toastKey = null; this._toastCount = 0;
+      el.classList.remove('is-open');
+      setTimeout(() => { if (el.parentNode && !el.classList.contains('is-open')) el.remove(); }, 240);
+    };
+    el.querySelector('#ch-gtoast-x').onclick = () => { U.sfx(); hide(); };
+    el.querySelector('#ch-gtoast-reply').onclick = () => {
+      U.sfx(); const k = o.kind, id = o.id, nm = o.name; hide();
+      this._quickReply(k, id, nm);
+    };
+    requestAnimationFrame(() => el.classList.add('is-open'));
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(hide, 7000);
+  },
+
+  /* ── ورقة ردٍّ سريع: بتبعت وتتقفل، والمباراة زي ما هي (#10) ── */
+  _quickReply(kind, id, name) {
+    const U = window.amkhUI;
+    const ov = U.mount('amkh-quick-reply', `
+      <div class="ds-sheet ch-qr">
+        <div class="ch-qr__head">
+          <span class="ch-qr__to">رد سريع إلى ${U.esc(name || 'صديق')}</span>
+          <button type="button" class="ch-qr__close" data-close aria-label="إغلاق">✕</button>
+        </div>
+        <textarea class="ds-input ch-qr__ta" id="ch-qr-text" rows="3"
+                  placeholder="اكتب ردّك…" maxlength="1000"></textarea>
+        <div class="ch-qr__acts">
+          <button type="button" class="ds-btn ds-btn--secondary" id="ch-qr-open">فتح المحادثة</button>
+          <button type="button" class="ds-btn ds-btn--primary" id="ch-qr-send">إرسال</button>
+        </div>
+      </div>`, { sheet: true, sfx: 'sheet' });
+
+    const ta = ov.querySelector('#ch-qr-text');
+    const send = () => {
+      const txt = String(ta.value || '').trim();
+      if (!txt) { ta.focus(); return; }
+      if (kind === 'grp') this.sendGroupMessage(Number(id), txt);
+      else this.sendMessage(Number(id), txt);
+      ov._dismiss();
+    };
+    ov.querySelector('#ch-qr-send').onclick = () => { U.sfx(); send(); };
+    ov.querySelector('#ch-qr-open').onclick = () => {
+      U.sfx(); ov._dismiss();
+      if (kind === 'grp') {
+        const g = this._gmeta[id] || {};
+        this.openGroup({ id: Number(id), name: g.name || name, members_count: g.members_count, owner_id: g.owner_id, avatar_url: g.avatar_url || null });
+      } else {
+        const meta = this._friendMeta[id] || {};
+        this.openChat({ id: Number(id), display_name: meta.name || name, avatar_url: meta.avatar_url || null });
+      }
+    };
+    /* Enter يبعت، وShift+Enter سطر جديد — زي حقل الدردشة الأساسي */
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+    setTimeout(() => { try { ta.focus(); } catch (e) {} }, 220);
+    return ov;
   },
 
   _onSent(d) {
@@ -713,15 +847,31 @@ const amkhChat = {
     return true;
   },
 
+  /* لقطة غير المقروء وقت الاتصال. #1: الحفلات كانت ناقصة من اللقطة خالص
+     (by_group مش موجود في القديم)، فشارة الحفلات ماكانتش تبان إلا بعد فتح
+     صندوق الرسائل. دلوقتي السيرفر بيبعت by_group ومعاه عدد «ذكروك». */
   _onUnreadSnapshot(d) {
     this._unread = {};
-    (d.by_friend || []).forEach(r => { this._unread[r.friend_id] = r.count; });
+    this._dmentions = {};
+    (d.by_friend || []).forEach(r => {
+      this._unread[r.friend_id] = r.count;
+      if (r.mentions) this._dmentions[r.friend_id] = r.mentions;
+    });
+    if (Array.isArray(d.by_group)) {
+      this._gunread = {};
+      this._gmentions = {};
+      d.by_group.forEach(r => {
+        this._gunread[r.group_id] = r.count || 0;
+        if (r.mentions) this._gmentions[r.group_id] = r.mentions;
+      });
+    }
     this._updateBadge();
     return true;
   },
 
   _markRead(friendId) {
     this._unread[friendId] = 0;
+    this._dmentions[friendId] = 0;
     this._updateBadge();
     const ws = this._socket();
     if (ws) { try { ws.send(JSON.stringify({ type: 'chat:read', from: friendId })); } catch (e) {} }
@@ -729,16 +879,36 @@ const amkhChat = {
 
   _unreadTotal() { return Object.values(this._unread).reduce((s, n) => s + (n || 0), 0); },
 
-  /* شارة على زر الأصدقاء/الإعدادات في الشريط العلوي (رقم الرسائل غير المقروءة) */
+  /* شارة غير المقروء + طلبات الصداقة على زر الأصدقاء المستقل في الشريط
+     العلوي. قبل كده كانت على زر الحساب (وقبله على ترس الإعدادات) — وده
+     كان بيخلّي الرقم الأحمر في مكان مالوش علاقة بالرسايل. دلوقتي
+     الأصدقاء والشاتات والحفلات ليهم زرّهم، والشارة عليه.
+     الاحتياطي (الحساب ثم الترس) لو الزر لسه مش ظاهر. */
   _updateBadge() {
-    const btn = document.getElementById('appbar-friends') || document.getElementById('appbar-settings');
+    const btn = document.getElementById('appbar-friends')
+             || document.getElementById('amkh-auth-btn')
+             || document.getElementById('appbar-settings');
     if (!btn) return;
-    const total = this._unreadTotal() + this._gunreadTotal();
+    /* لو الشارة كانت على زر تاني قبل كده، نشيلها منه */
+    ['amkh-auth-btn', 'appbar-settings', 'appbar-friends'].forEach(id => {
+      if (id === btn.id) return;
+      const other = document.getElementById(id);
+      if (!other) return;
+      const old = other.querySelector('.amkh-chat-badge');
+      if (old) { old.remove(); other.classList.remove('has-badge'); }
+    });
+    let reqs = 0;
+    try { reqs = ((window.amkhFriends && window.amkhFriends._requests && window.amkhFriends._requests.incoming) || []).length; } catch (e) {}
+    const total = this._unreadTotal() + this._gunreadTotal() + reqs;
     let dot = btn.querySelector('.amkh-chat-badge');
     if (total > 0) {
       if (!dot) { dot = document.createElement('span'); dot.className = 'amkh-chat-badge'; btn.appendChild(dot); }
       dot.textContent = total > 99 ? '99+' : String(total);
-    } else if (dot) dot.remove();
+      btn.classList.add('has-badge');
+    } else {
+      if (dot) dot.remove();
+      btn.classList.remove('has-badge');
+    }
     /* تحديث سطر الصندوق لو مفتوح */
     if (this._sheet && this._sheet.dataset.view === 'inbox') this._renderInboxBadges();
   },
@@ -954,11 +1124,9 @@ const amkhChat = {
       b.classList.add('ch-bubble--media');
       b.appendChild(this._mediaEl(m));
     } else {
-      const body = document.createElement('div');
-      body.className = 'ch-bubble__body';
-      body.textContent = m.body;                 /* نص دايمًا مش HTML */
-      b.appendChild(body);
+      b.appendChild(this._bodyEl(m, 'friend'));
     }
+    if (this._mentionsMe(m)) b.classList.add('ch-bubble--ment');
     const meta = document.createElement('div');
     meta.className = 'ch-bubble__meta';
     const time = document.createElement('span');
@@ -979,8 +1147,175 @@ const amkhChat = {
       meta.appendChild(tick);
     }
     b.appendChild(meta);
+    this._paintReactions(b, 'friend', m);
     if (m.kind !== 'call') this._bindMsgActions(b, 'friend', m);
     return b;
+  },
+
+  /* ══ منشِن (@) — #2 ══
+     المنشن كان غايب تمامًا. الأسماء عربية وفيها مسافات، فمانقدرش نعتمد على
+     «كلمة واحدة بعد @» زي تويتر: بنقارن نصّ الرسالة بأسماء أعضاء الحفلة
+     الفعلية، والسيرفر بيعيد التحقّق من كل معرّف قبل التخزين.
+     «@الكل» بتذكر كل الأعضاء (السيرفر بيسقّف العدد). */
+
+  _myName() {
+    const u = window.amkhAuth && window.amkhAuth.user;
+    if (!u) return '';
+    return this._displayName(u);
+  },
+
+  /* هل الرسالة بتذكرني؟ (لتمييز الفقاعة) */
+  _mentionsMe(m) {
+    const me = Number(this._me());
+    return !!(m && Array.isArray(m.mentions) && m.mentions.some(x => Number(x) === me));
+  },
+
+  /* معرّفات الأعضاء المذكورين في نصّ الرسالة قبل الإرسال */
+  _collectMentions(text, gid) {
+    const t = String(text || '');
+    const out = [];
+    if (!t.includes('@')) return out;
+    const members = this._gmembers[gid] || {};
+    const me = Number(this._me());
+    const all = /@(الكل|all)\b/.test(t) || t.includes('@الكل');
+    Object.keys(members).forEach(k => {
+      const id = Number(k);
+      if (!id || id === me) return;
+      if (all) { out.push(id); return; }
+      const nm = this._displayName(members[k]);
+      if (nm && t.includes('@' + nm)) out.push(id);
+    });
+    return out;
+  },
+
+  /* أسماء بنلوّنها جوه الفقاعة: أسماء المذكورين فعلًا + «الكل» */
+  _mentionNames(scope, m) {
+    const ids = Array.isArray(m && m.mentions) ? m.mentions.map(Number).filter(Boolean) : [];
+    if (!ids.length) return [];
+    const me = Number(this._me());
+    const names = ['الكل', 'all'];
+    const push = (n) => { if (n && !names.includes(n)) names.push(n); };
+    if (scope === 'group') {
+      const mem = this._gmembers[this._openGroup] || {};
+      ids.forEach(id => {
+        if (id === me) push(this._myName());
+        else if (mem[id]) push(this._displayName(mem[id]));
+      });
+    } else {
+      ids.forEach(id => {
+        if (id === me) push(this._myName());
+        else if (this._friendMeta[id]) push(this._friendMeta[id].name);
+      });
+    }
+    /* الأطول أولًا عشان «أحمد خليفة» ماتتقطعش عند «أحمد» */
+    return names.filter(Boolean).sort((a, b) => b.length - a.length);
+  },
+
+  /* جسم الرسالة كنصّ آمن (createTextNode) مع تلوين مقاطع @الاسم */
+  _bodyEl(m, scope) {
+    const body = document.createElement('div');
+    body.className = 'ch-bubble__body';
+    const txt = String(m && m.body != null ? m.body : '');
+    const names = this._mentionNames(scope, m);
+    if (!names.length || !txt.includes('@')) { body.textContent = txt; return body; }
+    let i = 0;
+    let guard = 0;
+    while (i < txt.length && guard++ < 400) {
+      const at = txt.indexOf('@', i);
+      if (at < 0) break;
+      const hit = names.find(n => txt.substr(at + 1, n.length) === n);
+      if (!hit) {
+        body.appendChild(document.createTextNode(txt.slice(i, at + 1)));
+        i = at + 1;
+        continue;
+      }
+      if (at > i) body.appendChild(document.createTextNode(txt.slice(i, at)));
+      const tag = document.createElement('span');
+      tag.className = 'ch-ment-tag';
+      tag.textContent = '@' + hit;
+      body.appendChild(tag);
+      i = at + 1 + hit.length;
+    }
+    if (i < txt.length) body.appendChild(document.createTextNode(txt.slice(i)));
+    return body;
+  },
+
+  /* لوحة اختيار العضو اللي بتفتح وأنت بتكتب @ جوه الحفلة */
+  _bindMentions(root, gid) {
+    const ta = root.querySelector('#ch-text');
+    if (!ta) return;
+    const close = () => { const p = root.querySelector('#ch-ment'); if (p) p.remove(); };
+    const update = () => {
+      const val = ta.value || '';
+      const caret = (ta.selectionStart == null) ? val.length : ta.selectionStart;
+      const upto = val.slice(0, caret);
+      const at = upto.lastIndexOf('@');
+      if (at < 0) return close();
+      if (at > 0 && !/\s/.test(upto.charAt(at - 1))) return close();
+      const q = upto.slice(at + 1);
+      if (/\s/.test(q) || q.length > 24) return close();
+      this._showMentionPicker(root, gid, q, at, caret, ta);
+    };
+    ta.addEventListener('input', update);
+    ta.addEventListener('click', update);
+    ta.addEventListener('keyup', (e) => { if (e.key === 'Escape') close(); });
+    ta.addEventListener('blur', () => setTimeout(close, 220));
+    ta._mentClose = close;
+  },
+
+  _showMentionPicker(root, gid, q, at, caret, ta) {
+    const members = this._gmembers[gid] || {};
+    const me = Number(this._me());
+    const ql = String(q || '').toLowerCase();
+    const list = Object.keys(members)
+      .map(k => ({ id: Number(k), u: members[k] }))
+      .filter(x => x.id && x.id !== me && x.u)
+      .map(x => ({ id: x.id, name: this._displayName(x.u), avatar_url: x.u.avatar_url || null }))
+      .filter(x => x.name && (!ql || x.name.toLowerCase().includes(ql)));
+    if (!ql || 'الكل'.indexOf(ql) === 0 || 'all'.indexOf(ql) === 0) {
+      list.unshift({ id: 0, name: 'الكل', everyone: true });
+    }
+    let box = root.querySelector('#ch-ment');
+    if (!list.length) { if (box) box.remove(); return; }
+    if (!box) {
+      const input = root.querySelector('#ch-input');
+      if (!input || !input.parentNode) return;
+      box = document.createElement('div');
+      box.id = 'ch-ment';
+      box.className = 'ch-ment';
+      input.parentNode.insertBefore(box, input);
+    }
+    box.innerHTML = '';
+    list.slice(0, 8).forEach(x => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'ch-ment__row';
+      const av = document.createElement('span');
+      av.className = 'ch-ment__av';
+      av.setAttribute('aria-hidden', 'true');
+      if (x.everyone) av.innerHTML = this.ICONS.at;
+      else this._paintAvatar(av, { name: x.name, avatar_url: x.avatar_url });
+      const nm = document.createElement('span');
+      nm.className = 'ch-ment__name';
+      nm.textContent = x.everyone ? 'الكل — كل الأعضاء' : x.name;
+      row.appendChild(av); row.appendChild(nm);
+      row.onmousedown = (e) => e.preventDefault();      /* مايفقدش تركيز الحقل */
+      row.onclick = () => {
+        try { window.amkhUI && window.amkhUI.sfx && window.amkhUI.sfx(); } catch (e) {}
+        const val = ta.value || '';
+        const head = val.slice(0, at);
+        const tail = val.slice(Math.min(caret, val.length));
+        const ins = '@' + x.name + ' ';
+        ta.value = head + ins + tail;
+        const pos = (head + ins).length;
+        try { ta.setSelectionRange(pos, pos); } catch (e) {}
+        box.remove();
+        ta.focus();
+        ta.style.height = 'auto';
+        ta.style.height = Math.min(120, ta.scrollHeight) + 'px';
+      };
+      box.appendChild(row);
+    });
   },
 
   /* ══ رد على رسالة (#130) ══ */
@@ -1089,6 +1424,9 @@ const amkhChat = {
   },
 
   /* قائمة إجراءات الرسالة (رد + معلومات لرسايلي + تثبيت). */
+  /* الرموز السريعة للتفاعل (#3) — نفس مجموعة واتساب المختصرة */
+  REACTIONS: ['👍', '❤️', '😂', '😮', '😢', '🙏'],
+
   _openMsgMenu(scope, m) {
     const U = window.amkhUI;
     if (!U || m.id == null) return;
@@ -1097,15 +1435,34 @@ const amkhChat = {
     /* التثبيت: في الحفلة للمشرفين بس؛ في 1:1 للطرفين. */
     const canPin = scope === 'group' ? this._groupIsAdmin(this._openGroup) : true;
     const pinBtn = canPin ? `<button class="grp-act__btn" data-do="pin">${this.ICONS.pin}<span>${m.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span></button>` : '';
+    /* #11 — نسخ نص الرسالة */
+    const txt = (m.kind === 'text' || !m.kind) ? String(m.body || '') : '';
+    const copyBtn = txt ? `<button class="grp-act__btn" data-do="copy">${this.ICONS.copy}<span>نسخ</span></button>` : '';
+    /* #6 — حفظ الصورة/الفيديو/الصوت في المعرض أو مجلد التنزيلات */
+    const media = ['image', 'video', 'voice'].includes(m.kind) && m.audio;
+    const saveBtn = media ? `<button class="grp-act__btn" data-do="save">${this.ICONS.download}<span>حفظ</span></button>` : '';
+    /* #3 — شريط التفاعلات فوق القائمة، والمختار حاليًا مميّز */
+    const mineEmoji = this._myReaction(m);
+    const strip = this.REACTIONS.map(e =>
+      `<button class="ch-react__pick${mineEmoji && mineEmoji.emoji === e ? ' is-mine' : ''}" data-emoji="${e}" aria-label="تفاعل ${e}">${e}</button>`).join('');
     const overlay = U.mount('amkh-msg-act', `
       <div class="ds-dialog grp-act">
+        <div class="ch-react__strip">${strip}</div>
         <div class="grp-act__list">
           <button class="grp-act__btn" data-do="reply">${this.ICONS.reply}<span>رد</span></button>
+          ${copyBtn}
+          ${saveBtn}
           ${infoBtn}
           ${pinBtn}
           <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إلغاء</span></button>
         </div>
       </div>`, { sfx: 'sheet' });
+    overlay.querySelectorAll('[data-emoji]').forEach(b => b.onclick = () => {
+      U.sfx();
+      const emoji = b.dataset.emoji;
+      try { overlay._dismiss(); } catch (e) {}
+      this._react(scope, m, emoji);
+    });
     overlay.querySelectorAll('[data-do]').forEach(b => b.onclick = () => {
       U.sfx();
       const act = b.dataset.do;
@@ -1113,7 +1470,238 @@ const amkhChat = {
       if (act === 'reply') this._startReply(scope, m);
       else if (act === 'info') this._openMsgInfo(scope, m);
       else if (act === 'pin') this._pinMsg(scope, m, !m.pinned);
+      else if (act === 'copy') this._copyText(txt);
+      else if (act === 'save') this._saveMedia(m);
     });
+  },
+
+  /* ══ نسخ نص الرسالة (#11) ══
+     الحافظة الحديثة أولًا، ولو المتصفّح/الويب‑ڤيو منعها (سياق غير آمن)
+     نرجع لطريقة textarea + execCommand عشان الميزة ما تسقطش في التطبيق. */
+  async _copyText(txt) {
+    const U = window.amkhUI;
+    if (!txt) return;
+    let ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(txt);
+        ok = true;
+      }
+    } catch (e) { ok = false; }
+    if (!ok) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, txt.length);
+        ok = document.execCommand('copy');
+        ta.remove();
+      } catch (e) { ok = false; }
+    }
+    if (U) {
+      if (ok) U.notify('تم نسخ الرسالة', 'نُسخت', '◉');
+      else U.notify('تعذّر النسخ على هذا الجهاز', 'لم يتم', '◈');
+    }
+  },
+
+  /* ══ تفاعلات الإيموجي (#3) ══
+     تفاعل واحد لكل مستخدم على كل رسالة: اختيار إيموجي تاني يستبدل القديم،
+     ونفس الإيموجي تاني = إلغاء. بنرسم فورًا (تفاؤليًا) قبل ردّ الخادم عشان
+     اللمسة تبان لحظية، ولو الطلب فشل نرجّع الحالة زي ما كانت. */
+
+  /* تفاعلي أنا على الرسالة: علم mine من الخادم أولًا، وإلا نستنتجه من قائمة
+     المتفاعلين (بثّ الحفلة موحّد للجميع فبيوصل بلا mine). */
+  _myReaction(m) {
+    const me = Number(this._me());
+    const list = Array.isArray(m && m.reactions) ? m.reactions : [];
+    for (const r of list) {
+      if (!r) continue;
+      if (r.mine) return r;
+      if (Array.isArray(r.users) && r.users.some(u => Number(u && u.id) === me)) return r;
+    }
+    return null;
+  },
+
+  /* صفّ الشرائح تحت الفقاعة — الضغط على شريحة = نفس تفاعلها (تبديل/إلغاء). */
+  _paintReactions(bubbleEl, scope, m) {
+    if (!bubbleEl) return;
+    const old = bubbleEl.querySelector('.ch-reacts');
+    if (old) old.remove();
+    const list = (Array.isArray(m && m.reactions) ? m.reactions : []).filter(r => r && r.emoji && (r.count || 0) > 0);
+    if (!list.length) { bubbleEl.classList.remove('has-reacts'); return; }
+    bubbleEl.classList.add('has-reacts');
+    const mineCell = this._myReaction(m);
+    const row = document.createElement('div');
+    row.className = 'ch-reacts';
+    list.forEach(r => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'ch-react' + (mineCell && mineCell.emoji === r.emoji ? ' is-mine' : '');
+      const names = (r.users || []).map(u => (u && u.name) || '').filter(Boolean).join('، ');
+      chip.title = names;
+      chip.setAttribute('aria-label', `${r.emoji} ${r.count}${names ? ' — ' + names : ''}`);
+      const em = document.createElement('span');
+      em.className = 'ch-react__em';
+      em.textContent = r.emoji;
+      chip.appendChild(em);
+      if ((r.count || 0) > 1) {
+        const n = document.createElement('span');
+        n.className = 'ch-react__n';
+        n.textContent = String(r.count);
+        chip.appendChild(n);
+      }
+      chip.onclick = (e) => {
+        e.stopPropagation();
+        try { window.amkhUI && window.amkhUI.sfx && window.amkhUI.sfx(); } catch (err) {}
+        this._react(scope, m, r.emoji);
+      };
+      row.appendChild(chip);
+    });
+    bubbleEl.appendChild(row);
+  },
+
+  _repaintReactions(scope, m) {
+    if (!this._sheet || !m || m.id == null) return;
+    const b = this._sheet.querySelector(`.ch-bubble[data-mid="${m.id}"]`);
+    if (b) this._paintReactions(b, scope, m);
+  },
+
+  /* تعديل محلي فوري لقائمة التفاعلات قبل ردّ الخادم. */
+  _applyLocalReaction(m, emoji) {
+    const me = Number(this._me());
+    const list = (Array.isArray(m.reactions) ? m.reactions : [])
+      .map(r => ({ emoji: r.emoji, count: r.count || 0, mine: !!r.mine, users: (r.users || []).slice() }));
+    let mineCell = null;
+    for (const r of list) {
+      if (r.mine || r.users.some(u => Number(u && u.id) === me)) { mineCell = r; break; }
+    }
+    if (mineCell) {
+      mineCell.count = Math.max(0, mineCell.count - 1);
+      mineCell.mine = false;
+      mineCell.users = mineCell.users.filter(u => Number(u && u.id) !== me);
+    }
+    const off = mineCell && mineCell.emoji === emoji;   /* نفس الإيموجي = إلغاء */
+    if (!off && emoji) {
+      let cell = list.find(r => r.emoji === emoji);
+      if (!cell) { cell = { emoji, count: 0, mine: false, users: [] }; list.push(cell); }
+      cell.count++;
+      cell.mine = true;
+      cell.users.push({ id: me, name: 'أنت' });
+    }
+    m.reactions = list.filter(r => (r.count || 0) > 0);
+  },
+
+  async _react(scope, m, emoji) {
+    if (!m || m.id == null) return;
+    const U = window.amkhUI;
+    const grp = scope === 'group';
+    const gid = this._openGroup, fid = this._openWith;
+    if (grp ? gid == null : fid == null) return;
+    const before = (Array.isArray(m.reactions) ? m.reactions : [])
+      .map(r => ({ emoji: r.emoji, count: r.count || 0, mine: !!r.mine, users: (r.users || []).slice() }));
+    this._applyLocalReaction(m, String(emoji || ''));
+    this._repaintReactions(scope, m);
+    const res = grp
+      ? await this._gpost(`/${gid}/react`, { id: m.id, emoji })
+      : await this._post('/react', { id: m.id, emoji });
+    if (!res || res.error) {
+      m.reactions = before;
+      this._repaintReactions(scope, m);
+      if (U) U.notify(res ? 'تعذّر إرسال التفاعل' : 'لا يوجد اتصال بالخادم حاليًا.', 'لم يتم', '◈');
+      return;
+    }
+    m.reactions = Array.isArray(res.reactions) ? res.reactions : [];
+    this._repaintReactions(scope, m);
+    this._persist(grp ? 'grp' : 'dm', grp ? gid : this._key(this._me(), fid));
+  },
+
+  /* تفاعل وصل من الطرف التاني/عضو في الحفلة */
+  _onReaction(d, isGroup) {
+    if (!d || d.id == null) return true;
+    const list = Array.isArray(d.reactions) ? d.reactions : [];
+    if (isGroup) {
+      const gid = d.group_id;
+      if (gid == null) return true;
+      const arr = this._gmsgs[gid];
+      const m = arr && arr.find(x => x.id === d.id);
+      if (!m) return true;
+      m.reactions = list;
+      this._persist('grp', gid);
+      if (this._openGroup === gid) this._repaintReactions('group', m);
+    } else {
+      const other = Number(d.from);
+      if (!other) return true;
+      const key = this._key(this._me(), other);
+      const arr = this._msgs[key];
+      const m = arr && arr.find(x => x.id === d.id);
+      if (!m) return true;
+      m.reactions = list;
+      this._persist('dm', key);
+      if (Number(this._openWith) === other) this._repaintReactions('friend', m);
+    }
+    return true;
+  },
+
+  /* ══ حفظ وسائط الدردشة في الجهاز (#6) ══
+     الوسائط بتوصل base64 جوه الرسالة، وروابط data: مابتتنزّلش جوه الـWebView،
+     فبنمرّر البايتات لإضافة MediaSave الأصلية (تكتب في معرض الصور بلا أذونات
+     على أندرويد 10+). على المتصفّح بنرجع لرابط تنزيل عادي. */
+  _mediaExt(mime, kind) {
+    const t = String(mime || '');
+    if (t.includes('png')) return '.png';
+    if (t.includes('webp')) return '.webp';
+    if (t.includes('gif')) return '.gif';
+    if (t.includes('jpeg') || t.includes('jpg')) return '.jpg';
+    if (t.includes('mp4')) return '.mp4';
+    if (t.includes('webm')) return kind === 'video' ? '.webm' : '.webm';
+    if (t.includes('3gp')) return '.3gp';
+    if (t.includes('ogg')) return '.ogg';
+    if (t.includes('mpeg') || t.includes('mp3')) return '.mp3';
+    if (t.includes('m4a') || t.includes('mp4a') || t.includes('aac')) return '.m4a';
+    return kind === 'video' ? '.mp4' : kind === 'voice' ? '.m4a' : '.jpg';
+  },
+  async _saveMedia(m) {
+    const U = window.amkhUI;
+    if (!m || !m.audio) { if (U) U.notify('لا يوجد ملف للحفظ', 'لم يتم', '◈'); return; }
+    const kind = m.kind === 'video' ? 'video' : m.kind === 'voice' ? 'voice' : 'image';
+    const mime = m.mime || (kind === 'video' ? 'video/mp4' : kind === 'voice' ? 'audio/mp4' : 'image/jpeg');
+    const stamp = (() => {
+      const d = new Date(m.created_at || Date.now());
+      const p = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+    })();
+    const name = `amkh-${kind === 'voice' ? 'audio' : kind}-${stamp}${this._mediaExt(mime, kind)}`;
+    const label = kind === 'video' ? 'الفيديو' : kind === 'voice' ? 'التسجيل' : 'الصورة';
+
+    const plugin = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.MediaSave) || null;
+    if (plugin && typeof plugin.save === 'function') {
+      try {
+        await plugin.save({ data: m.audio, mime, name });
+        if (U) U.notify(`تم حفظ ${label} في معرض الجهاز`, 'حُفظ', '◉');
+      } catch (e) {
+        if (U) U.notify(`تعذّر حفظ ${label} على هذا الجهاز`, 'لم يتم', '◈');
+      }
+      return;
+    }
+    /* المتصفّح: Blob + رابط تنزيل (أفضل من data: للملفات الكبيرة) */
+    try {
+      const bin = atob(String(m.audio));
+      const buf = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([buf], { type: mime }));
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+      if (U) U.notify(`تم تنزيل ${label}`, 'حُفظ', '◉');
+    } catch (e) {
+      if (U) U.notify(`تعذّر حفظ ${label} على هذا الجهاز`, 'لم يتم', '◈');
+    }
   },
 
   _groupIsAdmin(gid) {
@@ -1450,10 +2038,6 @@ const amkhChat = {
         <div class="ch-inbox__head">
           <button class="ch-back" data-close aria-label="رجوع">›</button>
           <h2 class="ch-inbox__title">الرسائل</h2>
-        </div>
-        <div class="ch-inbox__head">
-          <button class="ch-back" data-close aria-label="رجوع">›</button>
-          <h2 class="ch-inbox__title">الرسائل</h2>
           <button class="ch-inbox__new" id="ch-new-group" aria-label="حفلة شطرنجية جديدة">＋</button>
         </div>
         <div class="ch-inbox__list" id="ch-inbox-list">
@@ -1473,8 +2057,13 @@ const amkhChat = {
     if (!listEl) return;
     listEl.innerHTML = '';
 
-    /* دمج المحادثات الفردية والجروبات وترتيبها بالأحدث. */
+    /* دمج المحادثات الفردية والحفلات وترتيبها: المثبّت أولًا ثم الأحدث زمنًا.
+       #5 — الترتيب القديم كان بـ last_id، والرسائل الفردية والجماعية من
+       جدولين لكلٍّ تسلسله المستقل، فالمقارنة بين رقمين من تسلسلين مختلفين
+       بلا معنى: حفلة قديمة كانت تسبق محادثة وصلت الآن. الوقت هو المعيار
+       الصحيح الوحيد، والسيرفر بقى يرتّب بنفس القاعدة. */
     const items = [];
+    this._pins = { dm: {}, grp: {} };
     (Array.isArray(data) ? data : []).forEach(r => {
       const f = r.friend || {};
       this._friendMeta[f.id] = {
@@ -1483,12 +2072,16 @@ const amkhChat = {
         status: f.status, online: f.online, last_seen_at: f.last_seen_at,
       };
       if (typeof r.unread === 'number') this._unread[f.id] = r.unread;
-      items.push({ type: 'friend', data: r, at: Date.parse(r.last_at) || 0, id: r.last_id || 0 });
+      if (typeof r.mentions === 'number') this._dmentions[f.id] = r.mentions;
+      if (r.pinned) this._pins.dm[f.id] = true;
+      items.push({ type: 'friend', data: r, at: Date.parse(r.last_at) || 0, pinned: r.pinned ? 1 : 0 });
     });
     (Array.isArray(groups) ? groups : []).forEach(g => {
       this._gmeta[g.id] = { name: g.name, members_count: g.members_count, owner_id: g.owner_id };
       if (typeof g.unread === 'number') this._gunread[g.id] = g.unread;
-      items.push({ type: 'group', data: g, at: Date.parse(g.last_at) || 0, id: g.last_id || 0 });
+      if (typeof g.mentions === 'number') this._gmentions[g.id] = g.mentions;
+      if (g.pinned) this._pins.grp[g.id] = true;
+      items.push({ type: 'group', data: g, at: Date.parse(g.last_at) || 0, pinned: g.pinned ? 1 : 0 });
     });
 
     if (!items.length) {
@@ -1499,7 +2092,7 @@ const amkhChat = {
       this._updateBadge();
       return;
     }
-    items.sort((a, b) => (b.id - a.id) || (b.at - a.at));
+    items.sort((a, b) => (b.pinned - a.pinned) || (b.at - a.at));
     items.forEach(it => {
       listEl.appendChild(it.type === 'group' ? this._groupInboxRow(it.data) : this._inboxRow(it.data));
     });
@@ -1529,14 +2122,14 @@ const amkhChat = {
     const time = document.createElement('span');
     time.className = 'ch-inbox__time'; time.textContent = this._time(g.last_at);
     end.appendChild(time);
-    const unread = this._gunread[g.id] || 0;
-    if (unread > 0) {
-      const badge = document.createElement('span');
-      badge.className = 'ch-inbox__badge'; badge.textContent = unread > 99 ? '99+' : String(unread);
-      end.appendChild(badge);
-    }
     row.appendChild(end);
-    row.onclick = () => { if (window.amkhUI) window.amkhUI.sfx(); this.openGroup({ id: g.id, name: g.name, members_count: g.members_count, owner_id: g.owner_id, avatar_url: g.avatar_url || null, send_policy: g.send_policy, my_role: g.my_role }); };
+    this._paintRowEnd(row, 'grp', g.id);
+    row.onclick = () => {
+      if (row._lpFired && row._lpFired()) return;   /* لمسة مطوّلة فتحت القائمة */
+      if (window.amkhUI) window.amkhUI.sfx();
+      this.openGroup({ id: g.id, name: g.name, members_count: g.members_count, owner_id: g.owner_id, avatar_url: g.avatar_url || null, send_policy: g.send_policy, my_role: g.my_role });
+    };
+    this._bindConvActions(row, 'grp', g.id, g.name, g);
     return row;
   },
 
@@ -1621,35 +2214,156 @@ const amkhChat = {
     time.className = 'ch-inbox__time';
     time.textContent = this._time(r.last_at);
     end.appendChild(time);
-    const unread = this._unread[f.id] || 0;
+    row.appendChild(end);
+    this._paintRowEnd(row, 'dm', f.id);
+
+    row.onclick = () => {
+      if (row._lpFired && row._lpFired()) return;   /* لمسة مطوّلة فتحت القائمة */
+      if (window.amkhUI) window.amkhUI.sfx();
+      this.openChat({ id: f.id, display_name: meta.name, username: f.username, avatar_url: meta.avatar_url, status: f.status, online: f.online, last_seen_at: f.last_seen_at });
+    };
+    this._bindConvActions(row, 'dm', f.id, meta.name, meta);
+    return row;
+  },
+
+  /* ══ علامات صفّ الوارد: مثبّتة + منشن + عدّاد غير المقروء (#1/#2/#4) ══
+     مبنيّة في مكان واحد عشان الرسم الأول والتحديث اللحظي مايختلفوش. */
+  _paintRowEnd(row, kind, id) {
+    if (!row) return;
+    const end = row.querySelector('.ch-inbox__end');
+    if (!end) return;
+    const grp = kind === 'grp';
+    const unread = (grp ? this._gunread[id] : this._unread[id]) || 0;
+    const mentions = (grp ? this._gmentions[id] : this._dmentions[id]) || 0;
+    const pinned = !!(grp ? this._pins.grp[id] : this._pins.dm[id]);
+    row.classList.toggle('is-pinned', pinned);
+    let marks = end.querySelector('.ch-inbox__marks');
+    if (!marks) {
+      marks = document.createElement('span');
+      marks.className = 'ch-inbox__marks';
+      end.appendChild(marks);
+    }
+    marks.innerHTML = '';
+    if (pinned) {
+      const p = document.createElement('span');
+      p.className = 'ch-inbox__pin';
+      p.innerHTML = this.ICONS.pin;
+      p.setAttribute('aria-label', 'محادثة مثبّتة');
+      marks.appendChild(p);
+    }
+    if (mentions > 0 && unread > 0) {
+      const at = document.createElement('span');
+      at.className = 'ch-inbox__at';
+      at.innerHTML = this.ICONS.at;
+      at.setAttribute('aria-label', 'ذكرك في رسالة');
+      marks.appendChild(at);
+    }
     if (unread > 0) {
       const badge = document.createElement('span');
       badge.className = 'ch-inbox__badge';
       badge.textContent = unread > 99 ? '99+' : String(unread);
-      end.appendChild(badge);
+      marks.appendChild(badge);
     }
-    row.appendChild(end);
-
-    row.onclick = () => {
-      if (window.amkhUI) window.amkhUI.sfx();
-      this.openChat({ id: f.id, display_name: meta.name, username: f.username, avatar_url: meta.avatar_url, status: f.status, online: f.online, last_seen_at: f.last_seen_at });
-    };
-    return row;
   },
 
-  /* تحديث شارات غير المقروء داخل صندوق الوارد لو مفتوح */
+  /* #5 — صفّ المحادثة يقفز لأعلى القائمة أول ما توصل رسالة والوارد مفتوح،
+     مع تحديث معاينته ووقته. المثبّت بيفضل فوق دايمًا. */
+  _bumpInboxRow(kind, id, preview, at) {
+    if (!this._sheet || this._sheet.dataset.view !== 'inbox') return;
+    const listEl = this._sheet.querySelector('#ch-inbox-list');
+    if (!listEl) return;
+    const row = listEl.querySelector(kind === 'grp'
+      ? `.ch-inbox__row[data-gid="${id}"]` : `.ch-inbox__row[data-fid="${id}"]`);
+    if (!row) return;                    /* محادثة جديدة — تظهر عند إعادة فتح الوارد */
+    const prev = row.querySelector('.ch-inbox__prev');
+    if (prev && preview != null) prev.textContent = preview;
+    const time = row.querySelector('.ch-inbox__time');
+    if (time) time.textContent = this._time(at || new Date().toISOString());
+    if (row.classList.contains('is-pinned')) {
+      if (listEl.firstChild !== row) listEl.insertBefore(row, listEl.firstChild);
+    } else {
+      const firstFree = Array.from(listEl.querySelectorAll('.ch-inbox__row'))
+        .find(r => !r.classList.contains('is-pinned'));
+      if (firstFree && firstFree !== row) listEl.insertBefore(row, firstFree);
+    }
+    this._paintRowEnd(row, kind, id);
+  },
+
+  /* لمسة مطوّلة على صفّ المحادثة تفتح قائمة التثبيت (#4). الصفّ زرّ، فلازم
+     نمنع الـclick اللي بيجي بعد اللمسة المطوّلة عشان المحادثة ماتفتحش وراها. */
+  _bindConvActions(row, kind, id, name, meta) {
+    let timer = null, fired = false, sx = 0, sy = 0;
+    const open = () => { fired = true; this._openConvMenu(kind, id, name, meta); };
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    row.addEventListener('mousedown', () => { fired = false; });
+    row.addEventListener('contextmenu', (e) => { e.preventDefault(); open(); });
+    row.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      sx = t.clientX; sy = t.clientY; fired = false;
+      timer = setTimeout(() => {
+        timer = null;
+        try { if (navigator.vibrate) navigator.vibrate(12); } catch (err) {}
+        open();
+      }, 480);
+    }, { passive: true });
+    row.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10) cancel();
+    }, { passive: true });
+    row.addEventListener('touchend', cancel, { passive: true });
+    row.addEventListener('touchcancel', cancel, { passive: true });
+    row._lpFired = () => fired;
+  },
+
+  _openConvMenu(kind, id, name, meta) {
+    const U = window.amkhUI;
+    if (!U) return;
+    const pinned = !!(kind === 'grp' ? this._pins.grp[id] : this._pins.dm[id]);
+    const overlay = U.mount('amkh-conv-act', `
+      <div class="ds-dialog grp-act">
+        <div class="grp-act__hero"><span class="grp-act__av" id="conv-act-av"></span>
+          <span class="grp-act__name"></span></div>
+        <div class="grp-act__list">
+          <button class="grp-act__btn" data-do="pin">${this.ICONS.pin}<span>${pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة'}</span></button>
+          <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إلغاء</span></button>
+        </div>
+      </div>`, { sfx: 'pin' });
+    const av = overlay.querySelector('#conv-act-av');
+    if (av) {
+      if (kind === 'grp') { av.classList.add('ch-conv__av--group'); this._paintGroupAvatar(av, Object.assign({ name }, meta || {})); }
+      else this._paintAvatar(av, meta || { name });
+    }
+    const nmEl = overlay.querySelector('.grp-act__name');
+    if (nmEl) nmEl.textContent = name || 'محادثة';
+    overlay.querySelectorAll('[data-do]').forEach(b => b.onclick = () => {
+      U.sfx();
+      const act = b.dataset.do;
+      try { overlay._dismiss(); } catch (e) {}
+      if (act === 'pin') this._toggleChatPin(kind, id);
+    });
+  },
+
+  /* التثبيت تبديلي على السيرفر (نفس النداء يثبّت ويفكّ) وبسقف 5 محادثات. */
+  async _toggleChatPin(kind, id) {
+    const U = window.amkhUI;
+    const res = await this._post('/pin-chat', { kind: kind === 'grp' ? 'grp' : 'dm', target_id: id });
+    if (!res || res.error) {
+      if (U) U.notify((res && res.error) || 'لا يوجد اتصال بالخادم حاليًا.', 'لم يتم', '◈');
+      return;
+    }
+    const store = kind === 'grp' ? this._pins.grp : this._pins.dm;
+    if (res.pinned) store[id] = true; else delete store[id];
+    if (U) U.notify(res.pinned ? 'ثُبّتت المحادثة في أعلى القائمة' : 'أُلغي تثبيت المحادثة', res.pinned ? 'مثبّتة' : 'أُلغي', '◉');
+    if (this._sheet && this._sheet.dataset.view === 'inbox') this.showInbox();
+  },
+
+  /* تحديث علامات صندوق الوارد لو مفتوح — للفردي والحفلات (#1: الحفلات كانت
+     بتفقد شارتها لأن التحديث كان بيقرأ dataset.fid بس فيطلع NaN للحفلة). */
   _renderInboxBadges() {
     if (!this._sheet || this._sheet.dataset.view !== 'inbox') return;
     this._sheet.querySelectorAll('.ch-inbox__row').forEach(row => {
-      const fid = Number(row.dataset.fid);
-      const unread = this._unread[fid] || 0;
-      const end = row.querySelector('.ch-inbox__end');
-      if (!end) return;
-      let badge = end.querySelector('.ch-inbox__badge');
-      if (unread > 0) {
-        if (!badge) { badge = document.createElement('span'); badge.className = 'ch-inbox__badge'; end.appendChild(badge); }
-        badge.textContent = unread > 99 ? '99+' : String(unread);
-      } else if (badge) badge.remove();
+      if (row.dataset.gid != null && row.dataset.gid !== '') this._paintRowEnd(row, 'grp', Number(row.dataset.gid));
+      else if (row.dataset.fid != null && row.dataset.fid !== '') this._paintRowEnd(row, 'dm', Number(row.dataset.fid));
     });
   },
 
@@ -1706,6 +2420,7 @@ const amkhChat = {
       kind: d.kind || 'text', body: d.body, audio: d.audio || null,
       duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at,
       reply_to: d.reply_to || null, reply: d.reply || null,
+      mentions: Array.isArray(d.mentions) ? d.mentions : [],
     };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     this._persist('grp', gid);
@@ -1715,11 +2430,19 @@ const amkhChat = {
       this._markGroupRead(gid);
     } else if (!mine) {
       this._gunread[gid] = (this._gunread[gid] || 0) + 1;
+      const mentioned = msg.mentions.some(x => Number(x) === Number(me));
+      if (mentioned) this._gmentions[gid] = (this._gmentions[gid] || 0) + 1;
       this._updateBadge();
       const gname = (this._gmeta[gid] && this._gmeta[gid].name) || 'حفلة شطرنجية';
       try { if (window.SFX) window.SFX.chat(); } catch (e) {}
-      window.amkhUI.notify(msg.sender_name + ': ' + this._previewOf(d), gname, '◉');
+      this._incomingAlert({
+        kind: 'grp', id: gid, name: gname,
+        avatar: (this._gmeta[gid] && this._gmeta[gid].avatar_url) || null,
+        preview: msg.sender_name + (mentioned ? ' ذكرك: ' : ': ') + this._previewOf(d),
+      });
     }
+    /* #1/#5 — شارة الحفلة وترتيبها في الوارد بيتحدّثوا لحظيًا */
+    this._bumpInboxRow('grp', gid, (mine ? 'أنت: ' : msg.sender_name + ': ') + this._previewOf(d), d.created_at);
     return true;
   },
 
@@ -1878,6 +2601,7 @@ const amkhChat = {
 
   _markGroupRead(gid) {
     this._gunread[gid] = 0;
+    this._gmentions[gid] = 0;
     this._updateBadge();
     const ws = this._socket();
     if (ws) { try { ws.send(JSON.stringify({ type: 'group:read', group_id: gid })); } catch (e) {} }
@@ -1892,10 +2616,11 @@ const amkhChat = {
     if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت.', 'غير متصل', '◈'); return; }
     const clientId = 'g' + (++this._cid) + '_' + Date.now();
     const r = this._takeReply('group');
-    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'text', body, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
+    const mentions = this._collectMentions(body, gid);        /* #2 */
+    const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'text', body, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null, mentions };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
-    try { ws.send(JSON.stringify({ type: 'group:send', group_id: gid, body, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
+    try { ws.send(JSON.stringify({ type: 'group:send', group_id: gid, body, client_id: clientId, reply_to: r ? r.id : null, mentions })); } catch (e) {}
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -2009,10 +2734,12 @@ const amkhChat = {
       if (!v) return;
       this.sendGroupMessage(gid, v);
       ta.value = ''; ta.style.height = 'auto';
+      if (ta._mentClose) ta._mentClose();
       this._toggleSendMic(overlay);
       ta.focus();
     };
     sendBtn.onclick = () => { U.sfx(); doSend(); };
+    this._bindMentions(overlay, gid);        /* #2 — لوحة @ لأعضاء الحفلة */
     ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; this._toggleSendMic(overlay); this._typingGroup(gid); });
     ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } });
     if (micBtn) micBtn.onclick = () => { U.sfx(); this._startVoiceRec({ kind: 'group', id: gid }); };
@@ -2161,7 +2888,8 @@ const amkhChat = {
     if (m.kind === 'voice') { b.classList.add('ch-bubble--voice'); b.appendChild(this._voiceEl(m, 'grp')); }
     else if (m.kind === 'call') { b.classList.add('ch-bubble--call'); b.appendChild(this._callRow(m)); }
     else if (m.kind === 'image' || m.kind === 'video') { b.classList.add('ch-bubble--media'); b.appendChild(this._mediaEl(m)); }
-    else { const body = document.createElement('div'); body.className = 'ch-bubble__body'; body.textContent = m.body; b.appendChild(body); }
+    else { b.appendChild(this._bodyEl(m, 'group')); }
+    if (this._mentionsMe(m)) b.classList.add('ch-bubble--ment');
     const meta = document.createElement('div');
     meta.className = 'ch-bubble__meta';
     const time = document.createElement('span');
@@ -2174,6 +2902,7 @@ const amkhChat = {
       meta.appendChild(tick);
     }
     b.appendChild(meta);
+    this._paintReactions(b, 'group', m);
     if (m.kind !== 'call') this._bindMsgActions(b, 'group', m);
     wrap.appendChild(b);
     return wrap;

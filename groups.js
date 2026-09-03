@@ -13,6 +13,9 @@ const express = require('express');
 const db = require('./db');
 const { authenticateToken } = require('./auth');
 const privacy = require('./privacy');
+/* التفاعلات والمنشِنات مشتركة بين الفردي والحفلات، فمعرَّفة مرة واحدة
+   في chat.js وبنستعملها من هنا (نفس اتجاه الاعتماد الموجود أصلًا). */
+const chatMod = require('./chat');
 
 const router = express.Router();
 
@@ -131,6 +134,18 @@ function groupSummary(groupId, me) {
                            WHERE m.group_id = ? ORDER BY m.id DESC LIMIT 1`).get(groupId);
   const lastRead = (db.prepare('SELECT last_read_id FROM group_reads WHERE group_id = ? AND user_id = ?').get(groupId, me) || {}).last_read_id || 0;
   const unread = db.prepare('SELECT COUNT(*) AS c FROM group_messages WHERE group_id = ? AND id > ? AND sender_id != ?').get(groupId, lastRead, me).c;
+  /* منشن (#2): كم رسالة غير مقروءة فيها اسمي — بتاخد شارة خاصة @ */
+  let mentions = 0;
+  try {
+    mentions = db.prepare(`SELECT COUNT(*) AS c FROM group_messages
+                           WHERE group_id = ? AND id > ? AND sender_id != ? AND mentions LIKE ?`)
+                 .get(groupId, lastRead, me, `%"${me}"%`).c;
+  } catch (e) {}
+  let pinned = false, pinnedAt = null;
+  try {
+    const p = db.prepare(`SELECT pinned_at FROM chat_pins WHERE user_id = ? AND kind = 'grp' AND target_id = ?`).get(me, groupId);
+    if (p) { pinned = true; pinnedAt = p.pinned_at; }
+  } catch (e) {}
   return {
     id: g.id,
     name: g.name,
@@ -146,6 +161,9 @@ function groupSummary(groupId, me) {
     last_at: last ? last.created_at : g.created_at,
     last_id: last ? last.id : 0,
     unread,
+    mentions,
+    pinned,
+    pinned_at: pinnedAt,
   };
 }
 
@@ -155,7 +173,10 @@ router.get('/', authenticateToken, (req, res) => {
   try {
     const ids = db.prepare('SELECT group_id FROM group_members WHERE user_id = ?').all(me).map(r => r.group_id);
     const out = ids.map(id => groupSummary(id, me)).filter(Boolean);
-    out.sort((a, b) => (b.last_id || 0) - (a.last_id || 0));
+    /* المثبّت فوق ثم الأحدث بالوقت (#5) */
+    out.sort((a, b) => (b.pinned - a.pinned)
+      || String(b.last_at || '').localeCompare(String(a.last_at || ''))
+      || (b.last_id || 0) - (a.last_id || 0));
     res.json(out);
   } catch (e) {
     console.error('[groups] list failed:', e.message);
@@ -231,7 +252,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
   let limit = Number(req.query.limit) || 30;
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
   try {
-    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at,
+    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at, m.mentions,
                   u.username, u.display_name, u.provider, u.avatar_url`;
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM group_messages m JOIN users u ON u.id = m.sender_id
@@ -248,6 +269,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       const preview = r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120);
       return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview };
     };
+    const reactMap = chatMod.reactionsFor('grp', rows.map(m => m.id), me);
     const messages = rows.map(m => ({
       id: m.id,
       from: m.sender_id,
@@ -263,10 +285,48 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       reply_to: m.reply_to || null,
       reply: replySnippet(m.reply_to),
       pinned: !!m.pinned_at,
+      mentions: chatMod.parseMentions(m.mentions),
+      reactions: reactMap.get(m.id) || [],
     }));
     res.json({ messages, has_more: rows.length === limit, members: memberList(gid), reads: receiptsSnapshot(gid) });
   } catch (e) {
     console.error('[groups] history failed:', e.message);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+/* ── تفاعل إيموجي على رسالة حفلة (#3) ── */
+router.post('/:id/react', authenticateToken, (req, res) => {
+  const me = req.user.id;
+  const gid = toId(req.params.id);
+  if (!gid || !isMember(gid, me)) return res.status(403).json({ error: 'غير متاح' });
+  const mid = toId(req.body && req.body.id);
+  const emoji = chatMod.cleanEmoji(req.body && req.body.emoji);
+  if (!mid) return res.status(400).json({ error: 'رسالة غير صالحة' });
+  try {
+    const m = db.prepare('SELECT id FROM group_messages WHERE id = ? AND group_id = ?').get(mid, gid);
+    if (!m) return res.status(404).json({ error: 'غير موجودة' });
+    const cur = db.prepare(`SELECT emoji FROM message_reactions
+                            WHERE scope = 'grp' AND message_id = ? AND user_id = ?`).get(mid, me);
+    if (!emoji || (cur && cur.emoji === emoji)) {
+      db.prepare(`DELETE FROM message_reactions WHERE scope = 'grp' AND message_id = ? AND user_id = ?`).run(mid, me);
+    } else {
+      db.prepare(`INSERT INTO message_reactions (scope, message_id, user_id, emoji) VALUES ('grp', ?, ?, ?)
+                  ON CONFLICT(scope, message_id, user_id) DO UPDATE SET emoji = excluded.emoji,
+                    created_at = datetime('now')`).run(mid, me, emoji);
+    }
+    const list = chatMod.reactionsFor('grp', [mid], me).get(mid) || [];
+    /* كل الأعضاء يشوفوا التفاعل لحظيًا. البثّ واحد للجميع، فبنشيل علم mine
+       (المحسوب من منظوري) وكل عميل بيستنتج تفاعله هو من قائمة users. */
+    try {
+      const shared = list.map(c => ({ emoji: c.emoji, count: c.count, users: c.users }));
+      realtime.notifyGroup && realtime.notifyGroup(gid, {
+        type: 'group:reaction', group_id: gid, id: mid, reactions: shared, by: me,
+      });
+    } catch (e) {}
+    res.json({ ok: true, id: mid, reactions: list });
+  } catch (e) {
+    console.error('[groups] react failed:', e.message);
     res.status(500).json({ error: 'خطأ في الخادم' });
   }
 });

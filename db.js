@@ -363,6 +363,55 @@ function migrate() {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_party_invites_uniq ON party_invites(party_id, invitee_id) WHERE status = 'pending';
   `);
 
+  /* ══════════════════════════════════════════════════════════════════
+     سجل كل المباريات + التفاعلات + تثبيت المحادثات (تحديث 26)
+  ══════════════════════════════════════════════════════════════════ */
+  db.exec(`
+    /* ── أرشيف كامل لكل مباراة أونلاين خلصت (ودّية ومصنّفة) ──
+       rated_games بيسجّل المصنّفة بس، فأرقام الفوز/الخسارة كانت ناقصة
+       في لوحة التصنيف وصفحة الملف الشخصي. الجدول ده بيسجّل الكل. */
+    CREATE TABLE IF NOT EXISTS game_log (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      white_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      black_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      winner     TEXT,                        -- 'white' | 'black' | 'draw'
+      reason     TEXT,
+      rated      INTEGER DEFAULT 0,
+      tc         TEXT,                        -- JSON { base, inc } أو NULL
+      moves      TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_game_log_w ON game_log(white_id, id);
+    CREATE INDEX IF NOT EXISTS idx_game_log_b ON game_log(black_id, id);
+
+    /* ── تفاعلات الإيموجي على الرسائل ──
+       scope عشان id الرسالة مايتلغبطش بين messages وgroup_messages.
+       المفتاح الأساسي بيسمح بتفاعل واحد لكل (رسالة، مستخدم): التفاعل
+       الجديد بيستبدل القديم — زي واتساب. */
+    CREATE TABLE IF NOT EXISTS message_reactions (
+      scope      TEXT NOT NULL,               -- 'dm' | 'grp'
+      message_id INTEGER NOT NULL,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      emoji      TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (scope, message_id, user_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_reactions_msg ON message_reactions(scope, message_id);
+
+    /* ── تثبيت محادثة في صندوق الرسائل (لكل مستخدم على حدة) ── */
+    CREATE TABLE IF NOT EXISTS chat_pins (
+      user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind      TEXT NOT NULL,                -- 'dm' | 'grp'
+      target_id INTEGER NOT NULL,             -- id الصديق أو الجروب
+      pinned_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, kind, target_id)
+    );
+  `);
+
+  /* منشِنات: مصفوفة JSON بهويات المذكورين — عشان إشعار «ذكرك» */
+  if (addColumn('messages', 'mentions', 'TEXT')) added.push('messages.mentions');
+  if (addColumn('group_messages', 'mentions', 'TEXT')) added.push('group_messages.mentions');
+
 
   /* فهارس على الأعمدة الجديدة — بعد ALTER عشان تكون موجودة */
   db.exec(`
