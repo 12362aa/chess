@@ -218,9 +218,18 @@ router.post('/google', async (req, res) => {
             || db.prepare('SELECT * FROM users WHERE lower(email) = ?').get(email);
 
     if (user) {
-      /* ربط الحساب الموجود بجوجل لو أول مرة، والباسورد بيفضل زي ما هو */
+      /* ربط الحساب الموجود بجوجل لو أول مرة، والباسورد بيفضل زي ما هو.
+
+         الصورة: كان مكتوب avatar_url = COALESCE(?, avatar_url) — يعني صورة
+         جوجل بتكتب فوق أي صورة. ولأن جوجل دايمًا بيرجّع picture، كل تسجيل
+         دخول كان بيمحي الصورة اللي المستخدم رفعها من الإعدادات ويحلّ محلها
+         رابط https من جوجل. والعميل بيرفض يملأ صورته المحلية من رابط http،
+         فبعد إعادة التثبيت المستخدم مايلاقيش صورة خالص — لا بتاعته ولا
+         بتاعة جوجل. الصورة المرفوعة (data:) هي اختيار صريح من المستخدم،
+         فهي أولى من صورة جوجل التلقائية. */
       db.prepare(`UPDATE users SET google_uid = COALESCE(google_uid, ?),
-                    avatar_url = COALESCE(?, avatar_url),
+                    avatar_url = CASE WHEN avatar_url LIKE 'data:%' THEN avatar_url
+                                      ELSE COALESCE(?, avatar_url) END,
                     display_name = CASE WHEN display_name IS NULL OR display_name = '' THEN ? ELSE display_name END,
                     last_login_at = datetime('now')
                   WHERE id = ?`)
@@ -270,6 +279,27 @@ router.post('/username', authenticateToken, (req, res) => {
   if (clash) return res.status(409).json({ error: 'الاسم محجوز، جرّب اسمًا آخر' });
   db.prepare('UPDATE users SET username = ? WHERE id = ?').run(raw, req.user.id);
   res.json({ username: raw });
+});
+
+/* الاسم المعروض — الاسم اللي أصدقاؤك وخصومك بيشوفوه (بيقبل العربي).
+   ده مربوط بخانة «اسم اللاعب» في الإعدادات: قبل كده كانت محلية بحتة، فلو
+   المستخدم شال التطبيق أو دخل من جهاز تاني الاسم يضيع. */
+router.post('/display-name', authenticateToken, (req, res) => {
+  const raw = String((req.body && (req.body.display_name || req.body.name)) || '')
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')   /* محارف تحكّم بتبوّظ العرض */
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 20);                            /* نفس سقف خانة الإعدادات */
+  if (raw === '') {
+    /* فاضي = رجّعني للاسم التلقائي (اسم المستخدم) */
+    const u = db.prepare('SELECT username FROM users WHERE id = ?').get(req.user.id);
+    const fallback = (u && u.username) || 'لاعب';
+    db.prepare('UPDATE users SET display_name = ? WHERE id = ?').run(fallback, req.user.id);
+    return res.json({ success: true, display_name: fallback });
+  }
+  if (raw.length < 2) return res.status(400).json({ error: 'الاسم قصير جدًا' });
+  db.prepare('UPDATE users SET display_name = ? WHERE id = ?').run(raw, req.user.id);
+  res.json({ success: true, display_name: raw });
 });
 
 /* حفظ صورة الملف الشخصي على الخادم عشان الأصدقاء يشوفوها في القائمة.

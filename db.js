@@ -267,6 +267,11 @@ function migrate() {
   if (addColumn('messages', 'delivered_at', 'TEXT')) added.push('messages.delivered_at');
   if (addColumn('messages', 'reply_to', 'INTEGER')) added.push('messages.reply_to');
   if (addColumn('messages', 'pinned_at', 'TEXT')) added.push('messages.pinned_at');
+  /* pinned_until: لحظة انتهاء التثبيت المؤقّت (٧ أو ٣٠ يومًا…) بتوقيت UTC.
+     NULL مع pinned_at غير NULL = تثبيت دائم. الخادم بيكنس المنتهي دوريًا،
+     والاستعلامات بتعتبر أي تثبيت مضى وقته «غير مثبّت» حتى لو الكنس ما جاش
+     بعد — فالنتيجة صحيحة في كل الأحوال. */
+  if (addColumn('messages', 'pinned_until', 'TEXT')) added.push('messages.pinned_until');
 
   /* ── جروبات الأصدقاء (شات جماعي) ──
      groups: الجروب نفسه. group_members: العضوية. group_messages: الرسايل
@@ -313,6 +318,7 @@ function migrate() {
      قبل كده بـCREATE IF NOT EXISTS فالأعمدة الجديدة لازم ALTER محمي. */
   if (addColumn('group_messages', 'reply_to', 'INTEGER')) added.push('group_messages.reply_to');
   if (addColumn('group_messages', 'pinned_at', 'TEXT')) added.push('group_messages.pinned_at');
+  if (addColumn('group_messages', 'pinned_until', 'TEXT')) added.push('group_messages.pinned_until');
   if (addColumn('group_reads', 'last_delivered_id', 'INTEGER DEFAULT 0')) added.push('group_reads.last_delivered_id');
 
   /* ── مين استمع لنوتة صوتية (فردي + جروب) ──

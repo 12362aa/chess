@@ -202,9 +202,13 @@ const amkhAuth = {
         /* الجلسة استعادت — نعيد ربط توكِن الإشعارات بالحساب. لو داخل من غير
            تسجيل تفاعلي (فتح التطبيق وهو مسجّل) كان التوكِن مايتربطش أبدًا. */
         try { if (window.Notifications && window.Notifications._linkTokenToUser) window.Notifications._linkTokenToUser(); } catch (e) {}
-        /* نرفع صورتي للسيرفر لو محفوظة محليًا بس السيرفر مايعرفهاش — عشان
-           تبان لأصدقائي وفي قائمة أعضاء الحفلة، مش عندي محليًا بس. */
-        try { if (window.amkhSyncMyAvatar) window.amkhSyncMyAvatar(); } catch (e) {}
+        /* توفيق الملف الشخصي في الاتجاهين. كان هنا نداء amkhSyncMyAvatar
+           بيرفع الصورة المحلية فوق صورة الحساب في كل فتحة للتطبيق — وده
+           كان بيمحي صورة اتغيّرت من جهاز تاني. _reconcileProfile بترفع
+           لما الحساب يكون فاضي بس، وبتملأ الجهاز من الحساب لما الجهاز
+           يكون فاضي (ده بالظبط حال إعادة التثبيت: التوكِن مستعاد من غير
+           setToken، فالاسم والصورة مكانوش بيرجعوا أبدًا). */
+        this._reconcileProfile();
       } else if (state === 'invalid') {
         /* السيرفر رفض التوكن نفسه — ده الخروج الشرعي الوحيد */
         this.logout();
@@ -376,7 +380,7 @@ const amkhAuth = {
     try { localStorage.setItem('amkh_user', JSON.stringify(user || null)); } catch (e) {}
     this.updateUI();
     this.connectPresence();
-    this._reconcileAvatar();
+    this._reconcileProfile();
     /* بعد الدخول: اربط توكِن الإشعارات بالحساب عشان توصلك رسايل الأصدقاء
        وأنت غير متصل (السيرفر بيبعت للـuserId). */
     try { if (window.Notifications && window.Notifications._linkTokenToUser) window.Notifications._linkTokenToUser(); } catch (e) {}
@@ -385,24 +389,92 @@ const amkhAuth = {
     try { if (window.amkhChat && window.amkhChat.resumePendingInvite) window.amkhChat.resumePendingInvite(); } catch (e) {}
   },
 
-  /* توفيق صورة الملف بين الجهاز والخادم بعد تسجيل الدخول:
-     - عندي صورة محلية والخادم فاضي → ارفعها (بيشمل مين ضبط صورته قبل الميزة دي).
-     - الخادم عنده صورة data: ومحليًا مفيش → املأ المحلي عشان تشوف صورتك على أي جهاز.
-     بيشتغل بهدوء؛ أي فشل مايأثرش على الدخول. مابنملّاش المحلي من روابط
-     جوجل (http) عشان صورة اللوحة تفضل تشتغل أوفلاين وجوّه الـAPK. */
-  _reconcileAvatar() {
+  /* توفيق الملف الشخصي (الاسم + الصورة) بين الجهاز والحساب.
+     ──────────────────────────────────────────────────────────────
+     المشكلة اللي بتتصلّح هنا: خانة «اسم اللاعب» وصورة الملف في الإعدادات
+     كانوا محليين بحتين (IDB + localStorage). أول ما المستخدم يشيل التطبيق
+     ويحمّله تاني، التخزين المحلي بيتمسح، والحساب مش عارف عنهم حاجة —
+     فبيرجع يلاقي الخانتين فاضيتين رغم إنه داخل بنفس حسابه.
+
+     القاعدة: الحساب هو المصدر الدائم.
+     - عندي محليًا والحساب فاضي → ارفع (بيشمل مين ضبطهم قبل الميزة دي).
+     - الحساب عنده والمحلي فاضي → املأ المحلي.
+     - الاتنين موجودين → الحساب أولى؛ ده اللي بيخلّي نفس الاسم والصورة
+       يظهروا على كل الأجهزة بدل ما كل جهاز يعيش لوحده.
+     صورة جوجل (رابط https) بتتحوّل لـdata: مرّة واحدة قبل ما تتخزن محليًا،
+     عشان تبان وإنت أوفلاين وجوّه الـAPK زي أي صورة مرفوعة. */
+  async _reconcileProfile() {
     try {
       if (typeof Cfg === 'undefined' || !Cfg.data) return;
-      const server = this.user && this.user.avatar_url;
+      /* لازم إعدادات الجهاز تكون اتحمّلت من IDB الأول، وإلا هنقرأ خانات
+         فاضية ونملأها من الحساب ثم Cfg.load() تدمج القديم فوقها. */
+      try {
+        if (window.amkhCfgReady) {
+          await Promise.race([window.amkhCfgReady, new Promise(r => setTimeout(r, 4000))]);
+        }
+      } catch (e) {}
+      const u = this.user || {};
+
+      /* ── الاسم ── */
+      const srvName = String(u.display_name || '').trim();
+      const locName = String(Cfg.data.playerName || '').trim();
+      if (srvName && srvName !== locName) {
+        Cfg.data.playerName = srvName.slice(0, 20);
+        try { Cfg._persist(); } catch (e) {}
+        try { if (typeof Cfg.refreshProfileUI === 'function') Cfg.refreshProfileUI(); } catch (e) {}
+      } else if (!srvName && locName) {
+        try { if (typeof Cfg._syncNameToServer === 'function') Cfg._syncNameToServer(locName); } catch (e) {}
+      }
+
+      /* ── الصورة ──
+         لما الاتنين موجودين بنسيب المحلية: المحلية هي الأصل بدقّته الكاملة
+         (بتظهر في المباراة بحجم كبير) والمرفوعة نسخة 96×96 مضغوطة — لو
+         ملأنا منها هنخسّر الجودة في كل فتحة للتطبيق. */
+      const server = String(u.avatar_url || '');
       const local = Cfg.data.playerImage;
       if (local && !server) {
         if (typeof Cfg._syncAvatarToServer === 'function') Cfg._syncAvatarToServer(local);
-      } else if (!local && server && /^data:image\//i.test(String(server))) {
-        Cfg.data.playerImage = server;
+      } else if (server && !local) {
+        let img = server;
+        if (!/^data:image\//i.test(server)) {
+          /* رابط خارجي (صورة جوجل) — ننزّله ونحوّله data: عشان يفضل شغّال
+             أوفلاين. لو فشل (شبكة/CORS) بنستخدم الرابط زي ما هو: أحسن من
+             خانة فاضية، وهيتحوّل تلقائيًا أول مرة ينزّل بنجاح. */
+          img = await this._toDataUrl(server) || server;
+        }
+        Cfg.data.playerImage = img;
         try { Cfg._persist(); } catch (e) {}
-        try { if (typeof Cfg._updateProfileImage === 'function') Cfg._updateProfileImage(); } catch (e) {}
+        try { if (typeof Cfg.refreshProfileUI === 'function') Cfg.refreshProfileUI(); } catch (e) {}
+        /* لو حوّلناها data: نرفعها للحساب كمان عشان الأصدقاء يشوفوها
+           (قائمة الأصدقاء بتعرض الصورة من الحساب) */
+        if (/^data:image\//i.test(img) && typeof Cfg._syncAvatarToServer === 'function') {
+          Cfg._syncAvatarToServer(img);
+        }
       }
     } catch (e) {}
+  },
+
+  /* تحويل رابط صورة لـdata URL (96×96 JPEG) — مرّة واحدة عند أول دخول */
+  _toDataUrl(url) {
+    return new Promise((resolve) => {
+      let done = false;
+      const fin = v => { if (!done) { done = true; resolve(v); } };
+      setTimeout(() => fin(null), 6000);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const SZ = 96, cv = document.createElement('canvas');
+          cv.width = SZ; cv.height = SZ;
+          const ctx = cv.getContext('2d');
+          const side = Math.min(img.width, img.height);
+          ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, SZ, SZ);
+          fin(cv.toDataURL('image/jpeg', 0.6));
+        } catch (e) { fin(null); }
+      };
+      img.onerror = () => fin(null);
+      img.src = url;
+    });
   },
 
   logout() {
@@ -587,6 +659,10 @@ const amkhAuth = {
     const shared = window.chessWs;
     if (shared && shared.readyState === 1) {
       try { shared.send(JSON.stringify({ type: 'presence:hello', token: this.token })); } catch (e) {}
+      /* #8 — رسائل مؤجَّلة من وقت الانقطاع: تتبعت لوحدها هنا */
+      try { if (window.amkhChat && window.amkhChat._flushOutbox) window.amkhChat._flushOutbox(); } catch (e) {}
+      /* #5 — والمباراة المحلية الشغّالة تُبَثّ من جديد على السوكت ده */
+      try { if (window.amkhLocalCast && window.amkhLocalCast.resume) window.amkhLocalCast.resume(); } catch (e) {}
     }
     /* وبرضه بنفتح سوكتنا لو مفيش واحد شغّال — الحضور لازم يفضل حتى لو
        المستخدم مافتحش الأونلاين خالص */
@@ -614,6 +690,11 @@ const amkhAuth = {
       try { ws.send(JSON.stringify({ type: 'presence:hello', token: this.token })); } catch (e) {}
       /* دعوات الحفلات اللي وصلت والتطبيق كان مقفول — نجيبها ونعرضها. */
       try { if (window.amkhFriends && window.amkhFriends.loadPartyInvites) window.amkhFriends.loadPartyInvites(); } catch (e) {}
+      /* #8 — أي رسالة اتكتبت وقت الانقطاع تتبعت دلوقتي بترتيبها */
+      try { if (window.amkhChat && window.amkhChat._flushOutbox) window.amkhChat._flushOutbox(); } catch (e) {}
+      /* #5 — مباراة محلية لسه شغّالة على الشاشة؟ نعيد بثّها عشان
+         المتفرّجين مايتعلّقوش والأصدقاء يشوفوا «في مباراة» تاني. */
+      try { if (window.amkhLocalCast && window.amkhLocalCast.resume) window.amkhLocalCast.resume(); } catch (e) {}
       clearInterval(this._presPing);
       /* نبضة أقصر من مهلة الخمول في أي وسيط (ngrok بيقطع بعد ~60ث) */
       this._presPing = setInterval(() => {

@@ -103,7 +103,7 @@ const amkhChat = {
      بنحتفظ بآخر الرسائل على الجهاز عشان تظهر فورًا أول ما تفتح المحادثة
      وكمان تفضل ظاهرة من غير نت لحد ما التاريخ الحقيقي يوصل. */
   _DB_NAME: 'amkh-chat',
-  _DB_VER: 1,
+  _DB_VER: 2,
   _CACHE_MAX: 30,
   _idbOpen() {
     if (this._dbP) return this._dbP;
@@ -115,12 +115,53 @@ const amkhChat = {
           const db = req.result;
           if (!db.objectStoreNames.contains('dm')) db.createObjectStore('dm', { keyPath: 'key' });
           if (!db.objectStoreNames.contains('grp')) db.createObjectStore('grp', { keyPath: 'key' });
+          /* v2 (#8): meta = لقطة صندوق الرسائل، outbox = الطابور الأوفلاين.
+             الحراسة بـcontains بتخلّي الترقية ماتمسّش الرسائل المحفوظة. */
+          if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'key' });
+          if (!db.objectStoreNames.contains('outbox')) db.createObjectStore('outbox', { keyPath: 'cid' });
         };
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => resolve(null);
       } catch (e) { resolve(null); }
     });
     return this._dbP;
+  },
+  /* قراءة/كتابة عامة في أي مخزن — تُستخدم للقطة الصندوق والطابور. */
+  async _idbGet(store, key) {
+    try {
+      const db = await this._idbOpen(); if (!db || !db.objectStoreNames.contains(store)) return null;
+      return await new Promise((resolve) => {
+        const rq = db.transaction(store, 'readonly').objectStore(store).get(String(key));
+        rq.onsuccess = () => resolve(rq.result || null);
+        rq.onerror = () => resolve(null);
+      });
+    } catch (e) { return null; }
+  },
+  async _idbAll(store) {
+    try {
+      const db = await this._idbOpen(); if (!db || !db.objectStoreNames.contains(store)) return [];
+      return await new Promise((resolve) => {
+        const rq = db.transaction(store, 'readonly').objectStore(store).getAll();
+        rq.onsuccess = () => resolve(Array.isArray(rq.result) ? rq.result : []);
+        rq.onerror = () => resolve([]);
+      });
+    } catch (e) { return []; }
+  },
+  _idbPut(store, obj) {
+    try {
+      this._idbOpen().then(db => {
+        if (!db || !db.objectStoreNames.contains(store)) return;
+        try { db.transaction(store, 'readwrite').objectStore(store).put(obj); } catch (e) {}
+      });
+    } catch (e) {}
+  },
+  _idbDel(store, key) {
+    try {
+      this._idbOpen().then(db => {
+        if (!db || !db.objectStoreNames.contains(store)) return;
+        try { db.transaction(store, 'readwrite').objectStore(store).delete(String(key)); } catch (e) {}
+      });
+    } catch (e) {}
   },
   async _cacheGet(store, key) {
     try {
@@ -152,8 +193,136 @@ const amkhChat = {
   async _clearCache() {
     try {
       const db = await this._idbOpen(); if (!db) return;
-      ['dm', 'grp'].forEach(s => { try { db.transaction(s, 'readwrite').objectStore(s).clear(); } catch (e) {} });
+      ['dm', 'grp', 'meta', 'outbox'].forEach(s => {
+        if (!db.objectStoreNames.contains(s)) return;
+        try { db.transaction(s, 'readwrite').objectStore(s).clear(); } catch (e) {}
+      });
+      this._out = [];
+      this._outLoaded = false;
     } catch (e) {}
+  },
+
+  /* ══ لقطة صندوق الرسائل (#8) ══
+     الصندوق كان بيستنى نداءين من الشبكة قبل ما يعرض أي حاجة، وبـPromise.all
+     يعني ينتظر الأبطأ منهما: على شبكة الموبايل ده ثانية أو أكتر من «جارِ
+     التحميل…»، ومن غير نت كان بيقول «لا توجد رسائل بعد» وهي موجودة. بنخزّن
+     آخر لقطة محليًا ونرسمها فورًا، وكل نصف من الشبكة يرسم بمفرده أول ما يوصل. */
+  _inboxSnapKey: 'inbox',
+  async _inboxSnapGet() {
+    const row = await this._idbGet('meta', this._inboxSnapKey);
+    if (!row) return null;
+    /* الحضور (متصل/آخر ظهور) ما يتخزّنش: لقطة قديمة ماتقولش «متصل الآن» غلط. */
+    const dm = (Array.isArray(row.dm) ? row.dm : []).map(r => {
+      const f = Object.assign({}, r.friend || {}, { online: false, status: null });
+      return Object.assign({}, r, { friend: f });
+    });
+    return { dm, grp: Array.isArray(row.grp) ? row.grp : [] };
+  },
+  _inboxSnapPut(dm, grp) {
+    const strip = (r) => {
+      const f = Object.assign({}, r.friend || {});
+      delete f.online; delete f.status; delete f.last_seen_at;
+      return Object.assign({}, r, { friend: f });
+    };
+    this._idbPut('meta', {
+      key: this._inboxSnapKey,
+      dm: (Array.isArray(dm) ? dm : []).slice(0, 60).map(strip),
+      grp: (Array.isArray(grp) ? grp : []).slice(0, 60),
+      updated_at: Date.now(),
+    });
+  },
+
+  /* ══ الطابور الأوفلاين (#8) ══
+     قبل كده: لو السوكت مقطوع، الرسالة بتتلغي بإشعار «لا يوجد اتصال» والنص
+     يضيع. دلوقتي بتتحوّل لرسالة معلّقة (بساعة زي واتساب) وتُخزَّن في
+     IndexedDB، فتفضل ظاهرة حتى لو التطبيق اتقفل، وتتبعت لوحدها أول ما
+     السوكت يفتح. الصوت/الصورة كمان — بحدّ للحجم عشان مانفجّرش التخزين. */
+  _out: [],
+  _OUT_MAX: 40,
+  _OUT_MAX_B64: 3 * 1024 * 1024,
+  async _restoreOutbox() {
+    if (this._outLoaded) return this._out;
+    this._outLoaded = true;
+    const rows = await this._idbAll('outbox');
+    const me = this._me();
+    this._out = rows.filter(r => r && r.cid && (!r.me || !me || r.me === me)).sort((a, b) => (a.at || 0) - (b.at || 0));
+    /* رجّع الفقاعات المعلّقة لمكانها في الذاكرة عشان تظهر أول ما تفتح المحادثة */
+    this._out.forEach(it => {
+      try {
+        const msg = this._outToMsg(it);
+        if (!msg) return;
+        if (it.scope === 'grp') {
+          const arr = (this._gmsgs[it.target] = this._gmsgs[it.target] || []);
+          if (!arr.some(m => m.client_id === it.cid)) arr.push(msg);
+        } else {
+          const arr = (this._msgs[it.target] = this._msgs[it.target] || []);
+          if (!arr.some(m => m.client_id === it.cid)) arr.push(msg);
+        }
+      } catch (e) {}
+    });
+    return this._out;
+  },
+  /* عنصر الطابور → رسالة عرض (نفس شكل الرسالة المتفائلة) */
+  _outToMsg(it) {
+    const me = this._me();
+    if (!me) return null;
+    const base = {
+      id: null, client_id: it.cid, from: me, mine: true, kind: it.kind || 'text',
+      body: it.body || '', audio: it.audio || null, duration: it.duration || 0, mime: it.mime || '',
+      created_at: it.created_at || new Date(it.at || Date.now()).toISOString(),
+      pending: true, queued: true, reply_to: it.reply_to || null, reply: it.reply || null,
+    };
+    if (it.scope === 'grp') return Object.assign(base, { sender_name: 'أنت', sender_avatar: null, mentions: it.mentions || [] });
+    return Object.assign(base, { to: it.peer_id, read: false, delivered: false });
+  },
+  /* يضيف للطابور ويرجّع true لو اتحفظ */
+  _queueOut(it) {
+    if (this._out.length >= this._OUT_MAX) return false;
+    const b64 = it.audio ? String(it.audio).length : 0;
+    if (b64 > this._OUT_MAX_B64) return false;
+    it.at = Date.now();
+    it.me = this._me();
+    this._out.push(it);
+    this._idbPut('outbox', it);
+    return true;
+  },
+  _dequeueOut(cid) {
+    this._out = this._out.filter(x => x.cid !== cid);
+    this._idbDel('outbox', cid);
+  },
+  /* يبعت كل المؤجَّل — بينادى أول ما سوكت الحضور يفتح */
+  async _flushOutbox() {
+    if (this._flushing) return;
+    const ws = this._socket();
+    if (!ws) return;
+    this._flushing = true;
+    try {
+      await this._restoreOutbox();
+      const items = this._out.slice();
+      for (const it of items) {
+        if (this._socket() !== ws || ws.readyState !== 1) break;
+        try {
+          if (it.scope === 'grp') {
+            ws.send(JSON.stringify(Object.assign({ type: 'group:send', group_id: it.target, client_id: it.cid, reply_to: it.reply_to || null },
+              it.kind && it.kind !== 'text' ? { kind: it.kind, audio: it.audio, duration: it.duration, mime: it.mime } : { body: it.body, mentions: it.mentions || [] })));
+          } else {
+            ws.send(JSON.stringify(Object.assign({ type: 'chat:send', to: it.peer_id, client_id: it.cid, reply_to: it.reply_to || null },
+              it.kind && it.kind !== 'text' ? { kind: it.kind, audio: it.audio, duration: it.duration, mime: it.mime } : { body: it.body })));
+          }
+          this._dequeueOut(it.cid);
+        } catch (e) { break; }
+      }
+      if (items.length && !this._out.length) {
+        try { window.amkhUI.notify('أُرسلت الرسائل المؤجَّلة', 'عاد الاتصال', '◉'); } catch (e) {}
+      }
+    } finally { this._flushing = false; }
+  },
+  /* إشعار موحّد لما نأجّل رسالة (مرة كل ٦ ثوان مهما كتب) */
+  _queuedNote() {
+    const now = Date.now();
+    if (this._qNoteAt && now - this._qNoteAt < 6000) return;
+    this._qNoteAt = now;
+    try { window.amkhUI.notify('لا يوجد اتصال — ستُرسل تلقائيًا أول ما يعود', 'مؤجَّلة', '◈'); } catch (e) {}
   },
 
   /* وقت قصير للفقاعة */
@@ -239,20 +408,52 @@ const amkhChat = {
 
   /* ── PLACEHOLDER_APPEND ── */
 
-  /* إرسال رسالة: عرض متفائل بمعرّف مؤقت، وبعدين chat:sent بيصلّح المعرّف. */
+  /* إرسال رسالة: عرض متفائل بمعرّف مؤقت، وبعدين chat:sent بيصلّح المعرّف.
+     ولو مفيش سوكت، الرسالة تتأجّل في الطابور بدل ما تضيع (#8). */
   sendMessage(friendId, body) {
     body = String(body || '').trim();
     if (!body) return;
-    const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت.', 'غير متصل', '◈'); return; }
     const clientId = 'c' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
     const r = this._takeReply('friend');
     const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind: 'text', body, created_at: new Date().toISOString(), read: false, delivered: false, pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     if (this._openWith === friendId) this._appendBubble(msg, true);
-    try { ws.send(JSON.stringify({ type: 'chat:send', to: friendId, body, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
+    this._sendOrQueue(
+      { type: 'chat:send', to: friendId, body, client_id: clientId, reply_to: r ? r.id : null },
+      { cid: clientId, scope: 'dm', target: key, peer_id: friendId, kind: 'text', body, reply_to: r ? r.id : null, reply: msg.reply, created_at: msg.created_at },
+      msg, 'dm', key
+    );
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
+  },
+
+  /* يبعت لو فيه سوكت، وإلا يأجّل. عند تعذّر التأجيل نشيل الفقاعة المتفائلة
+     عشان مانوهمهوش إن الرسالة محفوظة. */
+  _sendOrQueue(frame, item, msg, scope, target) {
+    const ws = this._socket();
+    if (ws) {
+      try { ws.send(JSON.stringify(frame)); return 'sent'; } catch (e) {}
+    }
+    if (this._queueOut(item)) {
+      if (msg) msg.queued = true;
+      this._queuedNote();
+      return 'queued';
+    }
+    this._dropOptimistic(scope, target, item.cid);
+    try {
+      window.amkhUI.notify(
+        item.audio ? 'المرفق كبير على التأجيل — أعد المحاولة بعد عودة الاتصال' : 'الرسائل المؤجَّلة ممتلئة — انتظر عودة الاتصال',
+        'لم تُؤجَّل', '◈');
+    } catch (e) {}
+    return 'dropped';
+  },
+  _dropOptimistic(scope, target, cid) {
+    try {
+      if (scope === 'grp') this._gmsgs[target] = (this._gmsgs[target] || []).filter(m => m.client_id !== cid);
+      else this._msgs[target] = (this._msgs[target] || []).filter(m => m.client_id !== cid);
+      const el = this._sheet && this._sheet.querySelector(`[data-cid="${cid}"]`);
+      if (el) el.remove();
+    } catch (e) {}
   },
 
   /* إظهار زر الإرسال لو فيه نص، والميكروفون لو الحقل فاضي (زي واتساب). */
@@ -348,15 +549,17 @@ const amkhChat = {
   },
 
   sendVoice(friendId, audioB64, durationSec, mime) {
-    const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     const clientId = 'v' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
     const r = this._takeReply('friend');
     const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind: 'voice', body: '', audio: audioB64, duration: durationSec, mime, created_at: new Date().toISOString(), read: false, pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     if (this._openWith === friendId) this._appendBubble(msg, true);
-    try { ws.send(JSON.stringify({ type: 'chat:send', kind: 'voice', to: friendId, audio: audioB64, duration: durationSec, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
+    this._sendOrQueue(
+      { type: 'chat:send', kind: 'voice', to: friendId, audio: audioB64, duration: durationSec, mime, client_id: clientId, reply_to: r ? r.id : null },
+      { cid: clientId, scope: 'dm', target: key, peer_id: friendId, kind: 'voice', audio: audioB64, duration: durationSec, mime, reply_to: r ? r.id : null, reply: msg.reply, created_at: msg.created_at },
+      msg, 'dm', key
+    );
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -451,15 +654,18 @@ const amkhChat = {
     });
   },
 
-  sendMedia(friendId, b64, mime, kind) {    const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
+  sendMedia(friendId, b64, mime, kind) {
     const clientId = 'm' + (++this._cid) + '_' + Date.now();
     const key = this._key(this._me(), friendId);
     const r = this._takeReply('friend');
     const msg = { id: null, client_id: clientId, from: this._me(), to: friendId, mine: true, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), read: false, pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._msgs[key] = this._msgs[key] || []).push(msg);
     if (this._openWith === friendId) this._appendBubble(msg, true);
-    try { ws.send(JSON.stringify({ type: 'chat:send', kind, to: friendId, audio: b64, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
+    this._sendOrQueue(
+      { type: 'chat:send', kind, to: friendId, audio: b64, mime, client_id: clientId, reply_to: r ? r.id : null },
+      { cid: clientId, scope: 'dm', target: key, peer_id: friendId, kind, audio: b64, mime, reply_to: r ? r.id : null, reply: msg.reply, created_at: msg.created_at },
+      msg, 'dm', key
+    );
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -513,7 +719,11 @@ const amkhChat = {
       case 'chat:unread': return this._onUnreadSnapshot(d);
       case 'chat:error':
         this._onSendError(d, false);
-        window.amkhUI.notify(d.reason === 'not-friend' ? 'لازم يكون صديقك' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
+        window.amkhUI.notify(
+          d.reason === 'not-friend' ? 'يجب أن يكون صديقًا لك أولًا'
+          : d.reason === 'privacy' ? 'إعدادات الخصوصية لديه لا تسمح بمراسلته'
+          : d.reason === 'too-big' ? 'التسجيل الصوتي كبير جدًا'
+          : 'تعذّر إرسال الرسالة', 'لم يتم', '◈');
         return true;
       case 'group:message': return this._onGroupMessage(d);
       case 'group:sent': return this._onGroupSent(d);
@@ -716,7 +926,8 @@ const amkhChat = {
     const key = this._key(this._me(), d.to);
     const arr = this._msgs[key] || [];
     const m = arr.find(x => x.client_id === d.client_id);
-    if (m) { m.id = d.id; m.pending = false; m.created_at = d.created_at || m.created_at; m.delivered = !!d.delivered; }
+    if (m) { m.id = d.id; m.pending = false; m.queued = false; m.created_at = d.created_at || m.created_at; m.delivered = !!d.delivered; }
+    if (d.client_id) this._dequeueOut(d.client_id);   /* وصلت فعلًا → تشيل من الطابور (#8) */
     this._persist('dm', key);
     if (this._openWith === d.to) {
       const el = this._sheet && this._sheet.querySelector(`[data-cid="${d.client_id}"]`);
@@ -756,10 +967,11 @@ const amkhChat = {
   _onSendError(d, isGroup) {
     if (!d || !d.client_id) return;
     const cid = d.client_id;
+    this._dequeueOut(cid);   /* السيرفر رفضها → مانعيدش المحاولة للأبد (#8) */
     const stores = isGroup ? this._gmsgs : this._msgs;
     for (const k of Object.keys(stores || {})) {
       const m = (stores[k] || []).find(x => x.client_id === cid);
-      if (m) { m.pending = false; m.failed = true; break; }
+      if (m) { m.pending = false; m.queued = false; m.failed = true; break; }
     }
     const el = this._sheet && this._sheet.querySelector(`[data-cid="${cid}"]`);
     if (el) {
@@ -1004,16 +1216,19 @@ const amkhChat = {
     if (recCancel) recCancel.onclick = () => { U.sfx(); this._stopVoiceRec(false); };
     overlay.querySelector('#ch-loadmore button').onclick = () => { U.sfx(); this._loadHistory(fid, true); };
 
-    /* اعرض الكاش المحلي فورًا (#133) — يظهر التاريخ من غير انتظار النت وحتى أوفلاين. */
+    /* اعرض الكاش المحلي فورًا (#133) — يظهر التاريخ من غير انتظار النت وحتى أوفلاين.
+       #8 — كان بيتخطّى الكاش خلاص لو فيه أي رسالة في الذاكرة (رسالة واحدة
+       وصلت على السوكت والشات مقفول كانت تكفي)، فالمحادثة تفتح على رسالة
+       واحدة وتستنى الشبكة. بندمج بدل ما نتخطّى. */
     try {
       const key = this._key(this._me(), fid);
-      if (!(this._msgs[key] || []).length) {
-        const cached = await this._cacheGet('dm', key);
-        if (cached && cached.length && this._openWith === fid && !(this._msgs[key] || []).length) {
-          this._msgs[key] = cached;
-          this._renderMessages(fid);
-          this._scrollBottom();
-        }
+      await this._restoreOutbox();
+      const cached = await this._cacheGet('dm', key);
+      if (cached && cached.length && this._openWith === fid) {
+        const live = this._msgs[key] || [];
+        this._msgs[key] = live.length ? this._mergeChrono(cached, live) : cached;
+        this._renderMessages(fid);
+        this._scrollBottom();
       }
     } catch (e) {}
 
@@ -1359,6 +1574,13 @@ const amkhChat = {
     let timer = null, moved = false;
     const open = () => this._openMsgMenu(scope, m);
     bubbleEl.addEventListener('contextmenu', (e) => { e.preventDefault(); open(); });
+    /* ══ #11 — لا شريط «نسخ/مشاركة/تحديد الكل» من أندرويد ══
+       اللمسة المطوّلة على نصّ قابل للتحديد تُشغّل ActionMode في الـWebView،
+       فيظهر شريط أندرويد فوق ورقتنا. المنع الأساسي في screens.css
+       بـuser-select:none، وهذا الحارس يوقف أي محاولة تحديد بقيت في
+       إصدارات WebView التي تبدأ التحديد قبل قراءة الخاصية. النسخ متاح من
+       ورقة الإجراءات نفسها («نسخ النص») فلا تفقد الميزة. */
+    bubbleEl.addEventListener('selectstart', (e) => { e.preventDefault(); });
 
     let sx = 0, sy = 0, dx = 0, decided = false, swiping = false;
     const THRESH = 54, MAX = 74;   /* px: عتبة تفعيل الرد + أقصى إزاحة */
@@ -1427,36 +1649,68 @@ const amkhChat = {
   /* الرموز السريعة للتفاعل (#3) — نفس مجموعة واتساب المختصرة */
   REACTIONS: ['👍', '❤️', '😂', '😮', '😢', '🙏'],
 
+  /* لقطة قصيرة من الرسالة تُعرض أعلى ورقة الإجراءات، فيعرف المستخدم على
+     أي رسالة يعمل — كان غائبًا فكانت القائمة تبدو معلَّقة في الهواء.
+     تبني على _msgPreview وتضيف رمزًا للنوع وقصًّا للطول. */
+  _actPeek(m) {
+    const kind = m.kind || 'text';
+    if (kind === 'voice') return '🎤 رسالة صوتية';
+    if (kind === 'image') return '📷 صورة';
+    if (kind === 'video') return '🎬 فيديو';
+    if (kind === 'call') return '📞 مكالمة';
+    const b = this._msgPreview(m).replace(/\s+/g, ' ').trim();
+    return b.length > 90 ? b.slice(0, 90) + '…' : (b || '—');
+  },
+
+  /* ══ ورقة إجراءات الرسالة (#11) ══
+     كانت نافذة وسطية بأزرار مستطيلة كلٌّ منها بإطار كامل — شكل قوائم
+     أندرويد القديمة. صارت ورقةً سفلية على طراز التطبيق: مقبض سحب، شريط
+     تفاعلات عائم بحبّات دائرية تظهر بتدرّج، لقطة من الرسالة نفسها، ثم
+     صفوف بأيقونات في مربّعات ملوّنة خفيفة وفواصل رقيقة بلا إطارات.
+     ولها نغمتها الخاصة (msgAct) مثل بقية نوافذ التطبيق. */
   _openMsgMenu(scope, m) {
     const U = window.amkhUI;
     if (!U || m.id == null) return;
     /* معلومات الرسالة (مين قرأ/سمع) في الحفلة بس — مش في الشات الفردي. */
-    const infoBtn = (scope === 'group' && m.mine) ? `<button class="grp-act__btn" data-do="info">${this.ICONS.info}<span>معلومات</span></button>` : '';
+    const canInfo = (scope === 'group' && m.mine);
     /* التثبيت: في الحفلة للمشرفين بس؛ في 1:1 للطرفين. */
     const canPin = scope === 'group' ? this._groupIsAdmin(this._openGroup) : true;
-    const pinBtn = canPin ? `<button class="grp-act__btn" data-do="pin">${this.ICONS.pin}<span>${m.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span></button>` : '';
-    /* #11 — نسخ نص الرسالة */
     const txt = (m.kind === 'text' || !m.kind) ? String(m.body || '') : '';
-    const copyBtn = txt ? `<button class="grp-act__btn" data-do="copy">${this.ICONS.copy}<span>نسخ</span></button>` : '';
-    /* #6 — حفظ الصورة/الفيديو/الصوت في المعرض أو مجلد التنزيلات */
     const media = ['image', 'video', 'voice'].includes(m.kind) && m.audio;
-    const saveBtn = media ? `<button class="grp-act__btn" data-do="save">${this.ICONS.download}<span>حفظ</span></button>` : '';
-    /* #3 — شريط التفاعلات فوق القائمة، والمختار حاليًا مميّز */
+
+    const row = (act, icon, label, hint, mod) =>
+      `<button class="msg-act__row${mod ? ' ' + mod : ''}" data-do="${act}">`
+      + `<span class="msg-act__ic">${icon}</span>`
+      + `<span class="msg-act__lb">${label}${hint ? `<small>${hint}</small>` : ''}</span></button>`;
+
+    let rows = row('reply', this.ICONS.reply, 'رد');
+    if (txt) rows += row('copy', this.ICONS.copy, 'نسخ النص');
+    if (media) rows += row('save', this.ICONS.download, 'حفظ في الجهاز');
+    if (canInfo) rows += row('info', this.ICONS.info, 'معلومات الرسالة');
+    if (canPin) {
+      rows += m.pinned
+        ? row('unpin', this.ICONS.pin, 'إلغاء التثبيت', this._pinLeftText(m), 'msg-act__row--warn')
+        : row('pin', this.ICONS.pin, 'تثبيت', 'تختار المدة ثم يُلغى وحده');
+    }
+
+    /* #3 — شريط التفاعلات فوق الورقة، والمختار حاليًا مميّز */
     const mineEmoji = this._myReaction(m);
-    const strip = this.REACTIONS.map(e =>
-      `<button class="ch-react__pick${mineEmoji && mineEmoji.emoji === e ? ' is-mine' : ''}" data-emoji="${e}" aria-label="تفاعل ${e}">${e}</button>`).join('');
+    const strip = this.REACTIONS.map((e, i) =>
+      `<button class="msg-act__emo${mineEmoji && mineEmoji.emoji === e ? ' is-mine' : ''}" `
+      + `style="--i:${i}" data-emoji="${e}" aria-label="تفاعل ${e}">${e}</button>`).join('');
+
     const overlay = U.mount('amkh-msg-act', `
-      <div class="ds-dialog grp-act">
-        <div class="ch-react__strip">${strip}</div>
-        <div class="grp-act__list">
-          <button class="grp-act__btn" data-do="reply">${this.ICONS.reply}<span>رد</span></button>
-          ${copyBtn}
-          ${saveBtn}
-          ${infoBtn}
-          ${pinBtn}
-          <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إلغاء</span></button>
+      <div class="ds-sheet msg-act" id="msg-act-p">
+        <div class="ds-sheet__handle"></div>
+        <div class="msg-act__react">${strip}</div>
+        <div class="msg-act__peek">
+          <span class="msg-act__peek-who">${U.esc(this._msgAuthorName(scope, m))}</span>
+          <span class="msg-act__peek-txt">${U.esc(this._actPeek(m))}</span>
         </div>
-      </div>`, { sfx: 'sheet' });
+        <div class="ds-sheet__body msg-act__rows">${rows}</div>
+      </div>`, { sheet: true, sfx: 'msgAct' });
+    try { window.DSOverlay && window.DSOverlay.makeSheetDraggable('amkh-msg-act', 'msg-act-p', () => overlay._dismiss()); } catch (e) {}
+
     overlay.querySelectorAll('[data-emoji]').forEach(b => b.onclick = () => {
       U.sfx();
       const emoji = b.dataset.emoji;
@@ -1469,10 +1723,60 @@ const amkhChat = {
       try { overlay._dismiss(); } catch (e) {}
       if (act === 'reply') this._startReply(scope, m);
       else if (act === 'info') this._openMsgInfo(scope, m);
-      else if (act === 'pin') this._pinMsg(scope, m, !m.pinned);
+      else if (act === 'pin') this._openPinDuration(scope, m);
+      else if (act === 'unpin') this._pinMsg(scope, m, false);
       else if (act === 'copy') this._copyText(txt);
       else if (act === 'save') this._saveMedia(m);
     });
+  },
+
+  /* ══ مدّة التثبيت (#7) ══
+     على طراز واتساب: تختار مدّة فينتهي التثبيت وحده. «دائم» متاح كذلك
+     لمن يريد بقاءها. المدد المسموحة مقيَّدة في الخادم أيضًا. */
+  PIN_DURATIONS: [
+    { days: 3, label: '٣ أيام' },
+    { days: 7, label: '٧ أيام' },
+    { days: 30, label: '٣٠ يومًا' },
+    { days: 0, label: 'دائمًا' },
+  ],
+
+  _openPinDuration(scope, m) {
+    const U = window.amkhUI;
+    if (!U) return;
+    const opts = this.PIN_DURATIONS.map((d, i) =>
+      `<button class="msg-act__row msg-act__row--opt" style="--i:${i}" data-days="${d.days}">`
+      + `<span class="msg-act__ic">${d.days ? this.ICONS.clock : this.ICONS.pin}</span>`
+      + `<span class="msg-act__lb">${d.label}${d.days ? '<small>يُلغى التثبيت تلقائيًا بعدها</small>' : '<small>يبقى حتى تُلغيه بنفسك</small>'}</span>`
+      + `</button>`).join('');
+    const overlay = U.mount('amkh-pin-time', `
+      <div class="ds-sheet msg-act" id="pin-time-p">
+        <div class="ds-sheet__handle"></div>
+        <h3 class="msg-act__title">مدّة التثبيت</h3>
+        <p class="msg-act__note">اختر المدّة التي تبقى فيها الرسالة مثبّتة أعلى المحادثة.</p>
+        <div class="ds-sheet__body msg-act__rows">${opts}</div>
+      </div>`, { sheet: true, sfx: 'pinTime' });
+    try { window.DSOverlay && window.DSOverlay.makeSheetDraggable('amkh-pin-time', 'pin-time-p', () => overlay._dismiss()); } catch (e) {}
+    overlay.querySelectorAll('[data-days]').forEach(b => b.onclick = () => {
+      U.sfx();
+      const days = Number(b.dataset.days) || 0;
+      try { overlay._dismiss(); } catch (e) {}
+      this._pinMsg(scope, m, true, days);
+    });
+  },
+
+  /* «تنتهي بعد …» — نصّ الوقت المتبقّي لتثبيت مؤقّت. */
+  _pinLeftText(m) {
+    if (!m || !m.pinned_until) return 'مثبّتة دائمًا';
+    const t = Date.parse(String(m.pinned_until).replace(' ', 'T') + 'Z');
+    if (!Number.isFinite(t)) return '';
+    const left = t - Date.now();
+    if (left <= 0) return 'انتهت مدّتها';
+    const days = Math.floor(left / 86400000);
+    if (days >= 1) return `تنتهي بعد ${days === 1 ? 'يوم' : days === 2 ? 'يومين' : days + ' أيام'}`;
+    const hrs = Math.floor(left / 3600000);
+    if (hrs >= 1) return `تنتهي بعد ${hrs === 1 ? 'ساعة' : hrs === 2 ? 'ساعتين' : hrs + ' ساعات'}`;
+    const mins = Math.max(1, Math.floor(left / 60000));
+    return `تنتهي بعد ${mins === 1 ? 'دقيقة' : mins === 2 ? 'دقيقتين' : mins + ' دقائق'}`;
   },
 
   /* ══ نسخ نص الرسالة (#11) ══
@@ -1709,17 +2013,19 @@ const amkhChat = {
     return meta.my_role === 'owner' || meta.my_role === 'admin';
   },
 
-  /* تثبيت/فك تثبيت رسالة (#132) — بيبعت على السوكت والسيرفر بيبثّ للطرفين. */
-  _pinMsg(scope, m, pin) {
+  /* تثبيت/فك تثبيت رسالة (#132) — بيبعت على السوكت والسيرفر بيبثّ للطرفين.
+     days (#7): ٣/٧/٣٠ = تثبيت مؤقّت ينتهي وحده، و٠ = دائم. */
+  _pinMsg(scope, m, pin, days) {
     const ws = this._socket();
     if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     try { if (window.SFX) window.SFX.modalOpen('pin'); } catch (e) {}
+    const d = Number(days) || 0;
     if (scope === 'group') {
       const gid = this._openGroup; if (gid == null) return;
-      try { ws.send(JSON.stringify({ type: 'group:pin', group_id: gid, id: m.id, pin: !!pin })); } catch (e) {}
+      try { ws.send(JSON.stringify({ type: 'group:pin', group_id: gid, id: m.id, pin: !!pin, days: d })); } catch (e) {}
     } else {
       const to = this._openWith; if (to == null) return;
-      try { ws.send(JSON.stringify({ type: 'chat:pin', to, id: m.id, pin: !!pin })); } catch (e) {}
+      try { ws.send(JSON.stringify({ type: 'chat:pin', to, id: m.id, pin: !!pin, days: d })); } catch (e) {}
     }
   },
 
@@ -1727,14 +2033,22 @@ const amkhChat = {
     if (!d || d.id == null) return true;
     const friendId = d.with;
     const key = this._key(this._me(), friendId);
-    const arr = this._msgs[key]; if (arr) { const m = arr.find(x => x.id === d.id); if (m) m.pinned = !!d.pinned; }
+    const arr = this._msgs[key];
+    if (arr) {
+      const m = arr.find(x => x.id === d.id);
+      if (m) { m.pinned = !!d.pinned; m.pinned_until = d.pinned ? (d.pinned_until || null) : null; }
+    }
     this._persist('dm', key);
     if (this._openWith === friendId) { this._markBubblePinned(d.id, !!d.pinned); this._renderPinnedBar('friend'); }
     return true;
   },
   _onGroupPinned(d) {
     if (!d || d.id == null || d.group_id == null) return true;
-    const arr = this._gmsgs[d.group_id]; if (arr) { const m = arr.find(x => x.id === d.id); if (m) m.pinned = !!d.pinned; }
+    const arr = this._gmsgs[d.group_id];
+    if (arr) {
+      const m = arr.find(x => x.id === d.id);
+      if (m) { m.pinned = !!d.pinned; m.pinned_until = d.pinned ? (d.pinned_until || null) : null; }
+    }
     this._persist('grp', d.group_id);
     if (this._openGroup === d.group_id) { this._markBubblePinned(d.id, !!d.pinned); this._renderPinnedBar('group'); }
     return true;
@@ -1746,14 +2060,26 @@ const amkhChat = {
     if (b) b.classList.toggle('ch-bubble--pinned', !!pinned);
   },
 
+  /* هل التثبيت لا يزال ساريًا؟ (#7) — النسخة المحلّية المخزّنة قد تكون
+     أُخذت قبل انتهاء المدّة والتطبيق كان مقفولًا، فنتحقّق عند العرض. */
+  _pinLive(m) {
+    if (!m || !m.pinned) return false;
+    if (!m.pinned_until) return true;
+    const t = Date.parse(String(m.pinned_until).replace(' ', 'T') + 'Z');
+    return !Number.isFinite(t) || t > Date.now();
+  },
+
   /* شريط الرسائل المثبّتة أعلى المحادثة (زي واتساب): أحدث رسالة مثبّتة
      + عدّاد، والضغط بيقفز للرسالة. */
   _renderPinnedBar(scope) {
     if (!this._sheet) return;
     const arr = scope === 'group' ? (this._gmsgs[this._openGroup] || []) : (this._msgs[this._key(this._me(), this._openWith)] || []);
+    /* التثبيت المنتهي (#7) يُعامَل كغير مثبّت فورًا، ونصفّي علامته من
+       الفقاعة كذلك عشان الخط السفلي المميّز ما يفضلش. */
+    arr.forEach(m => { if (m.pinned && !this._pinLive(m)) { m.pinned = false; m.pinned_until = null; this._markBubblePinned(m.id, false); } });
     const pinned = arr.filter(m => m.pinned && m.id != null);
     let bar = this._sheet.querySelector('#ch-pinned');
-    if (!pinned.length) { if (bar) bar.remove(); return; }
+    if (!pinned.length) { if (bar) bar.remove(); if (this._pinTick) { clearInterval(this._pinTick); this._pinTick = null; } return; }
     const last = pinned[pinned.length - 1];
     const scroll = this._sheet.querySelector('#ch-scroll');
     if (!bar) {
@@ -1765,9 +2091,19 @@ const amkhChat = {
     }
     const preview = (last.kind === 'voice' ? '🎤 رسالة صوتية' : last.kind === 'image' ? '📷 صورة' : last.kind === 'video' ? '🎬 فيديو' : (last.body || ''));
     const esc = (window.amkhUI && window.amkhUI.esc) ? window.amkhUI.esc : (s => String(s));
+    const left = last.pinned_until ? this._pinLeftText(last) : '';
     bar.innerHTML = `<span style="opacity:.8;">${this.ICONS.pin}</span>`
-      + `<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pinned.length > 1 ? `<b>${pinned.length} مثبّتة · </b>` : '<b>مثبّتة · </b>'}${esc(preview)}</span>`;
+      + `<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pinned.length > 1 ? `<b>${pinned.length} مثبّتة · </b>` : '<b>مثبّتة · </b>'}${esc(preview)}</span>`
+      + (left ? `<span style="flex:0 0 auto;opacity:.65;font-size:11px;">${esc(left)}</span>` : '');
     bar.onclick = () => { try { window.amkhUI.sfx(); } catch (e) {} this._scrollToMsg(last.id); };
+    /* عدّاد خفيف يحدّث «تنتهي بعد …» ويشيل الشريط لحظة الانتهاء بلا
+       انتظار بثّ الخادم — دقيقة واحدة كافية ولا تُثقل شيئًا. */
+    if (!this._pinTick) {
+      this._pinTick = setInterval(() => {
+        if (!this._sheet || !this._sheet.querySelector('#ch-pinned')) { clearInterval(this._pinTick); this._pinTick = null; return; }
+        this._renderPinnedBar(scope);
+      }, 60000);
+    }
   },
 
   /* تسجيل استماع رسالة صوتية مرة واحدة (#131) — مش لرسايلي أنا. */
@@ -2052,11 +2388,42 @@ const amkhChat = {
     const newBtn = overlay.querySelector('#ch-new-group');
     if (newBtn) newBtn.onclick = () => { U.sfx(); this.createGroupFlow(); };
 
-    const [data, groups] = await Promise.all([this._get('/conversations'), this._gget('/')]);
-    const listEl = overlay.querySelector('#ch-inbox-list');
-    if (!listEl) return;
-    listEl.innerHTML = '';
+    /* #8 — اللقطة المحفوظة تُرسم فورًا (بلا شبكة، وتعمل أوفلاين)، وبعدها
+       كل نصف من الشبكة يرسم بمفرده أول ما يوصل بدل انتظار الأبطأ. */
+    let dm = null, grp = null;
+    try {
+      const snap = await this._inboxSnapGet();
+      if (snap && this._sheet === overlay && (snap.dm.length || snap.grp.length)) {
+        dm = snap.dm; grp = snap.grp;
+        this._paintInbox(overlay, dm, grp, true);
+      }
+    } catch (e) {}
+    const paint = () => { if (this._sheet === overlay) this._paintInbox(overlay, dm, grp, false); };
+    await Promise.all([
+      this._get('/conversations').then(d => { if (Array.isArray(d)) { dm = d; paint(); } }),
+      this._gget('/').then(g => { if (Array.isArray(g)) { grp = g; paint(); } }),
+    ]);
+    if (dm || grp) this._inboxSnapPut(dm, grp);
+    else if (this._sheet === overlay) this._paintInbox(overlay, null, null, false);
+  },
 
+  /* يرسم صندوق الرسائل من أي مصدر (لقطة محفوظة أو شبكة). fromCache بيمنع
+     رسالة «لا توجد رسائل» على لقطة فاضية عشان مانكدبش قبل وصول الشبكة. */
+  _paintInbox(overlay, dmRows, grpRows, fromCache) {
+    const listEl = overlay && overlay.querySelector('#ch-inbox-list');
+    if (!listEl) return;
+    const data = dmRows, groups = grpRows;
+    if (!Array.isArray(data) && !Array.isArray(groups)) {
+      /* مفيش شبكة ومفيش لقطة — نقول الحقيقة بدل «لا توجد رسائل بعد» */
+      if (!fromCache && !listEl.querySelector('.ch-inbox__row')) {
+        listEl.innerHTML = '';
+        const e = document.createElement('p');
+        e.className = 'ch-empty';
+        e.textContent = 'لا يوجد اتصال بالخادم — ستظهر محادثاتك المحفوظة هنا، وأي رسالة تكتبها ستُرسل أول ما يعود الاتصال.';
+        listEl.appendChild(e);
+      }
+      return;
+    }
     /* دمج المحادثات الفردية والحفلات وترتيبها: المثبّت أولًا ثم الأحدث زمنًا.
        #5 — الترتيب القديم كان بـ last_id، والرسائل الفردية والجماعية من
        جدولين لكلٍّ تسلسله المستقل، فالمقارنة بين رقمين من تسلسلين مختلفين
@@ -2064,20 +2431,35 @@ const amkhChat = {
        الصحيح الوحيد، والسيرفر بقى يرتّب بنفس القاعدة. */
     const items = [];
     this._pins = { dm: {}, grp: {} };
+    /* الحضور معلوم فقط لو فيه سوكت مفتوح. من اللقطة المحفوظة ومفيش سوكت =
+       معلومة قديمة، فمانرسمش نقطة «متصل» على واحد ممكن يكون خرج. */
+    const presenceLive = !!this._socket();
     (Array.isArray(data) ? data : []).forEach(r => {
       const f = r.friend || {};
+      const prev = this._friendMeta[f.id] || {};
+      const on = fromCache ? (presenceLive && !!prev.online) : f.online;
       this._friendMeta[f.id] = {
         name: f.display_name || f.username || 'صديق',
         avatar_url: f.avatar_url || null,
-        status: f.status, online: f.online, last_seen_at: f.last_seen_at,
+        /* من اللقطة المحفوظة مافيش حضور — نسيب اللي عندنا من الحضور الحقيقي */
+        status: fromCache ? (presenceLive ? prev.status : null) : f.status,
+        online: fromCache ? on : f.online,
+        last_seen_at: fromCache ? prev.last_seen_at : f.last_seen_at,
       };
+      if (fromCache) { f.online = on; f.status = this._friendMeta[f.id].status; }
       if (typeof r.unread === 'number') this._unread[f.id] = r.unread;
       if (typeof r.mentions === 'number') this._dmentions[f.id] = r.mentions;
       if (r.pinned) this._pins.dm[f.id] = true;
       items.push({ type: 'friend', data: r, at: Date.parse(r.last_at) || 0, pinned: r.pinned ? 1 : 0 });
     });
     (Array.isArray(groups) ? groups : []).forEach(g => {
-      this._gmeta[g.id] = { name: g.name, members_count: g.members_count, owner_id: g.owner_id };
+      const gp = this._gmeta[g.id] || {};
+      this._gmeta[g.id] = {
+        name: g.name, members_count: g.members_count, owner_id: g.owner_id,
+        avatar_url: (g.avatar_url != null ? g.avatar_url : gp.avatar_url) || null,
+        send_policy: (g.send_policy != null ? g.send_policy : gp.send_policy) || 'all',
+        my_role: g.my_role || gp.my_role || 'member',
+      };
       if (typeof g.unread === 'number') this._gunread[g.id] = g.unread;
       if (typeof g.mentions === 'number') this._gmentions[g.id] = g.mentions;
       if (g.pinned) this._pins.grp[g.id] = true;
@@ -2085,6 +2467,8 @@ const amkhChat = {
     });
 
     if (!items.length) {
+      if (fromCache) return;                 /* لقطة فاضية: نسيب «جارِ التحميل…» */
+      listEl.innerHTML = '';
       const e = document.createElement('p');
       e.className = 'ch-empty';
       e.textContent = 'لا توجد رسائل بعد — افتح محادثة مع صديقك، أو أنشئ حفلة شطرنجية جديدة من زرّ ＋.';
@@ -2092,6 +2476,7 @@ const amkhChat = {
       this._updateBadge();
       return;
     }
+    listEl.innerHTML = '';
     items.sort((a, b) => (b.pinned - a.pinned) || (b.at - a.at));
     items.forEach(it => {
       listEl.appendChild(it.type === 'group' ? this._groupInboxRow(it.data) : this._inboxRow(it.data));
@@ -2315,25 +2700,33 @@ const amkhChat = {
     row._lpFired = () => fired;
   },
 
+  /* قائمة إجراءات صفّ المحادثة (#4) — بنفس هيئة ورقة إجراءات الرسالة (#11)
+     عشان اللمستين المطوّلتين في التطبيق تديّا نفس الإحساس. */
   _openConvMenu(kind, id, name, meta) {
     const U = window.amkhUI;
     if (!U) return;
     const pinned = !!(kind === 'grp' ? this._pins.grp[id] : this._pins.dm[id]);
     const overlay = U.mount('amkh-conv-act', `
-      <div class="ds-dialog grp-act">
-        <div class="grp-act__hero"><span class="grp-act__av" id="conv-act-av"></span>
-          <span class="grp-act__name"></span></div>
-        <div class="grp-act__list">
-          <button class="grp-act__btn" data-do="pin">${this.ICONS.pin}<span>${pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة'}</span></button>
-          <button class="grp-act__btn grp-act__btn--ghost" data-close><span>إلغاء</span></button>
+      <div class="ds-sheet msg-act" id="conv-act-p">
+        <div class="ds-sheet__handle"></div>
+        <div class="msg-act__hero">
+          <span class="msg-act__hero-av" id="conv-act-av"></span>
+          <span class="msg-act__hero-nm"></span>
         </div>
-      </div>`, { sfx: 'pin' });
+        <div class="ds-sheet__body msg-act__rows">
+          <button class="msg-act__row${pinned ? ' msg-act__row--warn' : ''}" data-do="pin">
+            <span class="msg-act__ic">${this.ICONS.pin}</span>
+            <span class="msg-act__lb">${pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة'}<small>${pinned ? 'تعود إلى ترتيبها الطبيعي' : 'تبقى أعلى صندوق الرسائل'}</small></span>
+          </button>
+        </div>
+      </div>`, { sheet: true, sfx: 'pin' });
+    try { window.DSOverlay && window.DSOverlay.makeSheetDraggable('amkh-conv-act', 'conv-act-p', () => overlay._dismiss()); } catch (e) {}
     const av = overlay.querySelector('#conv-act-av');
     if (av) {
       if (kind === 'grp') { av.classList.add('ch-conv__av--group'); this._paintGroupAvatar(av, Object.assign({ name }, meta || {})); }
       else this._paintAvatar(av, meta || { name });
     }
-    const nmEl = overlay.querySelector('.grp-act__name');
+    const nmEl = overlay.querySelector('.msg-act__hero-nm');
     if (nmEl) nmEl.textContent = name || 'محادثة';
     overlay.querySelectorAll('[data-do]').forEach(b => b.onclick = () => {
       U.sfx();
@@ -2449,7 +2842,8 @@ const amkhChat = {
   _onGroupSent(d) {
     const arr = this._gmsgs[d.group_id] || [];
     const m = arr.find(x => x.client_id === d.client_id);
-    if (m) { m.id = d.id; m.pending = false; m.created_at = d.created_at || m.created_at; }
+    if (m) { m.id = d.id; m.pending = false; m.queued = false; m.created_at = d.created_at || m.created_at; }
+    if (d.client_id) this._dequeueOut(d.client_id);   /* وصلت فعلًا → تشيل من الطابور (#8) */
     this._persist('grp', d.group_id);
     if (this._openGroup === d.group_id) {
       const el = this._sheet && this._sheet.querySelector(`[data-cid="${d.client_id}"]`);
@@ -2612,39 +3006,45 @@ const amkhChat = {
   sendGroupMessage(gid, body) {
     body = String(body || '').trim();
     if (!body) return;
-    const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت.', 'غير متصل', '◈'); return; }
     const clientId = 'g' + (++this._cid) + '_' + Date.now();
     const r = this._takeReply('group');
     const mentions = this._collectMentions(body, gid);        /* #2 */
     const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'text', body, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null, mentions };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
-    try { ws.send(JSON.stringify({ type: 'group:send', group_id: gid, body, client_id: clientId, reply_to: r ? r.id : null, mentions })); } catch (e) {}
+    this._sendOrQueue(
+      { type: 'group:send', group_id: gid, body, client_id: clientId, reply_to: r ? r.id : null, mentions },
+      { cid: clientId, scope: 'grp', target: gid, kind: 'text', body, mentions, reply_to: r ? r.id : null, reply: msg.reply, created_at: msg.created_at },
+      msg, 'grp', gid
+    );
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
   sendGroupVoice(gid, audioB64, durationSec, mime) {
-    const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     const clientId = 'gv' + (++this._cid) + '_' + Date.now();
     const r = this._takeReply('group');
     const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind: 'voice', body: '', audio: audioB64, duration: durationSec, mime, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
-    try { ws.send(JSON.stringify({ type: 'group:send', kind: 'voice', group_id: gid, audio: audioB64, duration: durationSec, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
+    this._sendOrQueue(
+      { type: 'group:send', kind: 'voice', group_id: gid, audio: audioB64, duration: durationSec, mime, client_id: clientId, reply_to: r ? r.id : null },
+      { cid: clientId, scope: 'grp', target: gid, kind: 'voice', audio: audioB64, duration: durationSec, mime, reply_to: r ? r.id : null, reply: msg.reply, created_at: msg.created_at },
+      msg, 'grp', gid
+    );
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
   sendGroupMedia(gid, b64, mime, kind) {
-    const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
     const clientId = 'gm' + (++this._cid) + '_' + Date.now();
     const r = this._takeReply('group');
     const msg = { id: null, client_id: clientId, from: this._me(), mine: true, sender_name: 'أنت', sender_avatar: null, kind, body: '', audio: b64, mime, created_at: new Date().toISOString(), pending: true, reply_to: r ? r.id : null, reply: r ? { id: r.id, name: r.name, kind: r.kind, preview: r.preview } : null };
     (this._gmsgs[gid] = this._gmsgs[gid] || []).push(msg);
     if (this._openGroup === gid) this._appendGroupBubble(msg);
-    try { ws.send(JSON.stringify({ type: 'group:send', kind, group_id: gid, audio: b64, mime, client_id: clientId, reply_to: r ? r.id : null })); } catch (e) {}
+    this._sendOrQueue(
+      { type: 'group:send', kind, group_id: gid, audio: b64, mime, client_id: clientId, reply_to: r ? r.id : null },
+      { cid: clientId, scope: 'grp', target: gid, kind, audio: b64, mime, reply_to: r ? r.id : null, reply: msg.reply, created_at: msg.created_at },
+      msg, 'grp', gid
+    );
     try { if (window.SFX) window.SFX.chat(); } catch (e) {}
   },
 
@@ -2757,15 +3157,15 @@ const amkhChat = {
     if (infoBtn) infoBtn.onclick = () => { U.sfx(); this._showGroupMembers(gid); };
     overlay.querySelector('#ch-loadmore button').onclick = () => { U.sfx(); this._loadGroupHistory(gid, true); };
 
-    /* اعرض الكاش المحلي فورًا (#133). */
+    /* اعرض الكاش المحلي فورًا (#133) — ودمج بدل تخطّي (#8). */
     try {
-      if (!(this._gmsgs[gid] || []).length) {
-        const cached = await this._cacheGet('grp', gid);
-        if (cached && cached.length && this._openGroup === gid && !(this._gmsgs[gid] || []).length) {
-          this._gmsgs[gid] = cached;
-          this._renderGroupMessages(gid);
-          this._scrollBottom();
-        }
+      await this._restoreOutbox();
+      const cached = await this._cacheGet('grp', gid);
+      if (cached && cached.length && this._openGroup === gid) {
+        const live = this._gmsgs[gid] || [];
+        this._gmsgs[gid] = live.length ? this._mergeChrono(cached, live) : cached;
+        this._renderGroupMessages(gid);
+        this._scrollBottom();
       }
     } catch (e) {}
 

@@ -2127,7 +2127,7 @@ body[data-ui-theme="gaming"]{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2);
   min-height: var(--touch-target-min);
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface);
@@ -2153,9 +2153,31 @@ body[data-ui-theme="gaming"]{
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
+  /* الاسم مايتخبّاش أبدًا: لو المساحة ضاقت ينزل سطر تاني بدل ما يتقطّع
+     بـ«…». على شاشة 320px عمود الاسم بيبقى ~90px، والاسم من كلمتين
+     زي «Monkey D. Luffy» أو «فلسطين فلسطين» مش بيدخل في سطر واحد. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.25;
+}
+/* السطر التاني: التقييم جنب الحالة (كانا مفصولين، والتقييم كان بياكل من
+   عرض الاسم في السطر الأول) */
+.fr-row__strow{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.fr-row__rating + .fr-row__status::before{
+  content: '•';
+  margin-inline-end: 6px;
+  opacity: .45;
 }
 /* الحالة بقت سطر توضيحي تحت الاسم، فمش محتاجة خلفية كبسولة —
    الكبسولة كانت منطقية لما كانت جنب الاسم. */
@@ -2176,8 +2198,16 @@ body[data-ui-theme="gaming"]{
 .fr-row__acts{
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;         /* كان space-3: كل بكسل هنا بيتخصم من عرض الاسم */
   flex: none;
+}
+
+/* شاشات ضيقة جدًا (أقل من 360px): الأزرار التلاتة بتاخد 150px من 320،
+   فمهما عملنا الاسم هيتقطّع. الحل إن الأزرار تنزل سطر تحت لوحدها
+   والاسم ياخد عرض السطر كله. */
+@media (max-width: 359px){
+  .fr-row{ flex-wrap: wrap; row-gap: var(--space-2); }
+  .fr-row__acts{ flex: 1 1 100%; justify-content: flex-end; }
 }
 
 /* ── تبويبات ورقة الأصدقاء ──
@@ -2251,10 +2281,15 @@ body[data-ui-theme="gaming"]{
 .fr-row__status.is-ingame{ color: var(--color-warning, #FFB020); }
 
 .fr-row__more{
-  min-width: 34px;
-  padding-inline: var(--space-2);
+  min-width: 32px;
+  padding-inline: 6px;
   font-size: 18px;
   line-height: 1;
+}
+/* زر الدردشة أيقونة، مش محتاج عرض زرّ نصّي */
+.fr-row__chat{
+  min-width: 40px;
+  padding-inline: 8px;
 }
 
 /* ── قائمة الخيارات الصغيرة ── */
@@ -4445,46 +4480,57 @@ html.kb-open .ch-input{
 @media (min-width: 700px){
   .ch-scroll{ padding-inline: var(--space-4, 16px); }
   .ch-ment{ max-height: 40vh; }
-  /* الورقة تفضل مريحة الطول وقت الكيبورد، وماتقلّش عن حدّ يخلّي
-     الرسايل تختفي — من غير ما تتعدّى المساحة المتاحة فوق الكيبورد. */
-  html.kb-open .ds-overlay--sheet .ch-conv{
-    min-height: min(420px, calc(100vh - var(--kb, 0px) - 12px));
-  }
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   الشات ملء الشاشة على التابلت/الآيباد — زي واتساب
+   الشات ملء الشاشة — الهاتف والتابلت (#4)
    ────────────────────────────────────────────────────────────────────
-   اللاعبون طلبوها صراحة: الورقة كانت 680px في نُصّ شاشة عريضة، فالشات
-   يبان جزيرة صغيرة والفراغ حواليها ميّت. دلوقتي نافذة الشات (شات صديق،
-   شات حفلة، وصندوق الرسائل — كلهم #amkh-chat-modal) بتاخد الشاشة كلها.
+   كان ملء الشاشة محصورًا في @media (min-width:700px) — أي التابلت وحده،
+   والهاتف يظلّ ورقةً سفلية بارتفاع 86vh تحتها فراغ ميّت. المطلوب صراحةً
+   أن يكون الشات ملء الشاشة في الهاتف كذلك، فرُفع الحصر: كل نوافذ الشات
+   (شات صديق، شات حفلة، صندوق الرسائل — كلها #amkh-chat-modal) تأخذ
+   الشاشة كاملة على أي مقاس.
 
-   الكيبورد: الورقة العامة بتترفع بـpadding-bottom على الـoverlay. هنا
-   بنلغي الرفع ده ونقصّر ارتفاع الورقة نفسها بمقدار --kb، لأن الورقة
-   بتبدأ من فوق (flex-start) — الرفع بالحشو كان بيسيب فراغ فوقها بنفس
-   ارتفاع الكيبورد. النتيجة: الهيدر ثابت فوق، والرسايل بتتقلّص وتتمرّر
-   وصندوق الكتابة واقف بالظبط فوق الكيبورد (#15).
+   الكيبورد: الورقة العامة ترتفع بـpadding-bottom على الـoverlay. هنا
+   نُلغي ذلك الرفع ونقصّر ارتفاع الورقة نفسها بمقدار --kb، لأن الورقة
+   تبدأ من الأعلى (flex-start) — والرفع بالحشو كان يترك فراغًا فوقها
+   بارتفاع الكيبورد. النتيجة: الترويسة ثابتة أعلى، والرسائل تتقلّص
+   وتُتمرَّر، وصندوق الكتابة يقف فوق الكيبورد مباشرة.
+
+   --kb صار = التغطية الحقيقية للكيبورد داخل الـWebView فقط (index.html):
+   على أندرويد 15+ يُقلّص Capacitor الـWebView نفسه عند ظهور الكيبورد،
+   فتكون التغطية صفرًا ولا نطرح شيئًا — وهذا كان سبب الفراغ في التابلت.
 ════════════════════════════════════════════════════════════════════ */
+#amkh-chat-modal{
+  align-items: flex-start; padding: 0;
+  /* الورقة تغطّي الشاشة كاملةً، فالتعتيم والتبويش خلفها عمل ضائع على
+     المعالج الرسومي (وسببٌ إضافي للوميض عند فتح الكيبورد). */
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  background: var(--color-bg-base);
+}
+#amkh-chat-modal .ds-sheet{
+  max-width: none; max-height: none; height: 100%;
+  border-radius: 0; border-inline: 0; border-top: 0;
+  /* الشاشة كاملة → الترويسة لا يجوز أن تدخل تحت شريط الحالة */
+  padding-top: env(safe-area-inset-top, 0px);
+  /* حشو الأمان السفلي يتولّاه صندوق الكتابة نفسه، فلا يُضاعَف هنا */
+  padding-bottom: 0;
+}
+html.kb-open #amkh-chat-modal{ padding-bottom: 0; }
+html.kb-open #amkh-chat-modal .ds-sheet{
+  max-height: none;
+  height: calc(100% - var(--kb, 0px));
+  min-height: 0;
+}
 @media (min-width: 700px){
-  #amkh-chat-modal{ align-items: flex-start; padding: 0; }
-  #amkh-chat-modal .ds-sheet{
-    max-width: none; max-height: none; height: 100%;
-    border-radius: 0; border-inline: 0; border-top: 0;
-  }
-  html.kb-open #amkh-chat-modal{ padding-bottom: 0; }
-  html.kb-open #amkh-chat-modal .ds-sheet{
-    max-height: none;
-    height: calc(100% - var(--kb, 0px));
-    min-height: 0;
-  }
-  /* الفقاعة مالهاش لازمة تمتد على شاشة 1200px — سقف مطلق يخلّي القراءة
-     مريحة زي واتساب على التابلت. */
+  /* الفقاعة لا لزوم لامتدادها على شاشة 1200px — سقف مطلق يجعل القراءة
+     مريحة كما في واتساب على التابلت. */
   #amkh-chat-modal .ch-bubble{ max-width: min(66%, 560px); }
   /* لوحة المنشنات والردود السريعة تتبع نفس العرض الكامل */
   #amkh-chat-modal .ch-ment{ max-height: 46vh; }
 }
-/* الوضع الأفقي القصير (تابلت مقلوب/تليفون أفقي): الهيدر يرشّق نفسه عشان
-   منطقة الرسايل ماتنقرصش لصفر بين الهيدر والكيبورد. */
+/* الوضع الأفقي القصير (تابلت مقلوب/هاتف أفقي): الترويسة ترشّق نفسها حتى
+   لا تنقرص منطقة الرسائل إلى صفر بين الترويسة والكيبورد. */
 @media (orientation: landscape) and (max-height: 560px){
   html.kb-open .ds-overlay--sheet .ds-sheet{
     max-height: calc(100vh - var(--kb, 0px) - 4px);
@@ -4492,6 +4538,196 @@ html.kb-open .ch-input{
   html.kb-open .ch-conv__head{ padding-block: 6px; }
   html.kb-open .ch-conv__av{ width: 30px; height: 30px; }
   html.kb-open .ch-conv__sub{ display: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   #11 — لا شريط تحديد النصّ من أندرويد فوق قوائمنا
+   ────────────────────────────────────────────────────────────────────
+   اللمسة المطوّلة على فقاعة رسالة كانت تفتح ورقة الإجراءات وتفتح معها
+   شريط أندرويد (نسخ/مشاركة/تحديد الكل)، لأن الـWebView يبدأ ActionMode
+   للتحديد على أي نصّ قابل للتحديد. المنع الصحيح: نُخرج نصّ المحادثة من
+   دائرة التحديد كلّها (وهذا ما تفعله واتساب حرفيًا)، ونُبقي النسخ متاحًا
+   من ورقة الإجراءات. حقول الكتابة تبقى قابلة للتحديد واللصق كما هي.
+════════════════════════════════════════════════════════════════════ */
+#amkh-chat-modal .ch-scroll,
+#amkh-chat-modal .ch-conv__head,
+#amkh-chat-modal .ch-inbox__head,
+#amkh-chat-modal .ch-inbox__list,
+#amkh-chat-modal .ch-pinned,
+#amkh-chat-modal .ch-reply-bar,
+.msg-act{
+  -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* استثناء صريح: كل ما يُكتب فيه يبقى قابلاً للتحديد واللصق */
+#amkh-chat-modal input,
+#amkh-chat-modal textarea,
+#amkh-chat-modal [contenteditable="true"]{
+  -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   #11 — ورقة إجراءات الرسالة (وإجراءات صفّ المحادثة ومدّة التثبيت)
+   ────────────────────────────────────────────────────────────────────
+   الشكل القديم: نافذة وسطية، كل إجراء زرٌّ مستطيل بإطار كامل وخلفية —
+   خمسة صناديق متراكبة تُشبه قوائم أندرويد القديمة. الجديد يتبع نظام
+   التطبيق: ورقة سفلية بمقبض سحب، شريط تفاعلات بحبّات دائرية تظهر
+   متتالية، لقطة من الرسالة المقصودة، ثم صفوف بأيقونة داخل مربّع ملوّن
+   خفيف وعنوان + سطر توضيحي، والفصل بخطوط رقيقة بلا إطارات. كل الألوان
+   من توكنز الثيم فتتبع الثيم المختار تلقائيًا، ولها نغمة فتح خاصّة.
+════════════════════════════════════════════════════════════════════ */
+.msg-act{
+  padding: 0 0 max(env(safe-area-inset-bottom, 0px), 10px);
+  border-radius: var(--radius-xl, 24px) var(--radius-xl, 24px) 0 0;
+  overflow: hidden;
+}
+.msg-act__title{
+  margin: 2px var(--space-5, 20px) 0;
+  font-family: var(--font-family-base);
+  font-size: 17px; font-weight: 800;
+  color: var(--color-text-primary, #fff);
+}
+.msg-act__note{
+  margin: 4px var(--space-5, 20px) 10px;
+  font-size: 12.5px; line-height: 1.6;
+  color: var(--color-text-secondary, #9aa);
+}
+
+/* شريط التفاعلات — حبّات دائرية داخل شريط بيضاوي، تظهر متتالية */
+.msg-act__react{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 4px;
+  margin: 2px var(--space-4, 16px) var(--space-3, 12px);
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--color-surface, rgba(255,255,255,.06));
+  border: 1px solid var(--color-border, rgba(255,255,255,.10));
+}
+.msg-act__emo{
+  flex: 1 1 0; min-width: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 42px; border: 0; border-radius: 50%;
+  background: transparent; cursor: pointer;
+  font-size: 24px; line-height: 1;
+  transform: scale(.4); opacity: 0;
+  animation: msgActEmo .34s var(--easing-spring, cubic-bezier(.34,1.56,.64,1)) forwards;
+  animation-delay: calc(var(--i, 0) * 32ms + 60ms);
+  transition: background .12s ease;
+}
+.msg-act__emo:active{ transform: scale(.86); }
+.msg-act__emo.is-mine{
+  background: rgba(111, 209, 255, .22);                                  /* احتياطي */
+  background: color-mix(in srgb, var(--color-primary, #6fd1ff) 26%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--color-primary, #6fd1ff);
+}
+@keyframes msgActEmo{ to{ transform: scale(1); opacity: 1; } }
+
+/* لقطة الرسالة المقصودة */
+.msg-act__peek{
+  display: flex; flex-direction: column; gap: 1px;
+  margin: 0 var(--space-4, 16px) var(--space-3, 12px);
+  padding: 8px 11px;
+  border-radius: 10px;
+  border-inline-start: 3px solid var(--color-primary, #4a90d9);
+  background: var(--color-surface, rgba(255,255,255,.05));
+}
+.msg-act__peek-who{
+  font-size: 11.5px; font-weight: 800;
+  color: var(--color-primary, #4a90d9);
+}
+.msg-act__peek-txt{
+  font-size: 13px; opacity: .78;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--color-text-primary, #fff);
+}
+
+/* هويّة المحادثة في ورقة إجراءات الصفّ */
+.msg-act__hero{
+  display: flex; align-items: center; gap: var(--space-3, 12px);
+  margin: 0 var(--space-4, 16px) var(--space-3, 12px);
+}
+.msg-act__hero-av{
+  width: 46px; height: 46px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; overflow: hidden;
+  font-weight: 800; color: #fff;
+  background: var(--color-primary, #4c7cf3);
+}
+.msg-act__hero-av img{ width: 100%; height: 100%; object-fit: cover; }
+.msg-act__hero-nm{
+  min-width: 0; font-size: 16px; font-weight: 800;
+  color: var(--color-text-primary, #fff);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* صفوف الإجراءات — تكتب فوق حشو .ds-sheet__body بنفس النوعية + الترتيب */
+.msg-act .msg-act__rows{
+  display: flex; flex-direction: column;
+  padding: 0 var(--space-2, 8px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.msg-act__row{
+  position: relative;
+  display: flex; align-items: center; gap: var(--space-3, 12px);
+  width: 100%; text-align: start;
+  padding: 11px var(--space-3, 12px);
+  border: 0; border-radius: 14px;
+  background: transparent; cursor: pointer;
+  font: inherit; color: var(--color-text-primary, #fff);
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0; transform: translateY(6px);
+  animation: msgActRow .26s var(--easing-decelerate, cubic-bezier(0,0,.2,1)) forwards;
+  animation-delay: calc(var(--i, 0) * 26ms + 80ms);
+  transition: background .14s ease;
+}
+.msg-act__rows > .msg-act__row:nth-child(1){ --i: 0; }
+.msg-act__rows > .msg-act__row:nth-child(2){ --i: 1; }
+.msg-act__rows > .msg-act__row:nth-child(3){ --i: 2; }
+.msg-act__rows > .msg-act__row:nth-child(4){ --i: 3; }
+.msg-act__rows > .msg-act__row:nth-child(5){ --i: 4; }
+.msg-act__rows > .msg-act__row:nth-child(6){ --i: 5; }
+@keyframes msgActRow{ to{ opacity: 1; transform: none; } }
+/* خطّ فاصل رقيق بين الصفوف — بلا إطارات كاملة. برسمه بـ::before مستقيمًا
+   يبدأ بعد مربّع الأيقونة (طراز القوائم الحديثة)؛ ظلّ الصندوق كان يتبع
+   الزوايا المستديرة فيرسم قوسًا مقعَّرًا لا خطًّا. */
+.msg-act__row + .msg-act__row::before{
+  content: ''; position: absolute; top: 0; height: 1px;
+  inset-inline-start: 62px; inset-inline-end: 0;
+  background: var(--color-border, rgba(255,255,255,.08));
+}
+.msg-act__row:active{ background: var(--color-surface-strong, rgba(255,255,255,.10)); }
+.msg-act__ic{
+  flex: 0 0 auto;
+  width: 38px; height: 38px; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--color-primary, #6fd1ff);
+  background: rgba(111, 209, 255, .14);                                  /* احتياطي */
+  background: color-mix(in srgb, var(--color-primary, #6fd1ff) 15%, transparent);
+}
+.msg-act__ic svg{ width: 19px; height: 19px; }
+.msg-act__lb{
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0; font-size: 15px; font-weight: 700;
+}
+.msg-act__lb small{
+  font-size: 11.5px; font-weight: 500; opacity: .62;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* نبرة تحذير خفيفة لإلغاء التثبيت — لا حمراء صارخة، فهو ليس حذفًا */
+.msg-act__row--warn .msg-act__ic{
+  color: var(--color-warning, #f0b429);
+  background: rgba(240, 180, 41, .14);
+  background: color-mix(in srgb, var(--color-warning, #f0b429) 16%, transparent);
+}
+/* خيارات مدّة التثبيت: بلا خطوط فاصلة، أقرب لبطاقات اختيار */
+.msg-act__row--opt::before{ display: none !important; }
+.msg-act__row--opt + .msg-act__row--opt{ margin-top: 2px; }
+
+@media (prefers-reduced-motion: reduce){
+  .msg-act__emo, .msg-act__row{ animation: none; opacity: 1; transform: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════

@@ -1365,6 +1365,8 @@ body[data-ui-theme="glass"] .mc-tag{
 .priv-row:active{transform:scale(.99);}
 .priv-row__label{font-size:14px;font-weight:600;}
 .priv-row__val{font-size:12px;font-weight:800;color:var(--gold2,#e0b34d);white-space:nowrap;}
+/* سطر توضيحي أعلى الورقة وفي نافذة الاختيار — يشرح أثر الإعداد بالفعل */
+.priv-sheet__note{margin:2px 0 8px;font-size:12px;line-height:1.5;opacity:.72;text-align:right;}
 .priv-opt{margin-bottom:6px;}
 /* اختيار الدولة (يتبع الثيم — نافذة إعدادات) */
 .acct-country__val{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--gold2,#e0b34d);}
@@ -3893,6 +3895,10 @@ const SFX=(()=>{
     msgInfo:[{f:659.25,t0:0,dur:0.09,type:'triangle',vol:0.09},{f:830.61,t0:0.07,dur:0.15,type:'triangle',vol:0.10}],
     /* تثبيت رسالة: نقرة «دبّوس» قصيرة حازمة */
     pin:[{f:880,t0:0,dur:0.06,vol:0.10},{f:1174.66,t0:0.05,dur:0.12,vol:0.11}],
+    /* ورقة إجراءات الرسالة (#11): ٣ نقرات صاعدة سريعة ولمّاعة «القائمة طلعت» */
+    msgAct:[{f:880,t0:0,dur:0.05,type:'triangle',vol:0.09},{f:1174.66,t0:0.045,dur:0.06,type:'triangle',vol:0.10},{f:1567.98,t0:0.10,dur:0.13,type:'triangle',vol:0.09}],
+    /* مدّة التثبيت (#7): نغمتان هادئتان «مؤقّت بيتظبط» */
+    pinTime:[{f:659.25,t0:0,dur:0.08,type:'triangle',vol:0.09},{f:880,t0:0.07,dur:0.15,type:'triangle',vol:0.10}],
     /* مكالمة واردة (فتح النافذة): جِنجل رنين صاعد دافئ */
     callIncoming:[{f:587.33,t0:0,dur:0.12,vol:0.11},{f:880,t0:0.10,dur:0.12,vol:0.12},{f:1174.66,t0:0.22,dur:0.20,vol:0.12}],
     /* مكالمة صادرة (فتح النافذة): نغمتان هادئتان «بننادي» */
@@ -4601,23 +4607,36 @@ const SettingsAccount = {
     box.appendChild(this._signOutRow());
   },
 
-  /* ── الخصوصية (زي واتساب، بتتخزّن على الحساب وتفضل للأبد) ──
-     صف واحد بيفتح ورقة فيها كل المفاتيح، وكل مفتاح بيفتح نافذة اختيار. */
+  /* ── الخصوصية (على نمط واتساب، تُحفظ في الحساب وتبقى دائمًا) ──
+     صف واحد يفتح ورقة بكل المفاتيح، وكل مفتاح يفتح نافذة اختيار.
+     الصياغة بالعربية الفصحى — وكل مفتاح له سطر يوضّح أثره الفعلي، لأن
+     الإعدادات مُنفَّذة في الخادم لا في الواجهة فقط. */
   _PRIV_LABELS: {
-    who_can_add_me_to_parties:      'مين يقدر يضيفني لحفلة',
-    who_can_message_me:             'مين يقدر يبعتلي رسالة',
-    who_can_send_me_game_invites:   'مين يقدر يدعيني للعب',
-    who_can_send_me_friend_requests:'مين يبعتلي طلب صداقة',
-    who_can_see_my_online_status:   'مين يشوف إني متصل',
-    who_can_see_my_last_activity:   'مين يشوف آخر ظهور ليا',
-    who_can_see_my_avatar:          'مين يشوف صورتي',
-    who_can_see_my_rating:          'مين يشوف تقييمي',
+    who_can_add_me_to_parties:      'مَن يستطيع إضافتي إلى حفلة',
+    who_can_message_me:             'مَن يستطيع مراسلتي',
+    who_can_send_me_game_invites:   'مَن يستطيع دعوتي إلى مباراة',
+    who_can_send_me_friend_requests:'مَن يستطيع إرسال طلب صداقة',
+    who_can_see_my_online_status:   'مَن يرى أنني متصل',
+    who_can_see_my_last_activity:   'مَن يرى آخر ظهور لي',
+    who_can_see_my_avatar:          'مَن يرى صورتي',
+    who_can_see_my_rating:          'مَن يرى تقييمي',
     read_receipts:                  'إيصالات القراءة',
   },
-  _PRIV_OPTS: {
-    everyone:'الكل', friends:'الأصدقاء فقط', nobody:'لا أحد', on:'مفعّلة', off:'متوقّفة',
+  _PRIV_HINTS: {
+    who_can_add_me_to_parties:      'إضافتك إلى حفلة جماعية دون إذنك.',
+    who_can_message_me:             'إرسال رسائل خاصة إليك.',
+    who_can_send_me_game_invites:   'دعوتك إلى مباراة مباشرة.',
+    who_can_send_me_friend_requests:'إرسال طلب صداقة إليك.',
+    who_can_see_my_online_status:   'ظهور حالتك «متصل» أو «في مباراة».',
+    who_can_see_my_last_activity:   'ظهور وقت آخر ظهور لك.',
+    who_can_see_my_avatar:          'ظهور صورة ملفك الشخصي.',
+    who_can_see_my_rating:          'ظهور رقم تقييمك.',
+    read_receipts:                  'عند إيقافها لا تُرسل إيصالات القراءة ولا تراها من الآخرين.',
   },
-  /* المفاتيح اللي خياراتها Everyone/Nobody بس أو On/Off — الباقي ثلاثي */
+  _PRIV_OPTS: {
+    everyone:'الجميع', friends:'الأصدقاء فقط', nobody:'لا أحد', on:'مُفعَّلة', off:'مُوقَفة',
+  },
+  /* المفاتيح ذات الخيارين (الجميع/لا أحد أو مُفعَّلة/مُوقَفة) — والباقي ثلاثي */
   _privOptionsFor(key){
     if(key==='who_can_send_me_friend_requests') return ['everyone','nobody'];
     if(key==='read_receipts') return ['on','off'];
@@ -4625,7 +4644,7 @@ const SettingsAccount = {
   },
 
   _privacyRow(){
-    const { item } = this._row('الخصوصية', 'اتحكّم مين يضيفك لحفلة، يبعتلك، يدعيك، ويشوف حالتك — بيتحفظ في حسابك للأبد.');
+    const { item } = this._row('الخصوصية', 'تحكَّم في مَن يضيفك إلى حفلة، ويراسلك، ويدعوك، ويرى حالتك — تُحفظ في حسابك وتبقى دائمًا.');
     item.style.cursor = 'pointer';
     const chev = document.createElement('i');
     chev.className = 'ico ico--chev';
@@ -4650,8 +4669,9 @@ const SettingsAccount = {
     const overlay = U.mount('amkh-privacy-sheet', `
       <div class="ds-dialog priv-sheet">
         <h2 class="ds-dialog__title">الخصوصية</h2>
+        <p class="priv-sheet__note">هذه الإعدادات مُنفَّذة في الخادم: المنع يحدث قبل وصول أي طلب إليك، لا في هذا الجهاز وحده. والحظر يتقدَّم على أي إعداد.</p>
         <div class="ds-list priv-list">${rowsHtml}</div>
-        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--ghost ds-btn--block" data-close>تمام</button></div>
+        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--ghost ds-btn--block" data-close>تمّ</button></div>
       </div>`, { sfx:'privacy', sheet:true });
     overlay.querySelectorAll('.priv-row').forEach(btn=>{
       btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); const k=btn.dataset.key; this._pickPrivacy(k, priv[k], (nv)=>{ priv[k]=nv; const ve=overlay.querySelector(`[data-val="${k}"]`); if(ve) ve.textContent=this._PRIV_OPTS[nv]||''; }); };
@@ -4666,6 +4686,7 @@ const SettingsAccount = {
     const overlay = U.mount('amkh-privacy-pick', `
       <div class="ds-dialog">
         <h2 class="ds-dialog__title">${this._PRIV_LABELS[key]}</h2>
+        <p class="priv-sheet__note">${this._PRIV_HINTS[key]||''}</p>
         <div class="ds-dialog__actions" style="flex-direction:column;">${btns}
           <button class="ds-btn ds-btn--ghost ds-btn--block" data-close>إلغاء</button>
         </div>
@@ -4683,7 +4704,7 @@ const SettingsAccount = {
           });
           if(res.ok){ if(onSaved) onSaved(nv); }
           else U.notify('تعذّر الحفظ', 'لم يتم', '◈');
-        }catch(e){ U.notify('تأكد من الإنترنت', 'لم يتم', '◈'); }
+        }catch(e){ U.notify('تعذّر الاتصال بالخادم — تحقّق من الإنترنت', 'لم يتم', '◈'); }
       };
     });
   },
@@ -5159,6 +5180,11 @@ async function _preprocessLocal3D(){
   return map;
 }
 
+/* وعد بيتحقّق أول ما إعدادات الجهاز تتحمّل من IDB. توفيق الملف الشخصي مع
+   الحساب لازم يستنّاه: لو اشتغل قبله بيلاقي الاسم والصورة فاضيين فيملأهم
+   من الحساب، وبعدها Cfg.load() بتدمج نسخة IDB فوقهم وتلغي اللي عمله. */
+try{ window.amkhCfgReady = new Promise(r => { window.__cfgReadyResolve = r; }); }catch(e){}
+
 const Cfg={
   data:{
     sound:true,
@@ -5207,6 +5233,7 @@ const Cfg={
     }catch(e){}
     try{ await IDB.kset('cfg',this.data); }catch(e){}
     this.apply();
+    try{ if(window.__cfgReadyResolve){ window.__cfgReadyResolve(); window.__cfgReadyResolve=null; } }catch(e){}
   },
   save(){
     this.data.sound   =document.getElementById('set-sound').checked;
@@ -5302,6 +5329,39 @@ const Cfg={
     this.data.playerName=(val||'').trim().slice(0,20);
     this._persist();
     this._updateAvatar(this.data.playerName);
+    /* الاسم بيتحفظ على الحساب كمان — كان محلي بحت، فأي إعادة تثبيت أو
+       جهاز جديد كان بيلاقي الخانة فاضية رغم إنه نفس الحساب. */
+    this._syncNameToServer(this.data.playerName);
+  },
+  /* رفع الاسم المعروض للحساب. صامتة: لو مفيش تسجيل دخول أو الشبكة واقعة،
+     الاسم شغّال محليًا زي الأول، وبيتزامن أول فرصة. */
+  async _syncNameToServer(name){
+    try{
+      if(!window.amkhAuth || !window.amkhAuth.token) return;
+      if(typeof window.amkhEnsureServer==='function'){
+        const ok=await window.amkhEnsureServer(); if(!ok) return;
+      }
+      const res=await fetch(`${window.getApiBase()}/display-name`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${window.amkhAuth.token}`,'ngrok-skip-browser-warning':'true'},
+        body:JSON.stringify({ display_name: name||'' }),
+      });
+      if(!res.ok) return;
+      const j=await res.json().catch(()=>null);
+      if(j && j.display_name && window.amkhAuth.user){
+        window.amkhAuth.user.display_name=j.display_name;
+        try{ localStorage.setItem('amkh_user', JSON.stringify(window.amkhAuth.user)); }catch(e){}
+        /* زر الحساب وقائمة الأصدقاء بيعرضوا الاسم — يتحدّثوا فورًا */
+        try{ if(window.amkhAuth.updateUI) window.amkhAuth.updateUI(); }catch(e){}
+      }
+    }catch(e){}
+  },
+  /* بعد ما الحساب يملّي الاسم/الصورة، شاشة الإعدادات المفتوحة لازم تتحدّث */
+  refreshProfileUI(){
+    try{ if(typeof loadSettingsProfile==='function') loadSettingsProfile(); }catch(e){}
+    try{ this._updateAvatar(this.data.playerName); }catch(e){}
+    try{ if(typeof updatePlayerImages==='function') updatePlayerImages(); }catch(e){}
+    try{ if(typeof updatePlayerNamesInGame==='function') updatePlayerNamesInGame(); }catch(e){}
   },
   prepareProfileImage(fileInput){
     const file=fileInput.files[0];
@@ -6366,8 +6426,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '3.10';
-const APP_VERSION_CODE = 26;
+const APP_VERSION = '3.11';
+const APP_VERSION_CODE = 27;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7109,6 +7169,10 @@ const Spectate={
   _onEnd(d){
     if(!this._ov)return;
     const r=d&&d.reason;
+    /* نصّ النتيجة لو السيرفر بعته (المباريات المحلية بتبعته) — أوضح من
+       رسالة عامة زي «انتهت المباراة». */
+    const t=(d&&d.text)?String(d.text).trim():'';
+    if(t){this._finish(amkhUI.esc(t.slice(0,90)));return;}
     this._finish(r==='player-left'?'انسحب أحد اللاعبين وانتهت المباراة':'انتهت المباراة');
   },
 
@@ -10526,34 +10590,64 @@ let _lastBalW=window.innerWidth;
     }));
   };
   window.AMKH_raiseChat=raiseChat;                       /* للقياس/الاختبار */
-  /* ══ التغطية الحقيقية للكيبورد (#15) ══
-     قيمة البلاجن = إزاحة IME من قاع النافذة الكاملة. على التليفون بملء
-     الشاشة دي هي التغطية بالظبط. على التابلت (نافذة مقسومة/حرّة، أو
-     كيبورد عائم/مقسوم) النافذة نفسها بتتصغّر أو الكيبورد مايغطّيش كل
-     العرض — فالقيمة بتطلع أكبر من الواقع، والورقة بترتفع أكتر من اللازم
-     فيبان فراغ أسود تحتها والهيدر يتقصّ من فوق (ده اللي بان في التابلت).
-     visualViewport بيعرف التغطية الحقيقية جوّه الـWebView، فبناخد الأصغر،
-     وبنحط سقف أمان 62% من الارتفاع عشان الورقة تفضل قابلة للاستخدام. */
-  const kbCover=(raw)=>{
-    let kb=Math.max(0, Math.round(raw)||0);
-    const vv=window.visualViewport;
-    if(vv){
-      const covered=Math.round(window.innerHeight-vv.height-(vv.offsetTop||0));
-      if(covered>40) kb=Math.min(kb, covered);
-    }
-    const cap=Math.round(window.innerHeight*0.62);
-    return Math.min(kb, cap);
+  /* ══ التغطية الحقيقية للكيبورد داخل الـWebView (#3) ══
+     قيمة البلاجن keyboardHeight = إزاحة الـIME مقيسةً من قاع النافذة الكاملة،
+     فهي تشمل شريط التنقّل السفلي. لكن السؤال الذي يهمّنا: كم بكسلًا من صفحتنا
+     يغطّيه الكيبورد فعلًا؟ والجواب يختلف جوهريًا بين الإصدارات:
+
+     • أندرويد ١٤ وما قبله: الـWebView لا يتغيّر حجمه (adjustNothing مع
+       resize:'none') فالكيبورد يُرسَم فوق الصفحة → التغطية = ارتفاع الكيبورد
+       ناقص شريط التنقّل (الـWebView ينتهي عند قمّة الشريط).
+     • أندرويد ١٥ وما بعده: إضافة SystemBars في Capacitor تضع حشوًا سفليًا على
+       حاوية الـWebView بمقدار ime.bottom عند ظهور الكيبورد، فالـWebView نفسه
+       يُقلَّص ولا يغطّيه الكيبورد إطلاقًا → التغطية = صفر. وطرحُنا لـ--kb هناك
+       كان طرحًا مزدوجًا: الصفحة تقصُر مرّةً بالتقليص ومرّةً بـ--kb، فيظهر فراغ
+       واسع بين صندوق الكتابة والكيبورد وتُقصّ الترويسة من أعلى — وهذا بالضبط
+       ما ظهر في التابلت.
+
+     فالقياس الصحيح: التغطية = (ارتفاع الكيبورد − شريط التنقّل) − مقدار تقلّص
+     الـWebView. القيمة تصحّح نفسها على أي إصدار وأي جهاز بلا تخصيص، ونتيجة
+     الكشف تُخزَّن حتى تكون أوّل فتحة للكيبورد سليمةً كذلك. */
+  let _hOpen=window.innerHeight;   /* ارتفاع الـWebView والكيبورد مغلق */
+  let _wOpen=window.innerWidth;
+  let _kbRaw=0;                    /* ارتفاع الكيبورد من البلاجن ناقص شريط التنقّل */
+  let _shrinks=null;               /* هل يتقلّص الـWebView مع الكيبورد؟ */
+  try{
+    const s=localStorage.getItem('amkh_kb_shrinks');
+    if(s==='1')_shrinks=true; else if(s==='0')_shrinks=false;
+  }catch(e){}
+  /* حساب التغطية — دالّة نقيّة (بلا حالة) عشان تتأكّد بالاختبار على كل حالة:
+     جهاز يقلّص الـWebView، جهاز لا يقلّصه، وأوّل إطارٍ قبل وقوع التقليص. */
+  const kbCalc=(kbRaw,hOpen,hNow,shrinks,covered)=>{
+    let shrink=Math.max(0, hOpen-hNow);
+    /* أوّل إطار بعد ظهور الكيبورد: التقليص لم يحدث بعد، فنتوقّعه من الكشف
+       المحفوظ حتى لا ترتفع الورقة إطارًا ثم تعود (قفزة مرئية). */
+    if(shrink<40 && shrinks===true) shrink=kbRaw;
+    let kb=Math.max(0, Math.round(kbRaw-shrink));
+    if(covered>40) kb=Math.min(kb, covered);
+    return Math.min(kb, Math.round(hOpen*0.75));   /* سقف أمان ضدّ قيمة شاذّة */
   };
-  /* الكيبورد على التابلت بيتغيّر حجمه وهو مفتوح (عائم ↔ مثبّت) والبلاجن
-     مابيبعتش حدث تاني — نتابع visualViewport طول ما هو مفتوح. */
-  if(window.visualViewport){
-    window.visualViewport.addEventListener('resize',()=>{
-      if(!root.classList.contains('kb-open'))return;
-      const vv=window.visualViewport;
-      const covered=Math.round(window.innerHeight-vv.height-(vv.offsetTop||0));
-      if(covered>40) root.style.setProperty('--kb', kbCover(covered)+'px');
-    });
-  }
+  window.AMKH_kbCalc=kbCalc;                       /* للقياس/الاختبار */
+  const kbCover=()=>{
+    const vv=window.visualViewport;
+    const covered=vv?Math.round(window.innerHeight-vv.height-(vv.offsetTop||0)):0;
+    return kbCalc(_kbRaw,_hOpen,window.innerHeight,_shrinks,covered);
+  };
+  const applyKb=()=>{ root.style.setProperty('--kb', kbCover()+'px'); };
+  window.AMKH_kbCover=kbCover;                       /* للقياس/الاختبار */
+  /* الـWebView يتقلّص (أندرويد ١٥+) أو الكيبورد يتغيّر حجمه وهو مفتوح
+     (عائم ↔ مثبّت على التابلت) بعد الحدث الأوّل — نعيد الحساب مع كل تغيّر. */
+  const onViewport=()=>{
+    if(window.innerWidth!==_wOpen){ _wOpen=window.innerWidth; _hOpen=window.innerHeight; }
+    if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; return; }
+    if(_hOpen-window.innerHeight>40 && _shrinks!==true){
+      _shrinks=true; try{ localStorage.setItem('amkh_kb_shrinks','1'); }catch(e){}
+    }
+    applyKb();
+    raiseChat();
+  };
+  window.addEventListener('resize', onViewport);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', onViewport);
   const KB=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()
     &&window.Capacitor.Plugins&&window.Capacitor.Plugins.Keyboard;
   if(KB&&KB.addListener){
@@ -10561,21 +10655,29 @@ let _lastBalW=window.innerWidth;
       /* keyboardHeight = ime inset من أسفل النافذة الكاملة، فيشمل ارتفاع شريط
          التنقّل السفلي (nav bar) مع إن الـWebView ما بيمتدش خلفه → لو رفعنا
          بالقيمة الكاملة يفضل فراغ أسود بمقدار nav bar بين الصندوق والكيبورد.
-         نطرح --nav-bottom (محقون من MainActivity بقيمة الجهاز الفعلية) عشان
-         --kb يبقى = التغطية الحقيقية للكيبورد جوّه الـWebView → الصندوق يلزق
-         في الكيبورد تمامًا (زي واتساب) على أي جهاز. [[flicker-root-cause-fix]] */
+         نطرح --nav-bottom (محقون من MainActivity بقيمة الجهاز الفعلية)، ثم
+         نطرح تقلّص الـWebView إن حصل. [[flicker-root-cause-fix]] */
       const kbFull=(info&&info.keyboardHeight)||0;
       const nav=parseFloat(getComputedStyle(root).getPropertyValue('--nav-bottom'))||0;
-      root.style.setProperty('--kb', kbCover(kbFull-nav)+'px');
+      _kbRaw=Math.max(0, Math.round(kbFull-nav));
+      if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; _wOpen=window.innerWidth; }
       root.classList.add('kb-open','kb-shift');
+      applyKb();
       if(typeof R!=='undefined')R._kbLock=true;
       raiseActive();
       raiseChat();
+      /* بعض الأجهزة تُبلّغ التقليص بعد الحدث بإطارات — نعيد الحساب مرّاتٍ
+         قليلة حتى تستقرّ القيمة (ولو الجهاز لا يقلّص فالقيمة لا تتغيّر). */
+      [60,180,340,600].forEach(d=>setTimeout(()=>{ if(root.classList.contains('kb-open')) onViewport(); },d));
     });
     KB.addListener('keyboardWillHide', ()=>{
       dropChat();
       root.style.setProperty('--kb','0px');
       root.classList.remove('kb-open','kb-shift');
+      /* لم يتقلّص الـWebView طوال فتح الكيبورد → الجهاز لا يقلّص إطلاقًا.
+         وإن ظهر التقليص لاحقًا فـonViewport يعكس القيمة من جديد. */
+      if(_shrinks===null){ _shrinks=false; try{ localStorage.setItem('amkh_kb_shrinks','0'); }catch(e){} }
+      setTimeout(()=>{ if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; _wOpen=window.innerWidth; } },400);
       if(typeof R!=='undefined'){R._kbLock=false;R.balance(true);}
     });
   }else{
@@ -10964,6 +11066,10 @@ const G={
       statusLine:this._buildStatusLine(result),
     };
     S._resultToken=(S._resultToken||0)+1;
+    /* #5 — المتفرّج على مباراة محلية ياخد النتيجة بنصّها وتقفل المشاهدة */
+    if(S.mode!=='online'){
+      try{LocalCast.end('game-over',S.endState.statusLine||S.endState.message||'');}catch(e){}
+    }
     /* كل نهايات المباريات بتعدي من هنا، فده المكان الوحيد اللي يضمن
        إن السجل مايفوتوش أي مباراة. لازم تتنادى بعد ما التوكن يزيد،
        عشان قفل التكرار جوّه _record يقارن بالتوكن الجديد. محمي بـtry
@@ -11048,6 +11154,12 @@ const G={
     /* #13 — الأوضاع المحلية (نور/Stockfish/بلوتوث/لاعبان) تبلّغ السيرفر إنك
        جوه مباراة؛ الأونلاين بيتعرف من الغرفة نفسها فمانبلّغش عنه. */
     try{ amkhLocalActivity(mode==='online'?'':mode); }catch(e){}
+    /* #5 — ولمّا تكون محلية، الأصدقاء يقدروا يتفرّجوا عليها فعلًا. مؤجَّلة
+       لتكّة واحدة عشان الأسماء واللون بيتضبطوا بعد _reset في كل مسار بدء. */
+    try{
+      if(mode==='online')LocalCast.end('');
+      else setTimeout(()=>{try{LocalCast.begin(mode);}catch(e){}},0);
+    }catch(e){}
     document.getElementById('promo-ov').classList.remove('open');
     amkhReleaseModalFreeze();
     document.getElementById('go-next').style.display='none';
@@ -11171,6 +11283,8 @@ const G={
     if(S.turn==='w')S.moveCount++;
     S.turn=E.opp(S.turn);
     EVALBAR.update(S.bd);
+    /* #5 — نقلة محلية تروح للمتفرّجين (بتاعتي وبتاعة نور/المحرّك) */
+    if(S.mode!=='online'){try{LocalCast.move(fr,to,promo||null);}catch(e){}}
     if(S.mode==='local'){
       S.assistOn=S.turn==='w'?S.assistW:S.assistB;
       AST.clear();
@@ -11490,6 +11604,9 @@ const G={
     S.sel=null;S.legal=[];S.pending=null;S.busy=false;
     AST.clear();
     await R.all();
+    /* #5 — لوح المتفرّج يرجع معايا بالظبط: عدد النقلات الحقيقي هو طول
+       السجل بعد التراجع. */
+    try{LocalCast.trim((S.hist||[]).length);}catch(e){}
     if(S.assistOn)AST.compute();
   }
 };
@@ -11584,7 +11701,9 @@ const Nav={
        (رجوع، قائمة، بدء وضع تاني) لازم ينضّفه، مش بس مسار واحد. */
     if(id!=='s-game'){try{GameIdentity.hideConnection();}catch(e){}}
     /* خرجنا من شاشة اللعب → الأصدقاء مايفضلوش شايفين «في مباراة» (#13) */
-    if(id!=='s-game'){try{amkhLocalActivity('');}catch(e){}}
+    if(id!=='s-game'){try{amkhLocalActivity('');}catch(e){}
+      /* #5 — سيبت الشاشة والمباراة لسه شغّالة: المتفرّج ياخد نهاية واضحة */
+      try{LocalCast.end('player-left');}catch(e){}}
     /* شريط تنبيه الرسائل جوّه المباراة بس (#9) */
     if(id!=='s-game'){const _t=document.getElementById('ch-gtoast');if(_t)_t.remove();}
 
@@ -11632,6 +11751,86 @@ function amkhLocalActivity(kind){
     ws.send(JSON.stringify({type:'presence:activity',in_game:!!k,on:!!k,kind:k}));
   }catch(e){}
 }
+
+/* ══ بثّ المباراة المحلية للمتفرّجين (#5) ══
+   قبل كده المشاهدة كانت للأونلاين بس: الصديق يشوفك «في مباراة» وأنت
+   ضد نور أو Stockfish أو لاعبَان على نفس الجهاز، يدوس «مشاهدة»،
+   والسيرفر يردّ «صديقك ليس في مباراة الآن» — لأن الأوضاع دي مالهاش
+   غرفة على السيرفر.
+
+   دلوقتي الجهاز نفسه بيبثّ: لقطة عند البداية (الأسماء + اللون) ونقلة
+   لحظية بعد كل نقلة — بتاعتك وبتاعة نور/المحرّك — وسجل كامل عند
+   التراجع، ونهاية بنصّ النتيجة. المتفرّج بيستقبلها بنفس مسار الأونلاين
+   بالحرف (spectate:started / spectate:move / spectate:end) فمافيش أي
+   كود جديد عنده. البثّ قراءة فقط: مافيش حاجة جاية من المتفرّج تدخل
+   المباراة. مافيش بثّ غير لو مسجّل دخول وسوكت الحضور فاتح. */
+const LocalCast={
+  _on:false,_kind:'',_moves:[],
+  _ws(){
+    const ws=window.amkhAuth&&window.amkhAuth._presWs;
+    return (ws&&ws.readyState===1&&window.amkhAuth.token)?ws:null;
+  },
+  _send(o){
+    const ws=this._ws();
+    if(!ws)return false;
+    try{ws.send(JSON.stringify(o));return true;}catch(e){return false;}
+  },
+  _nm(id,dflt){
+    const el=document.getElementById(id);
+    if(!el)return dflt;
+    /* الاسم بس من غير شارة التقييم لو موجودة */
+    const t=(el.querySelector('.pb-nm-text')||el).textContent||'';
+    return t.replace(/\s+/g,' ').trim()||dflt;
+  },
+  begin(mode){
+    /* الأونلاين ليه غرفة حقيقية على السيرفر — مانبثّهوش من هنا */
+    if(!mode||mode==='online'){this.end('');return;}
+    this._kind=mode;this._moves=[];
+    /* شغّال حتى لو السوكت لسه مش جاهز: النقلات بتتسجّل عندنا، وأول ما
+       الاتصال يرجع resume() تبعت المباراة كاملة. من غير كده مباراة بدأت
+       وقت انقطاع لحظي كانت تفضل غير قابلة للمشاهدة لآخرها. */
+    this._on=true;
+    this._send(this._frame());
+  },
+  _frame(){
+    return {type:'local:begin',kind:this._kind||'local',
+      color:(S.myCol==='b')?'b':'w',
+      white:this._nm('nm-w','الأبيض'),black:this._nm('nm-b','الأسود')};
+  },
+  /* رجع الاتصال والمباراة لسه شغّالة → نعيد تعريفها ونبعت السجل كامل.
+     مؤجَّلة شوية لأن السيرفر بيتحقّق من التوكن (presence:hello) بشكل
+     غير متزامن، فأي رسالة تسبق التحقّق بتترمي. */
+  resume(){
+    if(!this._on)return;
+    const t=++this._rsm;
+    setTimeout(()=>{
+      if(t!==this._rsm||!this._on)return;
+      if(!this._send(this._frame()))return;
+      if(this._moves.length)this._send({type:'local:sync',moves:this._moves});
+    },800);
+  },
+  _rsm:0,
+  move(fr,to,promo){
+    if(!this._on)return;
+    const m={fr:[fr[0],fr[1]],to:[to[0],to[1]],promo:promo||null};
+    this._moves.push(m);
+    this._send(Object.assign({type:'local:move'},m));
+  },
+  /* تراجع: نقصّ السجل على عدد النقلات الفعلي ونبعته كامل */
+  trim(n){
+    if(!this._on)return;
+    const k=Math.max(0,Number(n)||0);
+    if(this._moves.length<=k)return;
+    this._moves=this._moves.slice(0,k);
+    this._send({type:'local:sync',moves:this._moves});
+  },
+  end(reason,text){
+    if(!this._on)return;
+    this._on=false;this._moves=[];
+    this._send({type:'local:end',reason:reason||'game-over',text:text||''});
+  },
+};
+window.amkhLocalCast=LocalCast;
 
 /* ترتيب مقاعد شاشة اللعب.
    ────────────────────────────────────────────────────────────────
@@ -12789,6 +12988,10 @@ function saveSettingsUsername(){
   }
   Cfg.data.playerName=newName;
   Cfg.saveData();
+  /* الاسم يتحفظ على الحساب كمان. كان محلي بحت (IDB + localStorage)، فلمّا
+     المستخدم يشيل التطبيق ويحمّله تاني — أو يدخل من جهاز تاني بنفس الحساب —
+     يلاقي الخانة رجعت فاضية. */
+  try{ Cfg._syncNameToServer(newName); }catch(e){}
   if(display)display.textContent=newName;
   // Update original value so save button hides
   _originalUsername=newName;
@@ -12832,6 +13035,11 @@ function handleSettingsProfileImage(input){
       // Send to opponent if in remote game
       if(S.mode==='online'&&window.OL&&OL.sendProfileImage)OL.sendProfileImage(imageData);
       else if(S.mode==='lan'&&window.LAN&&LAN.sendProfileImage)LAN.sendProfileImage(imageData);
+      /* وترفع للحساب. شاشة الإعدادات الجديدة دي كانت بتحفظ الصورة محليًا
+         بس — الرفع كان في المسار القديم (applyProfileImage) اللي مابقاش
+         مستخدَم. النتيجة إن الصورة تضيع خلاص بعد إعادة التثبيت، والأصدقاء
+         مايشوفوهاش من الأصل لأن القائمة بتقرأها من الحساب. */
+      try{ Cfg._syncAvatarToServer(imageData); }catch(e){}
       if(typeof SFX!=='undefined')SFX.btn();
       if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','◈');
     };

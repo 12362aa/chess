@@ -622,26 +622,34 @@ const amkhFriends = {
 
     const info = document.createElement('div');
     info.className = 'fr-row__info';
-    /* صف الاسم: الاسم (يتقصّ لو طويل) + شارة التقييم كعنصر شقيق له مساحته
-       الخاصة، عشان الاسم الطويل مايبلعش التقييم زي ما كان بيحصل. */
+    /* السطر الأول للاسم لوحده — والتقييم نزل للسطر التاني جنب الحالة.
+       ليه؟ قياس حقيقي على شاشة 412px: عرض السطر الصافي 336px، الأزرار
+       بتاخد 162 والأفاتار 38 والفواصل 24، فالباقي للاسم والتقييم 112px
+       بس. شارة التقييم كانت بتاخد 31 منهم، فالاسم يقعد بـ80px والاسم
+       العربي المتوسط عايز 109 — فيتقطّع «فلسطي…». التقييم معلومة ثانوية،
+       مكانها الطبيعي جنب «متصل»، والاسم ياخد السطر كله. */
     const nmRow = document.createElement('div');
     nmRow.className = 'fr-row__nmrow';
     const nm = document.createElement('span');
     nm.className = 'fr-row__name';
     nm.textContent = label;
     nmRow.appendChild(nm);
-    /* شارة تقييم صغيرة جنب الاسم — بتظهر لكل مستخدم زي chess.com */
+
+    const stRow = document.createElement('div');
+    stRow.className = 'fr-row__strow';
+    /* شارة تقييم صغيرة زي chess.com — بتظهر لكل مستخدم */
     if (user && isFinite(user.rating)) {
       const rt = document.createElement('span');
       rt.className = 'fr-row__rating';
       rt.textContent = String(Math.round(user.rating));
-      nmRow.appendChild(rt);
+      stRow.appendChild(rt);
     }
     const st = document.createElement('span');
     st.className = 'fr-row__status' + (statusClass ? ' ' + statusClass : '');
     st.textContent = statusText;
+    stRow.appendChild(st);
     info.appendChild(nmRow);
-    info.appendChild(st);
+    info.appendChild(stRow);
     row.appendChild(info);
 
     const acts = document.createElement('div');
@@ -794,16 +802,18 @@ const amkhFriends = {
   },
 
   /* تعديل سطر واحد بدل إعادة رسم القائمة كلها — عشان الحضور بيتغيّر
-     كتير والقائمة مايرفّش شكلها كل شوية */
+     كتير والقائمة مايرفّش شكلها كل شوية.
+     كان بيحدّث نصّ الحالة و«معطّل/شغّال» بس، فالزرّ نفسه يفضل «مشاهدة»
+     بعد ما المباراة تخلص والحالة ترجع «متصل» — الحالة اتغيّرت والزرّ لأ.
+     دلوقتي بنبني السطر من الأول ونستبدله: الزرّ ومعالجه وقائمة الـ⋯ كلهم
+     يتولدوا من الحالة الجديدة، ويستحيل يتناقضوا معاها. */
   _patchRow(f) {
     if (!this._sheet) return;
     const row = this._sheet.querySelector(`.fr-row[data-uid="${Number(f.id)}"]`);
     if (!row) return;
-    const s = this._statusLabel(f);
-    const st = row.querySelector('.fr-row__status');
-    if (st) { st.textContent = s.text; st.className = 'fr-row__status' + (s.cls ? ' ' + s.cls : ''); }
-    const btn = row.querySelector('.ds-btn--primary');
-    if (btn && !this._inviteWait[Number(f.id)]) btn.disabled = !f.online || f.status === 'in-game';
+    /* أي قائمة ⋯ مفتوحة على السطر ده لازم تُقفل — العنصر المرساة بيتشال */
+    try { if (row.contains(document.activeElement)) document.activeElement.blur(); } catch (e) {}
+    row.replaceWith(this._friendRow(f));
   },
 
   /* ══ حالة زر «العب» أثناء انتظار رد الصديق (#8) ══

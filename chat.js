@@ -13,6 +13,7 @@
 const express = require('express');
 const db = require('./db');
 const { authenticateToken } = require('./auth');
+const privacy = require('./privacy');
 
 const router = express.Router();
 
@@ -41,6 +42,18 @@ function resolveOnlineName(row) {
 function convoKey(a, b) {
   const x = Number(a), y = Number(b);
   return Math.min(x, y) + ':' + Math.max(x, y);
+}
+
+/* ══ هل التثبيت لا يزال ساريًا؟ (#7) ══
+   التثبيت المؤقّت (٣/٧/٣٠ يومًا) ينتهي وحده. كنس الخادم يعمل كل دقيقة،
+   فقد تمرّ ثوانٍ بين لحظة الانتهاء والكنس؛ والتطبيق قد يكون مغلقًا أيامًا.
+   لذلك نتحقّق هنا أيضًا فلا يرى المستخدم رسالة «مثبّتة» انتهى وقتها.
+   pinned_until مخزّن UTC بصيغة 'YYYY-MM-DD HH:MM:SS'. */
+function pinLive(pinnedAt, pinnedUntil) {
+  if (!pinnedAt) return false;
+  if (!pinnedUntil) return true;
+  const t = Date.parse(String(pinnedUntil).replace(' ', 'T') + 'Z');
+  return !Number.isFinite(t) || t > Date.now();
 }
 
 function areFriends(a, b) {
@@ -152,7 +165,7 @@ router.get('/history', authenticateToken, (req, res) => {
   };
 
   try {
-    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, delivered_at, reply_to, pinned_at, kind, audio_data, duration, mime, mentions';
+    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, delivered_at, reply_to, pinned_at, pinned_until, kind, audio_data, duration, mime, mentions';
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM messages
                     WHERE convo_key = ? AND id < ? ORDER BY id DESC LIMIT ?`).all(key, before, limit)
@@ -160,6 +173,10 @@ router.get('/history', authenticateToken, (req, res) => {
                     WHERE convo_key = ? ORDER BY id DESC LIMIT ?`).all(key, limit);
     rows.reverse();   /* للعرض: الأقدم فوق */
     const reactMap = reactionsFor('dm', rows.map(m => m.id), me);
+    /* إيصالات القراءة: لو أنا أو هو قافلها، علامة «مقروءة» ماتظهرش على
+       رسايلي. الإنفاذ هنا مهم — لو سيبناها بتوصل في الـJSON، الإعداد
+       يبقى وهمي والواجهة بس هي اللي بتخبّي. */
+    const showRcpt = privacy.readReceiptsOn(me) && privacy.readReceiptsOn(other);
     const messages = rows.map(m => ({
       id: m.id,
       from: m.sender_id,
@@ -171,11 +188,12 @@ router.get('/history', authenticateToken, (req, res) => {
       duration: m.duration || 0,
       mime: m.mime || '',
       created_at: m.created_at,
-      read: !!m.read_at,
+      read: (m.sender_id === me && !showRcpt) ? false : !!m.read_at,
       delivered: !!m.delivered_at,
       reply_to: m.reply_to || null,
       reply: replySnippet(m.reply_to),
-      pinned: !!m.pinned_at,
+      pinned: pinLive(m.pinned_at, m.pinned_until),
+      pinned_until: pinLive(m.pinned_at, m.pinned_until) ? (m.pinned_until || null) : null,
       mentions: parseMentions(m.mentions),
       reactions: reactMap.get(m.id) || [],
     }));
@@ -374,7 +392,8 @@ router.get('/message-info', authenticateToken, (req, res) => {
     res.json({
       scope: 'friend', kind: m.kind || 'text',
       delivered_at: m.delivered_at || null,
-      read_at: m.read_at || null,
+      /* «مقروءة» بتتحجب لو أحد الطرفين قافل إيصالات القراءة */
+      read_at: (privacy.readReceiptsOn(me) && privacy.readReceiptsOn(m.recipient_id)) ? (m.read_at || null) : null,
       listened,
     });
   } catch (e) {
@@ -391,3 +410,4 @@ module.exports.blockedBetween = blockedBetween;
 module.exports.reactionsFor = reactionsFor;
 module.exports.parseMentions = parseMentions;
 module.exports.cleanEmoji = cleanEmoji;
+module.exports.pinLive = pinLive;

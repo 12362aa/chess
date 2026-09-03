@@ -700,6 +700,11 @@ const groupsRouter = require('./groups');
 app.use('/api/groups', groupsRouter);
 const privacyRouter = require('./privacy');
 app.use('/api/privacy', privacyRouter);
+
+/* مُدد التثبيت المؤقّت المسموحة للرسائل (#7) — بالأيام. أي قيمة غيرها
+   تُعامَل كتثبيت دائم، فلا يستطيع عميل مُعدَّل أن يثبّت لمدة اعتباطية. */
+const PIN_DAYS = [3, 7, 30];
+
 // Health check
 /* ══ إعداد WebRTC (STUN + TURN) للمكالمة الصوتية (#135) ══
    بنرجّع iceServers للعميل عشان المكالمة تشتغل على أي شبكة زي واتساب.
@@ -849,19 +854,19 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
 
 /* ══ إصدار التطبيق (#136) ══
    العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
-   أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الرابط دائم:
-   دايمًا tag v3.10 واسم الملف chess-amkh-3.10.apk (نبني فوقه كل مرة)،
-   وبنرفع versionCode بس. نبمب LATEST_* هنا مع كل إصدار جديد. */
-const LATEST_VERSION = '3.10';
-const LATEST_CODE = 26;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.10/chess-amkh-3.10.apk';
+   أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الوسم واسم الملف
+   بيتبعوا رقم الإصدار (v3.11 / chess-amkh-3.11.apk) عشان اللي بينزّل
+   يدويًا من الموقع يعرف إيه اللي معاه. نبمب LATEST_* هنا مع كل إصدار. */
+const LATEST_VERSION = '3.11';
+const LATEST_CODE = 27;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.11/chess-amkh-3.11.apk';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'إصلاح جوهري لحالة «في مباراة» التي كانت تبقى عالقة فتمنع إعادة الدعوة، وإضافة الإشارة إلى الأصدقاء (@) والتفاعل بالرموز وتثبيت المحادثات وترتيب صندوق الرسائل بالأحدث، ووضع المشاهدة لمباريات الأصدقاء، ولوحة تصنيف متكاملة وصفحة لاعب مفصّلة.',
+    notes: 'أسماء الأصدقاء تظهر كاملة، ومزامنة الاسم والصورة بعد التثبيت، ولوحة مفاتيح مستقرّة على الأجهزة اللوحية، ومحادثة بملء الشاشة على الهاتف واللوحي. صار بإمكانك مشاهدة مباريات أصدقائك المحلية أيضًا — أمام نور أو المحرّك أو لاعبين على جهاز واحد. وأُضيف تثبيت المحادثات لمدّة محدّدة يُلغى تلقائيًا، وظهور فوري لرسائل الحفلات مع إرسال مؤجَّل يعمل دون اتصال، وقائمة رسالة أنيقة بالضغط المطوّل، وإعدادات خصوصية مُنفَّذة فعليًا.',
   });
 });
 
@@ -2022,7 +2027,71 @@ function activeRoomOfUser(userId) {
     if (room.kind !== 'online' || !room.started || room.ended) continue;
     if (room.hostId === Number(userId) || room.guestId === Number(userId)) return room;
   }
+  /* مافيش غرفة أونلاين؟ يمكن يكون في مباراة محلية بيبثّها (#5) */
+  const g = localGames.get(Number(userId));
+  if (g && !g.ended && Date.now() - (g.at || 0) < LOCAL_STALE_MS) return g;
   return null;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   بثّ المباريات المحلية للمتفرّجين (#5)
+   ──────────────────────────────────────────────────────────────────────
+   نور والمحرّك واللاعبان على جهاز واحد والبلوتوث مش غرف على السيرفر،
+   فالصديق كان يشوف زرّ «مشاهدة» (لأن الحضور بيقول «في مباراة») وبعدين
+   ياخد «صديقك ليس في مباراة الآن» — وده اللي أزعج المستخدم.
+
+   الحل: اللاعب نفسه بيسجّل «غرفة خفيفة» بنفس شكل غرفة الأونلاين
+   (أسماء + ألوان + سجل نقلات)، فكل مواسير المشاهدة الموجودة (اللقطة،
+   النقلة اللحظية، عدّاد المتفرّجين، النهاية) تشتغل عليها بلا أي تغيير
+   في العميل المتفرّج. السيرفر ناقل بس: مايحسبش نقلات ومايثّرش على
+   المباراة، والمتفرّج قراءة فقط زي الأونلاين بالظبط.
+
+   الكود ثابت لكل لاعب (L<id>) فأي مباراة جديدة على نفس الجهاز بتلاقي
+   المتفرّجين مستنيين وتبعتلهم لقطة الجديدة من غير ما يعملوا حاجة.
+══════════════════════════════════════════════════════════════════════ */
+const localGames = new Map();    /* userId → غرفة خفيفة */
+const localByCode = new Map();   /* code → نفس الغرفة */
+const LOCAL_MOVES_MAX = 600;     /* سقف السجل عشان الذاكرة */
+const LOCAL_STALE_MS = 6 * 3600 * 1000;
+
+function localCode(userId) { return 'L' + Number(userId); }
+
+/* غرفة بالكود: أونلاين أو محلية */
+function roomByCode(code) {
+  if (!code) return null;
+  return rooms.get(code) || localByCode.get(code) || null;
+}
+
+/* نقلة نظيفة من العميل — أي حاجة غلط تترمي بدل ما تخرّب لوح المتفرّج */
+function sanitizeLocalMove(m) {
+  if (!m) return null;
+  const sq = (v) => Array.isArray(v) && v.length === 2
+    && [0, 1].every(i => Number.isInteger(Number(v[i])) && Number(v[i]) >= 0 && Number(v[i]) <= 7);
+  if (!sq(m.fr) || !sq(m.to)) return null;
+  const promo = /^[QRBN]$/.test(String(m.promo || '')) ? String(m.promo) : null;
+  return { fr: [Number(m.fr[0]), Number(m.fr[1])], to: [Number(m.to[0]), Number(m.to[1])], promo };
+}
+
+function endLocalGame(userId, reason, text) {
+  const g = localGames.get(Number(userId));
+  if (!g) return false;
+  g.ended = true;
+  for (const s of spectatorsOf(g.code)) {
+    if (s.readyState === WebSocket.OPEN) send(s, { type: 'spectate:end', reason: reason || 'game-over', text: text || '' });
+    spectatorRoom.delete(s);
+  }
+  roomSpectators.delete(g.code);
+  localGames.delete(Number(userId));
+  localByCode.delete(g.code);
+  /* خلصت المباراة وهو لسه على الشاشة؟ حالته ترجع «متصل» فورًا، وإلا
+     الصديق يفضل شايف زرّ «مشاهدة» على مباراة مانتهت — نفس الطريق
+     المسدود بالظبط. البثّ هو مصدر الحقيقة لحالة «في مباراة» المحلية. */
+  if (g.ws && g.ws._localGame) {
+    g.ws._localGame = false;
+    g.ws._localKind = '';
+    try { broadcastPresence(Number(userId)); } catch (e) {}
+  }
+  return true;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -2525,6 +2594,8 @@ wss.on('connection', (ws, req) => {
         if (ws._localGame === on && ws._localKind === kind) break;
         ws._localGame = on;
         ws._localKind = on ? kind : '';
+        /* خرج من الشاشة → البثّ المحلي يقف والمتفرّجين يعرفوا (#5) */
+        if (!on) { try { endLocalGame(userId, 'player-left'); } catch (e) {} }
         try { broadcastPresence(userId); } catch (e) {}
         break;
       }
@@ -2616,7 +2687,87 @@ wss.on('connection', (ws, req) => {
 
       case 'spectate:stop': {
         const code = removeSpectator(ws);
-        if (code) pushWatcherCount(rooms.get(code));
+        if (code) pushWatcherCount(roomByCode(code));
+        break;
+      }
+
+      /* ══ بثّ مباراة محلية (#5) ══
+         العميل بيبلّغ ببداية المباراة (نور/المحرّك/لاعبان/بلوتوث) وبعدين
+         بكل نقلة. السيرفر بيحفظ سجل النقلات وبيوزّعه على المتفرّجين بنفس
+         رسائل الأونلاين. مافيش أي تحقّق من قانونية النقلة هنا — المباراة
+         محلية بالكامل والمتفرّج عنده نفس محرّك القواعد فأي نقلة غلط
+         بيتجاهلها بدل ما يخرّب لوحه. */
+      case 'local:begin': {
+        const userId = socketUser.get(ws);
+        if (!userId) break;
+        const clean = (v, d) => {
+          const s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 48);
+          return s || d;
+        };
+        const color = msg.color === 'b' ? 'b' : 'w';
+        const code = localCode(userId);
+        const g = {
+          code, kind: 'local', localKind: String(msg.kind || 'local').slice(0, 16),
+          started: true, ended: false, rated: false, tc: null, clock: null,
+          host: { name: clean(msg.white, 'الأبيض'), color: 'w' },
+          guest: { name: clean(msg.black, 'الأسود') },
+          hostId: color === 'b' ? null : userId,
+          guestId: color === 'b' ? userId : null,
+          owner: userId, ws, mvLog: [], at: Date.now(),
+        };
+        const prev = localGames.get(userId);
+        if (prev) localByCode.delete(prev.code);
+        localGames.set(userId, g);
+        localByCode.set(code, g);
+        /* البثّ نفسه بيثبّت حالة «في مباراة»: العميل بيبعت presence:activity
+           مرة واحدة لكل نوع (مابيكرّرهاش لو أعاد نفس النوع)، فلو اعتمدنا
+           عليها لوحدها كانت مباراة تانية على نفس الجهاز تفضل بلا حالة.
+           هنا الحالة بتتولد من واقع مباراة مسجّلة فعلًا — فالزرّ عند
+           الصديق يظهر لو فيه حاجة تتشاهد بس. */
+        if (!ws._localGame || ws._localKind !== g.localKind) {
+          ws._localGame = true;
+          ws._localKind = g.localKind;
+          try { broadcastPresence(userId); } catch (e) {}
+        }
+        /* متفرّج كان على المباراة اللي خلصت؟ ياخد لقطة الجديدة فورًا */
+        for (const s of spectatorsOf(code)) {
+          if (s.readyState === WebSocket.OPEN) send(s, spectatorSnapshot(g));
+        }
+        pushWatcherCount(g);
+        break;
+      }
+
+      case 'local:move': {
+        const userId = socketUser.get(ws);
+        const g = userId ? localGames.get(userId) : null;
+        if (!g || g.ended) break;
+        const mv = sanitizeLocalMove(msg);
+        if (!mv) break;
+        g.at = Date.now();
+        if (g.mvLog.length < LOCAL_MOVES_MAX) g.mvLog.push(mv);
+        toSpectators(g, Object.assign({ type: 'spectate:move' }, mv));
+        break;
+      }
+
+      /* تراجع أو أي تصحيح: العميل بيبعت السجل كامل والمتفرّج يبني اللوح
+         من الأول — أضمن من محاولة تتبّع التراجع نقلة بنقلة. */
+      case 'local:sync': {
+        const userId = socketUser.get(ws);
+        const g = userId ? localGames.get(userId) : null;
+        if (!g || g.ended) break;
+        if (!Array.isArray(msg.moves)) break;
+        g.mvLog = msg.moves.slice(0, LOCAL_MOVES_MAX).map(sanitizeLocalMove).filter(Boolean);
+        g.at = Date.now();
+        for (const s of spectatorsOf(g.code)) {
+          if (s.readyState === WebSocket.OPEN) send(s, spectatorSnapshot(g));
+        }
+        break;
+      }
+
+      case 'local:end': {
+        const userId = socketUser.get(ws);
+        if (!userId) break;
+        endLocalGame(userId, String(msg.reason || 'game-over').slice(0, 24), String(msg.text || '').slice(0, 90));
         break;
       }
       
@@ -2803,6 +2954,12 @@ wss.on('connection', (ws, req) => {
             send(ws, { type: 'chat:error', reason: 'not-friend', client_id: clientId });
             break;
           }
+          /* إعداد «من يمكنه مراسلتي» بيتنفّذ هنا — مش في الواجهة بس. لو
+             المستلم مقفّل المراسلة، الرسالة ماتتخزّنش من الأصل. */
+          if (!privacyRouter.canMessage(me, to)) {
+            send(ws, { type: 'chat:error', reason: 'privacy', client_id: clientId });
+            break;
+          }
           const { row, delivered } = pushChatMessage(me, to, spec, clientId);
           send(ws, { type: 'chat:sent', client_id: clientId, id: row.id, created_at: row.created_at, to, delivered });
         } catch (e) {
@@ -2822,26 +2979,41 @@ wss.on('connection', (ws, req) => {
                                    WHERE convo_key = ? AND recipient_id = ? AND sender_id = ? AND read_at IS NULL`)
                          .run(key, me, from);
           if (info.changes > 0) {
-            for (const s of socketsOf(from)) send(s, { type: 'chat:read-receipt', by: me, convo_key: key });
+            /* إيصالات القراءة زي واتساب بالظبط: لو طرف قافلها، مايبعتش
+               إيصال ومايستقبلش. فالإيصال بيوصل لو الاتنين مفتوحين. */
+            if (privacyRouter.readReceiptsOn(me) && privacyRouter.readReceiptsOn(from)) {
+              for (const s of socketsOf(from)) send(s, { type: 'chat:read-receipt', by: me, convo_key: key });
+            }
           }
         } catch (e) {}
         break;
       }
 
-      /* ══ تثبيت/فك تثبيت رسالة 1:1 (#132): الطرفان يقدروا ══ */
+      /* ══ تثبيت/فك تثبيت رسالة 1:1 (#132 + #7): الطرفان يقدروا ══
+         msg.days: ٣ أو ٧ أو ٣٠ = تثبيت مؤقّت ينتهي وحده، وأي شيء آخر
+         (٠/غياب) = دائم. القيمة تُقصَر على الخيارات المسموحة فقط. */
       case 'chat:pin': {
         const me = socketUser.get(ws);
         const to = Number(msg.to);
         const id = Number(msg.id);
         const pin = !!msg.pin;
+        const days = PIN_DAYS.includes(Number(msg.days)) ? Number(msg.days) : 0;
         if (!me || !Number.isInteger(to) || to <= 0 || !Number.isInteger(id) || id <= 0) break;
         try {
           if (!chatRouter.areFriends(me, to) || chatRouter.blockedBetween(me, to)) break;
           const key = chatRouter.convoKey(me, to);
           const m = db.prepare('SELECT id FROM messages WHERE id = ? AND convo_key = ?').get(id, key);
           if (!m) break;
-          db.prepare(`UPDATE messages SET pinned_at = ${pin ? "datetime('now')" : 'NULL'} WHERE id = ?`).run(id);
-          const payload = { type: 'chat:pinned', convo_key: key, with: me, id, pinned: pin, by: me };
+          if (!pin) {
+            db.prepare(`UPDATE messages SET pinned_at = NULL, pinned_until = NULL WHERE id = ?`).run(id);
+          } else if (days) {
+            db.prepare(`UPDATE messages SET pinned_at = datetime('now'),
+                        pinned_until = datetime('now', '+' || ? || ' days') WHERE id = ?`).run(days, id);
+          } else {
+            db.prepare(`UPDATE messages SET pinned_at = datetime('now'), pinned_until = NULL WHERE id = ?`).run(id);
+          }
+          const until = pin ? (db.prepare('SELECT pinned_until AS u FROM messages WHERE id = ?').get(id) || {}).u : null;
+          const payload = { type: 'chat:pinned', convo_key: key, with: me, id, pinned: pin, pinned_until: until || null, by: me };
           for (const s of socketsOf(me)) send(s, Object.assign({}, payload, { with: to }));
           for (const s of socketsOf(to)) send(s, Object.assign({}, payload, { with: me }));
         } catch (e) {}
@@ -2954,19 +3126,28 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
-      /* ══ تثبيت/فك تثبيت رسالة حفلة (#132): المشرفون بس ══ */
+      /* ══ تثبيت/فك تثبيت رسالة حفلة (#132 + #7): المشرفون بس ══ */
       case 'group:pin': {
         const me = socketUser.get(ws);
         const gid = Number(msg.group_id);
         const id = Number(msg.id);
         const pin = !!msg.pin;
+        const days = PIN_DAYS.includes(Number(msg.days)) ? Number(msg.days) : 0;
         if (!me || !Number.isInteger(gid) || gid <= 0 || !Number.isInteger(id) || id <= 0) break;
         try {
           if (!groupsRouter.isAdmin(gid, me)) { send(ws, { type: 'group:error', reason: 'admins-only', group_id: gid }); break; }
           const m = db.prepare('SELECT id FROM group_messages WHERE id = ? AND group_id = ?').get(id, gid);
           if (!m) break;
-          db.prepare(`UPDATE group_messages SET pinned_at = ${pin ? "datetime('now')" : 'NULL'} WHERE id = ?`).run(id);
-          const payload = { type: 'group:pinned', group_id: gid, id, pinned: pin, by: me };
+          if (!pin) {
+            db.prepare(`UPDATE group_messages SET pinned_at = NULL, pinned_until = NULL WHERE id = ?`).run(id);
+          } else if (days) {
+            db.prepare(`UPDATE group_messages SET pinned_at = datetime('now'),
+                        pinned_until = datetime('now', '+' || ? || ' days') WHERE id = ?`).run(days, id);
+          } else {
+            db.prepare(`UPDATE group_messages SET pinned_at = datetime('now'), pinned_until = NULL WHERE id = ?`).run(id);
+          }
+          const until = pin ? (db.prepare('SELECT pinned_until AS u FROM group_messages WHERE id = ?').get(id) || {}).u : null;
+          const payload = { type: 'group:pinned', group_id: gid, id, pinned: pin, pinned_until: until || null, by: me };
           for (const uid of groupsRouter.memberIds(gid)) for (const s of socketsOf(uid)) send(s, payload);
         } catch (e) {}
         break;
@@ -3296,7 +3477,12 @@ wss.on('connection', (ws, req) => {
     /* المتفرّج مش لاعب: بيتشال من قائمة المشاهدة بلا أي أثر على المباراة */
     try {
       const specCode = removeSpectator(ws);
-      if (specCode) pushWatcherCount(rooms.get(specCode));
+      if (specCode) pushWatcherCount(roomByCode(specCode));
+    } catch (e) {}
+    /* السوكت الناقل لمباراة محلية قفل → المتفرّجين ياخدوا نهاية نظيفة (#5) */
+    try {
+      const lg = userId ? localGames.get(Number(userId)) : null;
+      if (lg && lg.ws === ws) endLocalGame(userId, 'player-left');
     } catch (e) {}
     const info = getRoomAndSide(ws);
     if (info && info.room.kind === 'lan') {
@@ -3393,6 +3579,45 @@ const heartbeat = setInterval(() => {
 }, 30000);
 
 wss.on('close', () => clearInterval(heartbeat));
+
+/* ══ كنس التثبيت المؤقّت المنتهي (#7) ══
+   واتساب بيثبّت لمدة ٢٤ ساعة/٧ أيام/٣٠ يومًا ثم يفكّ التثبيت وحده. هنا
+   الكنس يمسح pinned_at/pinned_until لأي رسالة مضى وقتها، ويبثّ للطرفين
+   (أو لأعضاء الحفلة) عشان شريط «مثبّتة» يختفي عندهم بلا إعادة فتح.
+   والاستعلامات كمان بتتجاهل المنتهي، فحتى لو التطبيق كان مقفولًا وقت
+   الانتهاء بيلاقيه مفكوكًا عند أوّل فتح. */
+function sweepExpiredPins() {
+  try {
+    const dms = db.prepare(`SELECT id, convo_key FROM messages
+                            WHERE pinned_at IS NOT NULL AND pinned_until IS NOT NULL
+                              AND pinned_until <= datetime('now')`).all();
+    for (const row of dms) {
+      db.prepare(`UPDATE messages SET pinned_at = NULL, pinned_until = NULL WHERE id = ?`).run(row.id);
+      const ids = String(row.convo_key || '').split(':').map(Number).filter(Number.isInteger);
+      for (const uid of ids) {
+        const other = ids.find(x => x !== uid);
+        for (const s of socketsOf(uid)) {
+          send(s, { type: 'chat:pinned', convo_key: row.convo_key, with: other, id: row.id, pinned: false, pinned_until: null, expired: true });
+        }
+      }
+    }
+    const grp = db.prepare(`SELECT id, group_id FROM group_messages
+                            WHERE pinned_at IS NOT NULL AND pinned_until IS NOT NULL
+                              AND pinned_until <= datetime('now')`).all();
+    for (const row of grp) {
+      db.prepare(`UPDATE group_messages SET pinned_at = NULL, pinned_until = NULL WHERE id = ?`).run(row.id);
+      for (const uid of groupsRouter.memberIds(row.group_id)) {
+        for (const s of socketsOf(uid)) {
+          send(s, { type: 'group:pinned', group_id: row.group_id, id: row.id, pinned: false, pinned_until: null, expired: true });
+        }
+      }
+    }
+    return dms.length + grp.length;
+  } catch (e) { return 0; }
+}
+const pinSweeper = setInterval(sweepExpiredPins, Math.max(1000, Number(process.env.AMKH_PIN_SWEEP_MS) || 60000));
+if (pinSweeper.unref) pinSweeper.unref();
+try { sweepExpiredPins(); } catch (e) {}
 
 /* ══ Start ══ */
 /* عند إقلاع السيرفر مفيش أي سوكت متصل، فأي صف حضوره is_online=1 هو

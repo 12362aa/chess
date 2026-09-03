@@ -252,7 +252,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
   let limit = Number(req.query.limit) || 30;
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
   try {
-    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at, m.mentions,
+    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at, m.pinned_until, m.mentions,
                   u.username, u.display_name, u.provider, u.avatar_url`;
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM group_messages m JOIN users u ON u.id = m.sender_id
@@ -284,7 +284,8 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       created_at: m.created_at,
       reply_to: m.reply_to || null,
       reply: replySnippet(m.reply_to),
-      pinned: !!m.pinned_at,
+      pinned: chatMod.pinLive(m.pinned_at, m.pinned_until),
+      pinned_until: chatMod.pinLive(m.pinned_at, m.pinned_until) ? (m.pinned_until || null) : null,
       mentions: chatMod.parseMentions(m.mentions),
       reactions: reactMap.get(m.id) || [],
     }));

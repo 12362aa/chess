@@ -174,11 +174,11 @@ router.post('/request', authenticateToken, (req, res) => {
     }
     /* طلب مرفوض قبل كده بيرجع pending تاني بدل ما يقف عند UNIQUE */
     const prev = db.prepare('SELECT id, status FROM friend_requests WHERE sender_id = ? AND receiver_id = ?').get(me, target);
-    if (prev && prev.status === 'pending') return res.status(409).json({ error: 'الطلب مبعوت بالفعل' });
+    if (prev && prev.status === 'pending') return res.status(409).json({ error: 'الطلب مُرسَل بالفعل' });
     if (prev) db.prepare(`UPDATE friend_requests SET status = 'pending', created_at = datetime('now') WHERE id = ?`).run(prev.id);
     else db.prepare('INSERT INTO friend_requests (sender_id, receiver_id) VALUES (?, ?)').run(me, target);
   } catch (e) {
-    return res.status(409).json({ error: 'الطلب مبعوت بالفعل' });
+    return res.status(409).json({ error: 'الطلب مُرسَل بالفعل' });
   }
 
   const meRow = db.prepare(`SELECT ${PUBLIC_FIELDS} FROM users u WHERE u.id = ?`).get(me);
@@ -286,14 +286,14 @@ router.post('/invite', authenticateToken, (req, res) => {
   const color = ['w', 'b', 'r'].includes(req.body && req.body.color) ? req.body.color : 'r';
   if (!to) return res.status(400).json({ error: 'صديق غير صحيح' });
   if (to === me) return res.status(400).json({ error: 'لا يمكنك دعوة نفسك' });
-  if (!areFriends(me, to)) return res.status(403).json({ error: 'ينفع تدعي أصدقاءك بس' });
+  if (!areFriends(me, to)) return res.status(403).json({ error: 'لا يمكنك دعوة غير أصدقائك' });
   if (blockedBetween(me, to)) return res.status(403).json({ error: 'لا يمكن إرسال الدعوة' });
   /* خصوصية المدعوّ: مين مسموح له يبعتله دعوة لعب (Everyone/Friends/Nobody). */
   if (!privacy.canGameInvite(me, to)) return res.status(403).json({ error: 'إعدادات الخصوصية لدى صديقك لا تسمح بالدعوة' });
 
   /* دعوة واحدة حيّة بين الاتنين في الاتجاه ده */
   const live = db.prepare(`SELECT id FROM game_invites WHERE from_id = ? AND to_id = ? AND status = 'pending'`).get(me, to);
-  if (live) return res.status(409).json({ error: 'فيه دعوة مبعوتة بالفعل', invite_id: live.id });
+  if (live) return res.status(409).json({ error: 'هناك دعوة مُرسَلة بالفعل', invite_id: live.id });
 
   const info = db.prepare(`INSERT INTO game_invites (from_id, to_id, color, expires_at)
                            VALUES (?, ?, ?, datetime('now', '+${INVITE_TTL_SECONDS} seconds'))`).run(me, to, color);
