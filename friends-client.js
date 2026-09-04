@@ -97,6 +97,20 @@ const amkhFriends = {
     }
     return this._friends;
   },
+
+  /* ── تحديث الحضور بعد رجوع الاتصال ──
+     الحالات بتفضل بايتة («غير متصل» للكل) لحد أول بثّ من السيرفر، وده
+     كان بيخلّي الصديق المتصل يبان مقطوع وزرّ الدعوة مقفول. بنُنادى من
+     auth-client أول ما التوثيق يتأكّد. */
+  async refreshPresence() {
+    if (this._presRefreshing) return;
+    this._presRefreshing = true;
+    try {
+      await this.loadFriends();
+      if (this._sheet) this._render();
+      this._updateBadge();
+    } catch (e) {} finally { this._presRefreshing = false; }
+  },
   async loadRequests() {
     this._requests = (await this._get('/friends/requests')) || { incoming: [], outgoing: [] };
     this._updateBadge();
@@ -155,24 +169,43 @@ const amkhFriends = {
      القديمة كانت بتدوّر على سوكت الأونلاين بس، فالدعوة كانت تفشل بـ
      «لازم تكون متصل بالأونلاين» وهو أصلًا متصل. */
   _socket() {
-    /* نفضّل سوكت الحضور المُعرّف بالتوكن (بيبعت presence:hello فالسيرفر
-       عارف صاحبه). سوكت الأونلاين العادي (window.chessWs) ممكن يكون مفتوح
-       ومش معرّف على السيرفر — ولو بعتنا الشات/الدعوة عليه، السيرفر كان
-       بيلاقي socketUser فاضي فيهمل الرسالة من غير أي رد، فتفضل الساعة
-       عالقة على الرسالة للأبد (مش علاقة بالحجم خالص). التفضيل هنا بيضمن
-       إن الشات دايمًا يمشي على سوكت معرّف. */
-    const p = window.amkhAuth && window.amkhAuth._presWs;
-    if (p && p.readyState === 1) return p;
+    /* لازم سوكت **موثّق** — مش أي سوكت مفتوح. سوكت الأونلاين
+       (window.chessWs) بيتفتح من غير تعريف، فالسيرفر بيلاقي socketUser
+       فاضي ويرجّع auth: الأصدقاء يبانوا «غير متصل»، والرسايل تفشل،
+       والدعوة والمشاهدة ماتوصلش — وده اللي كان بيتحلّ مؤقتًا بتسجيل
+       خروج ودخول. دلوقتي بنعتمد على إيصال التوثيق (presence:ok) بس،
+       ولو مفيش سوكت موثّق بنطلب إحياء فوري ونرجّع null فالرسالة
+       تتأجّل وتتبعت لوحدها بعد التوثيق بثواني. */
+    const A = window.amkhAuth;
+    const p = A && A._presWs;
+    if (p && p.readyState === 1 && p.__amkhAuthed) return p;
     const a = window.chessWs;
-    if (a && a.readyState === 1) return a;
+    if (a && a.readyState === 1 && a.__amkhAuthed) return a;
+    if (A && A.revive) { try { A.revive('socket'); } catch (e) {} }
     return null;
+  },
+
+  /* بينتظر سوكتًا موثّقًا لمدّة قصيرة بدل الفشل الفوري: الإحياء بياخد أقل
+     من ثانية عادةً، وضغطة الزر أهم من رسالة خطأ. */
+  _socketReady(ms) {
+    const limit = ms || 4000;
+    const t0 = Date.now();
+    return new Promise((resolve) => {
+      const tick = () => {
+        const s = this._socket();
+        if (s) return resolve(s);
+        if (Date.now() - t0 >= limit) return resolve(null);
+        setTimeout(tick, 200);
+      };
+      tick();
+    });
   },
 
   /* ── دعوة لمباراة ──
      بتمشي على الـWebSocket مش HTTP: السيرفر لازم يوصّلها للطرف التاني
      لحظيًا، ونفس السوكت هو اللي هيبدأ المباراة لو قبل. */
-  inviteFriend(friendId, name, color, rated, tc) {
-    const ws = this._socket();
+  async inviteFriend(friendId, name, color, rated, tc) {
+    const ws = await this._socketReady(4000);
     if (!ws) {
       window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.', 'غير متصل', '◈');
       return false;
@@ -241,6 +274,15 @@ const amkhFriends = {
         this._closeInvite();
         return true;
       case 'friend:invite-error': {
+        /* السوكت كان مجهولًا عند السيرفر: مش غلطة المستخدم ولا حاجة في
+           الصداقة. نعرّف السوكت فورًا ونقول له يعيد المحاولة بعد لحظة. */
+        if (d.reason === 'auth') {
+          try { if (window.amkhAuth && window.amkhAuth.revive) window.amkhAuth.revive('invite-auth'); } catch (e) {}
+          window.amkhUI.notify('جارٍ استعادة الاتصال — أعِد إرسال الدعوة بعد لحظة', 'لم تُرسل', '◈');
+          this._clearInviteWaiting(this._outgoingInvite && this._outgoingInvite.friend_id);
+          this._outgoingInvite = null;
+          return true;
+        }
         const map = {
           'not-friend': 'يجب أن يكون صديقك أولًا',
           'blocked': 'لا يمكن إرسال الدعوة',
@@ -303,10 +345,14 @@ const amkhFriends = {
 
     const send = (action) => {
       clearInterval(tick);
-      const ws = this._socket();
-      if (ws) {
-        ws.send(JSON.stringify({ type: 'friend:invite-respond', invite_id: invite.id, action }));
-      }
+      /* لو السوكت مش موثّق لحظة الضغط، ننتظر ثواني قليلة: القبول اللي
+         بيضيع معناه إن المدعو وافق ومحصلش أي مباراة. */
+      this._socketReady(4000).then((ws) => {
+        if (ws) ws.send(JSON.stringify({ type: 'friend:invite-respond', invite_id: invite.id, action }));
+        else if (action === 'accept') {
+          try { window.amkhUI.notify('انقطع الاتصال قبل إرسال القبول — اطلب من صاحبك يعيد الدعوة.', 'لم يتم', '◈'); } catch (e) {}
+        }
+      });
       this._invites = this._invites.filter(i => i.id !== invite.id);
       U.close(overlay);
     };
@@ -708,7 +754,7 @@ const amkhFriends = {
       /* اختيار اللون ونوع المباراة قبل الدعوة — نافذة متخصصة بالثيم */
       const choice = await this._colorChoice(window.amkhName(f));
       if (!choice) return;
-      if (this.inviteFriend(f.id, window.amkhName(f), choice.color, choice.rated, choice.tc)) {
+      if (await this.inviteFriend(f.id, window.amkhName(f), choice.color, choice.rated, choice.tc)) {
         this._setInviteWaiting(f.id, true);
       }
     };

@@ -3913,6 +3913,11 @@ const SFX=(()=>{
     profile:[{f:493.88,t0:0,dur:0.09,vol:0.09},{f:659.25,t0:0.07,dur:0.10,vol:0.10},{f:987.77,t0:0.15,dur:0.20,vol:0.11}],
     /* المشاهدة (#14): نغمتان «عين بتفتح» صاعدتان خفيفتان */
     spectate:[{f:698.46,t0:0,dur:0.10,vol:0.09},{f:1046.5,t0:0.08,dur:0.18,vol:0.11}],
+    /* شاشة الترحيب (أول تشغيل): افتتاحية هادئة تصعد أوكتافين على سلّم فا،
+       أطول وأوسع من أي نغمة تانية — دي أول حاجة يسمعها المستخدم من
+       التطبيق فلازم تبان «افتتاح» مش إشعارًا عابرًا. سلّم مختلف عن
+       ratingUp عن قصد عشان مايتلخبطوش في الودان. */
+    welcome:[{f:349.23,t0:0,dur:0.16,type:'triangle',vol:0.10},{f:523.25,t0:0.13,dur:0.14,vol:0.11},{f:698.46,t0:0.25,dur:0.14,vol:0.11},{f:1046.5,t0:0.37,dur:0.34,vol:0.12}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -6426,8 +6431,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '3.11';
-const APP_VERSION_CODE = 27;
+const APP_VERSION = '3.12';
+const APP_VERSION_CODE = 28;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -6938,8 +6943,12 @@ const PlayerCard = {
       if(!ok) add.disabled = false;
     };
     const msg = box.querySelector('#pc-msg');
+    /* لوحة الصدارة لازم تتقفل معاها: كانت بتفضل مفتوحة فوق الشات
+       والمستخدم يقفلها بنفسه قبل ما يكتب — وكذلك تحت نافذة المشاهدة. */
+    const shutLb = () => { try{ if(window.amkhUI && window.amkhUI.close) window.amkhUI.close('amkh-leaderboard'); }catch(e){} };
     if(msg) msg.onclick = () => {
       ov._dismiss && ov._dismiss();
+      shutLb();
       if(window.amkhChat && window.amkhChat.openChat){
         window.amkhChat.openChat({ id: uid, display_name: name, avatar_url: avatar });
       }
@@ -6947,6 +6956,7 @@ const PlayerCard = {
     const spec = box.querySelector('#pc-spec');
     if(spec) spec.onclick = () => {
       ov._dismiss && ov._dismiss();
+      shutLb();
       if(window.amkhSpectate && window.amkhSpectate.start) window.amkhSpectate.start(uid, name);
     };
   },
@@ -6970,10 +6980,18 @@ const Spectate={
   _orient:'w',_ply:0,_hist:[],_last:null,_ended:false,
   _tick:null,_urls:null,_started:false,_watch:0,_eyeT:null,_target:null,
 
-  /* سوكت الحضور المُوثَّق — مش سوكت المباراة */
+  /* أي سوكت موثّق ينفع: سوكت الحضور أو سوكت الأونلاين بعد ما اتعرّف.
+     الاعتماد على سوكت الحضور لوحده كان بيمنع المشاهدة تمامًا وقت ما
+     يكون مقفولًا لحظيًا رغم إن في سوكت تاني موثّق وشغّال. */
   _ws(){
-    const ws=window.amkhAuth&&window.amkhAuth._presWs;
-    return (ws&&ws.readyState===1)?ws:null;
+    const A=window.amkhAuth;
+    const p=A&&A._presWs;
+    if(p&&p.readyState===1&&p.__amkhAuthed)return p;
+    const a=window.chessWs;
+    if(a&&a.readyState===1&&a.__amkhAuthed)return a;
+    if(A&&A.revive){try{A.revive('spectate');}catch(e){}}
+    if(p&&p.readyState===1)return p;
+    return null;
   },
   _send(o){
     const ws=this._ws();
@@ -6995,6 +7013,7 @@ const Spectate={
     }
     this._reset();
     this._target=Number(uid);
+    this._authRetried=false;
     this._openUI(name||'لاعب');
   },
 
@@ -7056,6 +7075,24 @@ const Spectate={
   },
 
   _onError(d){
+    /* السوكت كان مجهولًا عند السيرفر: نعرّفه ونعيد المحاولة مرة واحدة
+       من غير ما نقفل النافذة — المستخدم مايفهمش «سجّل الدخول» وهو داخل. */
+    if(d&&d.code==='auth'&&!this._authRetried){
+      this._authRetried=true;
+      try{ if(window.amkhAuth&&window.amkhAuth.revive) window.amkhAuth.revive('spectate-auth'); }catch(e){}
+      const uid=this._target;
+      setTimeout(()=>{
+        if(!this._ov){this._authRetried=false;return;}
+        if(!this._send({type:'spectate:start',friend_id:Number(uid)})){
+          this._authRetried=false;
+          const ov=this._ov;this._ov=null;this._started=false;this._stopTick();
+          if(ov&&ov._dismiss)try{ov._dismiss();}catch(e){}
+          amkhUI.notify('لا يوجد اتصال بالخادم الآن — حاول بعد لحظات','المشاهدة','⚠');
+        }
+      },1200);
+      return;
+    }
+    this._authRetried=false;
     const msg=(d&&d.error)||'تعذّرت المشاهدة';
     if(this._ov){const ov=this._ov;this._ov=null;this._started=false;this._stopTick();
       if(ov._dismiss)try{ov._dismiss();}catch(e){}}
@@ -7190,7 +7227,12 @@ const Spectate={
   /* شارة «متفرّجين» للاعب نفسه جوّه المباراة — شفافية كاملة */
   _playerBadge(n,flash){
     let el=document.getElementById('sp-eye');
-    if(!n||n<1){
+    /* الشارة دي بتتعلّق على body، فكانت بتفضل ظاهرة على الرئيسية وكل
+       الشاشات بعد ما المباراة تخلص أو تسيب الشاشة — ومكانت تختفي غير
+       بإعادة تشغيل التطبيق. مالهاش معنى غير جوّه شاشة اللعب. */
+    let inGame=true;
+    try{ inGame=document.body.dataset.screen==='s-game'; }catch(e){}
+    if(!n||n<1||!inGame){
       if(el)el.remove();
       if(this._eyeT){clearTimeout(this._eyeT);this._eyeT=null;}
       return;
@@ -7384,7 +7426,10 @@ const Spectate={
            +(b2?' <i>'+amkhUI.esc(b2.txt)+'</i>':'')+'</span>';
     }
     box.innerHTML=html;
+    /* الشريط أفقي في النافذة العادية وشبكة سطور في ملء الشاشة، فبنودّي
+       آخر نقلة للعين في الاتجاهين — كل واحد بيتجاهل اللي مش بتاعه */
     box.scrollLeft=box.scrollWidth;
+    box.scrollTop=box.scrollHeight;
   },
 };
 window.amkhSpectate=Spectate;
@@ -10611,27 +10656,53 @@ let _lastBalW=window.innerWidth;
   let _hOpen=window.innerHeight;   /* ارتفاع الـWebView والكيبورد مغلق */
   let _wOpen=window.innerWidth;
   let _kbRaw=0;                    /* ارتفاع الكيبورد من البلاجن ناقص شريط التنقّل */
+  let _kbFull=0;                   /* القيمة الخام من البلاجن (تشمل الشريط) */
   let _shrinks=null;               /* هل يتقلّص الـWebView مع الكيبورد؟ */
+  let _sawShrink=false;            /* هل وقع تقليص فعلي في الفتحة الحالية؟ */
+  let _vvReports=null;             /* هل visualViewport يبلّغ التغطية على الجهاز ده؟ */
   try{
     const s=localStorage.getItem('amkh_kb_shrinks');
     if(s==='1')_shrinks=true; else if(s==='0')_shrinks=false;
+    const v=localStorage.getItem('amkh_kb_vv');
+    if(v==='1')_vvReports=true; else if(v==='0')_vvReports=false;
   }catch(e){}
   /* حساب التغطية — دالّة نقيّة (بلا حالة) عشان تتأكّد بالاختبار على كل حالة:
-     جهاز يقلّص الـWebView، جهاز لا يقلّصه، وأوّل إطارٍ قبل وقوع التقليص. */
-  const kbCalc=(kbRaw,hOpen,hNow,shrinks,covered)=>{
+     جهاز يقلّص الـWebView، جهاز لا يقلّصه، وأوّل إطارٍ قبل وقوع التقليص.
+     visualViewport هو المقياس الحقيقي الوحيد للتغطية: innerHeight ناقص
+     vv.height = بكسلات صفحتنا التي يغطّيها الكيبورد فعلًا. لكن قيمة صفر منه
+     غامضة (لا تغطية فعلًا، أم أن الجهاز لا يبلّغ أصلًا؟) — فنكشف مرّةً واحدة
+     على الجهاز: إن رأينا تغطيةً مبلَّغة يومًا صرنا نثق به وحده، وإلا بقينا
+     على التقدير (ارتفاع الكيبورد ناقص شريط التنقّل ناقص التقليص).
+     الوثوق به يصحّح حالتين ما كان التقدير ليصيبهما:
+     • أندرويد ١٥/١٦ (targetSdk 36 = edge-to-edge إلزامي): الـWebView يمتدّ
+       خلف شريط التنقّل، فالتغطية = ارتفاع الكيبورد كاملًا، وطرحُنا للشريط
+       كان يرفع الصندوق أقلّ من اللازم بمقدار الشريط فيقضم الكيبورد أسفله.
+     • التابلت وحده يفتح الكيبورد عائمًا أو مقسّمًا: البلاجن يبلّغ ارتفاعه
+       كاملًا وهو لا يغطّي صفحتنا إطلاقًا، فكان يُفتح فراغ بمقدار الكيبورد.
+     السقف = أكبر القيمتين (الخام / ناقص الشريط) حمايةً من قيمة vv شاذّة. */
+  const kbCalc=(kbRaw,hOpen,hNow,shrinks,covered,vvReports,kbFull)=>{
+    const cap=Math.max(kbRaw, kbFull||0);
     let shrink=Math.max(0, hOpen-hNow);
     /* أوّل إطار بعد ظهور الكيبورد: التقليص لم يحدث بعد، فنتوقّعه من الكشف
        المحفوظ حتى لا ترتفع الورقة إطارًا ثم تعود (قفزة مرئية). */
     if(shrink<40 && shrinks===true) shrink=kbRaw;
-    let kb=Math.max(0, Math.round(kbRaw-shrink));
-    if(covered>40) kb=Math.min(kb, covered);
+    let kb;
+    if(vvReports===true && shrink<40){
+      kb=Math.min(Math.max(0, covered), cap);
+    }else{
+      kb=Math.max(0, Math.round(kbRaw-shrink));
+      if(covered>40) kb=Math.min(kb, covered);
+    }
     return Math.min(kb, Math.round(hOpen*0.75));   /* سقف أمان ضدّ قيمة شاذّة */
   };
   window.AMKH_kbCalc=kbCalc;                       /* للقياس/الاختبار */
   const kbCover=()=>{
     const vv=window.visualViewport;
     const covered=vv?Math.round(window.innerHeight-vv.height-(vv.offsetTop||0)):0;
-    return kbCalc(_kbRaw,_hOpen,window.innerHeight,_shrinks,covered);
+    if(covered>40 && _vvReports!==true){
+      _vvReports=true; try{ localStorage.setItem('amkh_kb_vv','1'); }catch(e){}
+    }
+    return kbCalc(_kbRaw,_hOpen,window.innerHeight,_shrinks,covered,_vvReports,_kbFull);
   };
   const applyKb=()=>{ root.style.setProperty('--kb', kbCover()+'px'); };
   window.AMKH_kbCover=kbCover;                       /* للقياس/الاختبار */
@@ -10640,8 +10711,9 @@ let _lastBalW=window.innerWidth;
   const onViewport=()=>{
     if(window.innerWidth!==_wOpen){ _wOpen=window.innerWidth; _hOpen=window.innerHeight; }
     if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; return; }
-    if(_hOpen-window.innerHeight>40 && _shrinks!==true){
-      _shrinks=true; try{ localStorage.setItem('amkh_kb_shrinks','1'); }catch(e){}
+    if(_hOpen-window.innerHeight>40){
+      _sawShrink=true;
+      if(_shrinks!==true){ _shrinks=true; try{ localStorage.setItem('amkh_kb_shrinks','1'); }catch(e){} }
     }
     applyKb();
     raiseChat();
@@ -10659,8 +10731,9 @@ let _lastBalW=window.innerWidth;
          نطرح تقلّص الـWebView إن حصل. [[flicker-root-cause-fix]] */
       const kbFull=(info&&info.keyboardHeight)||0;
       const nav=parseFloat(getComputedStyle(root).getPropertyValue('--nav-bottom'))||0;
+      _kbFull=Math.round(kbFull);
       _kbRaw=Math.max(0, Math.round(kbFull-nav));
-      if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; _wOpen=window.innerWidth; }
+      if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; _wOpen=window.innerWidth; _sawShrink=false; }
       root.classList.add('kb-open','kb-shift');
       applyKb();
       if(typeof R!=='undefined')R._kbLock=true;
@@ -10674,9 +10747,15 @@ let _lastBalW=window.innerWidth;
       dropChat();
       root.style.setProperty('--kb','0px');
       root.classList.remove('kb-open','kb-shift');
-      /* لم يتقلّص الـWebView طوال فتح الكيبورد → الجهاز لا يقلّص إطلاقًا.
-         وإن ظهر التقليص لاحقًا فـonViewport يعكس القيمة من جديد. */
-      if(_shrinks===null){ _shrinks=false; try{ localStorage.setItem('amkh_kb_shrinks','0'); }catch(e){} }
+      /* الكشف يصحّح نفسه في الاتجاهين بعد كل فتحة: لو لم يقع تقليص طوال هذه
+         الفتحة فالجهاز لا يقلّص. الاتجاه العكسي كان ناقصًا وهو عطل صامت خطير:
+         تغيّر ارتفاع النافذة أثناء الكيبورد لسبب آخر (نافذة منقسمة أو حرّة على
+         التابلت) كان يحفظ "يقلّص" حفظًا أبديًا، فيُطرح تقليصٌ متوقَّع لا يحدث
+         → --kb صفر دائمًا → الكيبورد يغطّي صندوق الكتابة ولا يرتفع أبدًا، ولا
+         يشفى إلا بمسح بيانات التطبيق. */
+      const seen=_sawShrink;
+      if(_shrinks!==seen){ _shrinks=seen; try{ localStorage.setItem('amkh_kb_shrinks',seen?'1':'0'); }catch(e){} }
+      _sawShrink=false;
       setTimeout(()=>{ if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; _wOpen=window.innerWidth; } },400);
       if(typeof R!=='undefined'){R._kbLock=false;R.balance(true);}
     });
@@ -11703,7 +11782,9 @@ const Nav={
     /* خرجنا من شاشة اللعب → الأصدقاء مايفضلوش شايفين «في مباراة» (#13) */
     if(id!=='s-game'){try{amkhLocalActivity('');}catch(e){}
       /* #5 — سيبت الشاشة والمباراة لسه شغّالة: المتفرّج ياخد نهاية واضحة */
-      try{LocalCast.end('player-left');}catch(e){}}
+      try{LocalCast.end('player-left');}catch(e){}
+      /* وشارة «متفرّج» تختفي معاها — مكانتش بتختفي غير بإعادة التشغيل */
+      try{if(window.amkhSpectate)window.amkhSpectate._playerBadge(0);}catch(e){}}
     /* شريط تنبيه الرسائل جوّه المباراة بس (#9) */
     if(id!=='s-game'){const _t=document.getElementById('ch-gtoast');if(_t)_t.remove();}
 
@@ -11742,15 +11823,28 @@ function amkhLocalActivity(kind){
   if(k===_amkhActivityKind) return;   /* مانغرقش السوكت بتكرار نفس الحالة */
   _amkhActivityKind=k;
   try{
-    const ws=(window.amkhAuth&&window.amkhAuth._presWs&&window.amkhAuth._presWs.readyState===1)
-      ? window.amkhAuth._presWs
-      : ((window.chessWs&&window.chessWs.readyState===1)?window.chessWs:null);
-    if(!ws) return;
+    /* لازم سوكت موثّق: على سوكت مجهول السيرفر بيهمل الحالة، فالصديق
+       يفضل شايفك «متصل» وانت وسط مباراة (أو العكس). */
+    const A=window.amkhAuth;
+    const p=A&&A._presWs;
+    const a=window.chessWs;
+    const ws=(p&&p.readyState===1&&p.__amkhAuthed)?p
+      :((a&&a.readyState===1&&a.__amkhAuthed)?a:null);
+    if(!ws){_amkhActivityKind='';if(A&&A.revive){try{A.revive('activity');}catch(e){}}return;}
     /* الخادم بيقرا in_game (server.js: case 'presence:activity') — كان
        بيتبعت on بس فالحالة مكانت بتتفعّل أبدًا. */
     ws.send(JSON.stringify({type:'presence:activity',in_game:!!k,on:!!k,kind:k}));
   }catch(e){}
 }
+/* بعد أي إعادة توثيق: الحالة اللي على السيرفر بتبقى راحت مع السوكت
+   القديم، فلازم نبعتها تاني وإلا الصديق يشوفك «متصل» وانت وسط مباراة. */
+function amkhLocalActivityResend(){
+  const k=_amkhActivityKind;
+  if(!k)return;
+  _amkhActivityKind='';
+  amkhLocalActivity(k);
+}
+try{window.amkhLocalActivityResend=amkhLocalActivityResend;}catch(e){}
 
 /* ══ بثّ المباراة المحلية للمتفرّجين (#5) ══
    قبل كده المشاهدة كانت للأونلاين بس: الصديق يشوفك «في مباراة» وأنت
@@ -11767,8 +11861,16 @@ function amkhLocalActivity(kind){
 const LocalCast={
   _on:false,_kind:'',_moves:[],
   _ws(){
-    const ws=window.amkhAuth&&window.amkhAuth._presWs;
-    return (ws&&ws.readyState===1&&window.amkhAuth.token)?ws:null;
+    const A=window.amkhAuth;
+    if(!A||!A.token)return null;
+    /* لازم سوكت موثّق: البثّ على سوكت مجهول بيتبلع بصمت فالمتفرّج
+       بيقعد على «جارٍ الدخول» للأبد. */
+    const p=A._presWs;
+    if(p&&p.readyState===1&&p.__amkhAuthed)return p;
+    const a=window.chessWs;
+    if(a&&a.readyState===1&&a.__amkhAuthed)return a;
+    if(A.revive){try{A.revive('localcast');}catch(e){}}
+    return null;
   },
   _send(o){
     const ws=this._ws();
@@ -11828,6 +11930,8 @@ const LocalCast={
     if(!this._on)return;
     this._on=false;this._moves=[];
     this._send({type:'local:end',reason:reason||'game-over',text:text||''});
+    /* البثّ خلص → مافيش متفرّجين، فالشارة تروح فورًا */
+    try{if(window.amkhSpectate)window.amkhSpectate._playerBadge(0);}catch(e){}
   },
 };
 window.amkhLocalCast=LocalCast;
@@ -12233,6 +12337,11 @@ const OL=(()=>{
 
     ws.onopen=()=>{
       clearTimeout(_connTimeoutTimer);
+      /* السوكت ده مش للمباراة بس: وحدة الأصدقاء بتشوفه سوكتًا متاحًا
+         للرسايل والدعوات والمشاهدة. لو مابعتش «presence:hello» يفضل
+         مجهولًا عند السيرفر وكل ده يفشل بـauth — وده كان سبب «مش عارف
+         ابعت لحد رسايل ولا اشوفه متصل». */
+      try{ if(window.amkhAuth && window.amkhAuth.identify) window.amkhAuth.identify(ws); }catch(e){}
       _pingTimer=setInterval(()=>send({type:'ping'}),25000);
       if(onOpen)onOpen();
     };
@@ -12269,6 +12378,12 @@ const OL=(()=>{
   }
 
   function handleMsg(d){
+    /* إيصالات التوثيق: السوكت ده بيتفتح للأونلاين وبنعرّفه للسيرفر كمان،
+       فلازم وحدة الحساب تشوف presence:ok/pong عليه — من غير كده كان
+       بيفضل مجهولًا فالشات والدعوة والمشاهدة يفشلوا عليه. */
+    if(d && typeof d.type==='string' && d.type.indexOf('presence:')===0){
+      try{ if(window.amkhAuth && window.amkhAuth._onPresenceFrame && window.amkhAuth._onPresenceFrame(d, ws)) return; }catch(e){}
+    }
     /* رسائل الأصدقاء (friend:*) بيتعامل معاها friends-client.js: الحضور
        والطلبات والدعوات. بترجّع true لو استهلكت الرسالة، فبنخرج بدل ما
        نكمل في switch مالوش حالة ليها. */
@@ -13440,6 +13555,9 @@ window.addEventListener('beforeunload',()=>{
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
   <script src="auth-client.js"></script>
+  <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
+       بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
+  <script src="welcome-client.js?v=20260904-welcome-1"></script>
   <script src="friends-client.js?v=20260813-websocket-fix-2"></script>
   <script src="chat-client.js?v=20260822-chat-1"></script>
   <script src="call-client.js?v=20260825-call-1"></script>

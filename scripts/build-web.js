@@ -18,6 +18,10 @@ const requiredFiles = new Set([
   'sw.js',
   'url.json',
   'auth-client.js',
+  /* شاشة الترحيب (أول تشغيل). لازم تكون هنا زي gauth-bundle: القائمة دي
+     صريحة، فأي ملف جديد مش مذكور فيها بيتخطّى في النسخ والـAPK بيطلع
+     بـ<script> مكسور 404 — والشاشة مابتظهرش ولا فيه أي خطأ في البناء. */
+  'welcome-client.js',
   'friends-client.js',
   'chat-client.js',
   'call-client.js',

@@ -14,6 +14,7 @@ const STATIC_ASSETS = [
   './icon_v2.png?v=2',
   './nour.png',
   './auth-client.js',
+  './welcome-client.js',
   './friends-client.js',
   './chat-client.js',
   './call-client.js',

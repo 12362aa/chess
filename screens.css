@@ -2093,6 +2093,234 @@ body[data-ui-theme="gaming"]{
 .amkh-auth-dialog .ds-field__hint{ text-align: start; margin: 0 0 var(--space-2); }
 .amkh-auth-dialog .ds-dialog__actions{ gap: var(--space-2); }
 
+/* ══════════════════════════════════════════════════════════════════════
+   شاشة الترحيب — أول تشغيل  (welcome-client.js)
+   ──────────────────────────────────────────────────────────────────────
+   مش حوارًا وسط الشاشة: دي أول شاشة كاملة للتطبيق، فالـoverlay بيفقد
+   حشوه وتمركزه والمحتوى بيأخد المقاس كله. العرض الداخلي محدود بـ‎520px
+   ومتمركز عشان مايتمدّدش سطرًا واحدًا عبر التابلت.
+   كل الألوان والمسافات tokens — الشاشة بتتبع الثيم المختار زي أي نافذة.
+══════════════════════════════════════════════════════════════════════ */
+#amkh-welcome{
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+  /* دي مش نافذة فوق محتوى — مفيش سياق ورا يستاهل يبان */
+  background: var(--color-bg-base);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.wl-screen{
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  /* تمرير داخلي: على الشاشات القصيرة (٦٤٠px وأقل) المحتوى بيفيض، فيتمرّر
+     جوّه الشاشة بدل ما الأزرار تتقصّ. contain عشان التمرير مايسربش للصفحة. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(env(safe-area-inset-top, 0px) + var(--space-6)) var(--space-5)
+           calc(max(env(safe-area-inset-bottom, 0px), var(--nav-bottom, 0px)) + var(--space-5));
+  /* حركة الدخول: تصعد بهدوء — .ds-dialog بيتكبّر من صغير وده مايناسبش
+     شاشة كاملة (كانت بتبان كأنها بتنفجر من النص) */
+  transform: translateY(14px);
+  opacity: 0;
+  transition:
+    transform var(--duration-slow) var(--easing-decelerate),
+    opacity   var(--duration-normal) var(--easing-standard);
+}
+.ds-overlay.is-open .wl-screen{ transform: none; opacity: 1; }
+
+/* العنوان + المزايا ككتلة واحدة: بتاخد الفراغ الفاضل كله وبتتمركز فيه،
+   فالأزرار تفضل في القاع والكلام في النص مهما طال الجهاز. من غير الحاوية
+   دي كان لازم margin تلقائي على كل عنصر لوحده — وده اتكسر لما بقى فيه
+   عمودان في الأفقي. min-height:0 عشان تنضغط وتسمح بالتمرير لما تفيض. */
+.wl-info{
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-5);
+}
+
+.wl-top{
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+}
+.wl-mark{
+  /* صندوق ثابت المقاس: الرسم جوّه بـ100% فمقاسه بيتحكم من هنا في كل
+     media query بسطر واحد */
+  display: block;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto var(--space-4);
+  padding: 15px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-text);
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
+}
+.wl-title{
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-screen-title);
+  line-height: var(--line-height-screen-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2);
+}
+.wl-sub{
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ── قائمة المزايا: أيقونة خطية + عنوان + سطر شرح ── */
+.wl-feats{
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.wl-feat{
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  text-align: start;
+}
+.wl-feat__ic{
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+.wl-feat__txt{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wl-feat__t{
+  font-size: var(--font-size-card-title);
+  line-height: var(--line-height-card-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+.wl-feat__s{
+  font-size: var(--font-size-caption);
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+/* ── الأزرار: عمود، والأساسي فوق ── */
+.wl-actions{
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  /* بتنزل لقاع الشاشة لما يكون فيه فراغ، وبتفضل في مكانها لما المحتوى يفيض */
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+/* الخطأ بياخد مكانه لما يظهر بس — سطر فاضي دايمًا بين الأزرار كان
+   بيوسّع المسافة ويفكّ مجموعة القرار بصريًا */
+.wl-err:empty{ display: none; }
+.wl-err{
+  margin: 0;
+  text-align: center;
+  font-size: var(--font-size-caption);
+  color: var(--color-danger);
+}
+/* «بدون حساب»: مقصود يبان أضعف من الباقي — خيار موجود مش مقترَح */
+.wl-skip{
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: var(--space-3) var(--space-2);
+  margin-top: var(--space-1);
+  font-family: inherit;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-disabled);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.wl-skip:hover{ color: var(--color-text-secondary); }
+.wl-skip:active{ transform: scale(.97); }
+.wl-skip:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+
+/* شاشات قصيرة (٦٤٠px وأقل، والهاتف الأفقي): نضغط الفراغات والعلامة عشان
+   الأزرار تفضل ظاهرة من غير تمرير */
+@media (max-height: 700px){
+  .wl-screen{ gap: var(--space-4); padding-top: calc(env(safe-area-inset-top, 0px) + var(--space-4)); }
+  .wl-info{ gap: var(--space-4); }
+  .wl-mark{ width: 62px; height: 62px; padding: 11px; margin-bottom: var(--space-3); }
+  .wl-title{ font-size: 22px; }
+  .wl-feats{ gap: var(--space-2); }
+  .wl-feat__ic{ width: 36px; height: 36px; }
+}
+/* أقصر الأجهزة المدعومة (٦٤٠px): آخر ٣٠px بتفرق بين «كل حاجة ظاهرة»
+   و«زر بدون حساب مقصوص لازمه تمرير» — والمستخدم في أول شاشة مش
+   بيتوقّع إن فيه تحت. نضغط الفراغات بس، مافيش نص بيتشال. */
+@media (max-height: 668px){
+  .wl-screen{ gap: var(--space-3); }
+  .wl-info{ gap: var(--space-3); }
+  .wl-mark{ width: 52px; height: 52px; padding: 9px; margin-bottom: var(--space-2); }
+  .wl-feats{ gap: var(--space-1); }
+  .wl-feat__s{ line-height: 1.4; }
+  .wl-sub{ font-size: var(--font-size-caption); }
+}
+/* الهاتف الأفقي: عمودان — التعريف يمين والقرار شمال، فمفيش تمرير أصلًا.
+   المزايا بتفضل ظاهرة (نصف الشاشة الرأسي كان فاضي لو شلناها) بس بعناوين
+   بلا سطر الشرح — الرسالة توصل والارتفاع يكفي. */
+@media (orientation: landscape) and (max-height: 560px){
+  .wl-screen{
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+    padding-inline: var(--space-6);
+  }
+  .wl-info{
+    flex: 0 1 440px;
+    max-width: 440px;
+    margin: 0;
+    gap: var(--space-4);
+  }
+  .wl-top{ text-align: start; margin: 0; max-width: none; }
+  .wl-feats{ gap: var(--space-2); max-width: none; }
+  .wl-feat__s{ display: none; }
+  .wl-actions{ margin: 0; flex: 0 0 320px; max-width: 320px; }
+  .wl-mark{ width: 56px; height: 56px; padding: 10px; margin-inline: 0; }
+}
+/* التابلت: نفس الشاشة الكاملة بمقاسات أوسع شوية. الفرق المهم إن المجموعة
+   كلها (تعريف + قرار) بتتمركز رأسيًا ككتلة واحدة: على ١٢٨٠px طول، شدّ
+   الأزرار للقاع كان بيسيب فراغ ٤٥٠px وسط الشاشة والتصميم يبان مفكوكًا. */
+@media (min-width: 700px) and (min-height: 800px){
+  .wl-mark{ width: 104px; height: 104px; padding: 19px; }
+  .wl-info, .wl-top, .wl-feats, .wl-actions{ max-width: 560px; }
+  .wl-screen{ gap: var(--space-7); justify-content: center; }
+  .wl-info{ flex: 0 0 auto; gap: var(--space-6); }
+  .wl-actions{ margin-top: 0; }
+}
+
 /* ── ورقة الأصدقاء ── */
 .fr-search{
   display: flex;
@@ -5026,6 +5254,117 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @media (max-width: 360px){
   .sp__clk{ font-size: .85rem; }
   .sp__nm{ font-size: .8rem; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   #14ب — المشاهدة ملء الشاشة
+   ────────────────────────────────────────────────────────────────────
+   المتفرّج مالوش حاجة تانية يعملها وهو بيتفرّج، فالنافذة الصغيرة في نص
+   الشاشة كانت بتضيّع ٤٥٪ من المساحة على خلفية معتّمة والرقعة تطلع ٣٥٦px
+   على هاتف عرضه ٤١٢. النافذة بقت تاخد الشاشة كلها والرقعة بتتحسب بنفس
+   طريقة رقعة اللعب (min بين العرض والطول المتاح) فتوصل ٤٠٠px.
+
+   --sp-chrome = كل اللي حوالين الرقعة رأسيًا: الرأس ٥٩ + حشو الجسم ١٨ +
+   شريط النوع ٢٤ + بارين لاعبين ٤٣×٢ + سجل النقلات ٦٤ + الأزرار ٤٥ +
+   خمس فواصل ٨ = ٣٥٣ (مقيسة على المتصفح مش مقدَّرة)، وبعدها المساحات
+   الآمنة (شريط الحالة والإيماءات).
+════════════════════════════════════════════════════════════════════ */
+#amkh-spectate{ padding: 0; align-items: stretch; justify-content: stretch; }
+#amkh-spectate .sp{
+  --sp-chrome: calc(357px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
+  --sp-brd: min(calc(100vw - 12px), calc(100dvh - var(--sp-chrome)), 860px);
+  width: 100%; max-width: none; height: 100%; max-height: none; margin: 0;
+  border: 0; border-radius: 0; box-shadow: none;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+#amkh-spectate .sp__head{ padding: 12px 14px; }
+#amkh-spectate .sp__load{ margin: auto; font-size: .9rem; }
+#amkh-spectate .sp__live{ font-size: .8rem; }
+#amkh-spectate .sp__watch{ font-size: .76rem; }
+#amkh-spectate .sp__x{ width: 34px; height: 34px; font-size: 15px; }
+/* الجسم عمود مرن: الرقعة بمقاسها المحسوب، والفراغ الزايد (على الشاشات
+   الطويلة) بيروح لسجل النقلات مش لفراغ ميت */
+#amkh-spectate .sp__body{
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 8px 6px 10px;
+}
+#amkh-spectate .sp__meta,
+#amkh-spectate .sp__note,
+#amkh-spectate .sp__mvbox,
+#amkh-spectate .sp__acts{ margin: 0; }
+#amkh-spectate .sp__brd{
+  width: var(--sp-brd); max-width: 100%; height: auto;
+  margin: 0 auto; flex: 0 0 auto; border-radius: 10px;
+}
+#amkh-spectate .sp__pl{ padding: 9px 11px; }
+#amkh-spectate .sp__nm{ font-size: .92rem; }
+#amkh-spectate .sp__clk{ font-size: 1.02rem; padding: 4px 10px; }
+#amkh-spectate .sp__mvbox{ flex: 1 1 auto; min-height: 64px; display: flex; }
+/* الفراغ الرأسي بيخلّي السجل يبان كشبكة نقلات متعددة السطور بدل شريط
+   أفقي بيتمرّر — نفس اللي بيحصل في مواقع الشطرنج على الشاشة الكبيرة */
+#amkh-spectate .sp__mvs{
+  flex: 1 1 auto; min-height: 0;
+  flex-wrap: wrap; align-content: flex-start; row-gap: 6px;
+  overflow-x: hidden; overflow-y: auto;
+}
+#amkh-spectate .sp__acts .ds-btn{ padding: 11px 12px; }
+/* سطر «انتهت المباراة» بيزيد ٤٢px على الطول المطلوب، فالرقعة بتصغر بنفس
+   المقدار — من غير كده الأزرار كانت بتنزل تحت حد الشاشة */
+#amkh-spectate .sp:has(.sp__note.is-on){
+  --sp-chrome: calc(399px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
+}
+/* وضع التحميل: عنصر واحد بس، فأي تخطيط أعمدة بيبعده عن النص */
+#amkh-spectate .sp__body:has(> .sp__load){ display: flex; }
+
+/* شاشة عريضة (تابلت/سطح مكتب): كل حاجة بعرض الرقعة نفسها وموسّطة — لو
+   سيبنا البارات وسجل النقلات يمتدّوا ١٢٦٨px بينفصلوا عن الرقعة بصريًا */
+@media (min-width: 700px) and (min-height: 561px){
+  #amkh-spectate .sp__body > *{
+    width: 100%; max-width: var(--sp-brd); margin-inline: auto;
+  }
+  #amkh-spectate .sp__nm{ font-size: 1rem; }
+  #amkh-spectate .sp__clk{ font-size: 1.1rem; }
+}
+
+/* شاشة قصيرة: سجل النقلات مخفي (نفس القاعدة العامة فوق — بنكرّرها
+   بأخصّية الـid عشان قاعدة display:flex الجديدة ماتغلبهاش)، فالمقاس
+   المتاح للرقعة بيزيد ٧٢px */
+@media (max-height: 700px){
+  #amkh-spectate .sp{
+    --sp-chrome: calc(285px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
+  }
+  #amkh-spectate .sp__mvbox{ display: none; }
+  #amkh-spectate .sp:has(.sp__note.is-on){
+    --sp-chrome: calc(327px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* أفقي: الرقعة عمود لوحدها على الجنب وباقي المعلومات في العمود التاني —
+   لو سيبناه عمود واحد كانت الرقعة هتطلع ٦٠px.
+   row-gap صفر مقصود: الرقعة بتمتد على صفوف كتير، وأي row-gap بيتحسب بين
+   كل الصفوف الفاضية دي فيزوّد ١٦٠px وهمية على طول الجسم. الفواصل بين
+   عناصر العمود التاني بـmargin بدالها. */
+@media (orientation: landscape) and (max-height: 560px){
+  #amkh-spectate .sp__body{
+    display: grid;
+    grid-template-columns: min(calc(100dvh - 72px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)), 56vw) minmax(0, 1fr);
+    grid-auto-rows: min-content; align-content: start;
+    row-gap: 0; column-gap: 10px; padding: 8px 10px 10px;
+  }
+  #amkh-spectate .sp__brd{
+    grid-column: 1; grid-row: 1 / span 30;
+    width: 100%; align-self: center;
+  }
+  #amkh-spectate .sp__meta,
+  #amkh-spectate .sp__pl,
+  #amkh-spectate .sp__note,
+  #amkh-spectate .sp__mvbox{ margin-bottom: 7px; }
+  #amkh-spectate .sp__mvbox{ display: flex; min-height: 0; }
+  #amkh-spectate .sp__mvs{ max-height: 92px; }
+  #amkh-spectate .sp__head{ padding: 8px 14px; }
+  #amkh-spectate .sp__acts .ds-btn{ padding: 9px 12px; }
 }
 
 

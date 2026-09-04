@@ -32,9 +32,15 @@
     /* ── مساعدات ── */
     me() { try { return Number(window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id) || null; } catch (e) { return null; } },
     _socket() {
-      const p = window.amkhAuth && window.amkhAuth._presWs;
-      if (p && p.readyState === 1) return p;
+      /* الموثّق بس: إشارات المكالمة على سوكت مجهول بتتبلع فالرنّة
+         ماتوصلش والمكالمة تفضل معلّقة. */
+      const A = window.amkhAuth;
+      const p = A && A._presWs;
+      if (p && p.readyState === 1 && p.__amkhAuthed) return p;
       const a = window.chessWs;
+      if (a && a.readyState === 1 && a.__amkhAuthed) return a;
+      if (A && A.revive) { try { A.revive('call'); } catch (e) {} }
+      if (p && p.readyState === 1) return p;
       if (a && a.readyState === 1) return a;
       return null;
     },

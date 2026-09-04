@@ -432,7 +432,16 @@ const amkhChat = {
   _sendOrQueue(frame, item, msg, scope, target) {
     const ws = this._socket();
     if (ws) {
-      try { ws.send(JSON.stringify(frame)); return 'sent'; } catch (e) {}
+      try {
+        ws.send(JSON.stringify(frame));
+        /* نمسك نسخة من العنصر لحد ما السيرفر يأكّد: لو ردّ بإن السوكت
+           مجهول (auth) نقدر نعيدها للمؤجَّل بدل ما تتفشّل على المستخدم. */
+        this._pendSent = this._pendSent || {};
+        const keys = Object.keys(this._pendSent);
+        if (keys.length > 60) delete this._pendSent[keys[0]];
+        this._pendSent[item.cid] = item;
+        return 'sent';
+      } catch (e) {}
     }
     if (this._queueOut(item)) {
       if (msg) msg.queued = true;
@@ -705,6 +714,28 @@ const amkhChat = {
     } catch (e) {}
   },
 
+  /* ── السوكت مجهول عند السيرفر (reason: auth) ──
+     مش خطأ في الرسالة ولا في الصلاحيات: السوكت اتفتح من غير تعريف، أو
+     الجهاز صحي من النوم فالسوكت القديم مات. الرسالة مايصحّش تتفشّل —
+     بنعرّف السوكت من جديد ونرجّعها للمؤجَّل، فتتبعت لوحدها بعد ثواني.
+     ده اللي بيغني عن «تسجيل خروج ودخول» اللي كان الحل الوحيد قبل كده. */
+  _onAuthError(d, isGroup) {
+    const cid = d && d.client_id;
+    if (cid) {
+      const stores = isGroup ? this._gmsgs : this._msgs;
+      for (const k of Object.keys(stores || {})) {
+        const m = (stores[k] || []).find(x => x.client_id === cid);
+        if (m) { m.pending = true; m.failed = false; m.queued = true; break; }
+      }
+      const it = this._pendSent && this._pendSent[cid];
+      if (it) { delete this._pendSent[cid]; this._queueOut(it); }
+    }
+    try { if (window.amkhAuth && window.amkhAuth.revive) window.amkhAuth.revive('chat-auth'); } catch (e) {}
+    clearTimeout(this._authRetryT);
+    this._authRetryT = setTimeout(() => { try { this._flushOutbox(); } catch (e) {} }, 2500);
+    return true;
+  },
+
   handleSocketMessage(d) {
     if (!d || typeof d.type !== 'string') return false;
     switch (d.type) {
@@ -718,6 +749,7 @@ const amkhChat = {
       case 'chat:recording': return this._onRecording(d);
       case 'chat:unread': return this._onUnreadSnapshot(d);
       case 'chat:error':
+        if (d.reason === 'auth') return this._onAuthError(d, false);
         this._onSendError(d, false);
         window.amkhUI.notify(
           d.reason === 'not-friend' ? 'يجب أن يكون صديقًا لك أولًا'
@@ -735,6 +767,7 @@ const amkhChat = {
       case 'group:created': return this._onGroupCreated(d);
       case 'group:updated': return this._onGroupUpdated(d);
       case 'group:error':
+        if (d.reason === 'auth') return this._onAuthError(d, true);
         this._onSendError(d, true);
         if (d.reason === 'closed') {
           const gid = d.group_id;
@@ -968,6 +1001,7 @@ const amkhChat = {
     if (!d || !d.client_id) return;
     const cid = d.client_id;
     this._dequeueOut(cid);   /* السيرفر رفضها → مانعيدش المحاولة للأبد (#8) */
+    if (this._pendSent) delete this._pendSent[cid];
     const stores = isGroup ? this._gmsgs : this._msgs;
     for (const k of Object.keys(stores || {})) {
       const m = (stores[k] || []).find(x => x.client_id === cid);
@@ -1178,6 +1212,7 @@ const amkhChat = {
     this._sheet = overlay;
     this._openWith = fid;
     this._reply = null;
+    this._anchorScroll(overlay.querySelector('#ch-scroll'));
 
     overlay.querySelector('.ch-conv__name').textContent = name;
     this._paintAvatar(overlay.querySelector('.ch-conv__av'), this._friendMeta[fid]);
@@ -2358,6 +2393,36 @@ const amkhChat = {
     if (scroll) requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
   },
 
+  /* ── تثبيت موضع القراءة عند تغيّر ارتفاع منطقة الرسائل (#4د) ──
+     فتح الكيبورد يقصّ ارتفاع #ch-scroll بمقدار الكيبورد كاملًا (٣٣٦px على
+     التابلت ≈ أربع رسائل)، والمتصفح يحافظ على scrollTop لا على المسافة من
+     القاع — فالمحادثة كانت تنزلق إلى أعلى بمقدار الكيبورد لحظة الكتابة،
+     فيرى المستخدم وسط المحادثة بدل الرسالة التي يردّ عليها، ثم تنزلق مرّةً
+     أخرى عند إغلاق الكيبورد. القياس أثبته على كل مقاس: الفرق = ارتفاع
+     الكيبورد بالضبط. الحلّ: نحفظ المسافة من القاع مع كل تمرير ونستعيدها
+     بعد أي تغيّر في الارتفاع — عند آخر رسالة تبقى عندها، وفي منتصف
+     الأرشيف تبقى في موضعك. ينفع كذلك لشريط الردّ والتثبيت وتدوير الجهاز. */
+  _anchorScroll(el) {
+    if (!el || el._anchored) return;
+    el._anchored = true;
+    let dist = 0, fixing = false, lastH = el.clientHeight;
+    /* لا نقرأ المسافة إلا والارتفاع مستقرّ: تغيّر الارتفاع نفسه قد يقصّ
+       scrollTop ويُطلق حدث تمرير قبل أن نصحّح، فتُقرأ مسافة ملوّثة. */
+    const read = () => { if (!fixing && el.clientHeight === lastH) dist = Math.max(0, el.scrollHeight - el.scrollTop - el.clientHeight); };
+    el.addEventListener('scroll', read, { passive: true });
+    read();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (el.clientHeight === lastH) return;
+      lastH = el.clientHeight;
+      fixing = true;
+      el.scrollTop = Math.max(0, el.scrollHeight - el.clientHeight - dist);
+      requestAnimationFrame(() => { fixing = false; });
+    });
+    ro.observe(el);
+    el._anchorRO = ro;
+  },
+
   _showTypingRow() { const t = this._sheet && this._sheet.querySelector('#ch-typing'); if (t) { t.hidden = false; this._scrollBottom(); } },
   _clearTypingRow() { const t = this._sheet && this._sheet.querySelector('#ch-typing'); if (t) t.hidden = true; },
 
@@ -3108,6 +3173,7 @@ const amkhChat = {
     this._openGroup = gid;
     this._reply = null;
     this._openWith = null;
+    this._anchorScroll(overlay.querySelector('#ch-scroll'));
 
     overlay.querySelector('.ch-conv__name').textContent = this._gmeta[gid].name;
     this._paintGroupAvatar(overlay.querySelector('#ch-grp-av'), this._gmeta[gid]);

@@ -855,18 +855,18 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
 /* ══ إصدار التطبيق (#136) ══
    العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
    أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الوسم واسم الملف
-   بيتبعوا رقم الإصدار (v3.11 / chess-amkh-3.11.apk) عشان اللي بينزّل
+   بيتبعوا رقم الإصدار (v3.12 / chess-amkh-3.12.apk) عشان اللي بينزّل
    يدويًا من الموقع يعرف إيه اللي معاه. نبمب LATEST_* هنا مع كل إصدار. */
-const LATEST_VERSION = '3.11';
-const LATEST_CODE = 27;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.11/chess-amkh-3.11.apk';
+const LATEST_VERSION = '3.12';
+const LATEST_CODE = 28;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.12/chess-amkh-3.12.apk';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'أسماء الأصدقاء تظهر كاملة، ومزامنة الاسم والصورة بعد التثبيت، ولوحة مفاتيح مستقرّة على الأجهزة اللوحية، ومحادثة بملء الشاشة على الهاتف واللوحي. صار بإمكانك مشاهدة مباريات أصدقائك المحلية أيضًا — أمام نور أو المحرّك أو لاعبين على جهاز واحد. وأُضيف تثبيت المحادثات لمدّة محدّدة يُلغى تلقائيًا، وظهور فوري لرسائل الحفلات مع إرسال مؤجَّل يعمل دون اتصال، وقائمة رسالة أنيقة بالضغط المطوّل، وإعدادات خصوصية مُنفَّذة فعليًا.',
+    notes: 'شاشة ترحيب عند أول تشغيل تُعرّفك بما يمنحه الحساب — أصدقاء ومباريات مصنّفة ومحادثات ومزامنة للتقدّم — مع إمكان المتابعة دون حساب في أي وقت. وصار حضور الأصدقاء يُحدَّث فور عودة الاتصال فلا يظهر المتصل غائبًا، وانتهت مشكلة بقاء شارة المشاهدة معلّقة بعد نهاية المباراة. وأصبحت لوحة الصدارة تُفتح فوق المحادثة لا تحتها، واستقرّت لوحة المفاتيح ومربّع الكتابة في المحادثة على الأجهزة اللوحية، وتُعرض المباراة المُشاهَدة بملء الشاشة برقعة أكبر. وأُصلحت إشارات المكالمات التي كانت تُفقد أحيانًا فلا تصل الرنّة أو لا تبدأ المباراة بعد قبول الدعوة.',
   });
 });
 
@@ -1960,6 +1960,10 @@ function spectatorsOf(code) {
 function spectatorSnapshot(room) {
   const nameOf = (side) => (room[side] && room[side].name) || 'لاعب';
   const hostIsWhite = room.host && room.host.color === 'w';
+  /* الساعة لازم تتخصم منها نوبة اللاعب الجارية: room.clock.w هي القيمة
+     المخزّنة عند آخر نقلة، فلو المتفرّج دخل في نص التفكير كان بيشوف وقت
+     أكتر من الحقيقي لحد النقلة اللي بعدها. */
+  const now = Date.now();
   return {
     type: 'spectate:started',
     room: room.code,
@@ -1970,7 +1974,11 @@ function spectatorSnapshot(room) {
     black_id: hostIsWhite ? room.guestId : room.hostId,
     moves: (room.mvLog || []).slice(),
     tc: room.tc || null,
-    clock: room.clock ? { w: room.clock.w, b: room.clock.b, turn: room.clock.turn, running: !!room.clock.running } : null,
+    clock: room.clock ? {
+      w: clockRemaining(room, 'w', now),
+      b: clockRemaining(room, 'b', now),
+      turn: room.clock.turn, running: !!room.clock.running,
+    } : null,
     ended: !!room.ended,
   };
 }
@@ -2450,11 +2458,16 @@ wss.on('connection', (ws, req) => {
         const { token } = msg;
         if (!token) break;
         jwt.verify(token, JWT_SECRET, (err, user) => {
-          if (err) return;
+          /* لازم نردّ بالفشل كمان: العميل كان يفضل مستنّي تعريف مانجحش
+             أبدًا ويفتكر نفسه موثّقًا، فكل رسالة بعدها ترجّع auth. */
+          if (err) { try { send(ws, { type: 'presence:fail', reason: 'bad-token' }); } catch (e) {} return; }
           const userId = user.id;
           socketUser.set(ws, userId);
           if (!userSockets.has(userId)) userSockets.set(userId, new Set());
           userSockets.get(userId).add(ws);
+          /* إيصال التوثيق: من غيره العميل مش عارف إن السوكت ده يقدر يبعت
+             رسايل ودعوات ومشاهدة، فكان بيبعت على سوكت مجهول ويفشل. */
+          try { send(ws, { type: 'presence:ok', user_id: userId }); } catch (e) {}
 
           try {
             db.prepare('INSERT OR IGNORE INTO presence (user_id) VALUES (?)').run(userId);
@@ -2578,6 +2591,11 @@ wss.on('connection', (ws, req) => {
             db.prepare(`UPDATE presence SET is_online = 1, last_seen_at = datetime('now') WHERE user_id = ?`).run(userId);
           } catch (e) {}
         }
+        /* الردّ ضروري لسببين: (١) العميل يكتشف السوكت «الميت الصامت» —
+           اللي بيفضل readyState=1 بعد تغيير الشبكة والرسايل بتروح للعدم؛
+           (٢) authed=false تقول له إن السوكت مجهول عند السيرفر فيعيد
+           التعريف بنفسه بدل ما يفضل يفشل لحد ما المستخدم يسجّل خروج. */
+        try { send(ws, { type: 'presence:pong', authed: !!userId }); } catch (e) {}
         break;
       }
 
@@ -2637,7 +2655,9 @@ wss.on('connection', (ws, req) => {
          عدد المتفرّجين. */
       case 'spectate:start': {
         const me = socketUser.get(ws);
-        if (!me) { send(ws, { type: 'spectate:error', error: 'سجّل الدخول أولًا' }); break; }
+        /* المستخدم مسجّل فعلًا — السوكت هو اللي مجهول. الكود ده بيخلّي
+           العميل يعرّف نفسه ويعيد المحاولة لوحده بدل رسالة مضلّلة. */
+        if (!me) { send(ws, { type: 'spectate:error', code: 'auth', error: 'جارٍ استعادة الاتصال…' }); break; }
         const target = Number(msg.friend_id || msg.user_id || 0);
         if (!target) { send(ws, { type: 'spectate:error', error: 'صديق غير صحيح' }); break; }
         if (target === me) { send(ws, { type: 'spectate:error', error: 'لا يمكنك مشاهدة نفسك' }); break; }
@@ -2781,7 +2801,10 @@ wss.on('connection', (ws, req) => {
       case 'friend:invite': {
         const senderId = socketUser.get(ws);
         const friendId = Number(msg.friend_id);
-        if (!senderId || !friendId) break;
+        /* السوكت مجهول → لازم نقول، مانسكتش: الداعي كان يشوف «أُرسلت
+           الدعوة» والدعوة ماخرجتش من الجهاز أصلًا. */
+        if (!senderId) { send(ws, { type: 'friend:invite-error', reason: 'auth' }); break; }
+        if (!friendId) break;
         try {
           const isFriend = db.prepare('SELECT 1 FROM friendships WHERE user_id = ? AND friend_id = ?').get(senderId, friendId);
           if (!isFriend) { send(ws, { type: 'friend:invite-error', reason: 'not-friend' }); break; }
@@ -2825,7 +2848,9 @@ wss.on('connection', (ws, req) => {
         const me = socketUser.get(ws);
         const inviteId = Number(msg.invite_id);
         const accept = msg.action === 'accept';
-        if (!me || !inviteId) break;
+        /* القبول اللي بيضيع في السكوت = المدعو وافق ومحصلش مباراة. */
+        if (!me) { send(ws, { type: 'friend:invite-error', reason: 'auth' }); break; }
+        if (!inviteId) break;
         try {
           const inv = db.prepare(`SELECT * FROM game_invites WHERE id = ? AND to_id = ? AND status = 'pending'`).get(inviteId, me);
           if (!inv) { send(ws, { type: 'friend:invite-error', reason: 'expired' }); break; }

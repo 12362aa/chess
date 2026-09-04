@@ -119,13 +119,20 @@ const amkhUI = {
        ده بالظبط «الأيقونة تفتح النافذة وتختفي». بنتجاهل إغلاق الخلفية
        أول ٤٥٠ms عشان نمتص نقرة الشبح. (مالوش أي أثر على المتصفح). */
     let openedAt = 0;
-    overlay.addEventListener('click', e => {
-      if (e.target !== overlay) return;
-      if (openedAt && (Date.now() - openedAt) < 450) return;
-      dismiss();
-    });
     const onKey = e => { if (e.key === 'Escape') dismiss(); };
-    document.addEventListener('keydown', onKey);
+    /* opts.persistent: نافذة مالهاش خروج ضمني — لا نقرة على الخلفية ولا
+       Escape بيقفلوها، والإغلاق بيحصل من أزرارها بس. شاشة الترحيب أول
+       تشغيل محتاجة ده: لازم المستخدم ياخد قرارًا صريحًا (حساب / جوجل /
+       بدون حساب) مش يهرب منها بنقرة على الحاشية فيفضل بلا حساب من غير
+       ما يعرف إن فيه أصلًا. الافتراضي زي ما كان. */
+    if (!(opts && opts.persistent)) {
+      overlay.addEventListener('click', e => {
+        if (e.target !== overlay) return;
+        if (openedAt && (Date.now() - openedAt) < 450) return;
+        dismiss();
+      });
+      document.addEventListener('keydown', onKey);
+    }
 
     overlay.querySelectorAll('[data-close]').forEach(b => {
       b.addEventListener('click', () => { this.sfx(); dismiss(); });
@@ -222,6 +229,10 @@ const amkhAuth = {
     } else {
       this.updateUI();
     }
+    /* شاشة الترحيب (أول تشغيل بلا حساب). بتتنادى في الحالتين والدالة نفسها
+       بتتأكد من الشروط: مافيش توكن + مالهاش ظهور قبل كده. حطّها هنا مش في
+       فرع الـelse لأن logout() فوق ممكن يخلّينا بلا توكن كذلك. */
+    try { if (window.amkhWelcome) window.amkhWelcome.maybeShow(); } catch (e) {}
   },
 
   /* بترجّع 'ok' لو البيانات جت، 'invalid' لو التوكن مرفوض فعلًا،
@@ -652,26 +663,127 @@ const amkhAuth = {
   _presTimer: null,
   _presPing: null,
   _presBackoff: 1000,
+  _presWaitPong: 0,
+  _presHooked: false,
+
+  /* ── تعريف أي سوكت ──
+     أخطر عطل في النظام كان إن سوكت الأونلاين (window.chessWs) بيتفتح من
+     غير «presence:hello»، فالسيرفر مايعرفهوش. ووحدة الأصدقاء بتسقط عليه
+     لما سوكت الحضور يكون مقفول، فكل رسالة/دعوة/مشاهدة ترجّع auth
+     والأصدقاء يبانوا غير متصلين — والحل الوحيد كان تسجيل خروج ودخول.
+     الدالة دي بتخلّي أي سوكت موثّقًا، وبتُنادى من كل مكان بيفتح سوكت. */
+  identify(ws) {
+    if (!ws || ws.readyState !== 1 || !this.token) return false;
+    try {
+      ws.send(JSON.stringify({ type: 'presence:hello', token: this.token }));
+      ws.__amkhHelloAt = Date.now();
+      return true;
+    } catch (e) { return false; }
+  },
+
+  /* هل السوكت ده يقدر يبعت رسايل ودعوات فعلاً؟ (وصله إيصال التوثيق) */
+  isIdentified(ws) { return !!(ws && ws.readyState === 1 && ws.__amkhAuthed); },
 
   connectPresence() {
     if (!this.token) return;
-    /* لو الأونلاين عنده سوكت مفتوح، نستخدمه ونبعت التعريف عليه */
+    this._hookRevive();
+    /* لو الأونلاين عنده سوكت مفتوح، نعرّفه كمان — سوكت واحد موثّق أحسن */
     const shared = window.chessWs;
-    if (shared && shared.readyState === 1) {
-      try { shared.send(JSON.stringify({ type: 'presence:hello', token: this.token })); } catch (e) {}
-      /* #8 — رسائل مؤجَّلة من وقت الانقطاع: تتبعت لوحدها هنا */
-      try { if (window.amkhChat && window.amkhChat._flushOutbox) window.amkhChat._flushOutbox(); } catch (e) {}
-      /* #5 — والمباراة المحلية الشغّالة تُبَثّ من جديد على السوكت ده */
-      try { if (window.amkhLocalCast && window.amkhLocalCast.resume) window.amkhLocalCast.resume(); } catch (e) {}
-    }
+    if (shared && shared.readyState === 1) this.identify(shared);
     /* وبرضه بنفتح سوكتنا لو مفيش واحد شغّال — الحضور لازم يفضل حتى لو
        المستخدم مافتحش الأونلاين خالص */
     if (this._presWs && (this._presWs.readyState === 0 || this._presWs.readyState === 1)) return;
     this._openPresence();
   },
 
+  /* ── معالج رسايل الحضور ──
+     بيُنادى من سوكت الحضور ومن سوكت الأونلاين، فأي سوكت بيعرف حالته. */
+  _onPresenceFrame(d, ws) {
+    if (d.type === 'presence:ok') {
+      ws.__amkhAuthed = true;
+      this._presWaitPong = 0;
+      this._presBackoff = 1000;
+      this._afterIdentified(ws);
+      return true;
+    }
+    if (d.type === 'presence:pong') {
+      this._presWaitPong = 0;
+      /* السيرفر بيقول إن السوكت ده مجهول عنده → نعرّفه من غير أي تدخّل
+         من المستخدم. ده اللي بيمنع «تسجيل خروج ودخول» نهائيًا. */
+      if (d.authed === false) { ws.__amkhAuthed = false; this.identify(ws); }
+      else ws.__amkhAuthed = true;
+      return true;
+    }
+    if (d.type === 'presence:fail') { ws.__amkhAuthed = false; return true; }
+    return false;
+  },
+
+  /* بعد ما التوثيق يتأكّد فعلاً — مش وقت فتح السوكت. الترتيب ده مهم:
+     الرسايل المؤجَّلة والبثّ المحلي كانوا بيتبعتوا قبل ما السيرفر يعرف
+     مين صاحب السوكت، فيفشلوا بصمت. */
+  _afterIdentified(ws) {
+    try { if (window.amkhFriends && window.amkhFriends.loadPartyInvites) window.amkhFriends.loadPartyInvites(); } catch (e) {}
+    try { if (window.amkhChat && window.amkhChat._flushOutbox) window.amkhChat._flushOutbox(); } catch (e) {}
+    try { if (window.amkhLocalCast && window.amkhLocalCast.resume) window.amkhLocalCast.resume(); } catch (e) {}
+    /* حالة «في مباراة» بتموت مع السوكت القديم — نبعتها تاني */
+    try { if (window.amkhLocalActivityResend) window.amkhLocalActivityResend(); } catch (e) {}
+    /* حالات الأصدقاء بتتأخّر لحد أول بثّ؛ التحديث الفوري بيخلّي «متصل
+       الآن» يبان لحظة رجوع الاتصال بدل ما يفضل «غير متصل» غلط. */
+    try { if (window.amkhFriends && window.amkhFriends.refreshPresence) window.amkhFriends.refreshPresence(); } catch (e) {}
+  },
+
+
+  /* ── إعادة الإحياء ──
+     أندرويد بيجمّد الـWebView وقت ما التطبيق يبقى في الخلفية: السوكت
+     بيموت، والمؤقّتات بتتخنق، وممكن onclose ماتوصلش لدقايق. من غير
+     الإحياء ده كان اللاعب يرجع للتطبيق فيلاقي نفسه «غير متصل» بلا رجعة.
+     بنُنادى من: رجوع التطبيق، ظهور الصفحة، رجوع الشبكة، وفتح الشاشات. */
+  revive(reason) {
+    if (!this.token) return;
+    /* كتم التكرار: visibility + focus + online بييجوا مع بعض، ووحدة
+       الأصدقاء بتطلب الإحياء مع كل محاولة إرسال. */
+    const now = Date.now();
+    if (this._reviveAt && now - this._reviveAt < 1500) return;
+    this._reviveAt = now;
+    this._presBackoff = 1000;
+    this._presWaitPong = 0;
+    clearTimeout(this._presTimer);
+    const p = this._presWs;
+    if (p && p.readyState === 1) {
+      /* نبضة فحص فورية: لو السوكت «ميت صامت» مش هيردّ، فالمراقب هيقفله
+         ويفتح غيره. ولو مش موثّق نعرّفه دلوقتي. */
+      this._presWaitPong = 1;
+      try { p.send(JSON.stringify({ type: 'presence:ping' })); } catch (e) {}
+      if (!p.__amkhAuthed) this.identify(p);
+      clearTimeout(this._presCheck);
+      this._presCheck = setTimeout(() => {
+        if (this._presWaitPong > 0 && this._presWs === p) { try { p.close(); } catch (e) {} }
+      }, 6000);
+    } else if (!p || p.readyState !== 0) {
+      this._presWs = null;
+      this._openPresence();
+    }
+    const a = window.chessWs;
+    if (a && a.readyState === 1 && !a.__amkhAuthed) this.identify(a);
+  },
+
+  _hookRevive() {
+    if (this._presHooked) return;
+    this._presHooked = true;
+    const go = (why) => { try { this.revive(why); } catch (e) {} };
+    try { document.addEventListener('visibilitychange', () => { if (!document.hidden) go('visible'); }); } catch (e) {}
+    try { window.addEventListener('online', () => go('net')); } catch (e) {}
+    try { window.addEventListener('focus', () => go('focus')); } catch (e) {}
+    try {
+      const C = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+      if (C && C.addListener) C.addListener('appStateChange', (s) => { if (s && s.isActive) go('app'); });
+    } catch (e) {}
+  },
+
   async _openPresence() {
     if (!this.token) return;
+    /* حرس ضدّ سوكتات متوازية: أي نداء تاني وإحنا بنتصل أو متصلين يرجع */
+    if (this._presWs && (this._presWs.readyState === 0 || this._presWs.readyState === 1)) return;
     if (window.amkhEnsureServer && !await window.amkhEnsureServer()) {
       /* السيرفر مش متاح — نحاول تاني بعد شوية */
       clearTimeout(this._presTimer);
@@ -679,30 +791,48 @@ const amkhAuth = {
       return;
     }
     const base = window.SERVER_HTTP;
-    if (!base) return;
+    if (!base) {
+      clearTimeout(this._presTimer);
+      this._presTimer = setTimeout(() => this._openPresence(), 10000);
+      return;
+    }
     const url = base.replace(/^https:/i, 'wss:').replace(/^http:/i, 'ws:');
     let ws;
-    try { ws = new WebSocket(url); } catch (e) { return; }
+    try { ws = new WebSocket(url); } catch (e) {
+      clearTimeout(this._presTimer);
+      this._presTimer = setTimeout(() => this._openPresence(), 5000);
+      return;
+    }
     this._presWs = ws;
+    /* اتصال معلّق للأبد (شبكة نصف واقعة) كان بيوقف كل إعادة المحاولة
+       لأن الحرس فوق شايفه «بيتصل». المهلة دي بتفكّ القفلة. */
+    clearTimeout(this._presOpenTo);
+    this._presOpenTo = setTimeout(() => {
+      if (ws.readyState === 0) { try { ws.close(); } catch (e) {} }
+    }, 9000);
 
     ws.onopen = () => {
+      clearTimeout(this._presOpenTo);
       this._presBackoff = 1000;
-      try { ws.send(JSON.stringify({ type: 'presence:hello', token: this.token })); } catch (e) {}
-      /* دعوات الحفلات اللي وصلت والتطبيق كان مقفول — نجيبها ونعرضها. */
-      try { if (window.amkhFriends && window.amkhFriends.loadPartyInvites) window.amkhFriends.loadPartyInvites(); } catch (e) {}
-      /* #8 — أي رسالة اتكتبت وقت الانقطاع تتبعت دلوقتي بترتيبها */
-      try { if (window.amkhChat && window.amkhChat._flushOutbox) window.amkhChat._flushOutbox(); } catch (e) {}
-      /* #5 — مباراة محلية لسه شغّالة على الشاشة؟ نعيد بثّها عشان
-         المتفرّجين مايتعلّقوش والأصدقاء يشوفوا «في مباراة» تاني. */
-      try { if (window.amkhLocalCast && window.amkhLocalCast.resume) window.amkhLocalCast.resume(); } catch (e) {}
+      this._presWaitPong = 0;
+      ws.__amkhAuthed = false;
+      this.identify(ws);
       clearInterval(this._presPing);
-      /* نبضة أقصر من مهلة الخمول في أي وسيط (ngrok بيقطع بعد ~60ث) */
+      /* نبضة كل 15 ثانية بردّ مطلوب: الوسطاء مايقطعوش الاتصال الساكت،
+         وفي نفس الوقت بنكتشف السوكت الميت الصامت بعد ~30 ثانية بدل ما
+         يفضل «مفتوح» شكليًا والرسايل تروح للعدم. */
       this._presPing = setInterval(() => {
-        if (ws.readyState === 1) {
-          try { ws.send(JSON.stringify({ type: 'presence:ping' })); } catch (e) {}
+        if (ws.readyState !== 1) return;
+        if (this._presWaitPong >= 2) {
+          this._presWaitPong = 0;
+          try { ws.close(); } catch (e) {}
+          return;
         }
-      }, 25000);
+        this._presWaitPong++;
+        try { ws.send(JSON.stringify({ type: 'presence:ping' })); } catch (e) {}
+      }, 15000);
     };
+
 
     /* رسائل الأصدقاء (طلبات، دعوات، حضور) بتوصل على السوكت ده كمان لما
        الأونلاين مش مفتوح، فبنمرّرها لنفس المعالج. وكمان: مباراة الصديق
@@ -714,6 +844,8 @@ const amkhAuth = {
       let d = null;
       try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d || typeof d.type !== 'string') return;
+      /* إيصالات التوثيق والنبض أول حاجة: عليها بيتبنى كل الباقي */
+      if (d.type.indexOf('presence:') === 0 && this._onPresenceFrame(d, ws)) return;
       if (d.type.indexOf('chat:') === 0) {
         try { if (window.amkhChat) window.amkhChat.handleSocketMessage(d); } catch (e) {}
         return;
@@ -761,11 +893,16 @@ const amkhAuth = {
 
     ws.onclose = () => {
       clearInterval(this._presPing);
+      clearTimeout(this._presOpenTo);
+      clearTimeout(this._presCheck);
+      ws.__amkhAuthed = false;
       /* لو كانت مباراة صديق ماشية على السوكت ده، نبلّغ وحدة الأونلاين إنها
          انقطعت (زي أي انقطاع أونلاين) قبل ما نعيد الاتصال للحضور */
       try { if (window.OL && window.OL._presenceLost) window.OL._presenceLost(); } catch (e) {}
+      if (this._presWs === ws) this._presWs = null;
       if (!this.token) return;
-      /* تأخير متزايد بحد أقصى 30 ثانية: مانضربش السيرفر لو هو واقع */
+      /* تأخير متزايد بحد أقصى 30 ثانية: مانضربش السيرفر لو هو واقع.
+         بس أول محاولة بتبقى فورية تقريبًا عشان القطع اللحظي مايستمرّش. */
       clearTimeout(this._presTimer);
       this._presTimer = setTimeout(() => this._openPresence(), this._presBackoff);
       this._presBackoff = Math.min(this._presBackoff * 2, 30000);
@@ -776,6 +913,8 @@ const amkhAuth = {
   disconnectPresence() {
     clearInterval(this._presPing);
     clearTimeout(this._presTimer);
+    clearTimeout(this._presOpenTo);
+    clearTimeout(this._presCheck);
     if (this._presWs) { try { this._presWs.close(); } catch (e) {} this._presWs = null; }
   },
 
@@ -783,6 +922,10 @@ const amkhAuth = {
   /* زر الحساب بيعيش جوه شريط التطبيق جنب الإعدادات — مش زر عايم فوق
      الشاشة. أيقونة بس، من غير إيموجي، وبتتغير لما نكون داخلين. */
   updateUI() {
+    /* بقى داخلًا بأي مسار (بريد، جوجل، أو جلسة مستعادة) → شاشة الترحيب
+       مالهاش لازمة. تحوّط: كل زر فيها بيقفلها بنفسه، لكن ده بيضمن إنها
+       ماتفضلش معلّقة لو الدخول جا من مكان تالت. */
+    if (this.user) { try { if (window.amkhWelcome) window.amkhWelcome.close(); } catch (e) {} }
     const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
     const trail = document.querySelector('.appbar__trail');
     let btn = document.getElementById('amkh-auth-btn');
@@ -834,7 +977,11 @@ const amkhAuth = {
     }
   },
 
-  showLoginModal() {
+  /* opts.register: تفتح على وضع «إنشاء حساب» على طول (شاشة الترحيب).
+     opts.onSuccess: تتنادى بعد أي دخول ناجح (بريد أو جوجل) — شاشة الترحيب
+     بتستخدمها عشان تقفل نفسها، لأنها بتفضل مفتوحة تحت نافذة الدخول
+     فلو المستخدم قفل النافذة من غير تسجيل يرجع يلاقيها زي ما هي. */
+  showLoginModal(opts) {
     const overlay = amkhUI.mount('amkh-auth-modal', `
       <div class="ds-dialog amkh-auth-dialog">
         <div class="ds-dialog__icon" aria-hidden="true">
@@ -900,6 +1047,7 @@ const amkhAuth = {
           if (r.success) {
             amkhUI.close(overlay);
             amkhAuth.updateUI();
+            if (opts && typeof opts.onSuccess === 'function') { try { opts.onSuccess(); } catch (e) {} }
             amkhUI.notify('أهلًا بك! تم تسجيل الدخول', 'تم', '◉');
           } else if (!r.cancelled) {
             errDiv.textContent = r.error || 'تعذّر الدخول';
@@ -908,11 +1056,12 @@ const amkhAuth = {
       }
     }
 
-    toggleBtn.onclick = () => {
-      amkhUI.sfx();
-      isRegisterMode = !isRegisterMode;
+    /* التبديل بين الدخول والتسجيل بقى دالة مستقلة عشان شاشة الترحيب تقدر
+       تفتح النافذة على وضع التسجيل مباشرة من غير ما تزوّر نقرة على الزر */
+    const setMode = reg => {
+      isRegisterMode = reg;
       errDiv.textContent = '';
-      if (isRegisterMode) {
+      if (reg) {
         titleEl.textContent = 'إنشاء حساب جديد';
         subEl.textContent = 'حسابك يحفظ تقدّمك في المراحل وإعداداتك على أي جهاز';
         nameField.style.display = '';
@@ -926,6 +1075,8 @@ const amkhAuth = {
         toggleBtn.textContent = 'ليس لديك حساب؟ أنشئ حسابًا';
       }
     };
+
+    toggleBtn.onclick = () => { amkhUI.sfx(); setMode(!isRegisterMode); };
 
     loginBtn.onclick = async () => {
       amkhUI.sfx();
@@ -952,9 +1103,13 @@ const amkhAuth = {
       loginBtn.disabled = false;
       loginBtn.textContent = label;
 
-      if (res && res.success) overlay._dismiss();
-      else errDiv.textContent = (res && res.error) || 'حدث خطأ، حاول مرة أخرى';
+      if (res && res.success) {
+        overlay._dismiss();
+        if (opts && typeof opts.onSuccess === 'function') { try { opts.onSuccess(); } catch (e) {} }
+      } else errDiv.textContent = (res && res.error) || 'حدث خطأ، حاول مرة أخرى';
     };
+
+    if (opts && opts.register) setMode(true);
   },
 
   showProfileModal() {
