@@ -327,6 +327,46 @@ const amkhAuth = {
     };
   },
 
+  /* ══════════════════════════════════════════════════════════════
+     فحص البريد قبل طلب الرمز — نسخة العميل (بلا شبكة)
+     بلاغ: «الرمز بيوصل على بريد التطبيق نفسه، وبعد وقت طويل». السبب إن
+     العنوان المكتوب كان **غير موجود**: جيميل قبل الرسالة منّنا وبعد عشر
+     دقايق رجّعها كـ«فشل تسليم» لصاحب حساب الإرسال، ورسالة الارتجاع
+     جوّاها الرسالة الأصلية بالرمز. فمافيش خطأ في المستلم — بس مافيش كان
+     حاجز يمنع العنوان الغلط من الأصل. الفحص ده هو الحاجز:
+     نطاق مكتوب غلط، أو اسم جيميل خارج قواعد جوجل المعلنة، أو نقط في
+     مكان غلط. الخادم بيكرّره ويزوّد عليه استعلام MX.
+     بترجّع نصّ الخطأ، أو null لو مافيش مشكلة.
+     ══════════════════════════════════════════════════════════════ */
+  emailProblem(raw) {
+    const email = String(raw || '').trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'أدخل بريدًا إلكترونيًا صحيحًا';
+    const at = email.lastIndexOf('@');
+    const local = email.slice(0, at), domain = email.slice(at + 1);
+    if (local.length > 64 || email.length > 254) return 'البريد طويل بشكل غير معتاد — راجع كتابته';
+    if (/^\.|\.$|\.\./.test(local)) return 'البريد يحتوي نقطة في مكان غير صحيح — راجع كتابته';
+    if (/[^a-z0-9.!#$%&'*+/=?^_`{|}~-]/.test(local)) return 'البريد يحتوي محارف غير مسموحة — راجع كتابته';
+    if (/^[.-]|[.-]$|\.\./.test(domain) || !/^[a-z0-9.-]+$/.test(domain)) return 'اسم نطاق البريد غير صحيح — راجع كتابته';
+    const tld = domain.slice(domain.lastIndexOf('.') + 1);
+    if (tld.length < 2 || /[^a-z]/.test(tld)) return 'امتداد البريد غير صحيح — راجع كتابته';
+    const TYPOS = {
+      'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmail.co': 'gmail.com',
+      'gmail.con': 'gmail.com', 'gmail.cm': 'gmail.com', 'gmaill.com': 'gmail.com',
+      'gnail.com': 'gmail.com', 'gmail.om': 'gmail.com', 'g-mail.com': 'gmail.com',
+      'hotmial.com': 'hotmail.com', 'hotmail.co': 'hotmail.com', 'hotmai.com': 'hotmail.com',
+      'outlok.com': 'outlook.com', 'outloo.com': 'outlook.com', 'yaho.com': 'yahoo.com',
+      'yahooo.com': 'yahoo.com', 'yahoo.co': 'yahoo.com', 'icloud.co': 'icloud.com',
+    };
+    if (TYPOS[domain]) return `يبدو أن هناك خطأ مطبعيًا: هل تقصد ${local}@${TYPOS[domain]} ؟`;
+    if (domain === 'gmail.com' || domain === 'googlemail.com') {
+      const bare = local.replace(/\./g, '');
+      if (!/^[a-z0-9]+$/.test(bare)) return 'حسابات جيميل تسمح بالحروف والأرقام والنقط فقط — راجع كتابة بريدك';
+      if (bare.length < 6) return 'اسم حساب جيميل لا يقل عن 6 محارف — راجع كتابة بريدك';
+      if (bare.length > 30) return 'اسم حساب جيميل لا يزيد عن 30 محرفًا — راجع كتابة بريدك';
+    }
+    return null;
+  },
+
   /* الخطوة التانية: الرمز صح → الحساب اتعمل وإحنا داخلين بيه */
   async verifySignup(email, code) {
     if (!await window.amkhEnsureServer()) {
@@ -489,6 +529,12 @@ const amkhAuth = {
     this.updateUI();
     this.connectPresence();
     this._reconcileProfile();
+    /* التنزيل من الحساب لازم يشتغل هنا كمان، مش في init() بس.
+       init() بتتنادى عند فتح التطبيق وهو مسجّل دخول — أما تسجيل الدخول
+       نفسه (دخول، تحقّق التسجيل، جوجل) فكان بيمرّ من غير أي مزامنة.
+       يعني اللحظة اللي المستخدم مستنّي فيها بياناته ترجع (بعد إعادة
+       التثبيت) هي بالظبط اللحظة اللي مكانش فيها تنزيل. */
+    try { this.startAutoSync(); } catch (e) {}
     /* بعد الدخول: اربط توكِن الإشعارات بالحساب عشان توصلك رسايل الأصدقاء
        وأنت غير متصل (السيرفر بيبعت للـuserId). */
     try { if (window.Notifications && window.Notifications._linkTokenToUser) window.Notifications._linkTokenToUser(); } catch (e) {}
@@ -643,44 +689,44 @@ const amkhAuth = {
     }
   },
 
-  /* تقدّم «نور» المحفوظ محليًا (IndexedDB) */
+  /* تقدّم «نور» المحفوظ محليًا.
+     ──────────────────────────────────────────────────────────────
+     كانت بتفتح indexedDB('ChessNourDB',1).nourProgress — قاعدة مالهاش
+     وجود في التطبيق. تقدّم نور الحقيقي في NourChessDB/levels وبيتقرأ
+     من LVL في index.html. النتيجة إن الدالة دي كانت بترجّع [] دايمًا،
+     فمافيش تقدّم اتّرفع للحساب ولا مرّة — وده سبب «مرحلة ٣ بقت ١». */
   async _readLocalProgress() {
-    return await new Promise((resolve) => {
-      let done = false;
-      const finish = (v) => { if (!done) { done = true; resolve(v || []); } };
-      try {
-        const req = indexedDB.open('ChessNourDB', 1);
-        req.onsuccess = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains('nourProgress')) return finish([]);
-          const store = db.transaction('nourProgress', 'readonly').objectStore('nourProgress');
-          const all = store.getAll();
-          all.onsuccess = () => finish(all.result || []);
-          all.onerror = () => finish([]);
-        };
-        req.onerror = () => finish([]);
-        req.onupgradeneeded = () => finish([]);
-        setTimeout(() => finish([]), 4000);
-      } catch (e) { finish([]); }
-    });
+    try {
+      if (window.LVL && typeof window.LVL.exportForSync === 'function') {
+        return await window.LVL.exportForSync();
+      }
+    } catch (e) {}
+    return [];
+  },
+
+  /* إعدادات الجهاز اللي بتتبع الحساب. Cfg.exportSync هي المصدر الوحيد
+     لقائمة المفاتيح؛ لو مش محمّلة لسه بنرجع للبلوب المحفوظ. */
+  _readLocalSettings() {
+    try {
+      if (window.Cfg && typeof window.Cfg.exportSync === 'function') return window.Cfg.exportSync();
+    } catch (e) {}
+    try {
+      const cfg = localStorage.getItem('chess-cfg-v6');
+      if (cfg) return JSON.parse(cfg) || {};
+    } catch (e) {}
+    return {};
   },
 
   async syncLocalData() {
-    // Collect local data
-    let localSettings = {};
-    try {
-      const cfg = localStorage.getItem('chess-cfg-v6');
-      if (cfg) localSettings = JSON.parse(cfg);
-    } catch(e) {}
-
+    const localSettings = this._readLocalSettings();
     let localProgress = [];
     try { localProgress = await this._readLocalProgress(); } catch (e) {}
 
     try {
       await fetch(`${window.getApiBase()}/sync-local`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
+        headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.token}`,
           'ngrok-skip-browser-warning': 'true'
         },
@@ -696,54 +742,104 @@ const amkhAuth = {
     }
   },
 
+  /* ══════════════════════════════════════════════════════════════
+     مزامنة الحساب: تنزيل ثم رفع ثم متابعة
+     ──────────────────────────────────────────────────────────────
+     تلات أعطال كانت مجتمعة في البلاغ «شِلت التطبيق وسجّلت دخول فلقيت
+     نفسي في مرحلة ١، والثيم والقطع رجعوا للافتراضي»:
+
+       ١) الدالة دي مكانت بتتنادى إلا من init() — يعني عند فتح التطبيق
+          وهو مسجّل دخول. أما تسجيل الدخول نفسه (setToken) فمكانش
+          بينادي مزامنة خالص، فاللحظة اللي المستخدم مستنّي فيها
+          استرجاع بياناته هي بالظبط اللحظة اللي مكانش فيها تنزيل.
+       ٢) الإعدادات المنزَّلة كانت بتتكتب في localStorage وبس، وCfg
+          محمّل في الذاكرة ومحدّش بيعيد قراءته — فمافيش أثر على الشاشة
+          إلا بعد إغلاق التطبيق، ولو المستخدم لمس أي إعداد الأول كان
+          _persist() بيمحي المنزَّل.
+       ٣) التقدّم كان بيتنزّل في قاعدة وهمية (شوف _readLocalProgress).
+
+     والترتيب مهم: ننزّل الأول (الحساب أولى)، وبعدها نرفع المدموج —
+     فجهاز عنده تقدّم أكتر بيغذّي الحساب، والدمج في الخادم بياخد الأفضل
+     في كل خانة، فمافيش اتجاه بيمحي التاني.
+  ══════════════════════════════════════════════════════════════ */
   async startAutoSync() {
-    // Pull server data and overwrite local on startup
+    if (this._autoSyncStarted) { this.pullAccountData(); return; }
+    this._autoSyncStarted = true;
+
+    await this.pullAccountData();
+
+    /* كل عشر ثوانٍ: لو إعدادات الجهاز اتغيّرت نرفعها. المقارنة بقت على
+       exportSync (نفس اللي بنرفعه) بدل البلوب الكامل، فمفاتيح محلية
+       مالهاش دعوة بالحساب مابتشعلش رفعًا. */
+    if (!this._syncTimer) {
+      this._syncTimer = setInterval(async () => {
+        if (!this.token) return;
+        let cur = '';
+        try { cur = JSON.stringify(this._readLocalSettings()); } catch (e) { return; }
+        if (cur && cur !== this.lastSyncSettings) {
+          this.lastSyncSettings = cur;
+          this.syncLocalData();
+          return;
+        }
+        /* التقدّم بيتغيّر لما اللاعب يخلّص مرحلة — نرفعه لما يتغيّر بس */
+        try {
+          const prog = JSON.stringify(await this._readLocalProgress());
+          if (prog !== this.lastSyncProgress) {
+            this.lastSyncProgress = prog;
+            this.syncLocalData();
+          }
+        } catch (e) {}
+      }, 10000);
+    }
+  },
+
+  /* تنزيل الإعدادات والتقدّم من الحساب وتطبيقهم فورًا */
+  async pullAccountData() {
+    if (!this.token) return;
+    let pulledSettings = false;
     try {
+      /* إعدادات الجهاز لازم تكون اتحمّلت من IDB الأول، وإلا الدمج
+         هيتم فوق القيم الافتراضية ثم Cfg.load() تدمج القديم فوقه. */
+      try {
+        if (window.amkhCfgReady) {
+          await Promise.race([window.amkhCfgReady, new Promise(r => setTimeout(r, 4000))]);
+        }
+      } catch (e) {}
+
       const resSet = await fetch(`${window.getApiBase()}/settings`, { headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' } });
       if (resSet.ok) {
         const s = await resSet.json();
-        if (Object.keys(s).length > 0) {
-          localStorage.setItem('chess-cfg-v6', JSON.stringify(s));
-          this.lastSyncSettings = JSON.stringify(s);
-        } else {
-          /* #18: الخادم مالوش إعدادات محفوظة (حساب جديد) — نرفع إعدادات
-             الجهاز فورًا بدل ما نستنى دورة العشر ثوانٍ، فأول ما يفتح
-             الحساب على جهاز تاني يلاقي نفس الثيم والصوت. */
-          const cur = localStorage.getItem('chess-cfg-v6');
-          if (cur) { this.lastSyncSettings = cur; this.syncLocalData(); }
+        if (s && Object.keys(s).length > 0) {
+          pulledSettings = true;
+          try {
+            if (window.Cfg && typeof window.Cfg.importSync === 'function') window.Cfg.importSync(s);
+            else localStorage.setItem('chess-cfg-v6', JSON.stringify(s));
+          } catch (e) {}
         }
       }
 
       const resProg = await fetch(`${window.getApiBase()}/progress`, { headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' } });
       if (resProg.ok) {
         const serverProg = await resProg.json();
-        if (serverProg.length > 0) {
-          const dbRequest = indexedDB.open('ChessNourDB', 1);
-          dbRequest.onsuccess = (e) => {
-            const db = e.target.result;
-            if (db.objectStoreNames.contains('nourProgress')) {
-              const tx = db.transaction('nourProgress', 'readwrite');
-              const store = tx.objectStore('nourProgress');
-              serverProg.forEach(p => {
-                store.put({ stage: p.stage_number, completed: p.completed === 1, stars: p.stars });
-              });
+        if (Array.isArray(serverProg) && serverProg.length) {
+          try {
+            if (window.LVL && typeof window.LVL.importFromSync === 'function') {
+              await window.LVL.importFromSync(serverProg);
             }
-          };
+          } catch (e) {}
         }
       }
-    } catch(e) {}
+    } catch (e) {}
 
-    // Every 10 seconds, check if local changed, and push to server
-    setInterval(async () => {
-      if (!this.token) return;
-      const currentSettings = localStorage.getItem('chess-cfg-v6');
-      if (currentSettings && currentSettings !== this.lastSyncSettings) {
-        this.lastSyncSettings = currentSettings;
-        this.syncLocalData(); // background sync
-      }
-      // IndexDB progress is also synced periodically to be safe
-      // Note: A more optimized version would track IndexDB changes, but periodic sync works well.
-    }, 10000);
+    /* الرفع بعد التنزيل: بنسجّل البصمة قبل النداء عشان دورة العشر
+       ثوانٍ مانرفعش نفس الحاجة تاني على طول. */
+    try { this.lastSyncSettings = JSON.stringify(this._readLocalSettings()); } catch (e) {}
+    try { this.lastSyncProgress = JSON.stringify(await this._readLocalProgress()); } catch (e) {}
+    this.syncLocalData();
+    if (pulledSettings) {
+      /* مافيش إشعار: الشاشة نفسها اتغيّرت (الثيم والقطع والرقعة) وده
+         أوضح من سطر نص، والإشعار كان هيطلع في كل فتحة للتطبيق. */
+    }
   },
 
   /* ── سوكت الحضور ──
@@ -1198,6 +1294,14 @@ const amkhAuth = {
       const name = nameInput.value.trim();
 
       if (!email || !pass) { errDiv.textContent = 'الرجاء إدخال البريد وكلمة المرور'; return; }
+      /* فحص محلي فوري وقت التسجيل: بريد فيه غلطة مطبعية مافيش فايدة نبعت
+         له رمزًا — جيميل بيقبل الرسالة ثم يرجّعها لصاحب الخادم بعد دقايق،
+         والمستخدم يفضل مستني رسالة عمرها ماتيجي. الخادم بيكرّر نفس الفحص
+         (وبيزوّد استعلام MX) لأن العميل ممكن يكون نسخة قديمة. */
+      if (isRegisterMode) {
+        const bad = amkhAuth.emailProblem(email);
+        if (bad) { errDiv.textContent = bad; return; }
+      }
 
       errDiv.textContent = '';
       loginBtn.disabled = true;
@@ -1348,12 +1452,15 @@ const amkhAuth = {
       tick = setInterval(paint, 1000);
     };
 
-    const maskEmail = e => String(e || '').replace(/^(.{2})[^@]*(@.*)$/, '$1***$2');
+    /* نفس منطق نافذة التأكيد: البريد اللي المستخدم كتبه بنفسه بيتعرض
+       كامل — إخفاؤه بيمنعه من ملاحظة الغلطة المطبعية، وهي أشهر سبب
+       لـ«الرمز مش بيوصل». */
+    const shown = e => `<b style="direction:ltr;display:inline-block;unicode-bidi:isolate;word-break:break-all;color:var(--color-primary-text,#f0d68a)">${amkhUI.esc(String(e || '').trim())}</b>`;
 
     const toStep2 = () => {
       step = 2;
       q('#reset-title').textContent = 'أدخل الرمز';
-      q('#reset-sub').innerHTML = `أرسلنا رمزًا من 6 أرقام إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(sentTo))}</b> — صالح لمدة ${ttl} دقيقة.<br>لو لم تجده فراجع مجلد الرسائل غير المرغوبة.`;
+      q('#reset-sub').innerHTML = `أرسلنا رمزًا من 6 أرقام إلى ${shown(sentTo)} — صالح لمدة ${ttl} دقيقة.<br>لو لم تجده فابحث في مجلد الرسائل غير المرغوبة، وتأكّد أن العنوان مكتوب صحيحًا.`;
       q('#reset-step1').style.display = 'none';
       q('#reset-step2').style.display = '';
       goBtn.textContent = 'تغيير كلمة المرور';
@@ -1395,7 +1502,7 @@ const amkhAuth = {
         sentTo = email;
         toStep2();
         startCooldown(r.retryAfter);
-        q('#reset-sub').innerHTML = `سبق أن أرسلنا رمزًا إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(sentTo))}</b> — أدخله هنا.<br>لو لم يصلك فاطلب رمزًا جديدًا بعد انتهاء المهلة.`;
+        q('#reset-sub').innerHTML = `سبق أن أرسلنا رمزًا إلى ${shown(sentTo)} — أدخله هنا.<br>لو لم يصلك فاطلب رمزًا جديدًا بعد انتهاء المهلة.`;
         errDiv.textContent = '';
       } else {
         errDiv.textContent = r.error;
@@ -1470,7 +1577,12 @@ const amkhAuth = {
     const displayName = String(opt.displayName || '');
     const ttl = opt.ttl || 15;
     const loginOpts = opt.loginOpts;
-    const maskEmail = e => String(e || '').replace(/^(.{2})[^@]*(@.*)$/, '$1***$2');
+    /* البريد بيتعرض كامل بلا إخفاء عن قصد: المستخدم كتبه بنفسه قبل ثانية
+       في الشاشة السابقة، فمافيش سرّ نخفيه عنه — والإخفاء (ah***@gmail.com)
+       كان بيخفي بالظبط الغلطة اللي محتاج يشوفها. بلاغ حقيقي: واحد كتب
+       بريدًا غير موجود، فجيميل رجّع الرسالة لصاحب حساب الإرسال بعد عشر
+       دقايق (والرمز جوّاها)، وهو فضل مستني ومافهمش إيه اللي حصل. */
+    const shown = e => `<b style="direction:ltr;display:inline-block;unicode-bidi:isolate;word-break:break-all;color:var(--color-primary-text,#f0d68a)">${amkhUI.esc(String(e || '').trim())}</b>`;
 
     const overlay = amkhUI.mount('amkh-verify-modal', `
       <div class="ds-dialog amkh-auth-dialog amkh-reset-dialog">
@@ -1479,8 +1591,9 @@ const amkhAuth = {
         </div>
         <h2 class="ds-dialog__title">أكّد بريدك الإلكتروني</h2>
         <p class="ds-dialog__message" id="vf-sub">${opt.already
-          ? `سبق أن أرسلنا رمزًا إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(email))}</b> — أدخله هنا لإكمال إنشاء حسابك.`
-          : `أرسلنا رمزًا من 6 أرقام إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(email))}</b> — صالح لمدة ${ttl} دقيقة.<br>لو لم تجده فراجع مجلد الرسائل غير المرغوبة.`}</p>
+          ? `سبق أن أرسلنا رمزًا إلى ${shown(email)} — أدخله هنا لإكمال إنشاء حسابك.`
+          : `أرسلنا رمزًا من 6 أرقام إلى ${shown(email)} — صالح لمدة ${ttl} دقيقة.`}</p>
+        <p class="ds-field__hint" style="margin:-6px 0 12px;line-height:1.75;">الرسالة تصل في ثوانٍ. لو لم تجدها فابحث في مجلد الرسائل غير المرغوبة، ثم تأكّد أن العنوان أعلاه مكتوب صحيحًا حرفًا بحرف — العنوان الخاطئ لا تصل إليه رسالة أبدًا.</p>
 
         <div class="ds-field">
           <input type="text" id="vf-code" class="ds-input amkh-reset-code" placeholder="- - - - - -"
@@ -1647,7 +1760,10 @@ const amkhAuth = {
       amkhUI.sfx();
       syncBtn.disabled = true;
       syncBtn.textContent = 'جاري المزامنة…';
-      await this.syncLocalData();
+      /* مزامنة في الاتجاهين: تنزيل من الحساب ثم رفع. كانت بترفع بس، فلو
+         اللاعب داس عليها بعد إعادة تثبيت مكانش بينزّل أي حاجة — والزرّ
+         اسمه «مزامنة بياناتي» يعني المفروض يرجّعها كمان مش يرفعها بس. */
+      await this.pullAccountData();
       syncBtn.textContent = 'تمت المزامنة';
       setTimeout(() => { syncBtn.disabled = false; syncBtn.textContent = 'مزامنة بياناتي الآن'; }, 1600);
     };

@@ -49,14 +49,107 @@ const SIGNUP_MAX_ATTEMPTS = 5;
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-/* الإعدادات الافتراضية لأي حساب جديد — مصدر واحد للدخول اليدوي وجوجل */
+/* ══════════════════════════════════════════════════════════════════════
+   التحقّق من البريد قبل الإرسال — بلاغ «الرمز وصل على بريد الخادم»
+   ──────────────────────────────────────────────────────────────────────
+   اللي حصل بالظبط: المستخدم كتب بريدًا **مش موجود** (نطاقه سليم، الحساب
+   لأ). جيميل قبل الرسالة منّنا، وبعد عشر دقايق رجّعها كـ«فشل تسليم»
+   (550 5.1.1) لصاحب حساب الإرسال — ورسالة الارتجاع جوّاها الرسالة
+   الأصلية بالرمز. فالنتيجة من عين المستخدم: «الرمز مابيوصلش لي، وبيوصل
+   لبريد التطبيق نفسه، وبعد وقت طويل». مافيش أي خطأ في المستلم: الخادم
+   كان بيبعت للعنوان المكتوب حرفيًا.
+
+   منفذ ٢٥ محجوب على شبكتنا (مزوّد الإنترنت)، فسؤال خادم الوارد
+   «الصندوق موجود؟» (RCPT) مش متاح. فبنقفل الباب على أكثر حالة واقعية
+   وهي الغلط المطبعي، بتلات طبقات رخيصة كلها قبل أي إرسال:
+
+     ١) صيغة أدقّ: نقطة في الأول/الآخر أو نقطتان متتاليتان أو نطاق بلا
+        امتداد حقيقي — كلها مرفوضة (EMAIL_RE وحده كان بيقبلها).
+     ٢) نطاقات شائعة الغلط: gmial/gmai/gmail.co… ليها تصحيح مقترح بالاسم.
+     ٣) سجلّ MX حقيقي للنطاق: نطاق مابيستقبلش بريدًا خالص = رفض فوري.
+        الاستعلام ~١٥٠ms ومحفوظ في ذاكرة مؤقتة ساعة، ولو الـDNS نفسه
+        باظ بنفتح الباب (fail-open) عشان مانقفلش التسجيل بسبب شبكتنا.
+     ٤) قواعد جيميل المنشورة للاسم: ٦–٣٠ محرفًا، حروف/أرقام/نقط فقط.
+        (فبريد فيه شرطة سفلية أو ناقص حروف بيتمسك هنا قبل ما يتحوّل
+        لرسالة مرتجعة.)
+══════════════════════════════════════════════════════════════════════ */
+const dnsp = require('dns').promises;
+
+const DOMAIN_TYPOS = {
+  'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmail.co': 'gmail.com',
+  'gmail.con': 'gmail.com', 'gmail.cm': 'gmail.com', 'gmaill.com': 'gmail.com',
+  'gnail.com': 'gmail.com', 'gmail.om': 'gmail.com', 'g-mail.com': 'gmail.com',
+  'hotmial.com': 'hotmail.com', 'hotmail.co': 'hotmail.com', 'hotmai.com': 'hotmail.com',
+  'outlok.com': 'outlook.com', 'outloo.com': 'outlook.com', 'yaho.com': 'yahoo.com',
+  'yahooo.com': 'yahoo.com', 'yahoo.co': 'yahoo.com', 'icloud.co': 'icloud.com',
+};
+const GMAIL_DOMAINS = new Set(['gmail.com', 'googlemail.com']);
+const mxCache = new Map();   // نطاق → { ok, at }
+
+async function domainAcceptsMail(domain) {
+  const hit = mxCache.get(domain);
+  if (hit && Date.now() - hit.at < 3600000) return hit.ok;
+  let ok = null;                                   // null = مش متأكدين
+  try {
+    const mx = await dnsp.resolveMx(domain);
+    ok = !!(mx && mx.length && mx.some(r => r.exchange));
+  } catch (e) {
+    /* NXDOMAIN/NODATA = النطاق مش بيستقبل بريدًا. أي عطل تانٍ (انقطاع،
+       تايم أوت) مش ذنب المستخدم فبنعدّيه. */
+    if (e && (e.code === 'ENOTFOUND' || e.code === 'ENODATA')) {
+      /* نطاق بلا MX ممكن يستقبل على سجلّ A حسب المعيار — بنجرّب */
+      try { const a = await dnsp.resolve(domain); ok = !!(a && a.length); }
+      catch (e2) { ok = false; }
+    } else ok = null;
+  }
+  if (ok !== null) mxCache.set(domain, { ok, at: Date.now() });
+  return ok === null ? true : ok;
+}
+
+/* بترجّع نصّ خطأ للمستخدم، أو null لو البريد مقبول. */
+async function emailProblem(email) {
+  if (!EMAIL_RE.test(email)) return 'أدخل بريدًا إلكترونيًا صحيحًا';
+  const at = email.lastIndexOf('@');
+  const local = email.slice(0, at), domain = email.slice(at + 1);
+  if (local.length > 64 || email.length > 254) return 'البريد طويل بشكل غير معتاد — راجع كتابته';
+  if (/^\.|\.$|\.\./.test(local)) return 'البريد يحتوي نقطة في مكان غير صحيح — راجع كتابته';
+  if (/[^A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]/.test(local)) return 'البريد يحتوي محارف غير مسموحة — راجع كتابته';
+  if (/^[.-]|[.-]$|\.\.|^-|-\./.test(domain) || !/^[A-Za-z0-9.-]+$/.test(domain)) {
+    return 'اسم نطاق البريد غير صحيح — راجع كتابته';
+  }
+  const tld = domain.slice(domain.lastIndexOf('.') + 1);
+  if (tld.length < 2 || /[^A-Za-z]/.test(tld)) return 'امتداد البريد غير صحيح — راجع كتابته';
+
+  const fix = DOMAIN_TYPOS[domain];
+  if (fix) return `يبدو أن هناك خطأ مطبعيًا: هل تقصد ${local}@${fix} ؟`;
+
+  if (GMAIL_DOMAINS.has(domain)) {
+    /* قواعد جوجل المعلنة لاسم المستخدم — جيميل بيتجاهل النقط في التوجيه
+       لكنه مايسمحش بغيرها، فالشرطة السفلية مثلًا = حساب مش موجود يقينًا. */
+    const bare = local.replace(/\./g, '');
+    if (!/^[A-Za-z0-9]+$/.test(bare)) {
+      return 'حسابات جيميل تسمح بالحروف والأرقام والنقط فقط — راجع كتابة بريدك';
+    }
+    if (bare.length < 6) return 'اسم حساب جيميل لا يقل عن 6 محارف — راجع كتابة بريدك';
+    if (bare.length > 30) return 'اسم حساب جيميل لا يزيد عن 30 محرفًا — راجع كتابة بريدك';
+  }
+  if (!(await domainAcceptsMail(domain))) {
+    return `النطاق «${domain}» لا يستقبل بريدًا — راجع كتابة بريدك`;
+  }
+  return null;
+}
+
+
+/* الإعدادات الافتراضية لأي حساب جديد.
+   ──────────────────────────────────────────────────────────────
+   كانت بتزرع بلوب بأسماء مفاتيح مش موجودة في العميل خالص
+   (appTheme / boardColor / soundEnabled / hintColor …) — محدّش بيقرأها،
+   وواحد منها (pieceStyle:'Neo') بيتقاطع مع مفتاح حقيقي في Cfg، فأول
+   تنزيل لحساب جديد كان بيرجّع شكل القطع للافتراضي فوق اختيار المستخدم.
+   الصح إن حساب جديد يبدأ فاضي: أول رفع من الجهاز هو اللي بيحدّد إعداداته،
+   والقيم الافتراضية بتعيش في العميل (Cfg.data) مش في القاعدة. */
 function defaultSettings() {
-  return {
-    appTheme: 'Amkh', pieceStyle: 'Neo', boardColor: 'خشب',
-    showCoordinates: true, highlightLastMove: true, highlightCheck: true,
-    showHintPoints: true, hintColor: 'سماوي', confirmExit: true,
-    soundEnabled: true, soundVolume: 80,
-  };
+  return {};
 }
 
 /* كتابة الحساب فعلًا. الصفوف التلاتة (users + user_settings + presence)
@@ -101,6 +194,10 @@ router.post('/register', async (req, res) => {
     if (password.length < 8) {
       return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' });
     }
+    /* فحص أعمق قبل أي إرسال: بريد مش موجود معناه رمز بيتوه في رسالة
+       مرتجعة، ومستخدم بيستنّى مافيش حاجة جاية. */
+    const bad = await emailProblem(email);
+    if (bad) return res.status(400).json({ error: bad, email_invalid: true });
 
     const taken = db.prepare('SELECT id, provider FROM users WHERE lower(email) = ?').get(email);
     if (taken) {
@@ -408,14 +505,10 @@ router.post('/google', async (req, res) => {
         .run(email, g.name || username, username, g.picture || null, g.uid);
       const id = info.lastInsertRowid;
 
-      /* نفس التهيئة بالظبط اللي الدخول العادي بيعملها */
-      const defaultSettings = {
-        appTheme: 'Amkh', pieceStyle: 'Neo', boardColor: 'خشب',
-        showCoordinates: true, highlightLastMove: true, highlightCheck: true,
-        showHintPoints: true, hintColor: 'سماوي', confirmExit: true,
-        soundEnabled: true, soundVolume: 80,
-      };
-      db.prepare('INSERT INTO user_settings (user_id, settings_json) VALUES (?, ?)').run(id, JSON.stringify(defaultSettings));
+      /* صفّ إعدادات فاضي — نفس اللي defaultSettings() بتعمله للدخول العادي.
+         الصفّ نفسه لازم يتعمل (كود بعدين بيفترض وجوده)، لكن محتواه يفضل
+         فاضي لحد ما الجهاز يرفع إعداداته الحقيقية. */
+      db.prepare('INSERT INTO user_settings (user_id, settings_json) VALUES (?, ?)').run(id, JSON.stringify(defaultSettings()));
       db.prepare('INSERT OR IGNORE INTO presence (user_id) VALUES (?)').run(id);
       user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
     }
@@ -716,26 +809,34 @@ router.post('/settings', authenticateToken, (req, res) => {
 
 // جلب تقدم نور
 router.get('/progress', authenticateToken, (req, res) => {
-  const rows = db.prepare('SELECT stage_number, completed, stars, completed_at FROM nour_progress WHERE user_id = ?').all(req.user.id);
+  const rows = db.prepare('SELECT stage_number, completed, stars, best_moves, completed_at FROM nour_progress WHERE user_id = ?').all(req.user.id);
   res.json(rows);
 });
 
 // تحديث تقدم نور لمرحلة معينة
 router.post('/progress', authenticateToken, (req, res) => {
-  const { stage_number, completed, stars } = req.body;
+  const { stage_number, completed, stars, moves } = req.body;
   if (!stage_number) return res.status(400).json({ error: 'stage_number is required' });
 
-  const existing = db.prepare('SELECT stars FROM nour_progress WHERE user_id = ? AND stage_number = ?').get(req.user.id, stage_number);
-  
+  const mv = Number(moves);
+  const best = Number.isFinite(mv) && mv > 0 ? Math.round(mv) : null;
+  const existing = db.prepare('SELECT stars, best_moves FROM nour_progress WHERE user_id = ? AND stage_number = ?').get(req.user.id, stage_number);
+
   if (existing) {
-    // تحديث فقط إذا كان التقدم الجديد أفضل
+    /* أقل عدد نقلات هو الأفضل، فبناخد الأصغر — ولو الجديد أسوأ في النجوم
+       بنسيب النجوم زي ما هي ونحدّث النقلات لوحدها. */
+    const nextBest = best == null ? existing.best_moves
+      : (existing.best_moves == null ? best : Math.min(existing.best_moves, best));
     if (stars > existing.stars || (stars === existing.stars && completed)) {
-      db.prepare("UPDATE nour_progress SET completed = ?, stars = ?, completed_at = datetime('now') WHERE user_id = ? AND stage_number = ?")
-        .run(completed ? 1 : 0, stars || 0, req.user.id, stage_number);
+      db.prepare("UPDATE nour_progress SET completed = ?, stars = ?, best_moves = ?, completed_at = datetime('now') WHERE user_id = ? AND stage_number = ?")
+        .run(completed ? 1 : 0, stars || 0, nextBest, req.user.id, stage_number);
+    } else if (nextBest !== existing.best_moves) {
+      db.prepare('UPDATE nour_progress SET best_moves = ? WHERE user_id = ? AND stage_number = ?')
+        .run(nextBest, req.user.id, stage_number);
     }
   } else {
-    db.prepare("INSERT INTO nour_progress (user_id, stage_number, completed, stars, completed_at) VALUES (?, ?, ?, ?, datetime('now'))")
-      .run(req.user.id, stage_number, completed ? 1 : 0, stars || 0);
+    db.prepare("INSERT INTO nour_progress (user_id, stage_number, completed, stars, best_moves, completed_at) VALUES (?, ?, ?, ?, ?, datetime('now'))")
+      .run(req.user.id, stage_number, completed ? 1 : 0, stars || 0, best);
   }
   res.json({ success: true });
 });
@@ -751,11 +852,17 @@ router.post('/sync-local', authenticateToken, (req, res) => {
   // دمج تقدم نور
   if (progress && Array.isArray(progress)) {
     const insertOrUpdateProgress = db.prepare(`
-      INSERT INTO nour_progress (user_id, stage_number, completed, stars, completed_at)
-      VALUES (?, ?, ?, ?, datetime('now'))
+      INSERT INTO nour_progress (user_id, stage_number, completed, stars, best_moves, completed_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
       ON CONFLICT(user_id, stage_number) DO UPDATE SET
       completed = MAX(nour_progress.completed, excluded.completed),
       stars = MAX(nour_progress.stars, excluded.stars),
+      /* أقل عدد نقلات هو الأفضل. MIN() في SQLite بترجّع NULL لو أي طرف
+         NULL، والصفوف القديمة كلها NULL — فلازم CASE مش MIN لوحدها. */
+      best_moves = CASE
+        WHEN nour_progress.best_moves IS NULL THEN excluded.best_moves
+        WHEN excluded.best_moves  IS NULL THEN nour_progress.best_moves
+        ELSE MIN(nour_progress.best_moves, excluded.best_moves) END,
       completed_at = datetime('now')
     `);
 
@@ -763,7 +870,9 @@ router.post('/sync-local', authenticateToken, (req, res) => {
       for (const p of progress) {
         const stage = Number(p && p.stage);
         if (!Number.isInteger(stage) || stage <= 0) continue;
-        insertOrUpdateProgress.run(userId, stage, p.completed ? 1 : 0, Number(p.stars) || 0);
+        const mv = Number(p.moves);
+        const best = Number.isFinite(mv) && mv > 0 ? Math.round(mv) : null;
+        insertOrUpdateProgress.run(userId, stage, p.completed ? 1 : 0, Number(p.stars) || 0, best);
       }
     })();
   }

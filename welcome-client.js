@@ -61,10 +61,15 @@
     { id: 'q', p: 'wq', c: 0, r: 2 },
   ];
   const B_PLAY = [
-    { id: 'q', c: 2, r: 0, check: 1 },          /* الملكة تضحّي بنفسها على g8 */
-    { id: 'r', c: 2, r: 0, takes: 'q' },        /* الرخّ مجبَر ياكلها */
-    { id: 'n', c: 1, r: 1, mate: 1 },           /* الفارس ينزل f7 — مات */
+    { id: 'q', c: 2, r: 0, check: 1, sfx: 'check' },      /* الملكة تضحّي بنفسها على g8 */
+    { id: 'r', c: 2, r: 0, takes: 'q', sfx: 'capture' },  /* الرخّ مجبَر ياكلها */
+    { id: 'n', c: 1, r: 1, mate: 1, sfx: 'checkmate' },   /* الفارس ينزل f7 — مات */
   ];
+
+  /* أصوات القطع نفسها المستخدمة في المباريات (SFX في index.html): بتحترم
+     إعداد الصوت وقوّته تلقائيًا، فلو المستخدم مقفّل الصوت مافيش أي صوت. */
+  const snd = name => { try { if (window.SFX && window.SFX[name]) window.SFX[name](); } catch (e) {} };
+
 
   function makeBoard() {
     const box = document.createElement('div');
@@ -117,6 +122,7 @@
       const k = pc('k');
       if (k && m.check) k.classList.add('wl-pc--check');
       if (k && m.mate) { k.classList.remove('wl-pc--check'); k.classList.add('wl-pc--mate'); }
+      if (m.sfx) snd(m.sfx);
     };
 
     /* «حركة أقل» في إعدادات النظام: نعرض وضع المات ثابتًا وخلاص */
@@ -128,13 +134,17 @@
       return { el: box, stop: () => {} };
     }
 
+    /* دورة العرض. اللوح نفسه (الإطار والمربعات) مابيختفيش أبدًا — القطع
+       وحدها بتتلاشى لحظة إعادة الوضع الابتدائي، لأن تلاشي اللوح كله كان
+       بيبان كأن الحركة وقفت وسابت فراغًا (بلاغ أحمد). */
     const SEQ = [
-      { d: 1000, fn: () => {} },
-      { d: 1050, fn: () => play(0) },
-      { d: 1050, fn: () => play(1) },
-      { d: 2500, fn: () => play(2) },
-      { d: 620, fn: () => box.classList.add('wl-board--dim') },
-      { d: 420, fn: () => { reset(); box.classList.remove('wl-board--dim'); } },
+      { d: 900,  fn: () => {} },
+      { d: 1000, fn: () => play(0) },
+      { d: 1000, fn: () => play(1) },
+      { d: 2300, fn: () => play(2) },
+      { d: 300,  fn: () => box.classList.add('wl-board--fade') },
+      { d: 70,   fn: () => reset() },                              /* الرجوع وهي غير مرئية */
+      { d: 500,  fn: () => box.classList.remove('wl-board--fade') },
     ];
     let i = 0, timer = null, dead = false;
     const next = () => {
@@ -158,11 +168,13 @@
     sync:    svg('<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>'),
   };
 
+  /* نصوص الشاشة بالفصحى — دي أول واجهة يشوفها المستخدم، والعامّية فيها
+     كانت بتخلّي التطبيق يبان أقل رسميّة (طلب أحمد). */
   const FEATS = [
     ['friends', 'لاعبون حقيقيون', 'تحدَّ أصدقاءك أو خصمًا في مستواك، في أي وقت'],
-    ['rating',  'تقييم يتحدّث بعد كل مباراة', 'مباريات مصنّفة ولوحة صدارة بين اللاعبين'],
-    ['chat',    'دردشة ومكالمات صوتية', 'اتكلم مع أصدقائك وأنت بتلعب، من غير تطبيق تاني'],
-    ['sync',    'تقدّمك محفوظ', 'المراحل والإعدادات والصورة بترجع معاك على أي جهاز'],
+    ['rating',  'تقييم يتغيّر بعد كل مباراة', 'مباريات مصنّفة ولوحة صدارة بين اللاعبين'],
+    ['chat',    'دردشة ومكالمات صوتية', 'تحدَّث مع أصدقائك أثناء اللعب، دون تطبيق آخر'],
+    ['sync',    'تقدّمك محفوظ', 'المراحل والإعدادات والصورة تعود معك على أي جهاز'],
   ];
 
   const amkhWelcome = {
@@ -208,9 +220,9 @@
         <div class="wl-screen" role="document">
           <div class="wl-info">
             <div class="wl-top">
-              <div class="wl-board-slot"></div>
-              <h2 class="wl-title">أهلًا بك في شطرنج Am-Kh</h2>
-              <p class="wl-sub">اللعبة كاملة معاك أوفلاين — والحساب هو اللي يفتح باقي التطبيق</p>
+              <div class="wl-hero"><div class="wl-board-slot"></div></div>
+              <h2 class="wl-title">أهلًا بك في شطرنج <span class="wl-brand">Am-Kh</span></h2>
+              <p class="wl-sub">اللعبة كاملة بلا إنترنت، والحساب يفتح باقي التطبيق</p>
             </div>
             <ul class="wl-feats">${feats}</ul>
           </div>

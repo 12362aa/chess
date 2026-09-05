@@ -258,6 +258,12 @@ function migrate() {
   if (addColumn('messages', 'duration', 'INTEGER')) added.push('messages.duration');
   if (addColumn('messages', 'mime', 'TEXT')) added.push('messages.mime');
 
+  /* ── تقدّم مراحل نور: أقل عدد نقلات فُزت بيه بالمرحلة ──
+     النجوم بتتحسب من عدد النقلات (starReq في العميل)، فالرقم نفسه لازم
+     يتزامن مع الحساب — وإلا اللاعب يرجع بعد إعادة التثبيت ويلاقي نجومه
+     موجودة وسجل «أفضل عدد نقلات» اتصفّر. NULL = المرحلة ما اتكسبتش بعد. */
+  if (addColumn('nour_progress', 'best_moves', 'INTEGER')) added.push('nour_progress.best_moves');
+
   /* ── علامات الإرسال المتقدمة + الرد + التثبيت (زي واتساب/ماسنجر) ──
      delivered_at: وصلت لجهاز المستلم (✓✓ دائم — قبل كده الوصول كان
        بيتحسب لحظيًا ومايتخزّنش، فبيرجع ✓ واحدة بعد إعادة الفتح؛ ده سبب
@@ -486,6 +492,41 @@ function migrate() {
     }
     added.push(`backfilled ${needName.length} username(s)`);
   }
+
+  /* ── تنظيف مفاتيح إعدادات ميتة من user_settings (مرّة واحدة) ──
+     الحسابات المتعمّلة قبل دلوقتي انزرع فيها بلوب افتراضي بأسماء مفاتيح
+     مالهاش وجود في العميل خالص (appTheme / boardColor / soundEnabled /
+     hintColor …) — محدّش بيقرأها. وواحد منها pieceStyle:'Neo' بيتقاطع مع
+     مفتاح حقيقي، فأول تنزيل للحساب كان بيرجّع شكل القطع للافتراضي فوق
+     اختيار المستخدم على الجهاز. بنشيل الميتة ونسيب أي مفتاح حقيقي رفعه
+     الجهاز، والصفوف اللي بقيت فاضية بتبقى {} — ومعناها «الجهاز أولى». */
+  try {
+    const DEAD = ['appTheme', 'boardColor', 'showCoordinates', 'highlightLastMove',
+      'highlightCheck', 'showHintPoints', 'hintColor', 'confirmExit',
+      'soundEnabled', 'soundVolume'];
+    const rows = db.prepare('SELECT user_id, settings_json FROM user_settings').all();
+    const upd = db.prepare('UPDATE user_settings SET settings_json = ? WHERE user_id = ?');
+    let cleaned = 0;
+    db.transaction(() => {
+      for (const r of rows) {
+        let o;
+        try { o = JSON.parse(r.settings_json || '{}'); } catch (e) { continue; }
+        if (!o || typeof o !== 'object' || Array.isArray(o)) continue;
+        /* البصمة: كان فيه appTheme. لو الجهاز رفع إعدادات حقيقية بعد كده
+           فالمفاتيح الحيّة موجودة جنبها وبنحافظ عليها. */
+        if (!('appTheme' in o) && !('boardColor' in o)) continue;
+        let hit = false;
+        for (const k of DEAD) if (k in o) { delete o[k]; hit = true; }
+        /* pieceStyle المزروع قيمته 'Neo' بحرف كبير — دي بصمة الزرع مش
+           اختيار مستخدم (العميل بيكتب حروفًا صغيرة دايمًا). */
+        if (o.pieceStyle === 'Neo') { delete o.pieceStyle; hit = true; }
+        if (!hit) continue;
+        upd.run(JSON.stringify(o), r.user_id);
+        cleaned++;
+      }
+    })();
+    if (cleaned) added.push(`cleaned ${cleaned} legacy user_settings blob(s)`);
+  } catch (e) { console.error('[db] settings cleanup', e && e.message); }
 
   if (added.length) console.log('[db] migrated:', added.join(', '));
 }

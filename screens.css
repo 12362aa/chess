@@ -2169,19 +2169,20 @@ body[data-ui-theme="gaming"]{
 }
 .ds-overlay.is-open .wl-screen{ transform: none; opacity: 1; }
 
-/* العنوان + المزايا ككتلة واحدة: بتاخد الفراغ الفاضل كله وبتتمركز فيه،
-   فالأزرار تفضل في القاع والكلام في النص مهما طال الجهاز. من غير الحاوية
-   دي كان لازم margin تلقائي على كل عنصر لوحده — وده اتكسر لما بقى فيه
-   عمودان في الأفقي. min-height:0 عشان تنضغط وتسمح بالتمرير لما تفيض. */
+/* العنوان + المزايا ككتلة واحدة. الكتلة **مابتتقلّصش** (flex:0 0 auto):
+   لمّا كانت flex:1 1 auto مع justify-content:center جوّه حاوية بتتمرّر،
+   المحتوى الأطول من الشاشة كان بيفيض من الاتجاهين — فاللوح يُقصّ من فوق
+   ويختفي سطر «تقدّمك محفوظ» تحت صندوق الأزرار (بلاغ أحمد بالصور). دلوقتي
+   الكتلة بتاخد ارتفاع محتواها بالكامل، والتمرير الحقيقي بيشتغل، وmargin
+   السفلي التلقائي في .wl-actions هو اللي بينزّلها للقاع لما يكون فيه فراغ
+   وبيلغي نفسه لما المحتوى يفيض — فمفيش تراكب ولا قصّ في أي طول شاشة. */
 .wl-info{
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: var(--space-5);
 }
 
@@ -2191,6 +2192,33 @@ body[data-ui-theme="gaming"]{
   margin: 0 auto;
   text-align: center;
 }
+/* ── الهالة اللي اللوح قاعد فوقها ──
+   اللوح لوحده وسط شاشة غامقة كان بيبان كصورة ملزوقة. الهالة (تدرّج دائري
+   بلون التطبيق الأساسي) بتخلّيه مركز الشاشة بصريًا وبتوصّل الحدّ بينه وبين
+   الخلفية بهدوء. عنصر مزخرف بحت: بلا نص وبلا تفاعل، والحركة مافيهاش. */
+.wl-hero{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) 0 var(--space-5);
+}
+.wl-hero::before{
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(216,180,90,.16) 0%,
+    rgba(216,180,90,.06) 42%,
+    transparent 70%);
+  pointer-events: none;
+}
+.wl-board-slot{ position: relative; }
 /* ── اللوح المصغّر اللي بيلعب المات المخنوق (welcome-client.js) ──
    مقاسه كله من ‎--wl-bs‎: المربعات ٢٥٪ من اللوح والقطع ٢٥٪ برضه، فسطر
    واحد في كل media query بيكبّر أو يصغّر المنظر كله. الرقعة بتاخد ألوان
@@ -2203,18 +2231,25 @@ body[data-ui-theme="gaming"]{
   position: relative;
   width: var(--wl-bs);
   height: var(--wl-bs);
-  margin: 0 auto var(--space-4);
+  margin: 0 auto;
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--color-primary-border);
   box-shadow: 0 10px 26px rgba(0,0,0,.45), 0 0 0 4px var(--color-primary-subtle);
   /* الحركة جوّاه بس، فالمتصفح مايحتاجش يعيد حساب أي حاجة براه */
   contain: paint;
+}
+/* لحظة إعادة الوضع الابتدائي: **القطع** وحدها هي اللي بتتلاشى، واللوح
+   (الإطار والمربعات) بيفضل مكانه. الأول كان اللوح كله بيروح شفافًا فيبان
+   كأن العرض خلص وسايب فراغ في نص الشاشة (بلاغ أحمد: «الانميشن بيختفي بعد
+   ما يخلص عرض») — والحقيقة إنه كان بيرجع بعد لحظة، بس الفراغ هو اللي
+   وصل للمستخدم. الرجوع للوضع الابتدائي بيحصل جوّه فترة التلاشي دي. */
+.wl-board__pcs{
+  position: absolute;
+  inset: 0;
   transition: opacity var(--duration-normal) var(--easing-standard);
 }
-/* لحظة إعادة الوضع الابتدائي: تلاشٍ خفيف بدل ما القطع ترجع مكانها
-   بالعكس قدام العين (كان بيبان كأن حد بيلعب بالمقلوب) */
-.wl-board--dim{ opacity: 0; }
+.wl-board--fade .wl-board__pcs{ opacity: 0; }
 .wl-board__grid{
   position: absolute;
   inset: 0;
@@ -2227,7 +2262,6 @@ body[data-ui-theme="gaming"]{
 .wl-sq--d{ background: var(--sq-d, #b58863); }
 .wl-sq--l.is-hl{ background: var(--sq-ml, #cdd26a); }
 .wl-sq--d.is-hl{ background: var(--sq-md, #aaa23a); }
-.wl-board__pcs{ position: absolute; inset: 0; }
 .wl-pc{
   position: absolute;
   top: 0;
@@ -2250,6 +2284,11 @@ body[data-ui-theme="gaming"]{
   0%,100%{ filter: drop-shadow(0 0 9px var(--color-danger)); }
   50%{ filter: drop-shadow(0 0 2px var(--color-danger)); }
 }
+/* «حركة أقل» في إعدادات النظام: اللوح بيتعرض على وضع المات ثابتًا من غير
+   أي انتقال ولا نبض (welcome-client.js بيحطّ الكلاس ويوقف الدورة). */
+.wl-board--still .wl-pc{ transition: none; }
+.wl-board--still .wl-pc--mate{ animation: none; }
+
 .wl-title{
   font-family: var(--font-family-base);
   font-size: var(--font-size-screen-title);
@@ -2258,6 +2297,16 @@ body[data-ui-theme="gaming"]{
   color: var(--color-text-primary);
   margin: 0 0 var(--space-2);
 }
+/* «Am-Kh» اختصار لاتيني جوّه سطر عربي: بلا isolate الشرطة والحروف بيتقلبوا
+   ترتيبهم على بعض المحرّكات فيطلع «Kh-Am». اللون الأساسي عشان الاسم يبان
+   علامة مش كلمة عابرة. */
+.wl-brand{
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  color: var(--color-primary-text);
+  letter-spacing: .3px;
+}
 .wl-sub{
   font-size: var(--font-size-body);
   line-height: var(--line-height-body);
@@ -2265,7 +2314,11 @@ body[data-ui-theme="gaming"]{
   margin: 0;
 }
 
-/* ── قائمة المزايا: أيقونة خطية + عنوان + سطر شرح ── */
+/* ── قائمة المزايا: كل ميزة بطاقة (أيقونة + عنوان + سطر شرح) ──
+   كانت سطورًا عايمة على الخلفية بلا أي إطار، فالشاشة كلها بانت كقائمة نصّ
+   طويلة مالهاش تركيب (بلاغ أحمد: «الشاشة كلها وحشة»). البطاقة بتفصل كل
+   ميزة عن اللي بعدها وبتدّي العين نقطة توقّف، وبتستعمل نفس سطح البطاقات
+   وحدودها في باقي التطبيق فالشاشة بقت من نفس العائلة. */
 .wl-feats{
   list-style: none;
   margin: 0 auto;
@@ -2274,13 +2327,17 @@ body[data-ui-theme="gaming"]{
   max-width: 520px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 .wl-feat{
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
   text-align: start;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
 }
 .wl-feat__ic{
   flex: 0 0 auto;
@@ -2307,13 +2364,18 @@ body[data-ui-theme="gaming"]{
   color: var(--color-text-secondary);
 }
 
-/* ── الأزرار: عمود، والأساسي فوق ── */
+/* ── الأزرار: عمود، والأساسي فوق ──
+   فاصل علوي خفيف: الأزرار بتقع بعد آخر بطاقة ميزة، والفاصل بيقول للعين إن
+   ده قرار مش تكملة للقائمة. مافيش sticky عن قصد — لو خلّيناها لازقة في
+   القاع كانت هترجع تغطّي آخر ميزة، وهي دي المشكلة الأصلية. */
 .wl-actions{
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
   /* بتنزل لقاع الشاشة لما يكون فيه فراغ، وبتفضل في مكانها لما المحتوى يفيض */
   margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -2346,14 +2408,17 @@ body[data-ui-theme="gaming"]{
 .wl-skip:active{ transform: scale(.97); }
 .wl-skip:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 
-/* شاشات قصيرة (٦٤٠px وأقل، والهاتف الأفقي): نضغط الفراغات والعلامة عشان
-   الأزرار تفضل ظاهرة من غير تمرير */
+/* شاشات قصيرة (٧٠٠px وأقل): نضغط الفراغات والعلامة عشان الأزرار تفضل
+   ظاهرة من غير تمرير */
 @media (max-height: 700px){
   .wl-screen{ gap: var(--space-4); padding-top: calc(env(safe-area-inset-top, 0px) + var(--space-4)); }
   .wl-info{ gap: var(--space-4); }
-  .wl-board{ --wl-bs: 104px; margin-bottom: var(--space-3); }
+  .wl-hero{ padding: var(--space-2) 0 var(--space-3); }
+  .wl-hero::before{ width: 200px; height: 200px; }
+  .wl-board{ --wl-bs: 104px; }
   .wl-title{ font-size: 22px; }
   .wl-feats{ gap: var(--space-2); }
+  .wl-feat{ padding: var(--space-2) var(--space-3); }
   .wl-feat__ic{ width: 36px; height: 36px; }
 }
 /* أقصر الأجهزة المدعومة (٦٤٠px): آخر ٣٠px بتفرق بين «كل حاجة ظاهرة»
@@ -2362,43 +2427,67 @@ body[data-ui-theme="gaming"]{
 @media (max-height: 668px){
   .wl-screen{ gap: var(--space-3); }
   .wl-info{ gap: var(--space-3); }
-  .wl-board{ --wl-bs: 88px; margin-bottom: var(--space-2); }
+  .wl-hero{ padding: 0 0 var(--space-2); }
+  .wl-hero::before{ width: 170px; height: 170px; }
+  .wl-board{ --wl-bs: 88px; }
   .wl-feats{ gap: var(--space-1); }
+  .wl-feat{ padding: var(--space-2); }
   .wl-feat__s{ line-height: 1.4; }
   .wl-sub{ font-size: var(--font-size-caption); }
+  .wl-actions{ padding-top: var(--space-3); }
 }
 /* الهاتف الأفقي: عمودان — التعريف يمين والقرار شمال، فمفيش تمرير أصلًا.
    المزايا بتفضل ظاهرة (نصف الشاشة الرأسي كان فاضي لو شلناها) بس بعناوين
-   بلا سطر الشرح — الرسالة توصل والارتفاع يكفي. */
+   بلا سطر الشرح — الرسالة توصل والارتفاع يكفي.
+   التمركز الرأسي بـmargin-block:auto لا بـalign-items:center: الهامش
+   التلقائي بيتحوّل لصفر لما مايكونش فيه فراغ، فالعمود الأطول من الشاشة
+   بيتعلّق من فوق ويتمرّر — أما التمركز فبيفيض من الاتجاهين والجزء العلوي
+   يُقصّ ومايوصلّهش تمرير (نفس علّة اللوح المقصوص في الرأسي). */
 @media (orientation: landscape) and (max-height: 560px){
   .wl-screen{
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    gap: var(--space-6);
-    padding-inline: var(--space-6);
+    gap: var(--space-5);
+    padding: calc(env(safe-area-inset-top, 0px) + var(--space-4)) var(--space-5)
+             calc(max(env(safe-area-inset-bottom, 0px), var(--nav-bottom, 0px)) + var(--space-4));
   }
   .wl-info{
     flex: 0 1 440px;
     max-width: 440px;
-    margin: 0;
-    gap: var(--space-4);
+    margin: auto 0;
+    gap: var(--space-3);
   }
   .wl-top{ text-align: start; margin: 0; max-width: none; }
-  .wl-feats{ gap: var(--space-2); max-width: none; }
+  .wl-hero{ padding: 0 0 var(--space-2); justify-content: flex-start; }
+  .wl-hero::before{ display: none; }
+  .wl-board{ --wl-bs: 84px; margin-inline: 0; }
+  .wl-title{ font-size: 20px; margin-bottom: var(--space-1); }
+  .wl-feats{ gap: var(--space-1); max-width: none; }
+  .wl-feat{ padding: var(--space-1) var(--space-2); }
+  .wl-feat__ic{ width: 32px; height: 32px; }
   .wl-feat__s{ display: none; }
-  .wl-actions{ margin: 0; flex: 0 0 320px; max-width: 320px; }
-  .wl-board{ --wl-bs: 104px; margin-inline: 0; }
+  .wl-actions{
+    margin: auto 0;
+    flex: 0 0 320px;
+    max-width: 320px;
+    padding-top: 0;
+    border-top: 0;
+  }
 }
-/* التابلت: نفس الشاشة الكاملة بمقاسات أوسع شوية. الفرق المهم إن المجموعة
-   كلها (تعريف + قرار) بتتمركز رأسيًا ككتلة واحدة: على ١٢٨٠px طول، شدّ
-   الأزرار للقاع كان بيسيب فراغ ٤٥٠px وسط الشاشة والتصميم يبان مفكوكًا. */
+/* التابلت: نفس الشاشة الكاملة بمقاسات أوسع شوية. المجموعة كلها (تعريف +
+   قرار) بتتمركز رأسيًا ككتلة واحدة: على ١٢٨٠px طول، شدّ الأزرار للقاع كان
+   بيسيب فراغ ٤٥٠px وسط الشاشة والتصميم يبان مفكوكًا. التمركز بهامشين
+   تلقائيين على طرفي المجموعة (فوق التعريف وتحت الأزرار) بدل
+   justify-content:center — عشان لو المحتوى طال عن الشاشة الهوامش تتصفّر
+   والتمرير يشتغل من أوّل بكسل بدل ما القمّة تتقصّ. */
 @media (min-width: 700px) and (min-height: 800px){
   .wl-board{ --wl-bs: 168px; }
+  .wl-hero::before{ width: 340px; height: 340px; }
   .wl-info, .wl-top, .wl-feats, .wl-actions{ max-width: 560px; }
-  .wl-screen{ gap: var(--space-7); justify-content: center; }
-  .wl-info{ flex: 0 0 auto; gap: var(--space-6); }
-  .wl-actions{ margin-top: 0; }
+  .wl-screen{ gap: var(--space-5); }
+  .wl-info{ flex: 0 0 auto; gap: var(--space-6); margin-top: auto; }
+  .wl-actions{ margin-top: var(--space-2); margin-bottom: auto; }
 }
 
 /* ── ورقة الأصدقاء ── */
@@ -3617,9 +3706,7 @@ body[data-ui-theme="glass"]{
    الوصف العربي الطويل كان بيزقّ الزر لسطر تحت ويطوّل كل صف. */
 #s-settings .setting-item > div:first-child{ flex: 1 1 auto; min-width: 0; }
 #s-settings .setting-item > .ds-btn,
-#s-settings .setting-item > .toggle,
-#s-settings .setting-item > .acct-badge,
-#s-settings .setting-item > .acct-uname{ flex: 0 0 auto; }
+#s-settings .setting-item > .toggle{ flex: 0 0 auto; }
 #s-settings .setting-item:last-child{ border-bottom: 0; }
 #s-settings .setting-label{
   font-size: var(--font-size-body);
@@ -3648,9 +3735,226 @@ body[data-ui-theme="glass"]{
   align-items: stretch;
 }
 
-/* ── تبويب الحساب ── */
+/* ══════════════════════════════════════════════════════════════════════
+   تبويب الحساب — شاشة حساب حقيقية بدل قائمة مسطّحة
+   ──────────────────────────────────────────────────────────────────────
+   البلاغ: «تبويب الحساب مبعتر وشكله سيء». المقياس على ٣٢٠px كان
+   ١٣١px و١٢١px و١٠١px لأول تلات صفوف: كل صف عنوان + وصف طويل + قيمة،
+   وكلهم بنفس الوزن البصري، فمفيش تسلسل — والقيم اللي اللاعب فاتح
+   التبويب عشانها (تقييمه، دولته، @اسمه) تايهة في آخر السطر.
+
+   الشكل الجديد: بطاقة هوية فوق (صورة + اسم + إحصاء)، وتحتها مجموعات
+   معنونة كل واحدة بطاقة، وكل صف سطر واحد (عنوان + قيمة + سهم) والوصف
+   سطر واحد تحت المجموعة. نفس نمط إعدادات النظام في الهواتف.
+
+   ملاحظة مهمة: كل الألوان من توكنز الثيم. الشكل القديم كان بيستخدم
+   ‎--gold2‎ للقيم، وهو في سايبر/جيمنج هو اللون الثانوي مش الأساسي —
+   فالقيم كانت بتقرأ بلون تاني عن كل «مختار» في التطبيق (قاعدة §18).
+══════════════════════════════════════════════════════════════════════ */
+
+/* الحاوية الخارجية اتشالت من الـmarkup خلاص (كانت .settings-section،
+   وهي بطاقة بتتلوّن بأربع قواعد !important لكل ثيم — فالمجموعات كانت
+   بطاقات جوّه بطاقة، وشريط ذهبي فايض على عرض الشاشة ورا العنوان). */
+#acct-body.acct{
+  display: block;
+  padding: 0;
+}
+
+/* ── بطاقة الهوية ── */
+.acct-hero{
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(130% 110% at 100% 0%, var(--color-primary-subtle) 0%, transparent 60%),
+    var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+/* شريط مربّعات بلون رقعة اللعب الحالية — نفس هوية نافذة المكالمة،
+   فالحساب يبان إنه جوّه تطبيق شطرنج مش أي تطبيق. */
+.acct-hero__deco{
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: repeating-linear-gradient(90deg,
+    var(--sq-d, #b58863) 0 14px, var(--sq-l, #f0d9b5) 14px 28px);
+  opacity: .85;
+}
+.acct-hero__top{
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.acct-hero__av{
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-subtle) center / cover no-repeat;
+  border: 2px solid var(--color-primary-border);
+  color: var(--color-primary-text);
+  font-size: 22px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+.acct-hero__id{ flex: 1 1 auto; min-width: 0; }
+.acct-hero__name{
+  font-size: 17px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ‎@الاسم‎ لاتيني جوّه واجهة RTL: dir=ltr بيخلّي الترتيب صح، وtext-align
+   يرجّعه على يمين البطاقة زي باقي السطور. */
+.acct-hero__uname{
+  margin-top: 1px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-text);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.acct-hero__how{
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ── شريط الإحصاء ── */
+.acct-stats{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+.acct-stat{
+  min-width: 0;
+  text-align: center;
+  padding: 0 2px;
+}
+.acct-stat + .acct-stat{ border-inline-start: 1px solid var(--color-border-subtle); }
+.acct-stat__n{
+  display: block;
+  font-size: 19px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
+  color: var(--color-primary-text);
+  font-variant-numeric: tabular-nums;
+}
+.acct-stat__k{
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.acct-hero__note{
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ── مجموعة صفوف ── */
+.acct-group{ margin-top: var(--space-4); }
+.acct-group__title{
+  margin: 0 var(--space-1) var(--space-2);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .2px;
+  color: var(--color-primary-text);
+}
+.acct-card{
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.acct-group__note{
+  margin: var(--space-2) var(--space-1) 0;
+  font-size: 11.5px;
+  line-height: 1.65;
+  /* مش --color-text-disabled: ‎#6B6558‎ على خلفية التطبيقة الغامقة بيطلع
+     تباين ٣.٣:١ — تحت حدّ WCAG AA، والسطر ده شرح المستخدم محتاج يقراه. */
+  color: var(--color-text-secondary);
+}
+
+/* ── الصف: سطر واحد ── */
+.acct-row{
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--touch-target-min);
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  color: inherit;
+  font-family: inherit;
+  text-align: right;
+  cursor: default;
+}
+.acct-row:last-child{ border-bottom: 0; }
+.acct-row.is-tap{ cursor: pointer; }
+.acct-row.is-tap:active{ background: var(--color-surface); }
+.acct-row__main{ flex: 1 1 auto; min-width: 0; }
+.acct-row__label{
+  display: block;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+.acct-row__val{
+  flex: 0 1 auto;
+  max-width: 52%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.acct-row__val--code{
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-subtle);
+}
+.acct-row > .ico--chev{
+  flex: 0 0 auto;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  opacity: .8;
+}
+.acct-row--out .acct-row__label{ color: var(--color-danger); }
+
+/* ── الشارة (Google / بريد) ── */
 .acct-badge{
   flex-shrink: 0;
+  align-self: flex-start;
   padding: 3px var(--space-2);
   border-radius: var(--radius-pill);
   background: var(--color-surface-raised);
@@ -3661,33 +3965,40 @@ body[data-ui-theme="glass"]{
   direction: ltr;
   unicode-bidi: isolate;
 }
-.acct-uname{
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-.acct-uname__val{
-  padding: 4px var(--space-2);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-sunken);
-  border: 1px solid var(--color-border-subtle);
-  color: var(--color-primary-text);
-  font-size: var(--font-size-caption);
-  direction: ltr;
-  unicode-bidi: isolate;
-}
-/* الخروج فعل مش رجعة فيه بضغطة، فلونه يقول كده — بس مش أحمر صارخ
-   لأنه مش خطر، بيانات المستخدم بتفضل على السيرفر. */
-.acct-danger{ color: var(--color-danger, #F5405A); }
 
-/* الصف اللي فيه تحكّم عريض (اسم المستخدم) بيلفّ على شاشة ضيّقة بدل
-   ما يزقّ النص بره */
-/* صف اسم المستخدم لوحده هو اللي فيه تحكّم عريض (الاسم + زر)،
-   فهو اللي يلفّ على شاشة ضيّقة — مش كل الصفوف. */
-@media (max-width: 380px){
-  #s-settings .setting-item:has(.acct-uname){ flex-wrap: wrap; }
-  .acct-uname{ width: 100%; justify-content: space-between; }
+/* ── حالة «بدون حساب» ── */
+.acct-empty{
+  padding: var(--space-5) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  text-align: center;
+}
+.acct-empty__mark{
+  font-size: 34px;
+  line-height: 1;
+  color: var(--color-primary-text);
+  opacity: .9;
+}
+.acct-empty__title{
+  margin-top: var(--space-3);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+.acct-empty__note{
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: var(--font-size-caption);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* على أضيق شاشة (٣٢٠px) الأربع خانات بتزنق، فبتبقى اتنين × اتنين */
+@media (max-width: 340px){
+  .acct-stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--space-3); }
+  .acct-stat:nth-child(3){ border-inline-start: 0; }
+  .acct-hero__av{ width: 48px; height: 48px; font-size: 19px; }
+  .acct-row{ padding-inline: var(--space-3); }
 }
 
 /* ══════════════════════════════════════════════════════════════════════

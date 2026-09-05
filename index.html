@@ -19,7 +19,7 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260905-b29">
+<link rel="stylesheet" href="design-system.css?v=20260906-b30">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -1352,7 +1352,6 @@ body[data-ui-theme="glass"] .mc-tag{
 .rtu-note b{opacity:1;font-weight:800;}
 /* شارة التقييم جنب اسم اللاعب في شريط المباراة */
 .pb-nm .pb-rt{display:inline-block;font-size:11px;font-weight:700;opacity:.85;color:var(--gold2,#e0b34d);vertical-align:middle;}
-.acct-rating__val{font-size:22px;font-weight:800;color:var(--gold2,#e0b34d);}
 .fr-row__nmrow{display:flex;align-items:baseline;gap:6px;width:100%;min-width:0;}
 .fr-row__nmrow .fr-row__name{flex:1 1 auto;min-width:0;}
 .fr-row__rating{flex:0 0 auto;display:inline-block;font-size:11px;font-weight:700;color:var(--gold2,#e0b34d);opacity:.9;white-space:nowrap;}
@@ -1364,14 +1363,15 @@ body[data-ui-theme="glass"] .mc-tag{
   border-radius:10px;padding:11px 12px;cursor:pointer;color:inherit;font:inherit;text-align:right;}
 .priv-row:active{transform:scale(.99);}
 .priv-row__label{font-size:14px;font-weight:600;}
-.priv-row__val{font-size:12px;font-weight:800;color:var(--gold2,#e0b34d);white-space:nowrap;}
+/* القيمة بلون الثيم الأساسي: --gold2 هو اللون الثانوي في سايبر/جيمنج
+   فالقيمة كانت بتقرأ بلون مختلف عن كل «مختار» في التطبيق. */
+.priv-row__val{font-size:12px;font-weight:800;color:var(--color-primary-text,#e0b34d);white-space:nowrap;}
 /* سطر توضيحي أعلى الورقة وفي نافذة الاختيار — يشرح أثر الإعداد بالفعل */
 .priv-sheet__note{margin:2px 0 8px;font-size:12px;line-height:1.5;opacity:.72;text-align:right;}
 .priv-opt{margin-bottom:6px;}
 /* اختيار الدولة (يتبع الثيم — نافذة إعدادات) */
-.acct-country__val{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--gold2,#e0b34d);}
-.acct-country__flag{border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.12);display:block;}
-.acct-country__none{opacity:.6;font-weight:600;}
+.acct-country__flag{border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.12);display:block;flex:0 0 auto;}
+.acct-country__none{color:var(--color-text-secondary,#9a9a9a);font-weight:600;}
 .country-sheet{text-align:right;}
 .country-search{width:100%;margin:8px 0 6px;}
 .country-list{display:flex;flex-direction:column;gap:2px;max-height:52vh;overflow:auto;}
@@ -2678,7 +2678,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260905-b29">
+<link rel="stylesheet" href="screens.css?v=20260906-b30">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3194,12 +3194,14 @@ html.amkh-preboot #amkh-preboot{
              واحد لو مش مسجّل، وبياناته + الأصدقاء + المحظورين لو مسجّل.
              السبب إن نص الأقسام دي مالهاش معنى بدون حساب، وإظهارها
              مقفولة بيوحي إن فيه حاجة مكسورة. -->
+        <!-- التبويب مالوش عنوان قسم ولا بطاقة خارجية عن قصد: بطاقة الهوية
+             نفسها هي ترويسة التبويب، واسم التبويب مكتوب في الشريط فوق —
+             فعنوان «حسابك» كان تكرارًا بياخد سطرًا ونصف من الشاشة. وكمان
+             .settings-section بتتلوّن بأربع قواعد !important لكل ثيم، وهي
+             تلبس بطاقة حوالين البطاقات فتبقى بطاقة جوّه بطاقة. -->
         <div class="settings-tab-content" id="tab-account">
-          <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">☖</span> حسابك</h3>
-            <div id="acct-body" class="settings-grid">
-              <p class="fr-empty">جاري التحميل…</p>
-            </div>
+          <div id="acct-body" class="acct">
+            <p class="fr-empty">جارٍ التحميل…</p>
           </div>
         </div>
       </div>
@@ -3970,6 +3972,11 @@ const SFX=(()=>{
     videoAsk:[{f:698.46,t0:0,dur:0.09,type:'triangle',vol:0.10},{f:932.33,t0:0.08,dur:0.09,type:'triangle',vol:0.11},{f:1174.66,t0:0.17,dur:0.20,type:'sine',vol:0.10}],
     /* الفيديو اتشغّل: نغمتان لامعتان صاعدتان «الصورة فتحت» */
     videoOn:[{f:880,t0:0,dur:0.08,vol:0.10},{f:1396.91,t0:0.07,dur:0.18,vol:0.11}],
+    /* شريط تنويه جوّه نافذة المكالمة: نغمتان قصيرتان هابطتان وهادئتان —
+       «خبر وصل» مش «حاجة اتفتحت». أخفض من videoAsk عشان الودان تفرّق بين
+       «سؤال مستنّي ردّك» و«ردّ وصل»، وأخفت من كل النغمات التانية عشان
+       مايعلاش على صوت الطرف الآخر وسط المكالمة. */
+    callNote:[{f:783.99,t0:0,dur:0.07,type:'triangle',vol:0.07},{f:587.33,t0:0.07,dur:0.16,type:'sine',vol:0.07}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -4015,6 +4022,8 @@ const SFX=(()=>{
     /* العلّة ٨: طلب تحويل المكالمة لفيديو، وتشغيل الفيديو فعلًا */
     videoAsk(){ tones(MODAL_SFX.videoAsk); },
     videoOn(){ tones(MODAL_SFX.videoOn); },
+    /* تنويه جوّه نافذة المكالمة (مش نافذة جديدة) */
+    callNote(){ tones(MODAL_SFX.callNote); },
     update(){ tones(MODAL_SFX.update); },
     init(){_init();}
   };
@@ -4624,6 +4633,15 @@ function switchSettingsTab(tabName){
      قديمة بعد أي تسجيل دخول أو خروج. */
   if(tabName === 'account'){ try{ SettingsAccount.render(); }catch(e){} }
 
+  /* شريط التبويبات صفّ أفقي بسكرول (خمسة تبويبات مابتدخلش في ٣٦٠px)،
+     فالتبويب النشط ممكن يكون بره الشاشة — وده اللي كان بيحصل مع
+     «الحساب» وهو آخر واحد: تفتحه فتلاقي الشريط لسه واقف على أوّله
+     ومفيش حاجة مضيّة. بنزحلق النشط لوسط الشريط. */
+  try{
+    const btn = document.querySelector(`.settings-tab[data-tab="${tabName}"]`);
+    if(btn && btn.scrollIntoView) btn.scrollIntoView({ inline:'center', block:'nearest', behavior:'smooth' });
+  }catch(e){}
+
   if(typeof SFX !== 'undefined') SFX.btn();
 }
 
@@ -4633,6 +4651,25 @@ function switchSettingsTab(tabName){
    بيوصل بين الإعدادات ونظام الحسابات: حالة الدخول، الاسم العام
    (username) اللي الأصدقاء بيلاقوك بيه، مدخل لقائمة الأصدقاء،
    والمحظورين. كل الأسماء بتتحط بـtextContent — الاسم بيكتبه المستخدم.
+
+   ── إعادة التنظيم (بلاغ: «تبويب الحساب مبعتر وشكله سيء») ──
+   الشكل القديم كان تمانية صفوف متساوية الوزن، بينهم فواصل شعرية، وكل
+   صف عنوان + وصف طويل جوّه الصف. المقياس على ٣٢٠px: ١٣١px و١٢١px
+   و١٠١px لأول تلات صفوف — يعني تبويب بطول شاشة ونصّ، وكل حاجة فيه
+   بنفس الأهمية: هويّتك وتقييمك وزرّ الخروج على نفس المستوى، والقيم
+   اللي المستخدم جاي يشوفها (١٤٨٣، مصر، @اسمه) تايهة في آخر السطر.
+
+   الشكل الجديد:
+     • بطاقة هوية فوق: صورة + الاسم + @الاسم + طريقة الدخول، وتحتها
+       شريط إحصاء (تقييم/فوز/خسارة/تعادل) — الأرقام دي هي أول حاجة
+       اللاعب بيفتح التبويب عشانها.
+     • مجموعات معنونة، كل واحدة بطاقة مستقلة: هويّتك، لعبك، خصوصيتك،
+       أصدقاؤك، ثم الخروج. نفس نمط إعدادات النظام في الهواتف.
+     • الوصف اتنقل من جوّه الصف لسطر واحد تحت المجموعة، فالصف بقى سطرًا
+       واحدًا (عنوان + قيمة + سهم) بدل تلاتة.
+     • القيم بقت بـ--color-primary-text: كانت --gold2 فماكانتش بتتبع
+       اللون الأساسي في ثيمي سايبر وجيمنج (نفس قاعدة §18 في screens.css).
+     • نداء واحد لـ/me بيعبّي كل الأرقام، بدل نداء لكل صف.
 ══════════════════════════════════════════════════════════════════════ */
 const SettingsAccount = {
   async render(){
@@ -4640,31 +4677,239 @@ const SettingsAccount = {
     if(!box) return;
     const auth = window.amkhAuth;
     box.innerHTML = '';
+    box.classList.add('acct');
+    this._live = {};
 
-    /* مش مسجّل: رسالة واحدة وزر واحد. مفيش فايدة من عرض أقسام مقفولة. */
+    /* مش مسجّل: بطاقة واحدة فيها السبب وزر واحد. مفيش فايدة من عرض
+       أقسام مقفولة. */
     if(!auth || !auth.token){
+      const card = document.createElement('div');
+      card.className = 'acct-empty';
+      const mark = document.createElement('div');
+      mark.className = 'acct-empty__mark';
+      mark.textContent = '♞';
+      const h = document.createElement('div');
+      h.className = 'acct-empty__title';
+      h.textContent = 'أنت تلعب بدون حساب';
       const p = document.createElement('p');
-      p.className = 'setting-description';
-      p.style.marginBottom = '12px';
+      p.className = 'acct-empty__note';
       p.textContent = 'سجّل دخولك لمزامنة تقدّمك على أي جهاز، ولإضافة أصدقاء واللعب معهم.';
       const btn = document.createElement('button');
       btn.className = 'ds-btn ds-btn--primary ds-btn--block';
       btn.textContent = 'تسجيل الدخول أو إنشاء حساب';
       btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); if(auth) auth.showLoginModal(); };
-      box.appendChild(p);
-      box.appendChild(btn);
+      card.appendChild(mark);
+      card.appendChild(h);
+      card.appendChild(p);
+      card.appendChild(btn);
+      box.appendChild(card);
       return;
     }
 
     const u = auth.user || {};
-    box.appendChild(this._identityRow(u));
-    box.appendChild(this._usernameRow(u));
-    box.appendChild(this._ratingRow(u));
-    box.appendChild(this._countryRow(u));
-    box.appendChild(this._privacyRow());
-    box.appendChild(this._friendsRow());
-    box.appendChild(this._blockedRow());
-    box.appendChild(this._signOutRow());
+    box.appendChild(this._hero(u));
+
+    box.appendChild(this._group('هويّتك', [
+      this._usernameRow(u),
+      this._countryRow(u),
+    ], 'اسمك للأصدقاء هو ما يبحث به الآخرون عنك، وعلمك يظهر في لوحة الصدارة. بريدك الإلكتروني لا يظهر لأحد.'));
+
+    box.appendChild(this._group('لعبك', [
+      this._peakRow(),
+      this._gamesRow(),
+    ], 'التقييم يتغيّر من مباريات الأونلاين المصنّفة فقط، ومحفوظ في حسابك للأبد.'));
+
+    box.appendChild(this._group('خصوصيتك', [
+      this._privacyRow(),
+      this._blockedRow(),
+    ], 'إعدادات الخصوصية مُنفَّذة في الخادم: المنع يحدث قبل وصول أي طلب إليك، لا في هذا الجهاز وحده. والحظر يتقدَّم على أي إعداد.'));
+
+    box.appendChild(this._group('أصدقاؤك', [
+      this._friendsRow(),
+    ], 'اعرف مَن متصل الآن، وأضف أصدقاء، وأرسل إليهم دعوات لعب.'));
+
+    box.appendChild(this._group('', [
+      this._signOutRow(),
+    ], 'تقدّمك المحفوظ في حسابك لا يتأثّر، ويعود كما هو عند الدخول مرّة أخرى.'));
+
+    this._fillAccount(u);
+  },
+
+  /* ── بنّاؤو الشكل ──────────────────────────────────────────────────
+     مجموعة = عنوان صغير + بطاقة صفوف + سطر توضيحي تحتها. السطر تحت
+     المجموعة (لا داخل كل صف) هو اللي خلّى الصف سطرًا واحدًا. */
+  _group(title, rows, note){
+    const g = document.createElement('div');
+    g.className = 'acct-group';
+    if(title){
+      const t = document.createElement('div');
+      t.className = 'acct-group__title';
+      t.textContent = title;
+      g.appendChild(t);
+    }
+    const card = document.createElement('div');
+    card.className = 'acct-card';
+    rows.filter(Boolean).forEach(r=> card.appendChild(r));
+    g.appendChild(card);
+    if(note){
+      const n = document.createElement('p');
+      n.className = 'acct-group__note';
+      n.textContent = note;
+      g.appendChild(n);
+    }
+    return g;
+  },
+
+  /* صف واحد: عنوان يمين، قيمة شمال، وسهم لو بيفتح حاجة.
+     بيرجّع القيمة كعنصر عشان اللي بيبنيه يحطّ فيها نص أو علَم. */
+  _line(label, opt){
+    const o = opt || {};
+    const el = document.createElement(o.onTap ? 'button' : 'div');
+    el.className = 'acct-row' + (o.onTap ? ' is-tap' : '') + (o.cls ? ' ' + o.cls : '');
+    if(o.onTap) el.type = 'button';
+    const main = document.createElement('span');
+    main.className = 'acct-row__main';
+    const l = document.createElement('span');
+    l.className = 'acct-row__label';
+    l.textContent = label;
+    main.appendChild(l);
+    el.appendChild(main);
+    const val = document.createElement('span');
+    val.className = 'acct-row__val';
+    if(o.value != null) val.textContent = o.value;
+    if(o.ltr){ val.dir = 'ltr'; }
+    el.appendChild(val);
+    if(o.onTap){
+      const chev = document.createElement('i');
+      chev.className = 'ico ico--chev';
+      chev.setAttribute('aria-hidden', 'true');
+      el.appendChild(chev);
+      el.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); o.onTap(); };
+    }
+    return { item: el, val };
+  },
+
+  /* ── بطاقة الهوية ── */
+  _hero(u){
+    const hero = document.createElement('div');
+    hero.className = 'acct-hero';
+    const deco = document.createElement('div');
+    deco.className = 'acct-hero__deco';
+    deco.setAttribute('aria-hidden', 'true');
+    hero.appendChild(deco);
+
+    const top = document.createElement('div');
+    top.className = 'acct-hero__top';
+    const av = document.createElement('div');
+    av.className = 'acct-hero__av';
+    let img = '';
+    try{ img = String(u.avatar_url || u.avatar || (window.Cfg && Cfg.data && Cfg.data.playerImage) || '').trim(); }catch(e){}
+    if(img && !/[)'"\\]/.test(img.slice(0, 5))) av.style.backgroundImage = `url("${img.replace(/["\\]/g, '')}")`;
+    else av.textContent = String(u.display_name || u.username || '؟').trim().slice(0, 1).toUpperCase();
+    top.appendChild(av);
+
+    const id = document.createElement('div');
+    id.className = 'acct-hero__id';
+    const nm = document.createElement('div');
+    nm.className = 'acct-hero__name';
+    let local = '';
+    try{ local = (window.Cfg && Cfg.data && Cfg.data.playerName) || ''; }catch(e){}
+    nm.textContent = u.display_name || local || 'لاعب';
+    const un = document.createElement('div');
+    un.className = 'acct-hero__uname';
+    un.dir = 'ltr';
+    un.textContent = '@' + (u.username || '—');
+    const how = document.createElement('div');
+    how.className = 'acct-hero__how';
+    how.textContent = u.provider === 'google' ? 'الدخول عبر حساب جوجل' : 'الدخول بالبريد الإلكتروني';
+    id.appendChild(nm); id.appendChild(un); id.appendChild(how);
+    top.appendChild(id);
+
+    const badge = document.createElement('span');
+    badge.className = 'acct-badge';
+    badge.textContent = u.provider === 'google' ? 'Google' : 'بريد';
+    top.appendChild(badge);
+    hero.appendChild(top);
+
+    const stats = document.createElement('div');
+    stats.className = 'acct-stats';
+    [['rating', 'تقييمك'], ['wins', 'فوز'], ['losses', 'خسارة'], ['draws', 'تعادل']].forEach(([k, t])=>{
+      const c = document.createElement('div');
+      c.className = 'acct-stat';
+      const n = document.createElement('b');
+      n.className = 'acct-stat__n';
+      n.textContent = '—';
+      const s = document.createElement('span');
+      s.className = 'acct-stat__k';
+      s.textContent = t;
+      c.appendChild(n); c.appendChild(s);
+      stats.appendChild(c);
+      this._live[k] = n;
+    });
+    hero.appendChild(stats);
+
+    const note = document.createElement('p');
+    note.className = 'acct-hero__note';
+    note.style.display = 'none';
+    hero.appendChild(note);
+    this._live.note = note;
+    return hero;
+  },
+
+  /* نداء واحد لـ/me بيعبّي كل الأرقام: الإحصاء وأعلى تقييم وعدد
+     المباريات المصنّفة. كان كل صف بينادي لوحده. */
+  async _fillAccount(u){
+    const paint = (d)=>{
+      if(!d) return;
+      const L = this._live || {};
+      const set = (el, v)=>{ if(el && isFinite(v) && v !== null) el.textContent = String(Math.round(v)); };
+      set(L.rating, d.rating); set(L.wins, d.wins);
+      set(L.losses, d.losses); set(L.draws, d.draws);
+      set(L.peak, d.rating_peak); set(L.games, d.rating_games);
+      if(L.note){
+        const bits = [];
+        if(d.provisional) bits.push('تقييمك مبدئي — يستقرّ بعد عدد أكبر من المباريات المصنّفة');
+        const since = this._since(d.created_at);
+        if(since) bits.push('عضو منذ ' + since);
+        L.note.textContent = bits.join('  ·  ');
+        L.note.style.display = bits.length ? '' : 'none';
+      }
+      if(isFinite(d.rating)){
+        try{ window.__myRating = { rating: Math.round(d.rating), rd: d.rating_rd, provisional: d.provisional }; }catch(e){}
+      }
+    };
+    /* النسخة المخبّأة الأول عشان الرقم يبان من أول رسم، وبعدين الطازة */
+    paint(Object.assign({}, u, window.__myRating || {}));
+    try{
+      const res = await fetch(`${window.getApiBase()}/me`, { headers:{ 'Authorization':'Bearer '+window.amkhAuth.token, 'ngrok-skip-browser-warning':'true' } });
+      if(res.ok) paint(await res.json());
+    }catch(e){}
+  },
+
+  /* «عضو منذ سبتمبر 2026» — الخادم بيرجّع 'YYYY-MM-DD HH:MM:SS' بتوقيت
+     UTC بلا لاحقة، فلازم نضيفها وإلا سفاري بيقرأها NaN. */
+  _since(raw){
+    if(!raw) return '';
+    try{
+      const s = String(raw).trim().replace(' ', 'T');
+      const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : s + 'Z');
+      if(isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
+    }catch(e){ return ''; }
+  },
+
+  _peakRow(){
+    const { item, val } = this._line('أعلى تقييم وصلت إليه');
+    val.textContent = '—';
+    this._live.peak = val;
+    return item;
+  },
+
+  _gamesRow(){
+    const { item, val } = this._line('المباريات المصنّفة');
+    val.textContent = '—';
+    this._live.games = val;
+    return item;
   },
 
   /* ── الخصوصية (على نمط واتساب، تُحفظ في الحساب وتبقى دائمًا) ──
@@ -4704,13 +4949,9 @@ const SettingsAccount = {
   },
 
   _privacyRow(){
-    const { item } = this._row('الخصوصية', 'تحكَّم في مَن يضيفك إلى حفلة، ويراسلك، ويدعوك، ويرى حالتك — تُحفظ في حسابك وتبقى دائمًا.');
-    item.style.cursor = 'pointer';
-    const chev = document.createElement('i');
-    chev.className = 'ico ico--chev';
-    item.appendChild(chev);
-    item.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); this._openPrivacySheet(); };
-    return item;
+    return this._line('مَن يستطيع الوصول إليك', {
+      onTap: ()=> this._openPrivacySheet(),
+    }).item;
   },
 
   async _openPrivacySheet(){
@@ -4769,47 +5010,14 @@ const SettingsAccount = {
     });
   },
 
-  /* التقييم (أونلاين فقط) — بيتجاب طازة من /me عشان يبان الرقم الحالي */
-  _ratingRow(u){
-    const { item, text } = this._row('تقييمك', 'يتغيّر من مباريات الأونلاين المصنّفة فقط، ومحفوظ في حسابك للأبد.');
-    const val = document.createElement('div');
-    val.className = 'acct-rating__val';
-    val.textContent = '—';
-    item.appendChild(val);
-    const rec = document.createElement('div');
-    rec.className = 'setting-description acct-rating__rec';
-    rec.style.marginTop = '2px';
-    rec.textContent = '';
-    text.appendChild(rec);
-    const fill = (d)=>{
-      if(!d || !isFinite(d.rating)) return;
-      val.textContent = Math.round(d.rating);
-      const w=d.wins||0, l=d.losses||0, dr=d.draws||0, g=d.rating_games||0;
-      rec.textContent = `فوز ${w} · خسارة ${l} · تعادل ${dr}` + (d.rating_peak?` · أعلى تقييم ${Math.round(d.rating_peak)}`:'') + (g?'':' · لم تلعب مباراة مصنّفة بعد');
-      try{ window.__myRating={rating:Math.round(d.rating),rd:d.rating_rd,provisional:d.provisional}; }catch(e){}
-    };
-    // لو عندنا نسخة مخبّأة نعرضها فورًا، وبعدين نحدّث من السيرفر
-    try{ if(window.__myRating) fill(Object.assign({}, u, window.__myRating)); }catch(e){}
-    (async ()=>{
-      try{
-        const res = await fetch(`${window.getApiBase()}/me`, { headers:{ 'Authorization':'Bearer '+window.amkhAuth.token, 'ngrok-skip-browser-warning':'true' } });
-        if(res.ok){ const d = await res.json(); fill(d); }
-      }catch(e){}
-    })();
-    return item;
-  },
-
   /* ── الدولة (اختيار يدوي) — بتظهر كعلَم في لوحة الصدارة زي chess.com ──
      بتتخزّن كود ISO alpha-2 على الحساب، وبتفضل للأبد. */
   _countryRow(u){
-    const { item } = this._row('دولتك', 'اختَر دولتك ليظهر علمك في لوحة الصدارة. اختياري.');
-    item.style.cursor = 'pointer';
-    const val = document.createElement('span');
-    val.className = 'acct-country__val';
-    const paint = (code)=>{
+    const { item, val } = this._line('دولتك', { onTap: ()=> this._openCountrySheet(u, paint) });
+    function paint(code){
       val.innerHTML = '';
       const cc = (code||'').toUpperCase();
-      const entry = cc ? this._COUNTRIES.find(x=>x.c===cc) : null;
+      const entry = cc ? SettingsAccount._COUNTRIES.find(x=>x.c===cc) : null;
       if(entry){
         const img = document.createElement('img');
         img.className = 'acct-country__flag';
@@ -4827,13 +5035,8 @@ const SettingsAccount = {
         nm.textContent = 'غير محدّدة';
         val.appendChild(nm);
       }
-    };
+    }
     paint(u.country);
-    item.appendChild(val);
-    const chev = document.createElement('i');
-    chev.className = 'ico ico--chev';
-    item.appendChild(chev);
-    item.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); this._openCountrySheet(u, paint); };
     return item;
   },
 
@@ -4934,58 +5137,22 @@ const SettingsAccount = {
   ],
 
 
-  _row(label, desc){
-    const item = document.createElement('div');
-    item.className = 'setting-item';
-    const text = document.createElement('div');
-    const l = document.createElement('div');
-    l.className = 'setting-label';
-    l.textContent = label;
-    text.appendChild(l);
-    if(desc){
-      const d = document.createElement('div');
-      d.className = 'setting-description';
-      d.textContent = desc;
-      text.appendChild(d);
-    }
-    item.appendChild(text);
-    return { item, text };
-  },
-
-  /* مين أنت وداخل إزاي */
-  _identityRow(u){
-    const how = u.provider === 'google' ? 'داخل بحساب جوجل' : 'داخل بالبريد الإلكتروني';
-    const { item } = this._row(u.display_name || u.username || 'لاعب', how);
-    const badge = document.createElement('span');
-    badge.className = 'acct-badge';
-    badge.textContent = u.provider === 'google' ? 'Google' : 'بريد';
-    item.appendChild(badge);
-    return item;
-  },
-
-  /* الاسم العام — ده اللي بيتبحث بيه، فليه سطر خاص */
+  /* الاسم العام — ده اللي الأصدقاء بيلاقوك بيه، فليه صف خاص بيفتح
+     مربّع تعديل. القيمة نفسها لاتينية فبتتعرض بـdir=ltr. */
   _usernameRow(u){
-    const { item } = this._row('اسمك للأصدقاء', 'يجدك الأصدقاء بهذا الاسم. بريدك الإلكتروني غير ظاهر لأحد.');
-    const wrap = document.createElement('div');
-    wrap.className = 'acct-uname';
-    const val = document.createElement('code');
-    val.className = 'acct-uname__val';
+    const { item, val } = this._line('اسمك للأصدقاء', {
+      ltr: true,
+      onTap: ()=> this._editUsername(val),
+    });
+    val.classList.add('acct-row__val--code');
     val.textContent = '@' + (u.username || '—');
-    const edit = document.createElement('button');
-    edit.className = 'ds-btn ds-btn--ghost ds-btn--sm';
-    edit.textContent = 'تغيير';
-    edit.onclick = ()=> this._editUsername(val);
-    wrap.appendChild(val);
-    wrap.appendChild(edit);
-    item.appendChild(wrap);
     return item;
   },
 
   async _editUsername(valEl){
-    if(typeof SFX!=='undefined')SFX.btn();
     const U = window.amkhUI;
     const current = (window.amkhAuth.user && window.amkhAuth.user.username) || '';
-    const next = await this._prompt('اسمك للأصدقاء', '3–16 حرف إنجليزي أو رقم أو _', current);
+    const next = await this._prompt('اسمك للأصدقاء', 'من 3 إلى 16 حرفًا لاتينيًا أو رقمًا أو شرطة سفلية.', current);
     if(next === null) return;
     const headers = { 'Authorization': 'Bearer ' + window.amkhAuth.token,
                       'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
@@ -5000,7 +5167,7 @@ const SettingsAccount = {
         valEl.textContent = '@' + data.username;
         U.notify('تم تغيير الاسم', 'تم', '◉');
       } else U.notify(data.error || 'تعذّر تغيير الاسم', 'لم يتم', '◈');
-    }catch(e){ U.notify('تأكد من الإنترنت', 'لم يتم', '◈'); }
+    }catch(e){ U.notify('تعذّر الاتصال بالخادم — تحقّق من الإنترنت', 'لم يتم', '◈'); }
   },
 
   /* حوار إدخال بسيط بيرجّع النص أو null */
@@ -5034,27 +5201,18 @@ const SettingsAccount = {
   },
 
   _friendsRow(){
-    const { item } = this._row('الأصدقاء', 'شوف مين متصل، اضف أصدقاء، وابعت دعوات لعب');
-    const btn = document.createElement('button');
-    btn.className = 'ds-btn ds-btn--secondary ds-btn--sm';
-    btn.textContent = 'افتح';
-    btn.onclick = ()=>{ if(typeof SFX!=='undefined')SFX.btn(); if(window.amkhFriends) window.amkhFriends.showFriendsModal(); };
-    item.appendChild(btn);
-    return item;
+    return this._line('قائمة أصدقائك', {
+      onTap: ()=>{ if(window.amkhFriends) window.amkhFriends.showFriendsModal(); },
+    }).item;
   },
 
   _blockedRow(){
-    const { item } = this._row('اللاعبون المحظورون', 'لن يستطيعوا إرسال طلب أو دعوة إليك');
-    const btn = document.createElement('button');
-    btn.className = 'ds-btn ds-btn--ghost ds-btn--sm';
-    btn.textContent = 'إدارة';
-    btn.onclick = ()=> this._showBlocked();
-    item.appendChild(btn);
-    return item;
+    return this._line('اللاعبون المحظورون', {
+      onTap: ()=> this._showBlocked(),
+    }).item;
   },
 
   async _showBlocked(){
-    if(typeof SFX!=='undefined')SFX.btn();
     const U = window.amkhUI;
     const ov = U.mount('acct-blocked', `
       <div class="ds-sheet" id="acct-blocked-panel">
@@ -5064,7 +5222,7 @@ const SettingsAccount = {
           <button class="ds-sheet__close" data-close aria-label="إغلاق">✕</button>
         </div>
         <div class="ds-sheet__body"><div id="acct-blocked-list" class="fr-group">
-          <p class="fr-empty">جاري التحميل…</p></div></div>
+          <p class="fr-empty">جارٍ التحميل…</p></div></div>
       </div>`, { sheet: true });
     const list = ov.querySelector('#acct-blocked-list');
     const headers = { 'Authorization': 'Bearer ' + window.amkhAuth.token, 'ngrok-skip-browser-warning': 'true' };
@@ -5113,20 +5271,18 @@ const SettingsAccount = {
     });
   },
 
+  /* الخروج فعل مش رجعة فيه بضغطة، فلونه يقول كده — بس مش أحمر صارخ
+     لأنه مش خطر، بيانات المستخدم بتفضل على الخادم. */
   _signOutRow(){
-    const { item } = this._row('تسجيل الخروج', 'تقدّمك المحفوظ على الخادم لا يتأثّر');
-    const btn = document.createElement('button');
-    btn.className = 'ds-btn ds-btn--ghost ds-btn--sm acct-danger';
-    btn.textContent = 'خروج';
-    btn.onclick = async ()=>{
-      if(typeof SFX!=='undefined')SFX.btn();
-      const yes = await window.amkhUI.confirm('تسجيل الخروج', 'هل أنت متأكد؟ ستحتاج إلى تسجيل الدخول مرّة أخرى للّعب مع أصدقائك.', 'خروج', 'إلغاء');
-      if(!yes) return;
-      try{ window.amkhAuth.logout(); }catch(e){}
-      this.render();
-    };
-    item.appendChild(btn);
-    return item;
+    return this._line('تسجيل الخروج', {
+      cls: 'acct-row--out',
+      onTap: async ()=>{
+        const yes = await window.amkhUI.confirm('تسجيل الخروج', 'هل أنت متأكد؟ ستحتاج إلى تسجيل الدخول مرّة أخرى للّعب مع أصدقائك.', 'خروج', 'إلغاء');
+        if(!yes) return;
+        try{ window.amkhAuth.logout(); }catch(e){}
+        this.render();
+      },
+    }).item;
   },
 };
 window.SettingsAccount = SettingsAccount;
@@ -5393,6 +5549,68 @@ const Cfg={
        جهاز جديد كان بيلاقي الخانة فاضية رغم إنه نفس الحساب. */
     this._syncNameToServer(this.data.playerName);
   },
+
+  /* ══════════════════════════════════════════════════════════════
+     الإعدادات اللي بتتبع الحساب (بلاغ أحمد: «كل حاجة لازم تتزامن —
+     المراحل، ثيم الرقعة، شكل القطع…»)
+     ──────────────────────────────────────────────────────────────
+     العطل الأصلي: المزامنة كانت بتنزّل إعدادات الحساب في
+     localStorage['chess-cfg-v6'] وبس. لكن Cfg.data كان محمّلًا في
+     الذاكرة من بدء التطبيق، ومحدّش بيعيد قراءته — فالثيم والقطع
+     مكانوش بيرجعوا غير بعد إغلاق التطبيق وفتحه، ولو المستخدم لمس أي
+     إعداد قبل كده كان _persist() بيكتب فوق المنزَّل ويضيّعه.
+
+     دلوقتي المزامنة بتنادي importSync: بتدمج في الذاكرة، تحفظ، وتطبّق
+     على طول (apply بتلبس الثيم والقطع والرقعة فورًا).
+
+     القائمة صريحة عن قصد: مفيش مفاتيح خاصة بالجهاز بتتسرّب للحساب
+     (مثلًا معرّف الجهاز)، والصورة/الرقعة المخصّصة داخلة لأن أحمد طلب
+     «كل حاجة» — وهي أصلًا كانت بتتزامن مع البلوب القديم كله.
+  ══════════════════════════════════════════════════════════════ */
+  SYNC_KEYS:['sound','vol','coords','lastmove','check','score','confirm','matchMsg',
+    'playerName','playerImage','engineLevel','uiTheme','pieceStyle','dotColor',
+    'boardTheme','customBoardImage'],
+
+  exportSync(){
+    const out={};
+    for(const k of this.SYNC_KEYS){
+      const v=this.data[k];
+      if(v===undefined)continue;
+      out[k]=v;
+    }
+    return out;
+  },
+
+  /* بترجّع true لو حاجة فعلًا اتغيّرت (عشان اللي بينادي يعرف يقول للمستخدم) */
+  importSync(obj){
+    if(!obj||typeof obj!=='object')return false;
+    let changed=false;
+    for(const k of this.SYNC_KEYS){
+      if(!(k in obj))continue;
+      let v=obj[k];
+      if(v===undefined||v===null)continue;
+      /* قيمة مش معروفة بنسيبها، مانرجّعهاش للافتراضي. الحسابات القديمة
+         عندها pieceStyle:'Neo' مزروع من الخادم (بلوب افتراضي بأسماء
+         مفاتيح مالهاش وجود في العميل) — لو عدّيناه على normalize كان
+         بيطلع 'neo' ويمحي اختيار المستخدم على الجهاز في أول تنزيل. */
+      if(k==='pieceStyle'){
+        if(typeof v!=='string'||!isKnownPieceTheme(normalizePieceTheme(v,''))) continue;
+        v=normalizePieceTheme(v);
+      }
+      /* نوع مختلف عن المحلي = قيمة من بلوب قديم، مانصدّقهاش */
+      const cur=this.data[k];
+      if(cur!==undefined&&typeof cur!==typeof v)continue;
+      /* مقارنة بالقيمة: القيم كلها بدائية أو نصوص (صور data:) */
+      if(cur===v)continue;
+      this.data[k]=v;
+      changed=true;
+    }
+    if(!changed)return false;
+    this._persist();
+    this.apply();
+    try{ if(typeof this.refreshProfileUI==='function') this.refreshProfileUI(); }catch(e){}
+    return true;
+  },
   /* رفع الاسم المعروض للحساب. صامتة: لو مفيش تسجيل دخول أو الشبكة واقعة،
      الاسم شغّال محليًا زي الأول، وبيتزامن أول فرصة. */
   async _syncNameToServer(name){
@@ -5633,6 +5851,12 @@ const Cfg={
 /* نعرّض مزامنة صورتي على window عشان chat-client يقدر يطلبها لما يلاقي إن
    السيرفر لسه مايعرفش صورتي (users.avatar_url فاضي) بينما هي محفوظة محليًا. */
 try{ window.amkhSyncMyAvatar = function(){ try{ if(Cfg && Cfg.data && Cfg.data.playerImage) Cfg._syncAvatarToServer(Cfg.data.playerImage); }catch(e){} }; }catch(e){}
+
+/* ‎const‎ على مستوى السكربت مابيعملش خانة على window — فـ‎window.Cfg‎ كان
+   undefined في كل الأكواد اللي بتفحصه كده (وهي موجودة في أكتر من ملف)،
+   والفحص كان بيفشل بصمت ويسقط على قيمة فاضية. وملفات المزامنة الخارجية
+   محتاجة الاسم كده. (LVL بتتعرّض بعد تعريفها تحت — TDZ.) */
+try{ window.Cfg = Cfg; }catch(e){}
 
 /* أيقونة افتراضية للاعب — SVG مضمّنة (data URL) عشان تشتغل offline
    من غير ما الشاشة تستنّى أي تبادل بلوتوث.
@@ -6494,8 +6718,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '3.13';
-const APP_VERSION_CODE = 29;
+const APP_VERSION = '3.14';
+const APP_VERSION_CODE = 30;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7719,12 +7943,95 @@ const LVL={
         console.log('[Firestore] Cloud sync failed (offline?):',e);
       }
     }
+    /* 3. رفع المرحلة للحساب فورًا. الدورة الدوريّة كل عشر ثوانٍ كانت
+       بتلحقها، بس اللاعب ممكن يقفل التطبيق قبلها — والمرحلة تضيع. */
+    try{
+      if(window.amkhAuth&&window.amkhAuth.token&&window.getApiBase){
+        fetch(window.getApiBase()+'/progress',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+window.amkhAuth.token,'ngrok-skip-browser-warning':'true'},
+          body:JSON.stringify({stage_number:id+1,completed:true,stars:p[id].stars,moves:(p[id].moves&&p[id].moves<999)?p[id].moves:null})
+        }).catch(()=>{});
+      }
+    }catch(e){}
   },
   async unlocked(id){
     if(id===0)return true;
     const p=await this.get();
     return!!(p['u'+id]||p[id]?.done);
   },
+
+  /* ══════════════════════════════════════════════════════════════
+     مزامنة تقدّم المراحل مع الحساب (بلاغ أحمد: «كنت في مرحلة ٣،
+     شِلت التطبيق وسجّلت دخول، لقيت نفسي في مرحلة ١»)
+     ──────────────────────────────────────────────────────────────
+     العطل الأصلي: كود المزامنة في auth-client.js كان بيفتح قاعدة
+     اسمها ChessNourDB/nourProgress — قاعدة مالهاش وجود. تقدّم نور
+     الحقيقي في NourChessDB/levels (فوق). فالرفع كان بيقرأ لا شيء
+     والتنزيل بيكتب لا شيء، والحساب فاضي من التقدّم من الأساس.
+
+     المراحل هنا أرقامها من صفر، والخادم بيطلب stage_number ≥ 1،
+     فالتحويل ثابت في الاتجاهين: stage = id + 1.
+  ══════════════════════════════════════════════════════════════ */
+  async exportForSync(){
+    const p=await this.get();
+    const out=[];
+    for(const lv of LEVELS_DEF){
+      const r=p[lv.id];
+      const unlocked=!!p['u'+lv.id];
+      if(!r && !unlocked) continue;
+      out.push({
+        stage:lv.id+1,
+        completed:!!(r && r.done),
+        stars:(r && r.stars)||0,
+        /* 999 هي «مافيش رقم» في التخزين المحلي — مانرفعهاش كأنها نتيجة */
+        moves:(r && r.moves && r.moves<999)?r.moves:null
+      });
+    }
+    return out;
+  },
+
+  /* دمج غير مُدمِّر: الأفضل بيفوز في كل خانة، فجهاز متأخّر مابينزّلش
+     تقدّم الحساب. بترجّع عدد المراحل اللي فعلًا اتغيّرت. */
+  async importFromSync(rows){
+    if(!Array.isArray(rows)||!rows.length)return 0;
+    const p=await this.get();
+    let changed=0;
+    for(const row of rows){
+      const id=Number(row && (row.stage_number!=null?row.stage_number:row.stage))-1;
+      if(!Number.isInteger(id)||id<0||id>=LEVELS_DEF.length)continue;
+      const srvDone=!!(row.completed===1||row.completed===true);
+      const srvStars=Number(row.stars)||0;
+      const bm=Number(row.best_moves!=null?row.best_moves:row.moves);
+      const srvMoves=(Number.isFinite(bm)&&bm>0)?bm:999;
+      const cur=p[id]||{stars:0,moves:999,done:false};
+      const next={
+        stars:Math.max(cur.stars||0,srvStars),
+        moves:Math.min(cur.moves||999,srvMoves),
+        done:!!(cur.done||srvDone)
+      };
+      if(next.stars===(cur.stars||0)&&next.moves===(cur.moves||999)&&next.done===!!cur.done&&p[id])continue;
+      p[id]=next;
+      if(next.done&&id+1<LEVELS_DEF.length)p['u'+(id+1)]=true;
+      changed++;
+      try{ await IDB.set(id+'',{stars:next.stars,moves:next.moves,done:next.done,updatedAt:Date.now()}); }catch(e){}
+      if(next.done&&id+1<LEVELS_DEF.length){
+        try{ await IDB.set('u'+(id+1),{unlocked:true,updatedAt:Date.now()}); }catch(e){}
+      }
+    }
+    if(!changed)return 0;
+    this._cache=p;
+    try{ await IDB.kset(this._backupKey,p); }catch(e){}
+    try{ localStorage.setItem(this._backupKey,JSON.stringify(p)); }catch(e){}
+    /* لو شاشة المراحل مفتوحة دلوقتي لازم تعيد الرسم، وإلا اللاعب يفضل
+       شايف «مقفولة» لحد ما يخرج ويدخل تاني. */
+    try{
+      const scr=document.getElementById('s-levels');
+      if(scr&&scr.classList.contains('active')) await this.buildUI();
+    }catch(e){}
+    return changed;
+  },
+
   async stars(id){
     const p=await this.get();
     return p[id]?.stars||0;
@@ -7764,6 +8071,8 @@ const LVL={
     document.getElementById('lp-fill').style.width=(done/12*100)+'%';
   }
 };
+/* نفس سبب window.Cfg: ملف المزامنة بيقرأ التقدّم من هنا بالاسم. */
+try{ window.LVL = LVL; }catch(e){}
 
 /* ══════════════════════════════════════
    STOCKFISH WRAPPER (Fallback to Local Engine)
@@ -10901,24 +11210,51 @@ let _lastBalW=window.innerWidth;
      فالتغطية صفر بحقّ). فلمّا يكون موجودًا بنثق به وحده ونُهمل كل الكشف
      والتخزين — التخزين نفسه كان مصدر أعطال لزجة مابتشفاش إلا بمسح البيانات. */
   let _kbNative=null;
-  window.AMKH_kbNative=v=>{
+  let _kbNativeAt=0;        /* وقت آخر قياس أصلي وصل */
+  let _kbOpenAt=0;          /* وقت آخر keyboardWillShow */
+  let _bridgeOk=false;      /* هل الجسر الأصلي أثبت إنه بيوصل قياسًا طازجًا على الجهاز ده؟ */
+  try{ _bridgeOk = localStorage.getItem('amkh_kb_bridge')==='1'; }catch(e){}
+  /* الجسر ينفع دليلًا **إذا كان طازجًا**: قياس جاء بعد فتح الكيبورد. القياس
+     القديم (من لحظة الكيبورد مقفول) قيمته صفر، ولو اعتبرناه حجّةً — زي ما كان
+     في بناء 29 — يبقى --kb صفر والكيبورد يغطّي صندوق الكتابة تمامًا. ده اللي
+     حصل على هاتف أحمد: معالج الـinsets ما كانش بيوصله خبر أصلًا (كان مسجَّلًا
+     على الـWebView وأبٌ في الشجرة بيستهلك الـinsets)، فالقيمة تفضل صفرًا قديمًا
+     والتقدير المعطَّل. الآن: طازج = يُعتمد وحده (أدقّ شيء ممكن)، وقديم = نسقط
+     على التقدير. imeOn=0 معناه النظام مش مبلّغ إزاحة كيبورد (أندرويد قديم أو
+     كيبورد عائم) فالصفر منه مش دليل تغطية. */
+  window.AMKH_kbNative=(v,imeOn)=>{
     const n=Number(v);
-    if(!isNaN(n)){
-      const first=_kbNative===null;
-      _kbNative=Math.max(0,Math.round(n));
-      /* الكشف القديم صار غير مستخدم؛ نمسح أثره المحفوظ مرّةً واحدة عشان أي
-         جهاز محمّل بقيمة خاطئة من إصدار قديم يشفى بمجرّد التحديث. */
-      if(first){ try{ localStorage.removeItem('amkh_kb_shrinks'); localStorage.removeItem('amkh_kb_vv'); }catch(e){} }
-      if(root.classList.contains('kb-open')){ applyKb(); raiseChat(); }
+    if(isNaN(n))return;
+    const first=_kbNative===null;
+    _kbNative=Math.max(0,Math.round(n));
+    _kbNativeAt=Date.now();
+    const open=root.classList.contains('kb-open');
+    /* القياس معتبر لو النظام مبلّغ إزاحة كيبورد، أو لو الكيبورد مقفول (صفر
+       صحيح ساعتها). imeOn غير مُمرَّر = نسخة أصلية قديمة → نتعامل معه كمبلّغ. */
+    const reported = (imeOn===undefined) ? true : !!Number(imeOn);
+    if(open && reported && Date.now()-_kbOpenAt<4000){
+      if(!_bridgeOk){ _bridgeOk=true; try{ localStorage.setItem('amkh_kb_bridge','1'); }catch(e){} }
     }
+    if(!reported && open) _kbNativeAt=0;   /* مش دليل — سيب التقدير يشتغل */
+    if(first){ try{ localStorage.removeItem('amkh_kb_shrinks'); localStorage.removeItem('amkh_kb_vv'); }catch(e){} }
+    if(open){ applyKb(); raiseChat(); }
   };
   const kbCover=()=>{
-    if(_kbNative!==null) return Math.min(_kbNative, Math.round(window.innerHeight*0.9));
+    /* القياس الأصلي الطازج (وصل بعد فتح الكيبورد) هو الحقيقة الكاملة. */
+    if(_kbNative!==null && _kbNativeAt>=_kbOpenAt && _kbOpenAt>0)
+      return Math.min(_kbNative, Math.round(window.innerHeight*0.9));
     const vv=window.visualViewport;
     const covered=vv?Math.round(window.innerHeight-vv.height-(vv.offsetTop||0)):0;
     if(covered>40 && _vvReports!==true){
       _vvReports=true; try{ localStorage.setItem('amkh_kb_vv','1'); }catch(e){}
     }
+    /* الجسر شغّال على الجهاز ده لكن القياس لسه جاي: انتظر إطارات قليلة بدل ما
+       نقفز بتقدير ثم نصحّحه (قفزة مرئية على التابلت). بعد المهلة نقدّر.
+       شرط «>40»: آخر قيمة وصلت وقت **غلق** الكيبورد هي صفر، ولو رجّعناها هنا
+       يفضل الصندوق تحت الكيبورد لجزء من الثانية قبل ما التقدير يشتغل. الصفر
+       القديم مش انتظار مفيد — نقدّر فورًا. */
+    if(_bridgeOk && _kbNative>40 && Date.now()-_kbOpenAt<420)
+      return Math.min(_kbNative, Math.round(window.innerHeight*0.9));
     return kbCalc(_kbRaw,_hOpen,window.innerHeight,_shrinks,covered,_vvReports,_kbFull);
   };
   const applyKb=()=>{ root.style.setProperty('--kb', kbCover()+'px'); };
@@ -10950,6 +11286,7 @@ let _lastBalW=window.innerWidth;
       const nav=parseFloat(getComputedStyle(root).getPropertyValue('--nav-bottom'))||0;
       _kbFull=Math.round(kbFull);
       _kbRaw=Math.max(0, Math.round(kbFull-nav));
+      _kbOpenAt=Date.now();
       if(!root.classList.contains('kb-open')){ _hOpen=window.innerHeight; _wOpen=window.innerWidth; _sawShrink=false; }
       root.classList.add('kb-open','kb-shift');
       applyKb();
@@ -10957,8 +11294,9 @@ let _lastBalW=window.innerWidth;
       raiseActive();
       raiseChat();
       /* بعض الأجهزة تُبلّغ التقليص بعد الحدث بإطارات — نعيد الحساب مرّاتٍ
-         قليلة حتى تستقرّ القيمة (ولو الجهاز لا يقلّص فالقيمة لا تتغيّر). */
-      [60,180,340,600].forEach(d=>setTimeout(()=>{ if(root.classList.contains('kb-open')) onViewport(); },d));
+         قليلة حتى تستقرّ القيمة (ولو الجهاز لا يقلّص فالقيمة لا تتغيّر).
+         و440ms/700ms بيلقطوا نهاية مهلة انتظار الجسر (كبديل التقدير). */
+      [60,180,340,440,700].forEach(d=>setTimeout(()=>{ if(root.classList.contains('kb-open')) onViewport(); },d));
     });
     KB.addListener('keyboardWillHide', ()=>{
       dropChat();
@@ -13924,13 +14262,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260905-b29"></script>
+  <script src="auth-client.js?v=20260906-b30"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260905-b29"></script>
-  <script src="friends-client.js?v=20260905-b29"></script>
-  <script src="chat-client.js?v=20260905-b29"></script>
-  <script src="call-client.js?v=20260905-b29"></script>
+  <script src="welcome-client.js?v=20260906-b30"></script>
+  <script src="friends-client.js?v=20260906-b30"></script>
+  <script src="chat-client.js?v=20260906-b30"></script>
+  <script src="call-client.js?v=20260906-b30"></script>
 <script>
 const BLEManager = {
   isHost: false,

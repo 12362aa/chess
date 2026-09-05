@@ -36,14 +36,19 @@ public class MainActivity extends BridgeActivity {
     private void setupNavBarInset() {
         final WebView web = (getBridge() != null) ? getBridge().getWebView() : null;
         if (web == null) return;
-        // تحديث فوري لو الـinsets اتغيّرت وقت التشغيل (دوران/تبديل نمط التنقّل).
-        // ملاحظة: Capacitor بيسجّل listener على parent الـWebView (مش عليه)، فمفيش
-        // تعارض. بس الـparent هو اللي بيحطّ padding=ime وقت الكيبورد، وتقليص
-        // الـWebView بيحصل في layout بعد ما الـlistener يخلص → بنقيس في post().
-        ViewCompat.setOnApplyWindowInsetsListener(web, (v, insets) -> {
+        /* الاستماع على DecorView (جذر التوزيع) لا على الـWebView:
+           • أي أب في الشجرة يستهلك الـinsets (كابستور بيعمل كده لإدارة
+             edge-to-edge) كان بيمنع listener الـWebView من العمل أصلًا — فيفضل
+             --kb-native على قيمته القديمة (صفر) وقت فتح الكيبورد، والنتيجة
+             كيبورد بيغطّي صندوق الكتابة على الهاتف (بلاغ أحمد، بناء 29).
+           • ولأن setOnApplyWindowInsetsListener بيستبدل معالج العنصر، كان
+             تسجيلنا على الـWebView بيلغي معالج كابستور نفسه. هنا بنعيد
+             ViewCompat.onApplyWindowInsets عشان التوزيع الطبيعي يكمل كما هو. */
+        final View decor = getWindow().getDecorView();
+        ViewCompat.setOnApplyWindowInsetsListener(decor, (v, insets) -> {
             injectNavInset(web);
             web.post(() -> injectNavInset(web));
-            return insets;   // مانستهلكش الـinsets — نعيدها زي ما هي عشان مانكسرش أي معالجة تانية
+            return ViewCompat.onApplyWindowInsets(v, insets);
         });
         // الكيبورد بيقلّص الـWebView (أندرويد ١٥+) فالقياس الصحيح وقته هو بعد
         // الـlayout الجديد بالضبط — أدقّ توقيت متاح، وبيلقط الدوران كذلك.
@@ -88,13 +93,17 @@ public class MainActivity extends BridgeActivity {
             } catch (Exception e) { coveredPx = 0; }
         }
         final int kbCss = Math.round(coveredPx / density);
+        final int imeOn = (ime > 0) ? 1 : 0;
         /* بلا ذاكرة مؤقّتة عن قصد: أي تحميل جديد للصفحة بيمسح متغيّرات CSS، فلو
            تخطّينا الحقن لأن القيمة «زي ما هي» تفضل الصفحة بلا --kb-native وتسقط
-           على التقدير القديم. نداء JS بسيط زي ده أرخص من عطل في الشات. */
+           على التقدير القديم. نداء JS بسيط زي ده أرخص من عطل في الشات.
+           imeOn بيقول للصفحة: هل النظام بيبلّغ إزاحة كيبورد وقت القياس ده؟ لو لا
+           (أندرويد ٢٩ وأقل مثلًا) فالصفر مش دليل على عدم التغطية، والصفحة تسقط
+           على تقديرها بدل ما تفضل ملزوقة على صفر خاطئ. */
         web.evaluateJavascript(
             "(function(d){if(!d)return;d.style.setProperty('--nav-bottom','" + navCss + "px');"
             + "d.style.setProperty('--kb-native','" + kbCss + "px');"
-            + "if(window.AMKH_kbNative)window.AMKH_kbNative(" + kbCss + ");})(document.documentElement)", null);
+            + "if(window.AMKH_kbNative)window.AMKH_kbNative(" + kbCss + "," + imeOn + ");})(document.documentElement)", null);
     }
 
     @Override

@@ -30,6 +30,7 @@
     _reinviteTimer: null, // إعادة إرسال الدعوة كل شوية طول ما بننادي (#147)
     _ringSfxTimer: null,
     _durTimer: null,
+    _noteTimer: null, // شريط التنويه جوّه النافذة
     _dom: null,
 
     /* ── مساعدات ── */
@@ -52,8 +53,27 @@
       if (!ws) return false;
       try { ws.send(JSON.stringify(obj)); return true; } catch (e) { return false; }
     },
+    /* رسالة للمستخدم. لو نافذة المكالمة مفتوحة، النافذة العامة (Modal على
+       z-index 1200) بتتفتح **ورا** نافذة المكالمة (100001) فمحدّ يشوفها —
+       ده كان بلاغ «نافذة الرفض بتوصل ورا نافذة المكالمة». فبنعرضها كشريط
+       تنويه جوّه نافذة المكالمة نفسها، وبرّاها بنرجع للنافذة العامة. */
     _notify(msg, title, icon) {
+      if (this._dom && this._dom.overlay.classList.contains('on')) { this._toast(msg, icon); return; }
       try { window.amkhUI && window.amkhUI.notify(msg, title || 'المكالمة', icon || '◈'); } catch (e) {}
+    },
+    /* شريط تنويه أعلى نافذة المكالمة — بيختفي لوحده، وبصوته الخاص */
+    _toast(msg, icon) {
+      const dom = this._dom; if (!dom || !dom.note) return;
+      dom.noteIc.textContent = icon || '◈';
+      dom.noteTx.textContent = String(msg == null ? '' : msg);
+      dom.note.classList.add('on');
+      try { SFX.callNote(); } catch (e) {}
+      if (this._noteTimer) clearTimeout(this._noteTimer);
+      this._noteTimer = setTimeout(() => { this._noteTimer = null; this._hideToast(); }, 4800);
+    },
+    _hideToast() {
+      if (this._noteTimer) { clearTimeout(this._noteTimer); this._noteTimer = null; }
+      if (this._dom && this._dom.note) this._dom.note.classList.remove('on');
     },
     _esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
 
@@ -880,7 +900,8 @@
           call._upWait = false;
           if (this._upTimer) { clearTimeout(this._upTimer); this._upTimer = null; }
           this._updateControls();
-          this._notify('لم يقبل تحويل المكالمة إلى فيديو', 'المكالمة', '◈');
+          /* الشريط جوّه النافذة — النافذة العامة كانت بتتفتح ورا المكالمة */
+          this._notify((call.title ? call.title + ' ' : '') + 'رفض التحويل إلى فيديو — المكالمة مستمرّة صوتيًا', 'المكالمة', '◈');
           break;
         }
         case 'call:offer': {
@@ -1061,90 +1082,168 @@
       if (this._dom) return this._dom;
       const style = document.createElement('style');
       style.textContent = `
+      /* ══ نافذة المكالمة — طابع شطرنجي يتبع الثيم ══════════════════════
+         كل لون هنا إمّا token من ثيم الواجهة (design-system.css وإعادة
+         تعريفها على body[data-ui-theme]) أو لون من طقم الرقعة المختار
+         (--sq-l / --sq-d)، فالنافذة بتتلوّن مع الثيم ومع الرقعة تلقائيًا
+         بلا قاعدة مخصوصة لكل ثيم. الألوان الثابتة القديمة (أزرق 7aa2f7،
+         أخضر 2ecc71، أحمر e74c3c) كانت من لوحة تانية خالص — دي كانت سبب
+         إحساس «تطبيق مكالمات قديم» وسط تطبيق ذهبي.
+         الطابع الشطرنجي: شريط رقعة أعلى الكارت، مربّعات باهتة خلف
+         الترويسة، حصان زخرفي، وساعة المكالمة في كبسولة زيّ ساعة اللعب. */
       #amkhc-overlay{position:fixed;inset:0;z-index:100001;display:none;align-items:center;justify-content:center;padding:20px;
-        background:rgba(0,0,0,.6);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);opacity:0;transition:opacity .25s;}
+        background:var(--color-overlay,rgba(4,6,13,.82));backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);opacity:0;transition:opacity .25s;}
       #amkhc-overlay.on{display:flex;opacity:1;}
-      #amkhc-overlay .amkhc-card{background:var(--color-surface,#1e2030);border:1px solid var(--color-border,rgba(255,255,255,.1));
-        border-radius:var(--radius-lg,24px);padding:28px 22px;width:100%;max-width:340px;text-align:center;
-        box-shadow:0 25px 60px rgba(0,0,0,.55);transform:translateY(18px) scale(.96);transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+      #amkhc-overlay .amkhc-card{position:relative;overflow:hidden;
+        background:linear-gradient(180deg,var(--color-bg-elevated,#111627) 0,var(--color-surface,#1c2238) 62%);
+        border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);
+        padding:30px 18px 22px;width:100%;max-width:340px;text-align:center;
+        box-shadow:0 26px 64px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.05);
+        transform:translateY(18px) scale(.96);transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
       #amkhc-overlay.on .amkhc-card{transform:translateY(0) scale(1);}
-      #amkhc-avatar{width:96px;height:96px;margin:0 auto 16px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
-        font-size:38px;font-weight:800;color:var(--color-text-primary,#fff);background:var(--color-surface-raised,#28304b);
-        border:2px solid var(--color-primary,#7aa2f7);box-shadow:0 0 0 8px rgba(122,162,247,.08);}
+      #amkhc-overlay .amkhc-card > *{position:relative;z-index:1;}
+      /* الزخرفة كلها في عنصر واحد: الشريط نفسه + مربّعات الرقعة (::before)
+         + الحصان (::after). الشفافية على الطبقات الداخلية عشان الشريط
+         العلوي يفضل صريحًا. */
+      .amkhc-deco{position:absolute;left:0;right:0;top:0;height:6px;pointer-events:none;z-index:0;
+        background:repeating-linear-gradient(90deg,var(--sq-d,#74533a) 0 12.5%,var(--sq-l,#ba9d79) 12.5% 25%);
+        box-shadow:0 1px 0 var(--color-primary-border,rgba(216,180,90,.34));}
+      .amkhc-deco::before{content:'';position:absolute;left:0;right:0;top:6px;height:152px;opacity:.075;
+        background-image:linear-gradient(45deg,var(--sq-d,#74533a) 25%,transparent 25%,transparent 75%,var(--sq-d,#74533a) 75%),
+          linear-gradient(45deg,var(--sq-d,#74533a) 25%,transparent 25%,transparent 75%,var(--sq-d,#74533a) 75%);
+        background-size:34px 34px;background-position:0 0,17px 17px;
+        -webkit-mask-image:linear-gradient(180deg,#000,transparent);mask-image:linear-gradient(180deg,#000,transparent);}
+      .amkhc-deco::after{content:'♞';position:absolute;right:10px;top:12px;font-size:52px;line-height:1;
+        color:var(--color-primary,#d8b45a);opacity:.12;}
+      #amkhc-avatar{width:96px;height:96px;margin:2px auto 14px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
+        font-size:38px;font-weight:800;color:var(--color-primary-text,#f0d68a);background:var(--color-surface-raised,#28304b);
+        border:2px solid var(--color-primary,#d8b45a);
+        box-shadow:0 0 0 7px var(--color-primary-subtle,rgba(216,180,90,.13)),0 10px 26px rgba(0,0,0,.4);}
       #amkhc-avatar img{width:100%;height:100%;object-fit:cover;}
-      #amkhc-avatar.ring{animation:amkhc-pulse 1.6s ease-out infinite;}
-      @keyframes amkhc-pulse{0%{box-shadow:0 0 0 0 rgba(122,162,247,.35);}100%{box-shadow:0 0 0 22px rgba(122,162,247,0);}}
-      #amkhc-title{color:var(--color-text-primary,#fff);font-size:20px;font-weight:800;margin:0 0 6px;}
-      #amkhc-status{color:var(--color-text-secondary,#a9b1d6);font-size:14px;margin:0 0 4px;min-height:18px;}
-      #amkhc-timer{color:var(--color-primary,#7aa2f7);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;min-height:20px;margin-bottom:20px;}
-      #amkhc-actions{display:flex;gap:18px;justify-content:center;align-items:center;}
-      .amkhc-btn{width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
-        transition:transform .15s,background .2s;color:#fff;}
+      #amkhc-avatar.ring{animation:amkhc-pulse 1.8s ease-out infinite;}
+      @keyframes amkhc-pulse{
+        0%{box-shadow:0 0 0 0 var(--color-primary-border,rgba(216,180,90,.34)),0 10px 26px rgba(0,0,0,.4);}
+        100%{box-shadow:0 0 0 24px rgba(216,180,90,0),0 10px 26px rgba(0,0,0,.4);}}
+      #amkhc-title{color:var(--color-text-primary,#f2eee3);font-size:20px;font-weight:800;margin:0 0 5px;}
+      #amkhc-status{color:var(--color-text-secondary,#ada695);font-size:13.5px;margin:0 0 11px;min-height:18px;}
+      /* ساعة المكالمة: كبسولة غائرة بأرقام أحادية العرض — زيّ ساعة اللعب */
+      #amkhc-timer{display:inline-block;margin:0 auto 18px;padding:5px 15px;border-radius:999px;
+        background:var(--color-surface-sunken,#050710);border:1px solid var(--color-border,#2a3149);
+        color:var(--color-primary-text,#f0d68a);font-size:15px;font-weight:700;letter-spacing:1px;
+        font-family:Consolas,'Courier New',monospace;font-variant-numeric:tabular-nums;}
+      #amkhc-timer:empty{visibility:hidden;}
+      #amkhc-actions{display:flex;gap:14px 12px;justify-content:center;align-items:flex-start;flex-wrap:wrap;}
+      .amkhc-btn{width:60px;height:60px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;
+        border:1px solid var(--color-border,#2a3149);background:var(--color-surface-raised,#28304b);
+        color:var(--color-text-primary,#f2eee3);transition:transform .15s,background .2s,box-shadow .2s,border-color .2s;
+        box-shadow:0 6px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);}
       .amkhc-btn:active{transform:scale(.9);}
       .amkhc-btn svg{width:26px;height:26px;}
-      .amkhc-btn.neutral{background:var(--color-surface-raised,#28304b);color:var(--color-text-primary,#fff);}
-      .amkhc-btn.neutral.active{background:var(--color-primary,#7aa2f7);color:#12131c;}
-      .amkhc-btn.accept{background:#2ecc71;}
-      .amkhc-btn.reject,.amkhc-btn.hangup{background:#e74c3c;}
-      .amkhc-lbl{display:block;font-size:11px;color:var(--color-text-secondary,#a9b1d6);margin-top:6px;}
+      .amkhc-btn.neutral.active{background:var(--color-primary,#d8b45a);color:var(--color-on-primary,#0b0f1a);
+        border-color:var(--color-primary,#d8b45a);box-shadow:0 0 0 4px var(--color-primary-subtle,rgba(216,180,90,.13)),0 6px 16px rgba(0,0,0,.3);}
+      .amkhc-btn.accept{background:var(--color-success,#48d982);border-color:var(--color-success,#48d982);color:#05230f;}
+      .amkhc-btn.reject,.amkhc-btn.hangup{background:var(--color-danger,#f4756f);border-color:var(--color-danger,#f4756f);color:#2b0705;}
+      .amkhc-lbl{display:block;max-width:78px;font-size:10.5px;line-height:1.35;overflow-wrap:break-word;
+        color:var(--color-text-secondary,#ada695);margin-top:7px;}
       .amkhc-act{display:flex;flex-direction:column;align-items:center;}
+      /* شاشة ضيّقة: أربعة أزرار + عناوينها لازم تفضل جوّه الكارت */
+      @media (max-width:380px){
+        .amkhc-btn{width:52px;height:52px;}
+        .amkhc-btn svg{width:22px;height:22px;}
+        #amkhc-actions{gap:12px 9px;}
+        .amkhc-lbl{max-width:62px;font-size:10px;}
+      }
       /* شبكة مشاركي الحفلة — واجهة مختلفة تمامًا عن كارت المكالمة الفردية */
-      #amkhc-grid{display:none;flex-wrap:wrap;gap:14px 10px;justify-content:center;margin:2px 0 20px;max-height:46vh;overflow-y:auto;}
+      #amkhc-grid{display:none;flex-wrap:wrap;gap:14px 10px;justify-content:center;margin:2px 0 18px;max-height:46vh;overflow-y:auto;}
       #amkhc-grid.on{display:flex;}
       .amkhc-tile{width:82px;display:flex;flex-direction:column;align-items:center;gap:7px;}
       .amkhc-tile .av{position:relative;width:62px;height:62px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
-        font-size:24px;font-weight:800;color:var(--color-text-primary,#fff);background:var(--color-surface-raised,#28304b);
-        border:2px solid var(--color-border,rgba(255,255,255,.12));transition:border-color .2s,box-shadow .2s;}
+        font-size:24px;font-weight:800;color:var(--color-primary-text,#f0d68a);background:var(--color-surface-raised,#28304b);
+        border:2px solid var(--color-border,#2a3149);transition:border-color .2s,box-shadow .2s;}
       .amkhc-tile .av img{width:100%;height:100%;object-fit:cover;}
-      .amkhc-tile.talk .av{border-color:var(--color-primary,#7aa2f7);box-shadow:0 0 0 4px rgba(122,162,247,.18);}
-      .amkhc-tile.ringing .av{animation:amkhc-pulse 1.6s ease-out infinite;}
-      .amkhc-tile .nm{font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text-secondary,#a9b1d6);}
-      .amkhc-tile .mz{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#e74c3c;
-        display:none;align-items:center;justify-content:center;border:2px solid var(--color-surface,#1e2030);}
+      .amkhc-tile.talk .av{border-color:var(--color-primary,#d8b45a);box-shadow:0 0 0 4px var(--color-primary-subtle,rgba(216,180,90,.13));}
+      .amkhc-tile.ringing .av{animation:amkhc-pulse 1.8s ease-out infinite;}
+      .amkhc-tile .nm{font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text-secondary,#ada695);}
+      .amkhc-tile .mz{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--color-danger,#f4756f);
+        display:none;align-items:center;justify-content:center;border:2px solid var(--color-surface,#1c2238);}
       .amkhc-tile.muted .mz{display:flex;}
-      .amkhc-tile .mz svg{width:12px;height:12px;color:#fff;}
-      /* ── وضع مكالمة الفيديو ملء الشاشة (#160) ── */
-      #amkhc-overlay.video-mode{padding:0;background:#0b0d14;backdrop-filter:none;-webkit-backdrop-filter:none;align-items:stretch;justify-content:stretch;}
+      .amkhc-tile .mz svg{width:12px;height:12px;color:#2b0705;}
+      /* ── وضع مكالمة الفيديو ملء الشاشة (#160) ──
+         مسرح الفيديو بيفضل أسود شبه صافي في كل الثيمات: صورة الطرف الآخر هي
+         المحتوى، وأي تلوين حواليها بيغيّر إحساس الألوان فيها. اللي بيتبع
+         الثيم هو أطراف الواجهة: شريط الرقعة العلوي، إطار المعاينة، الأزرار،
+         وتدرّجات الترويسة والشريط السفلي. */
+      #amkhc-overlay.video-mode{padding:0;background:#070910;backdrop-filter:none;-webkit-backdrop-filter:none;align-items:stretch;justify-content:stretch;}
       #amkhc-overlay.video-mode .amkhc-card{display:none;}
-      #amkhc-stage{display:none;position:relative;width:100%;height:100%;overflow:hidden;background:#0b0d14;}
+      #amkhc-stage{display:none;position:relative;width:100%;height:100%;overflow:hidden;background:#070910;}
       #amkhc-overlay.video-mode #amkhc-stage{display:block;}
-      #amkhc-remote-wrap{position:absolute;inset:0;background:#0b0d14;}
-      #amkhc-remote-wrap.solo .amkhc-rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#0b0d14;}
+      /* شريط رقعة رقيق أعلى المسرح — نفس توقيع الكارت الصوتي */
+      #amkhc-stage::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;z-index:6;
+        background:repeating-linear-gradient(90deg,var(--sq-d,#74533a) 0 12.5%,var(--sq-l,#ba9d79) 12.5% 25%);}
+      #amkhc-remote-wrap{position:absolute;inset:0;background:#070910;}
+      #amkhc-remote-wrap.solo .amkhc-rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#070910;}
       #amkhc-remote-wrap.party{display:grid;gap:3px;padding:3px;grid-template-columns:repeat(2,1fr);align-content:center;height:100%;box-sizing:border-box;}
-      #amkhc-remote-wrap.party .amkhc-rv{width:100%;height:100%;min-height:0;object-fit:cover;border-radius:12px;background:#151827;}
+      #amkhc-remote-wrap.party .amkhc-rv{width:100%;height:100%;min-height:0;object-fit:cover;border-radius:12px;background:var(--color-surface,#1c2238);}
       #amkhc-local-video{position:absolute;right:14px;top:84px;width:104px;height:150px;object-fit:cover;border-radius:14px;
-        border:2px solid rgba(255,255,255,.5);background:#000;z-index:4;box-shadow:0 6px 18px rgba(0,0,0,.5);}
+        border:2px solid var(--color-primary,#d8b45a);background:#000;z-index:4;box-shadow:0 8px 22px rgba(0,0,0,.55);}
       #amkhc-local-video.mirror{transform:scaleX(-1);}
       #amkhc-local-video.off{display:none;}
       #amkhc-vhead{position:absolute;top:0;left:0;right:0;z-index:3;text-align:center;
-        padding:calc(18px + env(safe-area-inset-top,0)) 18px 22px;background:linear-gradient(to bottom,rgba(0,0,0,.55),transparent);}
+        padding:calc(18px + env(safe-area-inset-top,0)) 18px 22px;background:linear-gradient(to bottom,rgba(4,6,13,.72),transparent);}
       #amkhc-vtitle{color:#fff;font-size:19px;font-weight:800;text-shadow:0 1px 5px rgba(0,0,0,.7);}
       #amkhc-vsub{color:rgba(255,255,255,.85);font-size:13px;margin-top:3px;font-variant-numeric:tabular-nums;text-shadow:0 1px 5px rgba(0,0,0,.7);min-height:16px;}
-      #amkhc-vbar{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;gap:16px;justify-content:center;align-items:flex-start;
-        padding:18px 14px calc(26px + env(safe-area-inset-bottom,0));background:linear-gradient(to top,rgba(0,0,0,.6),transparent);}
-      #amkhc-overlay.video-mode .amkhc-lbl{color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,0,0,.6);}
+      #amkhc-vbar{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;gap:14px 12px;justify-content:center;align-items:flex-start;flex-wrap:wrap;
+        padding:18px 14px calc(26px + env(safe-area-inset-bottom,0));background:linear-gradient(to top,rgba(4,6,13,.78),transparent);}
+      #amkhc-overlay.video-mode .amkhc-lbl{color:rgba(255,255,255,.92);text-shadow:0 1px 3px rgba(0,0,0,.6);}
       /* لوحة سؤال جوّه النافذة (طلب تحويل المكالمة لفيديو — العلّة ٨).
          amkhUI.confirm بتفتح على z-index 1050 والنافذة دي 100001، فكانت
          هتتغطّى تحتها — فاللوحة جوّه النافذة نفسها وبنفس ثيم التطبيق. */
       #amkhc-ask{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:22px;
-        background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+        background:var(--color-overlay,rgba(4,6,13,.82));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
       #amkhc-ask.on{display:flex;}
-      #amkhc-ask .box{background:var(--color-surface,#1e2030);border:1px solid var(--color-border,rgba(255,255,255,.1));
-        border-radius:var(--radius-lg,24px);padding:22px 18px;width:100%;max-width:300px;text-align:center;
-        box-shadow:0 20px 50px rgba(0,0,0,.6);}
-      #amkhc-ask .t{color:var(--color-text-primary,#fff);font-size:17px;font-weight:800;margin-bottom:8px;}
-      #amkhc-ask .m{color:var(--color-text-secondary,#a9b1d6);font-size:14px;line-height:1.6;margin-bottom:18px;}
+      #amkhc-ask .box{position:relative;overflow:hidden;background:var(--color-surface,#1c2238);
+        border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);padding:24px 18px 20px;
+        width:100%;max-width:310px;text-align:center;box-shadow:0 22px 54px rgba(0,0,0,.6);}
+      #amkhc-ask .box::before{content:'';position:absolute;left:0;right:0;top:0;height:5px;
+        background:repeating-linear-gradient(90deg,var(--sq-d,#74533a) 0 12.5%,var(--sq-l,#ba9d79) 12.5% 25%);}
+      #amkhc-ask .g{width:46px;height:46px;margin:2px auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+        background:var(--color-primary-subtle,rgba(216,180,90,.13));border:1px solid var(--color-primary-border,rgba(216,180,90,.34));
+        color:var(--color-primary-text,#f0d68a);}
+      #amkhc-ask .g svg{width:22px;height:22px;}
+      #amkhc-ask .t{color:var(--color-text-primary,#f2eee3);font-size:17px;font-weight:800;margin-bottom:8px;}
+      #amkhc-ask .m{color:var(--color-text-secondary,#ada695);font-size:13.5px;line-height:1.7;margin-bottom:18px;}
       #amkhc-ask .b{display:flex;gap:10px;}
-      #amkhc-ask button{flex:1;border:none;border-radius:var(--radius-md,14px);padding:12px 10px;font-size:14px;font-weight:700;
-        font-family:inherit;cursor:pointer;transition:transform .15s;}
+      #amkhc-ask button{flex:1;border:1px solid transparent;border-radius:var(--radius-md,12px);padding:12px 10px;font-size:14px;font-weight:700;
+        font-family:inherit;cursor:pointer;transition:transform .15s,background .2s;}
       #amkhc-ask button:active{transform:scale(.96);}
-      #amkhc-ask .no{background:var(--color-surface-raised,#28304b);color:var(--color-text-primary,#fff);}
-      #amkhc-ask .ok{background:var(--color-primary,#7aa2f7);color:#12131c;}
+      #amkhc-ask .no{background:var(--color-surface-raised,#28304b);color:var(--color-text-primary,#f2eee3);border-color:var(--color-border,#2a3149);}
+      #amkhc-ask .ok{background:var(--color-primary,#d8b45a);color:var(--color-on-primary,#0b0f1a);}
+      /* ── شريط تنويه جوّه النافذة ──────────────────────────────────────
+         العلّة: أي رسالة كانت بتروح لـamkhUI.notify → Modal.show، وده على
+         z-index 1200 بينما نافذة المكالمة على 100001 — فالرسالة كانت
+         بتتفتح **ورا** نافذة المكالمة ومحدّ يشوفها. أوضح حالة: الطرف
+         الآخر يرفض تحويل المكالمة لفيديو، فصاحب الطلب يفضل مستنّي بلا أي
+         خبر. الحل: التنويه بيتعرض جوّه النافذة نفسها (زيّ واتساب) بدل
+         نافذة تانية — يشتغل في الوضع الصوتي والفيديو سواء، ومايقطعش
+         المكالمة. */
+      #amkhc-note{position:absolute;left:50%;top:calc(14px + env(safe-area-inset-top,0));z-index:12;
+        width:calc(100% - 28px);max-width:380px;box-sizing:border-box;
+        display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--radius-md,12px);
+        background:var(--color-surface-raised,#28304b);border:1px solid var(--color-primary-border,rgba(216,180,90,.34));
+        box-shadow:0 14px 34px rgba(0,0,0,.5);color:var(--color-text-primary,#f2eee3);
+        font-size:13.5px;line-height:1.6;text-align:right;
+        opacity:0;transform:translateX(-50%) translateY(-14px);pointer-events:none;transition:opacity .22s,transform .22s;}
+      #amkhc-note.on{opacity:1;transform:translateX(-50%) translateY(0);}
+      #amkhc-note .ic{flex:none;width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+        background:var(--color-primary-subtle,rgba(216,180,90,.13));color:var(--color-primary-text,#f0d68a);font-size:14px;}
+      #amkhc-note .tx{flex:1;min-width:0;}
+      #amkhc-overlay.video-mode #amkhc-note{top:calc(78px + env(safe-area-inset-top,0));}
       `;
       document.head.appendChild(style);
       const ov = document.createElement('div');
       ov.id = 'amkhc-overlay';
       ov.innerHTML = `<div class="amkhc-card">
+        <div class="amkhc-deco" aria-hidden="true"></div>
         <div id="amkhc-avatar">◈</div>
         <div id="amkhc-title">صديق</div>
         <div id="amkhc-status"></div>
@@ -1158,7 +1257,9 @@
         <div id="amkhc-vhead"><div id="amkhc-vtitle"></div><div id="amkhc-vsub"></div></div>
         <div id="amkhc-vbar"></div>
       </div>
+      <div id="amkhc-note" role="status" aria-live="polite"><span class="ic">◈</span><span class="tx"></span></div>
       <div id="amkhc-ask"><div class="box">
+        <div class="g">${this._icon('video')}</div>
         <div class="t">تحويل إلى فيديو</div>
         <div class="m" id="amkhc-ask-m"></div>
         <div class="b">
@@ -1184,6 +1285,9 @@
         vbar: ov.querySelector('#amkhc-vbar'),
         ask: ov.querySelector('#amkhc-ask'),
         askMsg: ov.querySelector('#amkhc-ask-m'),
+        note: ov.querySelector('#amkhc-note'),
+        noteIc: ov.querySelector('#amkhc-note .ic'),
+        noteTx: ov.querySelector('#amkhc-note .tx'),
       };
       ov.querySelector('#amkhc-ask-ok').onclick = () => this._answerUpgrade(true);
       ov.querySelector('#amkhc-ask-no').onclick = () => this._answerUpgrade(false);
@@ -1338,7 +1442,7 @@
          فيديو من الأول). بيظهر بعد ما المكالمة توصل، ومعطّل أثناء الانتظار. */
       if (!call.video && !call.group && st === 'active' && this._canVideo()) {
         const waiting = !!call._upWait;
-        const up = this._btn('neutral', 'video', waiting ? 'بانتظار الموافقة' : 'فيديو', () => this.requestVideo());
+        const up = this._btn('neutral', 'video', waiting ? 'بانتظار الرد' : 'فيديو', () => this.requestVideo());
         if (waiting) up.btn.classList.add('active');
         bar.appendChild(up.wrap);
       }
@@ -1368,6 +1472,7 @@
       this._stopReinvite();
       /* العلّة ٨: أقفل لوحة طلب الفيديو وألغِ مهلة انتظار الرد */
       this._closeAsk();
+      this._hideToast();
       if (this._upTimer) { clearTimeout(this._upTimer); this._upTimer = null; }
       if (this._durTimer) { clearInterval(this._durTimer); this._durTimer = null; }
       if (call) {
