@@ -113,7 +113,19 @@ const mask = a => String(a || '').replace(/^(.{2})[^@]*(@.*)$/, '$1***$2');
      من علامات البريد المزعج المعروفة.
    • Reply-To صريح: صندوق قابل للردّ بيرفع الثقة.
    ومع كل ده يفضل ممكن تقع في المزعج أول مرة، فشاشة التأكيد في التطبيق
-   بتقول للمستخدم يبصّ هناك ويعلّمها «ليست مزعجة» مرة واحدة. */
+   بتقول للمستخدم يبصّ هناك ويعلّمها «ليست مزعجة» مرة واحدة.
+
+   ⟨قياس ٢٠٢٦-٠٩-٠٥⟩ بعتنا رسالة حقيقية وقرأناها من نفس الصندوق على IMAP:
+   جيميل **ماغيّرش** الـMessage-ID بتاعنا (فضل بنطاق المشروع)، والترويسات
+   كلها وصلت زي ما بعتناها. لكن الرسالة لنفس الحساب مابتمرّش على فحص
+   المصادقة الداخلي فمافيش Authentication-Results نقرأه — يعني القياس ده
+   يثبت إن الترويسات بتوصل، ومايقدرش يثبت مكان التصنيف عند طرف تالت.
+   المصادقة نفسها مش هي المشكلة: الإرسال عبر smtp.gmail.com بعنوان
+   ‎@gmail.com بيدّي SPF ناجح وDKIM بـd=gmail.com وDMARC متوافق. الباقي
+   حكم مُصنِّف على **شكل** الرسالة وسمعة المُرسِل، وأقوى إشارة سلبية فيها
+   إن الاسم المعروض (Am-Kh Chess) مالوش علاقة بالعنوان (disc67701@…) —
+   وده بالضبط نمط انتحال الاسم المعروض. الحلّ الجذري نطاق خاص بـSPF/DKIM
+   /DMARC، والحلّ المجاني عنوان جيميل اسمه من اسم التطبيق. */
 const MSGID_DOMAIN = '12362aa.github.io';
 let _seq = 0;
 function stdHeaders(from) {
@@ -209,7 +221,7 @@ const shell = body => `<!doctype html>
      <div style="height:2px;width:54px;margin:12px auto 0;background:${C.gold};border-radius:2px"></div>
    </td></tr>${body}
   </table>
-  <div style="width:100%;max-width:520px;margin:14px auto 0;color:${C.foot};font-size:11px;text-align:center;line-height:1.8">رسالة آلية من خادم شطرنج Am-Kh. لا ترد عليها.</div>
+  <div style="width:100%;max-width:520px;margin:14px auto 0;color:${C.foot};font-size:11px;text-align:center;line-height:1.8">رسالة من خادم شطرنج Am-Kh. لك أن تردّ عليها إن احتجت مساعدة.</div>
  </td></tr>
 </table>
 </body></html>`;

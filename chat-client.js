@@ -482,6 +482,23 @@ const amkhChat = {
     } catch (e) {}
   },
 
+  /* #3: الكيبورد كان بينزل بعد كل رسالة تُرسَل، فالمستخدم يفتحه من جديد في
+     كل مرة. السبب مش `ta.focus()` الناقص — هو موجود — السبب إن أول لمسة على
+     زر الإرسال بتنقل التركيز من الـtextarea للزر (ده السلوك الافتراضي لـ
+     pointerdown)، وأندرويد بيقفل الكيبورد لحظة ما الحقل النصّي يفقد التركيز.
+     وبعدها `_toggleSendMic` بتخفي الزر نفسه (`hidden=true`) فالتركيز يرجع لـ
+     body، و`focus()` البرمجي على WebView مايعيدش فتح الكيبورد بعد ما اتقفل.
+     الحلّ إننا مانسيبش التركيز يمشي من الأصل: `preventDefault()` على
+     pointerdown/mousedown بيلغي نقل التركيز وحدث الـclick يفضل يشتغل عادي،
+     فالحقل مايفقدش التركيز ولا للحظة والكيبورد يفضل مفتوح. */
+  _keepKb(btn) {
+    if (!btn || btn._kbKept) return;
+    btn._kbKept = true;
+    const hold = e => { e.preventDefault(); };
+    btn.addEventListener('pointerdown', hold);
+    btn.addEventListener('mousedown', hold);
+  },
+
   /* إظهار زر الإرسال لو فيه نص، والميكروفون لو الحقل فاضي (زي واتساب). */
   _toggleSendMic(overlay) {
     const root = overlay || this._sheet;
@@ -1249,8 +1266,9 @@ const amkhChat = {
       this.sendMessage(fid, v);
       ta.value = ''; ta.style.height = 'auto';
       this._toggleSendMic(overlay);
-      ta.focus();
+      try { ta.focus({ preventScroll: true }); } catch (e) { ta.focus(); }
     };
+    this._keepKb(sendBtn);
     sendBtn.onclick = () => { U.sfx(); doSend(); };
     ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; this._toggleSendMic(overlay); this._typing(fid); });
     ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } });
@@ -3369,8 +3387,9 @@ const amkhChat = {
       ta.value = ''; ta.style.height = 'auto';
       if (ta._mentClose) ta._mentClose();
       this._toggleSendMic(overlay);
-      ta.focus();
+      try { ta.focus({ preventScroll: true }); } catch (e) { ta.focus(); }
     };
+    this._keepKb(sendBtn);
     sendBtn.onclick = () => { U.sfx(); doSend(); };
     this._bindMentions(overlay, gid);        /* #2 — لوحة @ لأعضاء الحفلة */
     ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; this._toggleSendMic(overlay); this._typingGroup(gid); });

@@ -160,8 +160,8 @@ function sendPushToTokens(tokens, payload) {
         notification: {
           title,
           body,
-          icon: _absUrl('/icon_v2.png?v=2'),
-          badge: _absUrl('/icon_v2.png?v=2'),
+          icon: _absUrl('/icon_v2.png?v=3'),
+          badge: _absUrl('/icon_v2.png?v=3'),
           tag: payload?.tag ? String(payload.tag) : 'nour-daily',
           requireInteraction: false,
         },
@@ -639,8 +639,8 @@ async function sendPushToDevice(deviceId, payload) {
       notification: {
         title,
         body,
-        icon: _absUrl('/icon_v2.png?v=2'),
-        badge: _absUrl('/icon_v2.png?v=2'),
+        icon: _absUrl('/icon_v2.png?v=3'),
+        badge: _absUrl('/icon_v2.png?v=3'),
         tag: payload?.tag ? String(payload.tag) : 'chess-auto',
         requireInteraction: false,
       },
@@ -886,18 +886,24 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
 /* ══ إصدار التطبيق (#136) ══
    العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
    أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الوسم واسم الملف
-   بيتبعوا رقم الإصدار (v3.15 / chess-amkh-3.15.apk) عشان اللي بينزّل
-   يدويًا من الموقع يعرف إيه اللي معاه. نبمب LATEST_* هنا مع كل إصدار. */
-const LATEST_VERSION = '3.15';
-const LATEST_CODE = 31;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.15/chess-amkh-3.15.apk';
+   بيتبعوا رقم الإصدار (v4.0 / chess-amkh-4.0.apk) عشان اللي بينزّل
+   يدويًا من الموقع يعرف إيه اللي معاه. نبمب LATEST_* هنا مع كل إصدار.
+
+   الانتقال من 3.15 لـ4.0 مقصود: الرقم الثالث وصل خمستاشر وبقى يبان كأنه
+   ترقيع متسلسل، والإصدار ده فيه إصلاحات في قلب التطبيق (الأيقونة، تعليق
+   نور، المشاهدة، المراجعة، الكيبورد) فيستحق رقمًا رئيسيًّا. versionCode
+   بيفضل صاعدًا (31 → 32) — ده اللي جوجل بلاي والمُحدِّث الداخلي بيقارنوا
+   بيه، والاسم المعروض حرّ. */
+const LATEST_VERSION = '4.0';
+const LATEST_CODE = 32;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.0/chess-amkh-4.0.apk';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'أهمّ ما في هذا الإصدار أنّ المباراة التي تشاهدها صارت تُعرض برقعة صاحبها وقطعه على الحقيقة: الثيم يُعلنه جهاز اللاعب نفسه لحظة بداية المباراة بدل قراءته من إعدادات الحساب، فلم يعد يظهر لك ثيم قديم إذا كان اللاعب قد غيّر رقعته للتوّ أو كان له جهازان. وصار توثيق البريد إلزاميًا عند إنشاء حساب بكلمة مرور، فلا يُنشأ حساب بعنوان لا يملكه صاحبه، وشاشة الرمز تدلّك على مجلد البريد المزعج وعلى عنوان المُرسِل لتبحث به إن تأخّرت الرسالة — والرسائل نفسها صارت تحمل ترويسات رسائل المعاملات فاحتمال تصنيفها مزعجة أقل. ورُفعت من الواجهة الشرائط التي كانت تأخذ لونها من رقعة اللعب فتظهر كأنها قطعة من الرقعة في نافذة المكالمة وفي صفحة الحساب، وحلّ محلّها خطّ رفيع بلون التطبيق.',
+    notes: 'أيقونة التطبيق عادت أيقونة: كانت تظهر مربّعًا أسود على الشاشة الرئيسية وفي الإشعارات لأنّ طبقة الأيقونة الأمامية كانت بمقاس قديم ومعتمة تمامًا، فأُعيد توليدها كلّها بحصان شفّاف على خلفيّة متدرّجة بلون التطبيق، ومعها أيقونة أحاديّة اللون تتبع ثيم النظام. وتعليق نور بعد المباراة صار عن المباراة وحدها: لم يعد يهنّئ نفسه ولا يتحدّث عن مشاعره ولا يذكر اسم لاعب لم يلعب، ويعرف من فاز ومن خسر في كلّ الأنماط. والكيبورد لم يعد ينزل بعد كلّ رسالة تُرسَل في محادثة نور وفي المحادثات مع الأصدقاء والمجموعات، فالكتابة المتصلة صارت ممكنة. ومشاهدة المباريات صارت تعرض لكلّ نمط ما يخصّه: مباراة الأونلاين وحدها هي التي تُعرض بشرائح الغرفة، أمّا مباريات نور والمحرّك واللاعبين على جهاز واحد والبلوتوث فلها عنوانها ونهايتها المكتوبة بأسماء لاعبيها. ونافذة مراجعة المباراة صُلحت على الهاتف: لم تعد تخرج من حدود الشاشة ولا يغطّي شريط التطبيق عنوانها وزرّ إغلاقها، والرقعة وشريط النقلات يتّسعان لأضيق الشاشات. وأُزيل الشريط الأفقي من نوافذ المكالمة كلّها وحلّ محلّه طابع شطرنجيّ بلون التطبيق: زوايا مقوّسة وصفّ قطع خفيف على حدّ النافذة.',
   });
 });
 
@@ -1133,8 +1139,8 @@ app.post('/send-notification', async (req, res) => {
       notification: {
         title,
         body,
-        icon: _absUrl('/icon_v2.png?v=2'),
-        badge: _absUrl('/icon_v2.png?v=2'),
+        icon: _absUrl('/icon_v2.png?v=3'),
+        badge: _absUrl('/icon_v2.png?v=3'),
         tag: 'nour-push',
         requireInteraction: false,
       },
@@ -2050,6 +2056,11 @@ function spectatorSnapshot(room) {
     type: 'spectate:started',
     room: room.code,
     rated: !!room.rated,
+    /* نوع المباراة للمتفرّج: 'online' للغرف الحقيقية، وإلا نوع البثّ
+       المحلّي (nour / stockfish / local / bt). المتفرّج محتاجه عشان
+       مايعرضش شرائح مالها معنى إلا في الأونلاين («ودّية»، «بدون وقت»)
+       على مباراة ضد نور أو المحرّك — وده اللي شاف أحمد. */
+    kind: room.kind === 'local' ? (room.localKind || 'local') : 'online',
     white: hostIsWhite ? nameOf('host') : nameOf('guest'),
     black: hostIsWhite ? nameOf('guest') : nameOf('host'),
     white_id: wId,
@@ -2164,12 +2175,13 @@ function sanitizeLocalMove(m) {
   return { fr: [Number(m.fr[0]), Number(m.fr[1])], to: [Number(m.to[0]), Number(m.to[1])], promo };
 }
 
-function endLocalGame(userId, reason, text) {
+function endLocalGame(userId, reason, text, winner) {
   const g = localGames.get(Number(userId));
   if (!g) return false;
   g.ended = true;
+  const win = (winner === 'w' || winner === 'b') ? winner : null;
   for (const s of spectatorsOf(g.code)) {
-    if (s.readyState === WebSocket.OPEN) send(s, { type: 'spectate:end', reason: reason || 'game-over', text: text || '' });
+    if (s.readyState === WebSocket.OPEN) send(s, { type: 'spectate:end', reason: reason || 'game-over', text: text || '', winner: win });
     spectatorRoom.delete(s);
   }
   roomSpectators.delete(g.code);
@@ -2874,7 +2886,11 @@ wss.on('connection', (ws, req) => {
       case 'local:end': {
         const userId = socketUser.get(ws);
         if (!userId) break;
-        endLocalGame(userId, String(msg.reason || 'game-over').slice(0, 24), String(msg.text || '').slice(0, 90));
+        /* text هنا نصّ اللاعب («المرحلة 1 مكتملة») ومالوش معنى عند المتفرّج،
+           فبنمرّر winner كذلك وهو اللي المتفرّج بيبني بيه نصًّا موضوعيًّا
+           بأسماء اللاعبين اللي عنده. */
+        endLocalGame(userId, String(msg.reason || 'game-over').slice(0, 24), String(msg.text || '').slice(0, 90),
+          msg.winner === 'w' || msg.winner === 'b' ? msg.winner : null);
         break;
       }
       

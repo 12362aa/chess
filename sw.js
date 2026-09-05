@@ -3,7 +3,7 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '3.15-b31';
+const SW_VERSION = '4.0-b32';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
@@ -11,7 +11,7 @@ const STATIC_ASSETS = [
   './design-system.css',
   './screens.css',
   './manifest.json',
-  './icon_v2.png?v=2',
+  './icon_v2.png?v=3',
   './nour.png',
   './auth-client.js',
   './welcome-client.js',
@@ -194,8 +194,8 @@ try{
       const d=payload?.data||{};
       const title=n.title||d.title||'شطرنج Am-Kh';
       const body=n.body||d.body||'تنبيه جديد';
-      const icon=n.icon||d.icon||'./icon_v2.png?v=2';
-      const badge=n.badge||d.badge||'./icon_v2.png?v=2';
+      const icon=n.icon||d.icon||'./icon_v2.png?v=3';
+      const badge=n.badge||d.badge||'./icon_v2.png?v=3';
       const tag=n.tag||d.tag||'chess-fcm';
       self.registration.showNotification(title,{body,icon,badge,tag,data:{...d}});
     }catch(e){}
@@ -212,8 +212,8 @@ self.addEventListener('push', e => {
     e.waitUntil(
       self.registration.showNotification(title || 'شطرنج Am-Kh', {
         body: body || 'تنبيه جديد',
-        icon: icon || './icon_v2.png?v=2',
-        badge: badge || './icon_v2.png?v=2',
+        icon: icon || './icon_v2.png?v=3',
+        badge: badge || './icon_v2.png?v=3',
         tag: tag || 'chess-push',
         requireInteraction: requireInteraction || false,
         silent: false,

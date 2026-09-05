@@ -14,12 +14,12 @@
      بطبيعتها (بتظهر في أي تدفق OAuth) ومش سرّ. -->
 <meta name="google-web-client-id" content="467677566583-85jks1gk2fv2bqnslt9avp1fltr19h04.apps.googleusercontent.com">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon_v2.png?v=2">
-<link rel="icon" type="image/png" href="icon_v2.png?v=2">
+<link rel="apple-touch-icon" href="icon_v2.png?v=3">
+<link rel="icon" type="image/png" href="icon_v2.png?v=3">
 <title>♟ شطرنج — Am-Kh</title>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260907-b31">
+<link rel="stylesheet" href="design-system.css?v=20260907-b32">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -1839,18 +1839,34 @@ body[data-ui-theme="glass"] .mc-tag{
 .eval-score{font-size:8px;font-weight:700;color:var(--text3);text-align:center;margin-top:3px;min-width:16px;}
 
 
-/* ══════ REVIEW OVERLAY ══════ */
-#review-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);backdrop-filter:blur(14px);z-index:870;flex-direction:column;align-items:center;padding-top:44px;overflow:hidden;}
+/* ══════ REVIEW OVERLAY ══════
+   #6: النافذة كانت بتخرج من الشاشة على التلفون لثلاثة أسباب مجتمعة:
+     • `inset:0` وحده بياخد الـlayout viewport في WebView أندرويد — اللي
+       بيمتدّ تحت شريط الملاحة الإيمائي — فالمحتوى السفلي يقع خارج المرئي.
+       `height:100dvh` بيقيس المرئي فعلًا.
+     • `padding-top:44px` ثابت بلا `safe-area-inset-top`، فالعنوان وزر
+       الإغلاق يدخلان تحت النَتش/الساعة على الأجهزة الحديثة.
+     • `--rv-sz` كانت محسوبة بالعرض فقط (`66vw`)، فعلى شاشة قصيرة تطلع رقعة
+       250px ومعاها خمس بطاقات فوق ارتفاع الشاشة. ضفنا حدًّا بالارتفاع.
+   وكذلك كان الشريط العلوي بعرض 680px والمحتوى تحته 400px — تنافر بصري. */
+#review-ov{display:none;position:fixed;inset:0;height:100vh;height:100dvh;background:rgba(0,0,0,.96);backdrop-filter:blur(14px);z-index:870;flex-direction:column;align-items:center;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-inline:env(safe-area-inset-left,0px) env(safe-area-inset-right,0px);overflow:hidden;}
 #review-ov.open{display:flex;}
-.rv-topbar{width:100%;max-width:680px;display:flex;align-items:center;justify-content:space-between;padding:0 14px 8px;flex-shrink:0;}
-.rv-title{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);}
-.rv-close{min-height:36px;padding:0 12px;background:var(--bg3);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;}
+.rv-topbar{width:100%;max-width:440px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 8px;flex-shrink:0;}
+.rv-title{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rv-close{min-height:36px;padding:0 12px;background:var(--bg3);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:var(--text2);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap;}
 .rv-close:hover{background:var(--bg4);color:var(--text);}
 /* scroll area */
-.rv-main{display:flex;flex-direction:column;align-items:center;width:100%;flex:1;overflow-y:auto;gap:8px;padding:0 10px 14px;}
+.rv-main{display:flex;flex-direction:column;align-items:center;width:100%;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;gap:8px;padding:0 10px calc(14px + env(safe-area-inset-bottom,0px));}
 /* board */
-:root{--rv-sz:min(52vw,280px);--rv-sq:calc(var(--rv-sz)/8);}
-@media(max-width:440px){:root{--rv-sz:min(66vw,250px);}}
+:root{--rv-sz:min(52vw,280px,42dvh);--rv-sq:calc(var(--rv-sz)/8);}
+@media(max-width:440px){:root{--rv-sz:min(64vw,250px,38dvh);}}
+@media(max-height:680px){
+  .rv-main{gap:6px;}
+  .rv-title{font-size:16px;}
+  .rv-card,.rv-coach,.rv-sumbar{padding:8px 12px;}
+  .rv-coach{min-height:0;}
+  .rv-loading{padding:18px 14px;}
+}
 .rv-board-row{display:flex;align-items:center;gap:7px;flex-shrink:0;}
 .rv-board-wrap{border-radius:3px;box-shadow:0 0 0 3px var(--bg3),0 0 0 6px rgba(201,168,76,.2),0 14px 36px rgba(0,0,0,.6);line-height:0;}
 #rv-board{display:grid;grid-template-columns:repeat(8,var(--rv-sq));grid-template-rows:repeat(8,var(--rv-sq));direction:ltr;width:var(--rv-sz);height:var(--rv-sz);}
@@ -1868,13 +1884,13 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-ebar-b{background:#2d2d2d;transition:flex .4s ease;}
 .rv-ebar-w{background:#e8e8e8;transition:flex .4s ease;}
 /* move info card */
-.rv-card{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.rv-card{flex-shrink:0;width:100%;max-width:400px;box-sizing:border-box;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
 .rv-card-badge{font-size:11px;padding:3px 10px;border-radius:8px;font-weight:700;white-space:nowrap;flex-shrink:0;}
-.rv-card-info{flex:1;}
-.rv-card-notation{font-family:monospace;font-size:15px;font-weight:700;color:var(--text);}
+.rv-card-info{flex:1;min-width:0;}
+.rv-card-notation{font-family:monospace;font-size:15px;font-weight:700;color:var(--text);overflow-wrap:anywhere;}
 .rv-card-num{font-size:11px;color:var(--text3);margin-bottom:2px;}
 /* coach */
-.rv-coach{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(45,212,191,.16);border-radius:12px;padding:10px 14px;min-height:54px;}
+.rv-coach{flex-shrink:0;width:100%;max-width:400px;box-sizing:border-box;background:var(--bg2);border:1px solid rgba(45,212,191,.16);border-radius:12px;padding:10px 14px;min-height:54px;}
 .rv-coach-lbl{font-size:10px;color:var(--teal2);letter-spacing:1.5px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
 .rv-coach-name{color:var(--gold2);font-weight:900;}
 .nour-icon{width:18px;height:18px;flex-shrink:0;}
@@ -1884,10 +1900,14 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
 /* nav bar */
 .rv-nav{flex-shrink:0;display:flex;align-items:center;gap:5px;width:100%;max-width:400px;}
+/* #6: `flex:1` بلا `min-width:0` معناه العنصر مايصغرش تحت حجم محتواه (القيمة
+   الافتراضية `min-width:auto`)، فشريط النقلات بأربعين رقاقة كان بيتمدّد لعرض
+   محتواه ويدفع أزرار التنقّل خارج الشاشة — والـoverflow-x مايشتغلش أصلًا.
+   نفس العلاج لازم لكل flex item فيه نص ممكن يطول. */
+.rv-strip{flex:1;min-width:0;overflow-x:auto;display:flex;gap:3px;padding:1px 0;scrollbar-width:none;overscroll-behavior-x:contain;}
 .rv-nbtn{width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
 .rv-nbtn:hover:not(:disabled){background:var(--bg3);color:var(--text);border-color:rgba(201,168,76,.3);transform:scale(1.07);}
 .rv-nbtn:disabled{opacity:.28;cursor:not-allowed;}
-.rv-strip{flex:1;overflow-x:auto;display:flex;gap:3px;padding:1px 0;scrollbar-width:none;}
 .rv-strip::-webkit-scrollbar{display:none;}
 .rv-chip{font-size:10px;padding:4px 7px;background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:6px;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .14s;flex-shrink:0;font-family:monospace;}
 .rv-chip:hover{background:var(--bg4);color:var(--text);}
@@ -1903,30 +1923,33 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-chip.blunder{border-color:rgba(255,50,50,.4);color:#ff5555;}
 
 /* summary */
-.rv-sumbar{flex-shrink:0;width:100%;max-width:400px;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
-.rv-sum-col{flex:1;text-align:center;}
+.rv-sumbar{flex-shrink:0;width:100%;max-width:400px;box-sizing:border-box;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:12px;padding:10px 14px;display:flex;gap:8px;}
+.rv-sum-col{flex:1;min-width:0;text-align:center;overflow-wrap:anywhere;}
 .rv-sum-lbl{font-size:10px;color:var(--text3);margin-bottom:2px;}
 .rv-sum-val{font-size:15px;font-weight:700;}
 .rv-sum-sub{font-size:10px;color:var(--text3);margin-top:1px;}
-.rv-qwrap{width:100%;max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
-.rv-qcard{background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 36px rgba(0,0,0,.3);}
+.rv-qwrap{width:100%;max-width:420px;box-sizing:border-box;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.rv-qcard{box-sizing:border-box;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 36px rgba(0,0,0,.3);}
 .rv-qtitle{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);text-align:center;margin-bottom:8px;}
 .rv-qsub{font-size:12px;color:var(--text2);text-align:center;line-height:1.7;margin-bottom:10px;}
 .rv-qrow{display:flex;gap:8px;}
-.rv-qcol{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 10px 8px;}
+.rv-qcol{flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 10px 8px;}
 .rv-qnm{font-size:11px;color:var(--text3);margin-bottom:2px;}
 .rv-qacc{font-size:18px;font-weight:900;}
 .rv-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
 .rv-qitem{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.04);}
 .rv-qlbl{font-size:11px;color:var(--text2);}
 .rv-qval{font-size:11px;font-weight:800;color:var(--text);}
-.rv-qbtn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid rgba(45,212,191,.25);background:linear-gradient(135deg,rgba(45,212,191,.22),rgba(20,184,166,.14));color:var(--teal2);font-family:'Cairo',sans-serif;font-weight:900;cursor:pointer;transition:transform .12s,filter .12s;}
+.rv-qbtn{width:100%;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid rgba(45,212,191,.25);background:linear-gradient(135deg,rgba(45,212,191,.22),rgba(20,184,166,.14));color:var(--teal2);font-family:'Cairo',sans-serif;font-weight:900;cursor:pointer;transition:transform .12s,filter .12s;}
 .rv-qbtn:hover{transform:translateY(-1px);filter:brightness(1.04);}
 .rv-qhint{font-size:11px;color:var(--text3);text-align:center;line-height:1.6;}
 /* loading */
-.rv-loading{text-align:center;padding:32px 18px;color:var(--teal2);font-size:13px;}
+/* #6: الحاوية دي كانت flex item بلا عرض، فحجمها بقى حجم محتواها + حشو
+   جانبي 18px×2 = 371px على شاشة 360px، فخرجت 5px من كل ناحية. تثبيت العرض
+   على 100% مع border-box يخلّيها تحترم حدود منطقة التمرير. */
+.rv-loading{width:100%;max-width:440px;box-sizing:border-box;text-align:center;padding:32px 12px;color:var(--teal2);font-size:13px;}
 .rv-spinner{display:inline-block;width:28px;height:28px;border:3px solid rgba(45,212,191,.2);border-top-color:var(--teal2);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px;}
-.rv-loadcard{width:100%;max-width:420px;margin:0 auto;background:rgba(255,255,255,.03);border:1px solid rgba(45,212,191,.14);border-radius:16px;padding:18px 16px;box-shadow:0 10px 36px rgba(0,0,0,.35),0 0 0 1px rgba(45,212,191,.06);position:relative;overflow:hidden;}
+.rv-loadcard{width:100%;max-width:420px;box-sizing:border-box;margin:0 auto;background:rgba(255,255,255,.03);border:1px solid rgba(45,212,191,.14);border-radius:16px;padding:18px 16px;box-shadow:0 10px 36px rgba(0,0,0,.35),0 0 0 1px rgba(45,212,191,.06);position:relative;overflow:hidden;}
 
 /* Enhanced loading animation with chess pieces */
 .rv-loadcard::before{
@@ -2678,7 +2701,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260907-b31">
+<link rel="stylesheet" href="screens.css?v=20260907-b32">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3447,7 +3470,7 @@ html.amkh-preboot #amkh-preboot{
       </button>
       <input class="chat-inp" id="chat-inp" placeholder="اكتب رسالة…" maxlength="120"
              onkeydown="if(event.key==='Enter')CHAT.send()">
-      <button class="chat-send" onclick="if(typeof SFX !== 'undefined') SFX.btn(); CHAT.send()">إرسال</button>
+      <button class="chat-send" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="if(typeof SFX !== 'undefined') SFX.btn(); CHAT.send()">إرسال</button>
     </div>
   </div>
 </div>
@@ -6726,8 +6749,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '3.15';
-const APP_VERSION_CODE = 31;
+const APP_VERSION = '4.0';
+const APP_VERSION_CODE = 32;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7272,7 +7295,7 @@ const Spectate={
   _ov:null,_bd:null,_cas:null,_ep:null,_turn:'w',
   _white:'الأبيض',_black:'الأسود',_wid:null,_bid:null,
   _rated:false,_tc:null,_clock:null,_running:false,_lastTs:0,
-  _orient:'w',_ply:0,_hist:[],_last:null,_ended:false,
+  _orient:'w',_ply:0,_hist:[],_last:null,_ended:false,_kind:'online',
   _tick:null,_urls:null,_started:false,_watch:0,_eyeT:null,_target:null,
 
   /* أي سوكت موثّق ينفع: سوكت الحضور أو سوكت الأونلاين بعد ما اتعرّف.
@@ -7331,7 +7354,7 @@ const Spectate={
     this._bd=INIT_BD.map(r=>[...r]);
     this._cas={w:{K:true,Q:true},b:{K:true,Q:true}};
     this._ep=null;this._turn='w';this._ply=0;this._hist=[];this._last=null;
-    this._clock=null;this._running=false;this._lastTs=0;this._ended=false;
+    this._clock=null;this._running=false;this._lastTs=0;this._ended=false;this._kind='online';
     this._orient='w';this._watch=0;
     this._white='الأبيض';this._black='الأسود';this._wid=null;this._bid=null;
     this._rated=false;this._tc=null;
@@ -7416,6 +7439,7 @@ const Spectate={
       this._theme=(th&&typeof th==='object')?th:null;
     })();
     this._rated=!!d.rated;
+    this._kind=String(d.kind||'online');
     this._tc=d.tc||null;
     if(d.clock){
       this._clock={w:Math.max(0,+d.clock.w||0),b:Math.max(0,+d.clock.b||0),
@@ -7513,8 +7537,17 @@ const Spectate={
   _onEnd(d){
     if(!this._ov)return;
     const r=d&&d.reason;
-    /* نصّ النتيجة لو السيرفر بعته (المباريات المحلية بتبعته) — أوضح من
-       رسالة عامة زي «انتهت المباراة». */
+    /* النتيجة تُصاغ عند المتفرّج بأسماء اللاعبين اللي عنده. النسخة القديمة
+       كانت بتعرض نصّ اللاعب كما هو، فمَن اتفرّج على مباراة ضدّ نور قرأ
+       «المرحلة 1 مكتملة» — رسالة مالهاش أي معنى لمتفرّج. */
+    const w=d&&(d.winner==='w'||d.winner==='b')?d.winner:null;
+    const why={checkmate:' بالمات',timeout:' بالوقت',resign:' بالاستسلام'}[r]||'';
+    if(w){this._finish(amkhUI.esc(w==='w'?this._white:this._black)+' يفوز'+why);return;}
+    if(r==='stalemate'){this._finish('تعادل بالجمود');return;}
+    if(r==='threefold'){this._finish('تعادل بتكرار الوضعية');return;}
+    if(r==='insufficient'){this._finish('تعادل — مادة غير كافية');return;}
+    if(r==='draw'){this._finish('انتهت بالتعادل');return;}
+    /* نصّ صريح من السيرفر (غرف الأونلاين بتبعته) */
     const t=(d&&d.text)?String(d.text).trim():'';
     if(t){this._finish(amkhUI.esc(t.slice(0,90)));return;}
     this._finish(r==='player-left'?'انسحب أحد اللاعبين وانتهت المباراة':'انتهت المباراة');
@@ -7604,6 +7637,24 @@ const Spectate={
       </div>`;
   },
 
+  /* شرائح وصف المباراة. «مصنّفة/ودّية» و«بدون وقت» مالهم معنى إلا في
+     الأونلاين — أحمد اتفرّج على مباراة ضدّ نور فشافهم الاتنين، وده غلط
+     صريح. كل وضع بقى ليه وصفه. */
+  _metaChips(){
+    const esc=amkhUI.esc, k=this._kind;
+    if(k==='online'){
+      const tcTxt=this._tc?(Math.round((this._tc.base||0)/60)+' د'+((this._tc.inc)?' + '+this._tc.inc+' ث':'')):'بدون وقت';
+      return `<span class="sp__chip${this._rated?' sp__chip--rated':''}">${this._rated?'مصنّفة':'ودّية'}</span>
+        <span class="sp__chip">${esc(tcTxt)}</span>`;
+    }
+    const d={bot:['ضدّ نور','مباراة تدريب'],
+             engine:['ضدّ Stockfish','مواجهة محرّك'],
+             local:['لاعبان','على جهاز واحد'],
+             bluetooth:['بلوتوث','جهازان متقاربان']}[k]||['مباراة محلية',''];
+    return `<span class="sp__chip sp__chip--rated">${esc(d[0])}</span>`
+      +(d[1]?`<span class="sp__chip">${esc(d[1])}</span>`:'');
+  },
+
   /* هيكل النافذة بعد وصول اللقطة: لاعب فوق، لوح، لاعب تحت، النقلات */
   _paintShell(){
     const body=this._ov&&this._ov.querySelector('#sp-body');
@@ -7611,12 +7662,8 @@ const Spectate={
     /* لو صاحبي اللي بدأنا منه بالأسود نقلب اللوح عشان يبان زي شاشته */
     if(this._target&&this._bid===this._target)this._orient='b';
     const t=this._sideTop(),b=this._sideBot();
-    const tcTxt=this._tc?(Math.round((this._tc.base||0)/60)+' د'+((this._tc.inc)?' + '+this._tc.inc+' ث':'')):'بدون وقت';
     body.innerHTML=`
-      <div class="sp__meta">
-        <span class="sp__chip${this._rated?' sp__chip--rated':''}">${this._rated?'مصنّفة':'ودّية'}</span>
-        <span class="sp__chip">${amkhUI.esc(tcTxt)}</span>
-      </div>
+      <div class="sp__meta">${this._metaChips()}</div>
       ${this._plRow(t)}
       <div class="sp__brd" id="sp-brd"></div>
       ${this._plRow(b)}
@@ -8783,6 +8830,10 @@ const CHAT={
       SFX.chat();
     }
   },
+  /* #3: زرّ الإرسال هنا فيه `onpointerdown="event.preventDefault()"` عشان
+     اللمسة مانقلش التركيز بعيد عن الحقل — أندرويد بيقفل الكيبورد لحظة ما
+     الحقل يفقد التركيز، و`focus()` بعد كده مايعيدش فتحه. والـfocus تحت
+     تأمين احتياطي لمسار Enter من كيبورد فعلي. */
   send(){
     const inp=document.getElementById('chat-inp');
     const txt=inp.value.trim();if(!txt)return;
@@ -8790,6 +8841,7 @@ const CHAT={
     this._addMsg(txt,'me');
     if(S.mode==='online')OL.sendChat(txt);
     else if(S.mode==='bot'&&S.levelId>=0)this._sendToNour(txt);
+    try{inp.focus({preventScroll:true});}catch(e){try{inp.focus();}catch(e2){}}
   },
   /* #12: نور كان يخلط بين لونه ولون اللاعب فيقول «أنا الأبيض» وهو يلعب
      بالأسود. كان اللون مكتوبًا بالحفر في نصّ المطالبة («نور = الأسود دائماً»)
@@ -11621,32 +11673,63 @@ const G={
      كاملة (زمن ظهور ورقة النهاية) عشان يوصل، وده أكتر من كفاية لطلب صغير.
      لو ماوصلش في الوقت، _openQuickReview بتستخدم النصّ المحلّي وخلاص، ولا
      بنستبدل حاجة بعد ما الكتابة تبدأ عشان مايبانش ارتباك على الشاشة.
-     بنبعت آخر تعليقين للموديل ونمنعه من إعادة صياغتهم — ده اللي يمنع الملل
-     عبر المباريات المتتالية، وهو جوهر شكوى أحمد. */
+
+     أحمد شاف الناتج على الجهاز وكان كارثة: «ألف مبروك يا نور على التحدي
+     الجميل ضدّ جو جو بمستويك المبتدئ! … يعكس مهاراتك الواعدة» — يعني نور
+     بارك لنفسه، ونادى اللاعب بنطق لاتيني مكسّر (Gojo → «جو جو»)، وباركَ
+     في مباراة اللاعب خسرها بالمات. أسباب ذلك كانت كلّها في البرومبت:
+       ١) كان بيعطي الموديل هوية لاعب («وكنت أنت خصم فلان») — ودي دعوة
+          مباشرة ليتكلّم عن نفسه ويهنّئ نفسه.
+       ٢) كان بيبعت اسم اللاعب (Cfg.data.playerName)، فموديل عربي صغير
+          يحاول تعريب «Gojo» فيخرج «جو جو».
+       ٣) كانت النتيجة تُصاغ بالاسم («فلان كسب») لا بضمير المخاطب، فيسهل
+          على الموديل أن يخلط مَن الفائز.
+       ٤) temperature 0.95 على موديل 7B = عربية مكسّرة («يلاستمرارك»).
+     الحل: نور معلّق فقط في كل الأوضاع (حتى وضع نور نفسه)، وبلا أي اسم
+     في البرومبت أصلًا — ما لا يراه لا يقدر أن ينطقه — والنتيجة بضمير
+     المخاطب، وحرارة أهدأ، وفوق ده كله فلتر بعديّ (_verdictOk) يرفض أي
+     ناتج يخالف ذلك ويسقط على النصّ المحلّي الآمن. */
+  /* بوّاب الناتج: أيّ خرق هنا معناه نرجع للنصّ المحلّي بدل ما نعرض هبلًا
+     على الشاشة. المحلّي مقروء من المباراة نفسها وعربيته مضمونة. */
+  _verdictOk(t,tone){
+    if(!t||t.length<12)return false;
+    /* بيتكلّم عن نفسه أو ينادي أحدًا باسمه */
+    if(/نور|جوجو|جو\s?جو/.test(t))return false;
+    /* كلمة لاتينية (اسم اللاعب مثلًا) — النقلات زي e4 وNf3 أقصر من كده */
+    if(/[A-Za-z]{3,}/.test(t.replace(/stockfish/gi,'')))return false;
+    /* رموز تعبيرية */
+    if(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(t))return false;
+    /* تهنئة في مباراة غير مكسوبة — أفدح ما رآه أحمد */
+    if(tone!=='win'&&/مبروك|مبارك|تهاني|تهانينا|أحسنت|برافو|بالتوفيق|ألف\s/.test(t))return false;
+    return true;
+  },
   _primeNourVerdict(token){
     S._goAI=null;
     if(typeof groqChat!=='function')return;
     try{
       const f=this._matchFacts(), st=S.endState||{};
-      const pn=Cfg.data.playerName||'اللاعب';
-      const lv=(f.vsNour&&typeof LEVELS_DEF!=='undefined')?LEVELS_DEF[S.levelId]:null;
-      const resAr=st.tone==='win'?`${pn} كسب`:st.tone==='loss'?`${pn} خسر`:'تعادل';
+      const tone=st.tone==='win'?'win':st.tone==='loss'?'loss':'draw';
+      const resAr=tone==='win'?'اللاعب فاز':tone==='loss'?'اللاعب خسر':'تعادل';
       const reasonAr={checkmate:'كش مات',timeout:'انتهاء الوقت',resign:'استسلام',disconnect:'انقطاع اتصال',stalemate:'جمود',threefold:'تكرار ثلاثي',insufficient:'مادة غير كافية','level-win':'إنهاء المرحلة'}[st.reason]||'نهاية عادية';
       let prev=[];
       try{prev=JSON.parse(localStorage.getItem('amkh_nour_verdicts')||'[]');}catch(e){}
-      const sys=f.vsNour
-        ? `أنت "نور" ولد، وكنت أنت خصم ${pn} في هذه المباراة بـ${((S.myCol==='b')?'b':'w')==='w'?'الأسود':'الأبيض'}. علّق على المباراة بعد نهايتها بأسلوب مصري بسيط ودود.`
-        : `أنت "نور" ولد، معلّق شطرنج بيراجع مباراة ${pn} بأسلوب مصري بسيط ودود. أنت لم تلعب هذه المباراة.`;
-      const rules=`\n- جملتان كحد أقصى، وبلا مقدمات ولا ترحيب.\n- اعتمد على الأرقام المعطاة فقط ولا تخترع نقلات ولا قطعًا.\n- لا تكرر صياغة الجمل السابقة إن وُجدت.\n- لا تستخدم رموزًا تعبيرية.`;
-      const facts=`النتيجة: ${resAr}\nسبب النهاية: ${reasonAr}\nعدد النقلات: ${f.moves}\nقطع اتأكلت: ${f.caps}\nفرق المادة لصالح ${pn}: ${f.edge}\nعدد الكشوف: ${f.checks}\nترقية بيدق: ${f.promo?'نعم':'لا'}\nتبييت: ${f.castled?'نعم':'لا'}\nآخر نقلة: ${f.last||'—'}${lv?`\nالمرحلة: ${lv.name}`:''}`;
+      /* هوية واحدة في كل الأوضاع: معلّق، لا لاعب. */
+      const sys='أنت معلّق شطرنج. تكتب تعليقًا قصيرًا على مباراة انتهت، موجّهًا إلى اللاعب نفسه.';
+      const rules='\n- خاطب اللاعب بضمير المخاطب: «أنت»، «لعبتَ»، «خسرتَ».'
+        +'\n- ممنوع ذكر أيّ اسم على الإطلاق: لا اسمك ولا اسم اللاعب ولا اسم الخصم.'
+        +'\n- ممنوع الكلام عن نفسك أو عن مشاعرك؛ التعليق عن المباراة فقط.'
+        +'\n- إن لم يفز اللاعب فلا تهنّئه ولا تبارك له بأيّ صيغة.'
+        +'\n- جملتان كحدّ أقصى، عربية سليمة مفهومة، بلا مقدمة ولا ترحيب.'
+        +'\n- اعتمد على الأرقام المعطاة فقط، ولا تخترع نقلات ولا قطعًا.'
+        +'\n- بلا رموز تعبيرية وبلا كلمات أجنبية.';
+      const facts=`النتيجة: ${resAr}\nسبب النهاية: ${reasonAr}\nعدد النقلات: ${f.moves}\nقطع أُكلت: ${f.caps}\nفرق المادة لصالح اللاعب: ${f.edge}\nعدد الكشوف: ${f.checks}\nترقية بيدق: ${f.promo?'نعم':'لا'}\nتبييت: ${f.castled?'نعم':'لا'}\nآخر نقلة: ${f.last||'—'}`;
       const user=`${facts}\n${prev.length?`\nجمل قلتها في مباريات سابقة (لا تعِد أي صياغة منها):\n- ${prev.join('\n- ')}\n`:''}\nاكتب تعليقك الآن:`;
-      groqChat({model:GROQ_MODEL,messages:[{role:'system',content:sys+rules},{role:'user',content:user}],max_tokens:140,temperature:0.95})
+      groqChat({model:GROQ_MODEL,messages:[{role:'system',content:sys+rules},{role:'user',content:user}],max_tokens:120,temperature:0.6})
         .then(j=>{
           let t=(j?.choices?.[0]?.message?.content||'').trim();
-          if(!t||t.length<12)return;
           t=t.replace(/^["'«]+|["'»]+$/g,'').replace(/\s+/g,' ').trim();
-          if(f.vsNour&&typeof CHAT!=='undefined'&&CHAT._fixNourColor)t=CHAT._fixNourColor(t);
           if(t.length>240)t=t.slice(0,238).replace(/\s\S*$/,'')+'.';
+          if(!this._verdictOk(t,tone))return;
           S._goAI={token,text:t};
           try{localStorage.setItem('amkh_nour_verdicts',JSON.stringify([t,...prev].slice(0,3)));}catch(e){}
         })
@@ -11851,9 +11934,11 @@ const G={
       statusLine:this._buildStatusLine(result),
     };
     S._resultToken=(S._resultToken||0)+1;
-    /* #5 — المتفرّج على مباراة محلية ياخد النتيجة بنصّها وتقفل المشاهدة */
+    /* #5 — المتفرّج على مباراة محلية ياخد النتيجة وتقفل المشاهدة. النصّ
+       اللي بيتبعت مالوش لازمة عنده (statusLine من منظور اللاعب: «المرحلة 1
+       مكتملة»)، فبنبعت winner والمتفرّج يصوغ النتيجة بأسماء اللاعبين. */
     if(S.mode!=='online'){
-      try{LocalCast.end('game-over',S.endState.statusLine||S.endState.message||'');}catch(e){}
+      try{LocalCast.end('game-over','',S.endState.winner);}catch(e){}
     }
     /* كل نهايات المباريات بتعدي من هنا، فده المكان الوحيد اللي يضمن
        إن السجل مايفوتوش أي مباراة. لازم تتنادى بعد ما التوكن يزيد،
@@ -12643,10 +12728,11 @@ const LocalCast={
     this._moves=this._moves.slice(0,k);
     this._send({type:'local:sync',moves:this._moves});
   },
-  end(reason,text){
+  end(reason,text,winner){
     if(!this._on)return;
     this._on=false;this._moves=[];
-    this._send({type:'local:end',reason:reason||'game-over',text:text||''});
+    this._send({type:'local:end',reason:reason||'game-over',text:text||'',
+      winner:(winner==='w'||winner==='b')?winner:null});
     /* البثّ خلص → مافيش متفرّجين، فالشارة تروح فورًا */
     try{if(window.amkhSpectate)window.amkhSpectate._playerBadge(0);}catch(e){}
   },
@@ -14146,8 +14232,8 @@ const Notifications={
     if(!this.enabled||Notification.permission!=='granted')return;
     try{
       const defaultOptions={
-        icon:'./icon_v2.png?v=2',
-        badge:'./icon_v2.png?v=2',
+        icon:'./icon_v2.png?v=3',
+        badge:'./icon_v2.png?v=3',
         tag:'chess-'+Date.now(),
         requireInteraction:false,
         silent:false,
@@ -14275,13 +14361,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260907-b31"></script>
+  <script src="auth-client.js?v=20260907-b32"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260907-b31"></script>
-  <script src="friends-client.js?v=20260907-b31"></script>
-  <script src="chat-client.js?v=20260907-b31"></script>
-  <script src="call-client.js?v=20260907-b31"></script>
+  <script src="welcome-client.js?v=20260907-b32"></script>
+  <script src="friends-client.js?v=20260907-b32"></script>
+  <script src="chat-client.js?v=20260907-b32"></script>
+  <script src="call-client.js?v=20260907-b32"></script>
 <script>
 const BLEManager = {
   isHost: false,

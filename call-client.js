@@ -1090,28 +1090,43 @@
          «تطبيق مكالمات قديم» وسط تطبيق ذهبي.
          ألوان الرقعة المختارة (--sq-l/--sq-d) اتشالت من هنا خلاص: كانت
          بتطلع شرايط ومربّعات تبان كأنها جزء من الرقعة في نافذة مالهاش
-         علاقة باللعب. الطابع الشطرنجي بقى في الحصان الزخرفي وساعة
-         المكالمة في كبسولة زيّ ساعة اللعب، والخطوط بلون التمييز. */
+         علاقة باللعب. وكذلك اتشال الشريط الذهبي اللي حلّ محلّها — مافيش
+         أي شريط أفقي فوق أي نافذة مكالمة. الطابع الشطرنجي بقى: زوايا
+         مقوّسة بلون التمييز على الكارت والمسرح ولوحة السؤال، وصفّ قطع
+         شطرنجية باهت على حدّ الكارت السفلي، وحصان كبير باهت في الخلف،
+         وساعة المكالمة في كبسولة زيّ ساعة اللعب. */
       #amkhc-overlay{position:fixed;inset:0;z-index:100001;display:none;align-items:center;justify-content:center;padding:20px;
         background:var(--color-overlay,rgba(4,6,13,.82));backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);opacity:0;transition:opacity .25s;}
       #amkhc-overlay.on{display:flex;opacity:1;}
       #amkhc-overlay .amkhc-card{position:relative;overflow:hidden;
         background:linear-gradient(180deg,var(--color-bg-elevated,#111627) 0,var(--color-surface,#1c2238) 62%);
         border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);
-        padding:30px 18px 22px;width:100%;max-width:340px;text-align:center;
+        padding:30px 18px 30px;width:100%;max-width:340px;text-align:center;
         box-shadow:0 26px 64px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.05);
         transform:translateY(18px) scale(.96);transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
       #amkhc-overlay.on .amkhc-card{transform:translateY(0) scale(1);}
       #amkhc-overlay .amkhc-card > *{position:relative;z-index:1;}
-      /* الزخرفة بقت خطًّا رفيعًا بلون التمييز + الحصان (::after) وبس.
-         الشريط المربّع ومربّعات الرقعة (::before) اتشالوا: كانوا بياخدوا
-         لونهم من رقعة اللعب المختارة (--sq-d/--sq-l) فيبان جزء من الرقعة
-         في نافذة مالهاش علاقة باللعب — تلوّث بصري بلا فايدة. */
-      .amkhc-deco{position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;z-index:0;
-        background:linear-gradient(90deg,transparent,var(--color-primary,#d8b45a) 22%,var(--color-primary,#d8b45a) 78%,transparent);
-        opacity:.55;}
-      .amkhc-deco::after{content:'♞';position:absolute;right:10px;top:12px;font-size:52px;line-height:1;
-        color:var(--color-primary,#d8b45a);opacity:.12;}
+      /* الطابع الشطرنجي للنافذة — بلا أي شريط أفقي فوق.
+         الشريط الأول (مربّعات الرقعة) شيلته لأنه كان بياخد لونه من
+         --sq-d/--sq-l فيبان جزء من رقعة اللعب. الشريط الذهبي اللي حلّ
+         محلّه كان غلط تاني: أحمد مش عايز حاجة فوق خالص. الهوية بقت:
+         (أ) أربع زوايا مقوّسة بلون التمييز — توقيع لوح فاخر،
+         (ب) صفّ قطع شطرنجية على الحدّ السفلي بشفافية عالية جدًّا،
+         (ج) قطعة كبيرة باهتة في الخلف.
+         كلّها بلون التطبيق (--color-primary) لا بلون الرقعة، فمافيش
+         تلوّث بصري ومع ذلك النافذة شطرنجية بوضوح. */
+      .amkhc-deco{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+      .amkhc-deco i{position:absolute;width:22px;height:22px;opacity:.5;
+        border:1.5px solid var(--color-primary,#d8b45a);}
+      .amkhc-deco i:nth-child(1){left:10px;top:10px;border-right:0;border-bottom:0;border-radius:8px 0 0 0;}
+      .amkhc-deco i:nth-child(2){right:10px;top:10px;border-left:0;border-bottom:0;border-radius:0 8px 0 0;}
+      .amkhc-deco i:nth-child(3){left:10px;bottom:10px;border-right:0;border-top:0;border-radius:0 0 0 8px;}
+      .amkhc-deco i:nth-child(4){right:10px;bottom:10px;border-left:0;border-top:0;border-radius:0 0 8px 0;}
+      .amkhc-deco b{position:absolute;left:0;right:0;bottom:-4px;text-align:center;
+        font-size:34px;line-height:1;letter-spacing:6px;font-weight:400;
+        color:var(--color-primary,#d8b45a);opacity:.09;white-space:nowrap;}
+      .amkhc-deco s{position:absolute;right:-8px;top:38px;text-decoration:none;
+        font-size:88px;line-height:1;color:var(--color-primary,#d8b45a);opacity:.055;}
       #amkhc-avatar{width:96px;height:96px;margin:2px auto 14px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
         font-size:38px;font-weight:800;color:var(--color-primary-text,#f0d68a);background:var(--color-surface-raised,#28304b);
         border:2px solid var(--color-primary,#d8b45a);
@@ -1174,9 +1189,11 @@
       #amkhc-overlay.video-mode .amkhc-card{display:none;}
       #amkhc-stage{display:none;position:relative;width:100%;height:100%;overflow:hidden;background:#070910;}
       #amkhc-overlay.video-mode #amkhc-stage{display:block;}
-      /* خطّ التمييز أعلى المسرح — نفس توقيع الكارت الصوتي */
-      #amkhc-stage::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;z-index:6;opacity:.55;
-        background:linear-gradient(90deg,transparent,var(--color-primary,#d8b45a) 22%,var(--color-primary,#d8b45a) 78%,transparent);}
+      /* المسرح: زوايا مقوّسة بدل الشريط العلوي — نفس توقيع الكارت الصوتي */
+      #amkhc-stage::before,#amkhc-stage::after{content:'';position:absolute;width:26px;height:26px;z-index:6;
+        border:1.5px solid var(--color-primary,#d8b45a);opacity:.4;pointer-events:none;}
+      #amkhc-stage::before{left:12px;top:calc(12px + env(safe-area-inset-top,0));border-right:0;border-bottom:0;border-radius:9px 0 0 0;}
+      #amkhc-stage::after{right:12px;top:calc(12px + env(safe-area-inset-top,0));border-left:0;border-bottom:0;border-radius:0 9px 0 0;}
       #amkhc-remote-wrap{position:absolute;inset:0;background:#070910;}
       #amkhc-remote-wrap.solo .amkhc-rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#070910;}
       #amkhc-remote-wrap.party{display:grid;gap:3px;padding:3px;grid-template-columns:repeat(2,1fr);align-content:center;height:100%;box-sizing:border-box;}
@@ -1201,8 +1218,10 @@
       #amkhc-ask .box{position:relative;overflow:hidden;background:var(--color-surface,#1c2238);
         border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);padding:24px 18px 20px;
         width:100%;max-width:310px;text-align:center;box-shadow:0 22px 54px rgba(0,0,0,.6);}
-      #amkhc-ask .box::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;opacity:.55;
-        background:linear-gradient(90deg,transparent,var(--color-primary,#d8b45a) 22%,var(--color-primary,#d8b45a) 78%,transparent);}
+      #amkhc-ask .box::before,#amkhc-ask .box::after{content:'';position:absolute;top:9px;width:18px;height:18px;
+        border:1.5px solid var(--color-primary,#d8b45a);opacity:.45;pointer-events:none;}
+      #amkhc-ask .box::before{left:9px;border-right:0;border-bottom:0;border-radius:7px 0 0 0;}
+      #amkhc-ask .box::after{right:9px;border-left:0;border-bottom:0;border-radius:0 7px 0 0;}
       #amkhc-ask .g{width:46px;height:46px;margin:2px auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;
         background:var(--color-primary-subtle,rgba(216,180,90,.13));border:1px solid var(--color-primary-border,rgba(216,180,90,.34));
         color:var(--color-primary-text,#f0d68a);}
@@ -1240,7 +1259,7 @@
       const ov = document.createElement('div');
       ov.id = 'amkhc-overlay';
       ov.innerHTML = `<div class="amkhc-card">
-        <div class="amkhc-deco" aria-hidden="true"></div>
+        <div class="amkhc-deco" aria-hidden="true"><i></i><i></i><i></i><i></i><s>&#9822;</s><b>&#9820;&#9822;&#9821;&#9819;&#9818;&#9821;&#9822;&#9820;</b></div>
         <div id="amkhc-avatar">◈</div>
         <div id="amkhc-title">صديق</div>
         <div id="amkhc-status"></div>
