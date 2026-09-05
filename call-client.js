@@ -1083,14 +1083,15 @@
       const style = document.createElement('style');
       style.textContent = `
       /* ══ نافذة المكالمة — طابع شطرنجي يتبع الثيم ══════════════════════
-         كل لون هنا إمّا token من ثيم الواجهة (design-system.css وإعادة
-         تعريفها على body[data-ui-theme]) أو لون من طقم الرقعة المختار
-         (--sq-l / --sq-d)، فالنافذة بتتلوّن مع الثيم ومع الرقعة تلقائيًا
-         بلا قاعدة مخصوصة لكل ثيم. الألوان الثابتة القديمة (أزرق 7aa2f7،
-         أخضر 2ecc71، أحمر e74c3c) كانت من لوحة تانية خالص — دي كانت سبب
-         إحساس «تطبيق مكالمات قديم» وسط تطبيق ذهبي.
-         الطابع الشطرنجي: شريط رقعة أعلى الكارت، مربّعات باهتة خلف
-         الترويسة، حصان زخرفي، وساعة المكالمة في كبسولة زيّ ساعة اللعب. */
+         كل لون هنا token من ثيم الواجهة (design-system.css وإعادة تعريفها
+         على body[data-ui-theme])، فالنافذة بتتلوّن مع الثيم تلقائيًا بلا
+         قاعدة مخصوصة لكل ثيم. الألوان الثابتة القديمة (أزرق 7aa2f7، أخضر
+         2ecc71، أحمر e74c3c) كانت من لوحة تانية خالص — دي كانت سبب إحساس
+         «تطبيق مكالمات قديم» وسط تطبيق ذهبي.
+         ألوان الرقعة المختارة (--sq-l/--sq-d) اتشالت من هنا خلاص: كانت
+         بتطلع شرايط ومربّعات تبان كأنها جزء من الرقعة في نافذة مالهاش
+         علاقة باللعب. الطابع الشطرنجي بقى في الحصان الزخرفي وساعة
+         المكالمة في كبسولة زيّ ساعة اللعب، والخطوط بلون التمييز. */
       #amkhc-overlay{position:fixed;inset:0;z-index:100001;display:none;align-items:center;justify-content:center;padding:20px;
         background:var(--color-overlay,rgba(4,6,13,.82));backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);opacity:0;transition:opacity .25s;}
       #amkhc-overlay.on{display:flex;opacity:1;}
@@ -1102,17 +1103,13 @@
         transform:translateY(18px) scale(.96);transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
       #amkhc-overlay.on .amkhc-card{transform:translateY(0) scale(1);}
       #amkhc-overlay .amkhc-card > *{position:relative;z-index:1;}
-      /* الزخرفة كلها في عنصر واحد: الشريط نفسه + مربّعات الرقعة (::before)
-         + الحصان (::after). الشفافية على الطبقات الداخلية عشان الشريط
-         العلوي يفضل صريحًا. */
-      .amkhc-deco{position:absolute;left:0;right:0;top:0;height:6px;pointer-events:none;z-index:0;
-        background:repeating-linear-gradient(90deg,var(--sq-d,#74533a) 0 12.5%,var(--sq-l,#ba9d79) 12.5% 25%);
-        box-shadow:0 1px 0 var(--color-primary-border,rgba(216,180,90,.34));}
-      .amkhc-deco::before{content:'';position:absolute;left:0;right:0;top:6px;height:152px;opacity:.075;
-        background-image:linear-gradient(45deg,var(--sq-d,#74533a) 25%,transparent 25%,transparent 75%,var(--sq-d,#74533a) 75%),
-          linear-gradient(45deg,var(--sq-d,#74533a) 25%,transparent 25%,transparent 75%,var(--sq-d,#74533a) 75%);
-        background-size:34px 34px;background-position:0 0,17px 17px;
-        -webkit-mask-image:linear-gradient(180deg,#000,transparent);mask-image:linear-gradient(180deg,#000,transparent);}
+      /* الزخرفة بقت خطًّا رفيعًا بلون التمييز + الحصان (::after) وبس.
+         الشريط المربّع ومربّعات الرقعة (::before) اتشالوا: كانوا بياخدوا
+         لونهم من رقعة اللعب المختارة (--sq-d/--sq-l) فيبان جزء من الرقعة
+         في نافذة مالهاش علاقة باللعب — تلوّث بصري بلا فايدة. */
+      .amkhc-deco{position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;z-index:0;
+        background:linear-gradient(90deg,transparent,var(--color-primary,#d8b45a) 22%,var(--color-primary,#d8b45a) 78%,transparent);
+        opacity:.55;}
       .amkhc-deco::after{content:'♞';position:absolute;right:10px;top:12px;font-size:52px;line-height:1;
         color:var(--color-primary,#d8b45a);opacity:.12;}
       #amkhc-avatar{width:96px;height:96px;margin:2px auto 14px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
@@ -1177,9 +1174,9 @@
       #amkhc-overlay.video-mode .amkhc-card{display:none;}
       #amkhc-stage{display:none;position:relative;width:100%;height:100%;overflow:hidden;background:#070910;}
       #amkhc-overlay.video-mode #amkhc-stage{display:block;}
-      /* شريط رقعة رقيق أعلى المسرح — نفس توقيع الكارت الصوتي */
-      #amkhc-stage::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;z-index:6;
-        background:repeating-linear-gradient(90deg,var(--sq-d,#74533a) 0 12.5%,var(--sq-l,#ba9d79) 12.5% 25%);}
+      /* خطّ التمييز أعلى المسرح — نفس توقيع الكارت الصوتي */
+      #amkhc-stage::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;z-index:6;opacity:.55;
+        background:linear-gradient(90deg,transparent,var(--color-primary,#d8b45a) 22%,var(--color-primary,#d8b45a) 78%,transparent);}
       #amkhc-remote-wrap{position:absolute;inset:0;background:#070910;}
       #amkhc-remote-wrap.solo .amkhc-rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#070910;}
       #amkhc-remote-wrap.party{display:grid;gap:3px;padding:3px;grid-template-columns:repeat(2,1fr);align-content:center;height:100%;box-sizing:border-box;}
@@ -1204,8 +1201,8 @@
       #amkhc-ask .box{position:relative;overflow:hidden;background:var(--color-surface,#1c2238);
         border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);padding:24px 18px 20px;
         width:100%;max-width:310px;text-align:center;box-shadow:0 22px 54px rgba(0,0,0,.6);}
-      #amkhc-ask .box::before{content:'';position:absolute;left:0;right:0;top:0;height:5px;
-        background:repeating-linear-gradient(90deg,var(--sq-d,#74533a) 0 12.5%,var(--sq-l,#ba9d79) 12.5% 25%);}
+      #amkhc-ask .box::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;opacity:.55;
+        background:linear-gradient(90deg,transparent,var(--color-primary,#d8b45a) 22%,var(--color-primary,#d8b45a) 78%,transparent);}
       #amkhc-ask .g{width:46px;height:46px;margin:2px auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;
         background:var(--color-primary-subtle,rgba(216,180,90,.13));border:1px solid var(--color-primary-border,rgba(216,180,90,.34));
         color:var(--color-primary-text,#f0d68a);}

@@ -99,16 +99,50 @@ function esc(s) {
    ~١.٢ث على نفس الـpool. */
 const mask = a => String(a || '').replace(/^(.{2})[^@]*(@.*)$/, '$1***$2');
 
+/* ترويسات تخلّي الرسالة تُقرأ كرسالة معاملات لا كدعاية ─────────────────
+   بلاغ «الرمز موصلش» الأخير: السجل بيقول إن جيميل قَبِل الرسالة (accepted:1)
+   ومافيش ارتجاع خلال أكتر من عشرين دقيقة — والارتجاع الحقيقي بييجي في
+   ثوانٍ (العنوان الغلط الأسبق ارتجع بعد ٨ ثوانٍ). يعني الرسالة اتسلّمت
+   للصندوق فعلًا وقعدت في «البريد المزعج».
+
+   الترويسات دي بتقلّل الاحتمال ده بقدر ما يقدر مُرسِل من حساب جيميل عادي:
+   • Auto-Submitted: علامة RFC 3834 إن الرسالة آلية بردّ على طلب المستخدم،
+     وبتمنع كمان الردود الآلية (out-of-office) إنها ترتدّ علينا.
+   • Message-ID بنطاق حقيقي محلول (صفحة المشروع) بدل اسم جهاز محلي —
+     nodemailer بيبني المعرّف من os.hostname()، و«DESKTOP-…» مش FQDN وده
+     من علامات البريد المزعج المعروفة.
+   • Reply-To صريح: صندوق قابل للردّ بيرفع الثقة.
+   ومع كل ده يفضل ممكن تقع في المزعج أول مرة، فشاشة التأكيد في التطبيق
+   بتقول للمستخدم يبصّ هناك ويعلّمها «ليست مزعجة» مرة واحدة. */
+const MSGID_DOMAIN = '12362aa.github.io';
+let _seq = 0;
+function stdHeaders(from) {
+  const rnd = Math.random().toString(36).slice(2, 10);
+  return {
+    replyTo: from,
+    messageId: `<amkh-${Date.now().toString(36)}-${++_seq}-${rnd}@${MSGID_DOMAIN}>`,
+    headers: {
+      'Auto-Submitted': 'auto-generated',
+      'X-Auto-Response-Suppress': 'All',
+      'X-Entity-Ref-ID': `amkh-${Date.now()}-${_seq}`,
+    },
+  };
+}
+
 async function deliver(kind, msg) {
   const tx = transport();
   if (!tx) throw new Error('SMTP غير مهيّأ على الخادم');
   const t0 = Date.now();
   try {
-    const info = await tx.sendMail(Object.assign({ from: cfg().from }, msg));
+    const from = cfg().from;
+    const info = await tx.sendMail(Object.assign({ from }, stdHeaders(from), msg));
     const ms = Date.now() - t0;
     /* المستلم اللي جيميل قَبِله فعلًا: لو طلع فاضي يبقى العنوان مرفوض */
     const acc = (info && info.accepted && info.accepted.length) ? info.accepted.length : 0;
-    console.log(`[mail] ${kind} → ${mask(msg.to)} في ${ms}ms (مقبول: ${acc})`);
+    /* ردّ جيميل فيه معرّف الطابور — لو المستخدم قال «موصلش» بنعرف من السجل
+       إذا كان الخادم قَبِلها فعلًا (فالمشكلة في صندوقه/المزعج) ولا لأ. */
+    const rsp = String((info && info.response) || '').replace(/\s+/g, ' ').slice(0, 80);
+    console.log(`[mail] ${kind} → ${mask(msg.to)} في ${ms}ms (مقبول: ${acc}) ${rsp}`);
     if (ms > 6000) console.warn(`[mail] بطء غير معتاد في الإرسال: ${ms}ms`);
     if (info && info.rejected && info.rejected.length) {
       console.error('[mail] عنوان مرفوض من الخادم:', info.rejected.map(mask).join(', '));
@@ -262,5 +296,14 @@ async function sendSignupCode({ to, code, name, minutes = 15 }) {
   });
 }
 
-module.exports = { ready, status, verify, sendResetCode, sendGoogleNotice, sendSignupCode };
+/* عنوان المُرسِل صريحًا (بلا الاسم المعروض) — العميل بيعرضه للمستخدم عشان
+   يبحث بيه في بريده لو الرسالة قعدت في المزعج. مش سرًّا: مكتوب على كل
+   رسالة بتوصله. */
+function senderAddress() {
+  const from = cfg().from || '';
+  const m = from.match(/<([^>]+)>/);
+  return (m ? m[1] : from).trim();
+}
+
+module.exports = { ready, status, verify, senderAddress, sendResetCode, sendGoogleNotice, sendSignupCode };
 

@@ -886,18 +886,18 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
 /* ══ إصدار التطبيق (#136) ══
    العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
    أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الوسم واسم الملف
-   بيتبعوا رقم الإصدار (v3.14 / chess-amkh-3.14.apk) عشان اللي بينزّل
+   بيتبعوا رقم الإصدار (v3.15 / chess-amkh-3.15.apk) عشان اللي بينزّل
    يدويًا من الموقع يعرف إيه اللي معاه. نبمب LATEST_* هنا مع كل إصدار. */
-const LATEST_VERSION = '3.14';
-const LATEST_CODE = 30;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.14/chess-amkh-3.14.apk';
+const LATEST_VERSION = '3.15';
+const LATEST_CODE = 31;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.15/chess-amkh-3.15.apk';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'أهمّ ما في هذا الإصدار أنّ تقدّمك في مراحل نور صار محفوظًا في حسابك فعلًا: المراحل ونجومها وأفضل عدد نقلات لكلّ مرحلة، ومعها ثيم الواجهة ولون الرقعة وشكل القطع والصوت وبقيّة الإعدادات، تعود كلّها إلى جهازك في لحظة تسجيل الدخول بلا إعادة تحميل — وكانت قبل ذلك تضيع مع إعادة التثبيت فيرجع اللاعب إلى المرحلة الأولى. وصارت المباراة التي تشاهدها تُعرض برقعة صاحبها وقطعه وثيمه لا بثيمك أنت. وفي محادثة المباراة عادت لوحة المفاتيح إلى موضعها فلم تعد تحجب الرسائل ولا تُزيح الشاشة، ورُتِّبت تبويبات الحساب من جديد فصار كلّ إعداد في بابه. وشاشة الترحيب في أوّل تشغيل صار لِنقلاتها صوتها ولوحها لا يختفي في أثناء العرض، ونصوصها بالفصحى. ورسائل البريد تصل الآن باسم «Am-Kh Chess» وبطاقتها لا تخرج عن حدّ الشاشة في جيميل على الهاتف، وعند إنشاء الحساب يُرفض البريد غير الموجود قبل الإرسال ويُعرض كما كتبتَه لتراجعه، فلا يذهب الرمز إلى عنوان لا تقرأه. وفي المكالمة صار رفض ترقيتها إلى فيديو يظهر فوق نافذة المكالمة لا خلفها، وأُعيد تصميم النافذة نفسها.',
+    notes: 'أهمّ ما في هذا الإصدار أنّ المباراة التي تشاهدها صارت تُعرض برقعة صاحبها وقطعه على الحقيقة: الثيم يُعلنه جهاز اللاعب نفسه لحظة بداية المباراة بدل قراءته من إعدادات الحساب، فلم يعد يظهر لك ثيم قديم إذا كان اللاعب قد غيّر رقعته للتوّ أو كان له جهازان. وصار توثيق البريد إلزاميًا عند إنشاء حساب بكلمة مرور، فلا يُنشأ حساب بعنوان لا يملكه صاحبه، وشاشة الرمز تدلّك على مجلد البريد المزعج وعلى عنوان المُرسِل لتبحث به إن تأخّرت الرسالة — والرسائل نفسها صارت تحمل ترويسات رسائل المعاملات فاحتمال تصنيفها مزعجة أقل. ورُفعت من الواجهة الشرائط التي كانت تأخذ لونها من رقعة اللعب فتظهر كأنها قطعة من الرقعة في نافذة المكالمة وفي صفحة الحساب، وحلّ محلّها خطّ رفيع بلون التطبيق.',
   });
 });
 
@@ -2011,6 +2011,32 @@ function themeOfUser(userId) {
   } catch (e) { return null; }
 }
 
+/* ثيم مُعلَن من جهاز اللاعب نفسه لحظة بداية المباراة — المصدر الأوثق.
+
+   قراءة الثيم من إعدادات الحساب لوحدها كانت بتفشل في حالتين حقيقيتين:
+   جهاز لسه مارفعش إعداداته (الرفع دوري عند التغيير، مش لحظي)، وجهازين
+   على نفس الحساب — آخر واحد يرفع بيغلب، فالتابلت يفضل أخضر والحساب
+   مكتوب فيه خشب، والمتفرّج يشوف الخشب فيبان كأن المزامنة مابتشتغلش.
+   الجهاز عارف ثيمه يقينًا فهو اللي بيعلنه، والحساب بقى احتياطيًا للنسخ
+   القديمة اللي مابتبعتش الثيم. */
+function sanitizeTheme(t) {
+  if (!t || typeof t !== 'object') return null;
+  const nm = (v) => {
+    const s = String(v == null ? '' : v).trim().slice(0, 24);
+    return /^[A-Za-z0-9_]+$/.test(s) ? s : '';
+  };
+  let board = nm(t.board || t.boardTheme);
+  const pieces = nm(t.pieces || t.pieceStyle);
+  if (board === 'custom') board = 'classic';       /* صورة مخصّصة عند صاحبها بس */
+  if (!board && !pieces) return null;
+  return { board: board || '', pieces: pieces || '' };
+}
+
+function themeForSide(room, side, id) {
+  const live = side === 'host' ? room.hostTheme : room.guestTheme;
+  return live || themeOfUser(id);
+}
+
 function spectatorSnapshot(room) {
   const nameOf = (side) => (room[side] && room[side].name) || 'لاعب';
   const hostIsWhite = room.host && room.host.color === 'w';
@@ -2028,8 +2054,8 @@ function spectatorSnapshot(room) {
     black: hostIsWhite ? nameOf('guest') : nameOf('host'),
     white_id: wId,
     black_id: bId,
-    white_theme: themeOfUser(wId),
-    black_theme: themeOfUser(bId),
+    white_theme: themeForSide(room, hostIsWhite ? 'host' : 'guest', wId),
+    black_theme: themeForSide(room, hostIsWhite ? 'guest' : 'host', bId),
     moves: (room.mvLog || []).slice(),
     tc: room.tc || null,
     clock: room.clock ? {
@@ -2791,6 +2817,9 @@ wss.on('connection', (ws, req) => {
           guest: { name: clean(msg.black, 'الأسود') },
           hostId: color === 'b' ? null : userId,
           guestId: color === 'b' ? userId : null,
+          /* جهاز واحد بيرسم الجهتين، فثيمه هو ثيم الجهتين عند المتفرّج */
+          hostTheme: sanitizeTheme(msg.theme),
+          guestTheme: sanitizeTheme(msg.theme),
           owner: userId, ws, mvLog: [], at: Date.now(),
         };
         const prev = localGames.get(userId);
@@ -3312,6 +3341,7 @@ wss.on('connection', (ws, req) => {
           code,
           hostId,
           rated: roomKind === 'online' && msg.rated === true && !!hostId,
+          hostTheme: sanitizeTheme(msg.theme),
           host: makeMember(ws, hostColor, resolveOnlineNameById(hostId, msg.name), msg.deviceId || ''),
           guest: null,
           guestColor,
@@ -3358,6 +3388,7 @@ wss.on('connection', (ws, req) => {
         const guestId = socketUser.get(ws) || userIdFromToken(msg.token) || null;
         room.guest = makeMember(ws, room.guestColor, resolveOnlineNameById(guestId, msg.name), msg.deviceId || '');
         room.guestId = guestId;
+        room.guestTheme = sanitizeTheme(msg.theme);
         // مباراة مصنّفة تحتاج الطرفين مسجّلين
         if (room.rated && !(room.hostId && room.guestId)) room.rated = false;
         clientRoom.set(ws, code);
@@ -3432,6 +3463,23 @@ wss.on('connection', (ws, req) => {
       /* ══ بلاغ نتيجة مباراة (للتقييم المصنّف) ══ */
       case 'game:over': {
         try { handleGameResult(ws, msg); } catch (e) { console.error('[rating] game:over:', e.message); }
+        break;
+      }
+
+      /* ══ ثيم اللاعب على غرفة قائمة ══
+         بيغطّي المسارات اللي مافيهاش رسالة create/join: البحث عن خصم
+         ودعوة صديق — الغرفة بتتولد على الخادم فمافيش لحظة بيبعت فيها
+         العميل إعداداته. العميل بيبعت الرسالة دي أول ما المباراة تبدأ. */
+      case 'theme': {
+        const info = getRoomAndSide(ws);
+        if (!info) break;
+        const th = sanitizeTheme(msg.theme || msg);
+        if (!th) break;
+        if (info.side === 'host') info.room.hostTheme = th;
+        else info.room.guestTheme = th;
+        for (const s of spectatorsOf(info.code)) {
+          if (s.readyState === WebSocket.OPEN) send(s, spectatorSnapshot(info.room));
+        }
         break;
       }
 

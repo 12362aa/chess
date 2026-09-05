@@ -312,7 +312,7 @@ const amkhAuth = {
     if (res.ok) {
       /* خادم بيطلب تأكيدًا: مافيش توكن، والنافذة بتنقل لخانة الرمز */
       if (data.verify) {
-        return { success: true, verify: true, email: data.email || email, ttl: data.ttl_minutes || 15 };
+        return { success: true, verify: true, email: data.email || email, ttl: data.ttl_minutes || 15, from: data.from || '' };
       }
       /* خادم قديم: التوكن جه على طول */
       this.setToken(data.token, data.user);
@@ -414,7 +414,7 @@ const amkhAuth = {
     } catch (e) {
       return { success: false, error: 'تعذّر الاتصال بالخادم. أعِد المحاولة.' };
     }
-    if (res.ok) return { success: true, message: data.message, ttl: data.ttl_minutes || 15 };
+    if (res.ok) return { success: true, message: data.message, ttl: data.ttl_minutes || 15, from: data.from || '' };
     return { success: false, error: data.error || 'تعذّر إرسال الرمز', retryAfter: data.retry_after || 0 };
   },
 
@@ -1326,7 +1326,7 @@ const amkhAuth = {
         overlay._dismiss();
         amkhAuth.showVerifyModal({
           email: email, password: pass, displayName: name,
-          ttl: res.ttl, loginOpts: opts,
+          ttl: res.ttl, from: res.from, loginOpts: opts,
         });
         return;
       }
@@ -1344,7 +1344,7 @@ const amkhAuth = {
         overlay._dismiss();
         amkhAuth.showVerifyModal({
           email: email, password: pass, displayName: name,
-          ttl: res.ttl, cooldown: res.retryAfter, already: true, loginOpts: opts,
+          ttl: res.ttl, from: res.from, cooldown: res.retryAfter, already: true, loginOpts: opts,
         });
         return;
       }
@@ -1456,11 +1456,16 @@ const amkhAuth = {
        كامل — إخفاؤه بيمنعه من ملاحظة الغلطة المطبعية، وهي أشهر سبب
        لـ«الرمز مش بيوصل». */
     const shown = e => `<b style="direction:ltr;display:inline-block;unicode-bidi:isolate;word-break:break-all;color:var(--color-primary-text,#f0d68a)">${amkhUI.esc(String(e || '').trim())}</b>`;
+    /* نفس توجيه نافذة التأكيد: المجلد باسمه الحقيقي وعنوان المُرسِل للبحث */
+    let sentFrom = '';
 
     const toStep2 = () => {
       step = 2;
       q('#reset-title').textContent = 'أدخل الرمز';
-      q('#reset-sub').innerHTML = `أرسلنا رمزًا من 6 أرقام إلى ${shown(sentTo)} — صالح لمدة ${ttl} دقيقة.<br>لو لم تجده فابحث في مجلد الرسائل غير المرغوبة، وتأكّد أن العنوان مكتوب صحيحًا.`;
+      q('#reset-sub').innerHTML = `أرسلنا رمزًا من 6 أرقام إلى ${shown(sentTo)} — صالح لمدة ${ttl} دقيقة.`
+        + `<br>لم تجده؟ افتح مجلد <b>البريد المزعج (Spam)</b>`
+        + (sentFrom ? ` أو ابحث عن ${shown(sentFrom)}` : '')
+        + `، وعلّمها «ليست مزعجة» مرة واحدة. وإن لم تكن هناك فراجع العنوان حرفًا بحرف.`;
       q('#reset-step1').style.display = 'none';
       q('#reset-step2').style.display = '';
       goBtn.textContent = 'تغيير كلمة المرور';
@@ -1488,6 +1493,7 @@ const amkhAuth = {
       if (r.success) {
         sentTo = email;
         ttl = r.ttl || 15;
+        sentFrom = r.from || sentFrom;
         if (step === 1) toStep2();
         else {
           startCooldown(60);
@@ -1583,6 +1589,14 @@ const amkhAuth = {
        بريدًا غير موجود، فجيميل رجّع الرسالة لصاحب حساب الإرسال بعد عشر
        دقايق (والرمز جوّاها)، وهو فضل مستني ومافهمش إيه اللي حصل. */
     const shown = e => `<b style="direction:ltr;display:inline-block;unicode-bidi:isolate;word-break:break-all;color:var(--color-primary-text,#f0d68a)">${amkhUI.esc(String(e || '').trim())}</b>`;
+    /* «الرمز موصلش» والسجل بيقول إن جيميل قَبِل الرسالة ومافيش ارتجاع —
+       يعني الرسالة في الصندوق فعلًا وقاعدة في «البريد المزعج»، ومحدّش
+       بيفتح المجلد ده من نفسه. فالتوجيه هنا صريح وبأسماء المجلد الحقيقية
+       (عربي وإنجليزي) ومعاه عنوان المُرسِل عشان يبحث بيه مباشرة. */
+    const from = String(opt.from || '').trim();
+    const spamHint = `لم تجد الرسالة؟ افتح مجلد <b>البريد المزعج (Spam)</b> — الرسائل الآلية تُصنَّف هناك أحيانًا في أول مرة`
+      + (from ? `، أو ابحث في بريدك عن ${shown(from)}` : '')
+      + `. وعلّمها «ليست مزعجة» مرة واحدة لتصل بعدها إلى الوارد مباشرة. وإذا لم تكن هناك أيضًا فراجع العنوان أعلاه حرفًا بحرف — العنوان الخاطئ لا تصل إليه رسالة أبدًا.`;
 
     const overlay = amkhUI.mount('amkh-verify-modal', `
       <div class="ds-dialog amkh-auth-dialog amkh-reset-dialog">
@@ -1593,7 +1607,7 @@ const amkhAuth = {
         <p class="ds-dialog__message" id="vf-sub">${opt.already
           ? `سبق أن أرسلنا رمزًا إلى ${shown(email)} — أدخله هنا لإكمال إنشاء حسابك.`
           : `أرسلنا رمزًا من 6 أرقام إلى ${shown(email)} — صالح لمدة ${ttl} دقيقة.`}</p>
-        <p class="ds-field__hint" style="margin:-6px 0 12px;line-height:1.75;">الرسالة تصل في ثوانٍ. لو لم تجدها فابحث في مجلد الرسائل غير المرغوبة، ثم تأكّد أن العنوان أعلاه مكتوب صحيحًا حرفًا بحرف — العنوان الخاطئ لا تصل إليه رسالة أبدًا.</p>
+        <p class="ds-field__hint" style="margin:-6px 0 12px;line-height:1.75;">${spamHint}</p>
 
         <div class="ds-field">
           <input type="text" id="vf-code" class="ds-input amkh-reset-code" placeholder="- - - - - -"

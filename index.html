@@ -19,7 +19,7 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260906-b30">
+<link rel="stylesheet" href="design-system.css?v=20260907-b31">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -2678,7 +2678,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260906-b30">
+<link rel="stylesheet" href="screens.css?v=20260907-b31">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -4793,10 +4793,6 @@ const SettingsAccount = {
   _hero(u){
     const hero = document.createElement('div');
     hero.className = 'acct-hero';
-    const deco = document.createElement('div');
-    deco.className = 'acct-hero__deco';
-    deco.setAttribute('aria-hidden', 'true');
-    hero.appendChild(deco);
 
     const top = document.createElement('div');
     top.className = 'acct-hero__top';
@@ -5579,6 +5575,18 @@ const Cfg={
       out[k]=v;
     }
     return out;
+  },
+
+  /* ثيم العرض الحالي للجهاز — بيتبعت مع بداية أي مباراة (محلية أو أونلاين)
+     عشان المتفرّج يرسم برقعة صاحب المباراة وقطعه.
+
+     كان الخادم بيقرا الثيم من إعدادات الحساب المتزامنة، وده بيفشل في
+     حالتين حقيقيتين: جهاز لسه مارفعش إعداداته (الرفع كل عشر ثوانٍ عند
+     التغيير)، وجهازين على نفس الحساب — آخر واحد يرفع بيغلب، فالتابلت
+     يفضل بأخضر والحساب مكتوب فيه خشب. الجهاز نفسه عارف ثيمه يقينًا،
+     فهو المصدر الصحيح. */
+  liveTheme(){
+    return {board:String(this.data.boardTheme||''),pieces:String(this.data.pieceStyle||'')};
   },
 
   /* بترجّع true لو حاجة فعلًا اتغيّرت (عشان اللي بينادي يعرف يقول للمستخدم) */
@@ -6718,8 +6726,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '3.14';
-const APP_VERSION_CODE = 30;
+const APP_VERSION = '3.15';
+const APP_VERSION_CODE = 31;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -12605,6 +12613,7 @@ const LocalCast={
   _frame(){
     return {type:'local:begin',kind:this._kind||'local',
       color:(S.myCol==='b')?'b':'w',
+      theme:Cfg.liveTheme(),
       white:this._nm('nm-w','الأبيض'),black:this._nm('nm-b','الأسود')};
   },
   /* رجع الاتصال والمباراة لسه شغّالة → نعيد تعريفها ونبعت السجل كامل.
@@ -13163,6 +13172,10 @@ const OL=(()=>{
       case 'start':
         /* المباراة بدأت فعلاً — نقفل أي نوافذ دعوة/أصدقاء لسه مفتوحة */
         try{ if(window.amkhFriends && window.amkhFriends.closeAllInviteUI) window.amkhFriends.closeAllInviteUI(); }catch(e){}
+        /* ثيم رقعتي وقطعي للمتفرّجين: بيتبعت هنا عشان يغطّي كل مسارات بدء
+           المباراة (إنشاء، انضمام، بحث عن خصم، دعوة صديق) — الاثنان
+           الأخيران الغرفة بتتولد فيهما على الخادم بلا رسالة من العميل. */
+        try{ send({type:'theme',theme:Cfg.liveTheme()}); }catch(e){}
         /* التقييم يظهر في شريط اللاعب في المباريات المصنّفة فقط —
            في الودّية مفيش لازمة لعرضه جنب الأسماء. */
         _oppRatingSnap = d.rated ? (d.oppRating||null) : null;
@@ -13356,7 +13369,7 @@ const OL=(()=>{
       _myCol=col;
       document.getElementById('btn-create').disabled=true;
       connect(()=>{
-        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),rated:!!this.rt,tc:this.tc||null,token:this._tok()});
+        send({type:'create',color:col,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),rated:!!this.rt,tc:this.tc||null,theme:Cfg.liveTheme(),token:this._tok()});
         // Send profile image if available
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
@@ -13368,7 +13381,7 @@ const OL=(()=>{
       const code=document.getElementById('jinp').value.trim().toUpperCase();
       if(!code){setSt('j','أدخل الكود أولاً','err');return;}
       connect(()=>{
-        send({type:'join',code,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),token:this._tok()});
+        send({type:'join',code,name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),theme:Cfg.liveTheme(),token:this._tok()});
         // Send profile image if available
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
@@ -14262,13 +14275,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260906-b30"></script>
+  <script src="auth-client.js?v=20260907-b31"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260906-b30"></script>
-  <script src="friends-client.js?v=20260906-b30"></script>
-  <script src="chat-client.js?v=20260906-b30"></script>
-  <script src="call-client.js?v=20260906-b30"></script>
+  <script src="welcome-client.js?v=20260907-b31"></script>
+  <script src="friends-client.js?v=20260907-b31"></script>
+  <script src="chat-client.js?v=20260907-b31"></script>
+  <script src="call-client.js?v=20260907-b31"></script>
 <script>
 const BLEManager = {
   isHost: false,

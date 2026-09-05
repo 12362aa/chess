@@ -3772,16 +3772,6 @@ body[data-ui-theme="glass"]{
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
 }
-/* شريط مربّعات بلون رقعة اللعب الحالية — نفس هوية نافذة المكالمة،
-   فالحساب يبان إنه جوّه تطبيق شطرنج مش أي تطبيق. */
-.acct-hero__deco{
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 4px;
-  background: repeating-linear-gradient(90deg,
-    var(--sq-d, #b58863) 0 14px, var(--sq-l, #f0d9b5) 14px 28px);
-  opacity: .85;
-}
 .acct-hero__top{
   display: flex;
   align-items: center;

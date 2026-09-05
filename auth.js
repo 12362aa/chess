@@ -283,7 +283,7 @@ async function requestSignupCode(res, { email, password, displayName }) {
     console.error('[register] فشل إرسال رمز التأكيد:', e.message);
     return res.status(502).json({ error: 'تعذّر إرسال البريد الآن. تأكّد من صحة بريدك وأعِد المحاولة.' });
   }
-  return res.json({ ok: true, verify: true, email, ttl_minutes: SIGNUP_TTL_MIN });
+  return res.json({ ok: true, verify: true, email, ttl_minutes: SIGNUP_TTL_MIN, from: mailer.senderAddress() });
 }
 
 /* الخطوة التانية: الرمز صحيح → الحساب يتولد ويتسجّل دخوله على طول.
@@ -580,6 +580,7 @@ function resetAccepted(res) {
     ok: true,
     message: 'إذا كان البريد مسجَّلًا لدينا فسيصلك رمز إعادة التعيين خلال دقيقة.',
     ttl_minutes: RESET_TTL_MIN,
+    from: mailer.senderAddress(),
   });
 }
 
