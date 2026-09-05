@@ -325,9 +325,26 @@ const amkhChat = {
     try { window.amkhUI.notify('لا يوجد اتصال — ستُرسل تلقائيًا أول ما يعود', 'مؤجَّلة', '◈'); } catch (e) {}
   },
 
+  /* توقيت SQLite (‏datetime('now')) بيرجع UTC ساذج "YYYY-MM-DD HH:MM:SS" بلا Z،
+     فالمتصفح بيفسّره كتوقيت محلّي. النتيجة كانت مركّبة: أوقات رسايل السيرفر
+     تظهر ناقصة بفرق المنطقة (٣ ساعات في مصر)، وسجلّ المكالمة المحلي — المكتوب
+     بـtoISOString الصحيح — يطلع «أحدث» من كل رسايل السيرفر فيفضل يتزحلق تحت
+     مهما وصل بعده رسايل. نكشف الصيغة الساذجة ونقراها UTC (زي _parseTs في
+     friends-client). */
+  _parseTs(s) {
+    if (s == null) return NaN;
+    if (typeof s === 'number') return s;
+    s = String(s).trim();
+    if (!s) return NaN;
+    if (/[zZ]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s)) return Date.parse(s);
+    const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/.exec(s);
+    if (m) return Date.parse(`${m[1]}T${m[2]}Z`);
+    return Date.parse(s);
+  },
+
   /* وقت قصير للفقاعة */
   _time(iso) {
-    const t = iso ? Date.parse(iso) : Date.now();
+    const t = iso ? this._parseTs(iso) : Date.now();
     const d = isNaN(t) ? new Date() : new Date(t);
     let h = d.getHours(), m = d.getMinutes();
     const am = h < 12;
@@ -339,7 +356,7 @@ const amkhChat = {
      بينادى من call-client عند نهاية أي مكالمة. رسالة محلية بمعرّف مصطنع
      (عشان تتحفظ في IndexedDB — _cachePut بيرمي id==null). */
   /* ترتيب زمني موحّد (يتعامل مع ISO أو رقم أو datetime) */
-  _ts(m) { const t = m && m.created_at; if (t == null) return 0; const n = typeof t === 'number' ? t : Date.parse(t); return isNaN(n) ? 0 : n; },
+  _ts(m) { const t = m && m.created_at; if (t == null) return 0; const n = this._parseTs(t); return isNaN(n) ? 0 : n; },
   /* دمج رسائل السيرفر مع رسائل محلية (معلّقة/سجل مكالمة) غير موجودة على السيرفر،
      مع إزالة المكرر بالمعرّف وترتيب الكل زمنيًا (#156). */
   _mergeChrono(serverMsgs, extra) {
@@ -1728,11 +1745,15 @@ const amkhChat = {
         : row('pin', this.ICONS.pin, 'تثبيت', 'تختار المدة ثم يُلغى وحده');
     }
 
-    /* #3 — شريط التفاعلات فوق الورقة، والمختار حاليًا مميّز */
+    /* #3 — شريط التفاعلات فوق الورقة، والمختار حاليًا مميّز.
+       وزر «+» في آخره بيفتح المنتقي الكامل: الستة دول كانوا كل المتاح، وده
+       كان قيدًا محسوسًا جوه محادثة عادية. */
     const mineEmoji = this._myReaction(m);
     const strip = this.REACTIONS.map((e, i) =>
       `<button class="msg-act__emo${mineEmoji && mineEmoji.emoji === e ? ' is-mine' : ''}" `
-      + `style="--i:${i}" data-emoji="${e}" aria-label="تفاعل ${e}">${e}</button>`).join('');
+      + `style="--i:${i}" data-emoji="${e}" aria-label="تفاعل ${e}">${e}</button>`).join('')
+      + `<button class="msg-act__emo msg-act__emo--more" style="--i:${this.REACTIONS.length}" `
+      + `data-more="1" aria-label="كل التفاعلات" title="كل التفاعلات">${this.ICONS.plus}</button>`;
 
     const overlay = U.mount('amkh-msg-act', `
       <div class="ds-sheet msg-act" id="msg-act-p">
@@ -1752,6 +1773,11 @@ const amkhChat = {
       try { overlay._dismiss(); } catch (e) {}
       this._react(scope, m, emoji);
     });
+    const moreBtn = overlay.querySelector('[data-more]');
+    if (moreBtn) moreBtn.onclick = () => {
+      try { overlay._dismiss(); } catch (e) {}
+      this._openEmojiPicker(scope, m);
+    };
     overlay.querySelectorAll('[data-do]').forEach(b => b.onclick = () => {
       U.sfx();
       const act = b.dataset.do;
@@ -1763,6 +1789,147 @@ const amkhChat = {
       else if (act === 'copy') this._copyText(txt);
       else if (act === 'save') this._saveMedia(m);
     });
+  },
+
+  /* ══ منتقي التفاعلات الكامل (زر «+») ══
+     الستة السريعة كانت السقف كله، فأي تفاعل خارجها كان مستحيلًا. دي شبكة
+     كاملة بتصنيفات + صفّ «الأخيرة» بيتعلّم من الاستعمال. ورقة سفلية بطراز
+     التطبيق ونغمة خاصة (emojiPick). التسلسلات المركّبة (عائلات/ZWJ طويلة)
+     مستبعدة عن قصد: بتتفكّك على خطوط أندرويد القديمة وبتتخطّى حدّ الخادم. */
+  EMOJI_CATS: [
+    { key: 'faces', name: 'وجوه', tab: '😀', list: [
+      '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩',
+      '😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐',
+      '🤨','😐','😑','😶','😏','😒','🙄','😬','😮','😯','😲','🥱','😴','🤤','😪','😵',
+      '🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','😮‍💨','😢','😭','😤','😠','😡',
+      '🤬','😳','🥺','😨','😰','😥','😓','🤗','🫡','🫢','🫠','🥶','🥵','🤒','🤕','🤧',
+      '🤮','🤢','😷','🤥','😈','👿','👻','💀','☠️','🤡','👽','🤖','😺','😸','😹','😻',
+      '😼','😽','🙀','😿','😾'] },
+    { key: 'hands', name: 'إيماءات', tab: '👍', list: [
+      '👍','👎','👏','🙌','🤝','🙏','✌️','🤞','🤙','🤟','👌','🤌','🤏','👈','👉','👆',
+      '👇','☝️','✋','🤚','🖐️','🖖','👋','🤛','🤜','✊','👊','🫰','🫵','🫶','💪','🦾',
+      '🖕','✍️','💅','🦵','🦶','👣','👀','👁️','🧠','🫀','👅','👄','🦷','🗣️','👤','🧑',
+      '🧒','👦','👧','👨','👩','🧓','👴','👵','🤴','👸','🦸','🦹','🧙','🧚','🧜','🧞',
+      '💁','🙋','🙆','🙅','🤷','🤦','💆','💇','🧏','🤵','👰','🤰','🍼','🕺','💃','👯'] },
+    { key: 'love', name: 'قلوب', tab: '❤️', list: [
+      '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖',
+      '💘','💝','💟','♥️','💌','💋','😻','🥰','😍','🫂','💐','🌹','🌺','🌸','🌼','🌻',
+      '💒','💍','💎','👑','🎀','🕊️','✨','💫','⭐','🌟'] },
+    { key: 'animals', name: 'حيوانات', tab: '🐶', list: [
+      '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈',
+      '🙉','🙊','🐒','🦍','🐔','🐧','🐦','🐤','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝',
+      '🐛','🦋','🐌','🐞','🐜','🦗','🕷️','🦂','🐢','🐍','🦎','🐙','🦑','🦐','🦞','🦀',
+      '🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🐘','🦏','🐪','🐫',
+      '🦒','🦌','🐕','🐩','🐈','🐓','🦃','🕊️','🐇','🐁','🐿️','🦔','🌵','🌲','🌳','🌴',
+      '🌱','🌿','☘️','🍀','🍁','🍂','🍃','🍄','🐚','🌊','🌋','⛰️','🏔️','🌙','☀️','⛅',
+      '☁️','🌧️','⛈️','❄️','☃️','🔥','💧','🌈'] },
+    { key: 'food', name: 'طعام', tab: '🍔', list: [
+      '🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥',
+      '🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌽','🥕','🧄','🧅','🥔','🍠','🥐','🥯','🍞',
+      '🥖','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🍗','🍖','🌭','🍔','🍟','🍕','🥙','🌮',
+      '🌯','🥗','🥘','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍚','🍘','🥠','🍥','🥮',
+      '🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪',
+      '🌰','🥜','🍯','🥛','☕','🍵','🧉','🥤','🧃','🧊','🍶','🍺','🍻','🥂','🍷','🍾'] },
+    { key: 'play', name: 'أنشطة', tab: '⚽', list: [
+      '⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍',
+      '🏏','🥊','🥋','🥅','⛳','⛸️','🎣','🤿','🎽','🎿','🛷','🥌','🎯','🪁','🎮','🕹️',
+      '🎲','🧩','♟️','🎭','🎨','🧵','🎼','🎤','🎧','🎷','🎸','🎹','🎺','🎻','🥁','📱',
+      '🏆','🥇','🥈','🥉','🏅','🎖️','🎗️','🎫','🎟️','🎪','🤹','🎬','🎊','🎉','🎈','🎁',
+      '🚴','🏊','🏄','🏋️','🤸','⛹️','🤺','🏌️','🧘','🏃','🚶','🧗'] },
+    { key: 'trip', name: 'سفر', tab: '✈️', list: [
+      '🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️','🛵',
+      '🚲','🛴','🚨','🚔','🚍','🚝','🚄','🚅','🚈','🚂','🚆','🚇','🚊','✈️','🛫','🛬',
+      '🚀','🛸','🚁','⛵','🛥️','🚤','🛳️','⛴️','🚢','⚓','🗺️','🧭','🏝️','🏖️','🏜️','🏞️',
+      '🌅','🌄','🌇','🌆','🏙️','🌃','🌉','🗽','🕌','🕋','⛪','🏛️','🏰','🏯','⛺','🏠',
+      '🏡','🏢','🏥','🏦','🏫','🏭','🗼','🎡','🎢','🎠'] },
+    { key: 'sym', name: 'رموز', tab: '💯', list: [
+      '💯','✅','❌','⭕','❗','❓','⁉️','‼️','⚠️','🚫','🔞','💤','💢','💥','💦','💨',
+      '🕳️','💬','💭','🗯️','♻️','🔱','⚜️','🔰','✳️','❇️','🆗','🆒','🆕','🆓','🔝','🔜',
+      '🔙','🔛','🔃','🔄','▶️','⏸️','⏹️','⏭️','⏮️','🔀','🔂','🔊','🔇','🔔','🔕','📢',
+      '⏰','⌛','⏳','⏱️','🕰️','🔒','🔓','🔑','🗝️','🔧','🔨','⚙️','🧲','🔗','⛓️','💡',
+      '🔋','🔌','💰','💵','🎯','🧿','🪄','🔮','📿','💊','🩹','🌡️','🧪','🔬','🔭','📡',
+      '📌','📍','🖇️','📎','✂️','📏','📐','🗂️','📅','📊','📈','📉','📚','📖','📝','✏️',
+      '🖊️','🖌️','📧','📩','📨','📤','📥','📦','🏷️','🔍','🔎','🏳️','🏴','🏁','🚩','🎌'] },
+  ],
+
+  /* الأخيرة: بنخزّنها محليًا فالمرة اللي بعدها بتلاقي بتاعك فوق مباشرة */
+  _emojiRecent() {
+    try {
+      const raw = localStorage.getItem('amkh_emoji_recent');
+      const a = raw ? JSON.parse(raw) : null;
+      return Array.isArray(a) ? a.filter(x => typeof x === 'string' && x).slice(0, 24) : [];
+    } catch (e) { return []; }
+  },
+  _emojiRemember(e) {
+    if (!e) return;
+    try {
+      const a = this._emojiRecent().filter(x => x !== e);
+      a.unshift(e);
+      localStorage.setItem('amkh_emoji_recent', JSON.stringify(a.slice(0, 24)));
+    } catch (err) {}
+  },
+
+  _openEmojiPicker(scope, m) {
+    const U = window.amkhUI;
+    if (!U) return;
+    const mine = this._myReaction(m);
+    const cur = mine ? mine.emoji : '';
+    const recent = this._emojiRecent();
+    const cats = recent.length
+      ? [{ key: 'recent', name: 'الأخيرة', list: recent }].concat(this.EMOJI_CATS)
+      : this.EMOJI_CATS.slice();
+
+    const tabs = cats.map((c, i) =>
+      `<button class="emo-pk__tab${i === 0 ? ' is-on' : ''}" data-cat="${c.key}" `
+      + `aria-label="${c.name}">${c.key === 'recent' ? (this.ICONS.clock || '🕘') : c.tab}</button>`).join('');
+
+    const cell = e => `<button class="emo-pk__c${e === cur ? ' is-mine' : ''}" data-emoji="${e}">${e}</button>`;
+    const gridOf = c => `<div class="emo-pk__ttl">${c.name}</div>`
+      + `<div class="emo-pk__grid">${c.list.map(cell).join('')}</div>`;
+
+    const overlay = U.mount('amkh-emo-pick', `
+      <div class="ds-sheet emo-pk" id="emo-pick-p">
+        <div class="ds-sheet__handle"></div>
+        <div class="emo-pk__head">
+          <span class="emo-pk__h">اختر تفاعلًا</span>
+          ${cur ? '<button class="emo-pk__clr" data-clear="1">إزالة تفاعلي</button>' : ''}
+        </div>
+        <div class="emo-pk__tabs">${tabs}</div>
+        <div class="ds-sheet__body emo-pk__body">${cats.map(gridOf).join('')}</div>
+      </div>`, { sheet: true, sfx: 'emojiPick' });
+    try { window.DSOverlay && window.DSOverlay.makeSheetDraggable('amkh-emo-pick', 'emo-pick-p', () => overlay._dismiss()); } catch (e) {}
+
+    const body = overlay.querySelector('.emo-pk__body');
+    const titles = Array.from(overlay.querySelectorAll('.emo-pk__ttl'));
+    const tabEls = Array.from(overlay.querySelectorAll('.emo-pk__tab'));
+
+    /* التبويب بيمرّر لقسمه (مش بيعيد بناء الشبكة) فالتمرير الحر يفضل ممكن،
+       والتبويب النشط بيتحدّث مع التمرير زي واتساب. */
+    tabEls.forEach((t, i) => t.onclick = () => {
+      U.sfx();
+      const sec = titles[i];
+      if (sec && body) body.scrollTo({ top: Math.max(0, sec.offsetTop - 4), behavior: 'smooth' });
+    });
+    if (body) body.onscroll = () => {
+      const y = body.scrollTop + 8;
+      let idx = 0;
+      titles.forEach((s, i) => { if (s.offsetTop <= y) idx = i; });
+      tabEls.forEach((t, i) => t.classList.toggle('is-on', i === idx));
+    };
+
+    overlay.querySelectorAll('[data-emoji]').forEach(b => b.onclick = () => {
+      U.sfx();
+      const emoji = b.dataset.emoji;
+      this._emojiRemember(emoji);
+      try { overlay._dismiss(); } catch (e) {}
+      this._react(scope, m, emoji);
+    });
+    const clr = overlay.querySelector('[data-clear]');
+    if (clr) clr.onclick = () => {
+      U.sfx();
+      try { overlay._dismiss(); } catch (e) {}
+      this._react(scope, m, cur);   /* نفس الإيموجي = إلغاء (السيرفر toggle) */
+    };
   },
 
   /* ══ مدّة التثبيت (#7) ══
@@ -2008,7 +2175,7 @@ const amkhChat = {
     const kind = m.kind === 'video' ? 'video' : m.kind === 'voice' ? 'voice' : 'image';
     const mime = m.mime || (kind === 'video' ? 'video/mp4' : kind === 'voice' ? 'audio/mp4' : 'image/jpeg');
     const stamp = (() => {
-      const d = new Date(m.created_at || Date.now());
+      const d = new Date(this._parseTs(m.created_at) || Date.now());
       const p = (n) => String(n).padStart(2, '0');
       return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
     })();
@@ -2515,7 +2682,7 @@ const amkhChat = {
       if (typeof r.unread === 'number') this._unread[f.id] = r.unread;
       if (typeof r.mentions === 'number') this._dmentions[f.id] = r.mentions;
       if (r.pinned) this._pins.dm[f.id] = true;
-      items.push({ type: 'friend', data: r, at: Date.parse(r.last_at) || 0, pinned: r.pinned ? 1 : 0 });
+      items.push({ type: 'friend', data: r, at: this._parseTs(r.last_at) || 0, pinned: r.pinned ? 1 : 0 });
     });
     (Array.isArray(groups) ? groups : []).forEach(g => {
       const gp = this._gmeta[g.id] || {};
@@ -2528,7 +2695,7 @@ const amkhChat = {
       if (typeof g.unread === 'number') this._gunread[g.id] = g.unread;
       if (typeof g.mentions === 'number') this._gmentions[g.id] = g.mentions;
       if (g.pinned) this._pins.grp[g.id] = true;
-      items.push({ type: 'group', data: g, at: Date.parse(g.last_at) || 0, pinned: g.pinned ? 1 : 0 });
+      items.push({ type: 'group', data: g, at: this._parseTs(g.last_at) || 0, pinned: g.pinned ? 1 : 0 });
     });
 
     if (!items.length) {

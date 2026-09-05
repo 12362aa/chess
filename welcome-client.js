@@ -26,16 +26,129 @@
     + 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" '
     + 'width="22" height="22" aria-hidden="true">' + d + '</svg>';
 
-  /* علامة التطبيق: بيدق مرسوم SVG مش المحرف ♟.
-     المحرف بياخد خطّه من النظام — وعلى بعض أجهزة أندرويد بيقع على خط
-     الإيموجي الملوّن فيبان إيموجي وسط شاشة قالوا فيها «بلا إيموجي»،
-     وعلى أجهزة تانية بيبان بوزن وحجم مختلفين تمامًا. الرسم بيضمن نفس
-     الشكل بلون الثيم على كل جهاز. */
-  const MARK = '<svg viewBox="0 0 48 48" width="100%" height="100%" fill="currentColor" aria-hidden="true">'
-    + '<circle cx="24" cy="12.5" r="6.6"/>'
-    + '<path d="M19.1 20h9.8l-1.6 3.7c2.2 3.1 3.5 6.8 3.8 10.6H16.9c.3-3.8 1.6-7.5 3.8-10.6z"/>'
-    + '<path d="M12.6 36h22.8c.6 0 1.1.4 1.3.9l1.5 4.3c.2.7-.3 1.4-1.1 1.4H10.9c-.8 0-1.3-.7-1.1-1.4l1.5-4.3c.2-.5.7-.9 1.3-.9z"/>'
-    + '</svg>';
+  /* ══ غطاء الإقلاع ══
+     الغطاء بيتحطّ من سكربت متزامن في أول <body> (شوف index.html) عشان
+     الرئيسية ماتبانش لجزء من الثانية قبل شاشة الترحيب. مين ما يقرّر إن
+     الشاشة مش هتظهر — أو الشاشة نفسها بعد ما تخلّص دخولها — بيرفعه. */
+  const unveil = () => {
+    try { document.documentElement.classList.remove('amkh-preboot'); } catch (e) {}
+  };
+
+  /* ══════════════════════════════════════════════════════════════
+     لوح مصغّر بيلعب «المات المخنوق»
+     ──────────────────────────────────────────────────────────────
+     الشاشة كانت علامة ساكنة وأربع سطور — مابتقولش إن ده تطبيق شطرنج
+     من أول نظرة. بقى في مكان العلامة لوح ٤×٤ (المنطقة e5–h8 من رقعة
+     حقيقية) بيلعب أشهر مات في الشطرنج بتسلسله الصحيح:
+         Qe6-g8+   Rf8xg8   Ng5-f7#
+     والوضع ده مات مقفول فعلًا مش تشبيه: الفارس على f7 بيكشف على الملك
+     في h8، وg8 بقى عليها رخّ أسود بعد ما أكل الملكة، وg7 وh7 عليهم
+     بيادق سودا — الملك مالوش مربع واحد يهرب له.
+     القطع صور من مجموعة التطبيق نفسها (pieces/neo، مرفقة في الحزمة)
+     مش محارف: المحرف ♟ على بعض أجهزة أندرويد بيقع على خط الإيموجي
+     الملوّن، وشاشة قالوا فيها «بلا إيموجي» ماينفعش يبان فيها إيموجي.
+     الحركة كلها transform (مش left/top) فالـcompositor بيشيلها من غير
+     إعادة تخطيط — نفس درس ومضة الـWebView.
+  ══════════════════════════════════════════════════════════════ */
+  const PZ = 'pieces/neo/';
+  /* c = العمود (e f g h) و r = الصف (8 7 6 5) — الصفر فوق وعلى الشمال */
+  const B_START = [
+    { id: 'k', p: 'bk', c: 3, r: 0 },
+    { id: 'r', p: 'br', c: 1, r: 0 },
+    { id: 'p1', p: 'bp', c: 2, r: 1 },
+    { id: 'p2', p: 'bp', c: 3, r: 1 },
+    { id: 'n', p: 'wn', c: 2, r: 3 },
+    { id: 'q', p: 'wq', c: 0, r: 2 },
+  ];
+  const B_PLAY = [
+    { id: 'q', c: 2, r: 0, check: 1 },          /* الملكة تضحّي بنفسها على g8 */
+    { id: 'r', c: 2, r: 0, takes: 'q' },        /* الرخّ مجبَر ياكلها */
+    { id: 'n', c: 1, r: 1, mate: 1 },           /* الفارس ينزل f7 — مات */
+  ];
+
+  function makeBoard() {
+    const box = document.createElement('div');
+    box.className = 'wl-board';
+    box.setAttribute('aria-hidden', 'true');
+
+    let sq = '';
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        /* لون المربع محسوب من إحداثيّاته الحقيقية على الرقعة (e=5، الصف
+           الأول 8) فالفاتح والغامق يقعوا زي أي رقعة شطرنج مضبوطة */
+        const light = ((5 + c) + (8 - r)) % 2 === 1;
+        sq += '<i class="wl-sq wl-sq--' + (light ? 'l' : 'd') + '"></i>';
+      }
+    }
+    const pcs = B_START.map(p =>
+      '<img class="wl-pc" data-p="' + p.id + '" src="' + PZ + p.p + '.png" alt=""'
+      + ' style="--c:' + p.c + ';--r:' + p.r + '">').join('');
+    box.innerHTML = '<div class="wl-board__grid">' + sq + '</div>'
+      + '<div class="wl-board__pcs">' + pcs + '</div>';
+
+    const sqs = box.querySelectorAll('.wl-sq');
+    const pc = id => box.querySelector('.wl-pc[data-p="' + id + '"]');
+    const at = (c, r) => sqs[r * 4 + c];
+    const clearHl = () => sqs.forEach(s => s.classList.remove('is-hl'));
+
+    const place = (el, c, r) => { el.style.setProperty('--c', c); el.style.setProperty('--r', r); };
+
+    const reset = () => {
+      clearHl();
+      B_START.forEach(p => {
+        const el = pc(p.id);
+        if (!el) return;
+        el.classList.remove('wl-pc--gone', 'wl-pc--mate', 'wl-pc--check');
+        place(el, p.c, p.r);
+      });
+    };
+
+    const play = i => {
+      const m = B_PLAY[i];
+      const el = pc(m.id);
+      if (!el) return;
+      clearHl();
+      const from = at(+el.style.getPropertyValue('--c'), +el.style.getPropertyValue('--r'));
+      if (from) from.classList.add('is-hl');
+      const to = at(m.c, m.r);
+      if (to) to.classList.add('is-hl');
+      if (m.takes) { const v = pc(m.takes); if (v) v.classList.add('wl-pc--gone'); }
+      place(el, m.c, m.r);
+      const k = pc('k');
+      if (k && m.check) k.classList.add('wl-pc--check');
+      if (k && m.mate) { k.classList.remove('wl-pc--check'); k.classList.add('wl-pc--mate'); }
+    };
+
+    /* «حركة أقل» في إعدادات النظام: نعرض وضع المات ثابتًا وخلاص */
+    let reduced = false;
+    try { reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+    if (reduced) {
+      box.classList.add('wl-board--still');
+      B_PLAY.forEach((m, i) => play(i));
+      return { el: box, stop: () => {} };
+    }
+
+    const SEQ = [
+      { d: 1000, fn: () => {} },
+      { d: 1050, fn: () => play(0) },
+      { d: 1050, fn: () => play(1) },
+      { d: 2500, fn: () => play(2) },
+      { d: 620, fn: () => box.classList.add('wl-board--dim') },
+      { d: 420, fn: () => { reset(); box.classList.remove('wl-board--dim'); } },
+    ];
+    let i = 0, timer = null, dead = false;
+    const next = () => {
+      if (dead) return;
+      const s = SEQ[i];
+      i = (i + 1) % SEQ.length;
+      try { s.fn(); } catch (e) {}
+      timer = setTimeout(next, s.d);
+    };
+    next();
+    /* لازم يتوقّف مع إغلاق الشاشة — مؤقّت شارد على شاشة مرمية بيفضل
+       يشغّل transitions على عناصر مالهاش وجود على الشاشة */
+    return { el: box, stop: () => { dead = true; if (timer) clearTimeout(timer); } };
+  }
 
   /* أيقونات خطية من نفس عائلة أيقونات التطبيق — مافيش إيموجي في أي نص */
   const ICO = {
@@ -54,6 +167,7 @@
 
   const amkhWelcome = {
     _ov: null,
+    _board: null,
 
     seen() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } },
     markSeen() { try { localStorage.setItem(KEY, '1'); } catch (e) {} },
@@ -64,12 +178,16 @@
       return true;
     },
 
-    maybeShow() { if (this.shouldShow() && !this._ov) this.show(); },
+    maybeShow() {
+      if (!this.shouldShow()) { unveil(); return; }   /* مش هتظهر → مانسيبش الغطاء */
+      if (!this._ov) this.show();
+    },
 
     /* إغلاق بلا تسجيل راية — للتحوّط لما الدخول يجي من مكان تالت */
     close() {
       const ov = this._ov;
       this._ov = null;
+      if (this._board) { try { this._board.stop(); } catch (e) {} this._board = null; }
       if (ov && ov._dismiss) { try { ov._dismiss(); } catch (e) {} }
     },
 
@@ -90,7 +208,7 @@
         <div class="wl-screen" role="document">
           <div class="wl-info">
             <div class="wl-top">
-              <span class="wl-mark" aria-hidden="true">${MARK}</span>
+              <div class="wl-board-slot"></div>
               <h2 class="wl-title">أهلًا بك في شطرنج Am-Kh</h2>
               <p class="wl-sub">اللعبة كاملة معاك أوفلاين — والحساب هو اللي يفتح باقي التطبيق</p>
             </div>
@@ -111,6 +229,17 @@
       this._ov = ov;
       const $ = s => ov.querySelector(s);
       const err = $('#wl-err');
+
+      /* اللوح بيتبني بعد ما الشاشة تتركّب: البناء بيرجّع stop() اللي
+         close() بينادي عليها، فمافيش مؤقّت بيفضل شغّالًا ورا الشاشة */
+      try {
+        const slot = $('.wl-board-slot');
+        if (slot) { this._board = makeBoard(); slot.appendChild(this._board.el); }
+      } catch (e) {}
+
+      /* الغطاء بيترفع بعد ما حركة الدخول تخلص — لو رفعناه قبلها الرئيسية
+         بتبان من ورا الشاشة وهي بتتلاشى داخلة، وهي دي الومضة نفسها */
+      setTimeout(unveil, 520);
 
       /* زر جوجل بيختفي على المتصفح (الحزمة أندرويد فقط) — نفس منطق نافذة
          الدخول، عشان مانعرضش زرًّا بيخيّب لو اتضغط */

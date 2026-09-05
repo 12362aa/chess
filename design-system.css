@@ -711,6 +711,27 @@
    بتغطّيها وتخلّي «اتنسخ» يبان وراها. نرفعها فوق كل النوافذ المنبثقة. */
 #custom-modal{ z-index: 1200; }
 
+/* ── حوار أطول من الشاشة ──
+   في الوضع الأفقي على الموبايل الشاشة بتبقى ٤١٢px ارتفاعًا، وفيه حوارات
+   أطول من كده (نافذة تأكيد البريد ٤٥٩px، ونافذة استعادة كلمة المرور
+   أطول). مع align-items:center الزيادة بتتقصّ من فوق ومن تحت مع بعض،
+   والتمرير مابينفعش يوصل للمقصوص — يعني زرّ زي «تعديل البريد» يبقى مش
+   قابلًا للضغط خالص.
+   الحل القياسي: الغطاء نفسه يتمرّر، والتمركز يبقى بـmargin:auto — بيتمركز
+   لما فيه مساحة وبيبطّل يقصّ لما مافيش. ‏align-items:center مع overflow
+   لوحده مابيسيبش الطرف الأعلى قابلًا للوصول (سلوك الفليكس المعروف).
+   ‏:has(> .ds-dialog) بيقصر ده على نوافذ الحوار: الأوراق السفلية وشاشة
+   الترحيب (بتتمرّر جوّه نفسها) مالهمش دعوة. */
+.ds-overlay:not(.ds-overlay--sheet):has(> .ds-dialog){
+  align-items: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.ds-overlay:not(.ds-overlay--sheet):has(> .ds-dialog) > .ds-dialog{
+  margin-block: auto;
+}
+
 .ds-dialog{
   width: 100%;
   max-width: 380px;

@@ -22,6 +22,9 @@
     _call: null,          // حالة المكالمة الحالية (أو null)
     _facing: 'user',      // اتجاه الكاميرا في مكالمة الفيديو: user=أمامية، environment=خلفية (#160)
     _switchingCam: false, // قفل أثناء تبديل الكاميرا يمنع التكرار المتزامن
+    _route: null,         // آخر حالة توجيه صوت مؤكَّدة من البلاجن (العلّة ٨)
+    _routeSub: false,     // اشتراك مرّة واحدة في حدث routeChanged
+    _upTimer: null,       // مهلة انتظار الرد على طلب تحويل المكالمة لفيديو
     _pendingAnswer: null, // نية «الرد» من إشعار مكالمة والتطبيق كان مقفول (#159)
     _ringTimer: null,
     _reinviteTimer: null, // إعادة إرسال الدعوة كل شوية طول ما بننادي (#147)
@@ -59,6 +62,43 @@
     _audioRoute() {
       try { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AudioRoute) || null; }
       catch (e) { return null; }
+    },
+
+    /* ── العلّة ٨: زر السبيكر لازم يعرض الحقيقة مش نيّتنا ──
+       قبل كده كنا بنقلب call.speaker محليًا ونفترض إن التوجيه نجح، فعلى
+       جهاز بلا سماعة أذن (تابلت) الزر كان بيقول «سماعة» والصوت في المكبّر.
+       بقى: بنسأل البلاجن عن الحالة الفعلية (getRoute) وبنبني الزر منها،
+       وبنخفيه خالص لو الجهاز مالوش سماعة أذن (مافيش حاجة نبدّل لها). */
+    _applyRouteState(st) {
+      if (!st || typeof st !== 'object') return null;
+      this._route = st;
+      const call = this._call;
+      /* بس لما البلاجن يكون فعلًا ماسك مسار مكالمة — قبل كده بناخد منه
+         hasEarpiece وبس (حالة السبيكر قبل بداية المكالمة مش معبّرة) */
+      if (call && st.active && typeof st.speaker === 'boolean') call.speaker = st.speaker;
+      if (call) this._updateControls();
+      return st;
+    },
+    /* بيسأل البلاجن عن التوجيه الحالي (آمن قبل بداية المكالمة كمان) */
+    async _probeRoute() {
+      const AR = this._audioRoute();
+      if (!AR || !AR.getRoute) return null;
+      try { return this._applyRouteState(await AR.getRoute()); }
+      catch (e) { return null; }
+    },
+    /* Chromium بيغيّر التوجيه لوحده وقت بداية جلسة WebRTC — فبنسمع للتغيير */
+    _watchRoute() {
+      if (this._routeSub) return;
+      const AR = this._audioRoute();
+      if (!AR || !AR.addListener) return;
+      this._routeSub = true;
+      try { AR.addListener('routeChanged', (st) => { if (this._call) this._applyRouteState(st); }); }
+      catch (e) { this._routeSub = false; }
+    },
+    /* الجهاز فيه سماعة أذن؟ (مانعرفش قبل أول سؤال → بنفترض أيوه ونصحّح) */
+    _hasEarpiece() {
+      if (!this._route) return true;
+      return this._route.hasEarpiece !== false;
     },
     /* بلاجن نغمة النظام (#157): يشغّل نغمة الرنين المختارة داخل التطبيق زيّ واتساب. */
     _sysRing() {
@@ -259,8 +299,15 @@
         (e.streams && e.streams[0] ? e.streams[0].getTracks() : [e.track]).forEach(tr => {
           try { if (!remote.getTracks().some(x => x.id === tr.id)) remote.addTrack(tr); } catch (x) {}
         });
-        try { mediaEl.play().catch(() => {}); } catch (x) {}
-        if (isVideo) this._applyLayout();
+        /* العلّة ٨: بعد ترقية المكالمة لفيديو العنصر بيتبدّل من <audio> لـ<video>،
+           فلازم ناخده من peer مش من المتغيّر الملقوط وقت الإنشاء. */
+        const el = peer.mediaEl || mediaEl;
+        try { el.play().catch(() => {}); } catch (x) {}
+        /* وصل مسار فيديو وإحنا لسه بنعتبرها صوتية (إشارة ترقية ضاعت) →
+           اعرضه بدل ما الصورة تتبلع. الكاميرا بتاعتنا تفضل مقفولة لحد ما
+           المستخدم يفتحها بنفسه. */
+        if (e.track && e.track.kind === 'video' && !(this._call && this._call.video)) this._adoptRemoteVideo();
+        if (this._call && this._call.video) this._applyLayout();
       };
       pc.onicecandidate = (e) => {
         if (e.candidate) this._send({ type: 'call:ice', to: peerId, callId: call.id, group: call.group || null, candidate: e.candidate });
@@ -404,16 +451,27 @@
       this._updateControls();
     },
 
-    /* ── تبديل مكبر الصوت/سماعة الأذن (#158) عبر البلاجن الأصلي ──
-       WebView مابيدعمش setSinkId، فالتوجيه أصلي عبر AudioManager. زر السبيكر
-       بيظهر بس لما البلاجن موجود (أندرويد) عشان مايبقاش وهمي على الويب. */
+    /* ── تبديل مكبر الصوت/سماعة الأذن (#158 + العلّة ٨) عبر البلاجن الأصلي ──
+       WebView مابيدعمش setSinkId، فالتوجيه أصلي عبر AudioManager. الزر بيظهر
+       بس لما البلاجن موجود (أندرويد) والجهاز فيه سماعة أذن، وحالته بتتبنى من
+       رد البلاجن المؤكَّد — مافيش قلب متفائل ولا نجاح كاذب. */
     async toggleSpeaker() {
       const call = this._call; if (!call) return;
       const AR = this._audioRoute(); if (!AR || !AR.setSpeaker) return;
-      call.speaker = !call.speaker;
+      const want = !call.speaker;
       try { SFX.btn(); } catch (e) {}
-      try { await AR.setSpeaker({ on: call.speaker }); }
-      catch (e) { call.speaker = !call.speaker; /* رجّع الحالة لو فشل التوجيه */ }
+      let res = null;
+      try { res = await AR.setSpeaker({ on: want }); } catch (e) { res = null; }
+      if (!res) { this._notify('تعذّر تحويل مسار الصوت', 'المكالمة', '◈'); this._updateControls(); return; }
+      this._applyRouteState(res);
+      if (res.success === false) {
+        /* جهاز بلا سماعة أذن → الزر مالوش معنى، بنخفيه بدل ما نكدب */
+        if (res.reason === 'no-earpiece' || res.hasEarpiece === false) {
+          this._notify('هذا الجهاز يشغّل صوت المكالمة من مكبّر الصوت فقط', 'المكالمة', '◈');
+        } else {
+          this._notify('تعذّر تحويل مسار الصوت', 'المكالمة', '◈');
+        }
+      }
       this._updateControls();
     },
 
@@ -422,6 +480,26 @@
        شايف الاتصال (شاشة سوداء) ونقدر نرجّعه فورًا بدون تفاوض جديد. */
     toggleCamera() {
       const call = this._call; if (!call || !call.video) return;
+      /* العلّة ٨: لو المكالمة اترقّت لفيديو من الطرف التاني وكاميرتنا لسه
+         ماتفتحتش، أول ضغطة بتجيبها وتضيفها للاتصال القائم وتفاوض من جديد. */
+      if (call.camOff && (!this._mic || !this._mic.getVideoTracks().length)) {
+        try { SFX.btn(); } catch (e) {}
+        call.camOff = false;
+        this._addCameraTrack().then(got => {
+          const c = this._call; if (c !== call) return;
+          if (!got) {
+            call.camOff = true;
+            this._notify('تعذّر تشغيل الكاميرا — فعّل إذن الكاميرا', 'الكاميرا', '◈');
+            this._updateControls();
+            return;
+          }
+          if (this._dom && this._dom.localVideo) this._dom.localVideo.classList.remove('off');
+          call.peers.forEach((peer, id) => this._renegotiate(Number(id), peer));
+          this._updateControls();
+        });
+        this._updateControls();
+        return;
+      }
       call.camOff = !call.camOff;
       try { SFX.btn(); } catch (e) {}
       if (this._mic) this._mic.getVideoTracks().forEach(t => t.enabled = !call.camOff);
@@ -467,6 +545,220 @@
       }
       this._attachLocalVideo();
       this._switchingCam = false;
+    },
+
+    /* ══════════════════════════════════════════════════════════════════
+       العلّة ٨: تحويل مكالمة صوتية جارية لمكالمة فيديو (زيّ واتساب)
+       ──────────────────────────────────────────────────────────────────
+       الطالب بيبعت call:upgrade، والطرف التاني بتظهر له لوحة سؤال جوّه
+       نافذة المكالمة (amkhUI.confirm بتفتح تحت النافذة بسبب z-index) وليها
+       صوتها الخاص. الموافقة بترجع call:upgrade-ok، والرفض call:upgrade-no.
+       بعد الموافقة كل طرف بيجيب الكاميرا لوحدها (بلا لمس مسار الصوت
+       الشغّال) ويضيفها للاتصال القائم، وصاحب الـid الأصغر بس هو اللي
+       بيبعت العرض الجديد — فتبادل واحد يكفي للفيديو في الاتجاهين.
+    ══════════════════════════════════════════════════════════════════ */
+    _canVideo() {
+      try { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia); } catch (e) { return false; }
+    },
+    /* الطرف الآخر في مكالمة فردية (من النظائر المتصلين أو من بيانات الدعوة) */
+    _soloPeerId() {
+      const call = this._call; if (!call) return null;
+      const k = [...call.peers.keys()][0];
+      if (k != null) return Number(k);
+      const id = call.isCaller ? Number((call.members || [])[0]) : Number(call.callerId);
+      return id || null;
+    },
+    /* يطلب من الطرف التاني تحويل المكالمة لفيديو */
+    requestVideo() {
+      const call = this._call;
+      if (!call || call.video || call.group || call.status !== 'active') return;
+      if (call._upWait) return;
+      if (!this._canVideo()) { this._notify('جهازك لا يدعم مكالمات الفيديو', 'غير متاح', '◈'); return; }
+      const peerId = this._soloPeerId(); if (!peerId) return;
+      try { SFX.btn(); } catch (e) {}
+      if (!this._send({ type: 'call:upgrade', to: peerId, callId: call.id, group: null })) {
+        this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '◈');
+        return;
+      }
+      call._upWait = true;
+      this._updateControls();
+      if (this._upTimer) clearTimeout(this._upTimer);
+      this._upTimer = setTimeout(() => {
+        this._upTimer = null;
+        const c = this._call;
+        if (!c || !c._upWait) return;
+        c._upWait = false;
+        this._updateControls();
+        this._notify('لم يصل رد على طلب الفيديو', 'المكالمة', '◈');
+      }, 30000);
+    },
+
+    /* لوحة سؤال «تحويل لفيديو» جوّه نافذة المكالمة (بثيم التطبيق وبصوتها) */
+    _askUpgrade(from) {
+      const call = this._call; if (!call) return;
+      const dom = this._ensureDom();
+      call._upAsk = Number(from);
+      dom.askMsg.textContent = (call.title || 'صديق') + ' يطلب تحويل المكالمة إلى مكالمة فيديو';
+      dom.ask.classList.add('on');
+      try { SFX.videoAsk(); } catch (e) {}
+      /* لو ماردّش خلال ٣٠ث: اقفل اللوحة وابعت رفض عشان الطالب مايفضلش مستنّي */
+      if (this._askTimer) clearTimeout(this._askTimer);
+      this._askTimer = setTimeout(() => {
+        this._askTimer = null;
+        if (this._call && this._call._upAsk) this._answerUpgrade(false);
+      }, 30000);
+    },
+    _closeAsk() {
+      if (this._askTimer) { clearTimeout(this._askTimer); this._askTimer = null; }
+      const dom = this._dom;
+      if (dom && dom.ask) dom.ask.classList.remove('on');
+      if (this._call) this._call._upAsk = null;
+    },
+    /* رد المستخدم على طلب الفيديو */
+    _answerUpgrade(ok) {
+      const call = this._call; if (!call) return;
+      const from = call._upAsk;
+      this._closeAsk();
+      if (!from) return;
+      try { SFX.btn(); } catch (e) {}
+      if (!ok) { this._send({ type: 'call:upgrade-no', to: from, callId: call.id, group: null }); return; }
+      /* الموافقة الأول: كده الطالب يضيف كاميرته قبل ما نبعت/نستقبل العرض */
+      this._send({ type: 'call:upgrade-ok', to: from, callId: call.id, group: null });
+      this._beginVideoUpgrade({ offer: 'smaller' });
+    },
+
+    /* يبدّل عنصر <audio> البعيد بعنصر <video> على نفس المجرى (الصوت مايتقطعش) */
+    _swapToVideoEl(peer) {
+      if (!peer || !peer.mediaEl) return;
+      if (peer.mediaEl.tagName === 'VIDEO') return;
+      const dom = this._ensureDom();
+      const el = document.createElement('video');
+      el.autoplay = true;
+      el.setAttribute('playsinline', '');
+      el.playsInline = true;
+      el.className = 'amkhc-rv';
+      el.srcObject = peer.remote;
+      if (dom.remoteWrap) dom.remoteWrap.appendChild(el);
+      const old = peer.mediaEl;
+      peer.mediaEl = peer.audioEl = el;
+      try { el.play().catch(() => {}); } catch (e) {}
+      /* نشيل القديم بعد ما الجديد بدأ يشغّل عشان مايحصلش قطع في الصوت */
+      setTimeout(() => { try { old.srcObject = null; old.remove(); } catch (e) {} }, 60);
+    },
+
+    /* يجيب مسار الكاميرا لوحده ويضيفه لمجرانا المحلي ولكل نظير — بلا تفاوض
+       (سياسة العرض بتتحدّد في اللي بيندهه) وبلا لمس مسار الصوت الشغّال. */
+    async _addCameraTrack() {
+      const call = this._call; if (!call) return false;
+      if (this._mic && this._mic.getVideoTracks().length) return true;
+      if (!this._canVideo()) return false;
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: this._facing || 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+      } catch (e) { return false; }
+      const track = stream.getVideoTracks()[0];
+      if (!track) return false;
+      /* المكالمة اتقفلت أو اتغيّرت وإحنا مستنيين الإذن → وقّف الكاميرا */
+      if (this._call !== call) { try { stream.getTracks().forEach(t => t.stop()); } catch (e) {} return false; }
+      track.enabled = !call.camOff;
+      if (!this._mic) this._mic = stream;
+      else { try { this._mic.addTrack(track); } catch (e) {} }
+      call.peers.forEach(peer => { try { peer.pc.addTrack(track, this._mic); } catch (e) {} });
+      this._attachLocalVideo();
+      return true;
+    },
+
+    /* عرض جديد على اتصال قائم (إعادة تفاوض). بننتظر signalingState يبقى
+       stable عشان مانتصادمش مع عرض جايّ في نفس اللحظة. */
+    async _renegotiate(peerId, peer, tries) {
+      const call = this._call; if (!call || !peer || !peer.pc) return;
+      tries = tries || 0;
+      if (peer.pc.signalingState !== 'stable') {
+        if (tries > 8) return;
+        setTimeout(() => this._renegotiate(peerId, peer, tries + 1), 400);
+        return;
+      }
+      try {
+        /* offerToReceiveVideo بيضمن وجود مسار فيديو في العرض حتى لو كاميرتنا
+           مقفولة أو مرفوضة — فنقدر نستقبل صورة الطرف التاني على الأقل */
+        const offer = await peer.pc.createOffer(call.video
+          ? { offerToReceiveAudio: true, offerToReceiveVideo: true }
+          : { offerToReceiveAudio: true });
+        offer.sdp = this._tuneOpus(offer.sdp);
+        await peer.pc.setLocalDescription(offer);
+        this._send({ type: 'call:offer', to: peerId, callId: call.id, group: call.group || null, sdp: JSON.stringify(peer.pc.localDescription) });
+      } catch (e) {}
+    },
+
+    /* ينقل المكالمة الصوتية الجارية لوضع الفيديو.
+       opts.offer: 'smaller' = صاحب id الأصغر بس يبعت العرض (ترقية متبادلة)،
+                   'always'  = نبعت إحنا (إحنا الوحيدين اللي ضفنا مسار)،
+                   'none'    = مانبعتش (إحنا بنرد على عرض واصل). */
+    _beginVideoUpgrade(opts) {
+      const call = this._call;
+      if (!call || call.video) return Promise.resolve(false);
+      const p = this._doVideoUpgrade(call, opts || {});
+      call._upPending = p;
+      const clear = () => { if (call._upPending === p) call._upPending = null; };
+      p.then(clear, clear);
+      return p;
+    },
+    async _doVideoUpgrade(call, opts) {
+      /* فورًا وقبل أي await: الواجهة والعرض الجايّ لازم يشوفوا المكالمة فيديو */
+      call.video = true;
+      call.camOff = false;
+      call._upWait = false;
+      if (this._upTimer) { clearTimeout(this._upTimer); this._upTimer = null; }
+      this._closeAsk();
+      this._facing = this._facing || 'user';
+      call.peers.forEach(peer => this._swapToVideoEl(peer));
+      this._applyLayout();
+      this._updateControls();
+      try { SFX.videoOn(); } catch (e) {}
+      /* الفيديو يبدأ على مكبّر الصوت زيّ واتساب — والحالة من رد البلاجن */
+      const AR = this._audioRoute();
+      if (AR && AR.setSpeaker) {
+        Promise.resolve().then(() => AR.setSpeaker({ on: true })).then(st => this._applyRouteState(st)).catch(() => {});
+      }
+      const got = await this._addCameraTrack();
+      if (this._call !== call) return false;
+      if (!got) {
+        /* بلا كاميرا: بنكمّل مستقبلين صورة الطرف التاني بس */
+        call.camOff = true;
+        if (this._dom && this._dom.localVideo) this._dom.localVideo.classList.add('off');
+        this._notify('تعذّر تشغيل الكاميرا — سترى صورة الطرف الآخر فقط', 'الكاميرا', '◈');
+      }
+      this._updateControls();
+      const policy = opts.offer || 'always';
+      if (policy !== 'none') {
+        const me = this.me();
+        call.peers.forEach((peer, id) => {
+          if (policy === 'always' || (me != null && me < Number(id))) this._renegotiate(Number(id), peer);
+        });
+      }
+      return true;
+    },
+
+    /* وصل مسار فيديو من الطرف التاني وإحنا لسه بنعتبرها صوتية (إشارة الترقية
+       ضاعت): بنعرض صورته من غير ما نفتح كاميرتنا بلا إذن — الزر بيفتحها. */
+    _adoptRemoteVideo() {
+      const call = this._call; if (!call || call.video) return;
+      call.video = true;
+      call._upWait = false;
+      if (this._upTimer) { clearTimeout(this._upTimer); this._upTimer = null; }
+      call.camOff = !(this._mic && this._mic.getVideoTracks().length);
+      this._closeAsk();
+      call.peers.forEach(peer => this._swapToVideoEl(peer));
+      this._applyLayout();
+      this._updateControls();
+      try { SFX.videoOn(); } catch (e) {}
+      const AR = this._audioRoute();
+      if (AR && AR.setSpeaker) {
+        Promise.resolve().then(() => AR.setSpeaker({ on: true })).then(st => this._applyRouteState(st)).catch(() => {});
+      }
     },
 
     /* ── استقبال إشارات المكالمة من السوكت ── */
@@ -555,6 +847,42 @@
           if (p) { p.muted = !!d.muted; this._renderGrid(); }
           break;
         }
+        /* ── العلّة ٨: طلب تحويل المكالمة لفيديو وردّه ── */
+        case 'call:upgrade': {
+          if (!call || call.id !== d.callId) return;
+          if (call.video) {
+            /* إحنا فيديو أصلًا → وافق وابعت عرضًا جديدًا يضمن وصول مسارنا */
+            this._send({ type: 'call:upgrade-ok', to: from, callId: call.id, group: null });
+            const pr = call.peers.get(from);
+            if (pr) this._renegotiate(from, pr);
+            return;
+          }
+          if (call.status !== 'active') { this._send({ type: 'call:upgrade-no', to: from, callId: call.id, group: null }); return; }
+          if (call._upWait) {
+            /* الطرفان طلبا في نفس اللحظة → موافقة متبادلة بلا سؤال */
+            this._send({ type: 'call:upgrade-ok', to: from, callId: call.id, group: null });
+            this._beginVideoUpgrade({ offer: 'smaller' });
+            return;
+          }
+          if (call._upAsk) return;   /* لوحة السؤال مفتوحة بالفعل */
+          this._askUpgrade(from);
+          break;
+        }
+        case 'call:upgrade-ok': {
+          if (!call || call.id !== d.callId) return;
+          if (!call._upWait || call.video) return;
+          this._beginVideoUpgrade({ offer: 'smaller' });
+          break;
+        }
+        case 'call:upgrade-no': {
+          if (!call || call.id !== d.callId) return;
+          if (!call._upWait) return;
+          call._upWait = false;
+          if (this._upTimer) { clearTimeout(this._upTimer); this._upTimer = null; }
+          this._updateControls();
+          this._notify('لم يقبل تحويل المكالمة إلى فيديو', 'المكالمة', '◈');
+          break;
+        }
         case 'call:offer': {
           if (!call || call.id !== d.callId) return;
           this._onOffer(from, d);
@@ -584,6 +912,10 @@
       const u = d.fromUser || {};
       if (!peer) peer = await this._makePeer(from, u.display_name || u.username || call.title, u.avatar_url || call.avatar, false);
       if (!peer) return;
+      /* العلّة ٨: لو إحنا وسط ترقية لفيديو، استنّى الكاميرا تتضاف قبل الرد —
+         عشان الإجابة تحمل مسارنا فيتبادل واحد يكفي للاتجاهين. */
+      if (call._upPending) { try { await call._upPending; } catch (e) {} }
+      if (this._call !== call) return;
       try {
         await peer.pc.setRemoteDescription(JSON.parse(d.sdp));
         this._flushIce(peer);
@@ -620,11 +952,19 @@
         this._clearRingTimeout();
         try { SFX.callConnected(); } catch (e) {}
         /* #158: فعّل وضع مكالمة VoIP (سماعة أذن افتراضيًا + معالجة صدى عتادية).
-           بعد توقّف الرنين مباشرة عشان مايتعارضش مع مجرى نغمة الرنين. */
+           بعد توقّف الرنين مباشرة عشان مايتعارضش مع مجرى نغمة الرنين.
+           العلّة ٨: بنبعت الوجهة المطلوبة مع البداية، وبناخد الحالة المؤكَّدة
+           من رد البلاجن (مكالمة الفيديو بتبدأ على المكبّر زيّ واتساب). */
         const AR = this._audioRoute();
-        if (AR && AR.startCallAudio) { try { AR.startCallAudio(); } catch (e) {} }
-        /* #160: مكالمة الفيديو تبدأ على مكبر الصوت زيّ واتساب */
-        if (call.video && AR && AR.setSpeaker) { try { AR.setSpeaker({ on: true }); call.speaker = true; } catch (e) {} }
+        if (AR && AR.startCallAudio) {
+          const wantSpk = !!call.video;
+          call.speaker = wantSpk;
+          Promise.resolve()
+            .then(() => AR.startCallAudio({ speaker: wantSpk }))
+            .then(st => this._applyRouteState(st))
+            .catch(() => {});
+          this._watchRoute();
+        }
         this._startDuration();
       }
       this._updateControls();
@@ -633,7 +973,7 @@
     _onPeerGone(peerId, fromRemote) {
       const call = this._call; if (!call) return;
       const peer = call.peers.get(peerId);
-      if (peer) { try { peer.pc.close(); } catch (e) {} try { peer.audioEl.srcObject = null; peer.audioEl.remove(); } catch (e) {} call.peers.delete(peerId); }
+      if (peer) { try { peer.pc.close(); } catch (e) {} try { peer.mediaEl.srcObject = null; peer.mediaEl.remove(); } catch (e) {} call.peers.delete(peerId); }
       if (call.group) {
         /* الحفلة تفضل شغّالة طول ما فيه طرف واحد على الأقل */
         if (call.peers.size === 0 && call.status === 'active') this._end('all-left');
@@ -783,6 +1123,23 @@
       #amkhc-vbar{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;gap:16px;justify-content:center;align-items:flex-start;
         padding:18px 14px calc(26px + env(safe-area-inset-bottom,0));background:linear-gradient(to top,rgba(0,0,0,.6),transparent);}
       #amkhc-overlay.video-mode .amkhc-lbl{color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,0,0,.6);}
+      /* لوحة سؤال جوّه النافذة (طلب تحويل المكالمة لفيديو — العلّة ٨).
+         amkhUI.confirm بتفتح على z-index 1050 والنافذة دي 100001، فكانت
+         هتتغطّى تحتها — فاللوحة جوّه النافذة نفسها وبنفس ثيم التطبيق. */
+      #amkhc-ask{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:22px;
+        background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+      #amkhc-ask.on{display:flex;}
+      #amkhc-ask .box{background:var(--color-surface,#1e2030);border:1px solid var(--color-border,rgba(255,255,255,.1));
+        border-radius:var(--radius-lg,24px);padding:22px 18px;width:100%;max-width:300px;text-align:center;
+        box-shadow:0 20px 50px rgba(0,0,0,.6);}
+      #amkhc-ask .t{color:var(--color-text-primary,#fff);font-size:17px;font-weight:800;margin-bottom:8px;}
+      #amkhc-ask .m{color:var(--color-text-secondary,#a9b1d6);font-size:14px;line-height:1.6;margin-bottom:18px;}
+      #amkhc-ask .b{display:flex;gap:10px;}
+      #amkhc-ask button{flex:1;border:none;border-radius:var(--radius-md,14px);padding:12px 10px;font-size:14px;font-weight:700;
+        font-family:inherit;cursor:pointer;transition:transform .15s;}
+      #amkhc-ask button:active{transform:scale(.96);}
+      #amkhc-ask .no{background:var(--color-surface-raised,#28304b);color:var(--color-text-primary,#fff);}
+      #amkhc-ask .ok{background:var(--color-primary,#7aa2f7);color:#12131c;}
       `;
       document.head.appendChild(style);
       const ov = document.createElement('div');
@@ -800,7 +1157,15 @@
         <video id="amkhc-local-video" muted playsinline autoplay></video>
         <div id="amkhc-vhead"><div id="amkhc-vtitle"></div><div id="amkhc-vsub"></div></div>
         <div id="amkhc-vbar"></div>
-      </div>`;
+      </div>
+      <div id="amkhc-ask"><div class="box">
+        <div class="t">تحويل إلى فيديو</div>
+        <div class="m" id="amkhc-ask-m"></div>
+        <div class="b">
+          <button class="no" id="amkhc-ask-no">رفض</button>
+          <button class="ok" id="amkhc-ask-ok">قبول</button>
+        </div>
+      </div></div>`;
       document.body.appendChild(ov);
       this._dom = {
         overlay: ov,
@@ -817,7 +1182,11 @@
         vtitle: ov.querySelector('#amkhc-vtitle'),
         vsub: ov.querySelector('#amkhc-vsub'),
         vbar: ov.querySelector('#amkhc-vbar'),
+        ask: ov.querySelector('#amkhc-ask'),
+        askMsg: ov.querySelector('#amkhc-ask-m'),
       };
+      ov.querySelector('#amkhc-ask-ok').onclick = () => this._answerUpgrade(true);
+      ov.querySelector('#amkhc-ask-no').onclick = () => this._answerUpgrade(false);
       return this._dom;
     },
     _paintHead() {
@@ -917,12 +1286,17 @@
       dom.actions.appendChild(this._btn('reject', 'hangup', 'رفض', () => this.reject()).wrap);
       dom.actions.appendChild(this._btn('accept', call.video ? 'video' : 'phone', 'قبول', () => this.accept()).wrap);
       dom.overlay.classList.add('on');
+      /* العلّة ٨: اسأل عن الجهاز مبكّرًا (سماعة أذن؟) عشان زر السبيكر يبان صح
+         من أول رسم لأزرار المكالمة بعد القبول */
+      this._probeRoute();
     },
     _showActive() {
       const call = this._call; if (!call) return;
       const dom = this._ensureDom();
       this._paintHead();
       dom.overlay.classList.add('on');
+      /* العلّة ٨: اسأل البلاجن عن الجهاز (سماعة أذن موجودة؟) قبل رسم الأزرار */
+      this._probeRoute();
       this._updateControls();
       this._applyLayout();
     },
@@ -960,8 +1334,18 @@
         bar.appendChild(this._btn('neutral', 'flipCam', 'تبديل', () => this.switchCamera()).wrap);
       }
 
-      /* زر مكبر الصوت — فردي وحفلة سواء؛ يظهر فقط لو التوجيه الأصلي متاح (أندرويد) */
-      if (this._audioRoute()) {
+      /* العلّة ٨: طلب تحويل المكالمة الصوتية لفيديو (فردية بس — الحفلة تبدأ
+         فيديو من الأول). بيظهر بعد ما المكالمة توصل، ومعطّل أثناء الانتظار. */
+      if (!call.video && !call.group && st === 'active' && this._canVideo()) {
+        const waiting = !!call._upWait;
+        const up = this._btn('neutral', 'video', waiting ? 'بانتظار الموافقة' : 'فيديو', () => this.requestVideo());
+        if (waiting) up.btn.classList.add('active');
+        bar.appendChild(up.wrap);
+      }
+
+      /* زر مكبر الصوت — فردي وحفلة سواء؛ يظهر فقط لو التوجيه الأصلي متاح
+         (أندرويد) والجهاز فيه سماعة أذن يبدّل لها (العلّة ٨) */
+      if (this._audioRoute() && this._hasEarpiece()) {
         const spk = this._btn('neutral', 'speaker', call.speaker ? 'مكبر الصوت' : 'سماعة', () => this.toggleSpeaker());
         if (call.speaker) spk.btn.classList.add('active');
         bar.appendChild(spk.wrap);
@@ -982,11 +1366,16 @@
       this._stopRing();
       this._clearRingTimeout();
       this._stopReinvite();
+      /* العلّة ٨: أقفل لوحة طلب الفيديو وألغِ مهلة انتظار الرد */
+      this._closeAsk();
+      if (this._upTimer) { clearTimeout(this._upTimer); this._upTimer = null; }
       if (this._durTimer) { clearInterval(this._durTimer); this._durTimer = null; }
       if (call) {
+        call._upWait = false;
+        call._upPending = null;
         call.peers.forEach(peer => {
           try { peer.pc.close(); } catch (e) {}
-          try { peer.audioEl.srcObject = null; peer.audioEl.remove(); } catch (e) {}
+          try { peer.mediaEl.srcObject = null; peer.mediaEl.remove(); } catch (e) {}
         });
         call.peers.clear();
       }

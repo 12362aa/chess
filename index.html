@@ -19,7 +19,7 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260813-online-fix-1">
+<link rel="stylesheet" href="design-system.css?v=20260905-b29">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -2678,7 +2678,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260828-chat-kb-scroll">
+<link rel="stylesheet" href="screens.css?v=20260905-b29">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -2686,6 +2686,22 @@ body[data-ui-theme="glass"] .mc-tag{
   .home-daily__icon>svg{display:block;width:20px!important;height:20px!important;max-width:20px;max-height:20px}
 </style>
 <!-- QR Code Libraries for LAN Mode -->
+<!-- ══ غطاء الإقلاع — أول تشغيل فقط ══
+     العطل: التطبيق كان بيفتح على الشاشة الرئيسية جزء من الثانية، وبعدين
+     شاشة الترحيب تهبط فوقها — ومضة بتخلّي أول انطباع متلخبطًا. السبب إن
+     شاشة الترحيب مستنية إعدادات الجهاز (amkhCfgReady) عشان تفتح بالثيم
+     الصح، والرئيسية بتكون مرسومة خلاص في الوقت ده.
+     الحل: غطاء بلون خلفية الثيم نفسه فوق كل حاجة لحد ما الشاشة تفتح.
+     z-index 1040 يعني تحت طبقة النوافذ (1050) فشاشة الترحيب بتتلاشى
+     داخلة فوق الغطاء مش من ورا الرئيسية. --bg بيورَث من body فالغطاء
+     بياخد لون الثيم المختار مش الأسود الافتراضي. -->
+<style>
+#amkh-preboot{ display:none; }
+html.amkh-preboot #amkh-preboot{
+  display:block; position:fixed; inset:0; z-index:1040;
+  background:var(--bg,#0a0a14);
+}
+</style>
 </head>
 <body data-screen="s-menu">
 <script>
@@ -2700,6 +2716,24 @@ body[data-ui-theme="glass"] .mc-tag{
     var c=JSON.parse(localStorage.getItem('chess-cfg-v6')||'{}')||{};
     document.body.dataset.uiTheme=ok[c.uiTheme]?c.uiTheme:'amkh';
   }catch(e){ document.body.dataset.uiTheme='amkh'; }
+})();
+</script>
+<div id="amkh-preboot" aria-hidden="true"></div>
+<script>
+/* أول تشغيل؟ نغطّي المحتوى قبل أي رسم. القراية من localStorage متزامنة
+   فالقرار بيتاخد قبل ما المتصفح يرسم أي بكسل — عكس شاشة الترحيب اللي
+   مستنية إعدادات الجهاز. مؤقّت الأمان مكتوب هنا مقصودًا (مش في
+   welcome-client.js): لو الملف ده ماوصلش للحزمة لأي سبب، المستخدم لازم
+   يشوف التطبيق مش شاشة سودا. الراية نفسها هي اللي بتتقرا في
+   amkhWelcome.shouldShow فالاتنين مايختلفوش. */
+(function(){
+  try{
+    if(localStorage.getItem('amkh_welcomed')==='1') return;
+    if(localStorage.getItem('amkh_auth_token')) return;
+    var h=document.documentElement;
+    h.classList.add('amkh-preboot');
+    setTimeout(function(){ h.classList.remove('amkh-preboot'); },4000);
+  }catch(e){}
 })();
 </script>
 <div id="particles"></div>
@@ -3918,6 +3952,24 @@ const SFX=(()=>{
        التطبيق فلازم تبان «افتتاح» مش إشعارًا عابرًا. سلّم مختلف عن
        ratingUp عن قصد عشان مايتلخبطوش في الودان. */
     welcome:[{f:349.23,t0:0,dur:0.16,type:'triangle',vol:0.10},{f:523.25,t0:0.13,dur:0.14,vol:0.11},{f:698.46,t0:0.25,dur:0.14,vol:0.11},{f:1046.5,t0:0.37,dur:0.34,vol:0.12}],
+    /* منتقي التفاعلات الكامل: رشّة قصيرة صاعدة «لوحة ألوان بتتفتح» — أخفّ
+       وأسرع من msgAct عشان دي ورقة جوّه ورقة، والودان تفرّق بينهم. */
+    emojiPick:[{f:1046.5,t0:0,dur:0.05,type:'triangle',vol:0.08},{f:1396.91,t0:0.04,dur:0.05,type:'triangle',vol:0.09},{f:1760,t0:0.085,dur:0.14,type:'sine',vol:0.08}],
+    /* استعادة كلمة المرور (#6): نغمتان هابطتان ثم صاعدة — «قفل بيتفكّ».
+       أخفض من privacy عشان الودان تفرّق بين «إعدادات خصوصية» و«استعادة». */
+    reset:[{f:440,t0:0,dur:0.10,type:'triangle',vol:0.09},{f:349.23,t0:0.08,dur:0.10,type:'triangle',vol:0.09},{f:587.33,t0:0.17,dur:0.20,vol:0.11}],
+    /* الرمز اتبعت (#6): نغمتان سريعتان صاعدتان «رسالة طلعت» */
+    codeSent:[{f:783.99,t0:0,dur:0.07,vol:0.09},{f:1174.66,t0:0.06,dur:0.16,type:'triangle',vol:0.10}],
+    /* تأكيد بريد التسجيل (#13): خامستان صاعدتان — «باب بيتفتح لحساب
+       جديد». صاعدة زي welcome بس أقصر وبثلاث نغمات بس، فالودان تفرّق
+       بين «أهلًا بك في التطبيق» و«أكّد بريدك». */
+    signup:[{f:392,t0:0,dur:0.10,type:'triangle',vol:0.09},{f:587.33,t0:0.09,dur:0.10,type:'triangle',vol:0.10},{f:783.99,t0:0.19,dur:0.22,vol:0.11}],
+    /* طلب تحويل المكالمة لفيديو (العلّة ٨): نغمتان استفهاميتان صاعدتان
+       ثم واحدة معلّقة — «فيه سؤال مستنّي ردّك». أعلى من confirm وأقصر من
+       callIncoming عشان الودان تفرّق: دي مش مكالمة جديدة. */
+    videoAsk:[{f:698.46,t0:0,dur:0.09,type:'triangle',vol:0.10},{f:932.33,t0:0.08,dur:0.09,type:'triangle',vol:0.11},{f:1174.66,t0:0.17,dur:0.20,type:'sine',vol:0.10}],
+    /* الفيديو اتشغّل: نغمتان لامعتان صاعدتان «الصورة فتحت» */
+    videoOn:[{f:880,t0:0,dur:0.08,vol:0.10},{f:1396.91,t0:0.07,dur:0.18,vol:0.11}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -3960,6 +4012,9 @@ const SFX=(()=>{
     callRing(dir){ if(!Cfg.data.sound)return; tones(dir==='out'?[{f:523.25,t0:0,dur:0.28,vol:0.09},{f:523.25,t0:0.4,dur:0.28,vol:0.09}]:[{f:880,t0:0,dur:0.18,vol:0.12},{f:1174.66,t0:0.22,dur:0.18,vol:0.12}]); },
     callConnected(){ tones(MODAL_SFX.callConnected); },
     callEnded(){ tones(MODAL_SFX.callEnded); },
+    /* العلّة ٨: طلب تحويل المكالمة لفيديو، وتشغيل الفيديو فعلًا */
+    videoAsk(){ tones(MODAL_SFX.videoAsk); },
+    videoOn(){ tones(MODAL_SFX.videoOn); },
     update(){ tones(MODAL_SFX.update); },
     init(){_init();}
   };
@@ -5492,6 +5547,14 @@ const Cfg={
       const cleanup=()=>{ try{root.classList.remove('vt-theme');}catch(e){} };
       let vt; try{ vt=document.startViewTransition(paint); }catch(e){ paint(); cleanup(); }
       if(vt&&vt.finished&&vt.finished.then){ vt.finished.then(cleanup,cleanup); } else { setTimeout(cleanup,450); }
+      /* ready و updateCallbackDone وعودان منفصلان، وبيترفضوا لو الانتقال
+         اتلغى (المستخدم بدّل شاشة أو الصفحة اتقفلت وسطه). بلا معالِج
+         بيطلعوا كـUnhandled rejection في الكونسول — «InvalidStateError:
+         Transition was aborted» — من غير أي ضرر حقيقي. نسكّتهم. */
+      if(vt){
+        try{ if(vt.ready&&vt.ready.catch) vt.ready.catch(()=>{}); }catch(e){}
+        try{ if(vt.updateCallbackDone&&vt.updateCallbackDone.catch) vt.updateCallbackDone.catch(()=>{}); }catch(e){}
+      }
     }else{
       paint();
     }
@@ -6431,8 +6494,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '3.12';
-const APP_VERSION_CODE = 28;
+const APP_VERSION = '3.13';
+const APP_VERSION_CODE = 29;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7040,6 +7103,9 @@ const Spectate={
     this._orient='w';this._watch=0;
     this._white='الأبيض';this._black='الأسود';this._wid=null;this._bid=null;
     this._rated=false;this._tc=null;
+    /* ثيم اللاعب المُشاهَد + خرائط القطع لازم يتصفّوا مع كل مشاهدة جديدة،
+       وإلا فضل ثيم الصديق الأوّل معلّقًا على مباراة صديق تاني. */
+    this._theme=null;this._urls=null;
   },
   /* النافذة: بتفتح على وضع تحميل لحد ما اللقطة توصل من السيرفر */
   _openUI(name){
@@ -7108,6 +7174,15 @@ const Spectate={
     this._black=d.black||'الأسود';
     this._wid=Number(d.white_id)||null;
     this._bid=Number(d.black_id)||null;
+    /* ثيم اللوح والقطع بتاع اللاعب اللي بنتفرّج عليه — بيوصل مع اللقطة من
+       الخادم (من إعداداته المتزامنة). لو مش متاح بنرجع لثيم الجهاز. */
+    (()=>{
+      const tgt=this._target;
+      let th=null;
+      if(tgt&&this._wid===tgt)th=d.white_theme;
+      else if(tgt&&this._bid===tgt)th=d.black_theme;
+      this._theme=(th&&typeof th==='object')?th:null;
+    })();
     this._rated=!!d.rated;
     this._tc=d.tc||null;
     if(d.clock){
@@ -7348,17 +7423,24 @@ const Spectate={
     const n=this._watch||0;
     el.textContent=n>1?('◉ '+n+' متفرّجين'):(n===1?'◉ متفرّج واحد':'');
   },
-  /* اللوح: نفس ثيم اللوح والقطع بتاع اللاعب — مربعات مرة واحدة، والقطع كل نقلة */
+  /* اللوح: بثيم اللوح والقطع بتاع اللاعب المُشاهَد نفسه (مش بتاع المتفرّج)
+     — مربعات مرة واحدة، والقطع كل نقلة */
   _paintBoard(){
     const box=this._ov&&this._ov.querySelector('#sp-brd');
     if(!box)return;
+    const th=this._theme||{};
     if(!this._urls){
-      try{this._urls=getPieceUrls(normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo'));}
+      try{
+        const own=normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo');
+        /* اسم مجهول جاي من الخادم (نسخة أقدم/أحدث) بيرجع لثيم الجهاز مش لـneo */
+        this._urls=getPieceUrls(normalizePieceTheme(th.pieces||own,own));
+      }
       catch(e){this._urls={};}
     }
     const flip=this._orient==='b';
     if(!box.firstChild){
-      try{applyBoardVisual(box,{themeName:Cfg.data.boardTheme,mini:true});}catch(e){}
+      const bt=(th.board&&THEMES[th.board])?th.board:Cfg.data.boardTheme;
+      try{applyBoardVisual(box,{themeName:bt,mini:true});}catch(e){}
       const g=document.createElement('div');g.className='sp-grid';
       for(let i=0;i<64;i++){
         const vr=Math.floor(i/8),vc=i%8;
@@ -8392,6 +8474,44 @@ const CHAT={
     if(S.mode==='online')OL.sendChat(txt);
     else if(S.mode==='bot'&&S.levelId>=0)this._sendToNour(txt);
   },
+  /* #12: نور كان يخلط بين لونه ولون اللاعب فيقول «أنا الأبيض» وهو يلعب
+     بالأسود. كان اللون مكتوبًا بالحفر في نصّ المطالبة («نور = الأسود دائماً»)
+     في ثلاثة مواضع منفصلة، فأي مصدر يخالفه — أو أي هلوسة من موديل صغير —
+     ماكانش له مصحّح. الحلّ ثلاث طبقات:
+       (١) هوية واحدة محسوبة من S.myCol تُستهلك في كل مواضع المطالبة.
+       (٢) تذكير مكرّر في آخر رسالة المستخدم: الموديلات الصغيرة بتلتزم بآخر
+           ما قرأته أكثر من رسالة النظام.
+       (٣) حرس بعدي (_fixNourColor) يصحّح ادّعاء اللون الصريح قبل العرض،
+           فالمستخدم لا يرى الغلطة حتى لو خرجت من الموديل. */
+  _nourId(){
+    const my=(S.myCol==='b')?'b':'w';
+    const nourCol=(my==='w')?'b':'w';
+    const A=c=>c==='w'?'الأبيض':'الأسود';
+    const pn=Cfg.data.playerName||'اللاعب';
+    return {
+      myCol:my, nourCol, myColAr:A(my), nourColAr:A(nourCol), pn,
+      rules:`قواعد صارمة لا تخالفها أبدًا:\n- أنت نور وتلعب بـ${A(nourCol)}.\n- خصمك اسمه ${pn} ويلعب بـ${A(my)}.\n- لا تقل أبدًا إنك تلعب بـ${A(my)}، ولا تنسب قطع ${A(my)} لنفسك.`,
+      reminder:`تذكير قبل أن تكتب: أنت نور صاحب ${A(nourCol)}، و${pn} صاحب ${A(my)}.`
+    };
+  },
+  /* يصحّح ادّعاء اللون الخاطئ فقط: الأنماط محصورة في ضمير المتكلّم («أنا
+     الأسود»، «ألعب بالأبيض»، «لوني…») عشان مانفسدش جملة سليمة زي «آكل فيلك
+     الأبيض» — دي نسبة لون للخصم وصحيحة. الحدود بحروف عربية مش \b لأن \b
+     بيتعامل مع العربي كـnon-word فيقلب المعنى. */
+  _fixNourColor(t){
+    if(!t)return t;
+    try{
+      const nourW=((S.myCol==='b')?'b':'w')!=='w';
+      const AR='[\\u0621-\\u064A]';
+      const claim='(?:أنا|أني|أنني|إنني|لوني)(?:\\s+(?:هو|ألعب|بلعب|العب|أمثّل|أمثل))?';
+      const one=(s,wrong,right)=>s.replace(
+        new RegExp('(^|[^\\u0621-\\u064A])('+claim+'\\s+)(بـ|ب|مع\\s+)?('+wrong+')(?!'+AR+')','g'),
+        (m,a,b,c)=>a+b+(c||'')+right);
+      let out=one(t, nourW?'(?:الأسود|أسود)':'(?:الأبيض|أبيض)', nourW?'الأبيض':'الأسود');
+      out=one(out, nourW?'(?:السوداء|سوداء)':'(?:البيضاء|بيضاء)', nourW?'البيضاء':'السوداء');
+      return out;
+    }catch(e){return t;}
+  },
   async _sendToNour(txt){
     const pn=Cfg.data.playerName||'اللاعب';
     const lv=LEVELS_DEF[S.levelId];
@@ -8403,16 +8523,15 @@ const CHAT={
     const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
     const isCheck=E.inChk(S.bd,S.turn);
     const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
-    const turnName=S.turn==='w'?`${pn} (الأبيض)`:'نور (الأسود)';
+    const id=this._nourId();
+    const turnName=S.turn===id.nourCol?`نور (${id.nourColAr})`:`${pn} (${id.myColAr})`;
     const nourLost=capsW||'لا شيء';
     const playerLost=capsB||'لا شيء';
     const gameState=`المرحلة: ${lv?.name||'غير معروفة'} | دور: ${turnName} | آخر حركة: ${lastMove} | قطع نور المفقودة (أكلها ${pn}): ${nourLost} | قطع ${pn} المفقودة (أكلها نور): ${playerLost} | التقييم: ${evalText} | عدد الحركات المتاحة: ${legalCount} | كش؟ ${isCheck?'نعم':'لا'}`;
 
     const sys=`أنت "نور" داخل لعبة شطرنج.
 
-قواعد صارمة:
-- نور = الأسود دائماً.
-- اللاعب = الأبيض دائماً واسمه: ${pn}.
+${id.rules}
 - لا تخمّن. لا تنسب خسارة قطعة للطرف الخطأ.
 - إذا كان هناك تضارب، اتبع المعطيات النصية فقط.
 - رد بجملة أو جملتين فقط، وبأسلوب محكي بسيط.`;
@@ -8423,6 +8542,7 @@ ${gameState}
 [رسالة اللاعب]
 ${pn}: ${txt}
 
+${id.reminder}
 اكتب رد نور الآن:`;
     try{
       this._setNourTyping(true);
@@ -8432,7 +8552,7 @@ ${pn}: ${txt}
         max_tokens:180,
         temperature:0.75
       });
-      const reply=json.choices?.[0]?.message?.content?.trim();
+      const reply=this._fixNourColor(json.choices?.[0]?.message?.content?.trim());
       this._setNourTyping(false);
       if(reply&&reply.length>2){
         this._addMsg(reply,'opp');
@@ -8493,7 +8613,8 @@ ${pn}: ${txt}
       const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
       const capsW=S.capW.map(p=>({p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'}[E.tp(p)?.toLowerCase()]||'')).join('');
       const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
-      const turnName=S.turn==='w'?`${pn} (الأبيض)`:'نور (الأسود)';
+      const id=this._nourId();
+      const turnName=S.turn===id.nourCol?`نور (${id.nourColAr})`:`${pn} (${id.myColAr})`;
 
       const eventText=(type==='playerMove')?`${pn} قام بحركة الآن`:(type==='nourMove')?'نور قام بحركة الآن':(type==='levelWin')?`${pn} فاز بالمرحلة`:`${pn} خسر المرحلة`;
       const capName=cap?({P:'بيدق',N:'حصان',B:'فيل',R:'رخ',Q:'وزير',K:'ملك'}[E.tp(cap)]||'قطعة'):'';
@@ -8503,9 +8624,7 @@ ${pn}: ${txt}
 
       const sys=`أنت "نور" داخل لعبة شطرنج.
 
-قواعد صارمة:
-- نور = الأسود دائماً.
-- اللاعب = الأبيض دائماً واسمه: ${pn}.
+${id.rules}
 - لا تكتب ردود محفوظة.
 - لا تدّعي أكل قطعة أو خسارة قطعة بدون دليل.
 - لا تقل "كش" إلا إذا المعطيات تقول: هل يوجد كش الآن؟ نعم.
@@ -8524,6 +8643,7 @@ ${pn}: ${txt}
 قطع نور المفقودة (أكلها ${pn}): ${capsW||'لا شيء'}
 قطع ${pn} المفقودة (أكلها نور): ${capsB||'لا شيء'}
 
+${id.reminder}
 اكتب رسالة نور الآن:`;
 
       const json=await groqChat({
@@ -8532,7 +8652,7 @@ ${pn}: ${txt}
         max_tokens:120,
         temperature:0.7
       });
-      const reply=json.choices?.[0]?.message?.content?.trim();
+      const reply=this._fixNourColor(json.choices?.[0]?.message?.content?.trim());
       if(reply&&reply.length>2){
         setTimeout(()=>this._addMsg(reply,'opp'),Math.random()*600+250);
       }
@@ -9373,6 +9493,49 @@ const REV=(()=>{
     try{onEngineInfo(payload||{});}catch(e){}
   }
 
+  /* ══ مقاييس التصنيف على طريقة chess.com ══
+     التصنيف عندهم مبنيّ على «فرصة الفوز» مش على فرق البيادق الخام: خسارة
+     بيدقين وإنت متقدّم +٩ مش زي خسارتهم في وضع متعادل. بنحوّل التقييم
+     (سنتي‌بيدق) لنسبة فوز بالمعادلة اللوجستية المعروفة، والفرق بين أحسن
+     نقلة والنقلة اللي اتلعبت — بالنقاط المئوية — هو أساس التصنيف والدقة. */
+  function _winPct(cp){
+    const c=Math.max(-1500,Math.min(1500,Number(cp)||0));
+    return 50+50*(2/(1+Math.exp(-0.00368208*c))-1);
+  }
+  /* دقة النقلة من حجم الفاقد — نفس منحنى الدقة المنشور، بيدّي أرقامًا
+     قريبة من اللي بيطلع على chess.com بدل درجات ثابتة لكل تصنيف. */
+  function _moveAccuracy(drop){
+    const a=103.1668*Math.exp(-0.04354*Math.max(0,Number(drop)||0))-3.1669;
+    return Math.max(0,Math.min(100,a));
+  }
+  const _PVAL={P:1,N:3,B:3.25,R:5,Q:9,K:0};
+  /* تضحية حقيقية أم لأ: بنحسب صافي المادة لو الخصم أخد على مربع الوصول
+     بأرخص آخذ وإحنا رجّعنا الأخد. سالب بمقدار بيدق ونصّ أو أكتر = اللاعب
+     سلّم مادة فعلًا. الكود القديم كان بيعتبر أي نقلة مش أخذ «تضحية» فكانت
+     كلمة «رائعة» بتطلع على نقلات عادية جدًا. */
+  function _sacNet(bdAfter,cas2,ep2,to,color,gain){
+    const opp=color==='w'?'b':'w';
+    const landed=bdAfter[to[0]][to[1]];
+    const movedVal=landed?(_PVAL[E.tp(landed)]||0):0;
+    const got=Number(gain)||0;
+    let caps=[];
+    try{caps=E.allLegal(bdAfter,opp,cas2,ep2).filter(m=>m.to[0]===to[0]&&m.to[1]===to[1]);}catch(e){}
+    if(!caps.length)return{sac:false,net:got};
+    let cheapest=null,cv=Infinity;
+    for(const m of caps){
+      const p=bdAfter[m.from[0]][m.from[1]];
+      const v=p?(_PVAL[E.tp(p)]||0):0;
+      if(v<cv){cv=v;cheapest=m;}
+    }
+    let net=got-movedVal;
+    try{
+      const r=E.apply(bdAfter,cheapest.from,cheapest.to,cas2,ep2,'Q');
+      const back=E.allLegal(r.bd,color,r.cas,r.ep).some(m=>m.to[0]===to[0]&&m.to[1]===to[1]);
+      if(back)net+=cv;
+    }catch(e){}
+    return{sac:net<=-1.5,net};
+  }
+
   async function _analyze(options={}){
     const onProgress=typeof options.onProgress==='function'?options.onProgress:null;
     const onEngineInfo=typeof options.onEngineInfo==='function'?options.onEngineInfo:null;
@@ -9458,7 +9621,6 @@ const REV=(()=>{
     for(let i=0;i<snaps.length;i++){
       const snap=snaps[i];
       const color=snap.turn;
-      const isMax=color==='w';
       const boardBefore=bd.map(r=>[...r]);
       const casBefore=JSON.parse(JSON.stringify(cas));
       const epBefore=ep?[...ep]:null;
@@ -9494,6 +9656,10 @@ const REV=(()=>{
       
       let actualVal=bestVal,appliedOk=false;
       let isCheck=false, isCheckmate=false;
+      let sacInfo={sac:false,net:0};
+      /* نقلة وحيدة ممكنة = مُلزَمة: مش فضل من اللاعب ومش غلطة منه */
+      let legalCount=0;
+      try{legalCount=E.allLegal(boardBefore,color,casBefore,epBefore).length;}catch(ex){}
       try{
         const r2=E.apply(boardBefore,actualFrom,actualTo,casBefore,epBefore,promo||'Q');
         const opp=color==='w'?'b':'w';
@@ -9510,57 +9676,63 @@ const REV=(()=>{
         isCheck=E.inChk(r2.bd,opp);
         const oppLegal=E.allLegal(r2.bd,opp,r2.cas,r2.ep);
         isCheckmate=isCheck&&oppLegal.length===0;
+        try{
+          sacInfo=_sacNet(r2.bd,r2.cas,r2.ep,actualTo,color,
+            capturedPiece?(_PVAL[E.tp(capturedPiece)]||0):0);
+        }catch(ex){}
         bd=r2.bd;cas=r2.cas;ep=r2.ep;
         appliedOk=true;
       }catch(ex){}
       if(!appliedOk)continue;
       boards.push(bd.map(r=>[...r]));
       evalHistory.push(actualVal);
-      const diff=isMax?(bestVal-actualVal):(actualVal-bestVal);
-      const posScale=Math.max(200,Math.abs(bestVal)+100);
-      const relativeDiff=diff/posScale;
       let rating,score,bestMvStr='';
-      
-      // Chess.com style evaluation with StockFish:
-      // Book: First 10 moves (opening theory) - within 0.5 pawns
-      // Brilliant: Sacrificial move that leads to advantage
-      // Best: The engine's top choice (within 0.0-0.2 pawns)
-      // Excellent: Within 0.2-0.5 pawns of best
-      // Good: Within 0.5-1.0 pawns of best
-      // Inaccuracy: 1.0-2.0 pawns worse than best
-      // Mistake: 2.0-4.0 pawns worse than best
-      // Blunder: > 4.0 pawns worse than best
-      // Miss: Didn't capitalize on a winning advantage (>3.0 pawns lost)
-      const diffInPawns=diff/100;
-      const isBestMove = diff<=20||diffInPawns<=0.2;
-      const moveNum=i+1; // Move number in the game
-      
-      // Detect brilliant moves: sacrifice material but maintain/eval improves
-      const pieceValues={p:1,n:3,b:3.25,r:5,q:9,k:0};
-      const isSacrifice = (!isCapture) && (diffInPawns<=0.2);
-      const isBrilliant = isBestMove && isSacrifice && actualVal > -100;
-      
-      // Detect missed opportunity: had winning advantage (>3.0) but didn't find best move
-      const hadWinningAdvantage = (color==='w' && bestVal > 300) || (color==='b' && bestVal < -300);
-      const isMiss = (!isCheckmate) && hadWinningAdvantage && diffInPawns > 1.5;
-      
-      // Opening moves (first 10 moves) within 0.5 pawns are "Book"
-      const isOpening = moveNum <= 10;
-      const isBookMove = isOpening && diffInPawns < 0.5;
-      
-      if(isCheckmate){rating='best';score=100;}
-      else if(isBrilliant){rating='brilliant';score=100;}
-      else if(isBookMove){rating='book';score=85;}
-      else if(isBestMove){rating='best';score=100;}
-      else if(diffInPawns<0.5){rating='excellent';score=90;}
-      else if(diffInPawns<1.0){rating='good';score=75;}
-      else if(isMiss){rating='miss';score=40;if(color==='w')wMistakes++;else bMistakes++;}
-      else if(diffInPawns<2.0){rating='inaccuracy';score=50;}
-      else if(diffInPawns<4.0){rating='mistake';score=25;if(color==='w')wMistakes++;else bMistakes++;}
-      else{rating='blunder';score=0;if(color==='w')wBlunders++;else bBlunders++;}
+
+      /* ══ التصنيف ══
+         الحدود بفرق «فرصة الفوز» بالنقاط المئوية — نفس اللي بيستخدمه
+         chess.com فعليًا، مش فرق البيادق:
+           مُلزَمة / مات / أفضل نقلة المحرك ................ Best
+           رائعة: تضحية مادة حقيقية والنقلة لسه أفضل ....... Brilliant
+           أول ١٠ أنصاف نقلات وضمن أفضل الاختيارات ......... Book
+           أقل من ٢ نقطة ................................... Excellent
+           أقل من ٥ .......................................  Good
+           فرصة حاسمة ضايعة (مات أو تفوّق كبير) ............ Miss
+           أقل من ١٠ ....................................... Inaccuracy
+           أقل من ٢٠ ....................................... Mistake
+           ٢٠ أو أكتر ...................................... Blunder */
+      const rel=(cp)=>color==='w'?(Number(cp)||0):-(Number(cp)||0);
+      const relBest=rel(bestVal), relAct=rel(actualVal);
+      const drop=Math.max(0,_winPct(relBest)-_winPct(relAct));
+      const playedBest=!!(bestMv&&bestMv.from&&bestMv.to
+        &&bestMv.from[0]===actualFrom[0]&&bestMv.from[1]===actualFrom[1]
+        &&bestMv.to[0]===actualTo[0]&&bestMv.to[1]===actualTo[1]);
+      const forced=legalCount===1;
+      /* رائعة: تضحية مادة صافية، والنقلة برضه من أفضل الاختيارات، واللاعب
+         مش خاسر بعدها ومش كان فايز بفارق ساحق أصلًا (وقتها مش «رائعة»). */
+      const isBrilliant=!forced&&!isCheckmate&&sacInfo.sac
+        &&drop<3&&relAct>-40&&relBest<800;
+      /* ضايعة: كان في مات أو تفوّق حاسم متاح وضاع */
+      const hadMate=Math.abs(bestVal)>=90000&&relBest>0;
+      const isMiss=!isCheckmate&&drop>=10
+        &&(hadMate||(relBest>=200&&relAct<Math.min(200,relBest-150)));
+      /* «كتاب»: أول خمس نقلات كاملة ونقلة سليمة — تقريب للافتتاحيات
+         المعروفة (مافيش قاعدة افتتاحيات مرفقة في التطبيق). */
+      const isBookMove=(i+1)<=10&&drop<2;
+
+      score=_moveAccuracy(drop);
+      if(forced||isCheckmate){rating='best';score=100;}
+      else if(isBrilliant){rating='brilliant';score=Math.max(score,98);}
+      else if(isBookMove){rating='book';}
+      else if(playedBest||drop<=0.5){rating='best';score=Math.max(score,99);}
+      else if(drop<2){rating='excellent';}
+      else if(drop<5){rating='good';}
+      else if(isMiss){rating='miss';if(color==='w')wMistakes++;else bMistakes++;}
+      else if(drop<10){rating='inaccuracy';}
+      else if(drop<20){rating='mistake';if(color==='w')wMistakes++;else bMistakes++;}
+      else{rating='blunder';if(color==='w')wBlunders++;else bBlunders++;}
       if(color==='w'){wTotal+=score;wCount++;}else{bTotal+=score;bCount++;}
       if(bestMv)try{bestMvStr=E.notation(boardBefore,bestMv.from,bestMv.to,bestMv.promo||null);}catch(e){}
-      
+
       moves.push({
         move:actualMoveStr||'—',color,rating,score,
         evalAfter:actualVal,bestVal,bestMv:bestMvStr,
@@ -9820,20 +9992,46 @@ const REV=(()=>{
       miss:'فاتتك فرصة'
     };
     const evalPawns=(mv.evalAfter/100).toFixed(1);
-    const prompt=`أنت "نور المدرب". علّق فقط على الحركة نفسها وما غيّرته على الرقعة، بدون حشو أو تكرار أو كلام مبهم. اكتب جملة واحدة أو جملتين بالعربية الفصحى السهلة.
-
-الحركة: ${mv.move}
-اللاعب: ${mv.color==='w'?'الأبيض':'الأسود'}
+    /* #12: شاشة المراجعة بتعلّق على حركات الطرفين في أي مباراة (أونلاين،
+       لاعبَان على جهاز، Stockfish، ومراحل نور). النصّ القديم كان بيقول
+       «اللاعب: الأبيض/الأسود» وبس — بلا اسم ولا تحديد لموقع نور من المباراة،
+       فالموديل كان بيتكلّم بضمير المتكلّم عن أي حركة، يعني ينتحل صاحبها.
+       وفي مراحل نور نور فعلًا طرف، فالتعليمة الصحيحة تختلف بين الحالتين:
+       • مباراة ضد نور: نور طرف ويعرف لونه، ويُمنع عليه فقط أن ينسب حركات
+         الخصم لنفسه.
+       • أي مباراة أخرى: نور محلّل خارجي بحت، وضمير المتكلّم ممنوع تمامًا.
+       الأسماء الحقيقية من ملخّص المراجعة (شريطَي اللاعبين)، والتذكير مكرّر
+       في آخر النصّ لأن الموديلات الصغيرة بتلتزم بآخر ما تقراه. */
+    const vsNour=(S.mode==='bot'&&S.levelId>=0);
+    const nourCol=vsNour?(((S.myCol==='b')?'b':'w')==='w'?'b':'w'):null;
+    const movName=(mv.color==='w')?(_data?.summary?.wName||'الأبيض'):(_data?.summary?.bName||'الأسود');
+    const oppName=(mv.color==='w')?(_data?.summary?.bName||'الأسود'):(_data?.summary?.wName||'الأبيض');
+    const colAr=mv.color==='w'?'الأبيض':'الأسود';
+    const isNourMove=vsNour&&mv.color===nourCol;
+    const sysC=vsNour
+      ? `أنت "نور": لعبتَ هذه المباراة بـ${nourCol==='w'?'الأبيض':'الأسود'} ضد ${nourCol==='w'?(_data?.summary?.bName||'الأسود'):(_data?.summary?.wName||'الأبيض')}، والآن تراجعها معه كمدرّب.
+- ${isNourMove?'الحركة التي تعلّق عليها الآن حركتك أنت، فلك أن تتحدّث عنها بضمير المتكلّم.':`الحركة التي تعلّق عليها الآن حركة ${movName}، لا حركتك — لا تنسبها لنفسك ولا تقل "حركتي" عنها.`}
+- لا تقل أبدًا إنك تلعب بـ${nourCol==='w'?'الأسود':'الأبيض'}.
+- علّق على الحركة نفسها وما غيّرته على الرقعة، بدون حشو أو تكرار أو كلام مبهم.
+- جملة واحدة أو جملتان بالعربية الفصحى السهلة.`
+      : `أنت "نور المدرب": محلّل شطرنج خارجي، ولستَ أحد اللاعبين في هذه المباراة.
+- لا تستخدم ضمير المتكلّم عن الحركات أبدًا: لا تقل "حركتي" ولا "لعبتُ" ولا "أنا الأبيض" ولا "أنا الأسود".
+- تحدّث عن الطرفين بالاسم أو باللون فقط.
+- علّق على الحركة نفسها وما غيّرته على الرقعة، بدون حشو أو تكرار أو كلام مبهم.
+- جملة واحدة أو جملتان بالعربية الفصحى السهلة.`;
+    const prompt=`الحركة: ${mv.move}
+صاحب الحركة: ${movName} (${colAr})${isNourMove?' — وهذا أنت':''}
+الطرف الآخر: ${oppName}
 رقم الحركة: ${mv.moveNum}
 التصنيف: ${ratingNames[mv.rating]}
-قيمة الموقف بعدها: ${evalPawns} بيدق
+قيمة الموقف بعدها: ${evalPawns} بيدق (الموجب لصالح الأبيض)
 ${mv.bestMv&&mv.rating!=='best'?`الحركة المثلى كانت: ${mv.bestMv}`:''}
 
-اشرح سبب هذا التصنيف وما كان يمكن تحسينه باختصار شديد.`;
+اشرح سبب هذا التصنيف وما كان يمكن تحسينه باختصار شديد. تذكير: ${vsNour?(isNourMove?`هذه حركتك أنت وأنت صاحب ${nourCol==='w'?'الأبيض':'الأسود'}.`:`هذه حركة ${movName} لا حركتك.`):`أنت محلّل محايد، تكلّم عن ${movName} بصيغة الغائب.`}`;
     try{
       const json=await groqChat({
         model:GROQ_MODEL,
-        messages:[{role:'user',content:prompt}],
+        messages:[{role:'system',content:sysC},{role:'user',content:prompt}],
         max_tokens:180,
         temperature:0.65
       });
@@ -10696,7 +10894,26 @@ let _lastBalW=window.innerWidth;
     return Math.min(kb, Math.round(hOpen*0.75));   /* سقف أمان ضدّ قيمة شاذّة */
   };
   window.AMKH_kbCalc=kbCalc;                       /* للقياس/الاختبار */
+  /* الجسر الأصلي: MainActivity بيقيس التغطية الفعلية (تقاطع الـWebView مع منطقة
+     الكيبورد) ويحقنها في --kb-native مع كل تغيّر insets/layout. القياس ده مش
+     تقدير: صحيح على أندرويد ١٤ وأقل، وعلى ١٥+ اللي بيقلّص الـWebView، وعلى
+     edge-to-edge، وعلى كيبورد التابلت العائم (النظام مابيبلّغش له ime inset
+     فالتغطية صفر بحقّ). فلمّا يكون موجودًا بنثق به وحده ونُهمل كل الكشف
+     والتخزين — التخزين نفسه كان مصدر أعطال لزجة مابتشفاش إلا بمسح البيانات. */
+  let _kbNative=null;
+  window.AMKH_kbNative=v=>{
+    const n=Number(v);
+    if(!isNaN(n)){
+      const first=_kbNative===null;
+      _kbNative=Math.max(0,Math.round(n));
+      /* الكشف القديم صار غير مستخدم؛ نمسح أثره المحفوظ مرّةً واحدة عشان أي
+         جهاز محمّل بقيمة خاطئة من إصدار قديم يشفى بمجرّد التحديث. */
+      if(first){ try{ localStorage.removeItem('amkh_kb_shrinks'); localStorage.removeItem('amkh_kb_vv'); }catch(e){} }
+      if(root.classList.contains('kb-open')){ applyKb(); raiseChat(); }
+    }
+  };
   const kbCover=()=>{
+    if(_kbNative!==null) return Math.min(_kbNative, Math.round(window.innerHeight*0.9));
     const vv=window.visualViewport;
     const covered=vv?Math.round(window.innerHeight-vv.height-(vv.offsetTop||0)):0;
     if(covered>40 && _vvReports!==true){
@@ -10929,25 +11146,166 @@ const G={
     }
     return result.message||'تعادل';
   },
+  /* #2: أحمد قال إن تعليق نور بعد المباراة «مكرّر وممل جدًا» — وكان محقًّا:
+     الدالة القديمة كانت سلسلة `if(result.reason===…) return '<جملة ثابتة>'`،
+     يعني كل مات بيطلّع نفس الجملة حرفيًا مهما كانت المباراة. البديل هنا
+     بيقرأ المباراة فعلًا (طول، أكل، مادة، كشوف، تبييت، ترقية، تقييم أخير)
+     ويركّب التعليق من ثلاث طبقات: افتتاحية بحسب النتيجة + ملاحظة رقمية من
+     المباراة نفسها + خاتمة تشدّ للمراجعة. كل طبقة لها بدائل تُنتقى عشوائيًا،
+     فاحتمال تكرار نفس النصّ ضعيف، والملاحظة الوسطى مختلفة بطبعها لأنها من
+     أرقام المباراة. وفوق ده كله _primeNourVerdict بيجيب تعليقًا حيًّا من نور
+     وقت ما الإنترنت متاح، وده المحلّي بيبقى شبكة أمانه. */
+  _matchFacts(){
+    const V={P:1,N:3,B:3,R:5,Q:9,K:0};
+    const val=a=>(a||[]).reduce((s,p)=>s+(V[E.tp(p)]||0),0);
+    const h=S.hist||[];
+    const mine=(S.myCol==='b')?'b':'w';
+    const myTake=mine==='w'?val(S.capW):val(S.capB);
+    const opTake=mine==='w'?val(S.capB):val(S.capW);
+    const nCaps=(S.capW||[]).length+(S.capB||[]).length;
+    let ev=0; try{ev=E.eval(S.bd)||0;}catch(e){}
+    return {
+      plies:h.length, moves:Math.ceil(h.length/2), last:h.length?h[h.length-1]:'',
+      checks:h.filter(m=>/\+/.test(String(m))).length,
+      caps:nCaps, promo:h.some(m=>/=/.test(String(m))), castled:h.some(m=>/O-O/.test(String(m))),
+      edge:myTake-opTake, myTake, opTake,
+      evalMine:Math.round((mine==='w'?ev:-ev)),
+      len:h.length<20?'short':h.length<60?'mid':'long',
+      vsNour:(S.mode==='bot'&&S.levelId>=0)
+    };
+  },
+  _pick(a){ return a[Math.floor(Math.random()*a.length)]; },
+  /* تصريف المعدود العربي: الواحد والاثنان لهما صيغتهما، و٣-١٠ جمع، و١١+
+     مفرد منصوب. بدون ده بتطلع جمل زي «15 نقاط» و«9 كش» و«4 نقلة» — غلط
+     صريح بيقع في عين أي قارئ عربي. */
+  _cnt(n,one,two,few,many){
+    n=Math.abs(Math.round(n||0));
+    if(n===1)return one;
+    if(n===2)return two;
+    return n+' '+((n>=3&&n<=10)?few:many);
+  },
   _buildQuickComment(result){
-    const lastMove=S.hist.length?S.hist[S.hist.length-1]:'';
-    if(isStockfishMode()){
-      if(result.reason==='checkmate'&&result.tone==='win')return `هزمت Stockfish${lastMove?` بعد النقلة ${lastMove}`:''}. راقب في المراجعة كيف تحوّل الضغط التدريجي إلى إنهاء كامل للموقف.`;
-      if(result.reason==='checkmate'&&result.tone==='loss')return `المحرك استغل أدق ثغرة${lastMove?` بعد النقلة ${lastMove}`:''}. المراجعة ستوضح أين بدأ الخلل قبل الضربة الأخيرة.`;
-      if(result.reason==='stalemate'||result.reason==='threefold'||result.reason==='insufficient')return 'المواجهة مع Stockfish انتهت بلا حسم. القيمة هنا في معرفة اللحظة التي كان يمكن فيها كسر التوازن قبل أن يغلق المحرك الوضعية.';
-      if(result.winner==='w')return 'تفوقت على المحرك في هذه المواجهة. راجع أين ربحت المساحة أو المبادرة لأن هذه اللحظات هي مفتاح تكرار الفوز.';
-      if(result.winner==='b')return 'Stockfish أخذ المباراة في المراحل الأخيرة. ركز في المراجعة على التحولات الصغيرة التي سمحت له بتثبيت أفضلية مستقرة.';
+    /* نفس المباراة لازم تعطي نفس النصّ لو الورقة اتقفلت واتفتحت تاني
+       (restoreQuickReview بتنادي الدالة من جديد)، فبنقفل النصّ على التوكن. */
+    if(S._goCmtToken===S._resultToken&&S._goCmt)return S._goCmt;
+    const f=this._matchFacts();
+    const txt=[this._cmtOpen(result,f),this._cmtFact(result,f),this._cmtTip(result,f)]
+      .filter(Boolean).join(' ');
+    S._goCmtToken=S._resultToken; S._goCmt=txt;
+    return txt;
+  },
+  /* الافتتاحية: بتقول اللي حصل. بدائل لكل حالة عشان مايتكررش نفس المطلع. */
+  _cmtOpen(result,f){
+    const P=this._pick.bind(this), L=f.last, sf=isStockfishMode();
+    const win=result.tone==='win', loss=result.tone==='loss';
+    const after=L?` بعد ${L}`:'';
+    if(sf){
+      if(result.reason==='checkmate'&&win)return P([`مات على Stockfish${after} — ده مش شيء بسيط.`,`أنهيت المحرك بالمات${after}.`,`Stockfish نفسه اتحاصر${after}.`]);
+      if(result.reason==='checkmate'&&loss)return P([`المحرك لقى الثغرة${after} وما سامحش.`,`Stockfish أغلق الموقف${after} وخلص.`,`الضربة الأخيرة${after} كانت محسوبة من بدري.`]);
+      if(win)return P(['خدت المواجهة من المحرك.','النتيجة في صفك ضد Stockfish.','كسبت الجولة دي.']);
+      if(loss)return P(['المحرك أخد المباراة.','Stockfish حسمها في الآخر.','النتيجة له هذه المرة.']);
+      return P(['المواجهة مع المحرك انتهت بلا حسم.','Stockfish ماقدرش يكسر التوازن، وانت كذلك.','تعادل مع المحرك — نتيجة محترمة.']);
     }
-    if(result.reason==='insufficient')return 'المادة المتبقية لم تعد تسمح بالحسم. عندما تختفي القطع الثقيلة يصبح الضغط الموضعي أهم من البحث عن هجوم غير موجود.';
-    if(result.reason==='threefold')return 'تكررت الوضعية أكثر من مرة حتى أُغلقت المباراة على تعادل. لو أردت الحسم لاحقاً فابحث مبكراً عن كسر آمن للتكرار.';
-    if(result.reason==='stalemate')return 'الموقف تجمّد تماماً ولم يبق للخصم أي نقلة قانونية. قبل دفع الملك إلى الزاوية راقب دائماً إن كانت هناك خانة هروب واحدة على الأقل.';
-    if(result.reason==='resign')return 'النتيجة حُسمت بالاستسلام قبل أن تصل الرقعة إلى النهاية الطبيعية. راجع آخر ضغط صنعته لأنه غالباً كان سبب القرار.';
-    if(result.reason==='disconnect')return 'النتيجة جاءت بسبب انقطاع الخصم، لكن آخر وضع على الرقعة ما زال مفيداً للمراجعة. اقرأ كيف كان التوازن قبل توقف المباراة.';
-    if(result.reason==='level-win')return `أنهيت المرحلة بإيقاع جيد${lastMove?`، وآخر نقلة ${lastMove} ثبّتت الأفضلية.`:''} راقب الآن كيف تحوّل التفوق إلى نتيجة واضحة.`;
-    if(result.reason==='checkmate'&&result.tone==='loss')return `الهجمة الأخيرة وصلت إلى ملكك${lastMove?` بعد النقلة ${lastMove}`:''}. في المراجعة ركّز على المربعات التي تُركت بلا حماية قبل الحسم.`;
-    if(result.reason==='checkmate')return `الهجمة الأخيرة كانت حاسمة${lastMove?`، وآخر نقلة ${lastMove} أنهت الدفاع.`:''} لاحظ كيف تم إغلاق مربعات الهروب حول الملك.`;
-    if(result.winner)return 'المباراة حُسمت لأن النشاط والتوقيت كانا في صف الفائز في النهاية. راقب كيف تغيّر أمان الملك ومساحة القطع في آخر النقلات.';
-    return 'انتهت المباراة بتوازن كامل. المراجعة السريعة هنا ستوضح أين كان يمكن كسر هذا التوازن قبل الوصول للتعادل.';
+    switch(result.reason){
+      case 'checkmate': return loss
+        ? P([`الهجمة وصلت لملكك${after}.`,`المات جه${after} من ناحية كانت مكشوفة.`,`ملكك اتحاصر${after} ومافيش خانة هروب.`])
+        : P([`مات نضيف${after}.`,`أنهيتها بالمات${after}.`,`الدفاع اتقفل عليه${after}.`]);
+      case 'timeout': return loss
+        ? P(['الوقت خلص وانت في وسط التفكير.','الساعة كسبتك مش الموقف.','النتيجة راحت بالوقت لا بالنقلات.'])
+        : P(['وقت الخصم خلص قبل ما يوصل لحاجة.','الساعة حسمتها لصالحك.','كسبت بالوقت.']);
+      case 'resign': return loss
+        ? P(['استسلمت والموقف كان لسه فيه كلام.','قررت توقف هنا.','النتيجة حُسمت باستسلامك.'])
+        : P(['الخصم استسلم قبل النهاية الطبيعية.','الضغط اللي عملته خلّاه يسلّم.','سلّم قبل ما الرقعة تخلص.']);
+      case 'disconnect': return P(['الاتصال قطع فحُسمت النتيجة.','المباراة اتوقفت بانقطاع الشبكة.','النتيجة جات من الانقطاع مش من الرقعة.']);
+      case 'stalemate': return P(['جمود كامل — مافيش نقلة قانونية عنده والملك مش في كش.','الموقف اتجمّد وخلص تعادل.','ولا نقلة متاحة، فالنتيجة تعادل بالجمود.']);
+      case 'threefold': return P(['الوضعية اتكررت 3 مرات فقُفلت على تعادل.','التكرار حسمها تعادل.','نفس الموقف رجع 3 مرات، فالتعادل جه لوحده.']);
+      case 'insufficient': return P(['المادة الباقية مش كافية لمات.','مافيش قطع تكفي للحسم من الطرفين.','خلصت القطع اللي تعمل مات، فتعادل.']);
+      case 'level-win': return P([`أنهيت المرحلة${after?`، وآخر نقلة ${L} ثبّتت الأفضلية`:''}.`,'المرحلة خلصت في صفك.','عديت المرحلة دي.']);
+      default:
+        if(win)return P(['كسبت المباراة.','النتيجة في صفك.','خدتها.']);
+        if(loss)return P(['المباراة راحت.','النتيجة مش في صفك المرة دي.','خسرتها.']);
+        return P(['انتهت بتعادل تام.','مافيش حاسم — تعادل.','التوازن فضل لآخر نقلة.']);
+    }
+  },
+  /* الملاحظة الوسطى: رقم حقيقي من المباراة. دي أهم طبقة في علاج التكرار —
+     مصدرها أرقام المباراة نفسها، فحتى لو القالب اتكرر الجملة تفضل مختلفة.
+     بنجمع كل الملاحظات المتاحة ونختار واحدة (أو اتنين في مباراة طويلة). */
+  _cmtFact(result,f){
+    const P=this._pick.bind(this), bits=[];
+    const C=this._cnt.bind(this);
+    const mv=n=>C(n,'نقلة واحدة','نقلتين','نقلات','نقلة');
+    const pc=n=>C(n,'قطعة واحدة','قطعتين','قطع','قطعة');
+    const pt=n=>C(n,'نقطة واحدة','نقطتين','نقاط','نقطة');
+    const ck=n=>C(n,'كش واحد','كشّين','كشوف','كش');
+    if(f.moves>=2){
+      if(f.len==='short')bits.push(P([`خلصت في ${mv(f.moves)} بس.`,`${mv(f.moves)} وانتهت — مباراة سريعة.`]));
+      else if(f.len==='long')bits.push(P([`${mv(f.moves)} — مباراة طويلة ومحتاجة نَفَس.`,`وصلتوا ${mv(f.moves)}، وده صبر.`]));
+      else bits.push(`${mv(f.moves)} على الرقعة.`);
+    }
+    if(f.caps>=12)bits.push(P([`${pc(f.caps)} نزلت من الرقعة — تبادل عنيف.`,`الرقعة فضيت: ${pc(f.caps)} اتأكلت.`]));
+    else if(f.caps===0)bits.push('ولا قطعة اتأكلت من الطرفين.');
+    else if(f.caps<=3)bits.push(`${pc(f.caps)} بس اتأكلت، فالحسم كان موضعي مش مادي.`);
+    if(f.edge>=4)bits.push(P([`كسبت ${pt(f.edge)} مادة زيادة عليه.`,`المادة كانت في صفك بفرق ${pt(f.edge)}.`]));
+    else if(f.edge<=-4)bits.push(P([`سبقك بـ${pt(f.edge)} مادة.`,`فرق المادة كان ضدك بـ${pt(f.edge)}.`]));
+    else if(f.caps>=6)bits.push('التبادلات كانت متكافئة تقريبًا في المادة.');
+    if(f.checks>=5)bits.push(`${ck(f.checks)} في المباراة — الملوك ماريّحتش.`);
+    else if(f.checks===1)bits.push('كش واحد بس طول المباراة.');
+    if(f.promo)bits.push('في بيدق وصل آخر الرقعة واتحوّل.');
+    if(!f.castled&&f.plies>=16)bits.push('محدش بيّت — الملوك فضلت في النص.');
+    if(!bits.length)return '';
+    /* جملتين رقميتين مع بعض في المباريات الطويلة فقط، وباحتمال أقل من النص،
+       عشان التعليق مايتحوّلش لتقرير إحصائي. */
+    if(f.len!=='short'&&bits.length>=3&&Math.random()<0.35){
+      const a=Math.floor(Math.random()*bits.length);
+      let b=Math.floor(Math.random()*bits.length);
+      if(b===a)b=(a+1)%bits.length;
+      return bits[a]+' '+bits[b];
+    }
+    return P(bits);
+  },
+  /* الخاتمة: بتوجّه لحاجة محدّدة في المراجعة، مربوطة بالنتيجة عشان تبقى
+     ذات معنى مش جملة عامة ملزوقة. */
+  _cmtTip(result,f){
+    const P=this._pick.bind(this);
+    if(result.tone==='loss')return P(['شوف في المراجعة أول نقلة قلبت التقييم — غالبًا هي السبب مش الأخيرة.','المراجعة هتوريك المربعات اللي سِبتها بلا حماية.','دوّر على النقلة اللي بعدها التقييم نزل، دي بداية الخلل.','ركّز على أمان ملكك في آخر عشر نقلات.']);
+    if(result.tone==='win')return P(['راجع اللحظة اللي اتفتحت فيها الأفضلية، دي اللي تتعلّم تكرارها.','شوف إزاي الضغط بقى نتيجة.','المراجعة هتوريك أدق نقلة لعبتها.','خد بالك من النقلات اللي كسبتك المساحة.']);
+    return P(['المراجعة هتوريك فين كان ممكن تكسر التوازن.','دوّر على اللحظة الوحيدة اللي كانت فيها فرصة حسم.','شوف مين كان أقرب للفوز فعلًا.']);
+  },
+  /* تعليق نور الحيّ بعد المباراة. بيتطلب من showOver — يعني عنده 2400ms
+     كاملة (زمن ظهور ورقة النهاية) عشان يوصل، وده أكتر من كفاية لطلب صغير.
+     لو ماوصلش في الوقت، _openQuickReview بتستخدم النصّ المحلّي وخلاص، ولا
+     بنستبدل حاجة بعد ما الكتابة تبدأ عشان مايبانش ارتباك على الشاشة.
+     بنبعت آخر تعليقين للموديل ونمنعه من إعادة صياغتهم — ده اللي يمنع الملل
+     عبر المباريات المتتالية، وهو جوهر شكوى أحمد. */
+  _primeNourVerdict(token){
+    S._goAI=null;
+    if(typeof groqChat!=='function')return;
+    try{
+      const f=this._matchFacts(), st=S.endState||{};
+      const pn=Cfg.data.playerName||'اللاعب';
+      const lv=(f.vsNour&&typeof LEVELS_DEF!=='undefined')?LEVELS_DEF[S.levelId]:null;
+      const resAr=st.tone==='win'?`${pn} كسب`:st.tone==='loss'?`${pn} خسر`:'تعادل';
+      const reasonAr={checkmate:'كش مات',timeout:'انتهاء الوقت',resign:'استسلام',disconnect:'انقطاع اتصال',stalemate:'جمود',threefold:'تكرار ثلاثي',insufficient:'مادة غير كافية','level-win':'إنهاء المرحلة'}[st.reason]||'نهاية عادية';
+      let prev=[];
+      try{prev=JSON.parse(localStorage.getItem('amkh_nour_verdicts')||'[]');}catch(e){}
+      const sys=f.vsNour
+        ? `أنت "نور" ولد، وكنت أنت خصم ${pn} في هذه المباراة بـ${((S.myCol==='b')?'b':'w')==='w'?'الأسود':'الأبيض'}. علّق على المباراة بعد نهايتها بأسلوب مصري بسيط ودود.`
+        : `أنت "نور" ولد، معلّق شطرنج بيراجع مباراة ${pn} بأسلوب مصري بسيط ودود. أنت لم تلعب هذه المباراة.`;
+      const rules=`\n- جملتان كحد أقصى، وبلا مقدمات ولا ترحيب.\n- اعتمد على الأرقام المعطاة فقط ولا تخترع نقلات ولا قطعًا.\n- لا تكرر صياغة الجمل السابقة إن وُجدت.\n- لا تستخدم رموزًا تعبيرية.`;
+      const facts=`النتيجة: ${resAr}\nسبب النهاية: ${reasonAr}\nعدد النقلات: ${f.moves}\nقطع اتأكلت: ${f.caps}\nفرق المادة لصالح ${pn}: ${f.edge}\nعدد الكشوف: ${f.checks}\nترقية بيدق: ${f.promo?'نعم':'لا'}\nتبييت: ${f.castled?'نعم':'لا'}\nآخر نقلة: ${f.last||'—'}${lv?`\nالمرحلة: ${lv.name}`:''}`;
+      const user=`${facts}\n${prev.length?`\nجمل قلتها في مباريات سابقة (لا تعِد أي صياغة منها):\n- ${prev.join('\n- ')}\n`:''}\nاكتب تعليقك الآن:`;
+      groqChat({model:GROQ_MODEL,messages:[{role:'system',content:sys+rules},{role:'user',content:user}],max_tokens:140,temperature:0.95})
+        .then(j=>{
+          let t=(j?.choices?.[0]?.message?.content||'').trim();
+          if(!t||t.length<12)return;
+          t=t.replace(/^["'«]+|["'»]+$/g,'').replace(/\s+/g,' ').trim();
+          if(f.vsNour&&typeof CHAT!=='undefined'&&CHAT._fixNourColor)t=CHAT._fixNourColor(t);
+          if(t.length>240)t=t.slice(0,238).replace(/\s\S*$/,'')+'.';
+          S._goAI={token,text:t};
+          try{localStorage.setItem('amkh_nour_verdicts',JSON.stringify([t,...prev].slice(0,3)));}catch(e){}
+        })
+        .catch(()=>{});
+    }catch(e){}
   },
   _typeQuickText(el,text,token,done){
     if(!el)return;
@@ -11007,7 +11365,9 @@ const G={
     const result=S.endState;
     if(!result)return;
     const token=S._resultToken;
-    const comment=this._buildQuickComment(result);
+    const local=this._buildQuickComment(result);
+    /* لو تعليق نور الحيّ وصل قبل فتح الورقة نعرضه هو؛ غير كده المحلّي. */
+    const comment=(S._goAI&&S._goAI.token===token&&S._goAI.text)?S._goAI.text:local;
     const reviewNote=document.getElementById('go-review-note');
     const progressEl=document.getElementById('go-stat-progress');
     const movesEl=document.getElementById('go-stat-moves');
@@ -11108,7 +11468,7 @@ const G={
     const depthEl=document.getElementById('go-engine-depth');
     const scoreEl=document.getElementById('go-engine-score');
     const phaseEl=document.getElementById('go-engine-phase');
-    if(reviewNote)reviewNote.textContent=S.endState.detail||this._buildQuickComment(S.endState);
+    if(reviewNote)reviewNote.textContent=S.endState.detail||((S._goAI&&S._goAI.token===S._resultToken&&S._goAI.text)||this._buildQuickComment(S.endState));
     const label=document.getElementById('go-qload')?.querySelector('.go-qsf');
     if(label){
       if(S.hist.length>=4){
@@ -11161,6 +11521,9 @@ const G={
       try{ OL.reportResult(S.endState.tone, S.endState.reason||''); }catch(e){}
     }
     S._quickDone=false;
+    /* #2: نطلق تعليق نور الحيّ من هنا عشان يستفيد من الـ2400ms اللي قبل
+       ظهور ورقة النهاية، فالتعليق يبان جاهز من أول لحظة بلا انتظار. */
+    try{this._primeNourVerdict(S._resultToken);}catch(e){}
     R.all();
     S._goTimer=setTimeout(()=>{
       if(!S.over||!S.endState||S._quickDone)return;
@@ -11218,7 +11581,14 @@ const G={
     S.oppImg=null; // Reset opponent image for every new game
     S._engineTimer=null;
     S._engineJob=0;
-    S._resultToken=0;
+    /* توكن النتيجة عدّاد تصاعدي لا يرجع لصفر أبدًا. كان بيتصفّر هنا، فكانت
+       المباراة التانية في نفس الجلسة تاخد التوكن 1 نفسه بتاع الأولى — و_record
+       (وقفله ‏_recToken===_resultToken) كان بيعتبرها «مسجّلة سلفًا» فيتخطّاها.
+       النتيجة: مباراة واحدة بس بتتسجّل في كل تشغيل، فتحديات اليوم والإحصاءات
+       وسلسلة الأيام كلها بتقلّ عن الحقيقة (أحمد كسب نور ٣ مرات فالتحدي وقف
+       على 1/2). التزويد بدل التصفير بيحفظ نفس الحماية — أي callback قديم توكنه
+       مش مساوي للجديد فبيتوقف — بلا أي تكرار في التوكن. */
+    S._resultToken=(S._resultToken||0)+1;
     this._hideQuickReview();
     if(typeof REV!=='undefined'&&REV.reset)REV.reset();
     AST.clear();
@@ -13554,13 +13924,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js"></script>
+  <script src="auth-client.js?v=20260905-b29"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260904-welcome-1"></script>
-  <script src="friends-client.js?v=20260813-websocket-fix-2"></script>
-  <script src="chat-client.js?v=20260822-chat-1"></script>
-  <script src="call-client.js?v=20260825-call-1"></script>
+  <script src="welcome-client.js?v=20260905-b29"></script>
+  <script src="friends-client.js?v=20260905-b29"></script>
+  <script src="chat-client.js?v=20260905-b29"></script>
+  <script src="call-client.js?v=20260905-b29"></script>
 <script>
 const BLEManager = {
   isHost: false,

@@ -412,7 +412,51 @@ function migrate() {
       pinned_at TEXT DEFAULT (datetime('now')),
       PRIMARY KEY (user_id, kind, target_id)
     );
+
+    /* ── #6: أكواد استعادة كلمة المرور ──
+       بنخزّن بصمة الكود لا الكود نفسه: أي تسريب لقاعدة البيانات مايدّيش
+       حد القدرة على استعمال كود لسه صالح. الصفّ واحد لكل بريد (المفتاح
+       الأساسي هو البريد) فطلب كود جديد بيبطّل القديم تلقائيًا — ولو
+       المستخدم دوس «إرسال» عشر مرات يفضل كود واحد صالح بس.
+       attempts بيقفل الباب على تخمين الأرقام الستة بالقوة الغاشمة، و
+       hour_start/hour_count بيحدّدوا عدد الطلبات في الساعة لكل بريد —
+       التقييد بالبريد لا بالـIP لأن الخادم خلف نفق فكل الطلبات بتبان
+       جاية من عنوان واحد. */
+    CREATE TABLE IF NOT EXISTS password_resets (
+      email       TEXT PRIMARY KEY,
+      code_hash   TEXT NOT NULL,
+      expires_at  INTEGER NOT NULL,           -- ms منذ الحقبة
+      attempts    INTEGER NOT NULL DEFAULT 0,
+      sent_at     INTEGER NOT NULL,
+      hour_start  INTEGER NOT NULL DEFAULT 0,
+      hour_count  INTEGER NOT NULL DEFAULT 0,
+      ip          TEXT
+    );
+
+    /* ── #13: تأكيد البريد وقت إنشاء الحساب اليدوي ──
+       الحساب مابيتكتبش في users غير بعد ما صاحب البريد يثبت إنه فعلًا
+       بريده. لحد ساعتها الطلب كله عايش هنا: بصمة الرمز، وبصمة كلمة
+       المرور (bcrypt — لا كلمة مرور خام في القاعدة ولو مؤقتًا)، والاسم
+       المعروض. المفتاح هو البريد فطلب جديد بنفس البريد بيبطّل القديم،
+       والصفّ بيتمسح لحظة إنشاء الحساب أو عند انتهاء الصلاحية.
+       نفس حدود الاستعادة سارية: كولداون بين الطلبات، سقف في الساعة،
+       وسقف محاولات خاطئة يحرق الرمز. */
+    CREATE TABLE IF NOT EXISTS pending_signups (
+      email         TEXT PRIMARY KEY,
+      code_hash     TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      display_name  TEXT,
+      expires_at    INTEGER NOT NULL,         -- ms منذ الحقبة
+      attempts      INTEGER NOT NULL DEFAULT 0,
+      sent_at       INTEGER NOT NULL,
+      hour_start    INTEGER NOT NULL DEFAULT 0,
+      hour_count    INTEGER NOT NULL DEFAULT 0
+    );
   `);
+
+  /* لو الجدول اتعمل قبل إضافة عدّاد الساعة */
+  if (addColumn('password_resets', 'hour_start', 'INTEGER NOT NULL DEFAULT 0')) added.push('password_resets.hour_start');
+  if (addColumn('password_resets', 'hour_count', 'INTEGER NOT NULL DEFAULT 0')) added.push('password_resets.hour_count');
 
   /* منشِنات: مصفوفة JSON بهويات المذكورين — عشان إشعار «ذكرك» */
   if (addColumn('messages', 'mentions', 'TEXT')) added.push('messages.mentions');

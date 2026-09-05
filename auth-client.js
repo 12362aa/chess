@@ -288,22 +288,119 @@ const amkhAuth = {
     return { success: false, error: data.error };
   },
 
+  /* ── #13: التسجيل بقى خطوتين ──
+     الطلب ده مابيعملش حسابًا: بيطلب رمز تأكيد على البريد. الحساب بيتولد
+     في verifySignup بعد ما صاحب البريد يثبت إنه بريده فعلًا.
+     verify_flow بتقول للخادم إن العميل ده يعرف الخطوة التانية — الخوادم
+     بترد على النسخ القديمة بالسلوك القديم (توكن فورًا) فمافيش نسخة
+     منشورة بتتعطّل. */
   async register(email, password, displayName) {
     if (!await window.amkhEnsureServer()) {
       return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
     }
-    const res = await fetch(`${window.getApiBase()}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-      body: JSON.stringify({ email, password, display_name: displayName })
-    });
-    const data = await res.json();
+    let res, data;
+    try {
+      res = await fetch(`${window.getApiBase()}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ email, password, display_name: displayName, verify_flow: 1 })
+      });
+      data = await res.json();
+    } catch (e) {
+      return { success: false, error: 'تعذّر الاتصال بالخادم. أعِد المحاولة.' };
+    }
     if (res.ok) {
+      /* خادم بيطلب تأكيدًا: مافيش توكن، والنافذة بتنقل لخانة الرمز */
+      if (data.verify) {
+        return { success: true, verify: true, email: data.email || email, ttl: data.ttl_minutes || 15 };
+      }
+      /* خادم قديم: التوكن جه على طول */
       this.setToken(data.token, data.user);
       this.mergeDeviceData();   /* #18: ربط صامت بلا نافذة — بالخلفية */
       return { success: true };
     }
-    return { success: false, error: data.error };
+    return {
+      success: false, error: data.error,
+      /* الخادم عارف إن فيه رمز مبعوت بالفعل لهذا البريد */
+      pending: !!data.pending, retryAfter: data.retry_after || 0,
+      exists: !!data.exists, ttl: data.ttl_minutes || 15,
+    };
+  },
+
+  /* الخطوة التانية: الرمز صح → الحساب اتعمل وإحنا داخلين بيه */
+  async verifySignup(email, code) {
+    if (!await window.amkhEnsureServer()) {
+      return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
+    }
+    let res, data;
+    try {
+      res = await fetch(`${window.getApiBase()}/register-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ email, code })
+      });
+      data = await res.json();
+    } catch (e) {
+      return { success: false, error: 'تعذّر الاتصال بالخادم. أعِد المحاولة.' };
+    }
+    if (res.ok) {
+      this.setToken(data.token, data.user);
+      this.mergeDeviceData();   /* #18: ربط صامت بلا نافذة — بالخلفية */
+      await this.fetchMe();
+      return { success: true };
+    }
+    return {
+      success: false, error: data.error || 'تعذّر تأكيد البريد',
+      expired: !!data.expired, exists: !!data.exists,
+    };
+  },
+
+  /* ── #6: نسيت كلمة المرور ──
+     الردّ من الخادم موحّد دائمًا (مش بيقول الحساب موجود أو لا) عشان
+     مايبقاش أداة تكشف مَن عنده حساب. فالعميل مايحاولش يخمّن: بيوصّل
+     الرسالة زي ما هي وبينتقل لخطوة الرمز في كل الحالات. */
+  async forgotPassword(email) {
+    if (!await window.amkhEnsureServer()) {
+      return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
+    }
+    let res, data;
+    try {
+      res = await fetch(`${window.getApiBase()}/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ email })
+      });
+      data = await res.json();
+    } catch (e) {
+      return { success: false, error: 'تعذّر الاتصال بالخادم. أعِد المحاولة.' };
+    }
+    if (res.ok) return { success: true, message: data.message, ttl: data.ttl_minutes || 15 };
+    return { success: false, error: data.error || 'تعذّر إرسال الرمز', retryAfter: data.retry_after || 0 };
+  },
+
+  async resetPassword(email, code, password) {
+    if (!await window.amkhEnsureServer()) {
+      return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
+    }
+    let res, data;
+    try {
+      res = await fetch(`${window.getApiBase()}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ email, code, password })
+      });
+      data = await res.json();
+    } catch (e) {
+      return { success: false, error: 'تعذّر الاتصال بالخادم. أعِد المحاولة.' };
+    }
+    if (res.ok) {
+      /* الخادم بيرجّع توكن جاهز: المستخدم أثبت ملكية بريده وعرف كلمته
+         الجديدة، فمافيش داعي يسجّل دخول تاني بعد كل ده. */
+      this.setToken(data.token, data.user);
+      await this.fetchMe();
+      return { success: true };
+    }
+    return { success: false, error: data.error || 'تعذّر تغيير كلمة المرور', expired: !!data.expired };
   },
 
   /* ── الدخول بجوجل ──
@@ -1006,6 +1103,7 @@ const amkhAuth = {
 
         <div class="ds-dialog__actions" style="flex-direction:column;">
           <button id="btn-login" class="ds-btn ds-btn--primary ds-btn--block">تسجيل الدخول</button>
+          <button id="btn-forgot" class="ds-btn ds-btn--ghost ds-btn--block amkh-forgot-link">نسيت كلمة المرور؟</button>
           <div class="amkh-auth-sep" aria-hidden="true"><span>أو</span></div>
           <button id="btn-google" class="ds-btn ds-btn--block amkh-google-btn">
             <span class="amkh-google-mark" aria-hidden="true"></span>
@@ -1024,6 +1122,7 @@ const amkhAuth = {
     const subEl = overlay.querySelector('#auth-modal-sub');
     const loginBtn = overlay.querySelector('#btn-login');
     const toggleBtn = overlay.querySelector('#btn-register-toggle');
+    const forgotBtn = overlay.querySelector('#btn-forgot');
 
     /* زر جوجل: نفس الزر بيسجّل أو بيدخل — جوجل هي اللي بتحدّد، والسيرفر
        بيعمل الحساب لو مش موجود. فمافيش وضع «تسجيل» منفصل ليه. */
@@ -1067,14 +1166,28 @@ const amkhAuth = {
         nameField.style.display = '';
         loginBtn.textContent = 'إنشاء الحساب';
         toggleBtn.textContent = 'لديك حساب بالفعل؟ سجّل الدخول';
+        /* «نسيت كلمة المرور» مالهاش معنى وإنت بتعمل حسابًا جديدًا */
+        if (forgotBtn) forgotBtn.style.display = 'none';
       } else {
         titleEl.textContent = 'تسجيل الدخول';
         subEl.textContent = 'سجّل دخولك لمزامنة تقدّمك واللعب مع أصدقائك';
         nameField.style.display = 'none';
         loginBtn.textContent = 'تسجيل الدخول';
         toggleBtn.textContent = 'ليس لديك حساب؟ أنشئ حسابًا';
+        if (forgotBtn) forgotBtn.style.display = '';
       }
     };
+
+    if (forgotBtn) {
+      forgotBtn.onclick = () => {
+        amkhUI.sfx();
+        const typed = (overlay.querySelector('#auth-email').value || '').trim();
+        overlay._dismiss();
+        /* بنمرّر onSuccess جاية من نافذة الدخول: لو المستخدم دخل عن طريق
+           إعادة التعيين، شاشة الترحيب لازم تقفل نفسها زي أي دخول ناجح. */
+        amkhAuth.showResetModal(typed, opts);
+      };
+    }
 
     toggleBtn.onclick = () => { amkhUI.sfx(); setMode(!isRegisterMode); };
 
@@ -1103,13 +1216,406 @@ const amkhAuth = {
       loginBtn.disabled = false;
       loginBtn.textContent = label;
 
+      if (res && res.success && res.verify) {
+        /* الحساب لسه ماتعملش — الرمز في بريده. نافذة التسجيل بتقفل
+           والتأكيد بياخد مكانها، و«تغيير البريد» بترجّعه لهنا. */
+        overlay._dismiss();
+        amkhAuth.showVerifyModal({
+          email: email, password: pass, displayName: name,
+          ttl: res.ttl, loginOpts: opts,
+        });
+        return;
+      }
+
       if (res && res.success) {
         overlay._dismiss();
         if (opts && typeof opts.onSuccess === 'function') { try { opts.onSuccess(); } catch (e) {} }
-      } else errDiv.textContent = (res && res.error) || 'حدث خطأ، حاول مرة أخرى';
+        return;
+      }
+
+      /* عنده رمز مبعوت بالفعل (قفل النافذة ورجع، أو دوس مرتين): الخادم
+         بيرفض بكولداون. سيبانه في نافذة التسجيل معناه إن عنده رمز في
+         بريده ومافيش خانة يكتبه فيها، فبنوديه على خانة الرمز على طول. */
+      if (res && res.pending) {
+        overlay._dismiss();
+        amkhAuth.showVerifyModal({
+          email: email, password: pass, displayName: name,
+          ttl: res.ttl, cooldown: res.retryAfter, already: true, loginOpts: opts,
+        });
+        return;
+      }
+
+      errDiv.textContent = (res && res.error) || 'حدث خطأ، حاول مرة أخرى';
     };
 
     if (opts && opts.register) setMode(true);
+  },
+
+  /* ══════════════════════════════════════════════════════════════
+     #6 — نافذة «نسيت كلمة المرور»
+     خطوتان في نافذة واحدة: البريد ← الرمز وكلمة المرور الجديدة.
+     نافذة واحدة مش اتنين عشان المستخدم مايحسّش إنه بيتنقّل بين شاشات
+     وهو في نصّ عملية واحدة، ولأن البريد لازم يفضل متعرَّفًا في الخطوة
+     التانية بلا ما يكتبه تاني.
+     الخادم بيردّ نفس الردّ سواء البريد مسجَّل أو لا، فالنافذة بتنقل
+     للخطوة التانية دايمًا — أي «البريد غير موجود» هنا كان هيكشف
+     حسابات الناس لأي حد بيجرّب بريدًا.
+     ══════════════════════════════════════════════════════════════ */
+  showResetModal(prefillEmail, loginOpts) {
+    const overlay = amkhUI.mount('amkh-reset-modal', `
+      <div class="ds-dialog amkh-auth-dialog amkh-reset-dialog">
+        <div class="ds-dialog__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><rect x="4" y="10.5" width="16" height="10" rx="2.2"/><path d="M8 10.5V7.6A4 4 0 0 1 15.6 6"/><circle cx="12" cy="15.5" r="1.3"/></svg>
+        </div>
+        <h2 class="ds-dialog__title" id="reset-title">نسيت كلمة المرور؟</h2>
+        <p class="ds-dialog__message" id="reset-sub">اكتب بريدك الإلكتروني وسيصلك رمز من 6 أرقام لتعيين كلمة مرور جديدة</p>
+
+        <div id="reset-step1">
+          <div class="ds-field">
+            <input type="email" id="reset-email" class="ds-input" placeholder="البريد الإلكتروني"
+              autocomplete="email" style="direction:ltr;text-align:left;">
+          </div>
+        </div>
+
+        <div id="reset-step2" style="display:none;">
+          <div class="ds-field">
+            <input type="text" id="reset-code" class="ds-input amkh-reset-code" placeholder="- - - - - -"
+              inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+          </div>
+          <div class="ds-field">
+            <input type="password" id="reset-pass" class="ds-input" placeholder="كلمة المرور الجديدة"
+              autocomplete="new-password" style="direction:ltr;text-align:left;">
+          </div>
+          <div class="ds-field">
+            <input type="password" id="reset-pass2" class="ds-input" placeholder="تأكيد كلمة المرور"
+              autocomplete="new-password" style="direction:ltr;text-align:left;">
+          </div>
+        </div>
+
+        <p class="ds-field__hint ds-field__hint--error" id="reset-err" role="alert" style="min-height:18px;"></p>
+
+        <div class="ds-dialog__actions" style="flex-direction:column;">
+          <button id="reset-go" class="ds-btn ds-btn--primary ds-btn--block">إرسال الرمز</button>
+          <button id="reset-resend" class="ds-btn ds-btn--ghost ds-btn--block" style="display:none;">إعادة إرسال الرمز</button>
+          <button id="reset-back" class="ds-btn ds-btn--ghost ds-btn--block">رجوع لتسجيل الدخول</button>
+        </div>
+      </div>`, { sfx: 'reset', onDismiss: () => { try { stopTick(); } catch (e) {} } });
+
+    const q = s => overlay.querySelector(s);
+    const errDiv = q('#reset-err');
+    const goBtn = q('#reset-go');
+    const resendBtn = q('#reset-resend');
+    const backBtn = q('#reset-back');
+    const emailIn = q('#reset-email');
+    const codeIn = q('#reset-code');
+    const passIn = q('#reset-pass');
+    const pass2In = q('#reset-pass2');
+    let step = 1;
+    let sentTo = '';
+    let ttl = 15;
+    let tick = null;
+
+    if (prefillEmail) emailIn.value = prefillEmail;
+
+    /* الرمز أرقام فقط: أي حرف أو مسافة بيتشالوا وقت الكتابة، فالمستخدم
+       اللي بيلزق الرمز من البريد بمسافات مايشوفش خطأ بلا سبب. */
+    codeIn.addEventListener('input', () => {
+      const v = codeIn.value.replace(/\D/g, '').slice(0, 6);
+      if (v !== codeIn.value) codeIn.value = v;
+    });
+
+    const stopTick = () => { if (tick) { clearInterval(tick); tick = null; } };
+    /* تصريف «ثانية» عربيًّا: العدّاد بينزل من 60 لواحد فبيمرّ على كل
+       الصيغ — «5 ثوانٍ» و«ثانيتين» و«ثانية واحدة» و«45 ثانية». */
+    const secsAr = n => {
+      n = Math.max(0, n | 0);
+      if (n === 1) return 'ثانية واحدة';
+      if (n === 2) return 'ثانيتين';
+      return n + ' ' + ((n >= 3 && n <= 10) ? 'ثوانٍ' : 'ثانية');
+    };
+    /* عدّاد إعادة الإرسال: الخادم بيفرض 60 ثانية بين طلبين لنفس البريد،
+       فالزر بيقعد مقفولًا بنفس المدة بدل ما المستخدم يدوس ويلاقي رفضًا. */
+    const startCooldown = secs => {
+      stopTick();
+      let left = Math.max(1, secs | 0);
+      const paint = () => {
+        resendBtn.disabled = left > 0;
+        resendBtn.textContent = left > 0 ? `إعادة إرسال الرمز بعد ${secsAr(left)}` : 'إعادة إرسال الرمز';
+        if (left <= 0) stopTick();
+        left--;
+      };
+      paint();
+      tick = setInterval(paint, 1000);
+    };
+
+    const maskEmail = e => String(e || '').replace(/^(.{2})[^@]*(@.*)$/, '$1***$2');
+
+    const toStep2 = () => {
+      step = 2;
+      q('#reset-title').textContent = 'أدخل الرمز';
+      q('#reset-sub').innerHTML = `أرسلنا رمزًا من 6 أرقام إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(sentTo))}</b> — صالح لمدة ${ttl} دقيقة.<br>لو لم تجده فراجع مجلد الرسائل غير المرغوبة.`;
+      q('#reset-step1').style.display = 'none';
+      q('#reset-step2').style.display = '';
+      goBtn.textContent = 'تغيير كلمة المرور';
+      resendBtn.style.display = '';
+      backBtn.textContent = 'إلغاء';
+      startCooldown(60);
+      try { if (window.SFX && window.SFX.modalOpen) window.SFX.modalOpen('codeSent'); } catch (e) {}
+      setTimeout(() => { try { codeIn.focus(); } catch (e) {} }, 120);
+    };
+
+    const sendCode = async (isResend) => {
+      const email = ((step === 2 ? (sentTo || emailIn.value) : emailIn.value) || '').trim();
+      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        errDiv.textContent = 'اكتب بريدًا إلكترونيًا صحيحًا';
+        return;
+      }
+      errDiv.textContent = '';
+      const btn = isResend ? resendBtn : goBtn;
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'جاري الإرسال…';
+      const r = await amkhAuth.forgotPassword(email);
+      btn.disabled = false;
+      btn.textContent = label;
+      if (r.success) {
+        sentTo = email;
+        ttl = r.ttl || 15;
+        if (step === 1) toStep2();
+        else {
+          startCooldown(60);
+          amkhUI.notify('أرسلنا لك رمزًا جديدًا على بريدك', 'تم الإرسال', '◉');
+        }
+      } else if (r.retryAfter && step === 1) {
+        /* حالة واقعية: المستخدم طلب رمزًا، قفل النافذة، فتحها تاني ودوس
+           «إرسال». الخادم بيرفض بسبب مهلة الستين ثانية — ولو سِبناه في
+           الخطوة الأولى يبقى عنده رمز في بريده ومافيش خانة يكتبه فيها،
+           فيقعد يدوس ويتفرّج على رسالة «انتظر». بنعدّيه للخطوة التانية
+           على طول ونشغّل العدّاد بالباقي من المهلة. */
+        sentTo = email;
+        toStep2();
+        startCooldown(r.retryAfter);
+        q('#reset-sub').innerHTML = `سبق أن أرسلنا رمزًا إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(sentTo))}</b> — أدخله هنا.<br>لو لم يصلك فاطلب رمزًا جديدًا بعد انتهاء المهلة.`;
+        errDiv.textContent = '';
+      } else {
+        errDiv.textContent = r.error;
+        if (r.retryAfter) startCooldown(r.retryAfter);
+      }
+    };
+
+    const doReset = async () => {
+      const code = (codeIn.value || '').replace(/\D/g, '');
+      const p1 = passIn.value;
+      const p2 = pass2In.value;
+      if (code.length !== 6) { errDiv.textContent = 'الرمز 6 أرقام'; return; }
+      if (!p1 || p1.length < 8) { errDiv.textContent = 'كلمة المرور 8 أحرف على الأقل'; return; }
+      if (p1 !== p2) { errDiv.textContent = 'كلمتا المرور غير متطابقتين'; return; }
+      errDiv.textContent = '';
+      goBtn.disabled = true;
+      const label = goBtn.textContent;
+      goBtn.textContent = 'جاري التغيير…';
+      const r = await amkhAuth.resetPassword(sentTo, code, p1);
+      goBtn.disabled = false;
+      goBtn.textContent = label;
+      if (r.success) {
+        stopTick();
+        overlay._dismiss();
+        amkhAuth.updateUI();
+        if (loginOpts && typeof loginOpts.onSuccess === 'function') { try { loginOpts.onSuccess(); } catch (e) {} }
+        amkhUI.notify('تم تغيير كلمة المرور وتسجيل دخولك', 'تم', '◉');
+      } else {
+        errDiv.textContent = r.error;
+        /* الرمز حُرق أو انتهى: مافيش فايدة من محاولة تانية بنفس الرمز،
+           فبنرجّعه للخطوة الأولى عشان يطلب رمزًا جديدًا. */
+        if (r.expired) {
+          codeIn.value = '';
+          stopTick();
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'إرسال رمز جديد';
+        }
+      }
+    };
+
+    goBtn.onclick = () => { amkhUI.sfx(); if (step === 1) sendCode(false); else doReset(); };
+    resendBtn.onclick = () => { amkhUI.sfx(); sendCode(true); };
+    backBtn.onclick = () => {
+      amkhUI.sfx();
+      stopTick();
+      overlay._dismiss();
+      /* «رجوع» في الخطوة الأولى معناها ترجع لنافذة الدخول، وفي الخطوة
+         التانية معناها إلغاء العملية كلها. */
+      if (step === 1) amkhAuth.showLoginModal(loginOpts);
+    };
+
+    /* Enter بينقل للخطوة اللي بعدها بدل ما يعمل حاجة */
+    const onEnter = e => { if (e.key === 'Enter') { e.preventDefault(); goBtn.click(); } };
+    [emailIn, codeIn, passIn, pass2In].forEach(el => el.addEventListener('keydown', onEnter));
+
+    setTimeout(() => { try { (prefillEmail ? goBtn : emailIn).focus(); } catch (e) {} }, 150);
+    return overlay;
+  },
+
+  /* ══════════════════════════════════════════════════════════════
+     #13 — نافذة تأكيد البريد عند إنشاء الحساب
+     الحساب لسه ماتعملش لما النافذة دي تفتح: الخادم شايل الطلب مؤقتًا
+     ومستني الرمز. فلو المستخدم قفلها مافيش حساب نصف جاهز اتعمل، ولو
+     رجع وسجّل تاني بنفس البريد الطلب القديم بيتبطّل بالجديد.
+     شكلها مقصود إنه يشبه نافذة الاستعادة: نفس خانة الأرقام الستة ونفس
+     العدّاد — المستخدم اللي شاف واحدة منهم يبقى فاهم التانية.
+     ══════════════════════════════════════════════════════════════ */
+  showVerifyModal(o) {
+    const opt = o || {};
+    const email = String(opt.email || '').trim();
+    let pass = String(opt.password || '');
+    const displayName = String(opt.displayName || '');
+    const ttl = opt.ttl || 15;
+    const loginOpts = opt.loginOpts;
+    const maskEmail = e => String(e || '').replace(/^(.{2})[^@]*(@.*)$/, '$1***$2');
+
+    const overlay = amkhUI.mount('amkh-verify-modal', `
+      <div class="ds-dialog amkh-auth-dialog amkh-reset-dialog">
+        <div class="ds-dialog__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><path d="M3.5 7.5h17v10a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M3.7 8 12 13.6 20.3 8"/><path d="m8.8 15.4 1.9 1.9 3.9-4.2"/></svg>
+        </div>
+        <h2 class="ds-dialog__title">أكّد بريدك الإلكتروني</h2>
+        <p class="ds-dialog__message" id="vf-sub">${opt.already
+          ? `سبق أن أرسلنا رمزًا إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(email))}</b> — أدخله هنا لإكمال إنشاء حسابك.`
+          : `أرسلنا رمزًا من 6 أرقام إلى <b style="direction:ltr;display:inline-block">${amkhUI.esc(maskEmail(email))}</b> — صالح لمدة ${ttl} دقيقة.<br>لو لم تجده فراجع مجلد الرسائل غير المرغوبة.`}</p>
+
+        <div class="ds-field">
+          <input type="text" id="vf-code" class="ds-input amkh-reset-code" placeholder="- - - - - -"
+            inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+        </div>
+
+        <p class="ds-field__hint ds-field__hint--error" id="vf-err" role="alert" style="min-height:18px;"></p>
+
+        <div class="ds-dialog__actions" style="flex-direction:column;">
+          <button id="vf-go" class="ds-btn ds-btn--primary ds-btn--block">تأكيد وإنشاء الحساب</button>
+          <button id="vf-resend" class="ds-btn ds-btn--ghost ds-btn--block">إعادة إرسال الرمز</button>
+          <button id="vf-back" class="ds-btn ds-btn--ghost ds-btn--block">تعديل البريد أو كلمة المرور</button>
+        </div>
+      </div>`, { sfx: 'signup', onDismiss: () => { try { stopTick(); } catch (e) {} } });
+
+    const q = s => overlay.querySelector(s);
+    const errDiv = q('#vf-err');
+    const goBtn = q('#vf-go');
+    const resendBtn = q('#vf-resend');
+    const backBtn = q('#vf-back');
+    const codeIn = q('#vf-code');
+    let tick = null;
+
+    /* الرمز أرقام فقط: اللزق من البريد بمسافات مايطلّعش خطأ بلا سبب */
+    codeIn.addEventListener('input', () => {
+      const v = codeIn.value.replace(/\D/g, '').slice(0, 6);
+      if (v !== codeIn.value) codeIn.value = v;
+    });
+
+    const stopTick = () => { if (tick) { clearInterval(tick); tick = null; } };
+    const secsAr = n => {
+      n = Math.max(0, n | 0);
+      if (n === 1) return 'ثانية واحدة';
+      if (n === 2) return 'ثانيتين';
+      return n + ' ' + ((n >= 3 && n <= 10) ? 'ثوانٍ' : 'ثانية');
+    };
+    /* الخادم بيفرض 60 ثانية بين طلبين لنفس البريد، فالزر بيقعد مقفولًا
+       بنفس المدة بدل ما المستخدم يدوس ويلاقي رفضًا */
+    const startCooldown = secs => {
+      stopTick();
+      let left = Math.max(1, secs | 0);
+      const paint = () => {
+        resendBtn.disabled = left > 0;
+        resendBtn.textContent = left > 0 ? `إعادة إرسال الرمز بعد ${secsAr(left)}` : 'إعادة إرسال الرمز';
+        if (left <= 0) stopTick();
+        left--;
+      };
+      paint();
+      tick = setInterval(paint, 1000);
+    };
+    startCooldown(opt.cooldown || 60);
+
+    const doVerify = async () => {
+      const code = (codeIn.value || '').replace(/\D/g, '');
+      if (code.length !== 6) { errDiv.textContent = 'الرمز 6 أرقام'; return; }
+      errDiv.textContent = '';
+      goBtn.disabled = true;
+      const label = goBtn.textContent;
+      goBtn.textContent = 'جاري التأكيد…';
+      const r = await amkhAuth.verifySignup(email, code);
+      goBtn.disabled = false;
+      goBtn.textContent = label;
+      if (r.success) {
+        stopTick();
+        overlay._dismiss();
+        amkhAuth.updateUI();
+        if (loginOpts && typeof loginOpts.onSuccess === 'function') { try { loginOpts.onSuccess(); } catch (e) {} }
+        amkhUI.notify('تم تأكيد بريدك وإنشاء حسابك', 'أهلًا بك', '◉');
+        return;
+      }
+      errDiv.textContent = r.error;
+      /* الرمز اتحرق أو خلصت صلاحيته: محاولة تانية بنفس الرمز مالهاش
+         فايدة، فبنفتح له إعادة الإرسال فورًا */
+      if (r.expired) {
+        codeIn.value = '';
+        stopTick();
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'إرسال رمز جديد';
+      }
+      /* البريد بقى مسجّلًا وإحنا مستنيين (سجّل من جهاز تاني مثلًا) */
+      if (r.exists) {
+        stopTick();
+        overlay._dismiss();
+        amkhAuth.showLoginModal(loginOpts);
+      }
+    };
+
+    const resend = async () => {
+      if (!pass) {
+        /* مافيش كلمة مرور في الذاكرة (النافذة اتفتحت من مسار تاني):
+           إعادة الإرسال محتاجة الطلب كامل، فبنرجّعه لنافذة التسجيل. */
+        stopTick();
+        overlay._dismiss();
+        amkhAuth.showLoginModal(Object.assign({ register: true }, loginOpts || {}));
+        return;
+      }
+      errDiv.textContent = '';
+      resendBtn.disabled = true;
+      const label = resendBtn.textContent;
+      resendBtn.textContent = 'جاري الإرسال…';
+      const r = await amkhAuth.register(email, pass, displayName);
+      resendBtn.textContent = label;
+      resendBtn.disabled = false;
+      if (r.success && r.verify) {
+        startCooldown(60);
+        amkhUI.notify('أرسلنا لك رمزًا جديدًا على بريدك', 'تم الإرسال', '◉');
+      } else if (r.success) {
+        /* خادم قديم عمل الحساب فورًا — العملية خلصت */
+        stopTick();
+        overlay._dismiss();
+        amkhAuth.updateUI();
+        if (loginOpts && typeof loginOpts.onSuccess === 'function') { try { loginOpts.onSuccess(); } catch (e) {} }
+      } else {
+        errDiv.textContent = r.error;
+        if (r.retryAfter) startCooldown(r.retryAfter);
+        if (r.exists) { stopTick(); overlay._dismiss(); amkhAuth.showLoginModal(loginOpts); }
+      }
+    };
+
+    goBtn.onclick = () => { amkhUI.sfx(); doVerify(); };
+    resendBtn.onclick = () => { amkhUI.sfx(); resend(); };
+    backBtn.onclick = () => {
+      amkhUI.sfx();
+      stopTick();
+      pass = '';
+      overlay._dismiss();
+      /* رجوع لنافذة التسجيل: الرمز المبعوت يفضل صالح، ولو كتب نفس
+         البريد تاني الخادم بيوديه لنفس النافذة دي بالعدّاد الباقي. */
+      amkhAuth.showLoginModal(Object.assign({ register: true }, loginOpts || {}));
+    };
+    codeIn.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); goBtn.click(); }
+    });
+    setTimeout(() => { try { codeIn.focus(); } catch (e) {} }, 150);
+    return overlay;
   },
 
   showProfileModal() {

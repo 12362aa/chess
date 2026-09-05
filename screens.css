@@ -2093,6 +2093,42 @@ body[data-ui-theme="gaming"]{
 .amkh-auth-dialog .ds-field__hint{ text-align: start; margin: 0 0 var(--space-2); }
 .amkh-auth-dialog .ds-dialog__actions{ gap: var(--space-2); }
 
+/* ── نسيت كلمة المرور (#6) ──
+   «نسيت كلمة المرور؟» زرّ ghost لكنه لازم يبان كرابط مش كزرّ تالت
+   منافس لزرّ الدخول: أصغر وبلا حدود وبلون التمييز. */
+.amkh-forgot-link{
+  min-height: auto;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-caption);
+  color: var(--color-primary-text);
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: .9;
+}
+.amkh-forgot-link:hover:not(:disabled){ opacity: 1; background: transparent; }
+
+/* خانة الرمز: أرقام كبيرة متباعدة في المنتصف — الرمز بيتقرا من البريد
+   وبيتكتب رقمًا رقمًا، فالخطّ الأحادي والتباعد بيقلّلوا الغلط. */
+.amkh-reset-code{
+  direction: ltr;
+  text-align: center;
+  font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  padding-inline: var(--space-2);
+  color: var(--color-primary-text);
+}
+.amkh-reset-code::placeholder{
+  letter-spacing: 6px;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-text-disabled);
+}
+.amkh-reset-dialog .ds-dialog__message b{ color: var(--color-text-primary); font-weight: 600; }
+
 /* ══════════════════════════════════════════════════════════════════════
    شاشة الترحيب — أول تشغيل  (welcome-client.js)
    ──────────────────────────────────────────────────────────────────────
@@ -2155,20 +2191,64 @@ body[data-ui-theme="gaming"]{
   margin: 0 auto;
   text-align: center;
 }
-.wl-mark{
-  /* صندوق ثابت المقاس: الرسم جوّه بـ100% فمقاسه بيتحكم من هنا في كل
-     media query بسطر واحد */
-  display: block;
-  width: 84px;
-  height: 84px;
+/* ── اللوح المصغّر اللي بيلعب المات المخنوق (welcome-client.js) ──
+   مقاسه كله من ‎--wl-bs‎: المربعات ٢٥٪ من اللوح والقطع ٢٥٪ برضه، فسطر
+   واحد في كل media query بيكبّر أو يصغّر المنظر كله. الرقعة بتاخد ألوان
+   ثيم الرقعة المختار (‎--sq-l/--sq-d‎) فاللوح ده مش لونه مستقل عن التطبيق.
+   direction:ltr عشان إحداثيات الأعمدة تفضل من الشمال لليمين زي الرقعة
+   الحقيقية جوّه صفحة RTL. */
+.wl-board{
+  --wl-bs: 132px;
+  direction: ltr;
+  position: relative;
+  width: var(--wl-bs);
+  height: var(--wl-bs);
   margin: 0 auto var(--space-4);
-  padding: 15px;
-  box-sizing: border-box;
-  border-radius: var(--radius-lg);
-  background: var(--color-primary-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
   border: 1px solid var(--color-primary-border);
-  color: var(--color-primary-text);
-  filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
+  box-shadow: 0 10px 26px rgba(0,0,0,.45), 0 0 0 4px var(--color-primary-subtle);
+  /* الحركة جوّاه بس، فالمتصفح مايحتاجش يعيد حساب أي حاجة براه */
+  contain: paint;
+  transition: opacity var(--duration-normal) var(--easing-standard);
+}
+/* لحظة إعادة الوضع الابتدائي: تلاشٍ خفيف بدل ما القطع ترجع مكانها
+   بالعكس قدام العين (كان بيبان كأن حد بيلعب بالمقلوب) */
+.wl-board--dim{ opacity: 0; }
+.wl-board__grid{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+}
+.wl-sq{ display: block; transition: background-color .28s ease; }
+.wl-sq--l{ background: var(--sq-l, #f0d9b5); }
+.wl-sq--d{ background: var(--sq-d, #b58863); }
+.wl-sq--l.is-hl{ background: var(--sq-ml, #cdd26a); }
+.wl-sq--d.is-hl{ background: var(--sq-md, #aaa23a); }
+.wl-board__pcs{ position: absolute; inset: 0; }
+.wl-pc{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 25%;
+  /* المربع = عرض القطعة، فالنقل بنسبة مئوية من نفسها = مربع بالظبط */
+  transform: translate(calc(var(--c) * 100%), calc(var(--r) * 100%)) scale(var(--s, 1));
+  transition: transform .5s var(--easing-decelerate), opacity .3s ease, filter .25s ease;
+  will-change: transform;
+}
+/* القطعة المأكولة: بتصغّر وتختفي في مكانها */
+.wl-pc--gone{ --s: .45; opacity: 0; }
+.wl-pc--check{ filter: drop-shadow(0 0 6px var(--color-danger)); }
+.wl-pc--mate{
+  filter: drop-shadow(0 0 9px var(--color-danger));
+  animation: wl-mate 1s var(--easing-standard) 2;
+}
+@keyframes wl-mate{
+  0%,100%{ filter: drop-shadow(0 0 9px var(--color-danger)); }
+  50%{ filter: drop-shadow(0 0 2px var(--color-danger)); }
 }
 .wl-title{
   font-family: var(--font-family-base);
@@ -2271,7 +2351,7 @@ body[data-ui-theme="gaming"]{
 @media (max-height: 700px){
   .wl-screen{ gap: var(--space-4); padding-top: calc(env(safe-area-inset-top, 0px) + var(--space-4)); }
   .wl-info{ gap: var(--space-4); }
-  .wl-mark{ width: 62px; height: 62px; padding: 11px; margin-bottom: var(--space-3); }
+  .wl-board{ --wl-bs: 104px; margin-bottom: var(--space-3); }
   .wl-title{ font-size: 22px; }
   .wl-feats{ gap: var(--space-2); }
   .wl-feat__ic{ width: 36px; height: 36px; }
@@ -2282,7 +2362,7 @@ body[data-ui-theme="gaming"]{
 @media (max-height: 668px){
   .wl-screen{ gap: var(--space-3); }
   .wl-info{ gap: var(--space-3); }
-  .wl-mark{ width: 52px; height: 52px; padding: 9px; margin-bottom: var(--space-2); }
+  .wl-board{ --wl-bs: 88px; margin-bottom: var(--space-2); }
   .wl-feats{ gap: var(--space-1); }
   .wl-feat__s{ line-height: 1.4; }
   .wl-sub{ font-size: var(--font-size-caption); }
@@ -2308,13 +2388,13 @@ body[data-ui-theme="gaming"]{
   .wl-feats{ gap: var(--space-2); max-width: none; }
   .wl-feat__s{ display: none; }
   .wl-actions{ margin: 0; flex: 0 0 320px; max-width: 320px; }
-  .wl-mark{ width: 56px; height: 56px; padding: 10px; margin-inline: 0; }
+  .wl-board{ --wl-bs: 104px; margin-inline: 0; }
 }
 /* التابلت: نفس الشاشة الكاملة بمقاسات أوسع شوية. الفرق المهم إن المجموعة
    كلها (تعريف + قرار) بتتمركز رأسيًا ككتلة واحدة: على ١٢٨٠px طول، شدّ
    الأزرار للقاع كان بيسيب فراغ ٤٥٠px وسط الشاشة والتصميم يبان مفكوكًا. */
 @media (min-width: 700px) and (min-height: 800px){
-  .wl-mark{ width: 104px; height: 104px; padding: 19px; }
+  .wl-board{ --wl-bs: 168px; }
   .wl-info, .wl-top, .wl-feats, .wl-actions{ max-width: 560px; }
   .wl-screen{ gap: var(--space-7); justify-content: center; }
   .wl-info{ flex: 0 0 auto; gap: var(--space-6); }
@@ -4025,9 +4105,14 @@ html.kb-open .ch-input{
 .ch-bubble--mine .ch-ment-tag{ color: #fff; background: rgba(255,255,255,.22); }
 /* فقاعة فيها منشن ليّ: شريط جانبي بلون الهوية */
 .ch-bubble--ment{ box-shadow: inset 3px 0 0 var(--color-primary, #6fd1ff); }
-/* لوحة اختيار العضو فوق حقل الكتابة */
+/* لوحة اختيار العضو فوق حقل الكتابة.
+   flex:0 0 auto مهمّة: اللوحة شقيقة لحقل الكتابة داخل عمود flex، وبالافتراضي
+   (‏flex-shrink:1) كانت تنضغط لشريط رقيق بلا أي صف ظاهر أول ما الكيبورد يفتح
+   ويقصر الشيت — فالمنشن كان موجودًا لكن غير قابل للاختيار. وحدّ الارتفاع
+   بـdvh عشان ماتبلعش المحادثة على الشاشات القصيرة. */
 .ch-ment{
-  max-height: 210px; overflow-y: auto;
+  flex: 0 0 auto;
+  max-height: min(210px, 38dvh); overflow-y: auto;
   display: flex; flex-direction: column;
   margin: 0 var(--space-2, 8px);
   border-radius: var(--radius-md, 10px);
@@ -4037,7 +4122,7 @@ html.kb-open .ch-input{
 }
 .ch-ment__row{
   display: flex; align-items: center; gap: var(--space-2, 8px);
-  padding: 7px 10px; width: 100%;
+  padding: 7px 10px; width: 100%; min-height: 44px;
   background: none; border: 0; cursor: pointer; text-align: start;
   color: var(--color-text-primary, #fff);
 }
@@ -4747,7 +4832,12 @@ html.kb-open .ch-input{
 html.kb-open #amkh-chat-modal{ padding-bottom: 0; }
 html.kb-open #amkh-chat-modal .ds-sheet{
   max-height: none;
-  height: calc(100% - var(--kb, 0px));
+  /* حماية أخيرة: مهما كانت --kb غلط (تابلت بكيبورد عائم، نافذة مقسومة، قيمة
+     شاذّة من النظام) الشات مايقلّش عن ثلث الشاشة — فمستحيل تتقصّ الترويسة
+     ويختفي كل شيء. الكيبورد لا يغطّي 70٪ من الشاشة على أي جهاز حقيقي، فالحدّ
+     ده مابيأثّرش على الحالة السليمة إطلاقًا. --kb-native (المقيسة من جافا)
+     هي المصدر الأساسي الآن، وده الحبل الاحتياطي. */
+  height: max(32%, calc(100% - var(--kb, 0px)));
   min-height: 0;
 }
 @media (min-width: 700px){
@@ -4851,6 +4941,95 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   box-shadow: inset 0 0 0 1.5px var(--color-primary, #6fd1ff);
 }
 @keyframes msgActEmo{ to{ transform: scale(1); opacity: 1; } }
+
+/* زر «+» آخر الشريط: بيفتح المنتقي الكامل. أيقونة SVG فمحتاجة أبعاد صريحة
+   (الإخوة إيموجي نصّية فبتاخد حجمها من font-size). */
+.msg-act__emo--more{
+  background: var(--color-bg-elevated, rgba(255,255,255,.10));
+  color: var(--color-text-primary, #fff);
+}
+.msg-act__emo--more svg{ width: 20px; height: 20px; display: block; }
+
+/* ══ منتقي التفاعلات الكامل ══ */
+.emo-pk{ max-height: 78dvh; }
+.emo-pk__head{
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2, 8px);
+  margin: 2px var(--space-4, 16px) var(--space-2, 8px);
+}
+.emo-pk__h{
+  font-size: 15px; font-weight: 800;
+  color: var(--color-text-primary, #fff);
+}
+.emo-pk__clr{
+  border: 1px solid var(--color-border, rgba(255,255,255,.14));
+  background: var(--color-surface, rgba(255,255,255,.06));
+  color: var(--color-text-secondary, #9aa);
+  border-radius: 999px; padding: 5px 11px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: inherit;
+}
+.emo-pk__clr:active{ transform: scale(.95); }
+
+/* شريط التصنيفات — ثابت فوق الشبكة وقابل للسحب أفقيًا */
+.emo-pk__tabs{
+  display: flex; align-items: center; gap: 2px;
+  flex: 0 0 auto;
+  margin: 0 var(--space-3, 12px) var(--space-2, 8px);
+  padding-bottom: 6px;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.10));
+}
+.emo-pk__tabs::-webkit-scrollbar{ display: none; }
+.emo-pk__tab{
+  flex: 0 0 auto;
+  width: 40px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 9px;
+  background: transparent; cursor: pointer;
+  font-size: 19px; line-height: 1;
+  color: var(--color-text-secondary, #9aa);
+  opacity: .62; transition: opacity .14s ease, background .14s ease;
+}
+.emo-pk__tab svg{ width: 19px; height: 19px; display: block; }
+.emo-pk__tab.is-on{
+  opacity: 1;
+  background: rgba(111, 209, 255, .18);                                  /* احتياطي */
+  background: color-mix(in srgb, var(--color-primary, #6fd1ff) 20%, transparent);
+  color: var(--color-primary, #6fd1ff);
+}
+
+/* جسم المنتقي: أقسام متتابعة، والتبويب بيمرّر لعنوان قسمه */
+.emo-pk .emo-pk__body{
+  padding: 0 var(--space-3, 12px) var(--space-3, 12px);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.emo-pk__ttl{
+  position: sticky; top: 0; z-index: 2;
+  padding: 7px 2px 5px;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .2px;
+  color: var(--color-text-secondary, #9aa);
+  background: var(--color-bg-elevated, rgba(20,20,26,.97));
+}
+.emo-pk__grid{
+  display: grid; gap: 2px;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+}
+.emo-pk__c{
+  aspect-ratio: 1 / 1; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 10px;
+  background: transparent; cursor: pointer;
+  font-size: 25px; line-height: 1;
+  transition: background .12s ease, transform .12s ease;
+}
+.emo-pk__c:active{ transform: scale(.86); background: var(--color-surface, rgba(255,255,255,.08)); }
+.emo-pk__c.is-mine{
+  background: rgba(111, 209, 255, .22);                                  /* احتياطي */
+  background: color-mix(in srgb, var(--color-primary, #6fd1ff) 26%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--color-primary, #6fd1ff);
+}
 
 /* لقطة الرسالة المقصودة */
 .msg-act__peek{

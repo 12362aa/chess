@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
+const mailer = require('./mailer');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'amkh_fallback_secret_key_123';
@@ -20,55 +21,220 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// نقطة إنشاء حساب جديد
+/* ══════════════════════════════════════════════════════════════════════
+   #13 — إنشاء الحساب اليدوي بتأكيد البريد
+   ──────────────────────────────────────────────────────────────────────
+   قبل كده: تكتب أي بريد وكلمة مرور فيتعمل حساب في اللحظة. النتيجة إن
+   نصّ الحسابات ببريد فيه غلطة مطبعية أو ببريد حدّ تاني — وصاحبه يوم
+   ما ينسى كلمته مايقدرش يسترجعها لأن رمز الاستعادة بيروح لبريد مش
+   بريده، والحساب بكل تقدّمه بيضيع. وكمان كان ينفع تعمل حسابات ببريد
+   ناس تانية.
+   بقى المسار خطوتين:
+     POST /api/register         { email, password, display_name }  → يبعت الرمز
+     POST /api/register-verify  { email, code }                    → يعمل الحساب
+   الحساب مايتكتبش في users غير في الخطوة التانية. لحد ساعتها الطلب في
+   pending_signups ببصمة bcrypt لكلمة المرور، فلا حساب نصف جاهز ولا
+   كلمة مرور خام في القاعدة.
+
+   توافق النسخ المنشورة: البِنى القديمة (٢٨ وأقل) بتتوقّع {token,user}
+   من /register فورًا. لو غيّرنا الردّ عليها كل واحد ماحدّشش التطبيق
+   مش هيقدر يعمل حسابًا خالص. فالتأكيد بيسري على العميل اللي بيعلن إنه
+   يعرفه (verify_flow) — ولما الناس تحدّث، AMKH_REQUIRE_VERIFIED_SIGNUP=1
+   بتقفل الباب القديم بلا لمس كود.
+══════════════════════════════════════════════════════════════════════ */
+const SIGNUP_TTL_MIN = 15;
+const SIGNUP_COOLDOWN_MS = 60000;
+const SIGNUP_MAX_PER_HOUR = 5;
+const SIGNUP_MAX_ATTEMPTS = 5;
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+/* الإعدادات الافتراضية لأي حساب جديد — مصدر واحد للدخول اليدوي وجوجل */
+function defaultSettings() {
+  return {
+    appTheme: 'Amkh', pieceStyle: 'Neo', boardColor: 'خشب',
+    showCoordinates: true, highlightLastMove: true, highlightCheck: true,
+    showHintPoints: true, hintColor: 'سماوي', confirmExit: true,
+    soundEnabled: true, soundVolume: 80,
+  };
+}
+
+/* كتابة الحساب فعلًا. الصفوف التلاتة (users + user_settings + presence)
+   في معاملة واحدة: حساب بلا صفّ إعدادات كان بيطلّع أعطالًا غامضة بعدين. */
+function createLocalAccount({ email, passwordHash, displayName }) {
+  /* اسم المستخدم بيتولّد وقت التسجيل: هو الهوية اللي الأصدقاء
+     بيلاقوا بيها، والبحث بيه مش بالإيميل عشان مانكشفش إيميلات الناس */
+  const username = uniqueUsername(displayName || email);
+  const id = db.transaction(() => {
+    const info = db.prepare(`INSERT INTO users (email, password_hash, display_name, username, provider)
+                             VALUES (?, ?, ?, ?, 'local')`)
+      .run(email, passwordHash, displayName || '', username);
+    const uid = info.lastInsertRowid;
+    db.prepare('INSERT INTO user_settings (user_id, settings_json) VALUES (?, ?)')
+      .run(uid, JSON.stringify(defaultSettings()));
+    db.prepare('INSERT OR IGNORE INTO presence (user_id) VALUES (?)').run(uid);
+    return uid;
+  })();
+  return { id, email, display_name: displayName || '', username, provider: 'local' };
+}
+
+function signToken(id, email) {
+  return jwt.sign({ id, email }, JWT_SECRET, { expiresIn: '30d' });
+}
+
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, display_name } = req.body;
+    const b = req.body || {};
+    const email = String(b.email || '').trim().toLowerCase();
+    const password = String(b.password || '');
+    const displayName = String(b.display_name || '').trim();
+    /* العميل الجديد بيعلن إنه يعرف خطوة التأكيد */
+    const wantsVerify = !!(b.verify_flow || b.verifyFlow);
+    const forceVerify = process.env.AMKH_REQUIRE_VERIFIED_SIGNUP === '1';
+
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'البريد وكلمة المرور مطلوبان' });
+    }
+    if (!EMAIL_RE.test(email)) {
+      return res.status(400).json({ error: 'أدخل بريدًا إلكترونيًا صحيحًا' });
     }
     if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+      return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' });
     }
 
-    const checkUser = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-    if (checkUser) {
-      return res.status(400).json({ error: 'Email is already registered' });
+    const taken = db.prepare('SELECT id, provider FROM users WHERE lower(email) = ?').get(email);
+    if (taken) {
+      /* الردّ هنا بيكشف إن البريد عنده حساب — وده مقصود: المستخدم لازم
+         يعرف يعمل إيه، والبديل («تم، شوف بريدك») بيسيبه مستنّي رسالة
+         عمرها ماتيجي. نفس اختيار كل التطبيقات اللي فيها تسجيل. */
+      return res.status(409).json({
+        error: taken.provider === 'google'
+          ? 'هذا البريد مسجَّل بحساب جوجل — استخدم زرّ «المتابعة بحساب جوجل»'
+          : 'هذا البريد مسجَّل بالفعل — سجّل الدخول أو استخدم «نسيت كلمة المرور»',
+        exists: true, provider: taken.provider || 'local',
+      });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    /* تنظيف الطلبات الميتة: صفّ فات وقته بساعة مالوش أي معنى، وسيبانه
+       معناه إن الكولداون بيفضل ساري على بريد نسي صاحبه الموضوع خلاص. */
+    try {
+      db.prepare('DELETE FROM pending_signups WHERE expires_at < ?').run(Date.now() - 3600000);
+    } catch (e) {}
 
-    /* اسم المستخدم بيتولّد وقت التسجيل: هو الهوية اللي الأصدقاء
-       بيلاقوا بيها، والبحث بيه مش بالإيميل عشان مانكشفش إيميلات الناس */
-    const username = uniqueUsername(display_name || email);
-    const insertUser = db.prepare('INSERT INTO users (email, password_hash, display_name, username, provider) VALUES (?, ?, ?, ?, \'local\')');
-    const result = insertUser.run(email, hashedPassword, display_name || '', username);
-    const userId = result.lastInsertRowid;
+    /* مسار التوافق: عميل قديم + الإجبار مقفول → الحساب يتعمل فورًا.
+       ولو البريد مش مهيّأ على الخادم بنعمله برضه: قفل التسجيل على كل
+       الناس لأن متغيّر بيئة ناقص أسوأ بكتير من تسجيل بلا تأكيد، والبلاغ
+       بيروح للّوج عشان يتصلّح. */
+    const mailOk = mailer.ready();
+    if (!mailOk) {
+      console.error('[register] SMTP غير مهيّأ (' + mailer.status().missing.join(', ')
+        + ') — التسجيل ماشي بلا تأكيد بريد');
+    }
+    if ((!wantsVerify && !forceVerify) || !mailOk) {
+      if (!mailOk && forceVerify) {
+        return res.status(503).json({ error: 'خدمة البريد غير مهيّأة على الخادم حاليًا. جرّب لاحقًا.' });
+      }
+      const hash = await bcrypt.hash(password, 10);
+      const user = createLocalAccount({ email, passwordHash: hash, displayName });
+      return res.json({ token: signToken(user.id, email), user });
+    }
 
-    // إضافة إعدادات افتراضية
-    const defaultSettings = {
-      appTheme: "Amkh",
-      pieceStyle: "Neo",
-      boardColor: "خشب",
-      showCoordinates: true,
-      highlightLastMove: true,
-      highlightCheck: true,
-      showHintPoints: true,
-      hintColor: "سماوي",
-      confirmExit: true,
-      soundEnabled: true,
-      soundVolume: 80
-    };
-    db.prepare('INSERT INTO user_settings (user_id, settings_json) VALUES (?, ?)').run(userId, JSON.stringify(defaultSettings));
-    
-    // إضافة سجل presence أولي
-    db.prepare('INSERT INTO presence (user_id) VALUES (?)').run(userId);
-
-    const token = jwt.sign({ id: userId, email }, JWT_SECRET, { expiresIn: '30d' });
-    
-    res.json({ token, user: { id: userId, email, display_name, username, provider: 'local' } });
+    return await requestSignupCode(res, { email, password, displayName });
   } catch (error) {
-    console.error(error);
+    console.error('[register]', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/* توليد رمز التأكيد وحفظ الطلب وإرساله. نفس الدالة بتخدم الطلب الأول
+   وإعادة الإرسال — إعادة الإرسال هي نفس النداء بنفس البريد. */
+async function requestSignupCode(res, { email, password, displayName }) {
+  const now = Date.now();
+  const prev = db.prepare('SELECT sent_at, hour_start, hour_count FROM pending_signups WHERE email = ?').get(email);
+  if (prev) {
+    if (now - Number(prev.sent_at || 0) < SIGNUP_COOLDOWN_MS) {
+      const wait = Math.ceil((SIGNUP_COOLDOWN_MS - (now - Number(prev.sent_at))) / 1000);
+      /* pending:true بتقول للعميل «عندك رمز في بريدك بالفعل» فيوديه على
+         خانة الرمز بدل ما يسيبه يدوس «إنشاء» ويتفرّج على «انتظر». */
+      return res.status(429).json({
+        error: `انتظر ${secondsAr(wait)} قبل طلب رمز جديد`,
+        retry_after: wait, pending: true, ttl_minutes: SIGNUP_TTL_MIN,
+      });
+    }
+    if (now - Number(prev.hour_start || 0) < 3600000 && Number(prev.hour_count || 0) >= SIGNUP_MAX_PER_HOUR) {
+      return res.status(429).json({ error: 'طلبت رموزًا كثيرة لهذا البريد. جرّب بعد ساعة.', pending: true });
+    }
+  }
+  const hStart = (prev && now - Number(prev.hour_start || 0) < 3600000) ? Number(prev.hour_start) : now;
+  const hCount = (prev && now - Number(prev.hour_start || 0) < 3600000) ? Number(prev.hour_count || 0) + 1 : 1;
+
+  const code = makeResetCode();
+  const [codeHash, passHash] = await Promise.all([bcrypt.hash(code, 10), bcrypt.hash(password, 10)]);
+  db.prepare(`INSERT INTO pending_signups (email, code_hash, password_hash, display_name, expires_at, attempts, sent_at, hour_start, hour_count)
+              VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)
+              ON CONFLICT(email) DO UPDATE SET code_hash=excluded.code_hash,
+                password_hash=excluded.password_hash, display_name=excluded.display_name,
+                expires_at=excluded.expires_at, attempts=0, sent_at=excluded.sent_at,
+                hour_start=excluded.hour_start, hour_count=excluded.hour_count`)
+    .run(email, codeHash, passHash, displayName || '', now + SIGNUP_TTL_MIN * 60000, now, hStart, hCount);
+
+  try {
+    await mailer.sendSignupCode({ to: email, code, name: displayName, minutes: SIGNUP_TTL_MIN });
+  } catch (e) {
+    /* ماوصلش بريد → مانسيبش كولداون على رمز مش موجود */
+    db.prepare('DELETE FROM pending_signups WHERE email = ?').run(email);
+    console.error('[register] فشل إرسال رمز التأكيد:', e.message);
+    return res.status(502).json({ error: 'تعذّر إرسال البريد الآن. تأكّد من صحة بريدك وأعِد المحاولة.' });
+  }
+  return res.json({ ok: true, verify: true, email, ttl_minutes: SIGNUP_TTL_MIN });
+}
+
+/* الخطوة التانية: الرمز صحيح → الحساب يتولد ويتسجّل دخوله على طول.
+   كلمة المرور مش بتترحّل من العميل تاني — بصمتها محفوظة من الخطوة
+   الأولى، فحتى لو حد شاف الطلب ده مافيهوش كلمة مرور. */
+router.post('/register-verify', async (req, res) => {
+  try {
+    const b = req.body || {};
+    const email = String(b.email || '').trim().toLowerCase();
+    const code = String(b.code || '').replace(/\D/g, '');
+    if (!email || !code) return res.status(400).json({ error: 'البريد والرمز مطلوبان' });
+
+    const row = db.prepare('SELECT * FROM pending_signups WHERE email = ?').get(email);
+    if (!row || Number(row.expires_at) < Date.now()) {
+      if (row) db.prepare('DELETE FROM pending_signups WHERE email = ?').run(email);
+      return res.status(400).json({ error: 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.', expired: true });
+    }
+    if (Number(row.attempts) >= SIGNUP_MAX_ATTEMPTS) {
+      db.prepare('DELETE FROM pending_signups WHERE email = ?').run(email);
+      return res.status(429).json({ error: 'تجاوزت عدد المحاولات. اطلب رمزًا جديدًا.', expired: true });
+    }
+
+    const okCode = await bcrypt.compare(code, row.code_hash);
+    if (!okCode) {
+      const left = SIGNUP_MAX_ATTEMPTS - (Number(row.attempts) + 1);
+      db.prepare('UPDATE pending_signups SET attempts = attempts + 1 WHERE email = ?').run(email);
+      if (left <= 0) {
+        db.prepare('DELETE FROM pending_signups WHERE email = ?').run(email);
+        return res.status(429).json({ error: 'تجاوزت عدد المحاولات. اطلب رمزًا جديدًا.', expired: true });
+      }
+      return res.status(400).json({ error: `الرمز غير صحيح — باقي لك ${attemptsAr(left)}`, attempts_left: left });
+    }
+
+    /* سبق حدّ وسجّل بنفس البريد وإحنا مستنيين الرمز (أو دخل بجوجل) */
+    const clash = db.prepare('SELECT id FROM users WHERE lower(email) = ?').get(email);
+    if (clash) {
+      db.prepare('DELETE FROM pending_signups WHERE email = ?').run(email);
+      return res.status(409).json({ error: 'هذا البريد مسجَّل بالفعل — سجّل الدخول', exists: true });
+    }
+
+    const user = createLocalAccount({
+      email, passwordHash: row.password_hash, displayName: row.display_name || '',
+    });
+    db.prepare('DELETE FROM pending_signups WHERE email = ?').run(email);
+    db.prepare("UPDATE users SET last_login_at = datetime('now') WHERE id = ?").run(user.id);
+    res.json({ ok: true, token: signToken(user.id, email), user });
+  } catch (error) {
+    console.error('[register-verify]', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -269,7 +435,183 @@ router.post('/google', async (req, res) => {
   }
 });
 
-/* تغيير اسم المستخدم — الهوية العامة اللي الأصدقاء بيلاقوك بيها */
+/* ══════════════════════════════════════════════════════════════════════
+   #6 — نسيت كلمة المرور: رمز من ٦ أرقام يوصل على البريد
+   ──────────────────────────────────────────────────────────────────────
+   الدخول اليدوي ماكانش له أي طريق للرجوع لو المستخدم نسي كلمته: يفضل
+   مقفول خارج حسابه للأبد. المسار خطوتان بس:
+     POST /api/forgot-password  { email }                      → يبعت الرمز
+     POST /api/reset-password   { email, code, password }      → يغيّرها
+
+   قرارات أمنية مقصودة:
+   • الردّ على forgot-password **موحّد دائمًا** («لو البريد مسجّل هيوصلك
+     رمز») — سواء الحساب موجود أو لا أو مرتبط بجوجل. أي تفريق في الردّ
+     يحوّل المسار لأداة تكشف مَن عنده حساب عندنا. المستخدم الحقيقي بيعرف
+     الحقيقة في بريده: حساب جوجل بيوصله بريد يقوله «ادخل بزر جوجل».
+   • بنخزّن بصمة bcrypt للرمز لا الرمز نفسه.
+   • التقييد بالبريد لا بالـIP: الخادم خلف نفق (cloudflared/ngrok) وبلا
+     إعداد trust proxy، فكل الطلبات بتبان جاية من عنوان واحد — تقييد
+     بالـIP كان معناه إن أول مستخدم يستهلك الحدّ للناس كلها. فالكولداون
+     (٦٠ ثانية) والسقف (٥ في الساعة) محسوبين لكل بريد على حدة.
+   • ٥ محاولات خاطئة بتحرق الرمز — ١٠٠٠٠٠٠ احتمال ÷ ٥ محاولات يعني
+     التخمين غير عملي.
+══════════════════════════════════════════════════════════════════════ */
+const RESET_TTL_MIN = 15;          // صلاحية الرمز بالدقائق
+const RESET_COOLDOWN_MS = 60000;   // أقل فاصل بين طلبين لنفس البريد
+const RESET_MAX_PER_HOUR = 5;
+const RESET_MAX_ATTEMPTS = 5;
+
+/* تصريف المعدود العربي: 1 و2 لهما صيغتهما بلا رقم، و3-10 جمع، و11+ مفرد.
+   الرسائل دي بتوصل للمستخدم فمافيش «باقي لك 1 محاولة». */
+function attemptsAr(n) {
+  if (n === 1) return 'محاولة واحدة';
+  if (n === 2) return 'محاولتان';
+  return n + ' ' + ((n >= 3 && n <= 10) ? 'محاولات' : 'محاولة');
+}
+function secondsAr(n) {
+  if (n === 1) return 'ثانية واحدة';
+  if (n === 2) return 'ثانيتين';
+  return n + ' ' + ((n >= 3 && n <= 10) ? 'ثوانٍ' : 'ثانية');
+}
+
+/* رمز من ٦ أرقام بمولّد آمن تشفيريًا. Math.random متوقّع، والرمز ده
+   مفتاح حساب — فبناخده من crypto. */
+function makeResetCode() {
+  const crypto = require('crypto');
+  return String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+}
+
+/* الردّ الموحّد: نفس النصّ ونفس الحالة في كل الأحوال. */
+function resetAccepted(res) {
+  return res.json({
+    ok: true,
+    message: 'إذا كان البريد مسجَّلًا لدينا فسيصلك رمز إعادة التعيين خلال دقيقة.',
+    ttl_minutes: RESET_TTL_MIN,
+  });
+}
+
+router.post('/forgot-password', async (req, res) => {
+  const email = String((req.body && req.body.email) || '').trim().toLowerCase();
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return res.status(400).json({ error: 'أدخل بريدًا إلكترونيًا صحيحًا' });
+  }
+  if (!mailer.ready()) {
+    /* الخادم مش مهيّأ للبريد: بلاغ صريح بدل صمت يخلّي المستخدم يستنى
+       رسالة عمرها ما هتيجي. */
+    console.error('[forgot-password] SMTP غير مهيّأ:', mailer.status().missing.join(', '));
+    return res.status(503).json({ error: 'خدمة البريد غير مهيّأة على الخادم حاليًا. جرّب لاحقًا.' });
+  }
+
+  const now = Date.now();
+  const prev = db.prepare('SELECT sent_at, hour_start, hour_count FROM password_resets WHERE email = ?').get(email);
+  if (prev) {
+    if (now - Number(prev.sent_at || 0) < RESET_COOLDOWN_MS) {
+      const wait = Math.ceil((RESET_COOLDOWN_MS - (now - Number(prev.sent_at))) / 1000);
+      return res.status(429).json({ error: `انتظر ${secondsAr(wait)} قبل طلب رمز جديد`, retry_after: wait });
+    }
+    const hStart = Number(prev.hour_start || 0);
+    if (now - hStart < 3600000 && Number(prev.hour_count || 0) >= RESET_MAX_PER_HOUR) {
+      return res.status(429).json({ error: 'طلبت رموزًا كثيرة. جرّب بعد ساعة.' });
+    }
+  }
+
+  const user = db.prepare('SELECT id, email, display_name, password_hash, provider FROM users WHERE lower(email) = ?').get(email);
+
+  /* بريد غير مسجَّل: مانبعتش حاجة ومانكتبش صفًّا (عشان مايتحوّلش الجدول
+     لمخزن بريد مجهول)، والردّ زي الناجح بالحرف. */
+  if (!user) return resetAccepted(res);
+
+  const hStart = (prev && now - Number(prev.hour_start || 0) < 3600000) ? Number(prev.hour_start) : now;
+  const hCount = (prev && now - Number(prev.hour_start || 0) < 3600000) ? Number(prev.hour_count || 0) + 1 : 1;
+
+  /* حساب جوجل بلا كلمة مرور: نبعت له بريدًا يشرح الطريق الصحيح — بدون
+     رمز، وبدون تغيير في الردّ. وبنسجّل الطلب في الجدول عشان الكولداون
+     يسري عليه كذلك فمايتحوّلش لمرسال بريد مجاني. */
+  if (!user.password_hash) {
+    db.prepare(`INSERT INTO password_resets (email, code_hash, expires_at, attempts, sent_at, hour_start, hour_count)
+                VALUES (?, '-', 0, 0, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET code_hash='-', expires_at=0, attempts=0,
+                  sent_at=excluded.sent_at, hour_start=excluded.hour_start, hour_count=excluded.hour_count`)
+      .run(email, now, hStart, hCount);
+    mailer.sendGoogleNotice({ to: user.email, name: user.display_name })
+      .catch(e => console.error('[forgot-password] فشل بريد تنبيه جوجل:', e.message));
+    return resetAccepted(res);
+  }
+
+  const code = makeResetCode();
+  const codeHash = await bcrypt.hash(code, 10);
+  db.prepare(`INSERT INTO password_resets (email, code_hash, expires_at, attempts, sent_at, hour_start, hour_count)
+              VALUES (?, ?, ?, 0, ?, ?, ?)
+              ON CONFLICT(email) DO UPDATE SET code_hash=excluded.code_hash,
+                expires_at=excluded.expires_at, attempts=0, sent_at=excluded.sent_at,
+                hour_start=excluded.hour_start, hour_count=excluded.hour_count`)
+    .run(email, codeHash, now + RESET_TTL_MIN * 60000, now, hStart, hCount);
+
+  try {
+    await mailer.sendResetCode({ to: user.email, code, name: user.display_name, minutes: RESET_TTL_MIN });
+  } catch (e) {
+    /* الإرسال فشل: نمسح الصفّ عشان مايفضلش كولداون على رمز ماوصلش،
+       والمستخدم يقدر يجرّب تاني فورًا. */
+    db.prepare('DELETE FROM password_resets WHERE email = ?').run(email);
+    console.error('[forgot-password] فشل الإرسال:', e.message);
+    return res.status(502).json({ error: 'تعذّر إرسال البريد الآن. جرّب مرة أخرى.' });
+  }
+  return resetAccepted(res);
+});
+
+router.post('/reset-password', async (req, res) => {
+  const email = String((req.body && req.body.email) || '').trim().toLowerCase();
+  const code = String((req.body && req.body.code) || '').replace(/\D/g, '');
+  const password = String((req.body && req.body.password) || '');
+  if (!email || !code || !password) {
+    return res.status(400).json({ error: 'البريد والرمز وكلمة المرور مطلوبة' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' });
+  }
+
+  const row = db.prepare('SELECT code_hash, expires_at, attempts FROM password_resets WHERE email = ?').get(email);
+  /* رمز غير موجود أو منتهٍ أو بتاع حساب جوجل ('-') — كلهم نفس الردّ. */
+  if (!row || row.code_hash === '-' || Number(row.expires_at) < Date.now()) {
+    db.prepare('DELETE FROM password_resets WHERE email = ?').run(email);
+    return res.status(400).json({ error: 'الرمز غير صحيح أو انتهت صلاحيته', expired: true });
+  }
+  if (Number(row.attempts) >= RESET_MAX_ATTEMPTS) {
+    db.prepare('DELETE FROM password_resets WHERE email = ?').run(email);
+    return res.status(429).json({ error: 'تجاوزت عدد المحاولات. اطلب رمزًا جديدًا.', expired: true });
+  }
+
+  const okCode = await bcrypt.compare(code, row.code_hash);
+  if (!okCode) {
+    const left = RESET_MAX_ATTEMPTS - (Number(row.attempts) + 1);
+    db.prepare('UPDATE password_resets SET attempts = attempts + 1 WHERE email = ?').run(email);
+    if (left <= 0) {
+      db.prepare('DELETE FROM password_resets WHERE email = ?').run(email);
+      return res.status(429).json({ error: 'تجاوزت عدد المحاولات. اطلب رمزًا جديدًا.', expired: true });
+    }
+    return res.status(400).json({ error: `الرمز غير صحيح — باقي لك ${attemptsAr(left)}`, attempts_left: left });
+  }
+
+  const user = db.prepare('SELECT id, email, display_name, username, provider, avatar_url, country FROM users WHERE lower(email) = ?').get(email);
+  if (!user) {
+    db.prepare('DELETE FROM password_resets WHERE email = ?').run(email);
+    return res.status(400).json({ error: 'الرمز غير صحيح أو انتهت صلاحيته', expired: true });
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  db.prepare("UPDATE users SET password_hash = ?, last_login_at = datetime('now') WHERE id = ?").run(hash, user.id);
+  db.prepare('DELETE FROM password_resets WHERE email = ?').run(email);
+
+  /* بندخّله فورًا: هو أثبت ملكية البريد وعرف كلمة المرور الجديدة، فطلب
+     تسجيل دخول تاني بعد كل ده خطوة زايدة بلا فايدة أمنية. */
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
+  res.json({ ok: true, token, user });
+});
+
+/* تشخيص إعداد البريد — بلا أي سرّ في الردّ. للتشغيل والصيانة فقط. */
+router.get('/mail-status', (req, res) => res.json(mailer.status()));
+
+
 router.post('/username', authenticateToken, (req, res) => {
   const raw = String((req.body && req.body.username) || '').trim();
   if (!/^[a-zA-Z0-9_]{3,16}$/.test(raw)) {

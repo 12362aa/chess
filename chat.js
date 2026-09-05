@@ -243,10 +243,12 @@ function reactionsFor(scope, ids, me) {
   return map;
 }
 
-/* الإيموجي المسموح: محارف قصيرة بلا مسافات (بنمنع أي نصّ طويل) */
+/* الإيموجي المسموح: محارف قصيرة بلا مسافات (بنمنع أي نصّ طويل).
+   الحدّ 24 مش 12: بعد ما بقى المنتقي كامل، الإيموجي المركّبة (لون البشرة،
+   تسلسلات ZWJ زي 😮‍💨) بتاخد لوحدها 5-11 وحدة UTF-16، و12 كانت بترفضها. */
 function cleanEmoji(v) {
   const s = String(v || '').trim();
-  if (!s || s.length > 12 || /\s/.test(s)) return null;
+  if (!s || s.length > 24 || /\s/.test(s)) return null;
   return s;
 }
 

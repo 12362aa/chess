@@ -678,19 +678,50 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiting for auth
+/* ══ تقييد المعدّل لمسارات الحساب ══
+   كان فيه عطل صامت هنا: الـauthLimiter كان مركّبًا **بعد** الراوتر
+   (app.use('/api', authModule.router) قبله)، والراوتر بيردّ على الطلب
+   فالليمتر ماكانش بيشتغل ولا مرة. اتصلّح الترتيب تحت.
+
+   وكمان: الخادم شغّال خلف نفق (cloudflared/ngrok) فالعنوان اللي بيوصل
+   للسوكِت هو عنوان النفق نفسه — لولا trust proxy كان كل مستخدمي التطبيق
+   بيتشاركوا دلو واحد، وأول خمس محاولات تقفل الدخول على الناس كلها. مع
+   trust proxy = 1 بناخد آخر قيمة في X-Forwarded-For اللي بيحطّها النفق،
+   يعني العنوان الحقيقي، ومش قابل للتلاعب من العميل لأن النفق بيضيف
+   قيمته بعد أي قيمة يبعتها هو.
+
+   الحدّ مرفوع من 5 إلى 40: شركات المحمول في مصر بتستخدم CGNAT، فآلاف
+   المستخدمين ممكن يطلعوا من عنوان واحد — خمسة كانت هتقفل عليهم. الحماية
+   الحقيقية للتخمين مش هنا: هي في bcrypt وفي القيود لكل بريد جوّه
+   auth.js. الليمتر ده لمنع الإغراق فقط. */
+app.set('trust proxy', 1);
+
 const rateLimit = require('express-rate-limit');
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
-  message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+  windowMs: 15 * 60 * 1000,
+  limit: 40,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'محاولات كثيرة من هذا الاتصال. جرّب بعد قليل.' }
 });
+/* مسارات استعادة كلمة المرور (#6): سقف أعلى شوية لأن التقييد الحقيقي
+   لكل بريد (كولداون 60 ثانية + 5 في الساعة) جوّه المسار نفسه. */
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'محاولات كثيرة من هذا الاتصال. جرّب بعد قليل.' }
+});
+
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
+/* تأكيد بريد التسجيل (#13): التقييد الحقيقي لكل بريد جوّه المسار
+   (5 محاولات للرمز + كولداون 60 ثانية)، فالسقف هنا للإغراق فقط. */
+app.use('/api/register-verify', resetLimiter);
+app.use('/api/forgot-password', resetLimiter);
+app.use('/api/reset-password', resetLimiter);
 
 const authModule = require('./auth');
 app.use('/api', authModule.router);
-// Apply rate limiter specifically to login and register (if they are under /api/login and /api/register)
-app.use('/api/login', authLimiter);
-app.use('/api/register', authLimiter);
 
 const friendsRouter = require('./friends');
 app.use('/api/friends', friendsRouter);
@@ -855,11 +886,11 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
 /* ══ إصدار التطبيق (#136) ══
    العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
    أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الوسم واسم الملف
-   بيتبعوا رقم الإصدار (v3.12 / chess-amkh-3.12.apk) عشان اللي بينزّل
+   بيتبعوا رقم الإصدار (v3.13 / chess-amkh-3.13.apk) عشان اللي بينزّل
    يدويًا من الموقع يعرف إيه اللي معاه. نبمب LATEST_* هنا مع كل إصدار. */
-const LATEST_VERSION = '3.12';
-const LATEST_CODE = 28;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.12/chess-amkh-3.12.apk';
+const LATEST_VERSION = '3.13';
+const LATEST_CODE = 29;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v3.13/chess-amkh-3.13.apk';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -1957,6 +1988,29 @@ function spectatorsOf(code) {
   return set ? [...set] : [];
 }
 
+/* ثيم اللوح والقطع بتاع لاعب — من إعداداته المتزامنة (chess-cfg-v6).
+   المتفرّج لازم يشوف المباراة بشكل صاحبه مش بشكله هو، فبنبعت الاسمين
+   جوّه اللقطة. «custom» بيتحوّل لـclassic: صورة اللوح المخصّصة متخزّنة
+   كـdata URL على جهاز صاحبها بس، والمتفرّج مايقدرش يجيبها. */
+function themeOfUser(userId) {
+  if (!userId) return null;
+  try {
+    const row = db.prepare('SELECT settings_json FROM user_settings WHERE user_id = ?').get(userId);
+    if (!row || !row.settings_json) return null;
+    const s = JSON.parse(row.settings_json);
+    if (!s || typeof s !== 'object') return null;
+    const nm = (v) => {
+      const t = String(v == null ? '' : v).trim().slice(0, 24);
+      return /^[A-Za-z0-9_]+$/.test(t) ? t : '';
+    };
+    let board = nm(s.boardTheme);
+    const pieces = nm(s.pieceStyle || s.pieces);
+    if (board === 'custom') board = 'classic';
+    if (!board && !pieces) return null;
+    return { board: board || '', pieces: pieces || '' };
+  } catch (e) { return null; }
+}
+
 function spectatorSnapshot(room) {
   const nameOf = (side) => (room[side] && room[side].name) || 'لاعب';
   const hostIsWhite = room.host && room.host.color === 'w';
@@ -1964,14 +2018,18 @@ function spectatorSnapshot(room) {
      المخزّنة عند آخر نقلة، فلو المتفرّج دخل في نص التفكير كان بيشوف وقت
      أكتر من الحقيقي لحد النقلة اللي بعدها. */
   const now = Date.now();
+  const wId = hostIsWhite ? room.hostId : room.guestId;
+  const bId = hostIsWhite ? room.guestId : room.hostId;
   return {
     type: 'spectate:started',
     room: room.code,
     rated: !!room.rated,
     white: hostIsWhite ? nameOf('host') : nameOf('guest'),
     black: hostIsWhite ? nameOf('guest') : nameOf('host'),
-    white_id: hostIsWhite ? room.hostId : room.guestId,
-    black_id: hostIsWhite ? room.guestId : room.hostId,
+    white_id: wId,
+    black_id: bId,
+    white_theme: themeOfUser(wId),
+    black_theme: themeOfUser(bId),
     moves: (room.mvLog || []).slice(),
     tc: room.tc || null,
     clock: room.clock ? {
@@ -2813,6 +2871,15 @@ wss.on('connection', (ws, req) => {
             .get(senderId, friendId, friendId, senderId);
           if (blocked) { send(ws, { type: 'friend:invite-error', reason: 'blocked' }); break; }
 
+          /* خصوصية المدعوّ: «من يمكنه دعوتي لمباراة» (الجميع/الأصدقاء/لا أحد).
+             التحقّق كان في مسار HTTP وحده (‏friends.js /invite)، والعميل بيبعت
+             الدعوات من هنا عبر السوكت — فالإعداد كان بلا أثر تمامًا: يقفله
+             المستخدم وتوصله الدعوات زي ما هي. */
+          if (!privacyRouter.canGameInvite(senderId, friendId)) {
+            send(ws, { type: 'friend:invite-error', reason: 'privacy' });
+            break;
+          }
+
           db.prepare(`UPDATE game_invites SET status = 'expired'
                       WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < datetime('now')`).run();
           const live = db.prepare(`SELECT id FROM game_invites WHERE from_id = ? AND to_id = ? AND status = 'pending'`).get(senderId, friendId);
@@ -2903,6 +2970,9 @@ wss.on('connection', (ws, req) => {
            group   = (اختياري) معرّف الحفلة لمكالمة جماعية
          مكالمة الحفلة = شبكة كاملة: كل زوج بيتبادل offer/answer/ice
          مستقل بنفس الرسائل دي والـ to بيبقى الطرف المحدّد.
+         كمان بنرحّل: call:mute (حالة كتم عضو في الحفلة) و
+         call:upgrade / call:upgrade-ok / call:upgrade-no (طلب تحويل
+         مكالمة صوتية لفيديو وردّه — العلّة ٨).
       ══════════════════════════════════════════════════════════════ */
       case 'call:invite':
       case 'call:accept':
@@ -2910,6 +2980,10 @@ wss.on('connection', (ws, req) => {
       case 'call:cancel':
       case 'call:end':
       case 'call:busy':
+      case 'call:mute':
+      case 'call:upgrade':
+      case 'call:upgrade-ok':
+      case 'call:upgrade-no':
       case 'call:offer':
       case 'call:answer':
       case 'call:ice': {
@@ -2936,6 +3010,8 @@ wss.on('connection', (ws, req) => {
           group: groupId || null,
         };
         if (msg.type === 'call:invite') { out.kind = (msg.callType === 'video') ? 'video' : 'audio'; out.members = Array.isArray(msg.members) ? msg.members.slice(0, 12).map(Number) : null; }
+        /* حالة الكتم في الحفلة (شبكة الأعضاء بتعرض أيقونة مكتوم) */
+        if (msg.type === 'call:mute') out.muted = !!msg.muted;
         if (sdp) out.sdp = sdp;
         if (cand) out.candidate = cand;
 

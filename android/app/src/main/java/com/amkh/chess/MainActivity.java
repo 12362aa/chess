@@ -29,28 +29,72 @@ public class MainActivity extends BridgeActivity {
        فلو رفعنا الأوراق/شات اللعبة بالقيمة الكاملة، يفضل فراغ أسود بمقدار nav bar
        بين صندوق الكتابة والكيبورد (اللي اشتكى منه أحمد). بنقيس ارتفاع الشريط من
        WindowInsets ونحقنه كـ--nav-bottom بالبكسل المنطقي (CSS px)، والـJS بيطرحه
-       من --kb عشان الصندوق يلزق في الكيبورد تمامًا على أي جهاز (أزرار/إيماءات/دوران). */
+       من --kb عشان الصندوق يلزق في الكيبورد تمامًا على أي جهاز (أزرار/إيماءات/دوران).
+
+       وبنحقن كذلك --kb-native: التغطية الفعلية للكيبورد جوّه الـWebView. راجع
+       injectInsets تحت — دي اللي أنهت عطل الشات على التابلت نهائيًا. */
     private void setupNavBarInset() {
         final WebView web = (getBridge() != null) ? getBridge().getWebView() : null;
         if (web == null) return;
         // تحديث فوري لو الـinsets اتغيّرت وقت التشغيل (دوران/تبديل نمط التنقّل).
+        // ملاحظة: Capacitor بيسجّل listener على parent الـWebView (مش عليه)، فمفيش
+        // تعارض. بس الـparent هو اللي بيحطّ padding=ime وقت الكيبورد، وتقليص
+        // الـWebView بيحصل في layout بعد ما الـlistener يخلص → بنقيس في post().
         ViewCompat.setOnApplyWindowInsetsListener(web, (v, insets) -> {
             injectNavInset(web);
+            web.post(() -> injectNavInset(web));
             return insets;   // مانستهلكش الـinsets — نعيدها زي ما هي عشان مانكسرش أي معالجة تانية
         });
+        // الكيبورد بيقلّص الـWebView (أندرويد ١٥+) فالقياس الصحيح وقته هو بعد
+        // الـlayout الجديد بالضبط — أدقّ توقيت متاح، وبيلقط الدوران كذلك.
+        web.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or2, ob) -> injectNavInset(web));
     }
 
-    /* بيقرأ ارتفاع شريط التنقّل من WindowInsets الحيّة ويحقنه في صفحة التطبيق.
-       مش بيعتمد على توقيت أي callback — بيقرأ القيمة الحالية، فبيشتغل حتى بعد ما
-       الصفحة يُعاد تحميلها (اللي بيمسح المتغيّر لو اتحقن قبل ما الصفحة تجهز). */
+    /* بيقرأ ارتفاع شريط التنقّل وتغطية الكيبورد من WindowInsets الحيّة ويحقنهم في
+       صفحة التطبيق. مش بيعتمد على توقيت أي callback — بيقرأ القيمة الحالية، فبيشتغل
+       حتى بعد ما الصفحة يُعاد تحميلها (اللي بيمسح المتغيّر لو اتحقن قبل ما الصفحة تجهز).
+
+       --kb-native = كم بكسلًا من صفحتنا يغطّيه الكيبورد فعلًا = تقاطع مستطيل
+       الـWebView مع منطقة الـIME:
+           التغطية = قاع الـWebView على الشاشة − قمّة الكيبورد على الشاشة
+       الصيغة دي صحيحة على كل الحالات بلا أي كشف ولا تخزين ولا تخصيص لجهاز:
+       • أندرويد ١٤ وأقل (WebView بينتهي عند قمّة شريط التنقّل): = ime − nav
+       • أندرويد ١٥+ (Capacitor بيحطّ padding=ime على حاوية الـWebView فيتقلّص): = صفر
+       • edge-to-edge بلا تقليص (الـWebView لقاع الشاشة): = ime كامل
+       • كيبورد التابلت العائم/المقسوم: النظام مابيبلّغش له ime inset → = صفر
+       الحالة الأخيرة هي اللي كانت مكسورة: التقدير القديم (ارتفاع الكيبورد من
+       البلاجن ناقص تقليص متوقَّع) كان بيفتح فراغًا بمقدار كيبورد مش مغطّي
+       أصلًا، ويقصّ الترويسة. القياس المباشر مايغلطش فيها. */
     private void injectNavInset(final WebView web) {
         if (web == null) return;
         WindowInsetsCompat wi = ViewCompat.getRootWindowInsets(web);
         if (wi == null) return;
         float density = getResources().getDisplayMetrics().density;
-        final int navCss = Math.round(wi.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom / (density <= 0 ? 1f : density));
+        if (density <= 0) density = 1f;
+        final int navCss = Math.round(wi.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom / density);
+
+        int ime = wi.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+        int coveredPx = 0;
+        if (ime > 0) {
+            try {
+                int[] loc = new int[2];
+                web.getLocationOnScreen(loc);
+                int webBottom = loc[1] + web.getHeight();
+                View decor = getWindow().getDecorView();
+                int[] dloc = new int[2];
+                decor.getLocationOnScreen(dloc);
+                int winBottom = dloc[1] + decor.getHeight();
+                coveredPx = Math.max(0, webBottom - (winBottom - ime));
+            } catch (Exception e) { coveredPx = 0; }
+        }
+        final int kbCss = Math.round(coveredPx / density);
+        /* بلا ذاكرة مؤقّتة عن قصد: أي تحميل جديد للصفحة بيمسح متغيّرات CSS، فلو
+           تخطّينا الحقن لأن القيمة «زي ما هي» تفضل الصفحة بلا --kb-native وتسقط
+           على التقدير القديم. نداء JS بسيط زي ده أرخص من عطل في الشات. */
         web.evaluateJavascript(
-            "document.documentElement&&document.documentElement.style.setProperty('--nav-bottom','" + navCss + "px')", null);
+            "(function(d){if(!d)return;d.style.setProperty('--nav-bottom','" + navCss + "px');"
+            + "d.style.setProperty('--kb-native','" + kbCss + "px');"
+            + "if(window.AMKH_kbNative)window.AMKH_kbNative(" + kbCss + ");})(document.documentElement)", null);
     }
 
     @Override
