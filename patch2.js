@@ -85,7 +85,7 @@ const BLEManager = {
     try {
       const BleClient = window.Capacitor.Plugins.BleClient;
       if (BleClient.startAdvertising) {
-          this.setStatus("جاري إعداد الاستضافة...");
+          this.setStatus("جارٍ إعداد الاستضافة...");
           await BleClient.startAdvertising({
             services: [this.SERVICE_UUID],
             name: "Chess-" + Math.floor(Math.random()*1000)
@@ -138,7 +138,7 @@ const BLEManager = {
 
   async connectToDevice(deviceId) {
     const BleClient = window.Capacitor.Plugins.BleClient;
-    this.setStatus("جاري الاتصال...");
+    this.setStatus("جارٍ الاتصال...");
     try {
       await BleClient.stopLEScan();
       await BleClient.connect(deviceId, (deviceId) => this.onDisconnect(deviceId));

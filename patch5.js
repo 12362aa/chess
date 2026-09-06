@@ -79,7 +79,7 @@ const newInit = `  async init() {
       const perms = await BleClient.checkPermissions();
       const needRequest = Object.values(perms).some(v => v !== 'granted');
       if (needRequest) {
-        this.setStatus("جاري طلب صلاحيات البلوتوث...");
+        this.setStatus("جارٍ طلب صلاحيات البلوتوث...");
         const result = await BleClient.requestPermissions();
         const denied = Object.values(result).some(v => v === 'denied');
         if (denied) {
@@ -92,7 +92,7 @@ const newInit = `  async init() {
       try {
         const enabled = await BleClient.isEnabled();
         if (!enabled) {
-          this.setStatus("جاري تشغيل البلوتوث...");
+          this.setStatus("جارٍ تشغيل البلوتوث...");
           await BleClient.enable();
         }
       } catch(enableErr) {

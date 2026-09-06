@@ -1101,32 +1101,54 @@
       #amkhc-overlay .amkhc-card{position:relative;overflow:hidden;
         background:linear-gradient(180deg,var(--color-bg-elevated,#111627) 0,var(--color-surface,#1c2238) 62%);
         border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);
-        padding:30px 18px 30px;width:100%;max-width:340px;text-align:center;
+        padding:30px 18px 46px;width:100%;max-width:340px;text-align:center;
         box-shadow:0 26px 64px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.05);
         transform:translateY(18px) scale(.96);transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
       #amkhc-overlay.on .amkhc-card{transform:translateY(0) scale(1);}
-      #amkhc-overlay .amkhc-card > *{position:relative;z-index:1;}
-      /* الطابع الشطرنجي للنافذة — بلا أي شريط أفقي فوق.
-         الشريط الأول (مربّعات الرقعة) شيلته لأنه كان بياخد لونه من
-         --sq-d/--sq-l فيبان جزء من رقعة اللعب. الشريط الذهبي اللي حلّ
-         محلّه كان غلط تاني: أحمد مش عايز حاجة فوق خالص. الهوية بقت:
-         (أ) أربع زوايا مقوّسة بلون التمييز — توقيع لوح فاخر،
-         (ب) صفّ قطع شطرنجية على الحدّ السفلي بشفافية عالية جدًّا،
-         (ج) قطعة كبيرة باهتة في الخلف.
-         كلّها بلون التطبيق (--color-primary) لا بلون الرقعة، فمافيش
-         تلوّث بصري ومع ذلك النافذة شطرنجية بوضوح. */
+      /* لاحظ الاستثناء: القاعدة السابقة أقوى تخصيصًا من .amkhc-deco، فلولا
+         :not لكانت حوّلت شريط الزخرفة إلى relative بارتفاع صفر، وoverflow
+         المخفيّ يقصّ كل قطعة فيه — وهذا نفسه سبب اختفاء الحصان الذي أبلغ عنه. */
+      #amkhc-overlay .amkhc-card > *:not(.amkhc-deco){position:relative;z-index:1;}
+      /* ── الطابع الشطرنجي لنوافذ المكالمات (#2 في تقرير أحمد) ─────────
+         أحمد طلب أن تكون نوافذ المكالمات كلّها بطابع شطرنجي، فجاءت أول
+         محاولة بشريط مربّعات فوق الكارت — وكان غلطًا مزدوجًا: الشريط أخذ
+         لونه من --sq-d/--sq-l فبان كأنه قطعة من رقعة اللعب، وأحمد لا يريد
+         شيئًا فوق الكارت أصلًا. ثم جاءت المحاولة الثانية فخفّضت الحصان إلى
+         شفافية 0.055 — أي إلى العدم — فقال بحقّ إن الحصان اختفى وإن قطعة
+         واحدة لا تكفي لطابع شطرنجي.
+
+         الهوية الآن ظاهرة بالفعل، وكلّها بلون التطبيق (--color-primary) لا
+         بلون الرقعة، ولا شيء منها فوق الكارت:
+           (أ) أربع زوايا مقوّسة — توقيع لوح فاخر.
+           (ب) قطعتان تحفّان الوجه: الرخّ يمينًا والحصان يسارًا.
+           (ج) حصان كبير باهت في الخلف — ظاهر هذه المرّة لا معدوم.
+           (د) رتبة القطع الثمانية على الحدّ السفلي.
+           (هـ) شريط ثماني المربّعات أسفل الرتبة تمامًا — حدّ رقعة صريح.
+         وأثناء الرنين تتنفّس الرتبة السفلية بموجة شفافية هادئة. */
       .amkhc-deco{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
-      .amkhc-deco i{position:absolute;width:22px;height:22px;opacity:.5;
+      .amkhc-deco i{position:absolute;width:24px;height:24px;opacity:.6;
         border:1.5px solid var(--color-primary,#d8b45a);}
       .amkhc-deco i:nth-child(1){left:10px;top:10px;border-right:0;border-bottom:0;border-radius:8px 0 0 0;}
       .amkhc-deco i:nth-child(2){right:10px;top:10px;border-left:0;border-bottom:0;border-radius:0 8px 0 0;}
       .amkhc-deco i:nth-child(3){left:10px;bottom:10px;border-right:0;border-top:0;border-radius:0 0 0 8px;}
       .amkhc-deco i:nth-child(4){right:10px;bottom:10px;border-left:0;border-top:0;border-radius:0 0 8px 0;}
-      .amkhc-deco b{position:absolute;left:0;right:0;bottom:-4px;text-align:center;
-        font-size:34px;line-height:1;letter-spacing:6px;font-weight:400;
-        color:var(--color-primary,#d8b45a);opacity:.09;white-space:nowrap;}
-      .amkhc-deco s{position:absolute;right:-8px;top:38px;text-decoration:none;
-        font-size:88px;line-height:1;color:var(--color-primary,#d8b45a);opacity:.055;}
+      .amkhc-deco em{position:absolute;top:46px;font-style:normal;font-size:38px;line-height:1;
+        color:var(--color-primary,#d8b45a);opacity:.26;}
+      .amkhc-deco em.l{left:22px;}
+      .amkhc-deco em.r{right:22px;}
+      .amkhc-deco b{position:absolute;left:0;right:0;bottom:10px;text-align:center;
+        font-size:30px;line-height:1;letter-spacing:7px;font-weight:400;
+        color:var(--color-primary,#d8b45a);opacity:.17;white-space:nowrap;}
+      .amkhc-deco u{position:absolute;left:0;right:0;bottom:0;height:9px;text-decoration:none;opacity:.5;
+        background:repeating-linear-gradient(90deg,var(--color-primary,#d8b45a) 0 12.5%,transparent 12.5% 25%);
+        -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+        mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);}
+      .amkhc-deco s{position:absolute;right:-16px;top:22px;text-decoration:none;
+        font-size:132px;line-height:1;color:var(--color-primary,#d8b45a);opacity:.1;}
+      /* شبكة الحفلة تحتلّ مكان الوجه، فالقطعتان الحافّتان تُخفَيان معه */
+      .amkhc-card:has(#amkhc-grid.on) .amkhc-deco em{display:none;}
+      .amkhc-card:has(#amkhc-avatar.ring) .amkhc-deco b{animation:amkhc-rank 2.4s ease-in-out infinite;}
+      @keyframes amkhc-rank{0%,100%{opacity:.12;}50%{opacity:.26;}}
       #amkhc-avatar{width:96px;height:96px;margin:2px auto 14px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
         font-size:38px;font-weight:800;color:var(--color-primary-text,#f0d68a);background:var(--color-surface-raised,#28304b);
         border:2px solid var(--color-primary,#d8b45a);
@@ -1194,6 +1216,18 @@
         border:1.5px solid var(--color-primary,#d8b45a);opacity:.4;pointer-events:none;}
       #amkhc-stage::before{left:12px;top:calc(12px + env(safe-area-inset-top,0));border-right:0;border-bottom:0;border-radius:9px 0 0 0;}
       #amkhc-stage::after{right:12px;top:calc(12px + env(safe-area-inset-top,0));border-left:0;border-bottom:0;border-radius:0 9px 0 0;}
+      /* والحدّ السفلي كذلك: رتبة قطع + شريط ثماني المربّعات داخل شريط
+         الأزرار — نفس هوية الكارت الصوتي حرفيًّا، فالنافذتان أسرة واحدة.
+         كلّه على الحدّ لا على الصورة، فيبقى وجه الطرف الآخر نظيفًا. وحُسبت
+         مساحة الشريط (padding سفليّ 40px) حتى لا تلمس الرتبة أسماء الأزرار. */
+      #amkhc-vbar::before{content:'\\265C\\265E\\265D\\265B\\265A\\265D\\265E\\265C';
+        position:absolute;left:0;right:0;bottom:calc(9px + env(safe-area-inset-bottom,0));
+        text-align:center;font-size:26px;letter-spacing:7px;line-height:1;white-space:nowrap;
+        color:var(--color-primary,#d8b45a);opacity:.2;pointer-events:none;}
+      #amkhc-vbar::after{content:'';position:absolute;left:0;right:0;bottom:0;height:8px;pointer-events:none;
+        background:repeating-linear-gradient(90deg,var(--color-primary,#d8b45a) 0 12.5%,transparent 12.5% 25%);opacity:.45;
+        -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+        mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);}
       #amkhc-remote-wrap{position:absolute;inset:0;background:#070910;}
       #amkhc-remote-wrap.solo .amkhc-rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#070910;}
       #amkhc-remote-wrap.party{display:grid;gap:3px;padding:3px;grid-template-columns:repeat(2,1fr);align-content:center;height:100%;box-sizing:border-box;}
@@ -1207,7 +1241,7 @@
       #amkhc-vtitle{color:#fff;font-size:19px;font-weight:800;text-shadow:0 1px 5px rgba(0,0,0,.7);}
       #amkhc-vsub{color:rgba(255,255,255,.85);font-size:13px;margin-top:3px;font-variant-numeric:tabular-nums;text-shadow:0 1px 5px rgba(0,0,0,.7);min-height:16px;}
       #amkhc-vbar{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;gap:14px 12px;justify-content:center;align-items:flex-start;flex-wrap:wrap;
-        padding:18px 14px calc(26px + env(safe-area-inset-bottom,0));background:linear-gradient(to top,rgba(4,6,13,.78),transparent);}
+        padding:18px 14px calc(40px + env(safe-area-inset-bottom,0));background:linear-gradient(to top,rgba(4,6,13,.78),transparent);}
       #amkhc-overlay.video-mode .amkhc-lbl{color:rgba(255,255,255,.92);text-shadow:0 1px 3px rgba(0,0,0,.6);}
       /* لوحة سؤال جوّه النافذة (طلب تحويل المكالمة لفيديو — العلّة ٨).
          amkhUI.confirm بتفتح على z-index 1050 والنافذة دي 100001، فكانت
@@ -1216,12 +1250,23 @@
         background:var(--color-overlay,rgba(4,6,13,.82));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
       #amkhc-ask.on{display:flex;}
       #amkhc-ask .box{position:relative;overflow:hidden;background:var(--color-surface,#1c2238);
-        border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);padding:24px 18px 20px;
+        border:1px solid var(--color-border,#2a3149);border-radius:var(--radius-lg,16px);padding:24px 18px 34px;
         width:100%;max-width:310px;text-align:center;box-shadow:0 22px 54px rgba(0,0,0,.6);}
+      #amkhc-ask .box > *:not(.amkhc-askdeco){position:relative;z-index:1;}
       #amkhc-ask .box::before,#amkhc-ask .box::after{content:'';position:absolute;top:9px;width:18px;height:18px;
         border:1.5px solid var(--color-primary,#d8b45a);opacity:.45;pointer-events:none;}
       #amkhc-ask .box::before{left:9px;border-right:0;border-bottom:0;border-radius:7px 0 0 0;}
       #amkhc-ask .box::after{right:9px;border-left:0;border-bottom:0;border-radius:0 7px 0 0;}
+      /* ولوحة السؤال داخل المكالمة لها نفس الطابع: رتبة قطع وشريط مربّعات
+         على حدّها السفلي. أحمد قال «نوافذ المكالمات كلّها»، وهذه واحدة منها. */
+      .amkhc-askdeco{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+      .amkhc-askdeco b{position:absolute;left:0;right:0;bottom:8px;text-align:center;white-space:nowrap;
+        font-size:24px;letter-spacing:6px;line-height:1;font-weight:400;
+        color:var(--color-primary,#d8b45a);opacity:.16;}
+      .amkhc-askdeco u{position:absolute;left:0;right:0;bottom:0;height:7px;text-decoration:none;opacity:.45;
+        background:repeating-linear-gradient(90deg,var(--color-primary,#d8b45a) 0 12.5%,transparent 12.5% 25%);
+        -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+        mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);}
       #amkhc-ask .g{width:46px;height:46px;margin:2px auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;
         background:var(--color-primary-subtle,rgba(216,180,90,.13));border:1px solid var(--color-primary-border,rgba(216,180,90,.34));
         color:var(--color-primary-text,#f0d68a);}
@@ -1259,7 +1304,7 @@
       const ov = document.createElement('div');
       ov.id = 'amkhc-overlay';
       ov.innerHTML = `<div class="amkhc-card">
-        <div class="amkhc-deco" aria-hidden="true"><i></i><i></i><i></i><i></i><s>&#9822;</s><b>&#9820;&#9822;&#9821;&#9819;&#9818;&#9821;&#9822;&#9820;</b></div>
+        <div class="amkhc-deco" aria-hidden="true"><i></i><i></i><i></i><i></i><em class="l">&#9820;</em><em class="r">&#9822;</em><s>&#9822;</s><b>&#9820;&#9822;&#9821;&#9819;&#9818;&#9821;&#9822;&#9820;</b><u></u></div>
         <div id="amkhc-avatar">◈</div>
         <div id="amkhc-title">صديق</div>
         <div id="amkhc-status"></div>
@@ -1275,6 +1320,7 @@
       </div>
       <div id="amkhc-note" role="status" aria-live="polite"><span class="ic">◈</span><span class="tx"></span></div>
       <div id="amkhc-ask"><div class="box">
+        <i class="amkhc-askdeco" aria-hidden="true"><b>&#9820;&#9822;&#9821;&#9819;&#9818;&#9821;&#9822;&#9820;</b><u></u></i>
         <div class="g">${this._icon('video')}</div>
         <div class="t">تحويل إلى فيديو</div>
         <div class="m" id="amkhc-ask-m"></div>

@@ -263,7 +263,7 @@
         g.disabled = true;
         const lb = $('.wl-g-label');
         const prev = lb.textContent;
-        lb.textContent = 'جاري الدخول…';
+        lb.textContent = 'جارٍ الدخول…';
         let r;
         try { r = await window.amkhAuth.loginWithGoogle(); }
         catch (e) { r = { success: false, error: 'تعذّر الدخول، حاول مرة أخرى' }; }

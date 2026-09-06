@@ -5853,3 +5853,267 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 }
 
 
+
+/* ══════════════════════════════════════════════════════════════════════
+   24. شاشة الأونلاين — قاعدة واحدة بدل ثلاث تبويبات متكرّرة
+   ──────────────────────────────────────────────────────────────────────
+   الشكوى: «فوضاوية جدًّا بطريقة غير طبيعية». والسبب بنيويّ لا تجميليّ:
+   الشاشة كانت ثلاث تبويبات، وكل تبويب يعيد نفس الإعدادات الثلاثة (لون
+   القطع + نوع المباراة + زمن المباراة) من أوّلها، فصار في الشاشة ستّ
+   مجموعات أزرار وخمس ملاحظات صغيرة، ومع كل تبديل تُقرأ الشاشة من جديد.
+
+   القاعدة الجديدة، وهي نفسها في كل الشاشة: تختار إعداداتك مرّة واحدة
+   في الأعلى، ثم تختار كيف تبدأ. وأصبحت طرق البدء أربعًا لا ثلاثًا —
+   أُضيف «لعب مع صديق» — وكلٌّ منها بطاقة فيها اسمها وسطر يشرحها، بدل
+   ثلاث كلمات في شريط تبويبات لا تقول شيئًا.
+
+   وحُذف كلام المطوّرين («اتصال عبر خادم مركزي»، «يستخدم WebSocket
+   Server») — اللاعب لا يعنيه اسم البروتوكول.
+
+   كل الألوان والمسافات من التوكنز، فالثيمات الأربعة تتبع تلقائيًّا كما في
+   شاشة البلوتوث والرئيسية. والتخطيط عمود واحد على الهاتف، وعمودان من
+   480px، وستّة أعمدة للأزمنة من 600px — فلا شيء يخرج عن الشاشة في
+   الهاتف ولا في التابلت.
+
+   التمرير على مستوى المستند كما في بقية الشاشات (html هو حاوية التمرير،
+   وارتفاع .screen ينمو مع محتواه) — فلا overflow هنا لأنه يكون معطّلًا.
+══════════════════════════════════════════════════════════════════════ */
+#s-online.ol-screen{
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.ol-shell{
+  display: flex; flex-direction: column;
+  gap: var(--space-3);
+  width: 100%; max-width: 560px;
+  padding: 0 var(--space-4) var(--space-5);
+  /* توسيط رأسيّ آمن على التابلت: الهامش التلقائي يوزّع الفراغ الزائد فوق
+     وتحت، ويصير صفرًا إذا لم يكن هناك فراغ — فلا يُقطع أعلى المحتوى على
+     الهاتف كما يحدث مع justify-content: center. */
+  margin-block: auto;
+}
+
+/* الهوية */
+.ol-hero{
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-4);
+}
+.ol-hero__icon{
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  width: 52px; height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+.ol-hero__icon .ico{ width: 28px; height: 28px; }
+.ol-hero__body{ min-width: 0; }
+.ol-hero__title{
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+.ol-hero__sub{
+  margin: 0;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+
+/* عناوين المجموعات وملاحظاتها */
+.ol-lbl{
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+.ol-note{
+  margin: 0;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+
+/* كتلة الإعدادات المشتركة */
+.ol-set{
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.ol-set > .ol-lbl:first-child{ margin-top: 0; }
+
+/* أزمنة المباراة — شبكة لا شريط، فالأرقام تُقرأ ولا تتزاحم */
+.ol-chips{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+@media (min-width: 380px){ .ol-chips{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 600px){ .ol-chips{ grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.ol-chip{
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  min-height: var(--touch-target-min);
+  padding: var(--space-2) var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+              background-color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+.ol-chip:active{ transform: scale(.97); }
+.ol-chip:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.ol-chip.is-active{
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+}
+.ol-chip__t{ font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
+.ol-chip__d{
+  font-size: 10px; line-height: 1.3;
+  color: var(--color-text-secondary);
+}
+.ol-chip.is-active .ol-chip__d{ color: inherit; opacity: .8; }
+
+/* مجموعة اختيار من اثنين أو ثلاثة.
+   minmax(0,1fr) لا 1fr: مسار الشبكة الافتراضي لا ينزل تحت عرض محتواه
+   الأصغر، فكانت أزرار الألوان الثلاثة تخرج عن الكارت على هاتف 360px. */
+.ol-seg{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-2); }
+.ol-seg--3{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ol-seg__b{
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-width: 0; white-space: nowrap;
+  min-height: var(--touch-target-min);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+              background-color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+.ol-seg__b:active{ transform: scale(.98); }
+.ol-seg__b:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.ol-seg__b.is-active{
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+}
+/* قرص القطعة: القرص نفسه هو الرسالة، لا الحرف. الخطوط ترسم ♔ و♚ بنفس
+   الشكل الممتلئ وبلون النصّ، فكان زرّ «أبيض» وزرّ «أسود» يظهران متطابقين
+   تمامًا ولا يفرّق بينهما إلا الكلمة. والألوان هنا ثابتة بقصد ولا تتبع
+   الثيم: القطعة البيضاء بيضاء في كل الثيمات، فهذا معنًى لا زينة. */
+.ol-seg__pc{
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  font-size: 15px; line-height: 1;
+}
+.ol-seg__pc--w{ background: #f2ecdc; color: #1a1a22; border: 1px solid rgba(0,0,0,.35); }
+.ol-seg__pc--b{ background: #1a1a22; color: #f2ecdc; border: 1px solid rgba(255,255,255,.35); }
+/* عشوائي: نصف أبيض ونصف أسود — بلا حرف، فالقرص يقول «أيّ اللونين» */
+.ol-seg__pc--r{ background: linear-gradient(135deg, #f2ecdc 0 50%, #1a1a22 50% 100%); border: 1px solid rgba(255,255,255,.28); }
+/* هاتف ضيّق: الحشو والفراغ يتقلّصان قبل الاسم، فيبقى «عشوائي» مقروءًا كاملًا */
+@media (max-width: 400px){
+  .ol-seg--3 .ol-seg__b{ gap: var(--space-1); padding: var(--space-2) var(--space-1); }
+  .ol-seg--3 .ol-seg__pc{ width: 20px; height: 20px; font-size: 13px; }
+}
+
+/* طرق البدء — بطاقة لكل طريقة باسمها وسطر يشرحها */
+.ol-modes{ display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+@media (min-width: 480px){ .ol-modes{ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.ol-mode{
+  display: flex; align-items: center; gap: var(--space-3);
+  width: 100%; min-height: var(--touch-target-min);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  text-align: start; cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard),
+              background-color var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+.ol-mode:active{ transform: scale(.98); }
+.ol-mode:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.ol-mode.is-active{
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+.ol-mode__icon{
+  display: inline-flex; flex: 0 0 auto;
+  width: 34px; height: 34px;
+  align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary-text);
+}
+.ol-mode.is-active .ol-mode__icon{ background: var(--color-primary); color: var(--color-on-primary); }
+.ol-mode__icon .ico{ width: 19px; height: 19px; }
+.ol-mode__text{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ol-mode__title{ font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
+.ol-mode__desc{
+  font-size: var(--font-size-caption); line-height: var(--line-height-caption);
+  color: var(--color-text-secondary);
+}
+
+/* اللوح النشط — واحد ظاهر فقط، وفيه الفعل والحالة لا الإعدادات */
+.ol-pane{ display: none; }
+.ol-pane.on{ display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* كود الغرفة — display يتحكّم فيه الـJS (block/none) فالتنسيق بلا flex */
+.ol-room{
+  padding: var(--space-4);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.ol-room__l{
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.ol-room__c{
+  margin: 0;
+  font-family: var(--font-family-mono, monospace);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 2px;
+  color: var(--color-primary-text);
+  word-break: break-all; line-height: 1.5;
+}
+.ol-room__h{
+  margin: var(--space-1) 0 var(--space-3);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.ol-room__leave{ margin-top: var(--space-2); }
+
+/* حقل الكود — وسط ومتباعد الحروف فالقراءة والمطابقة أسهل */
+.ol-code{ text-align: center; letter-spacing: 2px; }
+.ol-code::placeholder{ letter-spacing: 1px; }
+
+.ol-back{ margin-top: var(--space-2); }
+
+/* الشاشات القصيرة: نقلّل الحشو لا الأحجام، فالأزرار تبقى قابلة للّمس */
+@media (max-height: 700px){
+  .ol-hero{ padding: var(--space-3); }
+  .ol-hero__icon{ width: 44px; height: 44px; }
+  .ol-hero__icon .ico{ width: 24px; height: 24px; }
+  .ol-set{ padding: var(--space-3); }
+  .ol-shell{ gap: var(--space-2); }
+}

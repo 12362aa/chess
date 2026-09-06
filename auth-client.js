@@ -1235,7 +1235,7 @@ const amkhAuth = {
           errDiv.textContent = '';
           googleBtn.disabled = true;
           const prev = googleBtn.innerHTML;
-          googleBtn.innerHTML = '<span>جاري الدخول…</span>';
+          googleBtn.innerHTML = '<span>جارٍ الدخول…</span>';
           const r = await amkhAuth.loginWithGoogle();
           googleBtn.disabled = false;
           googleBtn.innerHTML = prev;
@@ -1306,7 +1306,7 @@ const amkhAuth = {
       errDiv.textContent = '';
       loginBtn.disabled = true;
       const label = loginBtn.textContent;
-      loginBtn.textContent = 'جاري التحميل…';
+      loginBtn.textContent = 'جارٍ التحميل…';
 
       let res;
       try {
@@ -1486,7 +1486,7 @@ const amkhAuth = {
       const btn = isResend ? resendBtn : goBtn;
       const label = btn.textContent;
       btn.disabled = true;
-      btn.textContent = 'جاري الإرسال…';
+      btn.textContent = 'جارٍ الإرسال…';
       const r = await amkhAuth.forgotPassword(email);
       btn.disabled = false;
       btn.textContent = label;
@@ -1526,7 +1526,7 @@ const amkhAuth = {
       errDiv.textContent = '';
       goBtn.disabled = true;
       const label = goBtn.textContent;
-      goBtn.textContent = 'جاري التغيير…';
+      goBtn.textContent = 'جارٍ التغيير…';
       const r = await amkhAuth.resetPassword(sentTo, code, p1);
       goBtn.disabled = false;
       goBtn.textContent = label;
@@ -1666,7 +1666,7 @@ const amkhAuth = {
       errDiv.textContent = '';
       goBtn.disabled = true;
       const label = goBtn.textContent;
-      goBtn.textContent = 'جاري التأكيد…';
+      goBtn.textContent = 'جارٍ التأكيد…';
       const r = await amkhAuth.verifySignup(email, code);
       goBtn.disabled = false;
       goBtn.textContent = label;
@@ -1707,7 +1707,7 @@ const amkhAuth = {
       errDiv.textContent = '';
       resendBtn.disabled = true;
       const label = resendBtn.textContent;
-      resendBtn.textContent = 'جاري الإرسال…';
+      resendBtn.textContent = 'جارٍ الإرسال…';
       const r = await amkhAuth.register(email, pass, displayName);
       resendBtn.textContent = label;
       resendBtn.disabled = false;
@@ -1773,7 +1773,7 @@ const amkhAuth = {
     syncBtn.onclick = async () => {
       amkhUI.sfx();
       syncBtn.disabled = true;
-      syncBtn.textContent = 'جاري المزامنة…';
+      syncBtn.textContent = 'جارٍ المزامنة…';
       /* مزامنة في الاتجاهين: تنزيل من الحساب ثم رفع. كانت بترفع بس، فلو
          اللاعب داس عليها بعد إعادة تثبيت مكانش بينزّل أي حاجة — والزرّ
          اسمه «مزامنة بياناتي» يعني المفروض يرجّعها كمان مش يرفعها بس. */

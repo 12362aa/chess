@@ -351,7 +351,7 @@ const amkhFriends = {
       this._socketReady(4000).then((ws) => {
         if (ws) ws.send(JSON.stringify({ type: 'friend:invite-respond', invite_id: invite.id, action }));
         else if (action === 'accept') {
-          try { window.amkhUI.notify('انقطع الاتصال قبل إرسال القبول — اطلب من صاحبك يعيد الدعوة.', 'لم يتم', '◈'); } catch (e) {}
+          try { window.amkhUI.notify('انقطع الاتصال قبل إرسال القبول — اطلب من صديقك أن يعيد إرسال الدعوة.', 'لم يتم', '◈'); } catch (e) {}
         }
       });
       this._invites = this._invites.filter(i => i.id !== invite.id);
@@ -435,19 +435,25 @@ const amkhFriends = {
 
   /* ── نافذة اختيار اللون قبل إرسال الدعوة ──
      نافذة متخصصة بالثيم (مش قائمة صغيرة) — 3 أزرار كبيرة واضحة.
-     بترجّع 'w' | 'b' | 'r'، أو null لو اتلغت أو اتقفلت. */
+     بترجّع 'w' | 'b' | 'r'، أو null لو اتلغت أو اتقفلت.
+     ولو المستخدم جاي من شاشة الأونلاين فهو أصلًا اختار الزمن ونوع
+     المباراة هناك، فبنفتح النافذة على اختياره (_prefill) مش على الافتراضي
+     عشان مايعيدش نفس الشغل مرتين. */
   _colorChoice(name) {
     const U = window.amkhUI;
     const TC_PRESETS = { 'none': null, '1+0': { base: 60, inc: 0 }, '3+2': { base: 180, inc: 2 }, '5+0': { base: 300, inc: 0 }, '10+0': { base: 600, inc: 0 }, '15+10': { base: 900, inc: 10 } };
+    const TC_KEYS = ['none', '1+0', '3+2', '5+0', '10+0', '15+10'];
+    const pre = this._prefill || {};
     return new Promise((resolve) => {
       let chosen = null;
-      let rated = false;
-      let tcKey = 'none';
+      let rated = !!pre.rated;
+      let tcKey = TC_KEYS.indexOf(pre.tcKey) >= 0 ? pre.tcKey : 'none';
+      const A = (on) => (on ? ' is-active' : '');
       const overlay = U.mount('amkh-color-modal', `
         <div class="ds-dialog fr-color">
           <div class="ds-dialog__icon" aria-hidden="true">♟</div>
-          <h2 class="ds-dialog__title">تلعب بأنهي لون؟</h2>
-          <p class="ds-dialog__message">هتبعت دعوة لـ<b class="fr-color__name"></b></p>
+          <h2 class="ds-dialog__title">بأيّ لون تلعب؟</h2>
+          <p class="ds-dialog__message">ستُرسَل دعوة إلى <b class="fr-color__name"></b></p>
           <div class="fr-color__opts">
             <button class="fr-color__opt" data-color="w">
               <span class="fr-color__disc fr-color__disc--w">♔</span>
@@ -464,17 +470,12 @@ const amkhFriends = {
           </div>
           <p class="fr-color__sub">نوع المباراة</p>
           <div class="fr-color__type">
-            <button class="fr-color__tbtn is-active" data-rated="0">ودّية</button>
-            <button class="fr-color__tbtn" data-rated="1">مصنّفة</button>
+            <button class="fr-color__tbtn${A(!rated)}" data-rated="0">ودّية</button>
+            <button class="fr-color__tbtn${A(rated)}" data-rated="1">مصنّفة</button>
           </div>
           <p class="fr-color__sub">زمن المباراة</p>
           <div class="fr-color__type fr-color__tc">
-            <button class="fr-color__tbtn is-active" data-tc="none">بدون</button>
-            <button class="fr-color__tbtn" data-tc="1+0">1+0</button>
-            <button class="fr-color__tbtn" data-tc="3+2">3+2</button>
-            <button class="fr-color__tbtn" data-tc="5+0">5+0</button>
-            <button class="fr-color__tbtn" data-tc="10+0">10+0</button>
-            <button class="fr-color__tbtn" data-tc="15+10">15+10</button>
+            ${TC_KEYS.map(k => `<button class="fr-color__tbtn${A(k === tcKey)}" data-tc="${k}">${k === 'none' ? 'بدون' : k}</button>`).join('')}
           </div>
           <div class="ds-dialog__actions">
             <button class="ds-btn ds-btn--ghost ds-btn--block" data-cancel>إلغاء</button>
@@ -582,7 +583,7 @@ const amkhFriends = {
     const runSearch = async () => {
       const q = input.value.trim();
       if (q.length < 2) { resDiv.innerHTML = '<p class="fr-empty">اكتب حرفين على الأقل</p>'; return; }
-      resDiv.innerHTML = '<p class="fr-empty">جاري البحث…</p>';
+      resDiv.innerHTML = '<p class="fr-empty">جارٍ البحث…</p>';
       const results = await this.searchUsers(q);
       resDiv.innerHTML = '';
       if (!results.length) { resDiv.innerHTML = '<p class="fr-empty">لا يوجد لاعب بهذا الاسم</p>'; return; }
@@ -602,7 +603,7 @@ const amkhFriends = {
     if (this._friends.length) {
       this._render();
     } else {
-      overlay.querySelector('#friends-list-container').innerHTML = '<p class="fr-empty">جاري التحميل…</p>';
+      overlay.querySelector('#friends-list-container').innerHTML = '<p class="fr-empty">جارٍ التحميل…</p>';
     }
     await Promise.all([this.loadFriends(), this.loadRequests()]);
     this._render();

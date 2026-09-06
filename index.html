@@ -19,7 +19,7 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260907-b32">
+<link rel="stylesheet" href="design-system.css?v=20260907-b33">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -1657,7 +1657,7 @@ body[data-ui-theme="glass"] .mc-tag{
 .gobox.comment-mode{
   width:min(100%,338px);
   min-height:auto;
-  max-height:min(58dvh,360px);
+  max-height:min(74dvh,438px);
   padding:14px 12px 12px;
   gap:10px;
 }
@@ -1788,7 +1788,9 @@ body[data-ui-theme="glass"] .mc-tag{
 }
 
 .go-nour-h{font-size:11px;color:var(--gold2);font-weight:900;margin-bottom:5px;position:relative;z-index:1;}
-.go-nour-t{font-size:12px;color:var(--text);line-height:1.78;position:relative;z-index:1;min-height:54px;}
+.go-nour-t{font-size:12px;color:var(--text);line-height:1.78;position:relative;z-index:1;min-height:54px;max-height:min(40dvh,236px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,.35) transparent;padding-inline-end:2px;}
+.go-nour-t::-webkit-scrollbar{width:3px;}
+.go-nour-t::-webkit-scrollbar-thumb{background:rgba(201,168,76,.35);border-radius:3px;}
 .go-nour-t.typing::after{content:'|';display:inline-block;margin-inline-start:2px;color:var(--gold2);animation:caretBlink .8s steps(1,end) infinite;}
 @keyframes caretBlink{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
 .go-nour{display:flex;gap:10px;align-items:flex-start;}
@@ -1797,20 +1799,20 @@ body[data-ui-theme="glass"] .mc-tag{
 @media(max-width:520px){
   #go-ov{padding:8px;}
   .gobox{width:min(100%,372px);min-height:min(72dvh,490px);max-height:92dvh;padding:14px 12px 12px;border-radius:20px;gap:10px;}
-  .gobox.comment-mode{width:min(100%,320px);max-height:min(56dvh,330px);padding:12px 11px;}
+  .gobox.comment-mode{width:min(100%,320px);max-height:min(72dvh,412px);padding:12px 11px;}
   .go-stage{gap:10px;}
   .go-stage-title{font-size:24px;}
   .go-stage-sub{font-size:12px;max-width:28ch;}
   .go-nour.comment{min-height:96px;}
   .go-nour-avatar{width:42px;height:42px;border-radius:14px;}
-  .go-nour-t{font-size:11px;line-height:1.7;min-height:48px;}
+  .go-nour-t{font-size:11px;line-height:1.7;min-height:48px;max-height:min(38dvh,214px);}
   .go-review-note{font-size:11px;min-height:34px;}
 }
 @media(max-height:720px){
   .gobox{min-height:min(74dvh,500px);max-height:92dvh;padding:14px 12px;}
-  .gobox.comment-mode{max-height:min(58dvh,320px);}
+  .gobox.comment-mode{max-height:min(80dvh,376px);}
   .go-nour.comment{min-height:92px;}
-  .go-nour-t{min-height:44px;}
+  .go-nour-t{min-height:44px;max-height:min(40dvh,186px);}
   .analysis-mini-board.gameover{--mini-size:96px;}
 }
 .go-bts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;position:relative;z-index:1;}
@@ -2701,7 +2703,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260907-b32">
+<link rel="stylesheet" href="screens.css?v=20260907-b33">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3237,87 +3239,99 @@ html.amkh-preboot #amkh-preboot{
 </div>
 
 <!-- ONLINE -->
-<div id="s-online" class="screen">
-  <div class="oc">
-    <h2><span class="ic-teal">⊕</span> أونلاين</h2>
-    <p class="oc-sub">اتصال عبر خادم مركزي — يعمل مع الواي فاي وبيانات الهاتف</p>
-    <div class="p2p">يستخدم <strong>WebSocket Server</strong> — اتصال مستقر ومضمون ◈<br><span style="font-size:11px;opacity:.8">أنشئ غرفة وشارك الكود مع صديقك</span></div>
-    <div class="tabs">
-      <button class="tbb on" id="tb-c" onclick="OL.tab('c')">إنشاء غرفة</button>
-      <button class="tbb"    id="tb-j" onclick="OL.tab('j')">الانضمام</button>
-      <button class="tbb"    id="tb-m" onclick="OL.tab('m')">مطابقة</button>
+<!-- شاشة الأونلاين — أُعيد بناؤها على نظام التصميم (بلاغ أحمد الرابع).
+     القديم كان ثلاث تبويبات، كلٌّ منها يعيد نفس الإعدادات (لون + نوع +
+     زمن) من أوّلها، فالشاشة تطول وتتكرّر ويصعب معرفة أين أنت. والجديد
+     قاعدة واحدة: تختار إعداداتك مرّة، ثم تختار كيف تبدأ. وحُذف كلام
+     المطوّرين («خادم مركزي»، «WebSocket Server») لأنه لا يعني اللاعب. -->
+<div id="s-online" class="screen ol-screen">
+  <div class="ol-shell">
+
+    <!-- الهوية -->
+    <div class="ol-hero ds-card">
+      <span class="ol-hero__icon" aria-hidden="true"><i class="ico ico--online" aria-hidden="true"></i></span>
+      <div class="ol-hero__body">
+        <h2 class="ol-hero__title">اللعب عبر الإنترنت</h2>
+        <p class="ol-hero__sub">العب مع لاعبين من كل مكان، أو مع أصدقائك</p>
+      </div>
     </div>
-    <div id="tc-c" class="tc on">
-      <p class="flbl">لون قطعك</p>
-      <div class="copts">
-        <div class="copt on" id="co-w" onclick="OL.col('w')"><span>♔</span>أبيض</div>
-        <div class="copt"    id="co-b" onclick="OL.col('b')"><span>♚</span>أسود</div>
-        <div class="copt"    id="co-r" onclick="OL.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
+
+    <!-- إعدادات مشتركة: تُختار مرّة واحدة وتنطبق على كل طرق البدء -->
+    <div class="ol-set">
+      <p class="ol-lbl" id="ol-lbl-tc">زمن المباراة</p>
+      <div class="ol-chips" id="tc-time-opts" role="group" aria-labelledby="ol-lbl-tc">
+        <button type="button" class="ol-chip is-active" id="tcp-none"  onclick="OL.setTC('none')"><span class="ol-chip__t">بدون</span><span class="ol-chip__d">بلا ساعة</span></button>
+        <button type="button" class="ol-chip"           id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ol-chip__t">1+0</span><span class="ol-chip__d">خاطف</span></button>
+        <button type="button" class="ol-chip"           id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ol-chip__t">3+2</span><span class="ol-chip__d">خاطف</span></button>
+        <button type="button" class="ol-chip"           id="tcp-5+0"   onclick="OL.setTC('5+0')"><span class="ol-chip__t">5+0</span><span class="ol-chip__d">سريع</span></button>
+        <button type="button" class="ol-chip"           id="tcp-10+0"  onclick="OL.setTC('10+0')"><span class="ol-chip__t">10+0</span><span class="ol-chip__d">سريع</span></button>
+        <button type="button" class="ol-chip"           id="tcp-15+10" onclick="OL.setTC('15+10')"><span class="ol-chip__t">15+10</span><span class="ol-chip__d">متمهّل</span></button>
       </div>
-      <div id="st-c" class="ost"></div>
-      <p class="flbl" style="margin-top:10px">نوع المباراة</p>
-      <div class="copts" id="rated-opts">
-        <div class="copt on" id="rt-casual" onclick="OL.setRated(false)"><span class="ic-t2">◷</span>ودّية</div>
-        <div class="copt"    id="rt-rated"  onclick="OL.setRated(true)"><span class="ic-t2">★</span>مصنّفة</div>
+      <p class="ol-note">إذا نفد وقت أحد اللاعبين فاز خصمه، وإن تكافأت المادة كان التعادل.</p>
+
+      <p class="ol-lbl" id="ol-lbl-rt">نوع المباراة</p>
+      <div class="ol-seg" id="rated-opts" role="group" aria-labelledby="ol-lbl-rt">
+        <button type="button" class="ol-seg__b is-active" id="rt-casual" onclick="OL.setRated(false)">ودّية</button>
+        <button type="button" class="ol-seg__b"           id="rt-rated"  onclick="OL.setRated(true)">مصنّفة</button>
       </div>
-      <div class="p2p" id="rt-hint" style="margin-top:4px;font-size:11px;opacity:.85">المباراة الودّية لا تؤثّر على تقييمك. المصنّفة تحتاج تسجيل الدخول للطرفين.</div>
-      <p class="flbl" style="margin-top:10px">زمن المباراة</p>
-      <div class="copts tc-opts" id="tc-time-opts">
-        <div class="copt on" id="tcp-none"  onclick="OL.setTC('none')"><span class="ic-t2">∞</span>بدون</div>
-        <div class="copt"    id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>1+0</div>
-        <div class="copt"    id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>3+2</div>
-        <div class="copt"    id="tcp-5+0"   onclick="OL.setTC('5+0')"><span class="ic-t2">◷</span>5+0</div>
-        <div class="copt"    id="tcp-10+0"  onclick="OL.setTC('10+0')"><span class="ic-t2">◷</span>10+0</div>
-        <div class="copt"    id="tcp-15+10" onclick="OL.setTC('15+10')"><span class="ic-t2">♞</span>15+10</div>
+      <p class="ol-note" id="rt-hint">الودّية لا تغيّر تقييمك. والمصنّفة تحتاج تسجيل الدخول للطرفين.</p>
+
+      <p class="ol-lbl" id="ol-lbl-col">لون قطعك</p>
+      <div class="ol-seg ol-seg--3" role="group" aria-labelledby="ol-lbl-col">
+        <button type="button" class="ol-seg__b is-active" id="co-w" onclick="OL.col('w')"><span class="ol-seg__pc ol-seg__pc--w" aria-hidden="true">&#9818;</span>أبيض</button>
+        <button type="button" class="ol-seg__b"           id="co-b" onclick="OL.col('b')"><span class="ol-seg__pc ol-seg__pc--b" aria-hidden="true">&#9818;</span>أسود</button>
+        <button type="button" class="ol-seg__b"           id="co-r" onclick="OL.col('r')"><span class="ol-seg__pc ol-seg__pc--r" aria-hidden="true"></span>عشوائي</button>
       </div>
-      <div class="p2p" style="margin-top:4px;font-size:11px;opacity:.85">عند نفاد وقت أحد اللاعبين يفوز الخصم — وإن تعادلت النقاط فتعادل.</div>
-      <div id="rbox" class="rbox">
-        <div class="rb-l">كود الغرفة — شاركه مع صديقك</div>
-        <div class="rb-c" id="rcode">—</div>
-        <div class="rb-h">انتظر حتى ينضم صديقك…</div>
-        <button class="rb-cp" onclick="SFX.btn();OL.copy()">⧉ نسخ الكود</button>
-        <button class="rb-cp" onclick="SFX.btn();OL.leave()" style="margin-top:8px;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171;">⚠ مغادرة الغرفة</button>
-      </div>
-      <button class="btnp" id="btn-create" onclick="OL.create()">♟ إنشاء غرفة</button>
     </div>
-    <div id="tc-j" class="tc">
-      <p class="flbl">أدخل كود الغرفة</p>
-      <input class="finp" id="jinp" placeholder="الصق الكود هنا" maxlength="36" oninput="this.value=this.value.trim()">
-      <div id="st-j" class="ost"></div>
-      <button class="btnp" onclick="OL.join()">◈ الانضمام</button>
+
+    <!-- كيف تبدأ -->
+    <p class="ol-lbl">كيف تبدأ</p>
+    <div class="ol-modes" role="tablist" aria-label="طريقة بدء المباراة">
+      <button type="button" class="ol-mode is-active" id="tb-m" role="tab" aria-selected="true" aria-controls="tc-m" onclick="OL.tab('m')">
+        <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--online" aria-hidden="true"></i></span>
+        <span class="ol-mode__text"><span class="ol-mode__title">مطابقة سريعة</span><span class="ol-mode__desc">نجد لك خصمًا متاحًا الآن</span></span>
+      </button>
+      <button type="button" class="ol-mode" id="tb-f" onclick="OL.friend()">
+        <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--friends" aria-hidden="true"></i></span>
+        <span class="ol-mode__text"><span class="ol-mode__title">لعب مع صديق</span><span class="ol-mode__desc">اختر صديقًا من قائمتك وأرسل له دعوة</span></span>
+      </button>
+      <button type="button" class="ol-mode" id="tb-c" role="tab" aria-selected="false" aria-controls="tc-c" onclick="OL.tab('c')">
+        <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--host" aria-hidden="true"></i></span>
+        <span class="ol-mode__text"><span class="ol-mode__title">إنشاء غرفة</span><span class="ol-mode__desc">كود تشاركه مع من تريد</span></span>
+      </button>
+      <button type="button" class="ol-mode" id="tb-j" role="tab" aria-selected="false" aria-controls="tc-j" onclick="OL.tab('j')">
+        <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--join" aria-hidden="true"></i></span>
+        <span class="ol-mode__text"><span class="ol-mode__title">الانضمام بكود</span><span class="ol-mode__desc">الصق الكود الذي وصلك</span></span>
+      </button>
     </div>
-    <div id="tc-m" class="tc">
-      <p class="flbl">مطابقة سريعة</p>
-      <div class="p2p" style="margin-top:6px">سيتم إيجاد خصم عشوائي فوراً — بدون كود ◈</div>
-      <p class="flbl" style="margin-top:12px">لون قطعك</p>
-      <div class="copts">
-        <div class="copt on" id="mco-w" onclick="OL.col('w')"><span>♔</span>أبيض</div>
-        <div class="copt" id="mco-b" onclick="OL.col('b')"><span>♚</span>أسود</div>
-        <div class="copt" id="mco-r" onclick="OL.col('r')"><span class="ic-t2">◎</span>عشوائي</div>
-      </div>
+
+    <!-- اللوح النشط: واحد فقط ظاهر، وفيه الفعل والحالة لا الإعدادات -->
+    <div id="tc-m" class="ol-pane on" role="tabpanel" aria-labelledby="tb-m">
       <div id="st-m" class="ost"></div>
-      <p class="flbl" style="margin-top:12px">نوع المباراة</p>
-      <div class="copts" id="mrated-opts">
-        <div class="copt on" id="mrt-casual" onclick="OL.setRated(false)"><span class="ic-t2">◷</span>ودّية</div>
-        <div class="copt"    id="mrt-rated"  onclick="OL.setRated(true)"><span class="ic-t2">★</span>مصنّفة</div>
-      </div>
-      <div class="p2p" style="margin-top:4px;font-size:11px;opacity:.85">المصنّفة تطابقك مع لاعب اختار "مصنّفة" كمان، وتحتاج تسجيل الدخول للطرفين.</div>
-      <p class="flbl" style="margin-top:12px">زمن المباراة</p>
-      <div class="copts tc-opts" id="mtc-time-opts">
-        <div class="copt on" id="mtcp-none"  onclick="OL.setTC('none')"><span class="ic-t2">∞</span>بدون</div>
-        <div class="copt"    id="mtcp-1+0"   onclick="OL.setTC('1+0')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>1+0</div>
-        <div class="copt"    id="mtcp-3+2"   onclick="OL.setTC('3+2')"><span class="ic-t2"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:inline-block;vertical-align:-3px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>3+2</div>
-        <div class="copt"    id="mtcp-5+0"   onclick="OL.setTC('5+0')"><span class="ic-t2">◷</span>5+0</div>
-        <div class="copt"    id="mtcp-10+0"  onclick="OL.setTC('10+0')"><span class="ic-t2">◷</span>10+0</div>
-        <div class="copt"    id="mtcp-15+10" onclick="OL.setTC('15+10')"><span class="ic-t2">♞</span>15+10</div>
-      </div>
-      <div class="p2p" style="margin-top:4px;font-size:11px;opacity:.85">يطابقك النظام مع لاعب اختار نفس زمن المباراة.</div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btnp" id="btn-mm" style="flex:1" onclick="OL.mmFind()">⊕ ابحث عن خصم</button>
-        <button class="btnb" id="btn-mc" style="flex:1;display:none" onclick="OL.mmCancel()">◆ إلغاء</button>
-      </div>
+      <button class="ds-btn ds-btn--primary ds-btn--block" id="btn-mm" onclick="OL.mmFind()">ابحث عن خصم</button>
+      <button class="ds-btn ds-btn--ghost ds-btn--block"   id="btn-mc" style="display:none" onclick="OL.mmCancel()">إلغاء البحث</button>
+      <p class="ol-note">يطابقك النظام مع لاعب اختار الزمن ونوع المباراة نفسهما.</p>
     </div>
-    <button class="btnb" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة</button>
+
+    <div id="tc-c" class="ol-pane" role="tabpanel" aria-labelledby="tb-c">
+      <div id="st-c" class="ost"></div>
+      <div id="rbox" class="ol-room" style="display:none">
+        <p class="ol-room__l">كود الغرفة — شاركه مع صديقك</p>
+        <p class="ol-room__c" id="rcode">—</p>
+        <p class="ol-room__h">في انتظار انضمام صديقك…</p>
+        <button class="ds-btn ds-btn--secondary ds-btn--block" onclick="SFX.btn();OL.copy()">نسخ الكود</button>
+        <button class="ds-btn ds-btn--danger ds-btn--block ol-room__leave" onclick="SFX.btn();OL.leave()">مغادرة الغرفة</button>
+      </div>
+      <button class="ds-btn ds-btn--primary ds-btn--block" id="btn-create" onclick="OL.create()">إنشاء غرفة</button>
+    </div>
+
+    <div id="tc-j" class="ol-pane" role="tabpanel" aria-labelledby="tb-j">
+      <div id="st-j" class="ost"></div>
+      <input class="ds-input ol-code" id="jinp" placeholder="الصق كود الغرفة" maxlength="36" autocomplete="off" spellcheck="false" oninput="this.value=this.value.trim()">
+      <button class="ds-btn ds-btn--primary ds-btn--block" onclick="OL.join()">انضمام</button>
+    </div>
+
+    <button class="ds-btn ds-btn--ghost ds-btn--block ol-back" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">العودة</button>
   </div>
 </div>
 
@@ -6750,7 +6764,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.0';
-const APP_VERSION_CODE = 32;
+const APP_VERSION_CODE = 33;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -11548,11 +11562,18 @@ const G={
      الدالة القديمة كانت سلسلة `if(result.reason===…) return '<جملة ثابتة>'`،
      يعني كل مات بيطلّع نفس الجملة حرفيًا مهما كانت المباراة. البديل هنا
      بيقرأ المباراة فعلًا (طول، أكل، مادة، كشوف، تبييت، ترقية، تقييم أخير)
-     ويركّب التعليق من ثلاث طبقات: افتتاحية بحسب النتيجة + ملاحظة رقمية من
-     المباراة نفسها + خاتمة تشدّ للمراجعة. كل طبقة لها بدائل تُنتقى عشوائيًا،
-     فاحتمال تكرار نفس النصّ ضعيف، والملاحظة الوسطى مختلفة بطبعها لأنها من
-     أرقام المباراة. وفوق ده كله _primeNourVerdict بيجيب تعليقًا حيًّا من نور
-     وقت ما الإنترنت متاح، وده المحلّي بيبقى شبكة أمانه. */
+     ويركّب التعليق من أربع طبقات: افتتاحية بحسب النتيجة + قراءة طابع
+     المباراة + ملاحظة أو ملاحظتين رقميتين منها + خاتمة تشدّ للمراجعة.
+     كل طبقة لها بدائل تُنتقى عشوائيًا، فاحتمال تكرار نفس النصّ ضعيف،
+     والملاحظات الرقمية مختلفة بطبعها لأنها من أرقام المباراة.
+
+     ثم شافه أحمد على الجهاز مرة تانية فقال إنه «بالعامية المصرية مش العربية
+     الفصحى» و«مختصر جدا… جملة ونص… Useless». الاتنين اتصلّحوا هنا: كل نصّ
+     معروض بقى فصحى بلا استثناء (قاعدة التطبيق الدائمة)، والتعليق بقى فقرة
+     من أربع أو خمس جمل مش جملة وكسر.
+
+     وفوق ده كله _primeNourVerdict بيجيب تعليقًا حيًّا من نور وقت ما الإنترنت
+     متاح، وده المحلّي بيبقى شبكة أمانه. */
   _matchFacts(){
     const V={P:1,N:3,B:3,R:5,Q:9,K:0};
     const val=a=>(a||[]).reduce((s,p)=>s+(V[E.tp(p)]||0),0);
@@ -11587,87 +11608,104 @@ const G={
        (restoreQuickReview بتنادي الدالة من جديد)، فبنقفل النصّ على التوكن. */
     if(S._goCmtToken===S._resultToken&&S._goCmt)return S._goCmt;
     const f=this._matchFacts();
-    const txt=[this._cmtOpen(result,f),this._cmtFact(result,f),this._cmtTip(result,f)]
+    /* أربع طبقات مش تلاتة: النتيجة، ثم قراءة طابع المباراة، ثم ملاحظة أو
+       ملاحظتين من أرقامها، ثم توجيه للمراجعة. أحمد شاف الناتج القديم فقال
+       «جملة ونص… Useless»، فالتعليق بقى فقرة مكتملة بالفصحى. */
+    const txt=[this._cmtOpen(result,f),this._cmtRead(result,f),this._cmtFact(result,f),this._cmtTip(result,f)]
       .filter(Boolean).join(' ');
     S._goCmtToken=S._resultToken; S._goCmt=txt;
     return txt;
   },
-  /* الافتتاحية: بتقول اللي حصل. بدائل لكل حالة عشان مايتكررش نفس المطلع. */
+  /* الافتتاحية: تقول ما حدث. بدائل لكل حالة كي لا يتكرّر المطلع نفسه.
+     كل النصّ فصحى — قاعدة ثابتة في التطبيق لا استثناء لها. */
   _cmtOpen(result,f){
     const P=this._pick.bind(this), L=f.last, sf=isStockfishMode();
     const win=result.tone==='win', loss=result.tone==='loss';
     const after=L?` بعد ${L}`:'';
     if(sf){
-      if(result.reason==='checkmate'&&win)return P([`مات على Stockfish${after} — ده مش شيء بسيط.`,`أنهيت المحرك بالمات${after}.`,`Stockfish نفسه اتحاصر${after}.`]);
-      if(result.reason==='checkmate'&&loss)return P([`المحرك لقى الثغرة${after} وما سامحش.`,`Stockfish أغلق الموقف${after} وخلص.`,`الضربة الأخيرة${after} كانت محسوبة من بدري.`]);
-      if(win)return P(['خدت المواجهة من المحرك.','النتيجة في صفك ضد Stockfish.','كسبت الجولة دي.']);
-      if(loss)return P(['المحرك أخد المباراة.','Stockfish حسمها في الآخر.','النتيجة له هذه المرة.']);
-      return P(['المواجهة مع المحرك انتهت بلا حسم.','Stockfish ماقدرش يكسر التوازن، وانت كذلك.','تعادل مع المحرك — نتيجة محترمة.']);
+      if(result.reason==='checkmate'&&win)return P([`ماتٌ على Stockfish${after}، وهذا ليس أمرًا هيّنًا.`,`أنهيتَ المحرّك بالمات${after}.`,`حُوصر Stockfish نفسه${after}.`]);
+      if(result.reason==='checkmate'&&loss)return P([`وجد المحرّك الثغرة${after} فلم يتهاون.`,`أغلق Stockfish الموقف${after} وأنهاه.`,`كانت الضربة الأخيرة${after} محسوبة من بعيد.`]);
+      if(win)return P(['انتزعتَ المواجهة من المحرّك.','النتيجة في صفّك أمام Stockfish.','فزتَ بهذه الجولة.']);
+      if(loss)return P(['أخذ المحرّك المباراة.','حسمها Stockfish في النهاية.','النتيجة له هذه المرّة.']);
+      return P(['انتهت المواجهة مع المحرّك بلا حسم.','لم يقدر Stockfish على كسر التوازن، ولم تقدر أنت كذلك.','تعادلٌ مع المحرّك، وهي نتيجة محترمة.']);
     }
     switch(result.reason){
       case 'checkmate': return loss
-        ? P([`الهجمة وصلت لملكك${after}.`,`المات جه${after} من ناحية كانت مكشوفة.`,`ملكك اتحاصر${after} ومافيش خانة هروب.`])
-        : P([`مات نضيف${after}.`,`أنهيتها بالمات${after}.`,`الدفاع اتقفل عليه${after}.`]);
+        ? P([`وصلت الهجمة إلى ملكك${after}.`,`جاء المات${after} من جهة كانت مكشوفة.`,`حُوصر ملكك${after} فلم تبقَ له خانة هروب.`])
+        : P([`ماتٌ نظيف${after}.`,`أنهيتَها بالمات${after}.`,`أُغلق الدفاع عليه${after}.`]);
       case 'timeout': return loss
-        ? P(['الوقت خلص وانت في وسط التفكير.','الساعة كسبتك مش الموقف.','النتيجة راحت بالوقت لا بالنقلات.'])
-        : P(['وقت الخصم خلص قبل ما يوصل لحاجة.','الساعة حسمتها لصالحك.','كسبت بالوقت.']);
+        ? P(['نفد الوقت وأنت في وسط التفكير.','الساعة هي التي غلبتك، لا الموقف.','ذهبت النتيجة بالوقت لا بالنقلات.'])
+        : P(['نفد وقت الخصم قبل أن يصل إلى شيء.','حسمتها الساعة لصالحك.','فزتَ بالوقت.']);
       case 'resign': return loss
-        ? P(['استسلمت والموقف كان لسه فيه كلام.','قررت توقف هنا.','النتيجة حُسمت باستسلامك.'])
-        : P(['الخصم استسلم قبل النهاية الطبيعية.','الضغط اللي عملته خلّاه يسلّم.','سلّم قبل ما الرقعة تخلص.']);
-      case 'disconnect': return P(['الاتصال قطع فحُسمت النتيجة.','المباراة اتوقفت بانقطاع الشبكة.','النتيجة جات من الانقطاع مش من الرقعة.']);
-      case 'stalemate': return P(['جمود كامل — مافيش نقلة قانونية عنده والملك مش في كش.','الموقف اتجمّد وخلص تعادل.','ولا نقلة متاحة، فالنتيجة تعادل بالجمود.']);
-      case 'threefold': return P(['الوضعية اتكررت 3 مرات فقُفلت على تعادل.','التكرار حسمها تعادل.','نفس الموقف رجع 3 مرات، فالتعادل جه لوحده.']);
-      case 'insufficient': return P(['المادة الباقية مش كافية لمات.','مافيش قطع تكفي للحسم من الطرفين.','خلصت القطع اللي تعمل مات، فتعادل.']);
-      case 'level-win': return P([`أنهيت المرحلة${after?`، وآخر نقلة ${L} ثبّتت الأفضلية`:''}.`,'المرحلة خلصت في صفك.','عديت المرحلة دي.']);
+        ? P(['استسلمتَ والموقف كان لا يزال يحتمل المقاومة.','قرّرتَ التوقّف عند هذا الحدّ.','حُسمت النتيجة باستسلامك.'])
+        : P(['استسلم الخصم قبل النهاية الطبيعية.','الضغط الذي مارسته دفعه إلى الاستسلام.','سلّم قبل أن تنتهي الرقعة.']);
+      case 'disconnect': return P(['انقطع الاتصال فحُسمت النتيجة.','توقّفت المباراة بانقطاع الشبكة.','جاءت النتيجة من الانقطاع لا من الرقعة.']);
+      case 'stalemate': return P(['جمودٌ كامل: لا نقلة قانونية عنده وملكه ليس في كش.','تجمّد الموقف فانتهى بالتعادل.','لا نقلة متاحة، فكانت النتيجة تعادلًا بالجمود.']);
+      case 'threefold': return P(['تكرّرت الوضعية ثلاث مرّات فأُغلقت على تعادل.','التكرار حسمها تعادلًا.','عاد الموقف نفسه ثلاث مرّات، فجاء التعادل من تلقاء نفسه.']);
+      case 'insufficient': return P(['المادة الباقية لا تكفي للمات.','لا تكفي قطع الطرفين للحسم.','نفدت القطع القادرة على المات، فكان التعادل.']);
+      case 'level-win': return P([`أنهيتَ المرحلة${after?`، وثبّتت النقلة الأخيرة ${L} الأفضلية`:''}.`,'انتهت المرحلة في صفّك.','تجاوزتَ هذه المرحلة.']);
       default:
-        if(win)return P(['كسبت المباراة.','النتيجة في صفك.','خدتها.']);
-        if(loss)return P(['المباراة راحت.','النتيجة مش في صفك المرة دي.','خسرتها.']);
-        return P(['انتهت بتعادل تام.','مافيش حاسم — تعادل.','التوازن فضل لآخر نقلة.']);
+        if(win)return P(['فزتَ بالمباراة.','النتيجة في صفّك.','أخذتَها.']);
+        if(loss)return P(['ذهبت المباراة.','النتيجة ليست في صفّك هذه المرّة.','خسرتَها.']);
+        return P(['انتهت بتعادل تامّ.','لا حاسم، فالنتيجة تعادل.','بقي التوازن قائمًا إلى النقلة الأخيرة.']);
     }
   },
-  /* الملاحظة الوسطى: رقم حقيقي من المباراة. دي أهم طبقة في علاج التكرار —
-     مصدرها أرقام المباراة نفسها، فحتى لو القالب اتكرر الجملة تفضل مختلفة.
-     بنجمع كل الملاحظات المتاحة ونختار واحدة (أو اتنين في مباراة طويلة). */
+  /* الطبقة الثانية: قراءة طابع المباراة كما يقرؤها لاعب لا كما يقرؤها عدّاد.
+     غايتها أن يشعر اللاعب أن التعليق يخصّ مباراته هو لا أيّ مباراة. */
+  _cmtRead(result,f){
+    const P=this._pick.bind(this), bits=[];
+    const win=result.tone==='win', loss=result.tone==='loss';
+    if(f.len==='long'&&f.caps>=12)bits.push(P(['كانت مباراةً مفتوحة: تبادلٌ كثيف وصراعٌ على كل مربّع.','مباراة طويلة مليئة بالتبادلات، استُنزفت فيها القوى قبل الحسم.']));
+    else if(f.len==='long')bits.push(P(['كانت مباراةً مغلقة صبورة، ثقلها في المناورة أكثر منه في التبادل.','طال الموقف وبقيت القطع في أماكنها، فكان القرار في المناورة لا في الأخذ.']));
+    else if(f.len==='short')bits.push(win?P(['حُسمت مبكّرًا، ومعنى ذلك أن خصمك تعجّل في الافتتاح.','نهاية سريعة: جاء الخطأ قبل أن يستقرّ الموقف.'])
+      :loss?P(['حُسمت مبكّرًا، ومعنى ذلك أن الخلل كان في الافتتاح لا فيما بعده.','نهاية سريعة، والافتتاح هو موضع المراجعة أوّلًا.'])
+      :P(['انتهت قبل أن يتشكّل الموقف تمامًا.','لم تمتدّ المباراة حتى يظهر فيها اتجاه واضح.']));
+    else bits.push(P(['سار الموقف في مجراه الطبيعي حتى جاءت اللحظة الفاصلة.','مباراة متوازنة الطول، لها افتتاحٌ ووسطٌ ونهاية واضحة.']));
+    return bits[0];
+  },
+  /* الطبقة الثالثة: ملاحظة من أرقام المباراة نفسها. هي أهمّ طبقة في علاج
+     التكرار، لأن مصدرها المباراة لا قالبًا محفوظًا. نجمع كل الملاحظات
+     المتاحة ونختار منها اثنتين ما لم تكن المباراة قصيرة. */
   _cmtFact(result,f){
     const P=this._pick.bind(this), bits=[];
     const C=this._cnt.bind(this);
+    /* كل قالب هنا يوضع فيه المعدود بعد حرف جرّ أو كمفعول، لأن المثنّى في
+       الفصحى يتغيّر بالموقع: «نقلتان» رفعًا و«نقلتين» جرًّا ونصبًا. */
     const mv=n=>C(n,'نقلة واحدة','نقلتين','نقلات','نقلة');
     const pc=n=>C(n,'قطعة واحدة','قطعتين','قطع','قطعة');
     const pt=n=>C(n,'نقطة واحدة','نقطتين','نقاط','نقطة');
-    const ck=n=>C(n,'كش واحد','كشّين','كشوف','كش');
+    const ck=n=>C(n,'كشٍّ واحد','كشّين','كشوف','كشًّا');
     if(f.moves>=2){
-      if(f.len==='short')bits.push(P([`خلصت في ${mv(f.moves)} بس.`,`${mv(f.moves)} وانتهت — مباراة سريعة.`]));
-      else if(f.len==='long')bits.push(P([`${mv(f.moves)} — مباراة طويلة ومحتاجة نَفَس.`,`وصلتوا ${mv(f.moves)}، وده صبر.`]));
-      else bits.push(`${mv(f.moves)} على الرقعة.`);
+      if(f.len==='short')bits.push(P([`انتهت في ${mv(f.moves)} فقط.`,`لم تحتج المباراة إلى أكثر من ${mv(f.moves)}.`]));
+      else if(f.len==='long')bits.push(P([`امتدّت إلى ${mv(f.moves)}، وذلك يحتاج نَفَسًا طويلًا.`,`صمدتما إلى ${mv(f.moves)}، وهذا صبرٌ محسوب.`]));
+      else bits.push(`دارت المباراة في ${mv(f.moves)}.`);
     }
-    if(f.caps>=12)bits.push(P([`${pc(f.caps)} نزلت من الرقعة — تبادل عنيف.`,`الرقعة فضيت: ${pc(f.caps)} اتأكلت.`]));
-    else if(f.caps===0)bits.push('ولا قطعة اتأكلت من الطرفين.');
-    else if(f.caps<=3)bits.push(`${pc(f.caps)} بس اتأكلت، فالحسم كان موضعي مش مادي.`);
-    if(f.edge>=4)bits.push(P([`كسبت ${pt(f.edge)} مادة زيادة عليه.`,`المادة كانت في صفك بفرق ${pt(f.edge)}.`]));
-    else if(f.edge<=-4)bits.push(P([`سبقك بـ${pt(f.edge)} مادة.`,`فرق المادة كان ضدك بـ${pt(f.edge)}.`]));
-    else if(f.caps>=6)bits.push('التبادلات كانت متكافئة تقريبًا في المادة.');
-    if(f.checks>=5)bits.push(`${ck(f.checks)} في المباراة — الملوك ماريّحتش.`);
-    else if(f.checks===1)bits.push('كش واحد بس طول المباراة.');
-    if(f.promo)bits.push('في بيدق وصل آخر الرقعة واتحوّل.');
-    if(!f.castled&&f.plies>=16)bits.push('محدش بيّت — الملوك فضلت في النص.');
+    if(f.caps>=12)bits.push(P([`خسر الطرفان ${pc(f.caps)} من الرقعة، وهو تبادلٌ عنيف.`,`فرغت الرقعة حتى بلغ التبادل ${pc(f.caps)}.`]));
+    else if(f.caps===0)bits.push('لم تُؤكل قطعة واحدة من الطرفين.');
+    else if(f.caps<=3)bits.push(`لم يخسر الطرفان سوى ${pc(f.caps)}، فكان الحسم موضعيًّا لا ماديًّا.`);
+    if(f.edge>=4)bits.push(P([`كسبتَ عليه ${pt(f.edge)} من المادة.`,`مال ميزان المادة إليك بفارق ${pt(f.edge)}.`]));
+    else if(f.edge<=-4)bits.push(P([`سبقك بـ${pt(f.edge)} في المادة.`,`مال ميزان المادة إليه بفارق ${pt(f.edge)}.`]));
+    else if(f.caps>=6)bits.push('كانت التبادلات متكافئة تقريبًا في المادة.');
+    if(f.checks>=5)bits.push(`تعرّض الملكان لـ${ck(f.checks)}، فلم يجد أحدهما راحة.`);
+    else if(f.checks===1)bits.push('لم يقع في المباراة سوى كشٍّ واحد.');
+    if(f.promo)bits.push('وصل بيدقٌ إلى آخر الرقعة فتحوّل.');
+    if(!f.castled&&f.plies>=16)bits.push('لم يبيّت أحد، فبقي الملكان في الوسط.');
     if(!bits.length)return '';
-    /* جملتين رقميتين مع بعض في المباريات الطويلة فقط، وباحتمال أقل من النص،
-       عشان التعليق مايتحوّلش لتقرير إحصائي. */
-    if(f.len!=='short'&&bits.length>=3&&Math.random()<0.35){
-      const a=Math.floor(Math.random()*bits.length);
-      let b=Math.floor(Math.random()*bits.length);
-      if(b===a)b=(a+1)%bits.length;
-      return bits[a]+' '+bits[b];
-    }
-    return P(bits);
+    /* ملاحظتان معًا في المباريات غير القصيرة: هذا ما يجعل التعليق فقرة لا
+       جملةً ونصفًا. والقصيرة ليس فيها ما يُقال مرّتين. */
+    if(bits.length===1||f.len==='short')return P(bits);
+    const a=Math.floor(Math.random()*bits.length);
+    let b=Math.floor(Math.random()*bits.length);
+    if(b===a)b=(a+1)%bits.length;
+    return bits[a]+' '+bits[b];
   },
-  /* الخاتمة: بتوجّه لحاجة محدّدة في المراجعة، مربوطة بالنتيجة عشان تبقى
-     ذات معنى مش جملة عامة ملزوقة. */
+  /* الخاتمة: توجيهٌ محدّد إلى شيء في المراجعة، مربوط بالنتيجة كي يكون ذا
+     معنى لا جملةً عامّة ملصوقة. */
   _cmtTip(result,f){
     const P=this._pick.bind(this);
-    if(result.tone==='loss')return P(['شوف في المراجعة أول نقلة قلبت التقييم — غالبًا هي السبب مش الأخيرة.','المراجعة هتوريك المربعات اللي سِبتها بلا حماية.','دوّر على النقلة اللي بعدها التقييم نزل، دي بداية الخلل.','ركّز على أمان ملكك في آخر عشر نقلات.']);
-    if(result.tone==='win')return P(['راجع اللحظة اللي اتفتحت فيها الأفضلية، دي اللي تتعلّم تكرارها.','شوف إزاي الضغط بقى نتيجة.','المراجعة هتوريك أدق نقلة لعبتها.','خد بالك من النقلات اللي كسبتك المساحة.']);
-    return P(['المراجعة هتوريك فين كان ممكن تكسر التوازن.','دوّر على اللحظة الوحيدة اللي كانت فيها فرصة حسم.','شوف مين كان أقرب للفوز فعلًا.']);
+    if(result.tone==='loss')return P(['ابحث في المراجعة عن أوّل نقلة قلبت التقييم، فهي السبب غالبًا لا الأخيرة.','ستُظهر لك المراجعة المربّعات التي تركتها بلا حماية.','تتبّع النقلة التي هبط التقييم بعدها، فهي بداية الخلل.','راجع أمان ملكك في النقلات العشر الأخيرة تحديدًا.']);
+    if(result.tone==='win')return P(['راجع اللحظة التي انفتحت فيها الأفضلية، فهي ما ينبغي أن تتعلّم تكراره.','انظر في المراجعة كيف تحوّل الضغط إلى نتيجة.','ستُظهر لك المراجعة أدقّ نقلة لعبتها في المباراة.','انتبه إلى النقلات التي أكسبتك المساحة، فهي أصل الفوز.']);
+    return P(['ستُظهر لك المراجعة أين كان يمكن كسر التوازن.','ابحث عن اللحظة الوحيدة التي كانت فيها فرصة حسم.','انظر أيّكما كان أقرب إلى الفوز فعلًا.']);
   },
   /* تعليق نور الحيّ بعد المباراة. بيتطلب من showOver — يعني عنده 2400ms
      كاملة (زمن ظهور ورقة النهاية) عشان يوصل، وده أكتر من كفاية لطلب صغير.
@@ -11704,11 +11742,20 @@ const G={
      النصّ المحلّي وفي بطاقة الإحصائيات، وقيمة تعليق نور في الجملة
      الوصفية لا في العدّ — والقصّ بقى على آخر جملة تامّة لا على حرف. */
   _verdictOk(t,tone){
-    if(!t||t.length<12)return false;
+    if(!t)return false;
+    /* حدّ المضمون: أحمد شاف تعليقًا من جملة وكسر فقال «Useless». النصّ
+       المحلّي بقى فقرة كاملة، فلو الموديل جاب أقصر منها نرفضه ونعرض
+       المحلّي — الرفض مكسب هنا مش خسارة. */
+    if(t.length<70)return false;
+    if((t.match(/[.!؟]/g)||[]).length<2)return false;
     /* بيتكلّم عن نفسه أو ينادي أحدًا باسمه */
     if(/نور|جوجو|جو\s?جو/.test(t))return false;
     /* رموز تعبيرية */
     if(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(t))return false;
+    /* عامية — قاعدة التطبيق الدائمة: ولا ذرّة لفظ محلّي في أيّ نصّ معروض.
+       القائمة دي متحفّظة عن قصد: كل لفظ فيها ماله وجه فصيح، فمافيش رفض
+       غلط. ولو رُفض ناتج سليم بالخطأ، البديل هو النصّ المحلّي الفصيح. */
+    if(/(^|\s)(مش|إزاي|ازاي|عشان|علشان|كده|كدة|اللي|إللي|مافيش|مفيش|محدش|ماحدش|برضو|بردو|كتير|شوية|أوي|اوي|دلوقتي|يلا|بتاع|بتاعة|إحنا|احنا|إيه|ايه|لسه|جامد|بص|زي)(\s|$|،|\.|!|؟)/.test(t))return false;
     /* تهنئة في مباراة غير مكسوبة — أفدح ما رآه أحمد */
     if(tone!=='win'&&/مبروك|مبارك|تهاني|تهانينا|أحسنت|برافو|بالتوفيق|ألف\s/.test(t))return false;
     /* رمز النقلة (SAN) مستثنى من فحوص الأرقام والحروف: Nc6 وQh7# وO-O
@@ -11742,10 +11789,11 @@ const G={
       /* هوية واحدة في كل الأوضاع: معلّق، لا لاعب. */
       const sys='أنت معلّق شطرنج. تكتب تعليقًا قصيرًا على مباراة انتهت، موجّهًا إلى اللاعب نفسه.';
       const rules='\n- خاطب اللاعب بضمير المخاطب: «أنت»، «لعبتَ»، «خسرتَ».'
+        +'\n- اكتب بالعربية الفصحى وحدها؛ ممنوع أيّ لفظ عامّي أو محلّي.'
         +'\n- ممنوع ذكر أيّ اسم على الإطلاق: لا اسمك ولا اسم اللاعب ولا اسم الخصم.'
         +'\n- ممنوع الكلام عن نفسك أو عن مشاعرك؛ التعليق عن المباراة فقط.'
         +'\n- إن لم يفز اللاعب فلا تهنّئه ولا تبارك له بأيّ صيغة.'
-        +'\n- جملتان فقط، كلٌّ منهما تامّة ومنتهية بنقطة. لا تكتب جملة ثالثة.'
+        +'\n- اكتب ثلاث جمل أو أربعًا، كلٌّ منها تامّة ومنتهية بنقطة: ما حدث، ثم طابع المباراة، ثم ما ينبغي أن يراجعه.'
         +'\n- ممنوع ذكر أيّ رقم: لا رقمًا مكتوبًا ولا منطوقًا (لا «ثلاث» ولا «أربعين»).'
         +'\n- يُستثنى رمز النقلة الأخيرة: لك أن تقتبسه كما هو إن أردت.'
         +'\n- صِف المباراة بالوصف لا بالعدّ، ولا تخترع نقلات ولا قطعًا ولا مراحل.'
@@ -11761,19 +11809,21 @@ const G={
         +`المادة: ${مادة}\nالكشوف: ${كشوف}\nالتبادل: ${تبادل}\n`
         +`ترقية بيدق: ${f.promo?'نعم':'لا'}\nتبييت: ${f.castled?'نعم':'لا'}\nآخر نقلة: ${f.last||'—'}`;
       const user=`${facts}\n${prev.length?`\nجمل قلتها في مباريات سابقة (لا تعِد أي صياغة منها):\n- ${prev.join('\n- ')}\n`:''}\nاكتب تعليقك الآن:`;
-      groqChat({model:GROQ_MODEL,messages:[{role:'system',content:sys+rules},{role:'user',content:user}],max_tokens:110,temperature:0.6})
+      groqChat({model:GROQ_MODEL,messages:[{role:'system',content:sys+rules},{role:'user',content:user}],max_tokens:220,temperature:0.6})
         .then(j=>{
           let t=(j?.choices?.[0]?.message?.content||'').trim();
           t=t.replace(/^["'«]+|["'»]+$/g,'').replace(/\s+/g,' ').trim();
           /* القصّ على آخر جملة تامّة لا على حرف: القديم `slice(0,238)` كان
-             بيقطع في نصّ الكلمة فيبان على الشاشة نصّ مبتور. بناخد أول
-             جملتين، ولو طلعوا أطول من الحدّ نرجع لجملة واحدة. */
+             بيقطع في نصّ الكلمة فيبان على الشاشة نصّ مبتور. بناخد أول أربع
+             جمل — أحمد قال إن جملتين «جملة ونص… Useless» — وبنقصّ من الآخر
+             جملةً جملةً لحد ما يدخل الحدّ، فمانقطعش كلمة أبدًا. */
           const جمل=t.match(/[^.!؟]+[.!؟]/g);
           if(جمل&&جمل.length){
-            t=جمل.slice(0,2).join(' ').trim();
-            if(t.length>240)t=جمل[0].trim();
-          }else if(t.length>240){
-            t=t.slice(0,238).replace(/\s\S*$/,'')+'.';
+            let ق=جمل.slice(0,4).map(s=>s.trim());
+            while(ق.length>1&&ق.join(' ').length>430)ق.pop();
+            t=ق.join(' ').trim();
+          }else if(t.length>430){
+            t=t.slice(0,428).replace(/\s\S*$/,'')+'.';
           }
           if(!this._verdictOk(t,tone))return;
           S._goAI={token,text:t};
@@ -11788,6 +11838,10 @@ const G={
     el.textContent='';
     el.classList.add('typing');
     let i=0;
+    /* التعليق بقى فقرة، فلو فضلنا على ٢٨ms للحرف الكتابة تاخد تمان ثوانٍ.
+       بنسرّع بحسب الطول، وبنجرّ الصندوق لأسفل مع الكتابة عشان السطر اللي
+       بيتكتب يفضل ظاهرًا دايمًا. */
+    const سريع=text.length>200, chDelay=سريع?15:28, spDelay=سريع?9:18, dotDelay=سريع?55:90;
     const step=()=>{
       if(token!==S._resultToken||!S.endState)return;
       if(i>=text.length){
@@ -11798,7 +11852,8 @@ const G={
       el.textContent+=text[i];
       const ch=text[i];
       i++;
-      const delay=(ch==='.'||ch==='،'||ch==='؟'||ch==='!')?90:(ch===' '?18:28);
+      try{el.scrollTop=el.scrollHeight;}catch(e){}
+      const delay=(ch==='.'||ch==='،'||ch==='؟'||ch==='!')?dotDelay:(ch===' '?spDelay:chDelay);
       S._goTypeTimer=setTimeout(step,delay);
     };
     step();
@@ -12546,7 +12601,7 @@ const AppBar={
   screens:{
     's-menu':      {context:'home'},
     's-levels':    {context:'inner', title:'مراحل نور',   back:()=>Nav.menu()},
-    's-online':    {context:'inner', title:'أونلاين',      back:()=>Nav.menu()},
+    's-online':    {context:'inner', title:'عبر الإنترنت',  back:()=>Nav.menu()},
     's-bluetooth': {context:'inner', title:'Bluetooth',    back:()=>{try{BLEManager.disconnect();}catch(e){} Nav.menu();}},
     's-settings':  {context:'inner', title:'الإعدادات',    back:()=>Nav.menu()},
     's-game':      {context:'hidden'}
@@ -13144,8 +13199,8 @@ const OL=(()=>{
   function connect(onOpen){
     destroy();
     if(!SERVER_URL){
-      setSt('c','◌ جاري تحميل بيانات الخادم...','conn');
-      setSt('j','◌ جاري تحميل بيانات الخادم...','conn');
+      setSt('c','◌ جارٍ تحميل بيانات الخادم...','conn');
+      setSt('j','◌ جارٍ تحميل بيانات الخادم...','conn');
       loadServerUrl().then(()=>{
         if(!SERVER_URL){
           setSt('c','◆ الخادم غير متاح حالياً — تأكّد من أن الجهاز يعمل','err');
@@ -13157,8 +13212,8 @@ const OL=(()=>{
       });
       return;
     }
-    setSt('c','◌ جاري الاتصال بالخادم...','conn');
-    setSt('j','◌ جاري الاتصال بالخادم...','conn');
+    setSt('c','◌ جارٍ الاتصال بالخادم...','conn');
+    setSt('j','◌ جارٍ الاتصال بالخادم...','conn');
 
     _connTimeoutTimer = setTimeout(() => {
       SERVER_URL = '';
@@ -13254,25 +13309,25 @@ const OL=(()=>{
           try{OL.col(forced,true);}catch(e){}
           setSt('m',`◎ تم ضبط لونك إلى ${forced==='w'?'الأبيض':'الأسود'} لأن اللون الآخر محجوز حالياً…`,'wait');
           try{document.getElementById('btn-mm').style.display='none';}catch(e){}
-          try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
+          try{document.getElementById('btn-mc').style.display='';}catch(e){}
           try{
             send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:forced,rated:!!OL.rt,tc:OL.tc||null,token:OL._tok()});
           }catch(e){
-            try{document.getElementById('btn-mm').style.display='inline-flex';}catch(err){}
+            try{document.getElementById('btn-mm').style.display='';}catch(err){}
             try{document.getElementById('btn-mc').style.display='none';}catch(err){}
           }
         }
         break;
 
       case 'mm-wait':
-        setSt('m','◎ جاري البحث عن خصم…','wait');
+        setSt('m','◎ جارٍ البحث عن خصم…','wait');
         try{document.getElementById('btn-mm').style.display='none';}catch(e){}
-        try{document.getElementById('btn-mc').style.display='inline-flex';}catch(e){}
+        try{document.getElementById('btn-mc').style.display='';}catch(e){}
         break;
 
       case 'mm-cancelled':
         setSt('m','◆ تم إلغاء المطابقة','');
-        try{document.getElementById('btn-mm').style.display='inline-flex';}catch(e){}
+        try{document.getElementById('btn-mm').style.display='';}catch(e){}
         try{document.getElementById('btn-mc').style.display='none';}catch(e){}
         break;
 
@@ -13289,7 +13344,7 @@ const OL=(()=>{
         break;
 
       case 'room-joined':
-        setSt('j','◌ جاري بدء اللعبة…','conn');
+        setSt('j','◌ جارٍ بدء اللعبة…','conn');
         // Send my name/pimg immediately so server can cache it for the opponent
         try{
           send({type:'name',name:Cfg.data.playerName||''});
@@ -13447,11 +13502,11 @@ const OL=(()=>{
       }
       this.rt=!!v;
       const cas=document.getElementById('rt-casual'), rat=document.getElementById('rt-rated');
-      if(cas)cas.classList.toggle('on',!this.rt);
-      if(rat)rat.classList.toggle('on',this.rt);
+      if(cas)cas.classList.toggle('is-active',!this.rt);
+      if(rat)rat.classList.toggle('is-active',this.rt);
       const mcas=document.getElementById('mrt-casual'), mrat=document.getElementById('mrt-rated');
-      if(mcas)mcas.classList.toggle('on',!this.rt);
-      if(mrat)mrat.classList.toggle('on',this.rt);
+      if(mcas)mcas.classList.toggle('is-active',!this.rt);
+      if(mrat)mrat.classList.toggle('is-active',this.rt);
     },
     /* اختيار زمن المباراة (#134) — بيزامن مجموعتَي الأزرار (إنشاء + مطابقة). */
     setTC(key,silent=false){
@@ -13461,8 +13516,8 @@ const OL=(()=>{
       this.tc=_CLK_PRESETS[key];
       ['none','1+0','3+2','5+0','10+0','15+10'].forEach(k=>{
         const a=document.getElementById('tcp-'+k), b=document.getElementById('mtcp-'+k);
-        if(a)a.classList.toggle('on',k===key);
-        if(b)b.classList.toggle('on',k===key);
+        if(a)a.classList.toggle('is-active',k===key);
+        if(b)b.classList.toggle('is-active',k===key);
       });
     },
     getHttpBase(){return SERVER_HTTP||'';},
@@ -13470,7 +13525,7 @@ const OL=(()=>{
       setSt('c','');setSt('j','');
       setSt('m','');
       document.getElementById('rbox').style.display='none';
-      const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='♟ إنشاء غرفة';
+      const bc=document.getElementById('btn-create');bc.disabled=false;bc.textContent='إنشاء غرفة';
       document.getElementById('jinp').value='';
       _roomCode='';
       destroy();
@@ -13478,12 +13533,33 @@ const OL=(()=>{
       this.setTC(this.tcKey||'none',true);
       _resetClockDisplay();
     },
+    /* التبويبات بقت «طرق بدء» على نظام التصميم: الزر بياخد is-active
+       واللوح بياخد on. والحماية بالـnull مقصودة عشان أي زر يتشال من
+       الماركب مايوقّفش الشاشة كلها. */
     tab(n){
       SFX.btn();
       ['c','j','m'].forEach(t=>{
-        document.getElementById('tb-'+t).classList.toggle('on',t===n);
-        document.getElementById('tc-'+t).classList.toggle('on',t===n);
+        const b=document.getElementById('tb-'+t), p=document.getElementById('tc-'+t);
+        if(b){b.classList.toggle('is-active',t===n);b.setAttribute('aria-selected',t===n?'true':'false');}
+        if(p)p.classList.toggle('on',t===n);
       });
+    },
+    /* «لعب مع صديق» — الطريق الرابع اللي طلبه أحمد. الدعوة نفسها موجودة
+       في نظام الأصدقاء، فبنفتح قائمة الأصدقاء ونمرّر لها إعدادات الشاشة
+       (النوع والزمن) عشان نافذة الدعوة تفتح على اختياره مش على الافتراضي. */
+    friend(){
+      SFX.btn();
+      const FR=window.amkhFriends;
+      if(!this._tok()){
+        try{ (window.amkhUI||window.U).notify('سجّل الدخول أولًا حتى تظهر قائمة أصدقائك وتستطيع دعوتهم.','لعب مع صديق','◈'); }catch(e){}
+        return;
+      }
+      if(!FR||!FR.showFriendsModal){
+        try{ (window.amkhUI||window.U).notify('قائمة الأصدقاء غير متاحة الآن. أعِد المحاولة بعد لحظة.','لم يتم','◈'); }catch(e){}
+        return;
+      }
+      FR._prefill={ color:this.pc||'w', rated:!!this.rt, tcKey:this.tcKey||'none' };
+      FR.showFriendsModal();
     },
     col(c,silent=false){
       if(!silent)SFX.btn();
@@ -13491,8 +13567,8 @@ const OL=(()=>{
       ['w','b','r'].forEach(x=>{
         const roomEl=document.getElementById('co-'+x);
         const matchEl=document.getElementById('mco-'+x);
-        if(roomEl)roomEl.classList.toggle('on',x===c);
-        if(matchEl)matchEl.classList.toggle('on',x===c);
+        if(roomEl)roomEl.classList.toggle('is-active',x===c);
+        if(matchEl)matchEl.classList.toggle('is-active',x===c);
       });
     },
     create(){
@@ -13529,7 +13605,7 @@ const OL=(()=>{
     mmCancel(){
       SFX.btn();
       try{send({type:'mm-cancel'});}catch(e){}
-      try{document.getElementById('btn-mm').style.display='inline-flex';}catch(e){}
+      try{document.getElementById('btn-mm').style.display='';}catch(e){}
       try{document.getElementById('btn-mc').style.display='none';}catch(e){}
       setSt('m','◆ تم الإلغاء','');
     },
@@ -14407,13 +14483,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260907-b32"></script>
+  <script src="auth-client.js?v=20260907-b33"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260907-b32"></script>
-  <script src="friends-client.js?v=20260907-b32"></script>
-  <script src="chat-client.js?v=20260907-b32"></script>
-  <script src="call-client.js?v=20260907-b32"></script>
+  <script src="welcome-client.js?v=20260907-b33"></script>
+  <script src="friends-client.js?v=20260907-b33"></script>
+  <script src="chat-client.js?v=20260907-b33"></script>
+  <script src="call-client.js?v=20260907-b33"></script>
 <script>
 const BLEManager = {
   isHost: false,
@@ -14471,7 +14547,7 @@ const BLEManager = {
     nearby.addListener('connectionInitiated', (data) => {
       // Auto-accepted on Java side
       this.opponentName = data.endpointName || '';
-      this.setStatus("جاري إتمام الاتصال مع " + data.endpointName + "...");
+      this.setStatus("جارٍ إتمام الاتصال مع " + data.endpointName + "...");
     });
 
     nearby.addListener('connectionResult', (data) => {

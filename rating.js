@@ -21,37 +21,70 @@ const PROVISIONAL_RD = 110;      // فوقها التقييم مبدئي (provis
 const MAX_RD = 350;              // سقف عدم اليقين
 
 /*
- * سقف حركة التقييم في المباراة الواحدة.
+ * حركة التقييم المعروضة — مقياس متماثل بأسلوب chess.com
  * ─────────────────────────────────────────────────────────────────────
- * Glicko-2 صافي بيسمح بقفزات مالهاش معنى للاعب أول ما يبدأ: لاعب
- * rd=350 لو فاز على لاعب 2000 ثابت بياخد +546 نقطة من مباراة واحدة،
- * ولاعب جمّع نقط من انتصارات على لاعبين مبدئيين ممكن يخسر 200+ نقطة
- * في مباراة واحدة (وكل الشكاوى اللي وصلتنا كانت من ده بالظبط).
- * رياضيًا الرقم صحيح — عدم اليقين لسه كبير — بس اللاعب مايقراهوش كده،
- * ومافيش موقع شطرنج كبير بيعرض حركة بالحجم ده.
+ * أحمد لعب مباراة مصنّفة وفاز، فزاد تقييمه ٢٨ ونقص تقييم خصمه ٤٠ — وقال
+ * إن ده غلط، وهو محقّ. Glicko-2 الصافي بيدّي الطرفين حركتين مختلفتين
+ * تمامًا لأن حركة كل لاعب بتتحسب من عدم يقينه هو ومن عدم يقين خصمه معًا،
+ * فتطلع حالات مالهاش أي معنى عند اللاعب:
  *
- * فبنسيب Glicko يحسب RD والتذبذب زي ما هما (دول اللي بيضبطوا سرعة
- * الاستقرار وترتيب لوحة الصدارة) وبنحدّ الرقم المعروض بس:
- *   • أول CALIB_GAMES مباراة مصنّفة: 80 نقطة — لسه بنعاير اللاعب،
- *     فمسموح يتحرّك أسرع (80×10 = مساحة 800 نقطة، أكتر من كفاية).
- *   • بعد كده: 40 نقطة — قريبة من K=32 المعروفة في Elo.
- * السقف متماثل: نفس الحد للفوز وللخسارة، فمفيش ميل لأي ناحية.
+ *   لاعب مستقرّ ١٧٠٠ يفوز على جديد ١٥٠٠  →  +٤   للفايز و -٨٠ للخاسر
+ *   لاعب ١٨٠٠ يفوز على ١٢٠٠ (الاتنين مستقرّين) →  صفر للفايز وصفر للخاسر
+ *
+ * الحالة التانية دي عطل صريح: تفوز ومايزيدش تقييمك ولا نقطة.
+ *
+ * الحلّ: نفصل الرقمين اللي بيقيسوا حاجتين مختلفتين.
+ *   • RD والتذبذب يفضلوا من Glicko-2 زي ما هما — دول بيقيسوا اليقين،
+ *     وعليهم تعتمد علامة «مبدئي» وترتيب لوحة الصدارة والمطابقة.
+ *   • الرقم المعروض بيتحرّك بمعادلة Elo المتماثلة اللي بيحسّها لاعب
+ *     chess.com: فرق واحد للطرفين في اتجاهين متعاكسين، معامله K مشتقّ
+ *     من يقين اللاعبين، وتوقّع النتيجة من فرق التقييم وحده.
+ *
+ *       E    = ١ / (١ + ١٠^((تقييم الخصم − تقييمي) / ٤٠٠))
+ *       K    = متوسّط معامل الطرفين
+ *       الفرق = K × (النتيجة − E)      ثم يُدوَّر
+ *
+ * وثلاث قواعد صريحة تمنع الحالات اللي شافها:
+ *   ١) الفوز يزيد نقطة واحدة على الأقلّ، والخسارة تنقص نقطة على الأقلّ —
+ *      حتى لو كان الفوز متوقّعًا تمامًا. صفر مرفوض في نتيجة حاسمة.
+ *   ٢) الفرق متماثل: اللي بياخده الفايز هو اللي بيدفعه الخاسر بالحرف.
+ *   ٣) التعادل بين متساويين = صفر للطرفين، وبين متفاوتين يقرّبهما.
+ *
+ * معامل K بحسب استقرار اللاعب — أعلى وقت المعايرة وأهدأ بعد الاستقرار:
+ *   أوّل CALIB_GAMES مباراة مصنّفة        → K_CALIB
+ *   بعدها وRD لسه فوق حدّ «مبدئي»          → K_SOFT
+ *   لاعب مستقرّ                            → K_STABLE
  */
 const CALIB_GAMES = 10;
-const CAP_CALIB = 80;
-const CAP_STABLE = 40;
+const K_CALIB = 40;
+const K_SOFT = 24;
+const K_STABLE = 16;
 
-function capFor(games) {
-  return num(games, 0) < CALIB_GAMES ? CAP_CALIB : CAP_STABLE;
+function kFor(player) {
+  const games = num(player && player.games, 0);
+  const rd = clampRd(num(player && player.rd, DEFAULT_RD));
+  if (games < CALIB_GAMES) return K_CALIB;
+  if (rd > PROVISIONAL_RD) return K_SOFT;
+  return K_STABLE;
 }
 
-/* قصّ حركة التقييم على السقف — بيرجّع التقييم الجديد بعد الحد */
-function capDelta(before, after, games) {
-  const cap = capFor(games);
-  const d = num(after, before) - num(before, DEFAULT_R);
-  if (d > cap) return num(before, DEFAULT_R) + cap;
-  if (d < -cap) return num(before, DEFAULT_R) - cap;
-  return num(after, before);
+/* توقّع نتيجة A من فرق التقييم وحده (Elo) — بلا تخميد g(φ) عن قصد:
+   التخميد هو اللي كان بيخلّي الفوز على لاعب مبدئي بلا قيمة تقريبًا. */
+function eloExpect(rA, rB) {
+  return 1 / (1 + Math.pow(10, (num(rB, DEFAULT_R) - num(rA, DEFAULT_R)) / 400));
+}
+
+/* الفرق المعروض للاعب A. B بياخد سالبه بالحرف. */
+function displayDelta(a, b, scoreA) {
+  const rA = num(a && a.r, DEFAULT_R);
+  const rB = num(b && b.r, DEFAULT_R);
+  const s = num(scoreA, 0);
+  const K = (kFor(a) + kFor(b)) / 2;
+  let d = Math.round(K * (s - eloExpect(rA, rB)));
+  /* نتيجة حاسمة لا تُترك بلا أثر */
+  if (s === 1 && d < 1) d = 1;
+  if (s === 0 && d > -1) d = -1;
+  return d;
 }
 
 function g(phi) {
@@ -175,18 +208,27 @@ function num(x, dflt) {
  * راحة لمباراة أونلاين واحدة بين لاعبين: بنحدّث الاتنين ضد بعض
  * باستخدام تقييمات ما قبل المباراة (snapshot) عشان العدل.
  * scoreA = نتيجة A (1/0.5/0)، وB بياخد المكمّل.
- * a/b ممكن يحملوا games = عدد المباريات المصنّفة قبل دي (لتحديد السقف).
+ * a/b ممكن يحملوا games = عدد المباريات المصنّفة قبل دي (لتحديد المعامل).
+ *
+ * التقييم المعروض من displayDelta (متماثل، Elo)، وRD والتذبذب من
+ * Glicko-2 — كلٌّ يقيس ما هو أهل لقياسه، والسبب مشروح فوق عند K.
  * بيرجّع { a:{r,rd,vol}, b:{r,rd,vol} }.
  */
 function applyGame(a, b, scoreA) {
   const preA = { r: num(a.r, DEFAULT_R), rd: num(a.rd, DEFAULT_RD), vol: num(a.vol, DEFAULT_VOL) };
   const preB = { r: num(b.r, DEFAULT_R), rd: num(b.rd, DEFAULT_RD), vol: num(b.vol, DEFAULT_VOL) };
   const sA = num(scoreA, 0);
+  /* Glicko-2 لعدم اليقين */
   const outA = updatePlayer(preA, [{ r: preB.r, rd: preB.rd, score: sA }]);
   const outB = updatePlayer(preB, [{ r: preA.r, rd: preA.rd, score: 1 - sA }]);
-  // السقف على الرقم المعروض بس — RD والتذبذب زي ما Glicko حسبهم
-  outA.r = capDelta(preA.r, outA.r, a.games);
-  outB.r = capDelta(preB.r, outB.r, b.games);
+  /* والرقم المعروض بالفرق المتماثل */
+  const d = displayDelta(
+    { r: preA.r, rd: preA.rd, games: a.games },
+    { r: preB.r, rd: preB.rd, games: b.games },
+    sA
+  );
+  outA.r = preA.r + d;
+  outB.r = preB.r - d;
   return { a: outA, b: outB };
 }
 
@@ -212,13 +254,15 @@ module.exports = {
   conservative,
   isProvisional,
   expectedScore,
-  capFor,
-  capDelta,
+  eloExpect,
+  kFor,
+  displayDelta,
   DEFAULT_R,
   DEFAULT_RD,
   DEFAULT_VOL,
   PROVISIONAL_RD,
   CALIB_GAMES,
-  CAP_CALIB,
-  CAP_STABLE,
+  K_CALIB,
+  K_SOFT,
+  K_STABLE,
 };
