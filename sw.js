@@ -3,7 +3,7 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '4.1-b34';
+const SW_VERSION = '4.2-b35';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
@@ -196,8 +196,12 @@ try{
     try{
       const n=payload?.notification||{};
       const d=payload?.data||{};
-      const title=n.title||d.title||'شطرنج Am-Kh';
-      const body=n.body||d.body||'تنبيه جديد';
+      /* السيرفر بيبعت lang مع كل إشعار عشان النصّ الاحتياطي هنا يطابق
+         لغة صاحب الجهاز؛ من غيرها كان أي إشعار بلا عنوان يظهر بالعربية
+         لمن اختار الإنجليزية. */
+      const _en=d.lang==='en';
+      const title=n.title||d.title||(_en?'Am-Kh Chess':'شطرنج Am-Kh');
+      const body=n.body||d.body||(_en?'New alert':'تنبيه جديد');
       const icon=n.icon||d.icon||'./icon_v2.png?v=3';
       const badge=n.badge||d.badge||'./icon_v2.png?v=3';
       const tag=n.tag||d.tag||'chess-fcm';
@@ -213,9 +217,10 @@ self.addEventListener('push', e => {
     const payload = e.data.json();
     const { title, body, icon, badge, tag, requireInteraction } = payload.notification || payload.data || {};
     const d = payload.data && typeof payload.data === 'object' ? payload.data : {};
+    const en = d.lang === 'en';
     e.waitUntil(
-      self.registration.showNotification(title || 'شطرنج Am-Kh', {
-        body: body || 'تنبيه جديد',
+      self.registration.showNotification(title || (en ? 'Am-Kh Chess' : 'شطرنج Am-Kh'), {
+        body: body || (en ? 'New alert' : 'تنبيه جديد'),
         icon: icon || './icon_v2.png?v=3',
         badge: badge || './icon_v2.png?v=3',
         tag: tag || 'chess-push',

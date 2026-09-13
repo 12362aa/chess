@@ -356,7 +356,7 @@ const amkhChat = {
     let h = d.getHours(), m = d.getMinutes();
     const am = h < 12;
     h = h % 12; if (h === 0) h = 12;
-    return `${h}:${m < 10 ? '0' + m : m} ${am ? 'ص' : 'م'}`;
+    return `${h}:${m < 10 ? '0' + m : m} ${am ? LP('ص', 'AM') : LP('م', 'PM')}`;
   },
 
   /* ── سجل المكالمات في الشات (#153) ──
@@ -2222,11 +2222,11 @@ const amkhChat = {
     const left = t - Date.now();
     if (left <= 0) return 'انتهت مدّتها';
     const days = Math.floor(left / 86400000);
-    if (days >= 1) return `تنتهي بعد ${days === 1 ? 'يوم' : days === 2 ? 'يومين' : days + ' أيام'}`;
+    if (days >= 1) return tt`تنتهي بعد ${T(days === 1 ? 'يوم' : days === 2 ? 'يومين' : days + ' أيام')}`;
     const hrs = Math.floor(left / 3600000);
-    if (hrs >= 1) return `تنتهي بعد ${hrs === 1 ? 'ساعة' : hrs === 2 ? 'ساعتين' : hrs + ' ساعات'}`;
+    if (hrs >= 1) return tt`تنتهي بعد ${T(hrs === 1 ? 'ساعة' : hrs === 2 ? 'ساعتين' : hrs + ' ساعات')}`;
     const mins = Math.max(1, Math.floor(left / 60000));
-    return `تنتهي بعد ${mins === 1 ? 'دقيقة' : mins === 2 ? 'دقيقتين' : mins + ' دقائق'}`;
+    return tt`تنتهي بعد ${T(mins === 1 ? 'دقيقة' : mins === 2 ? 'دقيقتين' : mins + ' دقائق')}`;
   },
 
   /* ══ نسخ نص الرسالة (#11) ══
@@ -2434,9 +2434,9 @@ const amkhChat = {
     if (plugin && typeof plugin.save === 'function') {
       try {
         await plugin.save({ data: m.audio, mime, name });
-        if (U) U.notify(`تم حفظ ${label} في معرض الجهاز`, 'حُفظ', '◉');
+        if (U) U.notify(tt`تم حفظ ${T(label)} في معرض الجهاز`, 'حُفظ', '◉');
       } catch (e) {
-        if (U) U.notify(`تعذّر حفظ ${label} على هذا الجهاز`, 'لم يتم', '◈');
+        if (U) U.notify(tt`تعذّر حفظ ${T(label)} على هذا الجهاز`, 'لم يتم', '◈');
       }
       return;
     }
@@ -2452,9 +2452,9 @@ const amkhChat = {
       a.click();
       a.remove();
       setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
-      if (U) U.notify(`تم تنزيل ${label}`, 'حُفظ', '◉');
+      if (U) U.notify(tt`تم تنزيل ${T(label)}`, 'حُفظ', '◉');
     } catch (e) {
-      if (U) U.notify(`تعذّر حفظ ${label} على هذا الجهاز`, 'لم يتم', '◈');
+      if (U) U.notify(tt`تعذّر حفظ ${T(label)} على هذا الجهاز`, 'لم يتم', '◈');
     }
   },
 
@@ -4056,7 +4056,7 @@ const amkhChat = {
         else U.notify((r && r.error) || 'تعذّر التغيير', 'تنبيه', '◈');
       } else if (act === 'remove') {
         try { overlay._dismiss(); } catch (e) {}
-        const ok = await U.confirm('إزالة عضو', `إزالة ${name} من الحفلة؟`, 'إزالة', 'إلغاء');
+        const ok = await U.confirm('إزالة عضو', tt`إزالة ${name} من الحفلة؟`, 'إزالة', 'إلغاء');
         if (!ok) return;
         const r = await this._gdel(`/${gid}/members/${mem.id}`);
         if (r && !r.error) this._showGroupMembers(gid);

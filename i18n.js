@@ -260,6 +260,15 @@
     /* اختيار بين نصّين حسب اللغة — للحالات التي لا يكفي فيها القاموس
        (توجيهات نور لنموذج اللغة مثلًا: نصّ عربي كامل مقابل نصّ إنجليزي). */
     pick: function (ar, en) { return lang === 'en' ? en : ar; },
+    /* ترجمة إلى لغة بعينها بصرف النظر عن لغة الواجهة. يحتاجها نور حين
+       يردّ بلغة الرسالة المكتوبة إليه لا بلغة التطبيق: من يكاتبه عربيًّا
+       والواجهة إنجليزية يجب أن يجد ردًّا عربيًّا. translate متزامنة ولا
+       تحتفظ بحالة، فتبديل المتغيّر حولها وإرجاعه آمن. */
+    tin: function (l, s) {
+      if (l !== 'en') return s;
+      var prev = lang; lang = 'en';
+      try { return translate(s); } finally { lang = prev; }
+    },
     /* تسجيل مدخلات إضافية (تستعملها ملفات العميل الأخرى) */
     add: function (map) { for (var k in map) DICT[norm(k)] = map[k]; },
     addPattern: function (re, en) { PATS.push({ re: re, en: en }); },
@@ -279,6 +288,11 @@
       try { localStorage.setItem(KEY, l); } catch (e) {}
       lang = l; applyDir();
       if (lang === 'en') { observe(); sweep(document.documentElement); }
+      /* الكنس يطال ما في الـDOM فقط. أما النصوص التي بناها الجافاسكربت
+         بلغته قبل الاختيار — تحدّيات اليوم مثلًا تُكتب بـLP وقت التوليد —
+         فلا مفتاح لها في القاموس ولا تتبدّل بالكنس. لذلك نعلن الحدث،
+         وتعيد الشاشات المعنيّة بناء محتواها باللغة الجديدة. */
+      try { global.dispatchEvent(new CustomEvent('amkh:lang', { detail: { lang: lang } })); } catch (e) {}
       return lang;
     },
     /* للفحص الآليّ: النصوص التي لم يجد لها القاموس ترجمة. */

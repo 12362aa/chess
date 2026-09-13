@@ -1605,8 +1605,8 @@ const amkhAuth = {
         </div>
         <h2 class="ds-dialog__title">أكّد بريدك الإلكتروني</h2>
         <p class="ds-dialog__message" id="vf-sub">${opt.already
-          ? `سبق أن أرسلنا رمزًا إلى ${shown(email)} — أدخله هنا لإكمال إنشاء حسابك.`
-          : `أرسلنا رمزًا من 6 أرقام إلى ${shown(email)} — صالح لمدة ${ttl} دقيقة.`}</p>
+          ? tt`سبق أن أرسلنا رمزًا إلى ${shown(email)} — أدخله هنا لإكمال إنشاء حسابك.`
+          : tt`أرسلنا رمزًا من 6 أرقام إلى ${shown(email)} — صالح لمدة ${ttl} دقيقة.`}</p>
         <p class="ds-field__hint" style="margin:-6px 0 12px;line-height:1.75;">${spamHint}</p>
 
         <div class="ds-field">

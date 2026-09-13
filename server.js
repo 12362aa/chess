@@ -124,15 +124,63 @@ function _buildLink(payload) {
   return base + '/index.html';
 }
 
+/* ── لغة الإشعار ──────────────────────────────────────────────────────
+   الإشعار بيتصاغ هنا وبيتبعت جاهزًا لِـFCM؛ طبقة الترجمة اللي على الجهاز
+   بتشتغل على الـDOM والإشعار مابيمرّش بالـDOM، فمافيش فرصة لترجمته بعد
+   ما يخرج من هنا. يعني لازم يتولد بلغة صاحبه من الأساس.
+
+   اللغة محفوظة مع كل توكِن في tokens.json (بيبعتها العميل في /save-token).
+   القاعدة: نقسم التوكِنات لمجموعتين ونبعت لكل مجموعة نصّها. والعنوان/النص
+   يُقبل بصيغتين: نصّ عادي (بيتترجم بالقاموس المشترك)، أو {ar,en} للنصوص
+   المركّبة اللي فيها اسم أو رقم فماينفعش يبقى لها مفتاح ثابت. */
+const SRV_I18N = require('./i18n-server');
+
+function _tokenLangMap() {
+  const m = Object.create(null);
+  try {
+    safeReadTokens().forEach(t => { if (t && t.token) m[t.token] = (t.lang === 'en') ? 'en' : 'ar'; });
+  } catch (e) {}
+  return m;
+}
+
+/* يختار نصّ العنوان/النص بلغة المجموعة */
+function _pushText(v, lang, fallbackAr) {
+  if (v && typeof v === 'object') {
+    const s = (lang === 'en') ? (v.en !== undefined ? v.en : v.ar) : (v.ar !== undefined ? v.ar : v.en);
+    return String(s === undefined || s === null ? '' : s);
+  }
+  if (v === undefined || v === null || v === '') return SRV_I18N.T(fallbackAr, lang);
+  return SRV_I18N.T(String(v), lang);
+}
+
 function sendPushToTokens(tokens, payload) {
   if (!_adminReady) return Promise.resolve({ ok: false, reason: 'admin-not-ready' });
   if (!tokens || !tokens.length) return Promise.resolve({ ok: false, reason: 'no-tokens' });
 
-  const title = String(payload?.title || 'شطرنج Am-Kh');
-  const body = String(payload?.body || 'تنبيه جديد');
+  const map = _tokenLangMap();
+  const groups = { ar: [], en: [] };
+  tokens.forEach(t => { groups[map[t] === 'en' ? 'en' : 'ar'].push(t); });
+
+  const langs = ['ar', 'en'].filter(l => groups[l].length);
+  if (langs.length === 1) return _sendPushGroup(groups[langs[0]], payload, langs[0]);
+
+  return Promise.all(langs.map(l => _sendPushGroup(groups[l], payload, l))).then(rs => ({
+    ok: rs.some(r => r && r.ok),
+    successCount: rs.reduce((a, r) => a + ((r && r.successCount) || 0), 0),
+    failureCount: rs.reduce((a, r) => a + ((r && r.failureCount) || 0), 0),
+    responses: rs.reduce((a, r) => a.concat((r && r.responses) || []), []),
+  }));
+}
+
+function _sendPushGroup(tokens, payload, lang) {
+  const title = _pushText(payload?.title, lang, 'شطرنج Am-Kh');
+  const body = _pushText(payload?.body, lang, 'تنبيه جديد');
   const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
   const link = _buildLink(payload);
   const dataOnly = !!payload?.dataOnly;
+  /* الخدمة الأصلية (FcmService) بتبني إشعار المكالمة بنفسها، فمحتاجة تعرف
+     اللغة عشان أزرار «رد/رفض» وسطر «يدعوك لمكالمة» يطلعوا بلغة صاحبها. */
+  const withLang = { ...data, lang };
 
   let message;
   if (dataOnly) {
@@ -143,14 +191,14 @@ function sendPushToTokens(tokens, payload) {
        لحظية مالهاش أي لازمة بعد دقيقة. */
     message = {
       tokens,
-      data: Object.fromEntries(Object.entries({ ...data, link, title, body }).map(([k, v]) => [String(k), String(v)])),
+      data: Object.fromEntries(Object.entries({ ...withLang, link, title, body }).map(([k, v]) => [String(k), String(v)])),
       android: { priority: 'high', ttl: 60000 },
     };
   } else {
     message = {
       tokens,
       notification: { title, body },
-      data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
+      data: Object.fromEntries(Object.entries({ ...withLang, link }).map(([k, v]) => [String(k), String(v)])),
       android: {
         priority: 'high',
         notification: { channelId: 'chess-amkh', sound: 'default', defaultSound: true },
@@ -370,7 +418,13 @@ function _categories(s) {
 
 /* يبني {title, body} من الفئة + اللقطة. كل صيغة فيها قيمة حيّة على الأقل،
    والتنويع مشتقّ بهاش من (المستخدم، اليوم، الفتحة، الفئة) فمفيش تكرار حرفي.
-   كل النصوص عربية فصحى — التطبيق عربي لكل الناطقين بالعربية، مش مصري. */
+   كل النصوص عربية فصحى — التطبيق عربي لكل الناطقين بالعربية، مش مصري.
+
+   ولكل صيغة مقابل إنجليزي في نفس الموضع من المصفوفة: الإشعار بيتصاغ هنا
+   على السيرفر، ومافيش طبقة ترجمة على الجهاز تقدر تلحقه بعد ما يخرج —
+   الترجمة على الجهاز بتشتغل على الـDOM، والإشعار مابيمرّش بالـDOM أصلًا.
+   فلازم النصّ يتولد بلغة صاحبه من هنا. الاختيار العشوائي بفهرس واحد
+   للّغتين عشان النصّين يفضلوا متقابلين مهما تغيّر الهاش. */
 const _nDays    = n => n === 1 ? 'يومًا واحدًا' : n === 2 ? 'يومين' : (n <= 10 ? `${n} أيام` : `${n} يومًا`);
 const _nMsgs    = n => n === 1 ? 'رسالة واحدة' : n === 2 ? 'رسالتان' : (n <= 10 ? `${n} رسائل` : `${n} رسالة`);
 const _nInvites = n => n === 1 ? 'دعوة واحدة' : n === 2 ? 'دعوتان' : (n <= 10 ? `${n} دعوات` : `${n} دعوة`);
@@ -379,19 +433,38 @@ const _nFriends = n => n === 1 ? 'صديق واحد' : n === 2 ? 'صديقان' 
 const _nStars   = n => n === 1 ? 'نجمة واحدة' : n === 2 ? 'نجمتين' : (n <= 10 ? `${n} نجوم` : `${n} نجمة`);
 const _nPoints  = n => n === 1 ? 'نقطة واحدة' : n === 2 ? 'نقطتان' : (n <= 10 ? `${n} نقاط` : `${n} نقطة`);
 const _nStages  = n => n === 1 ? 'مرحلة واحدة' : n === 2 ? 'مرحلتين' : (n <= 10 ? `${n} مراحل` : `${n} مرحلة`);
+/* الإنجليزية ما فيهاش مثنّى ولا جمع قلّة، فصيغتان تكفيان */
+const _eDays    = n => n === 1 ? 'one day'     : `${n} days`;
+const _eMsgs    = n => n === 1 ? 'one message' : `${n} messages`;
+const _eInvites = n => n === 1 ? 'one invite'  : `${n} invites`;
+const _ePlayers = n => n === 1 ? 'one player'  : `${n} players`;
+const _eFriends = n => n === 1 ? 'one friend'  : `${n} friends`;
+const _eStars   = n => n === 1 ? 'one star'    : `${n} stars`;
+const _ePoints  = n => n === 1 ? 'one point'   : `${n} points`;
+const _eStages  = n => n === 1 ? 'one level'   : `${n} levels`;
+
 function _renderNotif(cat, s, slotIndex, day) {
   const nm = s.name;
-  const pick = (arr) => arr[_hash(s.userId + ':' + day + ':' + slotIndex + ':' + cat) % arr.length];
+  /* _firstName بيرجّع «صديقي» للمستخدم بلا اسم — وهي كلمة عربية تُقحَم
+     في جملة إنجليزية لو مرّت كما هي. */
+  const en = (s.name === 'صديقي') ? 'friend' : s.name;
+  const h = _hash(s.userId + ':' + day + ':' + slotIndex + ':' + cat);
+  /* فهرس واحد للمصفوفتين: العربي والإنجليزي يجب أن يكونا نفس الرسالة. */
+  const pick2 = (ar, eng) => { const i = h % ar.length; return { ar: ar[i], en: eng[i] !== undefined ? eng[i] : eng[0] }; };
 
   switch (cat) {
     case 'comeback': {
       const d = s.daysAway || 1;
       return {
-        title: `${nm}.. غِبتَ ${_nDays(d)}`,
-        body: pick([
+        title: { ar: `${nm}.. غِبتَ ${_nDays(d)}`, en: `${en}.. you have been away ${_eDays(d)}` },
+        body: pick2([
           `${nm}، غِبتَ ${_nDays(d)} — وتقييمك ${s.rating} ما زال ينتظر عودتك ♟`,
           `${_nDays(d)} بلا شطرنج يا ${nm}؟ سجلّك: ${s.wins} فوز، ولن يزداد من تلقاء نفسه 😉`,
           `عودتك تُحدث فرقًا يا ${nm}: آخر ظهور لك منذ ${_nDays(d)}، والرقعة تخلو منك`,
+        ], [
+          `${en}, you have been away ${_eDays(d)} — and your ${s.rating} rating is still waiting for you ♟`,
+          `${_eDays(d)} without chess, ${en}? Your record: ${s.wins} wins, and it will not grow on its own 😉`,
+          `Your return makes a difference, ${en}: last seen ${_eDays(d)} ago, and the board is empty without you`,
         ]),
         data: { kind: 'adaptive', cat, days: String(d) }, tag: 'amkh-comeback',
       };
@@ -399,10 +472,13 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'friends': {
       const f = s.friendsOnline;
       return {
-        title: `${_nFriends(f)} على الشبكة`,
-        body: pick([
+        title: { ar: `${_nFriends(f)} على الشبكة`, en: `${_eFriends(f)} online` },
+        body: pick2([
           `${nm}، عدد أصدقائك المتصلين الآن ${f} — تحدَّ أحدهم في مباراة ♟`,
           `أصدقاؤك على الشبكة الآن (${f}) يا ${nm} — مباراة سريعة قبل أن ينصرفوا؟`,
+        ], [
+          `${en}, ${f} of your friends are online right now — challenge one of them to a game ♟`,
+          `Your friends are online now (${f}), ${en} — a quick game before they leave?`,
         ]),
         data: { kind: 'adaptive', cat, friends: String(f) }, tag: 'amkh-friends',
       };
@@ -410,10 +486,13 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'invite': {
       const p = s.invites;
       return {
-        title: `لديك ${_nInvites(p)} للعب`,
-        body: pick([
+        title: { ar: `لديك ${_nInvites(p)} للعب`, en: `You have ${_eInvites(p)} to play` },
+        body: pick2([
           `${nm}، لديك ${_nInvites(p)} للعب — افتح التطبيق واقبل التحدّي ♟`,
           `تحدٍّ جاهز لك يا ${nm} — عدد الدعوات ${p}، وخصمك ينتظر بدء المباراة`,
+        ], [
+          `${en}, you have ${_eInvites(p)} to play — open the app and accept the challenge ♟`,
+          `A challenge is ready for you, ${en} — ${p} invites, and your opponent is waiting to start`,
         ]),
         data: { kind: 'adaptive', cat, invites: String(p) }, tag: 'amkh-invite',
       };
@@ -421,10 +500,13 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'unread': {
       const c = s.unread;
       return {
-        title: `${_nMsgs(c)} بانتظارك`,
-        body: pick([
+        title: { ar: `${_nMsgs(c)} بانتظارك`, en: `${_eMsgs(c)} waiting for you` },
+        body: pick2([
           `${nm}، لديك ${c} من الرسائل غير المقروءة — ردّ وابدأ مباراة ♟`,
           `رسائل جديدة تنتظرك يا ${nm} (${c}) — أصدقاؤك يحدّثونك، تفضّل بالردّ`,
+        ], [
+          `${en}, you have ${c} unread messages — reply and start a game ♟`,
+          `New messages are waiting for you, ${en} (${c}) — your friends are writing to you, do reply`,
         ]),
         data: { kind: 'adaptive', cat, unread: String(c) }, tag: 'amkh-unread',
       };
@@ -432,39 +514,55 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'rating': {
       const next = (Math.floor(s.rating / 100) + 1) * 100;
       const gap = next - s.rating;
-      const variants = [
+      const vAr = [
         `${nm}، تقييمك ${s.rating} — تفصلك ${_nPoints(gap)} فقط عن ${next}. مباراة مصنّفة واحدة تكفي ♟`,
         `سجلّك: ${s.wins} فوز · ${s.losses} خسارة يا ${nm} — زِد رصيد انتصاراتك اليوم`,
       ];
-      if (s.peak > s.rating)
-        variants.push(`أعلى تقييم بلغته ${s.peak} يا ${nm}، وتقييمك الآن ${s.rating} — استعِده اليوم`);
-      if (s.lastResult === 'win')
-        variants.push(`آخر مباراة انتهت بفوزك يا ${nm} (تقييمك الآن ${s.rating}) — واصل، مباراة أخرى؟`);
-      if (s.lastResult === 'loss')
-        variants.push(`${nm}، خسرت مباراتك الأخيرة — استردّ اعتبارك، وتقييمك ${s.rating} ينتظر التعويض`);
+      const vEn = [
+        `${en}, your rating is ${s.rating} — only ${_ePoints(gap)} away from ${next}. One rated game is enough ♟`,
+        `Your record: ${s.wins} wins · ${s.losses} losses, ${en} — add to your wins today`,
+      ];
+      if (s.peak > s.rating) {
+        vAr.push(`أعلى تقييم بلغته ${s.peak} يا ${nm}، وتقييمك الآن ${s.rating} — استعِده اليوم`);
+        vEn.push(`Your peak rating was ${s.peak}, ${en}, and you are now at ${s.rating} — take it back today`);
+      }
+      if (s.lastResult === 'win') {
+        vAr.push(`آخر مباراة انتهت بفوزك يا ${nm} (تقييمك الآن ${s.rating}) — واصل، مباراة أخرى؟`);
+        vEn.push(`Your last game ended in a win, ${en} (your rating is now ${s.rating}) — keep going, another game?`);
+      }
+      if (s.lastResult === 'loss') {
+        vAr.push(`${nm}، خسرت مباراتك الأخيرة — استردّ اعتبارك، وتقييمك ${s.rating} ينتظر التعويض`);
+        vEn.push(`${en}, you lost your last game — win it back; your ${s.rating} rating is waiting to recover`);
+      }
       return {
-        title: `تقييمك ${s.rating} ♟`,
-        body: pick(variants),
+        title: { ar: `تقييمك ${s.rating} ♟`, en: `Your rating is ${s.rating} ♟` },
+        body: pick2(vAr, vEn),
         data: { kind: 'adaptive', cat, rating: String(s.rating) }, tag: 'amkh-rating',
       };
     }
     case 'nour': {
       if (s.nourStars === 0) {
         return {
-          title: `نور ينتظر ${nm} ♟`,
-          body: pick([
+          title: { ar: `نور ينتظر ${nm} ♟`, en: `Nour is waiting for ${en} ♟` },
+          body: pick2([
             `${nm}، لم تبدأ رحلتك مع نور بعد — المرحلة الأولى وثلاث نجوم تنتظرك`,
             `نور مستعدّ لتعليمك يا ${nm} — ابدأ المرحلة الأولى، وكل نجمة تقرّبك من الاحتراف`,
+          ], [
+            `${en}, you have not started your journey with Nour yet — level one and three stars are waiting for you`,
+            `Nour is ready to teach you, ${en} — start level one; every star brings you closer to mastery`,
           ]),
           data: { kind: 'adaptive', cat, stage: '1' }, tag: 'amkh-nour',
         };
       }
       const n = s.nourNext;
       return {
-        title: `${nm}.. المرحلة ${n} مع نور`,
-        body: pick([
+        title: { ar: `${nm}.. المرحلة ${n} مع نور`, en: `${en}.. level ${n} with Nour` },
+        body: pick2([
           `${nm}، جمعت ${_nStars(s.nourStars)} مع نور — والمرحلة ${n} تنتظر إكمالك`,
           `أنجزت ${_nStages(s.nourStages)} يا ${nm}؛ والمرحلة ${n} أصعب قليلًا، هل تجرّبها؟`,
+        ], [
+          `${en}, you have collected ${_eStars(s.nourStars)} with Nour — and level ${n} is waiting for you to finish it`,
+          `You have completed ${_eStages(s.nourStages)}, ${en}; level ${n} is a little harder — care to try it?`,
         ]),
         data: { kind: 'adaptive', cat, stage: String(n), stars: String(s.nourStars) }, tag: 'amkh-nour',
       };
@@ -472,15 +570,21 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'stockfish':
     default: {
       const lvl = _sfLevel(s.rating);
-      const variants = [
+      const vAr = [
         `${nm}، تقييمك ${s.rating} — جرّب StockFish بالمستوى ${lvl} اليوم، تحدٍّ في مستواك ♟`,
         `تدريب سريع يا ${nm}: StockFish بالمستوى ${lvl} يصقل حساباتك قبل مباراة مصنّفة`,
       ];
-      if (s.ratingGames === 0)
-        variants.push(`${nm}، جرّب اللعب ضد StockFish — ابدأ بالمستوى ${lvl} واكتشف مستواك`);
+      const vEn = [
+        `${en}, your rating is ${s.rating} — try StockFish at level ${lvl} today, a challenge at your level ♟`,
+        `Quick practice, ${en}: StockFish at level ${lvl} sharpens your calculation before a rated game`,
+      ];
+      if (s.ratingGames === 0) {
+        vAr.push(`${nm}، جرّب اللعب ضد StockFish — ابدأ بالمستوى ${lvl} واكتشف مستواك`);
+        vEn.push(`${en}, try playing against StockFish — start at level ${lvl} and discover your level`);
+      }
       return {
-        title: `تحدّي StockFish ${lvl}`,
-        body: pick(variants),
+        title: { ar: `تحدّي StockFish ${lvl}`, en: `StockFish challenge ${lvl}` },
+        body: pick2(vAr, vEn),
         data: { kind: 'adaptive', cat: 'stockfish', level: String(lvl) }, tag: 'amkh-stockfish',
       };
     }
@@ -503,14 +607,22 @@ function _communitySnapshot() {
 function _renderCommunity(c, day, slot) {
   const variants = [];
   if (c.online >= NOTIF.communityMinOnline)
-    variants.push({ title: `${_nPlayers(c.online)} على الشبكة`,
-                    body: `يوجد ${_nPlayers(c.online)} على الشبكة الآن — ادخل والعب مباراة سريعة ♟` });
+    variants.push({ title: { ar: `${_nPlayers(c.online)} على الشبكة`,
+                             en: `${_ePlayers(c.online)} online` },
+                    body: { ar: `يوجد ${_nPlayers(c.online)} على الشبكة الآن — ادخل والعب مباراة سريعة ♟`,
+                            en: `There are ${_ePlayers(c.online)} online right now — come in and play a quick game ♟` } });
   if (c.inGame >= 2)
-    variants.push({ title: `${_nPlayers(c.inGame)} في مباراة`,
-                    body: `عدد اللاعبين في مباريات الآن ${c.inGame} — حان دورك لدخول الحلبة ♟` });
-  if (c.topName && c.topRating)
-    variants.push({ title: `أعلى تقييم: ${c.topRating}`,
-                    body: `${c.topName} يتصدّر بتقييم ${c.topRating} — هل تستطيع الوصول إليه؟ ابدأ الآن` });
+    variants.push({ title: { ar: `${_nPlayers(c.inGame)} في مباراة`,
+                             en: `${_ePlayers(c.inGame)} in a game` },
+                    body: { ar: `عدد اللاعبين في مباريات الآن ${c.inGame} — حان دورك لدخول الحلبة ♟`,
+                            en: `${c.inGame} players are in games right now — it is your turn to step in ♟` } });
+  if (c.topName && c.topRating) {
+    const tn = (c.topName === 'صديقي') ? 'A player' : c.topName;
+    variants.push({ title: { ar: `أعلى تقييم: ${c.topRating}`,
+                             en: `Top rating: ${c.topRating}` },
+                    body: { ar: `${c.topName} يتصدّر بتقييم ${c.topRating} — هل تستطيع الوصول إليه؟ ابدأ الآن`,
+                            en: `${tn} leads with a rating of ${c.topRating} — can you catch up? Start now` } });
+  }
   if (!variants.length) return null;
   const v = variants[_hash('community:' + day + ':' + slot) % variants.length];
   return { title: v.title, body: v.body, data: { kind: 'community' }, tag: 'amkh-community' };
@@ -616,60 +728,15 @@ function getTokensForUser(userId) {
     .map(t => t.token);
 }
 
+/* إشعار لجهاز بعينه. كان له نسخة كاملة من منطق البناء والإرسال، فكان
+   أي تعديل لازم يتكرّر في مكانين — واللغة كانت هتضيع في واحد منهما.
+   بقى غلافًا رفيعًا حوالين sendPushToTokens: نقطة إرسال واحدة تعرف اللغة
+   وتنضّف التوكِنات الميتة. */
 async function sendPushToDevice(deviceId, payload) {
   if (!_adminReady) return { ok: false, reason: 'admin-not-ready' };
   const tokens = getTokensForDeviceId(deviceId);
   if (!tokens.length) return { ok: false, reason: 'no-tokens' };
-
-  const title = String(payload?.title || 'شطرنج Am-Kh');
-  const body = String(payload?.body || 'تنبيه جديد');
-  const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
-  const link = _buildLink(payload);
-
-  const message = {
-    tokens,
-    notification: { title, body },
-    data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
-    android: {
-      priority: 'high',
-      notification: { channelId: 'chess-amkh', sound: 'default', defaultSound: true },
-    },
-    webpush: {
-      headers: { Urgency: 'high' },
-      notification: {
-        title,
-        body,
-        icon: _absUrl('/icon_v2.png?v=3'),
-        badge: _absUrl('/icon_v2.png?v=3'),
-        tag: payload?.tag ? String(payload.tag) : 'chess-auto',
-        requireInteraction: false,
-      },
-      fcmOptions: link ? { link } : undefined,
-    },
-  };
-
-  try {
-    const resp = await admin.messaging().sendEachForMulticast(message);
-
-    const badTokens = [];
-    resp.responses.forEach((r, i) => {
-      if (!r.success) {
-        const code = r.error && r.error.code;
-        if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') {
-          badTokens.push(tokens[i]);
-        }
-      }
-    });
-
-    if (badTokens.length) {
-      const all = safeReadTokens();
-      const filtered = all.filter(t => t && !badTokens.includes(t.token));
-      safeWriteTokens(filtered);
-    }
-    return { ok: true, successCount: resp.successCount, failureCount: resp.failureCount };
-  } catch (e) {
-    return { ok: false, reason: 'send-failed', error: String(e && e.message ? e.message : e) };
-  }
+  return sendPushToTokens(tokens, { tag: 'chess-auto', ...(payload || {}) });
 }
 
 // Add ngrok-skip-browser-warning header
@@ -904,17 +971,26 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    في قلب اللعب (النقلة المسبقة، التعادل بالتكرار والخمسين نقلة، حذف
    الرسائل، رسائل نظام الحفلة، مراجعة نور باسم اللاعب، علامات تصنيف
    النقلات، والتطبيق كاملًا بالإنجليزية) — فالوسم بقى v4.1 وملف الـAPK
-   chess-amkh-4.1.apk في ريليس جديد. */
-const LATEST_VERSION = '4.1';
-const LATEST_CODE = 34;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.1/chess-amkh-4.1.apk';
+   chess-amkh-4.1.apk في ريليس جديد.
+
+   و4.2 بناء 35 إصدار لغة خالص: لا يظهر حرف عربي واحد في الوضع الإنجليزي
+   ولا كلمة إنجليزية في الوضع العربي — في الواجهة وفي إشعارات الهاتف
+   وفي كلام نور نفسه. ولأن ملاحظات التحديث تُعرض داخل التطبيق، صارت
+   تُرسَل باللغتين (notes وnotesEn) ويختار العميل ما يوافق لغته؛ البناءات
+   الأقدم تقرأ notes كما كانت فلا ينكسر عندها شيء. */
+const LATEST_VERSION = '4.2';
+const LATEST_CODE = 35;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2/chess-amkh-4.2.apk';
+const NOTES_AR = 'صار التطبيق ثنائيّ اللغة على الحقيقة: في الوضع الإنجليزي لا يظهر حرف عربي واحد، وفي الوضع العربي لا تظهر كلمة إنجليزية — في كل شاشة، وفي إشعارات الهاتف نفسها: الرسائل، ودعوات الحفلات، والمكالمات، والتذكير اليومي. واختيار اللغة من شاشة الترحيب صار يسري فورًا على كل ما بعده، فتحدّيات اليوم والصفحة الرئيسية تتبع اختيارك من اللحظة الأولى بلا حاجة إلى إعادة الاختيار من الإعدادات. ونور صار يقرأ لغتك من رسالتك لا من إعداداتك: إن كتبت إليه بالعربية أجابك بالعربية، وإن كتبت بالإنجليزية أجابك بالإنجليزية، وتعليقه على المباراة ومراجعته يتبعان لغة التطبيق. وأسماء الأطقم والثيمات ودرجات المحرّك صارت تُعرَض بالعربية في الوضع العربي بعد أن كانت لاتينية. وفي الإعدادات صار لكل لغة رمزها المرسوم بدل شريحتَي الثيم اللتين لا علاقة لهما باللغة، وبطاقة الإحصاءات السريعة في المراجعة استوت في منتصف الشاشة وعلامات تصنيف النقلات ثبتت داخل إطارها.';
+const NOTES_EN = 'The app is now genuinely bilingual: in English mode not a single Arabic character appears, and in Arabic mode no English word does — on every screen, and in the phone notifications themselves: messages, party invites, calls and the daily reminder. Picking a language on the welcome screen now applies immediately to everything after it, so today’s challenges and the home screen follow your choice from the first moment, with no need to pick it again in Settings. Nour now reads your language from your message rather than your settings: write to him in Arabic and he answers in Arabic, write in English and he answers in English, while his post-game comment and review follow the app language. Piece-set names, theme names and engine levels are now shown in Arabic in Arabic mode instead of staying Latin. In Settings each language now has its own drawn icon instead of the two theme swatches that had nothing to do with language, the quick-stats card in the review is centred, and the move-classification badges stay inside their frame.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'النقلة المسبقة صارت متاحة في كل الأوضاع: اضغط نقلتك وخصمك لا يزال يفكّر، فتُنفَّذ لحظة وصول نقلته إن بقيت قانونية، وتُلغى بضغطة واحدة إن لم تبقَ. وأُضيف التعادل بتكرار الوضعية ثلاث مرّات وبقاعدة الخمسين نقلة، فالمباراة التي لا تتقدّم تُغلَق بنفسها كما في قوانين اللعبة، بدل أن تدور بلا نهاية. وحذف الرسائل في المحادثات صار كما اعتدته: «حذف عندي» يزيلها من جهازك وحدك، و«حذف عند الجميع» يستبدلها بسطر «حُذفت هذه الرسالة» عند الطرفين. ورسائل النظام في الحفلات صارت تُكتب مرّة واحدة لا مرّتين، وتقول بالضبط ما جرى: من أُضيف، ومن خرج، ومن أُخرِج، ومن انضمّ برابط الدعوة. ومراجعة نور بعد المباراة صارت تناديك باسمك وتعرف ضدّ من لعبت — مرحلة نور، أو مستوى محرّك Stockfish، أو اسم خصمك على الإنترنت — وتقرأ مباراتك بأرقامها لا بعبارة عامّة. وعلامات تصنيف النقلات في المراجعة صارت بالمعايير نفسها المعروفة في المواقع الكبرى: عبقرية، وممتازة، وأفضل نقلة، وكتابية، وعدم دقّة، وخطأ، وفرصة ضائعة، وخطأ فادح — كلٌّ بعلامته ولونه. والتطبيق كلّه صار بالإنجليزية إن شئت: تختار اللغة من شاشة الترحيب أو من الإعدادات، فتتحوّل كلّ كلمة — حتى تعليق نور ومراجعته — ويعود إلى العربية كما كان بضغطة واحدة.',
+    notes: NOTES_AR,
+    notesEn: NOTES_EN,
   });
 });
 
@@ -1102,6 +1178,9 @@ app.post('/save-token', (req, res) => {
     const deviceId = req.body && req.body.deviceId ? String(req.body.deviceId).trim() : '';
     const platform = req.body && req.body.platform ? String(req.body.platform).trim() : '';
     const userAgent = req.body && req.body.userAgent ? String(req.body.userAgent).trim() : '';
+    /* لغة صاحب الجهاز: الإشعار بيتصاغ على السيرفر فمافيش طريقة تانية
+       يعرفها بها. مافيش قيمة تانية غير ar/en فبنقصر عليهم. */
+    const lang = (req.body && String(req.body.lang || '').trim() === 'en') ? 'en' : 'ar';
 
     /* لو فيه JWT في الهيدر، بنربط التوكِن بحساب المستخدم عشان نقدر نبعتله
        إشعار وهو غير متصل. بدون تسجيل دخول بيتخزّن بالجهاز بس (زي الأول). */
@@ -1116,7 +1195,7 @@ app.post('/save-token', (req, res) => {
     const now = new Date().toISOString();
 
     const idx = tokens.findIndex(t => (t && t.token) === token);
-    const entry = { token, deviceId, platform, userAgent, updatedAt: now };
+    const entry = { token, deviceId, platform, userAgent, lang, updatedAt: now };
     if (userId != null) entry.userId = userId;
     if (idx >= 0) tokens[idx] = { ...tokens[idx], ...entry };
     else tokens.push({ ...entry, createdAt: now });
@@ -1135,54 +1214,20 @@ app.post('/send-notification', async (req, res) => {
   const tokenList = tokens.map(t => t && t.token).filter(Boolean);
   if (!tokenList.length) return res.status(200).json({ ok: true, sent: 0, errorCount: 0 });
 
+  /* كان المسار ده بيبني رسالة FCM بنفسه ويبعتها مباشرةً، فمابيمرّش على
+     تقسيم اللغات — فيصل الإشعار بالعربية لمن اختار الإنجليزية. بقى يمرّ
+     على sendPushToTokens زيّ باقي المسارات: نقطة إرسال واحدة تعرف اللغة
+     وتنضّف التوكِنات الميتة. */
   const title = (req.body && req.body.title) ? String(req.body.title) : 'نور يناديك ♟';
   const body = (req.body && req.body.body) ? String(req.body.body) : 'افتح اللعبة… عندي لك نقلة ذكية ومرحلة جديدة!';
   const data = (req.body && typeof req.body.data === 'object' && req.body.data) ? req.body.data : { kind: 'nour', vibe: 'coach' };
-  const link = _buildLink({ data, link: req.body && req.body.link ? String(req.body.link) : '' });
-
-  const message = {
-    tokens: tokenList,
-    notification: { title, body },
-    data: Object.fromEntries(Object.entries({ ...data, link }).map(([k, v]) => [String(k), String(v)])),
-    android: { priority: 'high', notification: { channelId: 'chess-amkh' } },
-    webpush: {
-      headers: { Urgency: 'high' },
-      notification: {
-        title,
-        body,
-        icon: _absUrl('/icon_v2.png?v=3'),
-        badge: _absUrl('/icon_v2.png?v=3'),
-        tag: 'nour-push',
-        requireInteraction: false,
-      },
-      fcmOptions: link ? { link } : undefined,
-    },
-  };
 
   try {
-    const resp = await admin.messaging().sendEachForMulticast(message);
-
-    const badTokens = [];
-    resp.responses.forEach((r, i) => {
-      if (!r.success) {
-        const code = r.error && r.error.code;
-        if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') {
-          badTokens.push(tokenList[i]);
-        }
-      }
+    const r = await sendPushToTokens(tokenList, {
+      title, body, data, tag: 'nour-push',
+      link: req.body && req.body.link ? String(req.body.link) : '',
     });
-
-    if (badTokens.length) {
-      const filtered = tokens.filter(t => t && !badTokens.includes(t.token));
-      safeWriteTokens(filtered);
-    }
-
-    res.json({
-      ok: true,
-      sent: resp.successCount,
-      errorCount: resp.failureCount,
-      removed: badTokens.length,
-    });
+    res.json({ ok: !!r.ok, sent: r.successCount || 0, errorCount: r.failureCount || 0 });
   } catch (e) {
     res.status(500).json({ ok: false, error: String(e && e.message ? e.message : e) });
   }
@@ -1877,16 +1922,20 @@ function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds, 
   if (!_adminReady) return;
   const g = db.prepare('SELECT name FROM groups WHERE id = ?').get(groupId) || {};
   const groupName = g.name || 'حفلة شطرنجية';
-  const preview = (kind === 'voice' ? 'رسالة صوتية'
-                : kind === 'image' ? 'صورة'
-                : kind === 'video' ? 'فيديو'
-                : String(body || '').slice(0, 100));
+  /* اسم المُرسِل ونصّ الرسالة محتوى مستخدم فلا يُترجَمان أبدًا؛ أمّا
+     «ذكرك» ومعاينة الوسائط فنصّ تطبيق فيُبنى باللغتين. */
+  const prev = kind === 'voice' ? { ar: 'رسالة صوتية', en: 'Voice message' }
+             : kind === 'image' ? { ar: 'صورة', en: 'Photo' }
+             : kind === 'video' ? { ar: 'فيديو', en: 'Video' }
+             : null;
+  const txt = String(body || '').slice(0, 100);
+  const line = l => senderName + (mentioned ? (l === 'en' ? ' mentioned you: ' : ' ذكرك: ') : ': ') + (prev ? prev[l] : txt);
   let tokens = [];
   for (const uid of userIds) tokens = tokens.concat(getTokensForUser(uid));
   if (!tokens.length) return;
   sendPushToTokens(tokens, {
-    title: groupName,
-    body: senderName + (mentioned ? ' ذكرك: ' : ': ') + preview,
+    title: g.name ? g.name : { ar: 'حفلة شطرنجية', en: 'Chess party' },
+    body: { ar: line('ar'), en: line('en') },
     tag: 'group-' + groupId,
     data: { kind: 'group', group_id: String(groupId), from_id: String(fromId), group_name: groupName },
   });
@@ -1953,13 +2002,15 @@ function sendChatPushToUser(fromId, toId, kind, body, mentioned) {
   if (!tokens.length) return;
   const sender = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(fromId) || {};
   const name = resolveOnlineName(sender);
-  const preview = kind === 'voice' ? 'رسالة صوتية'
-                : kind === 'image' ? 'صورة'
-                : kind === 'video' ? 'فيديو'
-                : String(body || '').slice(0, 120);
+  const prev = kind === 'voice' ? { ar: 'رسالة صوتية', en: 'Voice message' }
+             : kind === 'image' ? { ar: 'صورة', en: 'Photo' }
+             : kind === 'video' ? { ar: 'فيديو', en: 'Video' }
+             : null;
+  const txt = String(body || '').slice(0, 120);
+  const line = l => (mentioned ? (l === 'en' ? 'mentioned you: ' : 'ذكرك: ') : '') + (prev ? prev[l] : txt);
   sendPushToTokens(tokens, {
     title: name,
-    body: mentioned ? ('ذكرك: ' + preview) : preview,
+    body: { ar: line('ar'), en: line('en') },
     tag: 'chat-' + fromId,
     /* from_name: عشان التطبيق يفتح الشات باسم المرسِل فورًا لما يُنقر
        الإشعار، من غير ما يستنى قائمة الأصدقاء تتحمّل. */
@@ -1987,8 +2038,10 @@ function sendCallPushToUser(fromId, toId, group, callId, callType) {
   const name = resolveOnlineName(sender);
   const isVideo = callType === 'video';
   const body = isVideo
-    ? (group ? 'يدعوك لمكالمة فيديو في حفلة…' : 'مكالمة فيديو واردة…')
-    : (group ? 'يدعوك لمكالمة صوتية في حفلة…' : 'مكالمة صوتية واردة…');
+    ? (group ? { ar: 'يدعوك لمكالمة فيديو في حفلة…', en: 'is inviting you to a video call in a party…' }
+             : { ar: 'مكالمة فيديو واردة…', en: 'Incoming video call…' })
+    : (group ? { ar: 'يدعوك لمكالمة صوتية في حفلة…', en: 'is inviting you to a voice call in a party…' }
+             : { ar: 'مكالمة صوتية واردة…', en: 'Incoming voice call…' });
   /* توكيع رفض قصير العمر: يثبت هوية المكالمة عشان زر «رفض» في الإشعار
      يقدر يرحّل call:reject للداعي حتى والتطبيق مقفول (#159). */
   let rejectToken = '';
@@ -3688,23 +3741,32 @@ wss.on('connection', (ws, req) => {
           const oppDeviceId = room[oppSide]?.deviceId;
 
           if (oppDeviceId && (msg.type === 'move' || msg.type === 'chat' || msg.type === 'voice')) {
-            const fromName = (room[side]?.name || (side === 'host' ? 'المضيف' : 'الضيف')).slice(0, 20);
+            /* اسم اللاعب محتوى مستخدم فلا يُترجَم؛ لكن بديله حين لا اسم له
+               («المضيف»/«الضيف») نصّ تطبيق فيُبنى باللغتين مثل باقي النصّ. */
+            const rawNm = (room[side]?.name || '').slice(0, 20);
+            const nmOf = l => rawNm || (side === 'host'
+              ? (l === 'en' ? 'Host' : 'المضيف')
+              : (l === 'en' ? 'Guest' : 'الضيف'));
 
-            let title = 'شطرنج Am-Kh';
-            let body = 'حدث جديد في المباراة';
+            let title = { ar: 'شطرنج Am-Kh', en: 'Am-Kh Chess' };
+            let body = { ar: 'حدث جديد في المباراة', en: 'Something new in the game' };
             let tag = 'chess-online';
 
             if (msg.type === 'move') {
-              title = 'دورك الآن';
-              body = `${fromName} أدّى نقلته. افتح المباراة وردّ عليه`;
+              title = { ar: 'دورك الآن', en: 'It is your turn' };
+              body = { ar: `${nmOf('ar')} أدّى نقلته. افتح المباراة وردّ عليه`,
+                       en: `${nmOf('en')} has played. Open the game and reply` };
               tag = 'your-turn';
             } else if (msg.type === 'chat') {
-              title = 'رسالة جديدة';
-              body = `${fromName}: ${(msg.text || 'رسالة').toString().slice(0, 70)}`;
+              const txt = (msg.text || '').toString().slice(0, 70);
+              title = { ar: 'رسالة جديدة', en: 'New message' };
+              body = { ar: `${nmOf('ar')}: ${txt || 'رسالة'}`,
+                       en: `${nmOf('en')}: ${txt || 'Message'}` };
               tag = 'chat';
             } else if (msg.type === 'voice') {
-              title = 'رسالة صوتية';
-              body = `${fromName} أرسل إليك رسالة صوتية — افتح المحادثة للاستماع`;
+              title = { ar: 'رسالة صوتية', en: 'Voice message' };
+              body = { ar: `${nmOf('ar')} أرسل إليك رسالة صوتية — افتح المحادثة للاستماع`,
+                       en: `${nmOf('en')} sent you a voice message — open the chat to listen` };
               tag = 'voice';
             }
 
@@ -3715,7 +3777,7 @@ wss.on('connection', (ws, req) => {
               data: {
                 kind: msg.type,
                 room: room.code,
-                from: fromName,
+                from: nmOf('ar'),
               },
             }).catch(() => {});
           }

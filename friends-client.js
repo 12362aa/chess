@@ -143,7 +143,7 @@ const amkhFriends = {
   },
 
   async removeFriend(userId, name) {
-    const yes = await window.amkhUI.confirm('إزالة صديق', `هل أنت متأكد من إزالة ${name} من أصدقائك؟`, 'إزالة', 'إلغاء');
+    const yes = await window.amkhUI.confirm('إزالة صديق', tt`هل أنت متأكد من إزالة ${name} من أصدقائك؟`, 'إزالة', 'إلغاء');
     if (!yes) return;
     const headers = await this.getAuthHeader();
     try {
@@ -154,7 +154,7 @@ const amkhFriends = {
   },
 
   async blockUser(userId, name) {
-    const yes = await window.amkhUI.confirm('حظر لاعب', `لن يستطيع ${name} إرسال طلب أو دعوة إليك، ولن يجدك في البحث.`, 'احظر', 'إلغاء');
+    const yes = await window.amkhUI.confirm('حظر لاعب', tt`لن يستطيع ${name} إرسال طلب أو دعوة إليك، ولن يجدك في البحث.`, 'احظر', 'إلغاء');
     if (!yes) return;
     const r = await this._post('/friends/block', { user_id: userId });
     if (r.ok) {
@@ -215,7 +215,7 @@ const amkhFriends = {
     const c = (color === 'w' || color === 'b') ? color : 'r';
     ws.send(JSON.stringify({ type: 'friend:invite', friend_id: friendId, color: c, rated: !!rated, tc: tc || null }));
     this._outgoingInvite = { friend_id: friendId, name, at: Date.now() };
-    window.amkhUI.notify(`أُرسلت الدعوة إلى ${name} — في انتظار قبوله`, 'تم', '◉');
+    window.amkhUI.notify(tt`أُرسلت الدعوة إلى ${name} — في انتظار قبوله`, 'تم', '◉');
     return true;
   },
 
@@ -239,11 +239,11 @@ const amkhFriends = {
       }
       case 'friend:request-received':
         this.loadRequests().then(() => { if (this._sheet) this._render(); });
-        if (d.from) window.amkhUI.notify(`${window.amkhName(d.from)} يريد إضافتك صديقًا`, 'طلب صداقة', '◉');
+        if (d.from) window.amkhUI.notify(tt`${window.amkhName(d.from)} يريد إضافتك صديقًا`, 'طلب صداقة', '◉');
         return true;
       case 'friend:added':
         this.loadFriends().then(() => { if (this._sheet) this._render(); });
-        if (d.friend) window.amkhUI.notify(`${window.amkhName(d.friend)} أصبح صديقك`, 'صداقة جديدة', '◉');
+        if (d.friend) window.amkhUI.notify(tt`${window.amkhName(d.friend)} أصبح صديقك`, 'صداقة جديدة', '◉');
         return true;
       case 'friend:removed':
         this.loadFriends().then(() => { if (this._sheet) this._render(); });
@@ -258,7 +258,7 @@ const amkhFriends = {
         return true;
       case 'friend:invite-declined': {
         const n = this._outgoingInvite && this._outgoingInvite.name;
-        window.amkhUI.notify(n ? `${n} رفض الدعوة` : 'تم رفض الدعوة', 'مرفوضة', '◈');
+        window.amkhUI.notify(n ? tt`${n} رفض الدعوة` : 'تم رفض الدعوة', 'مرفوضة', '◈');
         /* #8 — إرجاع زر «العب» في الحال بدل انتظار المؤقّت */
         this._clearInviteWaiting(d.by || (this._outgoingInvite && this._outgoingInvite.friend_id));
         this._outgoingInvite = null;
@@ -390,7 +390,7 @@ const amkhFriends = {
       U.close(overlay);
       const r = await this._post(`/groups/party-invite/${iid}/${action}`, {});
       if (action === 'accept') {
-        if (r && r.ok) U.notify(`انضممت لحفلة «${pname}»`, 'تم', '◉');
+        if (r && r.ok) U.notify(tt`انضممت لحفلة «${pname}»`, 'تم', '◉');
         /* السيرفر بيبعت group:created لكل الأعضاء بعد القبول، وamkhChat
            بيحدّث صندوق الحفلات لوحده — مش محتاجين نعمل reload هنا. */
         else U.notify((r && r.error) || 'تعذّر الانضمام', 'لم يتم', '◈');

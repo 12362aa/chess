@@ -53,10 +53,19 @@ public class FcmService extends MessagingService {
         super.onMessageReceived(remoteMessage);
     }
 
+    /** لغة صاحب الجهاز كما بعتها السيرفر مع الرسالة. إشعار المكالمة بيتبني
+     *  هنا في الجافا، فمافيش طبقة ترجمة في الويب تقدر تلحقه — لازم النصّ
+     *  يتولد بلغته من الأول. الافتراضي عربي زيّ التطبيق. */
+    private static boolean isEn(Map<String, String> data) {
+        String l = data != null ? data.get("lang") : null;
+        return "en".equals(l);
+    }
+
     private void showCallNotification(Map<String, String> data) {
+        boolean en = isEn(data);
         String fromName = data.get("from_name");
         if (fromName == null || fromName.isEmpty()) fromName = data.get("title");
-        if (fromName == null || fromName.isEmpty()) fromName = "صديق";
+        if (fromName == null || fromName.isEmpty()) fromName = en ? "Friend" : "صديق";
         String group = data.get("group");
         boolean isGroup = group != null && !group.isEmpty() && !"null".equals(group);
         String fromId = data.get("from_id");
@@ -68,7 +77,7 @@ public class FcmService extends MessagingService {
 
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
-        ensureCallChannel(nm);
+        ensureCallChannel(nm, en);
 
         int piFlags = PendingIntent.FLAG_UPDATE_CURRENT
                 | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
@@ -94,8 +103,10 @@ public class FcmService extends MessagingService {
         PendingIntent rejectPi = PendingIntent.getBroadcast(this, 1002, rejectIntent, piFlags);
 
         String subtitle = isVideo
-                ? (isGroup ? "مكالمة فيديو من حفلة" : "مكالمة فيديو واردة")
-                : (isGroup ? "مكالمة حفلة واردة" : "مكالمة صوتية واردة");
+                ? (isGroup ? (en ? "Video call from a party" : "مكالمة فيديو من حفلة")
+                           : (en ? "Incoming video call" : "مكالمة فيديو واردة"))
+                : (isGroup ? (en ? "Incoming party call" : "مكالمة حفلة واردة")
+                           : (en ? "Incoming voice call" : "مكالمة صوتية واردة"));
 
         NotificationCompat.Builder b = new NotificationCompat.Builder(this, CALL_CHANNEL_ID)
                 .setSmallIcon(getApplicationInfo().icon)
@@ -108,8 +119,8 @@ public class FcmService extends MessagingService {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentIntent(openPi)
                 .setFullScreenIntent(openPi, true)
-                .addAction(0, "رفض", rejectPi)
-                .addAction(0, "رد", openPi);
+                .addAction(0, en ? "Decline" : "رفض", rejectPi)
+                .addAction(0, en ? "Answer" : "رد", openPi);
 
         // قبل أندرويد 8 الصوت بيتحط على الإشعار نفسه (مفيش قنوات).
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
@@ -121,12 +132,16 @@ public class FcmService extends MessagingService {
         nm.notify(CALL_NOTIF_ID, b.build());
     }
 
-    private void ensureCallChannel(NotificationManager nm) {
+    /* مابنخرجش بدري لو القناة موجودة: createNotificationChannel على نفس
+       الـid بيحدّث الاسم والوصف (والأهمية والصوت مابيتغيّروش بعد الإنشاء
+       وده المطلوب) — فلو المستخدم بدّل لغته يتحدّث اسم القناة في إعدادات
+       النظام بدل ما يفضل بالعربية للأبد. */
+    private void ensureCallChannel(NotificationManager nm, boolean en) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
-        if (nm.getNotificationChannel(CALL_CHANNEL_ID) != null) return;
         NotificationChannel ch = new NotificationChannel(
-                CALL_CHANNEL_ID, "مكالمات واردة", NotificationManager.IMPORTANCE_HIGH);
-        ch.setDescription("إشعار المكالمات الصوتية الواردة");
+                CALL_CHANNEL_ID, en ? "Incoming calls" : "مكالمات واردة",
+                NotificationManager.IMPORTANCE_HIGH);
+        ch.setDescription(en ? "Notification for incoming voice calls" : "إشعار المكالمات الصوتية الواردة");
         ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         Uri ring = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         if (ring != null) {

@@ -19,11 +19,11 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
-<script src="i18n.js?v=20260913-b34"></script>
-<script src="i18n-en.js?v=20260913-b34"></script>
+<script src="i18n.js?v=20260914-b35"></script>
+<script src="i18n-en.js?v=20260914-b35"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260913-b34">
+<link rel="stylesheet" href="design-system.css?v=20260914-b35">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -1940,19 +1940,32 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-sum-lbl{font-size:10px;color:var(--text3);margin-bottom:2px;}
 .rv-sum-val{font-size:15px;font-weight:700;}
 .rv-sum-sub{font-size:10px;color:var(--text3);margin-top:1px;}
-.rv-qwrap{width:100%;max-width:420px;box-sizing:border-box;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+/* حاوية مستقلّة بدل rv-loading: تلك كانت بحشو جانبي 12px وحدٍّ أقصى 440،
+   فتضيق البطاقة على الهاتف وتبدو صغيرة ومزاحة. هنا العرض كامل ما تتيحه
+   منطقة التمرير، والتوسيط صريح بـmargin تلقائيّ لا بمحاذاة الأب وحدها. */
+.rv-qbox{width:100%;max-width:480px;box-sizing:border-box;margin:0 auto;padding:18px 0 0;align-self:center;}
+.rv-qwrap{width:100%;box-sizing:border-box;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
 .rv-qcard{box-sizing:border-box;background:var(--bg2);border:1px solid rgba(201,168,76,.12);border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 36px rgba(0,0,0,.3);}
 .rv-qtitle{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);text-align:center;margin-bottom:8px;}
 .rv-qsub{font-size:12px;color:var(--text2);text-align:center;line-height:1.7;margin-bottom:10px;}
-.rv-qrow{display:flex;gap:8px;}
-.rv-qcol{flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 10px 8px;}
-.rv-qnm{font-size:11px;color:var(--text3);margin-bottom:2px;}
-.rv-qacc{font-size:18px;font-weight:900;}
-.rv-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
-.rv-qitem{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.04);}
-.rv-qlbl{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;min-width:0;}
-.rv-qlbl>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rv-qval{font-size:11px;font-weight:800;color:var(--text);}
+/* رأس البطاقة: الاسمان والدقّتان متقابلان، كلٌّ في نصفه بلا تداخل */
+.rv-qhead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:start;
+  padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.07);}
+.rv-qside{min-width:0;text-align:start;}
+.rv-qside--b{text-align:end;}
+.rv-qnm{font-size:11px;color:var(--text3);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rv-qacc{font-size:20px;font-weight:900;line-height:1.2;}
+/* صفّ لكل تصنيف: عدد الأبيض | الأيقونة والاسم | عدد الأسود.
+   الاسم يأخذ عرض البطاقة كلّه فلا يفيض مهما طال («Inaccuracy»). */
+.rv-qtable{display:flex;flex-direction:column;gap:4px;}
+.rv-qtr{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;align-items:center;gap:8px;
+  padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.04);}
+.rv-qn{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;}
+.rv-qn--w{text-align:start;}
+.rv-qn--b{text-align:end;}
+.rv-qlbl{font-size:12px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;}
+.rv-qlbl>svg{flex:0 0 auto;}
+.rv-qlbl>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rv-qbtn{width:100%;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid rgba(45,212,191,.25);background:linear-gradient(135deg,rgba(45,212,191,.22),rgba(20,184,166,.14));color:var(--teal2);font-family:'Cairo',sans-serif;font-weight:900;cursor:pointer;transition:transform .12s,filter .12s;}
 .rv-qbtn:hover{transform:translateY(-1px);filter:brightness(1.04);}
 .rv-qhint{font-size:11px;color:var(--text3);text-align:center;line-height:1.6;}
@@ -2718,7 +2731,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260913-b34">
+<link rel="stylesheet" href="screens.css?v=20260914-b35">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -2900,7 +2913,7 @@ html.amkh-preboot #amkh-preboot{
         <span class="home-tile__icon" aria-hidden="true">
           <i class="ico ico--bluetooth" aria-hidden="true"></i>
         </span>
-        <span class="home-tile__title">Bluetooth</span>
+        <span class="home-tile__title">بلوتوث</span>
         <span class="home-tile__desc">جهاز قريب بدون إنترنت</span>
       </button>
     </div>
@@ -3039,9 +3052,47 @@ html.amkh-preboot #amkh-preboot{
               <div class="setting-item setting-item-feature">
                 <div class="setting-label">لغة التطبيق</div>
                 <div class="setting-description">يُعاد تشغيل التطبيق ليطبَّق التغيير</div>
-                <div class="ui-grid">
-                  <div class="ui-opt" id="lang-ar" onclick="setAppLang('ar')" data-no-i18n><div class="th-sw"><div class="sw" style="background:#0a0a14"></div><div class="sw" style="background:#c9a84c"></div></div>عربية</div>
-                  <div class="ui-opt" id="lang-en" onclick="setAppLang('en')" data-no-i18n><div class="th-sw"><div class="sw" style="background:#0a0a14"></div><div class="sw" style="background:#c9a84c"></div></div>English</div>
+                <div class="ui-grid ui-grid--lang">
+                  <!-- العلمان مرسومان SVG لا إيموجي: قاعدة التطبيق تمنع الرموز
+                       التعبيرية في الواجهة، والإيموجي يختلف شكله من جهاز لآخر.
+                       كانت هنا شرائح ألوان ثيم Amkh — لا علاقة لها باللغة. -->
+                  <div class="ui-opt" id="lang-ar" onclick="setAppLang('ar')">
+                    <svg class="lang-flag" viewBox="0 0 72 48" aria-hidden="true">
+                      <rect width="72" height="48" fill="#006c35"/>
+                      <g stroke="#fff" stroke-width="1.7" stroke-linecap="round" fill="none">
+                        <path d="M11 21h50"/>
+                        <path d="M15 21v-8"/><path d="M21 21v-6"/><path d="M27 21v-9"/>
+                        <path d="M35 21v-7"/><path d="M41 21v-5"/><path d="M48 21v-8"/><path d="M55 21v-6"/>
+                        <path d="M17 24.4c2 2 5 2 7 0"/><path d="M38 24.4c2 2 5 2 7 0"/>
+                      </g>
+                      <g fill="#fff">
+                        <path d="M12 33.4l5-2.2h37v4.4H17z"/>
+                        <rect x="54" y="29.6" width="3.2" height="7.6" rx="1.2"/>
+                        <rect x="57.4" y="31.4" width="6" height="4" rx="1.6"/>
+                      </g>
+                    </svg>
+                    <span class="lang-nm">العربية</span>
+                  </div>
+                  <div class="ui-opt" id="lang-en" onclick="setAppLang('en')">
+                    <svg class="lang-flag" viewBox="0 0 72 48" aria-hidden="true">
+                      <rect width="72" height="48" fill="#fff"/>
+                      <g fill="#b22234">
+                        <rect y="0" width="72" height="3.7"/><rect y="7.4" width="72" height="3.7"/>
+                        <rect y="14.8" width="72" height="3.7"/><rect y="22.2" width="72" height="3.7"/>
+                        <rect y="29.5" width="72" height="3.7"/><rect y="36.9" width="72" height="3.7"/>
+                        <rect y="44.3" width="72" height="3.7"/>
+                      </g>
+                      <rect width="28.8" height="25.9" fill="#3c3b6e"/>
+                      <g fill="#fff">
+                        <circle cx="2.9" cy="3.4" r="1.05"/><circle cx="7.5" cy="3.4" r="1.05"/><circle cx="12.1" cy="3.4" r="1.05"/><circle cx="16.7" cy="3.4" r="1.05"/><circle cx="21.3" cy="3.4" r="1.05"/><circle cx="25.9" cy="3.4" r="1.05"/>
+                        <circle cx="5.2" cy="8.4" r="1.05"/><circle cx="9.8" cy="8.4" r="1.05"/><circle cx="14.4" cy="8.4" r="1.05"/><circle cx="19" cy="8.4" r="1.05"/><circle cx="23.6" cy="8.4" r="1.05"/>
+                        <circle cx="2.9" cy="13.4" r="1.05"/><circle cx="7.5" cy="13.4" r="1.05"/><circle cx="12.1" cy="13.4" r="1.05"/><circle cx="16.7" cy="13.4" r="1.05"/><circle cx="21.3" cy="13.4" r="1.05"/><circle cx="25.9" cy="13.4" r="1.05"/>
+                        <circle cx="5.2" cy="18.3" r="1.05"/><circle cx="9.8" cy="18.3" r="1.05"/><circle cx="14.4" cy="18.3" r="1.05"/><circle cx="19" cy="18.3" r="1.05"/><circle cx="23.6" cy="18.3" r="1.05"/>
+                        <circle cx="2.9" cy="23.1" r="1.05"/><circle cx="7.5" cy="23.1" r="1.05"/><circle cx="12.1" cy="23.1" r="1.05"/><circle cx="16.7" cy="23.1" r="1.05"/><circle cx="21.3" cy="23.1" r="1.05"/><circle cx="25.9" cy="23.1" r="1.05"/>
+                      </g>
+                    </svg>
+                    <span class="lang-nm">الإنجليزية</span>
+                  </div>
                 </div>
               </div>
               <div class="setting-item setting-item-feature">
@@ -3049,9 +3100,9 @@ html.amkh-preboot #amkh-preboot{
                 <div class="setting-description">يتغير فوراً بدون إعادة تحميل</div>
                 <div class="ui-grid">
                   <div class="ui-opt on" id="ui-amkh" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('amkh')"><div class="th-sw"><div class="sw" style="background:#0a0a14"></div><div class="sw" style="background:#c9a84c"></div></div>Amkh</div>
-                  <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#040604"></div><div class="sw" style="background:#00ff66"></div><div class="sw" style="background:#ffb020"></div></div>Cyber</div>
-                  <div class="ui-opt" id="ui-glass" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('glass')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,.10)"></div><div class="sw" style="background:#93c5fd"></div></div>Glass</div>
-                  <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#0f1923"></div><div class="sw" style="background:#ff4655"></div><div class="sw" style="background:#00e5ff"></div></div>Gaming</div>
+                  <div class="ui-opt" id="ui-cyberpunk" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('cyberpunk')"><div class="th-sw"><div class="sw" style="background:#040604"></div><div class="sw" style="background:#00ff66"></div><div class="sw" style="background:#ffb020"></div></div>سايبر</div>
+                  <div class="ui-opt" id="ui-glass" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('glass')"><div class="th-sw"><div class="sw" style="background:rgba(255,255,255,.10)"></div><div class="sw" style="background:#93c5fd"></div></div>زجاجي</div>
+                  <div class="ui-opt" id="ui-gaming" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.uiTheme('gaming')"><div class="th-sw"><div class="sw" style="background:#0f1923"></div><div class="sw" style="background:#ff4655"></div><div class="sw" style="background:#00e5ff"></div></div>حماسي</div>
                 </div>
               </div>
 
@@ -3371,7 +3422,7 @@ html.amkh-preboot #amkh-preboot{
         <i class="ico ico--bluetooth" aria-hidden="true"></i>
       </span>
       <div class="bt-hero__body">
-        <h2 class="bt-hero__title">لعب عبر Bluetooth</h2>
+        <h2 class="bt-hero__title">لعب عبر بلوتوث</h2>
         <p class="bt-hero__sub">جهازين قريبين من بعض — بدون إنترنت</p>
       </div>
     </div>
@@ -3561,7 +3612,7 @@ html.amkh-preboot #amkh-preboot{
             <div class="rv-stat-value" id="go-stat-moves">0 / 0</div>
           </div>
           <div class="rv-stat-item">
-            <div class="rv-stat-label">Depth</div>
+            <div class="rv-stat-label">العمق</div>
             <div class="rv-stat-value" id="go-engine-depth">--</div>
           </div>
           <div class="rv-stat-item">
@@ -3618,7 +3669,7 @@ html.amkh-preboot #amkh-preboot{
     <div class="ep-detail">
       <div class="ep-detail-main">
         <span class="ep-detail-title" id="engine-sel-title">متوسط</span>
-        <span class="ep-detail-badge" id="engine-sel-elo">~1800 Elo</span>
+        <span class="ep-detail-badge" id="engine-sel-elo">~1800 تقييم</span>
       </div>
       <p class="ep-detail-desc" id="engine-sel-desc">لعب ثابت يناسب اللاعب العادي، بلا هدايا مجانية.</p>
     </div>
@@ -4240,193 +4291,193 @@ const UI_THEMES={
 const CHESS_PIECE_THEMES={
   // 2D Themes
   'neo':{
-    name:'Neo',
+    name:'نيو',
     type:'2d',
     description:'حديث وبسيط',
     urlBase:'pieces/neo/'
   },
   'classic':{
-    name:'Classic',
+    name:'كلاسيكي',
     type:'2d',
     description:'كلاسيكي تقليدي',
     urlBase:'pieces/classic/'
   },
   'alpha':{
-    name:'Alpha',
+    name:'ألفا',
     type:'2d',
     description:'قطع حادة وواضحة',
     urlBase:'pieces/alpha/'
   },
   'bases':{
-    name:'Bases',
+    name:'قواعد',
     type:'2d',
     description:'قطع البلاستيك',
     urlBase:'pieces/bases/'
   },
   'icy-sea':{
-    name:'Icy Sea',
+    name:'بحر جليدي',
     type:'2d',
     description:'قطع بحرية جليدية',
     urlBase:'pieces/icy_sea/'
   },
   'neo-wood':{
-    name:'Neo-Wood',
+    name:'نيو خشبي',
     type:'2d',
-    description:'Neo بملمس خشبي',
+    description:'نيو بملمس خشبي',
     urlBase:'pieces/neo_wood/'
   },
   'glass':{
-    name:'Glass',
+    name:'زجاج',
     type:'2d',
     description:'قطع زجاجية شفافة',
     urlBase:'pieces/glass/'
   },
   'marble':{
-    name:'Marble',
+    name:'رخام',
     type:'2d',
     description:'قطع رخامية أنيقة',
     urlBase:'pieces/marble/'
   },
   'game-room':{
-    name:'Game Room',
+    name:'غرفة اللعب',
     type:'2d',
     description:'قطع غرفة ألعاب',
     urlBase:'pieces/game_room/'
   },
   'tournament':{
-    name:'Tournament',
+    name:'بطولة',
     type:'2d',
     description:'قطع بطولات',
     urlBase:'pieces/tournament/'
   },
   'metal':{
-    name:'Metal',
+    name:'معدن',
     type:'2d',
     description:'قطع معدنية',
     urlBase:'pieces/metal/'
   },
   'modern':{
-    name:'Modern',
+    name:'حديث',
     type:'2d',
     description:'قطع حديثة',
     urlBase:'pieces/modern/'
   },
   'vintage':{
-    name:'Vintage',
+    name:'عتيق',
     type:'2d',
     description:'قطع كلاسيكية',
     urlBase:'pieces/vintage/'
   },
   'graffiti':{
-    name:'Graffiti',
+    name:'جرافيتي',
     type:'2d',
     description:'قطع جرافيتي',
     urlBase:'pieces/graffiti/'
   },
   'neon':{
-    name:'Neon',
+    name:'نيون',
     type:'2d',
     description:'قطع نيون',
     urlBase:'pieces/neon/'
   },
   'ocean':{
-    name:'Ocean',
+    name:'محيط',
     type:'2d',
     description:'قطع بحرية',
     urlBase:'pieces/ocean/'
   },
   'sky':{
-    name:'Sky',
+    name:'سماء',
     type:'2d',
     description:'قطع سمائية',
     urlBase:'pieces/sky/'
   },
   'space':{
-    name:'Space',
+    name:'فضاء',
     type:'2d',
     description:'قطع فضائية',
     urlBase:'pieces/space/'
   },
   'bubblegum':{
-    name:'Bubblegum',
+    name:'علكة',
     type:'2d',
     description:'قطع علكية',
     urlBase:'pieces/bubblegum/'
   },
   '8-bit':{
-    name:'8-Bit',
+    name:'8 بت',
     type:'2d',
     description:'قطع بكسل قديمة',
     urlBase:'pieces/8_bit/'
   },
   'light':{
-    name:'Light',
+    name:'فاتح',
     type:'2d',
     description:'قطع خفيفة',
     urlBase:'pieces/light/'
   },
   'newspaper':{
-    name:'Newspaper',
+    name:'صحيفة',
     type:'2d',
     description:'قطع جريدة',
     urlBase:'pieces/newspaper/'
   },
   'nature':{
-    name:'Nature',
+    name:'طبيعة',
     type:'2d',
     description:'قطع طبيعية',
     urlBase:'pieces/nature/'
   },
   'maya':{
-    name:'Maya',
+    name:'مايا',
     type:'2d',
     description:'قطع مايا',
     urlBase:'pieces/maya/'
   },
   'club':{
-    name:'Club',
+    name:'نادي',
     type:'2d',
     description:'قطع ناد',
     urlBase:'pieces/club/'
   },
   'gothic':{
-    name:'Gothic',
+    name:'قوطي',
     type:'2d',
     description:'قطع قوطية',
     urlBase:'pieces/gothic/'
   },
   'condal':{
-    name:'Condal',
+    name:'كوندال',
     type:'2d',
     description:'قطع كوندال',
     urlBase:'pieces/condal/'
   },
   'dash':{
-    name:'Dash',
+    name:'داش',
     type:'2d',
     description:'قطع سريعة',
     urlBase:'pieces/dash/'
   },
   'lolz':{
-    name:'Lolz',
+    name:'لولز',
     type:'2d',
     description:'قطع مضحكة',
     urlBase:'pieces/lolz/'
   },
   'tigers':{
-    name:'Tigers',
+    name:'نمور',
     type:'2d',
     description:'قطع نمرية',
     urlBase:'pieces/tigers/'
   },
   'book':{
-    name:'Book',
+    name:'كتاب',
     type:'2d',
     description:'قطع كتابية',
     urlBase:'pieces/book/'
   },
   'cases':{
-    name:'Cases',
+    name:'علب',
     type:'2d',
     description:'قطع صناديق',
     urlBase:'pieces/cases/'
@@ -4434,25 +4485,25 @@ const CHESS_PIECE_THEMES={
     
   // 3D Themes
   '3d_wood':{
-    name:'3D Wood',
+    name:'خشب مجسم',
     type:'3d',
     description:'خشبي ثلاثي الأبعاد',
     urlBase:'pieces/3d_wood/'
   },
   '3d_staunton':{
-    name:'3D Staunton',
+    name:'ستاونتون مجسم',
     type:'3d',
     description:'ستونتون ثلاثي الأبعاد',
     urlBase:'pieces/3d_staunton/'
   },
   '3d_plastic':{
-    name:'3D Plastic',
+    name:'بلاستيك مجسم',
     type:'3d',
     description:'بلاستيك ثلاثي الأبعاد',
     urlBase:'pieces/3d_plastic/'
   },
   '3d_chesskid':{
-    name:'3D ChessKid',
+    name:'تشيس كيد مجسم',
     type:'3d',
     description:'أطفال ثلاثي الأبعاد',
     urlBase:'pieces/3d_chesskid/'
@@ -4701,6 +4752,21 @@ function setAppLang(l){
   if(I18N.lang===l){markAppLang();return;}
   I18N.set(l);
 }
+
+/* اختيار اللغة من شاشة الترحيب لا يعيد التحميل (I18N.prime)، والكنس يطال
+   الـDOM وحده. لكن الشاشة الرئيسية تبني نصوصها بالجافاسكربت وقت الإقلاع —
+   تحدّيات اليوم تُكتب بـLP، وسطر الرحلة يركّب اسم المرحلة — فتبقى بلغة
+   الإقلاع. الحدث يعيد بناءها فتظهر إنجليزية من أول دخول بدل أن ينتظر
+   المستخدم اختيارًا ثانيًا من الإعدادات. */
+window.addEventListener('amkh:lang',()=>{
+  try{ markAppLang(); }catch(e){}
+  try{ if(typeof Home!=='undefined') Home.render(); }catch(e){}
+  try{ if(window.Notifications&&Notifications._refreshTokenLang) Notifications._refreshTokenLang(); }catch(e){}
+});
+
+/* التقويم يتبع اللغة: 'ar-EG' يكتب «٦ سبتمبر» بأرقام هندية وأسماء شهور
+   عربية — وهي نصّ لا يطاله القاموس لأنه يتولّد من المتصفّح لا من الكود. */
+function dtLoc(){ return (window.I18N&&I18N.lang==='en')?'en-US':'ar-EG'; }
 
 function switchSettingsTab(tabName){
   // Update tab buttons
@@ -4951,9 +5017,11 @@ const SettingsAccount = {
       set(L.peak, d.rating_peak); set(L.games, d.rating_games);
       if(L.note){
         const bits = [];
-        if(d.provisional) bits.push('تقييمك مبدئي — يستقرّ بعد عدد أكبر من المباريات المصنّفة');
+        if(d.provisional) bits.push(T('تقييمك مبدئي — يستقرّ بعد عدد أكبر من المباريات المصنّفة'));
         const since = this._since(d.created_at);
-        if(since) bits.push('عضو منذ ' + since);
+        /* «عضو منذ» والشهر قطعتان: لو ركّبناهما ثم ترجمنا لم يطابق الناتج
+           أيّ مفتاح («عضو منذ أغسطس ٢٠٢٦»)، فتبقى الجملة عربية. */
+        if(since) bits.push(T('عضو منذ') + ' ' + since);
         L.note.textContent = bits.join('  ·  ');
         L.note.style.display = bits.length ? '' : 'none';
       }
@@ -4977,7 +5045,7 @@ const SettingsAccount = {
       const s = String(raw).trim().replace(' ', 'T');
       const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : s + 'Z');
       if(isNaN(d.getTime())) return '';
-      return d.toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
+      return d.toLocaleDateString(dtLoc(), { year:'numeric', month:'long' });
     }catch(e){ return ''; }
   },
 
@@ -6286,13 +6354,16 @@ const Home={
     if(count)count.textContent=done+'/'+total;
     if(fill)fill.style.width=Math.round(done/total*100)+'%';
     if(sub){
-      sub.textContent = done===0   ? total+' مرحلة من المبتدئ إلى الأسطورة'
-                      : done>=total? 'أنهيت كل المراحل — أسطورة'
-                      : 'التالية: المرحلة '+(done+1)+' — '+LEVELS_DEF[done].name;
+      /* اسم المرحلة قيمة متغيّرة في وسط الجملة: القالب الخام ينتج
+         «التالية: المرحلة 7 — المحارب» ولا يساوي أيّ مفتاح، فوسم tt
+         يبني المفتاح قبل الإحلال، والاسم نفسه يُترجَم بـT قبل أن يُملأ. */
+      sub.textContent = done===0   ? total+' '+T('مرحلة من المبتدئ إلى الأسطورة')
+                      : done>=total? T('أنهيت كل المراحل — أسطورة')
+                      : tt`التالية: المرحلة ${done+1} — ${T(LEVELS_DEF[done].name)}`;
     }
     /* نص الزر بيتغيّر مع الحالة عشان يبان إن الرحلة محفوظة فعلًا */
     if(cta){
-      const label = done===0 ? 'ابدأ الرحلة' : done>=total ? 'العب من جديد' : 'تابع الرحلة';
+      const label = done===0 ? T('ابدأ الرحلة') : done>=total ? T('العب من جديد') : T('تابع الرحلة');
       cta.childNodes[0].nodeValue=label+' ';
     }
   },
@@ -6319,7 +6390,11 @@ const Home={
        البناء إلا لو التقدّم اتغيّر فعلًا (نفس منطق مكافحة الوميض في _recent). */
     const box=document.getElementById('home-daily-list');
     if(box){
-      const sig=list.map(c=>c.id+':'+c.have+'/'+c.need).join('|');
+      /* اللغة جزء من البصمة: نصّ التحدّي يتولّد بـLP وقت البناء، فلو
+         بقيت البصمة بلا لغة ظلّت القائمة بلغة الإقلاع بعد تبديل اللغة
+         من شاشة الترحيب — وهو ما ظهر لأحمد: «تحدّيات اليوم» عربية داخل
+         تطبيق إنجليزي. */
+      const sig=(window.I18N?I18N.lang:'ar')+'|'+list.map(c=>c.id+':'+c.have+'/'+c.need).join('|');
       if(box._sig!==sig){
         box._sig=sig;
         box.textContent='';
@@ -6385,7 +6460,7 @@ const Home={
     set('home-stat-best',st.bestWin);
   },
 
-  MODE_LABEL:{local:'لاعبَان',bot:'نور',engine:'المحرك',online:'أونلاين',bluetooth:'Bluetooth'},
+  MODE_LABEL:{local:'لاعبَان',bot:'نور',engine:'المحرك',online:'أونلاين',bluetooth:'بلوتوث'},
   RES_LABEL:{win:'فوز',loss:'خسارة',draw:'تعادل',two:'انتهت'},
 
   /* الصفوف بتتبني DOM مش innerHTML: اسم الخصم بييجي من اللاعب نفسه أو
@@ -6557,7 +6632,7 @@ function getEnginePreset(level){
     depth:L.limitless?16:12,
     title:L.title,
     tagline:L.tagline,
-    badge:L.limitless?'قوة كاملة':`~${L.elo} Elo`,
+    badge:L.limitless?'قوة كاملة':`~${L.elo} تقييم`,
     description:L.description
   };
 }
@@ -6902,8 +6977,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '4.1';
-const APP_VERSION_CODE = 34;
+const APP_VERSION = '4.2';
+const APP_VERSION_CODE = 35;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -6916,12 +6991,16 @@ function _showUpdateNotice(info){
   const iconEl=document.getElementById('modal-icon');
   const okBtn=document.getElementById('modal-btn-ok');
   const cancelBtn=document.getElementById('modal-btn-cancel');
-  titleEl.textContent='تحديث جديد متاح';
-  msgEl.textContent=(info && info.notes ? info.notes+'\n\n' : '')+'نزّل أحدث نسخة من التطبيق الآن.';
+  titleEl.textContent=LP('تحديث جديد متاح','A new update is available');
+  /* الملاحظات تأتي من السيرفر جاهزة باللغتين، والكنس لا يترجمها لأنها
+     فقرة حرّة لا مفتاح لها؛ فنختار نحن ما يوافق لغة الواجهة، ونفصل
+     ذيل الجملة عنها كي يظل مفتاحًا قابلًا للترجمة. */
+  const _notes=(info && ((I18N&&I18N.lang==='en'&&info.notesEn)||info.notes))||'';
+  msgEl.textContent=(_notes?_notes+'\n\n':'')+LP('نزّل أحدث نسخة من التطبيق الآن.','Download the latest version of the app now.');
   iconEl.innerHTML='<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
   cancelBtn.style.display='';
-  cancelBtn.textContent='لاحقًا';
-  okBtn.textContent='تحديث الآن';
+  cancelBtn.textContent=LP('لاحقًا','Later');
+  okBtn.textContent=LP('تحديث الآن','Update now');
   const url=(info && info.url) || 'https://github.com/12362aa/chess/releases/latest';
   okBtn.onclick=()=>{
     if(typeof SFX!=='undefined')SFX.btn();
@@ -7236,26 +7315,33 @@ const PlayerCard = {
   _initial(n){ return Leaderboard._initial(n); },
 
   _statusText(s){
-    return s==='in-game' ? 'في مباراة' : s==='online' ? 'متصل الآن' : 'غير متصل';
+    return s==='in-game' ? T('في مباراة') : s==='online' ? T('متصل الآن') : T('غير متصل');
   },
-  /* «انضم في يوليو ٢٠٢٦» — التاريخ من السيرفر ISO */
+  /* «انضم في يوليو ٢٠٢٦» — التاريخ من السيرفر ISO. الكلمة والشهر يُترجَمان
+     كلٌّ على حدة: الجملة المركّبة لا تساوي أيّ مفتاح في القاموس. */
   _joined(at){
     if(!at) return '';
     const d = new Date(String(at).replace(' ','T') + (String(at).includes('Z')?'':'Z'));
     if(isNaN(d)) return '';
-    try{ return 'انضم في ' + d.toLocaleDateString('ar-EG', { month:'long', year:'numeric' }); }
+    try{ return T('انضم في') + ' ' + d.toLocaleDateString(dtLoc(), { month:'long', year:'numeric' }); }
     catch(e){ return ''; }
   },
   _shortDate(at){
     if(!at) return '';
     const d = new Date(String(at).replace(' ','T') + (String(at).includes('Z')?'':'Z'));
     if(isNaN(d)) return '';
-    try{ return d.toLocaleDateString('ar-EG', { day:'numeric', month:'short' }); }
+    try{ return d.toLocaleDateString(dtLoc(), { day:'numeric', month:'short' }); }
     catch(e){ return ''; }
   },
   _streakText(st){
     const n = st && st.streak || 0;
     if(!n || !st.streak_kind) return '—';
+    /* العربية تجمع العدد والنوع في صيغة واحدة («٣ فوز متتالية») والإنجليزية
+       تقلب الترتيب وتصرّف الجمع، فنكتب السطر بلغته بدل تركيبه ثم ترجمته. */
+    if(window.I18N&&I18N.lang==='en'){
+      const k = st.streak_kind==='win' ? 'win' : st.streak_kind==='loss' ? 'loss' : 'draw';
+      return n + ' ' + k + (n>1 ? 's' : '') + (n>2 ? ' in a row' : '');
+    }
     const k = st.streak_kind==='win' ? 'فوز' : st.streak_kind==='loss' ? 'خسارة' : 'تعادل';
     return n + ' ' + k + (n>2 ? ' متتالية' : '');
   },
@@ -9006,16 +9092,30 @@ const CHAT={
            ما قرأته أكثر من رسالة النظام.
        (٣) حرس بعدي (_fixNourColor) يصحّح ادّعاء اللون الصريح قبل العرض،
            فالمستخدم لا يرى الغلطة حتى لو خرجت من الموديل. */
-  _nourId(){
+  /* لغة الردّ = لغة الرسالة المكتوبة لا لغة الواجهة. من يكاتب نور عربيًّا
+     والتطبيق إنجليزيّ يجب أن يجد ردًّا عربيًّا، والعكس. الحروف هي الفيصل:
+     أيّ حرف عربيّ يرجّح العربية، وإلّا فاللاتينيّ الإنجليزية، وإن خلت
+     الرسالة من الحروف (ترميز نقلة، أرقام، رمز) فلغة الواجهة. */
+  _msgLang(txt){
+    const app=(window.I18N&&I18N.lang==='en')?'en':'ar';
+    if(typeof txt!=='string'||!txt)return app;
+    if(/[ء-ي]/.test(txt))return 'ar';
+    if(/[A-Za-z]/.test(txt))return 'en';
+    return app;
+  },
+  /* lg اختياريّة: المطالبة تُبنى بلغة الردّ المطلوبة لا بلغة الواجهة. */
+  _nourId(lg){
+    lg=(lg==='en')?'en':(lg==='ar')?'ar':((window.I18N&&I18N.lang==='en')?'en':'ar');
+    const P=(a,e)=>lg==='en'?e:a;
     const my=(S.myCol==='b')?'b':'w';
     const nourCol=(my==='w')?'b':'w';
-    const A=c=>c==='w'?LP('الأبيض','White'):LP('الأسود','Black');
-    const pn=Cfg.data.playerName||LP('اللاعب','Player');
+    const A=c=>c==='w'?P('الأبيض','White'):P('الأسود','Black');
+    const pn=Cfg.data.playerName||P('اللاعب','Player');
     return {
-      myCol:my, nourCol, myColAr:A(my), nourColAr:A(nourCol), pn,
-      rules:LP(`قواعد صارمة لا تخالفها أبدًا:\n- أنت نور وتلعب بـ${A(nourCol)}.\n- خصمك اسمه ${pn} ويلعب بـ${A(my)}.\n- لا تقل أبدًا إنك تلعب بـ${A(my)}، ولا تنسب قطع ${A(my)} لنفسك.`,
+      lg, P, myCol:my, nourCol, myColAr:A(my), nourColAr:A(nourCol), pn,
+      rules:P(`قواعد صارمة لا تخالفها أبدًا:\n- أنت نور وتلعب بـ${A(nourCol)}.\n- خصمك اسمه ${pn} ويلعب بـ${A(my)}.\n- لا تقل أبدًا إنك تلعب بـ${A(my)}، ولا تنسب قطع ${A(my)} لنفسك.`,
         `Strict rules you must never break:\n- You are Nour and you play ${A(nourCol)}.\n- Your opponent is called ${pn} and plays ${A(my)}.\n- Never say that you play ${A(my)}, and never claim the ${A(my)} pieces as yours.`),
-      reminder:LP(`تذكير قبل أن تكتب: أنت نور صاحب ${A(nourCol)}، و${pn} صاحب ${A(my)}.`,
+      reminder:P(`تذكير قبل أن تكتب: أنت نور صاحب ${A(nourCol)}، و${pn} صاحب ${A(my)}.`,
         `Reminder before you write: you are Nour with ${A(nourCol)}, and ${pn} has ${A(my)}.`)
     };
   },
@@ -9025,9 +9125,10 @@ const CHAT={
      بيتعامل مع العربي كـnon-word فيقلب المعنى. */
   _fixNourColor(t){
     if(!t)return t;
-    /* الحرس مبنيّ على صيغ عربية بحتة؛ وفي الوضع الإنجليزي الموديل أقوى
-       بكثير من ٧B ويرى القاعدة صريحة في المطالبة، فلا حاجة إليه. */
-    if(window.I18N&&I18N.lang==='en')return t;
+    /* الحرس مبنيّ على صيغ عربية بحتة، فمناطه نصّ الردّ لا لغة الواجهة:
+       نور يردّ بالعربية على من كاتبه بالعربية ولو كان التطبيق إنجليزيًّا،
+       وذلك الردّ يحتاج التصحيح. أمّا الردّ الخالي من العربية فلا يعنيه. */
+    if(!/[ء-ي]/.test(t))return t;
     try{
       const nourW=((S.myCol==='b')?'b':'w')!=='w';
       const AR='[\\u0621-\\u064A]';
@@ -9041,29 +9142,33 @@ const CHAT={
     }catch(e){return t;}
   },
   async _sendToNour(txt){
-    const pn=Cfg.data.playerName||LP('اللاعب','Player');
+    /* المطالبة كلّها تُبنى بلغة الرسالة: P بدل LP، وTN بدل T. */
+    const lg=this._msgLang(txt);
+    const P=(a,e)=>lg==='en'?e:a;
+    const TN=s=>(window.I18N&&I18N.tin)?I18N.tin(lg,s):s;
+    const pn=Cfg.data.playerName||P('اللاعب','Player');
     const lv=LEVELS_DEF[S.levelId];
     // Build rich game state context
     const evalScore=E.eval(S.bd);
-    const evalText=Math.abs(evalScore)<50?LP('متعادل','Equal'):evalScore>0?LP(`الأبيض متقدم بـ ${(evalScore/100).toFixed(1)}`,`White is ahead by ${(evalScore/100).toFixed(1)}`):LP(`الأسود متقدم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`,`Black is ahead by ${(Math.abs(evalScore)/100).toFixed(1)}`);
-    const lastMove=S.hist.length?S.hist[S.hist.length-1]:LP('لا شيء','None');
+    const evalText=Math.abs(evalScore)<50?P('متعادل','Equal'):evalScore>0?P(`الأبيض متقدم بـ ${(evalScore/100).toFixed(1)}`,`White is ahead by ${(evalScore/100).toFixed(1)}`):P(`الأسود متقدم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`,`Black is ahead by ${(Math.abs(evalScore)/100).toFixed(1)}`);
+    const lastMove=S.hist.length?S.hist[S.hist.length-1]:P('لا شيء','None');
     const capsW=S.capW.map(p=>({p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'}[E.tp(p)?.toLowerCase()]||'')).join('');
     const capsB=S.capB.map(p=>({p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'}[E.tp(p)?.toLowerCase()]||'')).join('');
     const isCheck=E.inChk(S.bd,S.turn);
     const legalCount=E.allLegal(S.bd,S.turn,S.cas,S.ep).length;
-    const id=this._nourId();
-    const turnName=S.turn===id.nourCol?`${LP('نور','Nour')} (${id.nourColAr})`:`${pn} (${id.myColAr})`;
-    const nourLost=capsW||T('لا شيء');
-    const playerLost=capsB||T('لا شيء');
-    const gameState=LP(`المرحلة: ${lv?.name||'غير معروفة'} | دور: ${turnName} | آخر حركة: ${lastMove} | قطع نور المفقودة (أكلها ${pn}): ${nourLost} | قطع ${pn} المفقودة (أكلها نور): ${playerLost} | التقييم: ${evalText} | عدد الحركات المتاحة: ${legalCount} | كش؟ ${isCheck?'نعم':'لا'}`,
-      `Level: ${T(lv?.name||'غير معروفة')} | To move: ${turnName} | Last move: ${T(lastMove)} | Nour pieces lost (captured by ${pn}): ${nourLost} | ${pn} pieces lost (captured by Nour): ${playerLost} | Evaluation: ${T(evalText)} | Legal moves available: ${legalCount} | In check? ${isCheck?'Yes':'No'}`);
+    const id=this._nourId(lg);
+    const turnName=S.turn===id.nourCol?`${P('نور','Nour')} (${id.nourColAr})`:`${pn} (${id.myColAr})`;
+    const nourLost=capsW||P('لا شيء','none');
+    const playerLost=capsB||P('لا شيء','none');
+    const gameState=P(`المرحلة: ${lv?.name||'غير معروفة'} | دور: ${turnName} | آخر حركة: ${lastMove} | قطع نور المفقودة (أكلها ${pn}): ${nourLost} | قطع ${pn} المفقودة (أكلها نور): ${playerLost} | التقييم: ${evalText} | عدد الحركات المتاحة: ${legalCount} | كش؟ ${isCheck?'نعم':'لا'}`,
+      `Level: ${TN(lv?.name||'غير معروفة')} | To move: ${turnName} | Last move: ${lastMove} | Nour pieces lost (captured by ${pn}): ${nourLost} | ${pn} pieces lost (captured by Nour): ${playerLost} | Evaluation: ${evalText} | Legal moves available: ${legalCount} | In check? ${isCheck?'Yes':'No'}`);
 
-    const sys=LP(`أنت "نور" داخل لعبة شطرنج.
+    const sys=P(`أنت "نور" داخل لعبة شطرنج.
 
 ${id.rules}
 - لا تخمّن. لا تنسب خسارة قطعة للطرف الخطأ.
 - إذا كان هناك تضارب، اتبع المعطيات النصية فقط.
-- رد بجملة أو جملتين فقط، وبأسلوب محكي بسيط.`,
+- رد بجملة أو جملتين فقط، بالعربية الفصحى وحدها، ولا تكتب حرفًا إنجليزيًّا واحدًا.`,
 `You are "Nour" inside a chess game.
 
 ${id.rules}
@@ -9071,7 +9176,7 @@ ${id.rules}
 - If anything conflicts, follow the written data only.
 - Reply in one or two sentences, in simple spoken English, and never use Arabic.`);
 
-    const user=LP(`[حالة اللعبة]
+    const user=P(`[حالة اللعبة]
 ${gameState}
 
 [رسالة اللاعب]
@@ -9100,7 +9205,7 @@ Write Nour's reply now:`);
       if(reply&&reply.length>2){
         this._addMsg(reply,'opp');
       }else{
-        this._addMsg(T('حاضر! أنا هنا لو احتجت أي شيء'),'opp');
+        this._addMsg(TN('حاضر! أنا هنا لو احتجت أي شيء'),'opp');
       }
     }catch(e){
       this._setNourTyping(false);
@@ -9122,19 +9227,22 @@ Write Nour's reply now:`);
       let fallbackMsg = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
       const userMsg = txt.toLowerCase();
 
-      if (userMsg.includes('مرحبا') || userMsg.includes('اهلا')) {
+      /* الرسالة قد تكون إنجليزية، فنفحص الكلمتين معًا: مفتاح الردّ عربيّ
+         دائمًا ثم يُترجَم بـTN إلى لغة الرسالة. */
+      const has=(...w)=>w.some(s=>userMsg.includes(s));
+      if (has('مرحبا','اهلا','أهلا','hello','hi ','hey')) {
         fallbackMsg = 'أهلاً بك! مستعد للعب؟';
-      } else if (userMsg.includes('كيف')) {
+      } else if (has('كيف','how are')) {
         fallbackMsg = 'أنا بخير! شكراً لسؤالك';
-      } else if (userMsg.includes('نصيحة') || userMsg.includes('مشورة')) {
+      } else if (has('نصيحة','مشورة','advice','tip','help')) {
         fallbackMsg = 'حاول السيطرة على مربعات المركز';
-      } else if (userMsg.includes('فزت') || userMsg.includes('فوز')) {
+      } else if (has('فزت','فوز','i won','i win')) {
         fallbackMsg = 'مبروك! لقد لعبت بشكل رائع';
-      } else if (userMsg.includes('خسرت') || userMsg.includes('خسارة')) {
+      } else if (has('خسرت','خسارة','i lost','i lose')) {
         fallbackMsg = 'لا بأس! المهم أن تستمر في المحاولة';
       }
-      
-      this._addMsg(T(fallbackMsg),'opp');
+
+      this._addMsg(TN(fallbackMsg),'opp');
     }
   },
   nourAutoMsg(type,moveRes,isCheck,isCheckmate,cap,moveCount){
@@ -10007,28 +10115,34 @@ const REV=(()=>{
     const w=_countRatings('w');
     const b=_countRatings('b');
 
-    /* الشبكة بترتيب chess.com نفسه، كل صف بأيقونته ولونه. */
-    const item=(key,val)=>`<div class="rv-qitem"><span class="rv-qlbl">${moveMarkIcon(key,15)}<span>${moveMarkName(key)}</span></span><span class="rv-qval" style="color:${MOVE_MARKS[key].color}">${val||0}</span></div>`;
-    const grid=(c)=>`<div class="rv-qgrid">${MOVE_MARK_ORDER.map(k=>item(k,c[k])).join('')}</div>`;
+    /* التخطيط صار صفًّا واحدًا لكل تصنيف: رقم الأبيض | الأيقونة والاسم |
+       رقم الأسود — كما في chess.com. الشبكتان المتجاورتان القديمتان كانتا
+       تقسمان عرض الهاتف إلى أربعة أعمدة، فأسماء التصنيفات الإنجليزية
+       («Inaccuracy») أعرض من العمود فتفيض خارج البطاقة مشوَّهة. الصفّ
+       الواحد يعطي الاسم عرض البطاقة كلّه فلا يفيض بأيّ لغة. */
+    const row=(key)=>`<div class="rv-qtr">`
+      +`<span class="rv-qn rv-qn--w" style="color:${MOVE_MARKS[key].color}">${w[key]||0}</span>`
+      +`<span class="rv-qlbl">${moveMarkIcon(key,16)}<span>${moveMarkName(key)}</span></span>`
+      +`<span class="rv-qn rv-qn--b" style="color:${MOVE_MARKS[key].color}">${b[key]||0}</span>`
+      +`</div>`;
 
-    const html=` 
-      <div class="rv-loading" style="padding-top:18px">
+    const html=`
+      <div class="rv-qbox">
         <div class="rv-qwrap">
           <div class="rv-qcard">
             <div class="rv-qtitle">إحصائيات سريعة</div>
             <div class="rv-qsub">ملخص سريع للمباراة قبل المراجعة التفصيلية</div>
-            <div class="rv-qrow">
-              <div class="rv-qcol">
-                <div class="rv-qnm">♙ ${s.wName}</div>
+            <div class="rv-qhead">
+              <div class="rv-qside">
+                <div class="rv-qnm" data-no-i18n>♙ ${s.wName}</div>
                 <div class="rv-qacc" style="color:var(--gold2)">${s.wAcc}%</div>
-                ${grid(w)}
               </div>
-              <div class="rv-qcol">
-                <div class="rv-qnm">♟ ${s.bName}</div>
+              <div class="rv-qside rv-qside--b">
+                <div class="rv-qnm" data-no-i18n>♟ ${s.bName}</div>
                 <div class="rv-qacc" style="color:var(--text)">${s.bAcc}%</div>
-                ${grid(b)}
               </div>
             </div>
+            <div class="rv-qtable">${MOVE_MARK_ORDER.map(row).join('')}</div>
           </div>
           <button class="rv-qbtn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.details()">▶ عرض المراجعة التفصيلية</button>
           <div class="rv-qhint">يمكنك الضغط على أي نقلة لاحقاً ليشرحها نور.</div>
@@ -10599,10 +10713,17 @@ Explain very briefly why it earned this classification and what could have been 
         max_tokens:180,
         temperature:0.65
       });
-      const txt=json.choices?.[0]?.message?.content?.trim();
+      let txt=json.choices?.[0]?.message?.content?.trim();
       if(!txt){
         console.warn('[Nour Coach] Empty response from API');
         throw new Error('Empty response');
+      }
+      /* سقف الرموز يقطع الرد أحيانًا في منتصف كلمة («…Because it alr»)،
+         فتظهر البطاقة مبتورة. لو أبلغ المزوّد أن السبب هو الطول، نرجع
+         إلى آخر نهاية جملة كاملة بدل عرض النصف. */
+      if(json.choices?.[0]?.finish_reason==='length'){
+        const cut=Math.max(txt.lastIndexOf('.'),txt.lastIndexOf('!'),txt.lastIndexOf('؟'),txt.lastIndexOf('?'),txt.lastIndexOf('۔'));
+        if(cut>40)txt=txt.slice(0,cut+1).trim();
       }
       /* شرط أحمد: لا حرف عربي واحد في الوضع الإنجليزي. الموديل قد يشرد
          إلى العربية أحيانًا، فنُسقط ردّه بدل أن نعرضه. */
@@ -10713,7 +10834,7 @@ Explain very briefly why it earned this classification and what could have been 
                 <div class="rv-stat-value" id="rv-stat-moves">0 / 0</div>
               </div>
               <div class="rv-stat-item">
-                <div class="rv-stat-label">Depth</div>
+                <div class="rv-stat-label">العمق</div>
                 <div class="rv-stat-value" id="rv-engine-depth">--</div>
               </div>
             </div>
@@ -11632,7 +11753,7 @@ const GameIdentity={
      المحرك) بتعيد الضبط بعد كده عبر setTitle. */
   _titles:{
     local:'لاعبَان',
-    bluetooth:'لعب عبر Bluetooth',
+    bluetooth:'لعب عبر بلوتوث',
     online:'أونلاين',
     engine:'ضد Stockfish',
     bot:'مراحل نور'
@@ -12567,10 +12688,12 @@ const G={
     const lv=LEVELS_DEF[id];
     this._reset('bot',lv.depth);
     S.levelId=id;S.myCol='w';
-    const pn=Cfg.data.playerName||'أنت';
+    const pn=Cfg.data.playerName||T('أنت');
     document.getElementById('nm-w').textContent=pn;
-    document.getElementById('nm-b').textContent=`نور — ${lv.name}`;
-    GameIdentity.setTitle(`المرحلة ${id+1}: ${lv.name}`);
+    /* اسم اللاعب صنفه pb-name وهو من محتوى المستخدم فلا يمرّ عليه الكنس —
+       ولو مرّ لتُرجم اسم صاحبه. لذلك يُبنى اسم نور مترجَمًا من المصدر. */
+    document.getElementById('nm-b').textContent=tt`نور — ${T(lv.name)}`;
+    GameIdentity.setTitle(tt`المرحلة ${id+1}: ${T(lv.name)}`);
     fixBars('w');
     Nav.game();await R.all();updatePlayerImages();
     CHAT.show();
@@ -12584,7 +12707,7 @@ const G={
     Cfg.saveData();
     document.getElementById('nm-w').textContent=getPlayerDisplayName();
     document.getElementById('nm-b').textContent=`Stockfish — ${preset.title}`;
-    GameIdentity.setTitle(`ضد Stockfish · ${preset.badge}`);
+    GameIdentity.setTitle(tt`ضد Stockfish · ${T(preset.badge)}`);
     fixBars('w');
     Nav.game();
     await R.all();
@@ -12773,7 +12896,7 @@ const G={
             this.showOver({
               winner:w,
               reason:'checkmate',
-              message:`${nm} يفوز!`,
+              message:tt`${nm} يفوز!`,
               detail:'النقلة الأخيرة أنهت كل خانات الهروب القانونية حول الملك.',
             });
           }
@@ -12895,9 +13018,9 @@ const G={
       winner:'w',
       tone:'win',
       reason:'level-win',
-      message:`المرحلة ${S.levelId+1} مكتملة`,
-      statusLine:`المرحلة ${S.levelId+1} مكتملة`,
-      detail:`${lv.name} · ${stars} نجوم`,
+      message:tt`المرحلة ${S.levelId+1} مكتملة`,
+      statusLine:tt`المرحلة ${S.levelId+1} مكتملة`,
+      detail:tt`${T(lv.name)} · ${stars} نجوم`,
       allowNext:S.levelId+1<LEVELS_DEF.length,
     });
   },
@@ -13029,7 +13152,7 @@ const AppBar={
     's-menu':      {context:'home'},
     's-levels':    {context:'inner', title:'مراحل نور',   back:()=>Nav.menu()},
     's-online':    {context:'inner', title:'عبر الإنترنت',  back:()=>Nav.menu()},
-    's-bluetooth': {context:'inner', title:'Bluetooth',    back:()=>{try{BLEManager.disconnect();}catch(e){} Nav.menu();}},
+    's-bluetooth': {context:'inner', title:'بلوتوث',    back:()=>{try{BLEManager.disconnect();}catch(e){} Nav.menu();}},
     's-settings':  {context:'inner', title:'الإعدادات',    back:()=>Nav.menu()},
     's-game':      {context:'hidden'}
   },
@@ -13462,10 +13585,10 @@ const OL=(()=>{
       message='انتهى الوقت — تعادل بالنقاط';
       detail='سقط العلم، لكن النقاط على الرقعة متساوية فحُسمت المباراة تعادلاً.';
     }else if(tone==='win'){
-      message=`${flagName} — فزت بالنقاط`;
+      message=tt`${flagName} — فزت بالنقاط`;
       detail='سقط العلم وكانت أفضلية المادة في صفك، فحُسمت المباراة لصالحك.';
     }else{
-      message=`${flagName} — خسرت بالنقاط`;
+      message=tt`${flagName} — خسرت بالنقاط`;
       detail='سقط العلم وكانت أفضلية المادة للخصم، فحُسمت المباراة له.';
     }
     G.showOver({ winner: winner==='draw'?null:winner, tone, reason:'timeout', message, detail });
@@ -13741,7 +13864,7 @@ const OL=(()=>{
         {
           const forced=d.color==='b'?'b':'w';
           try{OL.col(forced,true);}catch(e){}
-          setSt('m',`◎ تم ضبط لونك إلى ${forced==='w'?'الأبيض':'الأسود'} لأن اللون الآخر محجوز حالياً…`,'wait');
+          setSt('m',tt`◎ تم ضبط لونك إلى ${T(forced==='w'?'الأبيض':'الأسود')} لأن اللون الآخر محجوز حالياً…`,'wait');
           try{document.getElementById('btn-mm').style.display='none';}catch(e){}
           try{document.getElementById('btn-mc').style.display='';}catch(e){}
           try{
@@ -14692,18 +14815,27 @@ const Notifications={
     try{
       if(!token)return;
       if(platform) this._nativeToken=this._nativeToken||token;
+      this._lastToken={token,platform:platform||''};
       try{ if(window.amkhEnsureServer) await window.amkhEnsureServer(); }catch(e){}
       let base=OL.getHttpBase&&OL.getHttpBase();
       if(!base){ this._pendingToken={token,platform}; return; }
       this._pendingToken=null;
       const headers={'Content-Type':'application/json'};
       try{ if(window.amkhAuth&&window.amkhAuth.token) headers['Authorization']='Bearer '+window.amkhAuth.token; }catch(e){}
+      /* لغة الجهاز تُحفَظ مع التوكِن: الإشعار يُصاغ على السيرفر وهو لا
+         يعرف لغة صاحبه إلّا من هنا. بدونها كان كل إشعار يصل بالعربية
+         حتى لمن اختار الإنجليزية. */
       fetch(base.replace(/\/$/,'')+'/save-token',{
         method:'POST',
         headers,
-        body:JSON.stringify({token,deviceId:LVL._getDeviceId(),platform:platform||'',userAgent:navigator.userAgent})
+        body:JSON.stringify({token,deviceId:LVL._getDeviceId(),platform:platform||'',userAgent:navigator.userAgent,lang:(window.I18N&&I18N.lang==='en')?'en':'ar'})
       }).catch(()=>{});
     }catch(e){}
+  },
+  /* تبديل اللغة من شاشة الترحيب لا يعيد التحميل، فلا يمرّ التسجيل ثانيةً.
+     نعيد رفع التوكِن نفسه باللغة الجديدة كي لا يبقى السيرفر على القديمة. */
+  _refreshTokenLang(){
+    try{ const t=this._lastToken; if(t&&t.token) this._saveToken(t.token,t.platform); }catch(e){}
   },
   /* تسجيل الإشعارات على التطبيق عبر @capacitor/push-notifications:
      يطلب الإذن، يسجّل مع FCM، وياخد التوكِن الأصلي للجهاز. */
@@ -14772,7 +14904,8 @@ const Notifications={
                     token,
                     deviceId:LVL._getDeviceId(),
                     platform:navigator.platform,
-                    userAgent:navigator.userAgent
+                    userAgent:navigator.userAgent,
+                    lang:(window.I18N&&I18N.lang==='en')?'en':'ar'
                   })
                 }).catch(()=>{});
               }
@@ -14806,6 +14939,9 @@ const Notifications={
   _scheduleReminders(){
     if(this._remindersScheduled)return;
     this._remindersScheduled=true;
+    /* النصّ يُترجَم لحظة الإرسال لا لحظة الجدولة: الجدولة تتمّ مرّة عند
+       الإقلاع، والمستخدم قد يبدّل اللغة بعدها فيبقى التذكير باللغة
+       القديمة إلى أن يغلق التطبيق. */
     const reminders=[
       {title:'حان وقت الشطرنج!',body:'مرحلة نور تنتظرك. تمرّن يومياً!',ms:4*3600000},
       {title:'لا تنسَ مبارياتك!',body:'خصمك ينتظرك أونلاين. ادخل الآن!',ms:8*3600000},
@@ -14813,15 +14949,15 @@ const Notifications={
     ];
     reminders.forEach(r=>{
       setInterval(()=>{
-        if(document.hidden||!document.hasFocus())this.send(r.title,{body:r.body,tag:'reminder-'+r.ms,requireInteraction:false});
+        if(document.hidden||!document.hasFocus())this.send(T(r.title),{body:T(r.body),tag:'reminder-'+r.ms,requireInteraction:false});
       },r.ms);
     });
   },
-  gameStart(){this.send('بدأت المباراة!',{body:'خصمك جاهز للعب',tag:'game-start'});},
-  yourTurn(){this.send('دورك!',{body:'حان وقت تحريك قطعة',tag:'your-turn'});},
-  gameOver(result){this.send('انتهت المباراة',{body:result,tag:'game-over'});},
-  chatMsg(from){this.send('رسالة جديدة',{body:`${from}: رسالة نصية`,tag:'chat'});},
-  voiceMsg(from){this.send('رسالة صوتية',{body:`${from}: أرسل رسالة صوتية`,tag:'chat-voice'});}
+  gameStart(){this.send(T('بدأت المباراة!'),{body:T('خصمك جاهز للعب'),tag:'game-start'});},
+  yourTurn(){this.send(T('دورك!'),{body:T('حان وقت تحريك قطعة'),tag:'your-turn'});},
+  gameOver(result){this.send(T('انتهت المباراة'),{body:T(result),tag:'game-over'});},
+  chatMsg(from){this.send(T('رسالة جديدة'),{body:`${from}: `+T('رسالة نصية'),tag:'chat'});},
+  voiceMsg(from){this.send(T('رسالة صوتية'),{body:`${from}: `+T('أرسل رسالة صوتية'),tag:'chat-voice'});}
 };
 /* لازم نعرّضه على window: auth-client.js بيندهله بـ window.Notifications._linkTokenToUser
    بعد الدخول عشان يربط توكِن الإشعارات بالحساب. من غير ده الربط كان بيفشل بصمت
@@ -14917,13 +15053,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260913-b34"></script>
+  <script src="auth-client.js?v=20260914-b35"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260913-b34"></script>
-  <script src="friends-client.js?v=20260913-b34"></script>
-  <script src="chat-client.js?v=20260913-b34"></script>
-  <script src="call-client.js?v=20260913-b34"></script>
+  <script src="welcome-client.js?v=20260914-b35"></script>
+  <script src="friends-client.js?v=20260914-b35"></script>
+  <script src="chat-client.js?v=20260914-b35"></script>
+  <script src="call-client.js?v=20260914-b35"></script>
 <script>
 const BLEManager = {
   isHost: false,
@@ -14943,7 +15079,7 @@ const BLEManager = {
   async init() {
     const nearby = this.getNearby();
     if (!nearby) {
-      if (typeof Modal !== 'undefined') Modal.show("اللعب عبر Bluetooth متاح في تطبيق الهاتف فقط، وليس في المتصفح.", "غير متاح هنا", "✕");
+      if (typeof Modal !== 'undefined') Modal.show("اللعب عبر بلوتوث متاح في تطبيق الهاتف فقط، وليس في المتصفح.", "غير متاح هنا", "✕");
       return false;
     }
     // Set up event listeners
