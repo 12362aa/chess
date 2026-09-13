@@ -898,17 +898,23 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    والاسم يفضل 4.0 في البناء 33 بطلب أحمد الصريح («عايز رقم الإصدار يكون
    زي ما هو 4.0»)، فالوسم واسم ملف الـAPK ما بيتغيّروش — الأصل الجديد
    بيستبدل القديم في نفس الريليس. اللي بيقارن هو versionCode (32 → 33)،
-   فمستخدم البناء 32 بيوصله إشعار التحديث عادي. */
-const LATEST_VERSION = '4.0';
-const LATEST_CODE = 33;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.0/chess-amkh-4.0.apk';
+   فمستخدم البناء 32 بيوصله إشعار التحديث عادي.
+
+   و4.1 بناء 34 رجّع الاسم للحركة: الإصدار ده مش ترقيع، ده سبع إضافات
+   في قلب اللعب (النقلة المسبقة، التعادل بالتكرار والخمسين نقلة، حذف
+   الرسائل، رسائل نظام الحفلة، مراجعة نور باسم اللاعب، علامات تصنيف
+   النقلات، والتطبيق كاملًا بالإنجليزية) — فالوسم بقى v4.1 وملف الـAPK
+   chess-amkh-4.1.apk في ريليس جديد. */
+const LATEST_VERSION = '4.1';
+const LATEST_CODE = 34;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.1/chess-amkh-4.1.apk';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
     versionCode: LATEST_CODE,
     url: APK_URL,
     mandatory: false,
-    notes: 'تقييم المباريات المصنّفة صار متماثلًا كما في المواقع الكبيرة: ما يكسبه الفائز هو نفسه ما يخسره الخصم، بلا استثناء. كان الفوز على لاعب أقلّ تقييمًا لا يمنح شيئًا في حين يخسر الخصم نقاطًا كثيرة، لأنّ حركة كلّ لاعب كانت تُحسَب من عدم يقينه هو وحده؛ والآن تُحسَب بمعادلة واحدة للطرفين: الفوز يزيد نقطة واحدة على الأقلّ دائمًا، والخسارة تنقص نقطة على الأقلّ، والتعادل بين متساويين لا يحرّك شيئًا. ونوافذ المكالمات كلّها صارت بطابع شطرنجيّ ظاهر بلون التطبيق لا بلون الرقعة: زوايا مقوّسة، وحصان كبير في الخلف عاد ظاهرًا بعد أن كان قد اختفى، ورخّ وحصان يحفّان الوجه، ورتبة قطع كاملة وشريط مربّعات على الحدّ السفلي — في نافذة الرنين وفي نافذة الفيديو وفي لوحة السؤال داخل المكالمة. وتعليق نور بعد المباراة صار فقرة تخصّ مباراتك وحدها: يقرأ طابع المباراة ويذكر نقلتها الأخيرة وأرقامها، بالفصحى كاملة، بعد أن كان جملة قصيرة بالعامية. وشاشة اللعب عبر الإنترنت أُعيد بناؤها من أوّلها: عنوان يشرح الشاشة، وأربع طرق للبدء كلّ واحدة ببطاقتها — مطابقة سريعة، ولعب مع صديق، وإنشاء غرفة، والانضمام بكود — وأزمنة المباراة في شبكة واحدة، واختيار النوع واللون بأقراص تُفرَّق بالعين لا بالكلمة وحدها. وأُزيل كلام المطوّرين من الشاشة، وزرّ «لعب مع صديق» يفتح دعوة الأصدقاء محمّلة بزمنك ونوع مباراتك حتى لا تختارهما مرّتين. والشاشة كلّها لا يخرج منها شيء عن حدود الهاتف الصغير، وتتّسع للتابلت، وتتبع الثيمات الأربعة. وصُحّح «جاري» إلى «جارٍ» في كلّ نصوص التطبيق.',
+    notes: 'النقلة المسبقة صارت متاحة في كل الأوضاع: اضغط نقلتك وخصمك لا يزال يفكّر، فتُنفَّذ لحظة وصول نقلته إن بقيت قانونية، وتُلغى بضغطة واحدة إن لم تبقَ. وأُضيف التعادل بتكرار الوضعية ثلاث مرّات وبقاعدة الخمسين نقلة، فالمباراة التي لا تتقدّم تُغلَق بنفسها كما في قوانين اللعبة، بدل أن تدور بلا نهاية. وحذف الرسائل في المحادثات صار كما اعتدته: «حذف عندي» يزيلها من جهازك وحدك، و«حذف عند الجميع» يستبدلها بسطر «حُذفت هذه الرسالة» عند الطرفين. ورسائل النظام في الحفلات صارت تُكتب مرّة واحدة لا مرّتين، وتقول بالضبط ما جرى: من أُضيف، ومن خرج، ومن أُخرِج، ومن انضمّ برابط الدعوة. ومراجعة نور بعد المباراة صارت تناديك باسمك وتعرف ضدّ من لعبت — مرحلة نور، أو مستوى محرّك Stockfish، أو اسم خصمك على الإنترنت — وتقرأ مباراتك بأرقامها لا بعبارة عامّة. وعلامات تصنيف النقلات في المراجعة صارت بالمعايير نفسها المعروفة في المواقع الكبرى: عبقرية، وممتازة، وأفضل نقلة، وكتابية، وعدم دقّة، وخطأ، وفرصة ضائعة، وخطأ فادح — كلٌّ بعلامته ولونه. والتطبيق كلّه صار بالإنجليزية إن شئت: تختار اللغة من شاشة الترحيب أو من الإعدادات، فتتحوّل كلّ كلمة — حتى تعليق نور ومراجعته — ويعود إلى العربية كما كان بضغطة واحدة.',
   });
 });
 
@@ -1672,6 +1678,11 @@ groupsRouter.setRealtime({
   notifyUser(userId, payload) {
     try { for (const s of socketsOf(userId)) send(s, payload); } catch (e) {}
   },
+  /* اكتب حدث عضوية في مجرى الحفلة (انضمّ/أُضيف/غادر/أُزيل) مرّة واحدة.
+     بيُنادى من مسارات HTTP في groups.js بعد نجاح تعديل العضوية. */
+  systemMessage(groupId, actorId, event, targetId) {
+    try { return pushGroupSystemMessage(groupId, actorId, event, targetId); } catch (e) { return null; }
+  },
 });
 
 /* إرسال رسالة جروب: بتخزّن الأول وبعدين بتوزّع على كل الأعضاء المتصلين،
@@ -1792,6 +1803,62 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
   }
   try { broadcastGroupReceipts(groupId); } catch (e) {}
   return { row };
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   رسالة نظام في الحفلة (انضمّ / أُضيف / غادر / أُزيل) — زي واتساب
+   ──────────────────────────────────────────────────────────────────────
+   بتتخزّن في نفس جدول group_messages بـkind='system'، فبتاخد ترتيبها
+   الزمني الصح وسط الكلام من غير جدول تاني ولا منطق دمج في العميل.
+
+   body = JSON لا نصّ جاهز. السبب: الحفلة الواحدة فيها أعضاء لغتهم
+   مختلفة، والحدث بيتخزّن مرّة واحدة وبيتقري كتير — فالعميل هو اللي
+   يصيغه بلغته وقت العرض. كمان لو الأسماء اتغيّرت، الاسم المخزّن جوه
+   الحدث بيفضل هو اسم لحظة الحدث (زي واتساب بالظبط).
+
+   الحدث بيتكتب مرّة واحدة بس: الاستدعاء بيجي من المسار اللي بيغيّر
+   العضوية فعلًا (بعد نجاح الكتابة في group_members)، فمفيش تكرار.
+   رسائل النظام مالهاش إشعار دفع ولا بتدخل في حساب «غير المقروء»
+   كرسالة من حدّ — زي واتساب.
+══════════════════════════════════════════════════════════════════════ */
+const GROUP_SYS_EVENTS = ['join', 'add', 'leave', 'remove', 'create'];
+function pushGroupSystemMessage(groupId, actorId, event, targetId) {
+  if (!GROUP_SYS_EVENTS.includes(event)) return null;
+  try {
+    const nameOf = id => {
+      if (!id) return null;
+      const u = db.prepare('SELECT display_name, username, avatar_url, provider FROM users WHERE id = ?').get(id);
+      return u ? resolveOnlineName(u) : null;
+    };
+    const data = {
+      event,
+      actor: actorId || null,
+      actor_name: nameOf(actorId),
+      target: targetId || null,
+      target_name: targetId ? nameOf(targetId) : null,
+    };
+    const body = JSON.stringify(data);
+    /* sender_id عمود NOT NULL بمرجع users، فبنحطّ فيه صاحب الفعل.
+       العميل بيعرف إنها رسالة نظام من kind مش من المُرسِل. */
+    const info = db.prepare(`INSERT INTO group_messages (group_id, sender_id, kind, body)
+                             VALUES (?, ?, 'system', ?)`).run(groupId, actorId, body);
+    const row = db.prepare('SELECT id, created_at FROM group_messages WHERE id = ?').get(info.lastInsertRowid);
+    const payload = {
+      type: 'group:message', id: row.id, group_id: groupId,
+      from: actorId, kind: 'system', body, sys: data,
+      created_at: row.created_at, client_id: null, reply_to: null, reply: null, mentions: [],
+    };
+    /* بنبعتها للأعضاء الحاليين + للعضو موضوع الحدث لو خرج للتوّ، عشان
+       شاشته تتحدّث كمان قبل ما تتقفل الحفلة عنده. */
+    const seen = new Set();
+    for (const uid of groupsRouter.memberIds(groupId)) seen.add(uid);
+    if (targetId) seen.add(targetId);
+    for (const uid of seen) for (const s of socketsOf(uid)) send(s, payload);
+    return row;
+  } catch (e) {
+    console.error('[groups] system message failed:', e.message);
+    return null;
+  }
 }
 
 /* بثّ لقطة إيصالات الجروب لكل الأعضاء المتصلين. كل عميل بيحسب منها ✓/✓✓
@@ -3171,6 +3238,43 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
+      /* ══════════════════════════════════════════════════════════════
+         حذف رسالة فردية — { to, id, mode: 'all' | 'me' }
+         ──────────────────────────────────────────────────────────────
+         'all' = حذف عند الجميع: للمُرسِل وحده. الصف بيفضل عشان الردود
+           والترتيب مايتكسروش، لكن البدن بيتصفّى فعليًا من القاعدة،
+           وبيتشال معاه التثبيت والتفاعلات (رسالة محذوفة مالهاش دول).
+         'me'  = حذف عندي: صف في message_hides، الطرف التاني مايتأثرش.
+      ══════════════════════════════════════════════════════════════ */
+      case 'chat:delete': {
+        const me = socketUser.get(ws);
+        const to = Number(msg.to);
+        const id = Number(msg.id);
+        const all = msg.mode === 'all';
+        if (!me || !Number.isInteger(to) || to <= 0 || !Number.isInteger(id) || id <= 0) break;
+        try {
+          if (!chatRouter.areFriends(me, to)) break;
+          const key = chatRouter.convoKey(me, to);
+          const m = db.prepare('SELECT id, sender_id, deleted_at FROM messages WHERE id = ? AND convo_key = ?').get(id, key);
+          if (!m) break;
+          if (!all) {
+            db.prepare(`INSERT OR IGNORE INTO message_hides (scope, message_id, user_id) VALUES ('dm', ?, ?)`).run(id, me);
+            send(ws, { type: 'chat:deleted', with: to, id, mode: 'me', by: me });
+            break;
+          }
+          /* عند الجميع: المُرسِل وحده، ومرّة واحدة. */
+          if (m.sender_id !== me || m.deleted_at) break;
+          db.prepare(`UPDATE messages SET body = '', audio_data = NULL, duration = NULL, mime = NULL,
+                      reply_to = NULL, mentions = NULL, pinned_at = NULL, pinned_until = NULL,
+                      deleted_at = datetime('now'), deleted_by = ? WHERE id = ?`).run(me, id);
+          db.prepare(`DELETE FROM message_reactions WHERE scope = 'dm' AND message_id = ?`).run(id);
+          const payload = { type: 'chat:deleted', id, mode: 'all', by: me, convo_key: key };
+          for (const s of socketsOf(me)) send(s, Object.assign({}, payload, { with: to }));
+          for (const s of socketsOf(to)) send(s, Object.assign({}, payload, { with: me }));
+        } catch (e) { console.error('[chat] delete failed:', e.message); }
+        break;
+      }
+
       case 'chat:typing': {
         const me = socketUser.get(ws);
         const to = Number(msg.to);
@@ -3178,7 +3282,6 @@ wss.on('connection', (ws, req) => {
         for (const s of socketsOf(to)) send(s, { type: 'chat:typing', from: me });
         break;
       }
-
       /* الطرف بيسجّل رسالة صوتية — نبلّغ الصديق زي مؤشّر الكتابة */
       case 'chat:recording': {
         const me = socketUser.get(ws);
@@ -3301,6 +3404,39 @@ wss.on('connection', (ws, req) => {
           const payload = { type: 'group:pinned', group_id: gid, id, pinned: pin, pinned_until: until || null, by: me };
           for (const uid of groupsRouter.memberIds(gid)) for (const s of socketsOf(uid)) send(s, payload);
         } catch (e) {}
+        break;
+      }
+
+      /* ══════════════════════════════════════════════════════════════
+         حذف رسالة حفلة — { group_id, id, mode: 'all' | 'me' }
+         'all' = صاحب الرسالة أو أي مشرف (زي واتساب). 'me' = العضو نفسه.
+         رسائل النظام مالهاش حذف عند الجميع — مافيش «مرسِل» يملكها.
+      ══════════════════════════════════════════════════════════════ */
+      case 'group:delete': {
+        const me = socketUser.get(ws);
+        const gid = Number(msg.group_id);
+        const id = Number(msg.id);
+        const all = msg.mode === 'all';
+        if (!me || !Number.isInteger(gid) || gid <= 0 || !Number.isInteger(id) || id <= 0) break;
+        try {
+          if (!groupsRouter.isMember(gid, me)) break;
+          const m = db.prepare('SELECT id, sender_id, kind, deleted_at FROM group_messages WHERE id = ? AND group_id = ?').get(id, gid);
+          if (!m) break;
+          if (!all) {
+            db.prepare(`INSERT OR IGNORE INTO message_hides (scope, message_id, user_id) VALUES ('grp', ?, ?)`).run(id, me);
+            send(ws, { type: 'group:deleted', group_id: gid, id, mode: 'me', by: me });
+            break;
+          }
+          if (m.kind === 'system' || m.deleted_at) break;
+          const mayAll = (m.sender_id === me) || groupsRouter.isAdmin(gid, me);
+          if (!mayAll) { send(ws, { type: 'group:error', reason: 'admins-only', group_id: gid }); break; }
+          db.prepare(`UPDATE group_messages SET body = '', audio_data = NULL, duration = NULL, mime = NULL,
+                      reply_to = NULL, mentions = NULL, pinned_at = NULL, pinned_until = NULL,
+                      deleted_at = datetime('now'), deleted_by = ? WHERE id = ?`).run(me, id);
+          db.prepare(`DELETE FROM message_reactions WHERE scope = 'grp' AND message_id = ?`).run(id);
+          const payload = { type: 'group:deleted', group_id: gid, id, mode: 'all', by: me, owner: m.sender_id };
+          for (const uid of groupsRouter.memberIds(gid)) for (const s of socketsOf(uid)) send(s, payload);
+        } catch (e) { console.error('[groups] delete failed:', e.message); }
         break;
       }
 

@@ -37,12 +37,25 @@ _addColumn('groups', 'invite_token', 'TEXT');
 
 let realtime = { statusOf() { return null; } };
 function setRealtime(rt) {
-  realtime = Object.assign({ statusOf() { return null; } }, rt || {});
+  realtime = Object.assign({ statusOf() { return null; }, systemMessage() { return null; } }, rt || {});
+}
+
+/* رسالة نظام في مجرى الحفلة (زي واتساب). بتتنادى مرّة واحدة من المسار
+   اللي غيّر العضوية فعلًا، وبتفضل صامتة لو الطبقة اللحظية مش موصولة. */
+function sysMsg(gid, actorId, event, targetId) {
+  try { realtime.systemMessage && realtime.systemMessage(gid, actorId, event, targetId); } catch (e) {}
 }
 
 function toId(v) {
   const n = Number(v);
   return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+/* بدن رسالة النظام متخزّن JSON. لو اتعطب لأي سبب بنرجّع null بدل ما
+   نكسر تاريخ الحفلة كله. */
+function safeJson(s) {
+  try { const o = JSON.parse(s || 'null'); return (o && typeof o === 'object') ? o : null; }
+  catch (e) { return null; }
 }
 
 /* اسم العرض في الأونلاين: مستخدم جوجل → الاسم من جوجل (display_name)؛
@@ -129,11 +142,20 @@ function groupSummary(groupId, me) {
   const g = db.prepare('SELECT id, name, owner_id, avatar_url, created_at, send_policy FROM groups WHERE id = ?').get(groupId);
   if (!g) return null;
   const count = db.prepare('SELECT COUNT(*) AS c FROM group_members WHERE group_id = ?').get(groupId).c;
-  const last = db.prepare(`SELECT m.id, m.sender_id, m.body, m.kind, m.created_at, u.display_name, u.username, u.provider
+  /* آخر رسالة ظاهرة لي: المحذوفة عندي بتتخطّى، والمحذوفة عند الجميع
+     بتفضل بشاهدتها. رسالة النظام بتبان كآخر سطر زي واتساب. */
+  const last = db.prepare(`SELECT m.id, m.sender_id, m.body, m.kind, m.created_at, m.deleted_at, u.display_name, u.username, u.provider
                            FROM group_messages m JOIN users u ON u.id = m.sender_id
-                           WHERE m.group_id = ? ORDER BY m.id DESC LIMIT 1`).get(groupId);
+                           WHERE m.group_id = ? AND NOT EXISTS (SELECT 1 FROM message_hides h
+                             WHERE h.scope = 'grp' AND h.message_id = m.id AND h.user_id = ?)
+                           ORDER BY m.id DESC LIMIT 1`).get(groupId, me);
   const lastRead = (db.prepare('SELECT last_read_id FROM group_reads WHERE group_id = ? AND user_id = ?').get(groupId, me) || {}).last_read_id || 0;
-  const unread = db.prepare('SELECT COUNT(*) AS c FROM group_messages WHERE group_id = ? AND id > ? AND sender_id != ?').get(groupId, lastRead, me).c;
+  /* رسائل النظام مابتعملش شارة غير مقروء (زي واتساب)، والمحذوفة عندي كمان. */
+  const unread = db.prepare(`SELECT COUNT(*) AS c FROM group_messages m
+                             WHERE m.group_id = ? AND m.id > ? AND m.sender_id != ? AND m.kind != 'system'
+                               AND NOT EXISTS (SELECT 1 FROM message_hides h
+                                 WHERE h.scope = 'grp' AND h.message_id = m.id AND h.user_id = ?)`)
+                   .get(groupId, lastRead, me, me).c;
   /* منشن (#2): كم رسالة غير مقروءة فيها اسمي — بتاخد شارة خاصة @ */
   let mentions = 0;
   try {
@@ -154,8 +176,10 @@ function groupSummary(groupId, me) {
     members_count: count,
     send_policy: g.send_policy || 'all',
     my_role: roleOf(groupId, me),
-    last_message: last ? (last.kind === 'voice' ? 'رسالة صوتية' : last.kind === 'image' ? 'صورة' : last.kind === 'video' ? 'فيديو' : last.body) : null,
-    last_kind: last ? (last.kind || 'text') : null,
+    last_message: last ? (last.deleted_at ? '' : last.kind === 'voice' ? 'رسالة صوتية' : last.kind === 'image' ? 'صورة' : last.kind === 'video' ? 'فيديو' : last.kind === 'system' ? '' : last.body) : null,
+    last_kind: last ? (last.deleted_at ? 'deleted' : (last.kind || 'text')) : null,
+    /* حدث النظام كاملًا عشان القائمة تصيغه بلغة المستخدم زي المجرى. */
+    last_sys: (last && last.kind === 'system' && !last.deleted_at) ? safeJson(last.body) : null,
     last_sender: last ? resolveOnlineName(last) : null,
     last_from_me: last ? (last.sender_id === me) : false,
     last_at: last ? last.created_at : g.created_at,
@@ -252,22 +276,25 @@ router.get('/:id/history', authenticateToken, (req, res) => {
   let limit = Number(req.query.limit) || 30;
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
   try {
-    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at, m.pinned_until, m.mentions,
+    const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at, m.pinned_until, m.mentions, m.deleted_at, m.deleted_by,
                   u.username, u.display_name, u.provider, u.avatar_url`;
+    /* «حذف عندي» بيتصفّى للعضو ده وحده (message_hides). */
+    const hidden = `AND NOT EXISTS (SELECT 1 FROM message_hides h
+                    WHERE h.scope = 'grp' AND h.message_id = m.id AND h.user_id = ?)`;
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM group_messages m JOIN users u ON u.id = m.sender_id
-                    WHERE m.group_id = ? AND m.id < ? ORDER BY m.id DESC LIMIT ?`).all(gid, before, limit)
+                    WHERE m.group_id = ? AND m.id < ? ${hidden} ORDER BY m.id DESC LIMIT ?`).all(gid, before, me, limit)
       : db.prepare(`SELECT ${cols} FROM group_messages m JOIN users u ON u.id = m.sender_id
-                    WHERE m.group_id = ? ORDER BY m.id DESC LIMIT ?`).all(gid, limit);
+                    WHERE m.group_id = ? ${hidden} ORDER BY m.id DESC LIMIT ?`).all(gid, me, limit);
     rows.reverse();
     /* لقطة الرسالة الأصل عند الرد (#130). */
     const replySnippet = (id) => {
       if (!id) return null;
-      const r = db.prepare('SELECT id, sender_id, body, kind FROM group_messages WHERE id = ?').get(id);
+      const r = db.prepare('SELECT id, sender_id, body, kind, deleted_at FROM group_messages WHERE id = ?').get(id);
       if (!r) return null;
       const u = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(r.sender_id) || {};
-      const preview = r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120);
-      return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview };
+      const preview = r.deleted_at ? '' : (r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120));
+      return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview, deleted: !!r.deleted_at };
     };
     const reactMap = chatMod.reactionsFor('grp', rows.map(m => m.id), me);
     const messages = rows.map(m => ({
@@ -276,11 +303,16 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       mine: m.sender_id === me,
       sender_name: resolveOnlineName(m),
       sender_avatar: m.avatar_url || null,
-      kind: m.kind || 'text',
-      body: m.body,
-      audio: m.audio_data || null,
-      duration: m.duration || 0,
-      mime: m.mime || '',
+      /* رسالة نظام: النوع سليم والبدن JSON بالحدث؛ العميل يصيغه بلغته.
+         رسالة محذوفة عند الجميع: البدن متصفّى وشاهدة «حُذفت» تظهر. */
+      kind: m.deleted_at ? 'text' : (m.kind || 'text'),
+      deleted: !!m.deleted_at,
+      deleted_by: m.deleted_at ? (m.deleted_by || null) : null,
+      sys: (m.kind === 'system' && !m.deleted_at) ? safeJson(m.body) : null,
+      body: m.deleted_at ? '' : m.body,
+      audio: m.deleted_at ? null : (m.audio_data || null),
+      duration: m.deleted_at ? 0 : (m.duration || 0),
+      mime: m.deleted_at ? '' : (m.mime || ''),
       created_at: m.created_at,
       reply_to: m.reply_to || null,
       reply: replySnippet(m.reply_to),
@@ -415,6 +447,8 @@ router.post('/:id/leave', authenticateToken, (req, res) => {
       const next = db.prepare('SELECT user_id FROM group_members WHERE group_id = ? ORDER BY joined_at ASC LIMIT 1').get(gid);
       if (next) db.prepare('UPDATE groups SET owner_id = ? WHERE id = ?').run(next.user_id, gid);
     }
+    /* رسالة نظام «غادر فلان» — بس لو الحفلة لسه فيها ناس يشوفوها. */
+    if (rest.length) sysMsg(gid, me, 'leave', null);
     res.json({ ok: true });
   } catch (e) {
     console.error('[groups] leave failed:', e.message);
@@ -475,6 +509,8 @@ router.post('/:id/members', authenticateToken, (req, res) => {
     }
     if (added.length) {
       try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:created', group_id: gid, name: gname }, null); } catch (e) {}
+      /* رسالة نظام «فلان أضاف فلان» لكل عضو أُضيف فعلًا — مرّة واحدة. */
+      for (const uid of added) sysMsg(gid, me, 'add', uid);
     }
     res.json({ ok: true, added, invited, members: (db.prepare('SELECT COUNT(*) AS c FROM group_members WHERE group_id = ?').get(gid) || {}).c || 0 });
   } catch (e) {
@@ -571,6 +607,8 @@ router.post('/party-invite/:id/accept', authenticateToken, (req, res) => {
       db.prepare('INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)').run(inv.party_id, me);
       const name = (db.prepare('SELECT name FROM groups WHERE id = ?').get(inv.party_id) || {}).name || '';
       try { realtime.notifyGroup && realtime.notifyGroup(inv.party_id, { type: 'group:created', group_id: inv.party_id, name }, null); } catch (e) {}
+      /* دعوة أرسلها مشرف وقبلها العضو ⇒ «فلان أضاف فلان». */
+      sysMsg(inv.party_id, inv.inviter_id, 'add', me);
     }
     res.json({ ok: true, group_id: inv.party_id, summary: groupSummary(inv.party_id, me) });
   } catch (e) {
@@ -604,6 +642,9 @@ router.delete('/:id/members/:uid', authenticateToken, (req, res) => {
   if (!isMember(gid, uid)) return res.status(404).json({ error: 'لست عضوًا' });
   try {
     db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').run(gid, uid);
+    /* رسالة نظام «فلان أزال فلان». بتتبعت كمان للعضو المُزال عشان شاشته
+       تتحدّث قبل ما الحفلة تتقفل عنده. */
+    sysMsg(gid, me, 'remove', uid);
     try { realtime.notifyGroup && realtime.notifyGroup(gid, { type: 'group:updated', group_id: gid }, null); } catch (e) {}
     try { realtime.notifyUser && realtime.notifyUser(uid, { type: 'group:removed', group_id: gid }); } catch (e) {}
     res.json({ ok: true });
@@ -694,6 +735,8 @@ router.post('/join/:token', authenticateToken, (req, res) => {
     if (!g) return res.status(404).json({ error: 'الرابط منتهي أو غير صالح' });
     if (isMember(g.id, me)) return res.json({ ok: true, group_id: g.id, already: true, summary: groupSummary(g.id, me) });
     db.prepare('INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)').run(g.id, me);
+    /* دخل بنفسه من رابط الدعوة ⇒ «انضمّ فلان عبر رابط الدعوة». */
+    sysMsg(g.id, me, 'join', null);
     try { realtime.notifyGroup && realtime.notifyGroup(g.id, { type: 'group:updated', group_id: g.id }, null); } catch (e) {}
     res.json({ ok: true, group_id: g.id, summary: groupSummary(g.id, me) });
   } catch (e) {

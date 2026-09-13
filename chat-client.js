@@ -57,18 +57,25 @@ const amkhChat = {
     download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
     emoji: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
     at: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    /* شاهدة الرسالة المحذوفة: دائرة مشطوبة — «كان هنا كلام واتشال». */
+    banned: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg>',
   },
 
   _key(a, b) { const x = Number(a), y = Number(b); return Math.min(x, y) + ':' + Math.max(x, y); },
+  _safeJson(s) { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } },
   _me() { return window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id; },
   _socket() { return window.amkhFriends ? window.amkhFriends._socket() : null; },
 
-  /* نص معاينة قصير حسب نوع الرسالة (للإشعارات وقائمة الصندوق). */
+  /* نص معاينة قصير حسب نوع الرسالة (للإشعارات وقائمة الصندوق).
+     النصوص الثابتة تُترجَم هنا لأن العنصر الحاوي عليه data-no-i18n:
+     نصّ الرسالة نفسه محتوى مستخدم لا يُمَسّ، فالترجمة تتم عند التوليد. */
   _previewOf(d) {
     if (!d) return '';
-    if (d.kind === 'voice') return 'رسالة صوتية';
-    if (d.kind === 'image') return 'صورة';
-    if (d.kind === 'video') return 'فيديو';
+    const t = (window.T) || (s => s);
+    if (d.kind === 'voice') return t('رسالة صوتية');
+    if (d.kind === 'image') return t('صورة');
+    if (d.kind === 'video') return t('فيديو');
     return d.body || '';
   },
 
@@ -778,6 +785,7 @@ const amkhChat = {
       case 'chat:delivered': return this._onDelivered(d);
       case 'chat:read-receipt': return this._onReadReceipt(d);
       case 'chat:pinned': return this._onPinned(d);
+      case 'chat:deleted': return this._onDeleted(d);
       case 'chat:reaction': return this._onReaction(d, false);
       case 'chat:typing': return this._onTyping(d);
       case 'chat:recording': return this._onRecording(d);
@@ -795,6 +803,7 @@ const amkhChat = {
       case 'group:sent': return this._onGroupSent(d);
       case 'group:receipts': return this._onGroupReceipts(d);
       case 'group:pinned': return this._onGroupPinned(d);
+      case 'group:deleted': return this._onGroupDeleted(d);
       case 'group:reaction': return this._onReaction(d, true);
       case 'group:typing': return this._onGroupTyping(d);
       case 'group:recording': return this._onGroupRecording(d);
@@ -809,7 +818,9 @@ const amkhChat = {
           if (gid != null) this._applyChatLock(gid);
           window.amkhUI.notify('قفل المشرفون الشات — الإرسال متاح للمشرفين فقط', 'الشات مقفول', '◈');
         } else {
-          window.amkhUI.notify(d.reason === 'not-member' ? 'لست عضوًا في الحفلة' : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
+          window.amkhUI.notify(d.reason === 'not-member' ? 'لست عضوًا في الحفلة'
+            : d.reason === 'admins-only' ? 'حذف رسائل الآخرين للمشرفين فقط'
+            : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
         }
         return true;
       default: return false;
@@ -867,7 +878,7 @@ const amkhChat = {
       });
     }
     /* #5 — لو الوارد مفتوح: الصفّ يقفز لأعلى بمعاينته الجديدة فورًا */
-    this._bumpInboxRow('dm', friendId, (mine ? 'أنت: ' : '') + this._previewOf(d), d.created_at);
+    this._bumpInboxRow('dm', friendId, (mine ? T('أنت: ') : '') + this._previewOf(d), d.created_at);
     return true;
   },
 
@@ -1116,7 +1127,7 @@ const amkhChat = {
     if (!sub) return true;
     clearTimeout(this._recHide);
     if (d.on) {
-      sub.textContent = 'بيسجّل رسالة صوتية…';
+      sub.textContent = T('يسجّل رسالة صوتية…');
       sub.className = 'ch-conv__sub is-online';
       this._recHide = setTimeout(() => {
         if (this._friendMeta && this._friendMeta[d.from]) this._paintSub(sub, this._friendMeta[d.from]);
@@ -1398,6 +1409,22 @@ const amkhChat = {
     if (m.pinned) b.classList.add('ch-bubble--pinned');
     if (m.client_id) b.dataset.cid = m.client_id;
     if (m.id) b.dataset.mid = String(m.id);
+    /* شاهدة الحذف عند الجميع: مافيش اقتباس ولا وسائط ولا تفاعلات —
+       سطر واحد مائل بأيقونة مشطوبة، والوقت والعلامات تفضل مكانها عشان
+       ترتيب المحادثة ما يتهزّش. */
+    if (m.deleted) {
+      b.classList.add('ch-bubble--gone');
+      b.appendChild(this._goneEl(m));
+      const gmeta = document.createElement('div');
+      gmeta.className = 'ch-bubble__meta';
+      const gtime = document.createElement('span');
+      gtime.className = 'ch-time';
+      gtime.textContent = this._time(m.created_at);
+      gmeta.appendChild(gtime);
+      b.appendChild(gmeta);
+      this._bindMsgActions(b, 'friend', m);
+      return b;
+    }
     if (m.reply) b.appendChild(this._replyQuoteEl(m.reply));
     if (m.kind === 'voice') {
       b.classList.add('ch-bubble--voice');
@@ -1496,10 +1523,78 @@ const amkhChat = {
     return names.filter(Boolean).sort((a, b) => b.length - a.length);
   },
 
+  /* جسم شاهدة الرسالة المحذوفة. النصّ بيتغيّر حسب مين حذف: لو أنا
+     حذفت رسالتي بقول «حذفت هذه الرسالة»، ولو الطرف التاني بقول
+     «تم حذف هذه الرسالة» — نفس تفرقة واتساب. */
+  _goneEl(m) {
+    const row = document.createElement('div');
+    row.className = 'ch-bubble__body ch-gone';
+    const ic = document.createElement('span');
+    ic.className = 'ch-gone__ic';
+    ic.innerHTML = this.ICONS.banned;
+    const tx = document.createElement('span');
+    const me = Number(this._me());
+    tx.textContent = (m.mine || Number(m.deleted_by) === me)
+      ? 'حذفت هذه الرسالة' : 'تم حذف هذه الرسالة';
+    row.appendChild(ic); row.appendChild(tx);
+    return row;
+  },
+
+  /* ══ رسائل نظام الحفلة (#4) ══
+     السيرفر بيخزّن الحدث كـ JSON مش نصّ عربي: {event, actor_name,
+     target_name}. اللي بيترجمه للغة القارئ هو السطر ده — فنفس الحفلة
+     تتقرأ عربي عند واحد وإنجليزي عند التاني، والأسماء متجمّدة على
+     لحظة الحدث زي واتساب بالظبط. */
+  _sysText(sys) {
+    if (!sys || !sys.event) return '';
+    const me = Number(this._me());
+    const T = window.T || (s => s);
+    const mine = (id) => Number(id) === me;
+    const actor = mine(sys.actor) ? T('أنت') : (sys.actor_name || T('عضو'));
+    const target = mine(sys.target) ? T('أنت') : (sys.target_name || T('عضو'));
+    /* «أنت» فاعلًا بتاخد فعل مخاطَب، وغيرها فعل غائب. الإنجليزي بيوحّد
+       الاتنين فالترجمة بتشيل الفرق ده من نفسها. */
+    const did = (you, other) => mine(sys.actor) ? you : other;
+    switch (sys.event) {
+      case 'create': return did(T('أنشأت الحفلة'), T('{0} أنشأ الحفلة').replace('{0}', actor));
+      case 'join':   return did(T('انضممت عبر رابط الدعوة'), T('{0} انضم عبر رابط الدعوة').replace('{0}', actor));
+      case 'leave':  return did(T('غادرت الحفلة'), T('{0} غادر الحفلة').replace('{0}', actor));
+      case 'add':
+        if (mine(sys.target)) return T('{0} أضافك').replace('{0}', actor);
+        return did(T('أضفت {0}').replace('{0}', target),
+                   T('{0} أضاف {1}').replace('{0}', actor).replace('{1}', target));
+      case 'remove':
+        if (mine(sys.target)) return T('{0} أزالك من الحفلة').replace('{0}', actor);
+        return did(T('أزلت {0}').replace('{0}', target),
+                   T('{0} أزال {1}').replace('{0}', actor).replace('{1}', target));
+      default: return '';
+    }
+  },
+
+  /* الفقاعة الوسطية للأحداث. مافيهاش صورة ولا اسم ولا علامات ولا
+     تفاعلات ولا قائمة إجراءات — مجرّد حبّة معلومة في منتصف السطر. */
+  _sysEl(m) {
+    const wrap = document.createElement('div');
+    wrap.className = 'ch-sys';
+    const pill = document.createElement('span');
+    pill.className = 'ch-sys__pill';
+    pill.setAttribute('data-no-i18n', '1');   /* مترجَم فعلًا من _sysText */
+    pill.textContent = this._sysText(m.sys) || '';
+    const t = document.createElement('span');
+    t.className = 'ch-sys__time';
+    t.textContent = this._time(m.created_at);
+    pill.appendChild(t);
+    wrap.appendChild(pill);
+    if (m.id) wrap.dataset.mid = String(m.id);
+    return wrap;
+  },
+
   /* جسم الرسالة كنصّ آمن (createTextNode) مع تلوين مقاطع @الاسم */
   _bodyEl(m, scope) {
     const body = document.createElement('div');
     body.className = 'ch-bubble__body';
+    /* نصّ الرسالة محتوى مستخدم: يُعرض كما كُتب مهما كانت لغة الواجهة */
+    body.setAttribute('data-no-i18n', '1');
     const txt = String(m && m.body != null ? m.body : '');
     const names = this._mentionNames(scope, m);
     if (!names.length || !txt.includes('@')) { body.textContent = txt; return body; }
@@ -1607,6 +1702,7 @@ const amkhChat = {
 
   _msgPreview(m) {
     if (!m) return '';
+    if (m.deleted) return 'تم حذف هذه الرسالة';
     if (m.kind === 'voice') return 'رسالة صوتية';
     if (m.kind === 'image') return 'صورة';
     if (m.kind === 'video') return 'فيديو';
@@ -1642,6 +1738,10 @@ const amkhChat = {
   /* لمسة مطوّلة/كليك يمين تفتح قائمة إجراءات الرسالة؛ وسحب أفقي = رد سريع (نمط واتساب). */
   _bindMsgActions(bubbleEl, scope, m) {
     let timer = null, moved = false;
+    /* الشاهدة مافيش عليها رد: السحب عليها يفضل حركة فاضية بدل ما يفتح
+       مربّع رد على رسالة مش موجودة أصلًا. القائمة لسه بتتفتح (فيها
+       «حذف عندي»). */
+    const canReply = !m.deleted && m.kind !== 'system';
     const open = () => this._openMsgMenu(scope, m);
     bubbleEl.addEventListener('contextmenu', (e) => { e.preventDefault(); open(); });
     /* ══ #11 — لا شريط «نسخ/مشاركة/تحديد الكل» من أندرويد ══
@@ -1681,13 +1781,14 @@ const amkhChat = {
         if (timer) { clearTimeout(timer); timer = null; }     /* أي حركة تلغي اللمسة المطوّلة */
       }
       if (!swiping) return;                                   /* رأسي = تمرير عادي، سيبه */
+      if (!canReply) return;
       dx = Math.max(-MAX, Math.min(MAX, ddx));
       bubbleEl.style.transform = `translateX(${dx}px)`;
       this._swipeHint(bubbleEl, dx, Math.min(Math.abs(dx) / THRESH, 1));
     }, { passive: true });
 
     const finish = () => {
-      const fire = swiping && Math.abs(dx) >= THRESH;
+      const fire = swiping && canReply && Math.abs(dx) >= THRESH;
       settle();
       if (fire) {
         try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
@@ -1741,19 +1842,28 @@ const amkhChat = {
   _openMsgMenu(scope, m) {
     const U = window.amkhUI;
     if (!U || m.id == null) return;
+    /* رسالة محذوفة عند الجميع: شاهدة بس. مافيش رد ولا نسخ ولا تفاعل
+       عليها — الوحيد المتاح إنك تشيل الشاهدة من عندك إنت. */
+    const gone = !!m.deleted;
+    const isSys = m.kind === 'system';
     /* معلومات الرسالة (مين قرأ/سمع) في الحفلة بس — مش في الشات الفردي. */
-    const canInfo = (scope === 'group' && m.mine);
+    const canInfo = (scope === 'group' && m.mine && !gone && !isSys);
     /* التثبيت: في الحفلة للمشرفين بس؛ في 1:1 للطرفين. */
-    const canPin = scope === 'group' ? this._groupIsAdmin(this._openGroup) : true;
-    const txt = (m.kind === 'text' || !m.kind) ? String(m.body || '') : '';
-    const media = ['image', 'video', 'voice'].includes(m.kind) && m.audio;
+    const canPin = !gone && !isSys && (scope === 'group' ? this._groupIsAdmin(this._openGroup) : true);
+    const txt = (!gone && !isSys && (m.kind === 'text' || !m.kind)) ? String(m.body || '') : '';
+    const media = !gone && ['image', 'video', 'voice'].includes(m.kind) && m.audio;
+    /* «حذف عند الجميع»: صاحب الرسالة دايمًا، وفي الحفلة المشرف كمان
+       (زي واتساب). رسائل النظام مالهاش صاحب فمالهاش حذف عند الجميع. */
+    const canDelAll = !gone && !isSys && m.id != null
+      && (m.mine || (scope === 'group' && this._groupIsAdmin(this._openGroup)));
 
     const row = (act, icon, label, hint, mod) =>
       `<button class="msg-act__row${mod ? ' ' + mod : ''}" data-do="${act}">`
       + `<span class="msg-act__ic">${icon}</span>`
       + `<span class="msg-act__lb">${label}${hint ? `<small>${hint}</small>` : ''}</span></button>`;
 
-    let rows = row('reply', this.ICONS.reply, 'رد');
+    let rows = '';
+    if (!gone && !isSys) rows += row('reply', this.ICONS.reply, 'رد');
     if (txt) rows += row('copy', this.ICONS.copy, 'نسخ النص');
     if (media) rows += row('save', this.ICONS.download, 'حفظ في الجهاز');
     if (canInfo) rows += row('info', this.ICONS.info, 'معلومات الرسالة');
@@ -1762,12 +1872,15 @@ const amkhChat = {
         ? row('unpin', this.ICONS.pin, 'إلغاء التثبيت', this._pinLeftText(m), 'msg-act__row--warn')
         : row('pin', this.ICONS.pin, 'تثبيت', 'تختار المدة ثم يُلغى وحده');
     }
+    /* الحذف آخر الصفوف دايمًا — أخطر إجراء في الورقة. */
+    if (canDelAll) rows += row('del-all', this.ICONS.trash, 'حذف عند الجميع', 'تختفي من عند كل الأطراف', 'msg-act__row--warn');
+    rows += row('del-me', this.ICONS.trash, 'حذف عندي', 'تختفي من جهازك وحده', 'msg-act__row--warn');
 
     /* #3 — شريط التفاعلات فوق الورقة، والمختار حاليًا مميّز.
        وزر «+» في آخره بيفتح المنتقي الكامل: الستة دول كانوا كل المتاح، وده
        كان قيدًا محسوسًا جوه محادثة عادية. */
     const mineEmoji = this._myReaction(m);
-    const strip = this.REACTIONS.map((e, i) =>
+    const strip = (gone || isSys) ? '' : this.REACTIONS.map((e, i) =>
       `<button class="msg-act__emo${mineEmoji && mineEmoji.emoji === e ? ' is-mine' : ''}" `
       + `style="--i:${i}" data-emoji="${e}" aria-label="تفاعل ${e}">${e}</button>`).join('')
       + `<button class="msg-act__emo msg-act__emo--more" style="--i:${this.REACTIONS.length}" `
@@ -1776,7 +1889,7 @@ const amkhChat = {
     const overlay = U.mount('amkh-msg-act', `
       <div class="ds-sheet msg-act" id="msg-act-p">
         <div class="ds-sheet__handle"></div>
-        <div class="msg-act__react">${strip}</div>
+        ${strip ? `<div class="msg-act__react">${strip}</div>` : ''}
         <div class="msg-act__peek">
           <span class="msg-act__peek-who">${U.esc(this._msgAuthorName(scope, m))}</span>
           <span class="msg-act__peek-txt">${U.esc(this._actPeek(m))}</span>
@@ -1806,7 +1919,124 @@ const amkhChat = {
       else if (act === 'unpin') this._pinMsg(scope, m, false);
       else if (act === 'copy') this._copyText(txt);
       else if (act === 'save') this._saveMedia(m);
+      else if (act === 'del-all') this._confirmDelete(scope, m, 'all');
+      else if (act === 'del-me') this._confirmDelete(scope, m, 'me');
     });
+  },
+
+  /* ══ حذف الرسائل (زي واتساب) ══
+     نافذة تأكيد بطراز التطبيق ونغمتها الخاصة (msgDel). الحذف عند الجميع
+     لا رجعة فيه، فبنسأل صراحةً ونفرّق بين الخيارين في النصّ نفسه. */
+  _confirmDelete(scope, m, mode) {
+    const U = window.amkhUI;
+    if (!U || !m || m.id == null) return;
+    const all = mode === 'all';
+    const overlay = U.mount('amkh-msg-del', `
+      <div class="ds-sheet msg-act" id="msg-del-p">
+        <div class="ds-sheet__handle"></div>
+        <div class="msg-act__peek">
+          <span class="msg-act__peek-who">${U.esc(this._msgAuthorName(scope, m))}</span>
+          <span class="msg-act__peek-txt">${U.esc(this._actPeek(m))}</span>
+        </div>
+        <p class="msg-act__note">${all
+          ? 'ستُحذف هذه الرسالة عند كل الأطراف، ويظهر مكانها أنها حُذفت. لا يمكن التراجع.'
+          : 'ستختفي هذه الرسالة من جهازك وحده، وتبقى عند الطرف الآخر كما هي.'}</p>
+        <div class="ds-sheet__body msg-act__rows">
+          <button class="msg-act__row msg-act__row--warn" data-go="1">
+            <span class="msg-act__ic">${this.ICONS.trash}</span>
+            <span class="msg-act__lb">${all ? 'حذف عند الجميع' : 'حذف عندي'}</span>
+          </button>
+          <button class="msg-act__row" data-cancel="1">
+            <span class="msg-act__ic">${this.ICONS.close || '✕'}</span>
+            <span class="msg-act__lb">تراجع</span>
+          </button>
+        </div>
+      </div>`, { sheet: true, sfx: 'msgDel' });
+    try { window.DSOverlay && window.DSOverlay.makeSheetDraggable('amkh-msg-del', 'msg-del-p', () => overlay._dismiss()); } catch (e) {}
+    const go = overlay.querySelector('[data-go]');
+    if (go) go.onclick = () => { try { overlay._dismiss(); } catch (e) {} this._deleteMsg(scope, m, mode); };
+    const no = overlay.querySelector('[data-cancel]');
+    if (no) no.onclick = () => { U.sfx(); try { overlay._dismiss(); } catch (e) {} };
+  },
+
+  _deleteMsg(scope, m, mode) {
+    const ws = this._socket();
+    if (!ws || ws.readyState !== 1) {
+      window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈');
+      return;
+    }
+    try { if (window.SFX) window.SFX.modalOpen('msgGone'); } catch (e) {}
+    const md = mode === 'all' ? 'all' : 'me';
+    if (scope === 'group') {
+      const gid = this._openGroup; if (gid == null) return;
+      try { ws.send(JSON.stringify({ type: 'group:delete', group_id: gid, id: m.id, mode: md })); } catch (e) {}
+    } else {
+      const to = this._openWith; if (to == null) return;
+      try { ws.send(JSON.stringify({ type: 'chat:delete', to, id: m.id, mode: md })); } catch (e) {}
+    }
+  },
+
+  /* وصل إشعار حذف رسالة فردية. 'me' = نشيلها من القائمة خالص،
+     'all' = نحوّلها لشاهدة عند الطرفين. */
+  _onDeleted(d) {
+    if (!d || d.id == null) return true;
+    const key = this._key(this._me(), d.with);
+    const arr = this._msgs[key];
+    let wasLast = false;
+    if (arr) {
+      const i = arr.findIndex(x => x.id === d.id);
+      if (i >= 0) {
+        wasLast = (i === arr.length - 1);
+        if (d.mode === 'me') arr.splice(i, 1);
+        else Object.assign(arr[i], this._tombstone(d.by));
+      }
+    }
+    this._persist('dm', key);
+    if (this._openWith === d.with) this._renderMessages(d.with);
+    /* لو المحذوفة كانت آخر رسالة، معاينة الوارد لازم تتغيّر كمان —
+       غير كده الشات بيقول حاجة اتشالت جوّه والوارد لسه بيعرضها برّه. */
+    if (wasLast) this._bumpInboxRow('dm', d.with, this._lastPreview(arr, 'dm'), null);
+    return true;
+  },
+
+  _onGroupDeleted(d) {
+    if (!d || d.id == null) return true;
+    const arr = this._gmsgs[d.group_id];
+    let wasLast = false;
+    if (arr) {
+      const i = arr.findIndex(x => x.id === d.id);
+      if (i >= 0) {
+        wasLast = (i === arr.length - 1);
+        if (d.mode === 'me') arr.splice(i, 1);
+        else Object.assign(arr[i], this._tombstone(d.by));
+      }
+    }
+    this._persist('grp', d.group_id);
+    if (this._openGroup === d.group_id) this._renderGroupMessages(d.group_id);
+    if (wasLast) this._bumpInboxRow('grp', d.group_id, this._lastPreview(arr, 'grp'), null);
+    return true;
+  },
+
+  /* الحقول اللي بتتصفّر لمّا الرسالة تتحذف عند الجميع. بنسيب id و
+     created_at و from زي ما هم عشان الترتيب والإيصالات مربوطين بيهم. */
+  _tombstone(by) {
+    return {
+      deleted: true, deleted_by: by || null, body: '', audio: null, duration: 0,
+      mime: '', kind: 'text', reply: null, reply_to: null, pinned: false,
+      pinned_until: null, reactions: [], mentions: [],
+    };
+  },
+
+  /* معاينة الوارد بعد ما آخر رسالة تتشال */
+  _lastPreview(arr, scope) {
+    const last = arr && arr.length ? arr[arr.length - 1] : null;
+    if (!last) return '';
+    if (last.kind === 'system') return this._sysText(last.sys) || '';
+    const head = scope === 'grp'
+      ? ((last.mine ? T('أنت: ') : (last.sender_name || '') + ': '))
+      : (last.mine ? T('أنت: ') : '');
+    if (last.deleted) return head + 'تم حذف هذه الرسالة';
+    return head + this._previewOf(last);
   },
 
   /* ══ منتقي التفاعلات الكامل (زر «+») ══
@@ -2748,7 +2978,7 @@ const amkhChat = {
     name.className = 'ch-inbox__name'; name.textContent = g.name;
     const prev = document.createElement('span');
     prev.className = 'ch-inbox__prev';
-    const who = g.last_sender ? (g.last_from_me ? 'أنت: ' : g.last_sender + ': ') : '';
+    const who = g.last_sender ? (g.last_from_me ? T('أنت: ') : g.last_sender + ': ') : '';
     prev.textContent = g.last_message ? (who + g.last_message) : (g.members_count + ' أعضاء');
     mid.appendChild(name); mid.appendChild(prev);
     row.appendChild(mid);
@@ -2839,7 +3069,7 @@ const amkhChat = {
     name.textContent = meta.name;
     const prev = document.createElement('span');
     prev.className = 'ch-inbox__prev';
-    prev.textContent = (r.last_from_me ? 'أنت: ' : '') + (r.last_message || '');
+    prev.textContent = (r.last_from_me ? T('أنت: ') : '') + (r.last_message || '');
     mid.appendChild(name); mid.appendChild(prev);
     row.appendChild(mid);
 
@@ -3057,6 +3287,17 @@ const amkhChat = {
     }
     /* حماية من الازدواج بمعرّف السيرفر (سوكتين/إعادة اتصال). */
     if (d.id && (this._gmsgs[gid] || []).some(m => m.id === d.id)) return true;
+    /* رسالة نظام (#4): تُخزَّن كما هي وتُرسم حبّة وسطية. مافيهاش صاحب
+       ولا إيصالات، ومابتزوّدش عدّاد غير المقروء (السيرفر مستثنيها أصلًا). */
+    if (d.kind === 'system') {
+      const smsg = { id: d.id, from: d.from || null, kind: 'system',
+        sys: d.sys || this._safeJson(d.body), created_at: d.created_at };
+      (this._gmsgs[gid] = this._gmsgs[gid] || []).push(smsg);
+      this._persist('grp', gid);
+      if (this._openGroup === gid) { this._appendGroupBubble(smsg); this._markGroupRead(gid); }
+      this._bumpInboxRow('grp', gid, this._sysText(smsg.sys) || '', d.created_at);
+      return true;
+    }
     const msg = {
       id: d.id, client_id: d.client_id || null, from: d.from, mine,
       sender_name: d.sender_name || 'صديق', sender_avatar: d.sender_avatar || null,
@@ -3081,11 +3322,11 @@ const amkhChat = {
       this._incomingAlert({
         kind: 'grp', id: gid, name: gname,
         avatar: (this._gmeta[gid] && this._gmeta[gid].avatar_url) || null,
-        preview: msg.sender_name + (mentioned ? ' ذكرك: ' : ': ') + this._previewOf(d),
+        preview: msg.sender_name + (mentioned ? T(' ذكرك: ') : ': ') + this._previewOf(d),
       });
     }
     /* #1/#5 — شارة الحفلة وترتيبها في الوارد بيتحدّثوا لحظيًا */
-    this._bumpInboxRow('grp', gid, (mine ? 'أنت: ' : msg.sender_name + ': ') + this._previewOf(d), d.created_at);
+    this._bumpInboxRow('grp', gid, (mine ? T('أنت: ') : msg.sender_name + ': ') + this._previewOf(d), d.created_at);
     return true;
   },
 
@@ -3188,10 +3429,23 @@ const amkhChat = {
     });
   },
 
+  /* اسم العضو في سطر الحالة يُلَفّ في span محميّ من الترجمة: الاسم محتوى
+     مستخدم، والباقي («يكتب…») نصّ تطبيق يُترجَم عند التوليد. */
+  _subWithName(sub, name, tail) {
+    sub.textContent = '';
+    if (name) {
+      const n = document.createElement('span');
+      n.setAttribute('data-no-i18n', '1');
+      n.textContent = name + ' ';
+      sub.appendChild(n);
+    }
+    sub.appendChild(document.createTextNode(tail));
+  },
+
   _onGroupTyping(d) {
     if (this._openGroup !== d.group_id || !this._sheet) return true;
     const sub = this._sheet.querySelector('.ch-conv__sub');
-    if (sub && d.name) { sub.textContent = d.name + ' بيكتب…'; sub.className = 'ch-conv__sub is-online'; }
+    if (sub && d.name) { this._subWithName(sub, d.name, T('يكتب…')); sub.className = 'ch-conv__sub is-online'; }
     this._showTypingRow();
     clearTimeout(this._gtypingHide);
     this._gtypingHide = setTimeout(() => {
@@ -3208,7 +3462,7 @@ const amkhChat = {
     if (!sub) return true;
     clearTimeout(this._grecHide);
     if (d.on) {
-      sub.textContent = (d.name ? d.name + ' ' : '') + 'بيسجّل رسالة صوتية…';
+      this._subWithName(sub, d.name || '', T('يسجّل رسالة صوتية…'));
       sub.className = 'ch-conv__sub is-online';
       this._grecHide = setTimeout(() => {
         if (this._gmeta[d.group_id]) this._paintGroupSub(sub, this._gmeta[d.group_id]);
@@ -3502,6 +3756,13 @@ const amkhChat = {
     }
     let lastFrom = null;
     arr.forEach(m => {
+      /* حدث حفلة: حبّة وسطية، وبتصفّر تسلسل الرأس عشان أول رسالة بعدها
+         ترجع تبان باسم صاحبها وصورته (زي واتساب بعد أي فاصل). */
+      if (m.kind === 'system') {
+        listEl.appendChild(this._sysEl(m));
+        lastFrom = null;
+        return;
+      }
       const showHead = !m.mine && m.from !== lastFrom;   /* أول رسالة من نفس الشخص فيها اسمه وصورته */
       listEl.appendChild(this._groupBubbleEl(m, showHead));
       lastFrom = m.from;
@@ -3512,6 +3773,7 @@ const amkhChat = {
 
   /* فقاعة جروب: للرسايل من غيري نعرض صورة صاحبها + اسمه فوق الفقاعة. */
   _groupBubbleEl(m, showHead) {
+    if (m.kind === 'system') return this._sysEl(m);
     const wrap = document.createElement('div');
     wrap.className = 'ch-grow ' + (m.mine ? 'ch-grow--mine' : 'ch-grow--their');
     if (showHead) {
@@ -3530,9 +3792,32 @@ const amkhChat = {
     if (m.pinned) b.classList.add('ch-bubble--pinned');
     if (m.client_id) b.dataset.cid = m.client_id;
     if (m.id) b.dataset.mid = String(m.id);
+    if (m.deleted) {
+      /* نفس شاهدة الحذف بتاعة الشات الفردي، بس جوه صفّ الجروب:
+         الاسم فوقها يفضل موجود عشان تعرف رسالة مين اللي اتشالت. */
+      b.classList.add('ch-bubble--gone');
+      if (showHead) {
+        const nmg = document.createElement('div');
+        nmg.className = 'ch-bubble__from';
+        nmg.setAttribute('data-no-i18n', '1');
+        nmg.textContent = m.sender_name;
+        b.appendChild(nmg);
+      }
+      b.appendChild(this._goneEl(m));
+      const gmeta = document.createElement('div');
+      gmeta.className = 'ch-bubble__meta';
+      const gtime = document.createElement('span');
+      gtime.className = 'ch-time'; gtime.textContent = this._time(m.created_at);
+      gmeta.appendChild(gtime);
+      b.appendChild(gmeta);
+      this._bindMsgActions(b, 'group', m);
+      wrap.appendChild(b);
+      return wrap;
+    }
     if (showHead) {
       const nm = document.createElement('div');
       nm.className = 'ch-bubble__from';
+      nm.setAttribute('data-no-i18n', '1');
       nm.textContent = m.sender_name;
       b.appendChild(nm);
     }
@@ -3568,7 +3853,7 @@ const amkhChat = {
     const arr = this._gmsgs[this._openGroup] || [];
     const idx = arr.indexOf(m);
     const prev = idx > 0 ? arr[idx - 1] : null;
-    const showHead = !m.mine && (!prev || prev.from !== m.from);
+    const showHead = !m.mine && (!prev || prev.kind === 'system' || prev.from !== m.from);
     listEl.appendChild(this._groupBubbleEl(m, showHead));
     this._scrollBottom();
     this._applyGroupReceipts(this._openGroup);

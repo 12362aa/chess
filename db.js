@@ -468,6 +468,41 @@ function migrate() {
   if (addColumn('messages', 'mentions', 'TEXT')) added.push('messages.mentions');
   if (addColumn('group_messages', 'mentions', 'TEXT')) added.push('group_messages.mentions');
 
+  /* ══════════════════════════════════════════════════════════════════
+     حذف الرسائل (زي واتساب) + رسائل نظام الحفلة
+     ──────────────────────────────────────────────────────────────────
+     نوعان مختلفان تمامًا:
+
+     ١) «حذف عند الجميع» — deleted_at على الرسالة نفسها. الصف بيفضل
+        موجود عمدًا: الترتيب والردود والعدّادات كلها مربوطة بالـid،
+        ومسح الصف بيكسرها. البدن بيتصفّى (body/audio_data = NULL) عشان
+        النص مايفضلش مخزّن بعد ما صاحبه مسحه، والعميل بيعرض شاهدة
+        «حُذفت هذه الرسالة». deleted_by = مين مسحها (المرسِل أو أدمن
+        الحفلة) عشان الشاهدة تفرّق بين الحالتين.
+
+     ٢) «حذف عندي أنا» — صف في message_hides. الرسالة تفضل شغّالة عند
+        الباقيين، وتختفي عند صاحب الصف بس. scope عشان id الرسالة
+        مايتلغبطش بين messages وgroup_messages (نفس منطق voice_plays).
+
+     رسائل نظام الحفلة بتتخزّن في group_messages بـkind='system' و
+     body = JSON فيه الحدث وأطرافه (مش نص جاهز): الحدث بيتخزّن مرّة
+     واحدة والعميل بيصيغه بلغته — فالحفلة الواحدة تظهر عربي لعضو
+     وإنجليزي لعضو تاني، ونصوص التطبيق تفضل كلها في طبقة اللغة. */
+  if (addColumn('messages', 'deleted_at', 'TEXT')) added.push('messages.deleted_at');
+  if (addColumn('messages', 'deleted_by', 'INTEGER')) added.push('messages.deleted_by');
+  if (addColumn('group_messages', 'deleted_at', 'TEXT')) added.push('group_messages.deleted_at');
+  if (addColumn('group_messages', 'deleted_by', 'INTEGER')) added.push('group_messages.deleted_by');
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS message_hides (
+      scope      TEXT NOT NULL,               -- 'dm' | 'grp'
+      message_id INTEGER NOT NULL,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      hidden_at  TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (scope, message_id, user_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_message_hides_user ON message_hides(user_id, scope);
+  `);
+
 
   /* فهارس على الأعمدة الجديدة — بعد ALTER عشان تكون موجودة */
   db.exec(`

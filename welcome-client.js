@@ -206,6 +206,45 @@
     /* الخروج الطبيعي: الشاشة أدّت غرضها فمابترجعش */
     _finish() { this.markSeen(); this.close(); },
 
+    /* ══ اللغة ══
+       الشاشة دي أول واجهة في التطبيق، فاختيار اللغة لازم يبان فيها —
+       ومن غير إعادة تحميل: الشاشة لسه مبنية قدام عين المستخدم وإعادة
+       تحميلها هتبان كأن التطبيق وقع. I18N.prime بيحفظ الاختيار ويقلب
+       اتجاه الصفحة ويكنس الـDOM الظاهر، و_relabel بيعيد كتابة نصوص
+       الشاشة من مصدرها العربي عبر T() — فالرجوع للعربية بيرجّعها كما
+       كانت بدل ما يحاول عكس ترجمة تمّت. */
+    _markLang(ov) {
+      const cur = (window.I18N && window.I18N.lang === 'en') ? 'en' : 'ar';
+      const a = ov.querySelector('#wl-lang-ar'), e = ov.querySelector('#wl-lang-en');
+      if (a) { a.classList.toggle('is-on', cur === 'ar'); a.setAttribute('aria-pressed', cur === 'ar' ? 'true' : 'false'); }
+      if (e) { e.classList.toggle('is-on', cur === 'en'); e.setAttribute('aria-pressed', cur === 'en' ? 'true' : 'false'); }
+    },
+
+    _relabel(ov) {
+      const t = (window.I18N && window.I18N.t) || (s => s);
+      const $ = s => ov.querySelector(s);
+      const put = (sel, ar) => { const el = $(sel); if (el) el.textContent = t(ar); };
+      /* العنوان فيه <span> للعلامة التجارية بعد النصّ، فنكتب العقدة
+         النصّية وحدها كي لا نمسح الـspan */
+      const ttl = $('.wl-title');
+      if (ttl && ttl.firstChild && ttl.firstChild.nodeType === 3)
+        ttl.firstChild.nodeValue = t('أهلًا بك في شطرنج ');
+      put('.wl-sub', 'اللعبة كاملة بلا إنترنت، والحساب يفتح باقي التطبيق');
+      const items = ov.querySelectorAll('.wl-feat');
+      FEATS.forEach((f, i) => {
+        const li = items[i];
+        if (!li) return;
+        const b = li.querySelector('.wl-feat__t'), s = li.querySelector('.wl-feat__s');
+        if (b) b.textContent = t(f[1]);
+        if (s) s.textContent = t(f[2]);
+      });
+      put('#wl-create', 'إنشاء حساب مجاني');
+      put('.wl-g-label', 'المتابعة بحساب جوجل');
+      put('#wl-login', 'لديّ حساب — تسجيل الدخول');
+      put('#wl-skip', 'المتابعة بدون حساب');
+      const er = $('#wl-err'); if (er) er.textContent = '';
+    },
+
     show() {
       const feats = FEATS.map(f => `
         <li class="wl-feat">
@@ -218,6 +257,10 @@
 
       const ov = window.amkhUI.mount('amkh-welcome', `
         <div class="wl-screen" role="document">
+          <div class="wl-lang" role="group" aria-label="Language" data-no-i18n>
+            <button type="button" class="wl-lang__btn" id="wl-lang-ar" lang="ar">عربية</button>
+            <button type="button" class="wl-lang__btn" id="wl-lang-en" lang="en">English</button>
+          </div>
           <div class="wl-info">
             <div class="wl-top">
               <div class="wl-hero"><div class="wl-board-slot"></div></div>
@@ -241,6 +284,19 @@
       this._ov = ov;
       const $ = s => ov.querySelector(s);
       const err = $('#wl-err');
+
+      /* مبدّل اللغة */
+      this._markLang(ov);
+      const pickLang = l => {
+        try { window.amkhUI.sfx(); } catch (e) {}
+        if (!window.I18N || window.I18N.lang === l) { this._markLang(ov); return; }
+        window.I18N.prime(l);
+        this._relabel(ov);
+        this._markLang(ov);
+      };
+      const bAr = $('#wl-lang-ar'), bEn = $('#wl-lang-en');
+      if (bAr) bAr.onclick = () => pickLang('ar');
+      if (bEn) bEn.onclick = () => pickLang('en');
 
       /* اللوح بيتبني بعد ما الشاشة تتركّب: البناء بيرجّع stop() اللي
          close() بينادي عليها، فمافيش مؤقّت بيفضل شغّالًا ورا الشاشة */

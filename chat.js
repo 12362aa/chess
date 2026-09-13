@@ -105,11 +105,18 @@ router.get('/conversations', authenticateToken, (req, res) => {
     const out = [];
     for (const fr of friends) {
       const key = convoKey(me, fr.id);
-      const last = db.prepare(`SELECT id, sender_id, body, created_at, kind FROM messages
-                               WHERE convo_key = ? ORDER BY id DESC LIMIT 1`).get(key);
+      /* المحذوفة عندي بتتخطّى في المعاينة، والمحذوفة عند الجميع بتفضل
+         بشاهدتها (last_kind='deleted') زي واتساب. */
+      const last = db.prepare(`SELECT id, sender_id, body, created_at, kind, deleted_at FROM messages
+                               WHERE convo_key = ? AND NOT EXISTS (SELECT 1 FROM message_hides h
+                                 WHERE h.scope = 'dm' AND h.message_id = messages.id AND h.user_id = ?)
+                               ORDER BY id DESC LIMIT 1`).get(key, me);
       if (!last) continue;   /* بس المحادثات اللي فيها رسايل */
       const unread = db.prepare(`SELECT COUNT(*) AS c FROM messages
-                                 WHERE convo_key = ? AND recipient_id = ? AND read_at IS NULL`).get(key, me).c;
+                                 WHERE convo_key = ? AND recipient_id = ? AND read_at IS NULL
+                                   AND deleted_at IS NULL
+                                   AND NOT EXISTS (SELECT 1 FROM message_hides h
+                                     WHERE h.scope = 'dm' AND h.message_id = messages.id AND h.user_id = ?)`).get(key, me, me).c;
       let mentions = 0;
       try {
         mentions = db.prepare(`SELECT COUNT(*) AS c FROM messages
@@ -118,8 +125,8 @@ router.get('/conversations', authenticateToken, (req, res) => {
       } catch (e) {}
       out.push({
         friend: decorateStatus(fr),
-        last_message: (last.kind === 'voice') ? 'رسالة صوتية' : (last.kind === 'image') ? 'صورة' : (last.kind === 'video') ? 'فيديو' : last.body,
-        last_kind: last.kind || 'text',
+        last_message: last.deleted_at ? '' : (last.kind === 'voice') ? 'رسالة صوتية' : (last.kind === 'image') ? 'صورة' : (last.kind === 'video') ? 'فيديو' : last.body,
+        last_kind: last.deleted_at ? 'deleted' : (last.kind || 'text'),
         last_from_me: last.sender_id === me,
         last_at: last.created_at,
         last_id: last.id,
@@ -157,20 +164,24 @@ router.get('/history', authenticateToken, (req, res) => {
   /* لقطة الرسالة الأصل عند الرد (#130): اسم صاحبها + معاينة مختصرة. */
   const replySnippet = (id) => {
     if (!id) return null;
-    const r = db.prepare('SELECT id, sender_id, body, kind FROM messages WHERE id = ?').get(id);
+    const r = db.prepare('SELECT id, sender_id, body, kind, deleted_at FROM messages WHERE id = ?').get(id);
     if (!r) return null;
     const u = db.prepare('SELECT display_name, username, provider FROM users WHERE id = ?').get(r.sender_id) || {};
-    const preview = r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120);
-    return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview };
+    const preview = r.deleted_at ? '' : (r.kind === 'voice' ? 'رسالة صوتية' : r.kind === 'image' ? 'صورة' : r.kind === 'video' ? 'فيديو' : String(r.body || '').slice(0, 120));
+    return { id: r.id, from: r.sender_id, name: resolveOnlineName(u), kind: r.kind || 'text', preview, deleted: !!r.deleted_at };
   };
 
   try {
-    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, delivered_at, reply_to, pinned_at, pinned_until, kind, audio_data, duration, mime, mentions';
+    const cols = 'id, sender_id, recipient_id, body, created_at, read_at, delivered_at, reply_to, pinned_at, pinned_until, kind, audio_data, duration, mime, mentions, deleted_at, deleted_by';
+    /* «حذف عندي» بيتصفّى هنا: الصف موجود للطرف التاني وبيختفي عنّي أنا
+       بس. NOT EXISTS بدل JOIN عشان الـLIMIT يفضل على الصفوف الظاهرة. */
+    const hidden = `AND NOT EXISTS (SELECT 1 FROM message_hides h
+                    WHERE h.scope = 'dm' AND h.message_id = messages.id AND h.user_id = ?)`;
     const rows = before
       ? db.prepare(`SELECT ${cols} FROM messages
-                    WHERE convo_key = ? AND id < ? ORDER BY id DESC LIMIT ?`).all(key, before, limit)
+                    WHERE convo_key = ? AND id < ? ${hidden} ORDER BY id DESC LIMIT ?`).all(key, before, me, limit)
       : db.prepare(`SELECT ${cols} FROM messages
-                    WHERE convo_key = ? ORDER BY id DESC LIMIT ?`).all(key, limit);
+                    WHERE convo_key = ? ${hidden} ORDER BY id DESC LIMIT ?`).all(key, me, limit);
     rows.reverse();   /* للعرض: الأقدم فوق */
     const reactMap = reactionsFor('dm', rows.map(m => m.id), me);
     /* إيصالات القراءة: لو أنا أو هو قافلها، علامة «مقروءة» ماتظهرش على
@@ -182,11 +193,15 @@ router.get('/history', authenticateToken, (req, res) => {
       from: m.sender_id,
       to: m.recipient_id,
       mine: m.sender_id === me,
-      kind: m.kind || 'text',
-      body: m.body,
-      audio: m.audio_data || null,
-      duration: m.duration || 0,
-      mime: m.mime || '',
+      kind: m.deleted_at ? 'text' : (m.kind || 'text'),
+      /* رسالة محذوفة عند الجميع: البدن متصفّى في القاعدة أصلًا، والعميل
+         بيعرض شاهدة «حُذفت هذه الرسالة» من deleted. */
+      deleted: !!m.deleted_at,
+      deleted_by: m.deleted_at ? (m.deleted_by || null) : null,
+      body: m.deleted_at ? '' : m.body,
+      audio: m.deleted_at ? null : (m.audio_data || null),
+      duration: m.deleted_at ? 0 : (m.duration || 0),
+      mime: m.deleted_at ? '' : (m.mime || ''),
       created_at: m.created_at,
       read: (m.sender_id === me && !showRcpt) ? false : !!m.read_at,
       delivered: !!m.delivered_at,

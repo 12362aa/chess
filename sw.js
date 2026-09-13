@@ -3,7 +3,7 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '4.0-b33';
+const SW_VERSION = '4.1-b34';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
@@ -13,6 +13,10 @@ const STATIC_ASSETS = [
   './manifest.json',
   './icon_v2.png?v=3',
   './nour.png',
+  /* طبقة اللغة تُحمَّل قبل أيّ شيء آخر في الصفحة وتعرّف T()/I18N، فلو
+     غابت في وضع عدم الاتصال سقط التطبيق كلّه عند أوّل نداء ترجمة. */
+  './i18n.js',
+  './i18n-en.js',
   './auth-client.js',
   './welcome-client.js',
   './friends-client.js',

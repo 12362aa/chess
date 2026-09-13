@@ -2197,6 +2197,43 @@ body[data-ui-theme="gaming"]{
   margin: 0 auto;
   text-align: center;
 }
+
+/* مبدّل اللغة — أوّل قرار في الشاشة، وأوّل عنصر فيها. كل خيار مكتوب
+   بلغته هو (عربية / English) فيُقرأ مهما كانت اللغة السارية، وعليه
+   data-no-i18n كي لا تمسّه طبقة الترجمة. */
+.wl-lang{
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.wl-lang__btn{
+  flex: 0 1 148px;
+  padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color     var(--duration-fast) var(--easing-standard),
+    color            var(--duration-fast) var(--easing-standard),
+    transform        var(--duration-fast) var(--easing-standard);
+}
+.wl-lang__btn.is-on{
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+.wl-lang__btn:active{ transform: scale(.97); }
+.wl-lang__btn:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 /* ── الهالة اللي اللوح قاعد فوقها ──
    اللوح لوحده وسط شاشة غامقة كان بيبان كصورة ملزوقة. الهالة (تدرّج دائري
    بلون التطبيق الأساسي) بتخلّيه مركز الشاشة بصريًا وبتوصّل الحدّ بينه وبين
@@ -3814,7 +3851,7 @@ body[data-ui-theme="glass"]{
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-text);
-  text-align: right;
+  text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3905,7 +3942,7 @@ body[data-ui-theme="glass"]{
   border-radius: 0;
   color: inherit;
   font-family: inherit;
-  text-align: right;
+  text-align: start;
   cursor: default;
 }
 .acct-row:last-child{ border-bottom: 0; }
@@ -4500,6 +4537,43 @@ html.kb-open .ch-input{
 .ch-time{ font-size: .66rem; opacity: .7; }
 .ch-tick{ font-size: .7rem; opacity: .8; }
 .ch-tick.is-read{ color: var(--color-primary, #6fd1ff); }
+
+/* ══ شاهدة الرسالة المحذوفة (#3) ══
+   فقاعة باهتة بإطار متقطّع: شكلها لوحده بيقول «كان هنا حاجة واتشالت»
+   من غير ما تشيل مكانها من خيط المحادثة. */
+.ch-bubble--gone{
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1px var(--color-border, rgba(255,255,255,.16));
+  border: 1px dashed var(--color-border, rgba(255,255,255,.2));
+  opacity: .82;
+}
+.ch-gone{
+  display: flex; align-items: center; gap: 7px;
+  font-style: italic; font-size: .86rem;
+  color: var(--color-text-secondary, rgba(255,255,255,.68));
+}
+.ch-gone__ic{ display: inline-flex; flex: 0 0 auto; }
+.ch-gone__ic svg{ width: 15px; height: 15px; opacity: .75; }
+
+/* ══ أحداث الحفلة (#4) ══
+   حبّة في منتصف السطر، لا يمين ولا شمال — عشان العين تفرّق فورًا بين
+   كلام الناس وخبر عن الحفلة نفسها. */
+.ch-sys{
+  display: flex; justify-content: center;
+  margin: var(--space-2, 8px) 0;
+}
+.ch-sys__pill{
+  display: inline-flex; align-items: center; gap: 8px;
+  max-width: 82%;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--color-surface, rgba(255,255,255,.07));
+  box-shadow: inset 0 0 0 1px var(--color-border, rgba(255,255,255,.1));
+  font-size: .76rem; line-height: 1.5;
+  color: var(--color-text-secondary, rgba(255,255,255,.72));
+  text-align: center;
+}
+.ch-sys__time{ font-size: .64rem; opacity: .6; flex: 0 0 auto; }
 
 .ch-typing{ display: flex; gap: 4px; padding: 8px 4px; }
 .ch-typing[hidden]{ display: none; }
@@ -5402,6 +5476,16 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .msg-act__rows > .msg-act__row:nth-child(4){ --i: 3; }
 .msg-act__rows > .msg-act__row:nth-child(5){ --i: 4; }
 .msg-act__rows > .msg-act__row:nth-child(6){ --i: 5; }
+/* صفوف الحذف زوّدت أقصى عدد للصفوف من 6 لـ8؛ من غير السطور دي آخر
+   صفّين بيفضلوا opacity:0 لأن الأنيميشن مابياخدش --i فما بيبدأش. */
+.msg-act__rows > .msg-act__row:nth-child(7){ --i: 6; }
+.msg-act__rows > .msg-act__row:nth-child(8){ --i: 7; }
+/* نصّ توضيحي فوق أزرار نافذة تأكيد الحذف */
+.msg-act__note{
+  margin: 0 var(--space-4, 16px) var(--space-3, 12px);
+  font-size: 12.5px; line-height: 1.65;
+  color: var(--color-text-secondary, rgba(255,255,255,.7));
+}
 @keyframes msgActRow{ to{ opacity: 1; transform: none; } }
 /* خطّ فاصل رقيق بين الصفوف — بلا إطارات كاملة. برسمه بـ::before مستقيمًا
    يبدأ بعد مربّع الأيقونة (طراز القوائم الحديثة)؛ ظلّ الصندوق كان يتبع
