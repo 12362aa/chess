@@ -29,6 +29,15 @@ window.getApiBase = () => {
   return '/api';
 };
 
+/* لغة المستخدم عشان تتبعت مع طلبات البريد: الرمز اللي بيوصله على بريده
+   لازم يوصل بلغة التطبيق اللي شغّالة عنده، مش بلغة الخادم. بنقراها وقت
+   الطلب لا وقت التحميل — المستخدم ممكن يبدّل اللغة قبل ما يسجّل. */
+window.amkhUiLang = () => {
+  try { if (window.I18N && I18N.lang) return I18N.lang; } catch (e) {}
+  try { return localStorage.getItem('amkh_lang') === 'en' ? 'en' : 'ar'; } catch (e) {}
+  return 'ar';
+};
+
 /* ──────────────────────────────────────────────────────────────
    التأكد إن رابط السيرفر متاح قبل أي نداء API.
    ──────────────────────────────────────────────────────────────
@@ -303,7 +312,7 @@ const amkhAuth = {
       res = await fetch(`${window.getApiBase()}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ email, password, display_name: displayName, verify_flow: 1 })
+        body: JSON.stringify({ email, password, display_name: displayName, verify_flow: 1, lang: window.amkhUiLang() })
       });
       data = await res.json();
     } catch (e) {
@@ -408,7 +417,7 @@ const amkhAuth = {
       res = await fetch(`${window.getApiBase()}/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, lang: window.amkhUiLang() })
       });
       data = await res.json();
     } catch (e) {
@@ -1746,7 +1755,7 @@ const amkhAuth = {
   },
 
   showProfileModal() {
-    const name = (this.user && (this.user.display_name || this.user.email)) || 'لاعب';
+    const name = (this.user && (this.user.display_name || this.user.email)) || T('لاعب');
     const overlay = amkhUI.mount('amkh-auth-modal', `
       <div class="ds-dialog amkh-auth-dialog">
         <div class="ds-dialog__icon" aria-hidden="true">
@@ -1790,7 +1799,7 @@ const amkhAuth = {
       if (!uid || !window.PlayerCard) return;
       overlay._dismiss();
       window.PlayerCard.open(uid, {
-        name: (this.user.display_name || this.user.email || 'لاعب'),
+        name: (this.user.display_name || this.user.email || T('لاعب')),
         avatar_url: this.user.avatar_url || '',
         country: this.user.country || '',
       });

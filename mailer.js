@@ -191,11 +191,20 @@ const C = {
 };
 const FONT = "'Segoe UI',Tahoma,Arial,sans-serif";
 
+/* ── لغة الرسالة ──────────────────────────────────────────────────────
+   المستخدم اللي التطبيق عنده بالإنجليزية لازم توصله الرسالة بالإنجليزية:
+   هو اختار لغة، والبريد جزء من التطبيق لا شيء منفصل عنه. العميل بيبعت
+   lang مع الطلب، والخادم بيمرّرها هنا. الافتراضي عربي — أي عميل قديم
+   مابيبعتش lang بياخد نفس الرسالة اللي كان بياخدها بالضبط.
+   الفرق مش ترجمة نصوص وبس: الاتجاه (rtl/ltr) ومحاذاة السطور بتنقلب
+   كذلك، وإلا طلعت جملة إنجليزية مرصوصة على اليمين في إطار مقلوب. */
+const isEn = lang => /^en/i.test(String(lang || ''));
+
 const txtRow = (html, o) => {
   const s = o || {};
   return `
   <tr><td style="padding:${s.pad || '16px 16px 4px'};color:${s.color || C.txt};font-size:${s.size || 15}px;`
-    + `line-height:1.9;text-align:right${s.top ? ';border-top:1px solid ' + C.line : ''}">
+    + `line-height:1.9;text-align:${s.align || 'right'}${s.top ? ';border-top:1px solid ' + C.line : ''}">
     ${html}
   </td></tr>`;
 };
@@ -208,8 +217,8 @@ const codeRow = code => `
       <tr><td style="padding:14px 20px 14px 26px;font-family:Consolas,'Courier New',monospace;font-size:28px;font-weight:700;color:${C.gold};letter-spacing:6px;direction:ltr;text-align:center;white-space:nowrap">${esc(code)}</td></tr>
     </table>
   </td></tr>`;
-const shell = body => `<!doctype html>
-<html dir="rtl" lang="ar"><head><meta charset="utf-8">
+const shell = (body, en) => `<!doctype html>
+<html dir="${en ? 'ltr' : 'rtl'}" lang="${en ? 'en' : 'ar'}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark light"></head>
 <body style="margin:0;padding:0;background:${C.bg};font-family:${FONT}">
@@ -221,63 +230,101 @@ const shell = body => `<!doctype html>
      <div style="height:2px;width:54px;margin:12px auto 0;background:${C.gold};border-radius:2px"></div>
    </td></tr>${body}
   </table>
-  <div style="width:100%;max-width:520px;margin:14px auto 0;color:${C.foot};font-size:11px;text-align:center;line-height:1.8">رسالة من خادم شطرنج Am-Kh. لك أن تردّ عليها إن احتجت مساعدة.</div>
+  <div style="width:100%;max-width:520px;margin:14px auto 0;color:${C.foot};font-size:11px;text-align:center;line-height:1.8">${en
+    ? 'A message from the Am-Kh Chess server. You may reply to it if you need help.'
+    : 'رسالة من خادم شطرنج Am-Kh. لك أن تردّ عليها إن احتجت مساعدة.'}</div>
  </td></tr>
 </table>
 </body></html>`;
 
-const WHO = name => (name ? esc(name) : 'لاعب شطرنج Am-Kh');
-const FOOT = { pad: '14px 16px 22px', color: C.faint, size: 12, top: 1 };
+const WHO = (name, en) => (name ? esc(name) : (en ? 'Am-Kh Chess player' : 'لاعب شطرنج Am-Kh'));
+/* محاذاة السطر ولون الذيل: نفس القيم في اللغتين ما عدا الجهة. */
+const ALIGN = en => (en ? 'left' : 'right');
+const FOOT = en => ({ pad: '14px 16px 22px', color: C.faint, size: 12, top: 1, align: ALIGN(en) });
 
 /* ── #6 رمز إعادة تعيين كلمة المرور ─────────────────────────────────── */
-function resetHtml(code, name, minutes) {
+function resetHtml(code, name, minutes, en) {
+  if (en) {
+    return shell(
+      txtRow(`Hello ${WHO(name, true)},<br>
+      We received a request to reset the password for your account. Use the code below to complete it:`,
+        { pad: '18px 16px 4px', align: 'left' })
+      + codeRow(code)
+      + txtRow(`The code is valid for ${esc(minutes)} minutes, and for one use only.`,
+        { pad: '0 16px 6px', color: C.dim, size: 13, align: 'left' })
+      + txtRow('If you did not request a reset, ignore this message — your current password stays as it is, and nothing in your account will change.',
+        FOOT(true)), true);
+  }
   return shell(
     txtRow(`مرحبًا ${WHO(name)}،<br>
     وصلنا طلب لإعادة تعيين كلمة المرور لحسابك. استخدم الرمز التالي لإكمال العملية:`, { pad: '18px 16px 4px' })
     + codeRow(code)
     + txtRow(`الرمز صالح لمدة ${esc(minutes)} دقيقة، ولمرة واحدة فقط.`,
       { pad: '0 16px 6px', color: C.dim, size: 13 })
-    + txtRow('إذا لم تطلب إعادة التعيين فتجاهل هذه الرسالة — كلمة مرورك الحالية باقية كما هي، ولن يتغيّر شيء في حسابك.', FOOT));
+    + txtRow('إذا لم تطلب إعادة التعيين فتجاهل هذه الرسالة — كلمة مرورك الحالية باقية كما هي، ولن يتغيّر شيء في حسابك.', FOOT(false)));
 }
 
-function resetText(code, name, minutes) {
+function resetText(code, name, minutes, en) {
+  if (en) {
+    return `Hello ${name || ''}\n\n`
+      + `Your password reset code for Am-Kh Chess:\n\n    ${code}\n\n`
+      + `The code is valid for ${minutes} minutes and for one use only.\n`
+      + `If you did not request a reset, ignore this message — nothing in your account will change.`;
+  }
   return `مرحبًا ${name || ''}\n\n`
     + `رمز إعادة تعيين كلمة المرور لحسابك في شطرنج Am-Kh:\n\n    ${code}\n\n`
     + `الرمز صالح لمدة ${minutes} دقيقة ولمرة واحدة.\n`
     + `إذا لم تطلب إعادة التعيين فتجاهل الرسالة، ولن يتغيّر شيء في حسابك.`;
 }
 
-async function sendResetCode({ to, code, name, minutes = 15 }) {
+async function sendResetCode({ to, code, name, minutes = 15, lang }) {
+  const en = isEn(lang);
   await deliver('استعادة كلمة المرور', {
     to,
-    subject: `رمز إعادة تعيين كلمة المرور: ${code}`,
-    text: resetText(code, name, minutes),
-    html: resetHtml(code, name, minutes),
+    subject: en ? `Password reset code: ${code}` : `رمز إعادة تعيين كلمة المرور: ${code}`,
+    text: resetText(code, name, minutes, en),
+    html: resetHtml(code, name, minutes, en),
   });
 }
 /* ── بريد حساب جوجل ──────────────────────────────────────────────────
    المستخدم طلب استعادة كلمة مرور لحساب مالوش كلمة مرور أصلًا (داخل
    بجوجل). الردّ من الـAPI موحّد عشان مانكشفش الحسابات، فالبريد ده هو
    المكان الوحيد اللي يعرف صاحب الحساب فيه الحقيقة. */
-function googleHtml(name) {
+function googleHtml(name, en) {
+  if (en) {
+    return shell(
+      txtRow(`Hello ${WHO(name, true)},<br>
+      We received a request to reset your password, but your account has no password to begin with.`,
+        { pad: '18px 16px 4px', align: 'left' })
+      + txtRow(`You are signed up through <b style="color:${C.gold}">your Google account</b>. To sign in, open the app
+      and tap "Sign in with Google" — you need no password and no code.`, { pad: '12px 16px', align: 'left' })
+      + txtRow('If you did not request a reset, ignore this message — nothing in your account has changed.',
+        FOOT(true)), true);
+  }
   return shell(
     txtRow(`مرحبًا ${WHO(name)}،<br>
     وصلنا طلب لإعادة تعيين كلمة المرور لحسابك، لكن حسابك ليس له كلمة مرور من الأصل.`,
       { pad: '18px 16px 4px' })
     + txtRow(`أنت مسجَّل عن طريق <b style="color:${C.gold}">حسابك في جوجل</b>. للدخول، افتح التطبيق
     واضغط زر «الدخول بحساب جوجل» — لا تحتاج كلمة مرور ولا رمزًا.`, { pad: '12px 16px' })
-    + txtRow('إذا لم تطلب إعادة التعيين فتجاهل هذه الرسالة — لم يتغيّر شيء في حسابك.', FOOT));
+    + txtRow('إذا لم تطلب إعادة التعيين فتجاهل هذه الرسالة — لم يتغيّر شيء في حسابك.', FOOT(false)));
 }
 
-async function sendGoogleNotice({ to, name }) {
+async function sendGoogleNotice({ to, name, lang }) {
+  const en = isEn(lang);
   await deliver('تنبيه حساب جوجل', {
     to,
-    subject: 'حسابك يعمل بتسجيل الدخول عبر جوجل',
-    text: `مرحبًا ${name || ''}\n\n`
-      + `وصلنا طلب لإعادة تعيين كلمة مرور حسابك في شطرنج Am-Kh، لكن حسابك ليس له كلمة مرور.\n`
-      + `أنت مسجَّل عن طريق جوجل: افتح التطبيق واضغط «الدخول بحساب جوجل».\n\n`
-      + `إذا لم تطلب ذلك فتجاهل الرسالة، ولن يتغيّر شيء في حسابك.`,
-    html: googleHtml(name),
+    subject: en ? 'Your account signs in with Google' : 'حسابك يعمل بتسجيل الدخول عبر جوجل',
+    text: en
+      ? `Hello ${name || ''}\n\n`
+        + `We received a request to reset the password of your Am-Kh Chess account, but your account has no password.\n`
+        + `You are signed up through Google: open the app and tap "Sign in with Google".\n\n`
+        + `If you did not request this, ignore the message — nothing in your account will change.`
+      : `مرحبًا ${name || ''}\n\n`
+        + `وصلنا طلب لإعادة تعيين كلمة مرور حسابك في شطرنج Am-Kh، لكن حسابك ليس له كلمة مرور.\n`
+        + `أنت مسجَّل عن طريق جوجل: افتح التطبيق واضغط «الدخول بحساب جوجل».\n\n`
+        + `إذا لم تطلب ذلك فتجاهل الرسالة، ولن يتغيّر شيء في حسابك.`,
+    html: googleHtml(name, en),
   });
 }
 /* ── #13 رمز تأكيد البريد عند إنشاء حساب يدوي ─────────────────────────
@@ -285,7 +332,18 @@ async function sendGoogleNotice({ to, name }) {
    فالمطلوب منه «إكمال إنشاء الحساب» مش «إعادة تعيين». ولو الرسالة وصلت
    لحد ماطلبهاش يبقى فيه واحد بيكتب بريده بالغلط (أو بيجرّب) — فالسطر
    الأخير بيطمّنه إن مافيش حساب اتعمل ولا هيتعمل بلا الرمز ده. */
-function signupHtml(code, name, minutes) {
+function signupHtml(code, name, minutes, en) {
+  if (en) {
+    return shell(
+      txtRow(`Hello ${WHO(name, true)},<br>
+      Welcome to Am-Kh Chess. To confirm your email and finish creating your account, enter this code in the app:`,
+        { pad: '18px 16px 4px', align: 'left' })
+      + codeRow(code)
+      + txtRow(`The code is valid for ${esc(minutes)} minutes, and for one use only.`,
+        { pad: '0 16px 6px', color: C.dim, size: 13, align: 'left' })
+      + txtRow('If you did not ask to create an account, ignore this message — no account has been created with this email, and none will be created without this code.',
+        FOOT(true)), true);
+  }
   return shell(
     txtRow(`مرحبًا ${WHO(name)}،<br>
     أهلًا بك في شطرنج Am-Kh. لتأكيد بريدك وإكمال إنشاء حسابك، أدخل الرمز التالي في التطبيق:`,
@@ -293,18 +351,24 @@ function signupHtml(code, name, minutes) {
     + codeRow(code)
     + txtRow(`الرمز صالح لمدة ${esc(minutes)} دقيقة، ولمرة واحدة فقط.`,
       { pad: '0 16px 6px', color: C.dim, size: 13 })
-    + txtRow('إذا لم تطلب إنشاء حساب فتجاهل هذه الرسالة — لم يُنشأ أي حساب بهذا البريد، ولن يُنشأ بدون هذا الرمز.', FOOT));
+    + txtRow('إذا لم تطلب إنشاء حساب فتجاهل هذه الرسالة — لم يُنشأ أي حساب بهذا البريد، ولن يُنشأ بدون هذا الرمز.', FOOT(false)));
 }
 
-async function sendSignupCode({ to, code, name, minutes = 15 }) {
+async function sendSignupCode({ to, code, name, minutes = 15, lang }) {
+  const en = isEn(lang);
   await deliver('تأكيد البريد', {
     to,
-    subject: `رمز تأكيد بريدك: ${code}`,
-    text: `مرحبًا ${name || ''}\n\n`
-      + `رمز تأكيد بريدك لإكمال إنشاء حسابك في شطرنج Am-Kh:\n\n    ${code}\n\n`
-      + `الرمز صالح لمدة ${minutes} دقيقة ولمرة واحدة.\n`
-      + `إذا لم تطلب إنشاء حساب فتجاهل الرسالة — لم يُنشأ أي حساب بهذا البريد.`,
-    html: signupHtml(code, name, minutes),
+    subject: en ? `Your email confirmation code: ${code}` : `رمز تأكيد بريدك: ${code}`,
+    text: en
+      ? `Hello ${name || ''}\n\n`
+        + `Your email confirmation code to finish creating your Am-Kh Chess account:\n\n    ${code}\n\n`
+        + `The code is valid for ${minutes} minutes and for one use only.\n`
+        + `If you did not ask to create an account, ignore this message — no account has been created with this email.`
+      : `مرحبًا ${name || ''}\n\n`
+        + `رمز تأكيد بريدك لإكمال إنشاء حسابك في شطرنج Am-Kh:\n\n    ${code}\n\n`
+        + `الرمز صالح لمدة ${minutes} دقيقة ولمرة واحدة.\n`
+        + `إذا لم تطلب إنشاء حساب فتجاهل الرسالة — لم يُنشأ أي حساب بهذا البريد.`,
+    html: signupHtml(code, name, minutes, en),
   });
 }
 

@@ -19,11 +19,11 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
-<script src="i18n.js?v=20260914-b35"></script>
-<script src="i18n-en.js?v=20260914-b35"></script>
+<script src="i18n.js?v=20260915-b36"></script>
+<script src="i18n-en.js?v=20260915-b36"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260914-b35">
+<link rel="stylesheet" href="design-system.css?v=20260915-b36">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -2731,7 +2731,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260914-b35">
+<link rel="stylesheet" href="screens.css?v=20260915-b36">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3053,44 +3053,17 @@ html.amkh-preboot #amkh-preboot{
                 <div class="setting-label">لغة التطبيق</div>
                 <div class="setting-description">يُعاد تشغيل التطبيق ليطبَّق التغيير</div>
                 <div class="ui-grid ui-grid--lang">
-                  <!-- العلمان مرسومان SVG لا إيموجي: قاعدة التطبيق تمنع الرموز
-                       التعبيرية في الواجهة، والإيموجي يختلف شكله من جهاز لآخر.
-                       كانت هنا شرائح ألوان ثيم Amkh — لا علاقة لها باللغة. -->
+                  <!-- العَلَمان ملفّا SVG بأبعادهما الرسمية 2:3، لا إيموجي:
+                       قاعدة التطبيق تمنع الرموز التعبيرية في الواجهة،
+                       والإيموجي يختلف شكله من جهاز لآخر. والعَلَم السعودي
+                       بالشهادة بخط الثلث والسيف تحتها ورأسه إلى اليسار —
+                       رسمٌ اصطلاحيّ بشُرَط بيضاء ليس علمًا. -->
                   <div class="ui-opt" id="lang-ar" onclick="setAppLang('ar')">
-                    <svg class="lang-flag" viewBox="0 0 72 48" aria-hidden="true">
-                      <rect width="72" height="48" fill="#006c35"/>
-                      <g stroke="#fff" stroke-width="1.7" stroke-linecap="round" fill="none">
-                        <path d="M11 21h50"/>
-                        <path d="M15 21v-8"/><path d="M21 21v-6"/><path d="M27 21v-9"/>
-                        <path d="M35 21v-7"/><path d="M41 21v-5"/><path d="M48 21v-8"/><path d="M55 21v-6"/>
-                        <path d="M17 24.4c2 2 5 2 7 0"/><path d="M38 24.4c2 2 5 2 7 0"/>
-                      </g>
-                      <g fill="#fff">
-                        <path d="M12 33.4l5-2.2h37v4.4H17z"/>
-                        <rect x="54" y="29.6" width="3.2" height="7.6" rx="1.2"/>
-                        <rect x="57.4" y="31.4" width="6" height="4" rx="1.6"/>
-                      </g>
-                    </svg>
+                    <img class="lang-flag" src="flag-sa.svg?v=20260915-b36" width="72" height="48" alt="" aria-hidden="true">
                     <span class="lang-nm">العربية</span>
                   </div>
                   <div class="ui-opt" id="lang-en" onclick="setAppLang('en')">
-                    <svg class="lang-flag" viewBox="0 0 72 48" aria-hidden="true">
-                      <rect width="72" height="48" fill="#fff"/>
-                      <g fill="#b22234">
-                        <rect y="0" width="72" height="3.7"/><rect y="7.4" width="72" height="3.7"/>
-                        <rect y="14.8" width="72" height="3.7"/><rect y="22.2" width="72" height="3.7"/>
-                        <rect y="29.5" width="72" height="3.7"/><rect y="36.9" width="72" height="3.7"/>
-                        <rect y="44.3" width="72" height="3.7"/>
-                      </g>
-                      <rect width="28.8" height="25.9" fill="#3c3b6e"/>
-                      <g fill="#fff">
-                        <circle cx="2.9" cy="3.4" r="1.05"/><circle cx="7.5" cy="3.4" r="1.05"/><circle cx="12.1" cy="3.4" r="1.05"/><circle cx="16.7" cy="3.4" r="1.05"/><circle cx="21.3" cy="3.4" r="1.05"/><circle cx="25.9" cy="3.4" r="1.05"/>
-                        <circle cx="5.2" cy="8.4" r="1.05"/><circle cx="9.8" cy="8.4" r="1.05"/><circle cx="14.4" cy="8.4" r="1.05"/><circle cx="19" cy="8.4" r="1.05"/><circle cx="23.6" cy="8.4" r="1.05"/>
-                        <circle cx="2.9" cy="13.4" r="1.05"/><circle cx="7.5" cy="13.4" r="1.05"/><circle cx="12.1" cy="13.4" r="1.05"/><circle cx="16.7" cy="13.4" r="1.05"/><circle cx="21.3" cy="13.4" r="1.05"/><circle cx="25.9" cy="13.4" r="1.05"/>
-                        <circle cx="5.2" cy="18.3" r="1.05"/><circle cx="9.8" cy="18.3" r="1.05"/><circle cx="14.4" cy="18.3" r="1.05"/><circle cx="19" cy="18.3" r="1.05"/><circle cx="23.6" cy="18.3" r="1.05"/>
-                        <circle cx="2.9" cy="23.1" r="1.05"/><circle cx="7.5" cy="23.1" r="1.05"/><circle cx="12.1" cy="23.1" r="1.05"/><circle cx="16.7" cy="23.1" r="1.05"/><circle cx="21.3" cy="23.1" r="1.05"/><circle cx="25.9" cy="23.1" r="1.05"/>
-                      </g>
-                    </svg>
+                    <img class="lang-flag" src="flag-us.svg?v=20260915-b36" width="72" height="48" alt="" aria-hidden="true">
                     <span class="lang-nm">الإنجليزية</span>
                   </div>
                 </div>
@@ -4963,7 +4936,9 @@ const SettingsAccount = {
     nm.className = 'acct-hero__name';
     let local = '';
     try{ local = (window.Cfg && Cfg.data && Cfg.data.playerName) || ''; }catch(e){}
-    nm.textContent = u.display_name || local || 'لاعب';
+    /* «لاعب» نصّ تطبيق لا اسمُ أحد، وحاويته من صنوف محتوى المستخدم
+       المحميّة من الكنس — فلا مترجِم لها إلا T هنا. */
+    nm.textContent = u.display_name || local || T('لاعب');
     const un = document.createElement('div');
     un.className = 'acct-hero__uname';
     un.dir = 'ltr';
@@ -6332,7 +6307,7 @@ const Home={
     const nm=document.getElementById('home-id-name');
     if(nm){
       const n=((Cfg?.data?.playerName)||'').trim();
-      nm.textContent=n||'لاعب';
+      nm.textContent=n||T('لاعب');
     }
     if(av){
       const img=(Cfg?.data?.playerImage)||'';
@@ -6978,7 +6953,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 35;
+const APP_VERSION_CODE = 36;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7357,7 +7332,7 @@ const PlayerCard = {
         <button class="pc__close" data-close aria-label="إغلاق">✕</button>
         <div class="pc__hero">
           <div class="pc__av"${this._avStyle(s.avatar_url)}>${s.avatar_url?'':this._initial(s.name)}</div>
-          <div class="pc__name">${this._flag(s.country)}<span>${this._esc(s.name||'لاعب')}</span></div>
+          <div class="pc__name">${this._flag(s.country)}<span>${this._esc(s.name||T('لاعب'))}</span></div>
           <div class="pc__sub" id="pc-sub">جارٍ التحميل…</div>
         </div>
         <div class="pc__body" id="pc-body">
@@ -7387,7 +7362,7 @@ const PlayerCard = {
     const av = ov.querySelector('.pc__av');
     if(p.avatar_url){ av.setAttribute('style', `background-image:url('${String(p.avatar_url).replace(/'/g,'%27')}')`); av.textContent=''; }
     else av.textContent = this._initial(p.name);
-    ov.querySelector('.pc__name').innerHTML = this._flag(p.country) + `<span>${this._esc(p.name||'لاعب')}</span>`;
+    ov.querySelector('.pc__name').innerHTML = this._flag(p.country) + `<span>${this._esc(p.name||T('لاعب'))}</span>`;
     const bits = [this._statusText(p.status)];
     const j = this._joined(p.joined_at); if(j) bits.push(j);
     sub.innerHTML = `<span class="pc__dot pc__dot--${this._esc(p.status||'offline')}"></span>` + this._esc(bits.join(' · '));
@@ -7456,7 +7431,7 @@ const PlayerCard = {
       return `<div class="pc__g">
           <span class="pc__gres pc__gres--${res[1]}" title="${res[2]}">${res[0]}</span>
           <span class="pc__gav"${av}>${g.opp_avatar?'':this._initial(g.opp_name)}</span>
-          <span class="pc__gopp">${this._esc(g.opp_name||'لاعب')}</span>
+          <span class="pc__gopp">${this._esc(g.opp_name||T('لاعب'))}</span>
           <span class="pc__gcol pc__gcol--${white?'w':'b'}">${col}</span>
           ${g.rated?'<span class="pc__grated">مصنّفة</span>':''}
           <span class="pc__gdate">${this._esc(this._shortDate(g.at))}</span>
@@ -7480,7 +7455,7 @@ const PlayerCard = {
     }
     const F = window.amkhFriends;
     const isFriend = !!(F && F._friends && F._friends.some(x => Number(x.id) === uid));
-    const name = (data && data.player && data.player.name) || seed.name || 'لاعب';
+    const name = (data && data.player && data.player.name) || seed.name || T('لاعب');
     const status = (data && data.player && data.player.status) || seed.status || '';
     const avatar = (data && data.player && data.player.avatar_url) || seed.avatar_url || '';
     const btns = [];
@@ -7571,7 +7546,7 @@ const Spectate={
     this._reset();
     this._target=Number(uid);
     this._authRetried=false;
-    this._openUI(name||'لاعب');
+    this._openUI(name||T('لاعب'));
   },
 
   /* خروج المتفرّج — لازم نبلّغ السيرفر عشان العدّاد ينزل عند اللاعبين */
@@ -9339,7 +9314,13 @@ Write Nour's message now:`);
     if(show){
       const m=document.createElement('div');
       m.className='chat-msg opp nour-typing';
-      m.innerHTML='<span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span> <span style="font-size:10px;color:var(--text3)">نور يكتب…</span>';
+      /* الصنف chat-msg محميّ من كنس الترجمة (محتوى المستخدم)، فسطر
+         «نور يكتب…» داخله لا يُترجَم بالكنس — نولّده مترجَمًا بـT. */
+      const lbl=document.createElement('span');
+      lbl.style.cssText='font-size:10px;color:var(--text3)';
+      lbl.textContent=T('نور يكتب…');
+      m.innerHTML='<span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span> ';
+      m.appendChild(lbl);
       el.prepend(m);
       requestAnimationFrame(()=>{el.scrollTo({top:0,behavior:'auto'});});
     }
@@ -12676,8 +12657,11 @@ const G={
   },
   async startLocalGame(){
     this._reset('local',0);
-    document.getElementById('nm-w').textContent='اللاعب الأبيض';
-    document.getElementById('nm-b').textContent='اللاعب الأسود';
+    /* الوصفان يُترجَمان من المصدر لا بالكنس: شريط الحالة يقرأ الاسم من
+       البار في نفس اللحظة ويبنيه جملةً واحدة، فلو انتظرنا الكنس طلعت
+       «اللاعب الأبيض to move» في واجهة إنجليزية كاملة. */
+    document.getElementById('nm-w').textContent=T('اللاعب الأبيض');
+    document.getElementById('nm-b').textContent=T('اللاعب الأسود');
     GameIdentity.setTitle('لاعبَان');
     fixBars('both');
     Nav.game();
@@ -12706,7 +12690,10 @@ const G={
     Cfg.data.engineLevel=preset.level;
     Cfg.saveData();
     document.getElementById('nm-w').textContent=getPlayerDisplayName();
-    document.getElementById('nm-b').textContent=`Stockfish — ${preset.title}`;
+    /* اسم الخصم في بار اللاعب داخل صنف محتوى المستخدم، فالكنس لا يدخله —
+       ودرجة المحرّك اسمُ تطبيق لا اسمُ أحد، فتُترجَم هنا بنفسها. بغيرها
+       ظهر «Stockfish — متوسط» في واجهة إنجليزية كاملة. */
+    document.getElementById('nm-b').textContent=`Stockfish — ${T(preset.title)}`;
     GameIdentity.setTitle(tt`ضد Stockfish · ${T(preset.badge)}`);
     fixBars('w');
     Nav.game();
@@ -13097,7 +13084,12 @@ const G={
   },
   async toggleAst(){
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
+    /* الخصم يُعلَم في كل مباراة بين شخصين — بلوتوثًا كما أونلاين. كان
+       الإبلاغ في الأونلاين وحده، فمن لعب بلوتوثًا شغّل المساعد بلا أن
+       يعرف خصمه، وشارة «الخصم يستخدم المساعد» جاهزة للوضعين أصلًا
+       (astLbls تعمل على isRemoteMatchMode لا على الأونلاين وحده). */
     if(S.mode==='online')OL.sendAssist(S.assistOn);
+    else if(S.mode==='bluetooth'&&typeof BLEManager!=='undefined')BLEManager.sendAssist(S.assistOn);
     if(S.assistOn){SFX.hint();AST.compute();}
     await R.all();
   },
@@ -14660,7 +14652,7 @@ function loadSettingsProfile(){
     if(input)input.value=savedUsername;
     _originalUsername=savedUsername;
   }else{
-    if(display)display.textContent='لاعب';
+    if(display)display.textContent=T('لاعب');
     if(input)input.value='';
     _originalUsername='';
   }
@@ -15053,13 +15045,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260914-b35"></script>
+  <script src="auth-client.js?v=20260915-b36"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260914-b35"></script>
-  <script src="friends-client.js?v=20260914-b35"></script>
-  <script src="chat-client.js?v=20260914-b35"></script>
-  <script src="call-client.js?v=20260914-b35"></script>
+  <script src="welcome-client.js?v=20260915-b36"></script>
+  <script src="friends-client.js?v=20260915-b36"></script>
+  <script src="chat-client.js?v=20260915-b36"></script>
+  <script src="call-client.js?v=20260915-b36"></script>
 <script>
 const BLEManager = {
   isHost: false,
@@ -15315,7 +15307,7 @@ const BLEManager = {
   /* اسم الخصم الجاهز للعرض — الافتراضي "لاعب" لو مالوش اسم محفوظ */
   oppDisplayName() {
     const n = (this.opponentName || '').trim();
-    return n || 'لاعب';
+    return n || T('لاعب');
   },
 
   _clearProfileState() {
@@ -15424,8 +15416,9 @@ const BLEManager = {
   },
 
   handleIncomingMessage(msg) {
-    /* رسائل الملف الشخصي أولًا وبـreturn — عشان ماتعديش على سلسلة
-       شروط النقلات أصلًا، فسرعة MOVE/ACK زي ما هي بالظبط. */
+    /* رسائل الملف الشخصي وإعلام المساعد أولًا وبـreturn — عشان ماتعديش
+       على سلسلة شروط النقلات أصلًا، فسرعة MOVE/ACK زي ما هي بالظبط. */
+    if (msg.startsWith("ASSIST:")) { this._onAssist(msg.slice(7)); return; }
     if (msg.startsWith("NAME:")) { this._onName(msg.slice(5)); return; }
     if (msg.startsWith("AVS:"))  { this._onAvStart(msg.slice(4)); return; }
     if (msg.startsWith("AVC:"))  { this._onAvChunk(msg.slice(4)); return; }
@@ -15497,6 +15490,20 @@ const BLEManager = {
       await G.applyMove(fr, to, promo);
       this.sendRaw("ACK");
     }
+  },
+
+  /* إعلام المساعد — نظير OL.sendAssist في الأونلاين حرفًا بحرف: يُرسَل
+     عند كل تبديل، والطرف الآخر يرفع الشارة أو ينزلها فورًا. لا ACK له
+     ولا مهلة: هو إشعار لا نقلة، وفقدُه لا يفسد المباراة. */
+  async sendAssist(on) {
+    if (!this.connected) return;
+    await this.sendRaw("ASSIST:" + (on ? "1" : "0"));
+  },
+
+  _onAssist(payload) {
+    if (S.mode !== 'bluetooth') return;
+    S.oppUsingAssist = (payload === "1");
+    try { R.astLbls(); } catch (e) {}
   },
 
   async sendMove(moveStr) {

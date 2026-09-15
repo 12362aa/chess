@@ -145,10 +145,11 @@
     return false;
   }
 
-  function skipEl(el) {
+  function skipEl(el, deep) {
     for (; el && el.nodeType === 1; el = el.parentElement) {
       var t = el.tagName;
       if (t === 'SCRIPT' || t === 'STYLE' || t === 'NOSCRIPT' || t === 'TEXTAREA') return true;
+      if (deep) continue;   /* الفحص العميق يدخل محتوى المستخدم أيضًا */
       if (el.hasAttribute('data-no-i18n')) return true;
       if (noiClass(el)) return true;
     }
@@ -299,8 +300,12 @@
     missing: function () { return Object.assign({}, missing); },
     /* للفحص الآليّ: كل نصّ عربيّ ما زال ظاهرًا فعلًا على الشاشة.
        all=true يتجاهل شرط الظهور فيشمل النوافذ المطويّة كذلك — بها
-       يغطّي الفحص كلّ الترميز الثابت دفعةً واحدة بلا فتحه يدويًّا. */
-    scanArabic: function (root, all) {
+       يغطّي الفحص كلّ الترميز الثابت دفعةً واحدة بلا فتحه يدويًّا.
+       deep=true يدخل حتى محتوى المستخدم المحميّ (NOI). بدونه كانت
+       البوّابات عمياء عن «نور يكتب…» داخل .chat-msg — نصّ تطبيق سكن
+       حاويةً محميّة، فمرّ من الكنس ومن الفحص معًا. في تشغيلة نظيفة لا
+       يكتب فيها أحد شيئًا، أيّ عربيّ داخل NOI هو نصّ تطبيق لا محتوى. */
+    scanArabic: function (root, all, deep) {
       var out = [];
       var w = document.createTreeWalker(root || document.body, 1 | 4, null);
       var n;
@@ -315,10 +320,10 @@
       while ((n = w.nextNode())) {
         if (n.nodeType === 3) {
           var v = norm(n.nodeValue || '');
-          if (v && AR.test(v) && !skipEl(n.parentElement) && visible(n.parentElement))
+          if (v && AR.test(v) && !skipEl(n.parentElement, deep) && visible(n.parentElement))
             out.push({ kind: 'text', text: v, where: path(n.parentElement) });
         } else {
-          if (skipEl(n)) continue;
+          if (skipEl(n, deep)) continue;
           for (var i = 0; i < ATTRS.length; i++) {
             var a = ATTRS[i];
             if (!n.hasAttribute(a)) continue;

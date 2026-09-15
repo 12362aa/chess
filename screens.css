@@ -1158,14 +1158,15 @@
 
 /* ── بطاقتا اللغة ──
    كانتا تعرضان شرائح ألوان ثيم Amkh، فبدتا كأنهما خيارا ثيم لا خيارَي
-   لغة. العَلَمان مرسومان SVG داخل الترميز (لا إيموجي، وقاعدة التطبيق
-   تمنعه أصلًا). نثبّت العَلَم على نسبته الحقيقية 3:2 ونوسّطه بدل مطّه
-   على عرض البطاقة، فالعَلَم الممطوط يُقرأ كخطأ لا كتصميم. */
+   لغة. والعَلَمان ملفّا SVG رسميّان (flag-sa.svg / flag-us.svg) لا
+   إيموجي ولا رسم اصطلاحيّ. نثبّتهما على نسبتهما الحقيقية 3:2 ونوسّطهما
+   بدل مطّهما على عرض البطاقة، فالعَلَم الممطوط يُقرأ كخطأ لا كتصميم. */
 #s-settings .ui-grid--lang{ grid-template-columns: repeat(2, 1fr); }
 #s-settings .ui-opt .lang-flag{
   display: block;
   width: 72px; max-width: 100%;
   height: 48px;
+  object-fit: cover;
   margin: 0 auto;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-subtle);
@@ -3794,6 +3795,80 @@ body[data-ui-theme="glass"]{
   flex-direction: column !important;
   align-items: stretch;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   صفوف الإعدادات في الإنجليزية — التسمية فوق الوصف لا بجانبه
+   ──────────────────────────────────────────────────────────────────────
+   البلاغ: «الكلام الأبيض كأنه هيخرج برا الصندوق، وفي كلام مقاطع كلام
+   تاني». والقياس على ٤١٢px أثبته: الصفّ فيه ثلاثة أبناء مباشرين
+   (تسمية، وصف، تحكّم) وقاعدة «صف إعداد» أعلاه تصفّهم أفقيًّا، فتقع
+   التسمية والوصف في عمودين متلاصقين لا يفصلهما إلا فجوة صغيرة.
+   العربية تنجو لأن كلماتها أقصر فتسع التسمية سطرًا واحدًا. أما
+   الإنجليزية فتلفّ: «Message alerts during a game» في ٧٣px = أربعة
+   أسطر ملاصقة لوصفٍ من ثلاثة، و«Coordinates» يُقصّ (نصّ ٨٨px في صندوق
+   ٧٩px) — ومن القصّ جاء إحساس «النصّ خارج صندوقه».
+
+   العلاج: في الإنجليزية وحدها يصير الصفّ شبكة بعمودين — عمود للنصّ
+   (تسمية فوق وصف) وعمود للتحكّم. وهو الترتيب الذي قصدته قاعدة
+   ‎:has(> .toggle)‎ الأقدم في هذا الملف، غير أن !important في «صف إعداد»
+   أبطلها فلزم !important هنا. العربية لا تُمسّ: قياسها سليم.
+══════════════════════════════════════════════════════════════════════ */
+html.lang-en #s-settings .setting-item:has(> .toggle),
+html.lang-en #s-settings .setting-item:has(> .settings-piece-card),
+html.lang-en #s-settings .setting-item:has(> .ds-btn){
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label control"
+    "desc  control";
+  align-items: center;
+  /* التحكّم قد يكون بطاقة عالية (طقم القطع ١٤٠px) فتتمدّد صفوف الشبكة
+     معه، ومع align-items وحدها تنزل التسمية لوسط صفّها والوصف لوسط
+     صفّه فيتباعدان ٥٠px. align-content يجمع الصفّين على قدر محتواهما
+     ثم يوسّط الكتلة كلها إزاء التحكّم. */
+  align-content: center;
+  grid-template-rows: auto auto;
+  column-gap: var(--space-3);
+  row-gap: 2px;
+}
+html.lang-en #s-settings .setting-item > .setting-label{ grid-area: label; }
+html.lang-en #s-settings .setting-item > .setting-description{ grid-area: desc; }
+html.lang-en #s-settings .setting-item > .toggle,
+html.lang-en #s-settings .setting-item > .settings-piece-card,
+html.lang-en #s-settings .setting-item > .ds-btn{ grid-area: control; }
+/* الكلمة الإنجليزية الواحدة قد تفوق عرض عمودها (اسم ثيم مثلًا)، فتُقصّ
+   بلا هذا. والسطر أوسع قليلًا لأن حروف Cairo اللاتينية عالية الجسم. */
+html.lang-en #s-settings .setting-label{
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+html.lang-en #s-settings .setting-description{ overflow-wrap: anywhere; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   شريط أدوات المباراة بالإنجليزية — طولٌ لا يتغيّر
+   ──────────────────────────────────────────────────────────────────────
+   البلاغ: «صندوق زرّ المساعد يتغيّر حجمه لمّا يقرّر يحسب حركة، فترتفع
+   الرقعة لأعلى وتنزل تاني». والقياس أثبته: أزرار .tbb2 حصصٌ متساوية
+   (flex:1 بأساس صفر)، وفي الأونلاين والبلوتوث يظهر زرّ الشات فتصير
+   ثلاثة أزرار ونصيب الزرّ ثلث العرض. عندها كان «Assistant: calculating...»
+   يلفّ سطرين فيطول الزرّ من ٢٦ إلى ٣٦px وتقفز الرقعة ٦٫٧px ثم ترجع.
+   العربية لا تقع في هذا: «المساعد: يحسب...» بعرض «المساعد: تشغيل».
+
+   عالجناه في القاموس أولًا: صار النصّ «Calculating…» بعرض «Assistant: on»
+   نفسه. وهذه القاعدة ضمانةٌ ثانية لا تعتمد على طول كلمةٍ بعينها — لا لفّ
+   في أزرار الشريط بالإنجليزية أبدًا، وإن ضاق الجهاز عن نصٍّ قُصَّ بنقاط
+   ولم يطُل الصفّ. min-width:0 لازمة لأن عنصر الفليكس لا ينزل تحت عرض
+   محتواه الأصغر بدونها، ومع منع اللفّ يصير ذلك العرضَ السطرَ كاملًا.
+══════════════════════════════════════════════════════════════════════ */
+html.lang-en .gtbar .tbb2{ min-width: 0; }
+html.lang-en .gtbar .tbb2 > span{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* النقطة النابضة وشارة الشات دائرتان بمقاس ثابت، والقصّ يبلعهما. */
+html.lang-en .gtbar .tbb2 > .tbb2-dot,
+html.lang-en .gtbar .tbb2 > .chat-badge{ overflow: visible; flex: 0 0 auto; }
 
 /* ══════════════════════════════════════════════════════════════════════
    تبويب الحساب — شاشة حساب حقيقية بدل قائمة مسطّحة

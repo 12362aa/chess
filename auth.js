@@ -175,6 +175,11 @@ function signToken(id, email) {
   return jwt.sign({ id, email }, JWT_SECRET, { expiresIn: '30d' });
 }
 
+/* لغة الرسالة الجاية للمستخدم: اللي اختاره في التطبيق، لا لغة الخادم.
+   العميل بيبعتها مع كل طلب فيه بريد. أي عميل قديم مش بيبعتها بياخد
+   العربية زي ما كان بالضبط — فمافيش نسخة منشورة بتتغيّر عليها الرسالة. */
+const reqLang = b => (/^en/i.test(String((b && (b.lang || b.language)) || '')) ? 'en' : 'ar');
+
 router.post('/register', async (req, res) => {
   try {
     const b = req.body || {};
@@ -236,7 +241,7 @@ router.post('/register', async (req, res) => {
       return res.json({ token: signToken(user.id, email), user });
     }
 
-    return await requestSignupCode(res, { email, password, displayName });
+    return await requestSignupCode(res, { email, password, displayName, lang: reqLang(b) });
   } catch (error) {
     console.error('[register]', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -245,7 +250,7 @@ router.post('/register', async (req, res) => {
 
 /* توليد رمز التأكيد وحفظ الطلب وإرساله. نفس الدالة بتخدم الطلب الأول
    وإعادة الإرسال — إعادة الإرسال هي نفس النداء بنفس البريد. */
-async function requestSignupCode(res, { email, password, displayName }) {
+async function requestSignupCode(res, { email, password, displayName, lang }) {
   const now = Date.now();
   const prev = db.prepare('SELECT sent_at, hour_start, hour_count FROM pending_signups WHERE email = ?').get(email);
   if (prev) {
@@ -276,7 +281,7 @@ async function requestSignupCode(res, { email, password, displayName }) {
     .run(email, codeHash, passHash, displayName || '', now + SIGNUP_TTL_MIN * 60000, now, hStart, hCount);
 
   try {
-    await mailer.sendSignupCode({ to: email, code, name: displayName, minutes: SIGNUP_TTL_MIN });
+    await mailer.sendSignupCode({ to: email, code, name: displayName, minutes: SIGNUP_TTL_MIN, lang });
   } catch (e) {
     /* ماوصلش بريد → مانسيبش كولداون على رمز مش موجود */
     db.prepare('DELETE FROM pending_signups WHERE email = ?').run(email);
@@ -586,6 +591,7 @@ function resetAccepted(res) {
 
 router.post('/forgot-password', async (req, res) => {
   const email = String((req.body && req.body.email) || '').trim().toLowerCase();
+  const lang = reqLang(req.body);
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return res.status(400).json({ error: 'أدخل بريدًا إلكترونيًا صحيحًا' });
   }
@@ -627,7 +633,7 @@ router.post('/forgot-password', async (req, res) => {
                 ON CONFLICT(email) DO UPDATE SET code_hash='-', expires_at=0, attempts=0,
                   sent_at=excluded.sent_at, hour_start=excluded.hour_start, hour_count=excluded.hour_count`)
       .run(email, now, hStart, hCount);
-    mailer.sendGoogleNotice({ to: user.email, name: user.display_name })
+    mailer.sendGoogleNotice({ to: user.email, name: user.display_name, lang })
       .catch(e => console.error('[forgot-password] فشل بريد تنبيه جوجل:', e.message));
     return resetAccepted(res);
   }
@@ -642,7 +648,7 @@ router.post('/forgot-password', async (req, res) => {
     .run(email, codeHash, now + RESET_TTL_MIN * 60000, now, hStart, hCount);
 
   try {
-    await mailer.sendResetCode({ to: user.email, code, name: user.display_name, minutes: RESET_TTL_MIN });
+    await mailer.sendResetCode({ to: user.email, code, name: user.display_name, minutes: RESET_TTL_MIN, lang });
   } catch (e) {
     /* الإرسال فشل: نمسح الصفّ عشان مايفضلش كولداون على رمز ماوصلش،
        والمستخدم يقدر يجرّب تاني فورًا. */
