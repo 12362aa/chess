@@ -19,11 +19,11 @@
 <title>♟ شطرنج — Am-Kh</title>
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
-<script src="i18n.js?v=20260915-b36"></script>
-<script src="i18n-en.js?v=20260915-b36"></script>
+<script src="i18n.js?v=20260916-b37"></script>
+<script src="i18n-en.js?v=20260916-b37"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
-<link rel="stylesheet" href="design-system.css?v=20260915-b36">
+<link rel="stylesheet" href="design-system.css?v=20260916-b37">
 <style>
 /* ══════════ VARIABLES ══════════ */
 :root{
@@ -2731,7 +2731,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260915-b36">
+<link rel="stylesheet" href="screens.css?v=20260916-b37">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3059,11 +3059,11 @@ html.amkh-preboot #amkh-preboot{
                        بالشهادة بخط الثلث والسيف تحتها ورأسه إلى اليسار —
                        رسمٌ اصطلاحيّ بشُرَط بيضاء ليس علمًا. -->
                   <div class="ui-opt" id="lang-ar" onclick="setAppLang('ar')">
-                    <img class="lang-flag" src="flag-sa.svg?v=20260915-b36" width="72" height="48" alt="" aria-hidden="true">
+                    <img class="lang-flag" src="flag-sa.svg?v=20260916-b37" width="72" height="48" alt="" aria-hidden="true">
                     <span class="lang-nm">العربية</span>
                   </div>
                   <div class="ui-opt" id="lang-en" onclick="setAppLang('en')">
-                    <img class="lang-flag" src="flag-us.svg?v=20260915-b36" width="72" height="48" alt="" aria-hidden="true">
+                    <img class="lang-flag" src="flag-us.svg?v=20260916-b37" width="72" height="48" alt="" aria-hidden="true">
                     <span class="lang-nm">الإنجليزية</span>
                   </div>
                 </div>
@@ -5603,6 +5603,12 @@ const Cfg={
     // Also save to legacy keys for compatibility
     try{localStorage.setItem('chess_username',this.data.playerName||'');}catch(e){}
     try{localStorage.setItem('chess_profile_image',this.data.playerImage||'');}catch(e){}
+    /* الحفظ المحلي وحده مكانش كفاية: الرفع للحساب كان مربوطًا بمؤقّت كل
+       عشر ثوانٍ، فاللي يغيّر الرقعة أو القطع ويقفل التطبيق (أو يسجّل
+       خروج) قبل النبضة يضيع تغييره — والدخول التالي ينزّل الاختيار
+       القديم ويكتبه فوق الجديد. من هنا بنعلّم التغيير فيترفع بعد أقل من
+       ثانية، ومايتنزّلش فوقه شيء قبل ما يوصل. */
+    try{ if(!this._importing && window.amkhAuth && typeof window.amkhAuth.markSettingsDirty==='function') window.amkhAuth.markSettingsDirty(); }catch(e){}
   },
   setDotColor(color){
     this.data.dotColor=color;
@@ -5744,7 +5750,10 @@ const Cfg={
       changed=true;
     }
     if(!changed)return false;
-    this._persist();
+    /* المنزَّل من الحساب مش تغييرًا محلّيًّا: من غير العَلَم ده كان
+       _persist بيعلّمه «معلّقًا» فيرجع يترفع لنفس الحساب بلا داعٍ. */
+    this._importing=true;
+    try{ this._persist(); } finally { this._importing=false; }
     this.apply();
     try{ if(typeof this.refreshProfileUI==='function') this.refreshProfileUI(); }catch(e){}
     return true;
@@ -6953,7 +6962,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 36;
+const APP_VERSION_CODE = 37;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -11289,8 +11298,12 @@ const R={
     document.getElementById('scr-b').classList.add('show');
     const mat=E.material(S.bd),abs=Math.abs(mat),pts=(abs/100).toFixed(1);
     if(abs<50){
-      document.getElementById('sc-w-val').innerHTML='<span>متعادل</span>';
-      document.getElementById('sc-b-val').innerHTML='<span>متعادل</span>';}
+      /* «متعادل» في المعجم نتيجةُ مباراة (Drawn)، وهنا هي تكافؤُ خاماتٍ
+         والمباراة ماشية — فكان الشريط يقول «Progress: Drawn» وسْطَ لعبة
+         لم تنتهِ. نختار الكلمة من المصدر فتصير Even ولا يمسّ ذلك النتيجة. */
+      const even=LP('متعادل','Even');
+      document.getElementById('sc-w-val').innerHTML=`<span>${even}</span>`;
+      document.getElementById('sc-b-val').innerHTML=`<span>${even}</span>`;}
     else if(mat>0){
       document.getElementById('sc-w-val').innerHTML=`<span class="sc-lead">&#43;${pts} &#9650;</span>`;
       document.getElementById('sc-b-val').innerHTML=`<span class="sc-behind">&#8722;${pts} &#9660;</span>`;}
@@ -13752,8 +13765,12 @@ const OL=(()=>{
       setSt('j','◌ جارٍ تحميل بيانات الخادم...','conn');
       loadServerUrl().then(()=>{
         if(!SERVER_URL){
-          setSt('c','◆ الخادم غير متاح حالياً — تأكّد من أن الجهاز يعمل','err');
-          setSt('j','◆ الخادم غير متاح حالياً — تأكّد من أن الجهاز يعمل','err');
+          /* «تأكّد من أن الجهاز يعمل» كانت جملة مطوّر لا جملة لاعب: الجهاز
+             المقصود هو الخادم لا هاتف اللاعب، فهو يقرؤها ويظن العطل عنده.
+             اللاعب لا يملك من الأمر شيئًا، فالصواب أن نخبره بالحال ونطلب
+             منه ما يستطيعه وحده: أن يعيد المحاولة بعد قليل. */
+          setSt('c','◆ خدمة اللعب عبر الإنترنت غير متاحة الآن — أعد المحاولة بعد قليل','err');
+          setSt('j','◆ خدمة اللعب عبر الإنترنت غير متاحة الآن — أعد المحاولة بعد قليل','err');
           try{document.getElementById('btn-create').disabled=false;}catch(e){}
           return;
         }
@@ -15045,13 +15062,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260915-b36"></script>
+  <script src="auth-client.js?v=20260916-b37"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260915-b36"></script>
-  <script src="friends-client.js?v=20260915-b36"></script>
-  <script src="chat-client.js?v=20260915-b36"></script>
-  <script src="call-client.js?v=20260915-b36"></script>
+  <script src="welcome-client.js?v=20260916-b37"></script>
+  <script src="friends-client.js?v=20260916-b37"></script>
+  <script src="chat-client.js?v=20260916-b37"></script>
+  <script src="call-client.js?v=20260916-b37"></script>
 <script>
 const BLEManager = {
   isHost: false,

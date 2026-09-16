@@ -641,6 +641,15 @@ const amkhAuth = {
   },
 
   logout() {
+    /* أي تغيير إعدادات لسه معلّق يُرفَع قبل ما التوكن يتمسح — اللاعب
+       اللي يغيّر رقعته ويخرج على طول كان تغييره بيضيع، والدخول التالي
+       بينزّل القديم فوقه. النداء بلا انتظار عن قصد: الخروج فوري في
+       الواجهة، والرفعة ماشية بالتوكن اللي التقطناه هنا.
+       والعَلَم مابنطفّيهوش هنا: لو الرفعة دي فشلت (شبكة واقعة) يفضل
+       معلّقًا فيُرفَع أوّل دخول جاي بدل ما الاختيار يضيع. اللي بيطفّيه
+       هو النجاح وحده. */
+    try { if (this._settingsDirty) this.flushSettings(this.token); } catch (e) {}
+    if (this._settingsTimer) { clearTimeout(this._settingsTimer); this._settingsTimer = null; }
     this.token = null;
     this.user = null;
     localStorage.removeItem('amkh_auth_token');
@@ -726,17 +735,21 @@ const amkhAuth = {
     return {};
   },
 
-  async syncLocalData() {
+  async syncLocalData(tokenOverride) {
+    /* التوكن يُمرَّر عند الحاجة: تسجيل الخروج بيرفع المعلّق قبل ما يمسح
+       التوكن، والرفعة فيها await قبل fetch — فبدون التقاطه هنا كانت
+       الرسالة بتتبعت بـ«Bearer null» وتتنطّ. */
+    const tok = tokenOverride || this.token;
     const localSettings = this._readLocalSettings();
     let localProgress = [];
     try { localProgress = await this._readLocalProgress(); } catch (e) {}
 
     try {
-      await fetch(`${window.getApiBase()}/sync-local`, {
+      const res = await fetch(`${window.getApiBase()}/sync-local`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
+          'Authorization': `Bearer ${tok}`,
           'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({
@@ -745,10 +758,85 @@ const amkhAuth = {
           overwrite: false
         })
       });
-      // Optionally alert on manual sync, but we use this for auto-sync too
+      /* الرجوع بحالة الرفع لا بلا شيء: من غيرها كان المُنادي يفترض النجاح
+         ويقدّم البصمة، فيضيع التغيير للأبد (شوف flushSettings تحت). */
+      return !!(res && res.ok);
     } catch(e) {
       console.error('Migration error', e);
+      return false;
     }
+  },
+
+  /* ══════════════════════════════════════════════════════════════
+     رفع أي تغيير في الإعدادات فور حدوثه
+     ──────────────────────────────────────────────────────────────
+     بلاغ أحمد: «أوّل مرة أغيّر الرقعة والقطع بتتحفظ في الحساب، وتاني
+     مرة بترجع للاختيار الأوّل بعد خروج ودخول».
+
+     العطل مكانش في الخادم — الدمج هناك بياخد الوارد. كان في العميل
+     وله وجهان، والاتنين بيؤدّوا لنفس النتيجة:
+
+       ١) الرفع كان بالتوقيت وحده: مؤقّت كل عشر ثوانٍ بيقارن بصمة
+          الإعدادات. اللي يغيّر الرقعة ويخرج (أو يقفل التطبيق) قبل
+          النبضة، تغييره ما وصلش الحساب. وأسوأ: أوّل ما يدخل تاني،
+          pullAccountData بتنزّل القديم وتكتبه فوق الجديد — فالاختيار
+          يموت على الجهاز كمان لا في الحساب بس.
+
+       ٢) المؤقّت كان بيقدّم البصمة (lastSyncSettings) **قبل** ما
+          يتأكّد إن الرفع نجح. فأي تعثّر شبكة لحظي وقت التغيير يخلّي
+          التغيير ده غير مرفوع وغير مرشّح للإعادة أبدًا — هو بالظبط
+          «التغيير التاني اللي مابيتحفظش».
+
+     الحل تلات طبقات: نرفع فور التغيير (بتجميع لحظي)، ما نقدّمش البصمة
+     إلا على ردّ ناجح، وما ننزّلش فوق تغيير محلّي لسه مارفعش.
+  ══════════════════════════════════════════════════════════════ */
+  _settingsDirty: false,
+  _settingsTimer: null,
+  /* العَلَم محفوظ على القرص كمان: التطبيق ممكن يتقفل في اللحظة اللي بين
+     التغيير والرفع، وبعدها الفتحة الجديدة مش هتعرف إن فيه معلّق فتنزّل
+     القديم فوقه. بالقرص، أوّل فتحة بعد الإغلاق بترفع المعلّق أوّلًا. */
+  DIRTY_KEY: 'amkh_cfg_dirty',
+
+  _loadDirtyFlag() {
+    if (this._settingsDirty) return true;
+    try { if (localStorage.getItem(this.DIRTY_KEY) === '1') this._settingsDirty = true; } catch (e) {}
+    return this._settingsDirty;
+  },
+
+  /* بينادي عليها Cfg._persist بعد أي حفظ */
+  markSettingsDirty() {
+    /* بلا حساب مافيش رفع — والعَلَم يفضل نازل عن قصد: مين يغيّر إعداداته
+       وهو خارج ما يصحّش يكتب بيها فوق حسابه أوّل ما يدخل. الحساب هو
+       المصدر الدائم، وده نفس منطق _reconcileProfile. */
+    if (!this.token) return;
+    let cur = '';
+    try { cur = JSON.stringify(this._readLocalSettings()); } catch (e) { return; }
+    if (!cur || cur === this.lastSyncSettings) return;
+    this._settingsDirty = true;
+    try { localStorage.setItem(this.DIRTY_KEY, '1'); } catch (e) {}
+    /* تجميع: تغيير الرقعة والقطع ورا بعض = رفعة واحدة */
+    if (this._settingsTimer) clearTimeout(this._settingsTimer);
+    this._settingsTimer = setTimeout(() => {
+      this._settingsTimer = null;
+      this.flushSettings();
+    }, 700);
+  },
+
+  /* رفع المعلّق الآن. بترجّع بعد ما الرفع يخلص فعلًا — عشان تسجيل
+     الخروج يقدر يستناها قبل ما يمسح التوكن. */
+  async flushSettings(tokenOverride) {
+    const tok = tokenOverride || this.token;
+    if (!tok || !this._settingsDirty) return true;
+    if (this._settingsTimer) { clearTimeout(this._settingsTimer); this._settingsTimer = null; }
+    let cur = '';
+    try { cur = JSON.stringify(this._readLocalSettings()); } catch (e) { return false; }
+    const ok = await this.syncLocalData(tok);
+    if (ok) {
+      this.lastSyncSettings = cur;
+      this._settingsDirty = false;
+      try { localStorage.removeItem(this.DIRTY_KEY); } catch (e) {}
+    }
+    return ok;
   },
 
   /* ══════════════════════════════════════════════════════════════
@@ -786,8 +874,10 @@ const amkhAuth = {
         let cur = '';
         try { cur = JSON.stringify(this._readLocalSettings()); } catch (e) { return; }
         if (cur && cur !== this.lastSyncSettings) {
-          this.lastSyncSettings = cur;
-          this.syncLocalData();
+          /* البصمة ما بتتقدّمش إلا على ردّ ناجح: كانت بتتقدّم قبل النداء،
+             فأي رفعة فاشلة كانت بتضيّع التغيير نهائيًّا بلا إعادة محاولة. */
+          this._settingsDirty = true;
+          await this.flushSettings();
           return;
         }
         /* التقدّم بيتغيّر لما اللاعب يخلّص مرحلة — نرفعه لما يتغيّر بس */
@@ -805,6 +895,9 @@ const amkhAuth = {
   /* تنزيل الإعدادات والتقدّم من الحساب وتطبيقهم فورًا */
   async pullAccountData() {
     if (!this.token) return;
+    /* لو التطبيق اتقفل وفيه تغيير معلّق، العَلَم راجع من القرص هنا قبل
+       أي تنزيل — فالتنزيل مايكتبش فوقه. */
+    this._loadDirtyFlag();
     let pulledSettings = false;
     try {
       /* إعدادات الجهاز لازم تكون اتحمّلت من IDB الأول، وإلا الدمج
@@ -820,10 +913,19 @@ const amkhAuth = {
         const s = await resSet.json();
         if (s && Object.keys(s).length > 0) {
           pulledSettings = true;
-          try {
-            if (window.Cfg && typeof window.Cfg.importSync === 'function') window.Cfg.importSync(s);
-            else localStorage.setItem('chess-cfg-v6', JSON.stringify(s));
-          } catch (e) {}
+          /* تغييرٌ محلّي لسه مارفعش = الجهاز أحدث من الحساب، فمايصحّش
+             ننزّل القديم فوقه. ده اللي كان بيقتل «التغيير التاني»: اللاعب
+             يغيّر الرقعة ويخرج قبل ما ترتفع، فأوّل ما يدخل تاني ينزل
+             الاختيار الأوّل ويكتب فوق اختياره الجديد على الجهاز كمان.
+             الرفع اللي بعد التنزيل على طول بيوصّل الجديد للحساب. */
+          if (this._settingsDirty) {
+            try { await this.flushSettings(); } catch (e) {}
+          } else {
+            try {
+              if (window.Cfg && typeof window.Cfg.importSync === 'function') window.Cfg.importSync(s);
+              else localStorage.setItem('chess-cfg-v6', JSON.stringify(s));
+            } catch (e) {}
+          }
         }
       }
 
@@ -840,9 +942,15 @@ const amkhAuth = {
       }
     } catch (e) {}
 
-    /* الرفع بعد التنزيل: بنسجّل البصمة قبل النداء عشان دورة العشر
-       ثوانٍ مانرفعش نفس الحاجة تاني على طول. */
-    try { this.lastSyncSettings = JSON.stringify(this._readLocalSettings()); } catch (e) {}
+    /* الرفع بعد التنزيل. البصمة ما بتتقدّمش إلا لو الرفع نجح فعلًا، فلو
+       الشبكة اتعثّرت دورة العشر ثوانٍ تعيد المحاولة بدل ما التغيير يضيع
+       بلا أثر ولا إعادة محاولة. */
+    if (!this._settingsDirty) {
+      try { this.lastSyncSettings = JSON.stringify(this._readLocalSettings()); } catch (e) {}
+    }
+    /* حساب لسه فاضي من الإعدادات: لازم إعدادات الجهاز تتزرع فيه */
+    if (!pulledSettings) this._settingsDirty = true;
+    try { await this.flushSettings(); } catch (e) {}
     try { this.lastSyncProgress = JSON.stringify(await this._readLocalProgress()); } catch (e) {}
     this.syncLocalData();
     if (pulledSettings) {

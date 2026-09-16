@@ -990,7 +990,7 @@
   /* ═══════════ أشرطة الحالة والرموز ═══════════ */
   A({
     '◌ يحسب...': '◌ Calculating...',
-    '◆ الخادم غير متاح حالياً — تأكّد من أن الجهاز يعمل': '◆ Server unavailable — make sure the device is running',
+    '◆ خدمة اللعب عبر الإنترنت غير متاحة الآن — أعد المحاولة بعد قليل': '◆ Online play is unavailable right now — please try again shortly',
     '◆ تعذر الاتصال بالخادم': '◆ Could not connect to the server',
     '◆ تعذر الاتصال بالخادم (انتهت المهلة) — اعد المحاولة': '◆ Could not connect to the server (timed out) — try again',
     '◆ خطأ في الاتصال — تحقق من الإنترنت': '◆ Connection error — check your internet',
