@@ -820,6 +820,14 @@ router.get('/progress', authenticateToken, (req, res) => {
   res.json(rows);
 });
 
+// جلب سجلّ الألغاز (تصنيف/إجماليات/أرقام قياسية/مواضيع). فارغ = لا شيء بعد.
+router.get('/puzzles', authenticateToken, (req, res) => {
+  const row = db.prepare('SELECT puzzles_json FROM user_settings WHERE user_id = ?').get(req.user.id);
+  if (!row || !row.puzzles_json) return res.json({});
+  try { return res.json(JSON.parse(row.puzzles_json)); }
+  catch (e) { return res.json({}); }
+});
+
 // تحديث تقدم نور لمرحلة معينة
 router.post('/progress', authenticateToken, (req, res) => {
   const { stage_number, completed, stars, moves } = req.body;
@@ -907,6 +915,40 @@ router.post('/sync-local', authenticateToken, (req, res) => {
       const merged = { ...currentSettings, ...settings };
       save(JSON.stringify(merged));
     }
+  }
+
+  // سجلّ الألغاز: بلوب واحد. العميل دمجه بالفعل (الأعلى يفوز) قبل الرفع،
+  // فالخادم يخزّن ما وصله. INSERT يضع settings_json='{}' عند غياب الصف
+  // لأنّ العمود NOT NULL، وعلى التعارض يحدّث puzzles_json وحده فلا يلمس
+  // الإعدادات المخزَّنة.
+  if (req.body.puzzles && typeof req.body.puzzles === 'object') {
+    try {
+      db.prepare(`
+        INSERT INTO user_settings (user_id, settings_json, puzzles_json, updated_at)
+        VALUES (?, '{}', ?, datetime('now'))
+        ON CONFLICT(user_id) DO UPDATE SET
+          puzzles_json = excluded.puzzles_json,
+          updated_at = datetime('now')`)
+        .run(userId, JSON.stringify(req.body.puzzles));
+
+      /* نسخ تصنيف الألغاز إلى أعمدة users القابلة للترتيب (للصدارة).
+         لا نُنزِّل تصنيفًا موجودًا: نأخذ الأحدث عددًا للألعاب (الجهاز الذي
+         لعب أكثر أصدق) — نفس منطق importFromSync على الجهاز. */
+      const pz = req.body.puzzles;
+      const r = pz.rating || {};
+      const rr = Number(r.r), rg = Number(r.games);
+      if (Number.isFinite(rr) && Number.isFinite(rg)) {
+        const cur = db.prepare('SELECT puzzle_games FROM users WHERE id = ?').get(userId);
+        if (!cur || rg >= (Number(cur.puzzle_games) || 0)) {
+          db.prepare(`UPDATE users SET
+              puzzle_rating = ?, puzzle_rd = ?, puzzle_games = ?,
+              puzzle_solved = ?, puzzle_peak = ? WHERE id = ?`)
+            .run(rr, Number(r.rd) || 350, rg,
+                 Number(r.solved) || Number((pz.totals || {}).solved) || 0,
+                 Number(r.best) || rr, userId);
+        }
+      }
+    } catch (e) {}
   }
 
   res.json({ success: true });

@@ -43,6 +43,18 @@ const requiredFiles = new Set([
   'stockfish-18-lite-single.js',
   'stockfish-18-lite-single.wasm',
   'ble-bundle.js',
+  /* محرّك Glicko-2. ملفّ خادم في الأصل، وهو هنا عن قصد: تصنيف الألغاز
+     يُحسب على الجهاز عشان القسم يعمل أوفلاين، ولا يصحّ أن تُكتب نفس
+     الرياضة مرّتين. الملفّ رياضيات خالصة بلا قاعدة بيانات ولا مفاتيح. */
+  'rating.js',
+  /* مود الألغاز. نفس تحذير welcome-client: القائمة صريحة، وأي ملفّ
+     ناقص هنا يخرج في الـAPK كـ<script> مكسور بلا أي خطأ في البناء. */
+  'puzzles-client.js',
+  'puzzles-themes.js',
+  'puzzles-rating.js',
+  'puzzles-store.js',
+  'puzzles-coach.js',
+  'puzzles-ui.js',
   /* حزمة الدخول بجوجل (esbuild IIFE من gauth-entry.js). لازم تكون في
      القائمة دي، وإلا ماتوصلش للـAPK وزر الدخول بجوجل يفضل ميت من غير
      أي رسالة خطأ في البناء. */
@@ -62,7 +74,18 @@ const assetDirectories = [
   { name: 'pieces', minFiles: 432 }
 ];
 
-function copyAssetDirectory(name) {
+/**
+ * Data directories: same whole-directory copy, different extensions. The
+ * offline puzzle archive is 25 rating shards plus an index; the game picks
+ * one shard at a time, so a missing shard is a silent "no puzzles at this
+ * rating" rather than a crash. The count assertion is what catches it.
+ */
+const dataDirectories = [
+  { name: 'puzzles', minFiles: 26, extensions: new Set(['.txt', '.json']) }
+];
+
+function copyAssetDirectory(name, extensions) {
+  const allowed = extensions || assetExtensions;
   const source = path.join(projectRoot, name);
   if (!fs.existsSync(source)) {
     throw new Error(`Required asset directory is missing: ${name}`);
@@ -79,11 +102,11 @@ function copyAssetDirectory(name) {
       const setDestination = path.join(destination, entry.name);
       fs.mkdirSync(setDestination, { recursive: true });
       for (const file of fs.readdirSync(setSource)) {
-        if (!assetExtensions.has(path.extname(file).toLowerCase())) continue;
+        if (!allowed.has(path.extname(file).toLowerCase())) continue;
         fs.copyFileSync(path.join(setSource, file), path.join(setDestination, file));
         count++;
       }
-    } else if (assetExtensions.has(path.extname(entry.name).toLowerCase())) {
+    } else if (allowed.has(path.extname(entry.name).toLowerCase())) {
       fs.copyFileSync(path.join(source, entry.name), path.join(destination, entry.name));
       count++;
     }
@@ -133,7 +156,19 @@ for (const { name, minFiles } of assetDirectories) {
   console.log(`Copied ${count} files from ${name}/.`);
 }
 
+let copiedData = 0;
+for (const { name, minFiles, extensions } of dataDirectories) {
+  const count = copyAssetDirectory(name, extensions);
+  if (count < minFiles) {
+    throw new Error(
+      `Data directory "${name}" copied ${count} files, expected at least ${minFiles}.`
+    );
+  }
+  copiedData += count;
+  console.log(`Copied ${count} files from ${name}/.`);
+}
+
 console.log(
-  `Copied ${copied.length} web files and ${copiedAssets} bundled assets ` +
-  `to ${path.relative(projectRoot, webDir)}.`
+  `Copied ${copied.length} web files, ${copiedAssets} bundled assets ` +
+  `and ${copiedData} data files to ${path.relative(projectRoot, webDir)}.`
 );

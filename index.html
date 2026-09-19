@@ -2916,6 +2916,15 @@ html.amkh-preboot #amkh-preboot{
         <span class="home-tile__title">بلوتوث</span>
         <span class="home-tile__desc">جهاز قريب بدون إنترنت</span>
       </button>
+
+      <button class="home-tile" type="button" data-mode="puzzles"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.puzzles()">
+        <span class="home-tile__icon" aria-hidden="true">
+          <i class="ico ico--puzzle" aria-hidden="true"></i>
+        </span>
+        <span class="home-tile__title">الألغاز</span>
+        <span class="home-tile__desc">درّب بصرك على التكتيك</span>
+      </button>
     </div>
 
     <!-- ══ تحديات اليوم ══
@@ -3445,6 +3454,53 @@ html.amkh-preboot #amkh-preboot{
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════════
+     PUZZLES — اللوحة + شاشة الحلّ + النوافذ
+     ──────────────────────────────────────────────────────────────────
+     كل المحتوى الديناميّ يبنيه PZU بـLP وقت التشغيل، فالحاويات عليها
+     data-no-i18n عشان مسح i18n ما يلمسش نصًّا اتبنى بلغته أصلًا. -->
+<div id="s-puzzles" class="screen">
+  <div id="pzh" class="pzh" data-no-i18n></div>
+</div>
+
+<div id="s-puzzle" class="screen">
+  <div class="pzg" data-no-i18n>
+    <div id="pz-status" class="pzg__status"></div>
+    <div id="pz-board" class="pzg__board"></div>
+    <div id="pz-coach" class="pzg__coach" hidden>
+      <span class="pzg__coach-av" aria-hidden="true"></span>
+      <span id="pz-coach-text" class="pzg__coach-text"></span>
+    </div>
+    <div id="pz-bar" class="pzg__bar"></div>
+  </div>
+</div>
+
+<!-- ورقة نتيجة اللغز -->
+<div id="pz-result" class="ds-overlay" role="dialog" aria-modal="true">
+  <div class="ds-dialog pzr" id="pz-result-body" data-no-i18n></div>
+</div>
+
+<!-- نهاية جولة مؤقّتة (انطلاق/سباق/سلسلة) + نتيجة المواجهة -->
+<div id="pz-over" class="ds-overlay" role="dialog" aria-modal="true">
+  <div class="ds-dialog pzo" id="pz-over-body" data-no-i18n></div>
+</div>
+
+<!-- دعوة مواجهة ألغاز واردة -->
+<div id="pz-battle-invite" class="ds-overlay" role="dialog" aria-modal="true">
+  <div class="ds-dialog" id="pz-battle-invite-body" data-no-i18n></div>
+</div>
+
+<!-- ورقة اختيار الموضوع -->
+<div id="pz-themes" class="ds-overlay ds-overlay--sheet" role="dialog" aria-modal="true" aria-labelledby="pz-themes-title">
+  <div class="ds-sheet" id="pz-themes-panel">
+    <div class="ds-sheet__handle" aria-hidden="true"></div>
+    <div class="ds-sheet__header">
+      <h3 class="ds-sheet__title" id="pz-themes-title" data-no-i18n>اختر نمطًا</h3>
+    </div>
+    <div class="ds-sheet__body" id="pz-themes-body" data-no-i18n></div>
+  </div>
+</div>
+
 <!-- GAME -->
 <div id="s-game" class="screen">
   <div class="gtop">
@@ -3603,6 +3659,7 @@ html.amkh-preboot #amkh-preboot{
       <div class="go-bts">
         <button class="bgp" onclick="G.restart()">↺ مرة أخرى</button>
         <button id="go-next" class="bgp" style="display:none" onclick="G.nextLevel()">التالي ←</button>
+        <button id="go-bonus" class="bgp" style="display:none" onclick="G.startLevelBonus()">لغز مكافأة</button>
         <button id="go-review" class="bgp review" onclick="G.openReview()">◈ مراجعة المباراة</button>
         <button class="bgs" onclick="G.goMenu()">القائمة</button>
       </div>
@@ -4069,6 +4126,18 @@ const SFX=(()=>{
        «سؤال مستنّي ردّك» و«ردّ وصل»، وأخفت من كل النغمات التانية عشان
        مايعلاش على صوت الطرف الآخر وسط المكالمة. */
     callNote:[{f:783.99,t0:0,dur:0.07,type:'triangle',vol:0.07},{f:587.33,t0:0.07,dur:0.16,type:'sine',vol:0.07}],
+    /* ── ألغاز ──
+       لغز اتحلّ من أوّل نظرة: ٣ نغمات صاعدة لامعة «نظيفة». */
+    pzClean:[{f:659.25,t0:0,dur:0.08,vol:0.11},{f:987.77,t0:0.07,dur:0.09,vol:0.12},{f:1318.51,t0:0.15,dur:0.20,vol:0.12}],
+    /* اتحلّ بعد خطأ أو تلميح: نغمتان دافئتان أهدأ — نجاح بلا لمعان. */
+    pzSolved:[{f:587.33,t0:0,dur:0.10,vol:0.10},{f:880,t0:0.08,dur:0.18,vol:0.11}],
+    /* لم يُحلّ: نغمتان هابطتان لطيفتان — «مش دلوقتي» لا تأنيب. أخفض من
+       error عشان الودان تفرّق بين «نقلة غلط» و«اللغز خلص». */
+    pzMiss:[{f:523.25,t0:0,dur:0.11,type:'sine',vol:0.10,f2:392},{f:329.63,t0:0.11,dur:0.18,type:'sine',vol:0.09}],
+    /* رقم قياسي في جولة مؤقّتة: ٤ نغمات صاعدة منتصرة — أوسع من pzClean. */
+    pzRecord:[{f:523.25,t0:0,dur:0.09,vol:0.11},{f:698.46,t0:0.08,dur:0.09,vol:0.12},{f:880,t0:0.16,dur:0.10,vol:0.12},{f:1318.51,t0:0.25,dur:0.24,vol:0.13}],
+    /* انتهت الجولة بلا رقم قياسي: نغمتان محايدتان تستقرّان. */
+    pzOver:[{f:659.25,t0:0,dur:0.10,vol:0.09},{f:493.88,t0:0.09,dur:0.18,vol:0.10}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -4117,6 +4186,10 @@ const SFX=(()=>{
     /* تنويه جوّه نافذة المكالمة (مش نافذة جديدة) */
     callNote(){ tones(MODAL_SFX.callNote); },
     update(){ tones(MODAL_SFX.update); },
+    /* أصوات مود الألغاز أثناء اللعب (لا نوافذ): تُنادى مباشرةً من الشاشة */
+    pzClean(){ tones(MODAL_SFX.pzClean); },
+    pzSolved(){ tones(MODAL_SFX.pzSolved); },
+    pzMiss(){ tones(MODAL_SFX.pzMiss); },
     init(){_init();}
   };
   window.SFX = api;
@@ -6208,7 +6281,7 @@ const Rec={
    المستهدَفة بتتكيّف مع نشاط اللاعب ومستواه — فمفيش نص ثابت أعمى. التقدّم
    بيتقاس على سجل المباريات المحلي Rec زيّ الأول، فبيشتغل أوفلاين بالكامل. */
 const Challenges={
-  MODE_LABEL:{online:'أونلاين',engine:'StockFish',bluetooth:'بلوتوث',bot:'نور',local:'لاعبَان',any:'أي وضع'},
+  MODE_LABEL:{online:'أونلاين',engine:'StockFish',bluetooth:'بلوتوث',bot:'نور',local:'لاعبَان',puzzle:'الألغاز',any:'أي وضع'},
 
   /* عدّاد عربي فصيح (منصوب لأنه يأتي مفعولًا): 1→مباراة، 2→مباراتين، 3–10→«N مباريات»، 11+→«N مباراة» */
   _n(n,one,two,many){ return n===1?one : n===2?two : (n<=10 ? (n+' '+many) : (n+' '+one)); },
@@ -6220,6 +6293,8 @@ const Challenges={
   _enN(n,one,many){ return n+' '+(n===1?one:many); },
   _eMatches(n){ return this._enN(n,'game','games'); },
   _eTimes(n){ return this._enN(n,'time','times'); },
+  _puzzles(n){ return this._n(n,'لغزًا','لغزين','ألغاز'); },
+  _ePuzzles(n){ return this._enN(n,'puzzle','puzzles'); },
 
   /* PRNG محسوم من بذرة (mulberry32) — نفس البذرة = نفس الناتج كل مرة */
   _rng(seed){
@@ -6255,8 +6330,20 @@ const Challenges={
       case 'bot': return rng()<0.5
         ? {mode,need:T,   text:LP(`اهزم نور ${this._times(T)}`,`Beat Nour ${this._eTimes(T)}`),                     hit:g=>g.filter(x=>x.mode==='bot'&&x.res==='win').length}
         : {mode,need:1,   text:LP(`اهزم نور في أقل من 25 نقلة`,`Beat Nour in under 25 moves`),                     hit:g=>g.filter(x=>x.mode==='bot'&&x.res==='win'&&x.moves&&x.moves<25).length};
+      case 'puzzle': return this._makePuzzle(prof,rng);
       case 'local': default: return {mode:'local',need:T+1, text:LP(`العب ${this._matches(T+1)} لاعبَان على نفس الجهاز`,`Play ${this._eMatches(T+1)} in two-player mode on this device`), hit:g=>g.filter(x=>x.mode==='local').length};
     }
+  },
+
+  /* تحدّي ألغاز. الألغاز ليست مباريات في سجلّ Rec، فعدّادها يأتي من
+     سياق يمرّره Home._daily (ctx.pzToday من PZS.solvedToday) لا من قائمة
+     المباريات — ولهذا hit يقرأ الوسيط الثاني لا الأوّل. */
+  _makePuzzle(prof,rng){
+    const T=this._tgt(3,prof,7);
+    const hit=(g,ctx)=>(ctx&&Number.isFinite(ctx.pzToday))?ctx.pzToday:0;
+    if(rng()<0.5) return {mode:'puzzle',need:T, text:LP(`حُلّ ${this._puzzles(T)} اليوم`,`Solve ${this._ePuzzles(T)} today`), hit};
+    const N=Math.max(2,T-1);
+    return {mode:'puzzle',need:N, text:LP(`درّب بصرك: ${this._puzzles(N)}`,`Train your eye: ${this._ePuzzles(N)}`), hit};
   },
 
   /* تحدّي مهارة (أي وضع) */
@@ -6267,7 +6354,7 @@ const Challenges={
     const T=this._tgt(2,prof,3); return {mode:'any',need:T,text:LP(`العب ${this._matches(T)} دون أن تخسر`,`Play ${this._eMatches(T)} without losing`),hit:g=>g.some(x=>x.res==='loss')?0:g.filter(x=>x.res==='win'||x.res==='draw'||x.res==='two').length};
   },
 
-  ROTATE:['online','engine','bluetooth','bot','local'],
+  ROTATE:['online','engine','bluetooth','bot','local','puzzle'],
 
   /* مجموعة اليوم: وضع اليوم (تدوير مضمون يمرّ على كل الأوضاع) + مهارة + وضع تاني مختلف */
   forDay(dayIndex,games){
@@ -6284,9 +6371,10 @@ const Challenges={
     return list.map((c,i)=>({id:'d'+dayIndex+'_'+i,mode:c.mode,text:c.text,need:Math.max(1,c.need|0),hit:c.hit}));
   },
 
-  /* تقييم المجموعة على مباريات النهاردة */
-  evaluate(list,todayGames){
-    return list.map(c=>{ let h=0; try{h=c.hit(todayGames)|0;}catch(e){} const have=Math.min(h,c.need); return {id:c.id,mode:c.mode,text:c.text,need:c.need,have,done:have>=c.need}; });
+  /* تقييم المجموعة على مباريات النهاردة. ctx يحمل عدّادات ليست في سجلّ
+     المباريات (عدد ألغاز اليوم) — تحدّي الألغاز يقرأ منه. */
+  evaluate(list,todayGames,ctx){
+    return list.map(c=>{ let h=0; try{h=c.hit(todayGames,ctx)|0;}catch(e){} const have=Math.min(h,c.need); return {id:c.id,mode:c.mode,text:c.text,need:c.need,have,done:have>=c.need}; });
   }
 };
 
@@ -6360,7 +6448,12 @@ const Home={
     if(!sec||typeof Rec==='undefined'||typeof Challenges==='undefined')return;
     const today=Rec._dayKey(Date.now());
     const mine=(games||[]).filter(x=>Rec._dayKey(x.t)===today);
-    const list=Challenges.evaluate(Challenges.forDay(Rec.dayIndex(),games||[]),mine);
+    /* عدّاد ألغاز اليوم من مخزن الألغاز (ليس في سجلّ المباريات). يُمرَّر
+       كسياق فيقرأه تحدّي الألغاز، ولو القسم غير محمّل يبقى صفرًا بلا عطل. */
+    let pzToday=0;
+    try{ if(window.PZS&&typeof PZS.solvedToday==='function') pzToday=await PZS.solvedToday(); }catch(e){}
+    const ctx={pzToday:Number(pzToday)||0};
+    const list=Challenges.evaluate(Challenges.forDay(Rec.dayIndex(),games||[]),mine,ctx);
     const total=list.length;
     const doneCount=list.filter(c=>c.done).length;
     const allDone=total>0&&doneCount>=total;
@@ -6568,6 +6661,23 @@ LEVELS_DEF[8]={...LEVELS_DEF[8],depth:12,skill:18,random:0};
 LEVELS_DEF[9]={...LEVELS_DEF[9],depth:14,skill:19,random:0};
 LEVELS_DEF[10]={...LEVELS_DEF[10],depth:17,skill:20,random:0};
 LEVELS_DEF[11]={...LEVELS_DEF[11],depth:20,skill:20,random:0};
+/* موضوع لغز المكافأة لكل مرحلة — يصعد مع الرحلة. المفاتيح من أرشيف
+   lichess (كلها موجودة فعلًا في index.json)، فزرّ المكافأة لا يفتح نمطًا
+   خاليًا. مفهرس بـid المرحلة. */
+const LEVEL_PUZZLE_THEME=[
+  'mateIn1',        /* 0 المبتدئ */
+  'fork',           /* 1 المتدرب */
+  'pin',            /* 2 المستكشف */
+  'mateIn2',        /* 3 المحترف */
+  'skewer',         /* 4 القائد */
+  'discoveredAttack',/* 5 الحارس */
+  'sacrifice',      /* 6 المحارب */
+  'deflection',     /* 7 القائد العظيم */
+  'mateIn3',        /* 8 الأسطورة */
+  'endgame',        /* 9 البطل */
+  'attraction',     /* 10 الإمبراطور */
+  'crushing',       /* 11 الخالد */
+];
 const ENGINE_AVATAR_FILE='StockFish.png';
 /* ══════════════════════════════════════
    مستويات Stockfish — سُلّم عادل من 10 درجات
@@ -7137,6 +7247,7 @@ const Leaderboard = {
           <button type="button" class="lb-tab is-on" data-sort="rating" role="tab">التقييم</button>
           <button type="button" class="lb-tab" data-sort="wins" role="tab">الانتصارات</button>
           <button type="button" class="lb-tab" data-sort="games" role="tab">المباريات</button>
+          <button type="button" class="lb-tab" data-sort="puzzles" role="tab">الألغاز</button>
         </div>
         <div class="lb-scroll" id="lb-scroll"><div class="lb-empty">جارٍ التحميل…</div></div>
       </div>`, { sfx: 'account' });
@@ -7180,12 +7291,15 @@ const Leaderboard = {
     this._sort = sort || 'rating';
     if(sub) sub.textContent = this._sort==='wins' ? 'الأكثر انتصارًا — مباريات مصنّفة'
                             : this._sort==='games' ? 'الأكثر لعبًا — مباريات مصنّفة'
+                            : this._sort==='puzzles' ? 'أفضل الحلّالين — تصنيف ألغاز مصنّف'
                             : 'أفضل اللاعبين حول العالم — تقييم مصنّف';
     box.innerHTML = this._render(players, meId) + this._selfBar(players, meId);
     this._fillSelf(meId);
   },
   _render(players, meId){
-    if(!players.length) return '<div class="lb-empty">لا توجد مباريات مصنّفة بعد. العب مباراة مصنّفة أونلاين لتظهر هنا.</div>';
+    if(!players.length) return '<div class="lb-empty">' + ((this._sort==='puzzles')
+      ? 'لا يوجد حلّالون مصنّفون بعد. حُلّ ألغازًا لتظهر هنا.'
+      : 'لا توجد مباريات مصنّفة بعد. العب مباراة مصنّفة أونلاين لتظهر هنا.') + '</div>';
     const CROWN='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8l4.5 3L12 5l4.5 6L21 8l-1.6 9.4a1 1 0 0 1-1 .82H5.6a1 1 0 0 1-1-.82L3 8z"/></svg>';
     /* الرقم الكبير بيتبع التبويب: مافيش معنى إن التبويب «انتصارات» يرتّب
        بالانتصارات ويعرض التقييم. القيمة التانية بتظهر في سطر التفاصيل. */
@@ -7205,7 +7319,7 @@ const Leaderboard = {
           <div class="lb-pod__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}<span class="lb-pod__medal">${p.rank}</span></div>
           <div class="lb-pod__name">${this._flag(p.country)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(p.name)}</span></div>
           <div class="lb-pod__rating">${big(p)}${unit?`<i class="lb-pod__u">${unit}</i>`:''}</div>
-          <div class="lb-pod__wr">${p.win_rate!=null?p.win_rate+'% فوز':''}</div>
+          <div class="lb-pod__wr">${sort==='puzzles'?(p.solved!=null?p.solved+' محلول':''):(p.win_rate!=null?p.win_rate+'% فوز':'')}</div>
           <div class="lb-pod__base"><span>${p.rank}</span></div>
         </button>`;
       };
@@ -7213,17 +7327,25 @@ const Leaderboard = {
     }
     if(rest.length){
       html += '<div class="lb-list">' + rest.map(p => {
-        const wl = `${p.wins}ف ${p.losses}خ ${p.draws}ت`;
-        const wr = (p.win_rate!=null) ? ` · ${p.win_rate}% فوز` : '';
-        const extra = sort==='rating' ? '' : ` · تقييم ${Math.round(p.rating)}`;
         const me = (meId!=null && p.id===meId) ? ' lb-row--me' : '';
+        let meta;
+        if(sort==='puzzles'){
+          /* الأرقام تُجرَّد تلقائيًّا إلى {0}/{1} في طبقة الترجمة، فالمفتاح
+             المُخزَّن هو الصيغة المجرّدة — نفس آلية سطر المباريات. */
+          meta = `${p.solved||0} محلول · أعلى ${Math.round(p.peak)}`;
+        } else {
+          const wl = `${p.wins}ف ${p.losses}خ ${p.draws}ت`;
+          const wr = (p.win_rate!=null) ? ` · ${p.win_rate}% فوز` : '';
+          const extra = sort==='rating' ? '' : ` · تقييم ${Math.round(p.rating)}`;
+          meta = `${p.games} مباراة · ${wl}${wr}${extra}`;
+        }
         return `
         <button type="button" class="lb-row${me}" data-uid="${this._esc(p.id)}">
           <div class="lb-row__rank">${p.rank}</div>
           <div class="lb-row__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}</div>
           <div class="lb-row__mid">
             <div class="lb-row__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span>${prov(p)}</div>
-            <div class="lb-row__meta">${p.games} مباراة · ${wl}${wr}${extra}</div>
+            <div class="lb-row__meta">${meta}</div>
           </div>
           <div class="lb-row__rating">${big(p)}</div>
           <span class="lb-row__go" aria-hidden="true">‹</span>
@@ -12412,6 +12534,14 @@ const G={
     if(scoreEl)scoreEl.textContent='--';
     if(phaseEl)phaseEl.textContent='تهيئة Stockfish';
     document.getElementById('go-next').style.display=result.allowNext?'inline-flex':'none';
+    /* لغز مكافأة بموضوع المرحلة — يظهر بعد فوز مرحلة نور فقط، ولو للمرحلة
+       موضوع معرَّف وقسم الألغاز محمّل. يربط رحلة المراحل بالتكتيك. */
+    const bonusBtn=document.getElementById('go-bonus');
+    if(bonusBtn){
+      const canBonus = result.reason==='level-win' && window.PZU
+        && typeof LEVEL_PUZZLE_THEME!=='undefined' && LEVEL_PUZZLE_THEME[S.levelId];
+      bonusBtn.style.display=canBonus?'inline-flex':'none';
+    }
   },
   _openQuickReview(){
     const result=S.endState;
@@ -13039,6 +13169,17 @@ const G={
     const next=S.levelId+1;
     if(next<LEVELS_DEF.length&&LVL.unlocked(next))this.startLevel(next);else Nav.levels();
   },
+  /* لغز مكافأة بموضوع المرحلة المُنجَزة: يقفل ورقة النهاية ويفتح قسم
+     الألغاز على نمط المرحلة. لو الموضوع غير معرَّف نفتح اللوحة عمومًا. */
+  startLevelBonus(){
+    SFX.btn();
+    const theme=(typeof LEVEL_PUZZLE_THEME!=='undefined')?LEVEL_PUZZLE_THEME[S.levelId]:null;
+    this._hideQuickReview();
+    try{
+      if(window.PZU&&theme)PZU.start('theme',{theme});
+      else if(window.PZU)PZU.openHub();
+    }catch(e){}
+  },
   showPromo(cl){
     const tps=['Q','R','B','N'],ov=document.getElementById('promo-ov'),row=document.getElementById('prow');
     row.innerHTML='';
@@ -13159,6 +13300,10 @@ const AppBar={
     's-online':    {context:'inner', title:'عبر الإنترنت',  back:()=>Nav.menu()},
     's-bluetooth': {context:'inner', title:'بلوتوث',    back:()=>{try{BLEManager.disconnect();}catch(e){} Nav.menu();}},
     's-settings':  {context:'inner', title:'الإعدادات',    back:()=>Nav.menu()},
+    /* لوحة الألغاز ترجع للرئيسية؛ شاشة الحلّ ترجع للوحة الألغاز عبر
+       PZU.leave (تنظيف نظيف: وقف المؤقّت وقفل النوافذ) لا history.back. */
+    's-puzzles':   {context:'inner', title:'الألغاز',       back:()=>Nav.menu()},
+    's-puzzle':    {context:'inner', title:'الألغاز',       back:()=>{try{PZU.leave();}catch(e){Nav.show('s-puzzles');}}},
     's-game':      {context:'hidden'}
   },
   _current:'s-menu',
@@ -13262,6 +13407,7 @@ const Nav={
   bluetooth(){Nav.show('s-bluetooth');},
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
+  puzzles(){try{PZU.openHub();}catch(e){Nav.show('s-puzzles');}},
   game(){Nav.show('s-game');},
   back(){history.back();}
 };
@@ -14961,6 +15107,19 @@ const Notifications={
         if(document.hidden||!document.hasFocus())this.send(T(r.title),{body:T(r.body),tag:'reminder-'+r.ms,requireInteraction:false});
       },r.ms);
     });
+    /* تذكير الألغاز — مشروط لا أعمى: يُطلق فقط لو لغز اليوم لم يُحلّ بعد،
+       فالتذكير اليوميّ الثابت يتحوّل بسرعة إلى إزعاج يُطفَأ. كل ٦ ساعات
+       نفحص حالة لغز اليوم، ولا نزعج إلا والتطبيق في الخلفية. */
+    setInterval(async ()=>{
+      if(!(document.hidden||!document.hasFocus()))return;
+      try{
+        if(!window.PZS||typeof PZS.dailyState!=='function')return;
+        const st=await PZS.dailyState();
+        if(st&&!st.done){
+          this.send(T('لغز اليوم بانتظارك'),{body:T('حلّ لغز اليوم وحافظ على سلسلتك.'),tag:'puzzle-daily',requireInteraction:false});
+        }
+      }catch(e){}
+    },6*3600000);
   },
   gameStart(){this.send(T('بدأت المباراة!'),{body:T('خصمك جاهز للعب'),tag:'game-start'});},
   yourTurn(){this.send(T('دورك!'),{body:T('حان وقت تحريك قطعة'),tag:'your-turn'});},
@@ -15069,6 +15228,18 @@ window.addEventListener('beforeunload',()=>{
   <script src="friends-client.js?v=20260916-b37"></script>
   <script src="chat-client.js?v=20260916-b37"></script>
   <script src="call-client.js?v=20260916-b37"></script>
+  <!-- ══ قسم الألغاز ══
+       الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
+       puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت
+       النداء لا وقت التحميل، فيكفي أن تأتي كلها بعد السكربتات المضمّنة.
+       كلها UMD: تشتغل هنا في المتصفّح وفي اختبارات node من نفس الملف. -->
+  <script src="rating.js?v=20260919-b38"></script>
+  <script src="puzzles-themes.js?v=20260919-b38"></script>
+  <script src="puzzles-rating.js?v=20260919-b38"></script>
+  <script src="puzzles-client.js?v=20260919-b38"></script>
+  <script src="puzzles-store.js?v=20260919-b38"></script>
+  <script src="puzzles-coach.js?v=20260919-b38"></script>
+  <script src="puzzles-ui.js?v=20260919-b38"></script>
 <script>
 const BLEManager = {
   isHost: false,

@@ -74,6 +74,51 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:467677566583:android:da32e78cb49526f1b31872",
+        "android_client_info": {
+          "package_name": "com.amkh.chessgame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "467677566583-7jldn3rr5tfriolj4lqckid15tin54ng.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chessgame",
+            "certificate_hash": "832dd6629d811a72f0f7f27bd86546eaadd7986e"
+          }
+        },
+        {
+          "client_id": "467677566583-i6c6q09ce19pdkog7rb8v31kflu2rj7o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chessgame",
+            "certificate_hash": "0b33f747933af3c6c32bbd694a35e4b14a0d708a"
+          }
+        },
+        {
+          "client_id": "467677566583-85jks1gk2fv2bqnslt9avp1fltr19h04.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVVHqHgj_0kYqfSwoj14JUnmkTev55tkE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "467677566583-0t2419n9jmgg9rodpb82ve6eog48m6jr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

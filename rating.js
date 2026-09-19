@@ -3,6 +3,12 @@
  * rating.js — نظام تقييم Glicko-2 (زي Lichess) لمباريات الأونلاين.
  * وحدة خالصة بدون أي اعتماد على قاعدة البيانات أو السيرفر عشان تتّختبر لوحدها.
  *
+ * بتشتغل على السيرفر (require) وفي المتصفّح (window.RATING) من نفس الملف:
+ * تقييم الألغاز محلّي بالكامل عشان القسم يعمل أوفلاين، ومكانش ينفع نكتب
+ * نسخة تانية من نفس الرياضة — نسختان تعني يوم ما تختلف نتيجتاهما.
+ * الغلاف مهمّ لسبب تقني كمان: الملف جوّاه دالّة اسمها E (توقّع Glicko)،
+ * والتطبيق جوّاه محرّك اسمه E؛ الغلاف بيخلّي كلٍّ في نطاقه.
+ *
  * كل لاعب بيحمل 3 أرقام على المقياس العام (public scale):
  *   r   = التقييم (افتراضي 1500)
  *   rd  = انحراف التقييم / عدم اليقين (افتراضي 350؛ كل ما قلّ زاد الثبات)
@@ -10,6 +16,11 @@
  *
  * المرجع: ورقة Glickman الرسمية glicko.net/glicko/glicko2.pdf
  */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.RATING = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
 
 const SCALE = 173.7178;          // = 400 / ln(10)
 const DEFAULT_R = 1500;
@@ -248,7 +259,7 @@ function expectedScore(a, b) {
   return E(mu, omu, ophi);
 }
 
-module.exports = {
+return {
   updatePlayer,
   applyGame,
   conservative,
@@ -266,3 +277,5 @@ module.exports = {
   K_SOFT,
   K_STABLE,
 };
+
+});

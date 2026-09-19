@@ -3511,6 +3511,9 @@ body[data-ui-theme="glass"] .home-tile::before{
 .ico--bot      { --ico: var(--icon-bot); }
 .ico--trophy   { --ico: var(--icon-trophy); }
 .ico--friends  { --ico: var(--icon-friends); }
+/* الألغاز: قطعة أُحجية. مُعرَّفة في :root فقط، وباقي الثيمات ترثها من
+   هناك (المتغيّر لا يُلغى بمجرّد أنّ الثيم أعاد تعريف أيقونات أخرى). */
+.ico--puzzle   { --ico: var(--icon-puzzle); }
 
 /* ── 16.1 الطقم الافتراضي (amkh) — هندسة إسلامية ─────────────────────
    نفس معاني الأيقونات القديمة بلغة الثيم: الدوائر بقت مثمّنات، والقلب
@@ -3535,6 +3538,8 @@ body[data-ui-theme="glass"] .home-tile::before{
   --icon-trophy:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M7 4 H17 V9 A5 5 0 0 1 7 9 Z'/><path d='M7 5.4 H4.2 V7 A3.2 3.2 0 0 0 7 10.1'/><path d='M17 5.4 H19.8 V7 A3.2 3.2 0 0 1 17 10.1'/><path d='M12 14 V17'/><path d='M8.8 20.4 H15.2 L14.4 17.4 H9.6 Z'/></svg>");
   /* الأصدقاء — زر مستقل في الشريط العلوي (شخصان، رؤوسهم معيّنات زي لغة الثيم) */
   --icon-friends:   url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M9 3 L12 6.2 L9 9.4 L6 6.2 Z'/><path d='M2.6 19.8 v-1.4 a4.7 4.7 0 0 1 4.7-4.7 h3.4 a4.7 4.7 0 0 1 4.7 4.7 v1.4'/><path d='M16.6 5.4 L19 7.8 L16.6 10.2 L14.2 7.8 Z'/><path d='M17.8 14 a4.1 4.1 0 0 1 3.6 4.1 v1.7'/></svg>");
+  /* الألغاز — قطعة أُحجية بنتوءين، معناها واضح فورًا */
+  --icon-puzzle:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M9 3.4 a1.9 1.9 0 0 1 6 0 h3 a1.4 1.4 0 0 1 1.4 1.4 V8 a1.9 1.9 0 0 1 0 6 v3.2 a1.4 1.4 0 0 1-1.4 1.4 H15 a1.9 1.9 0 0 0-6 0 H5.8 a1.4 1.4 0 0 1-1.4-1.4 V14 a1.9 1.9 0 0 1 0-6 V4.8 A1.4 1.4 0 0 1 5.8 3.4 Z'/></svg>");
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -6324,3 +6329,410 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   .ol-set{ padding: var(--space-3); }
   .ol-shell{ gap: var(--space-2); }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   PUZZLES — قسم الألغاز
+   ──────────────────────────────────────────────────────────────────────
+   الرقعة (#pz-board) بتعيد استعمال أصناف .sq/.piece/.dot/.ring/.SL… من
+   شاشة اللعب، فبتتبع ثيم المستخدم بلا سطر لون واحد هنا. الباقي بطاقات
+   وأزرار من توكنات design-system (مافيش قيم عشوائية). كل حركة transform/
+   opacity بس (درس #140) — ولا عرض ولا لون بيتأنمَت.
+════════════════════════════════════════════════════════════════════════ */
+
+/* ── اللوحة الرئيسية ─────────────────────────────────────────────────── */
+.pzh{
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4) var(--space-6);
+}
+.pzh__empty{
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: var(--space-6) var(--space-4);
+}
+.pzh__card{
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.pzh__eyebrow{
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--color-primary-text);
+  text-transform: uppercase;
+}
+
+/* التصنيف والرتبة */
+.pzh__top{ align-items: center; text-align: center; gap: var(--space-1); }
+.pzh__num{ display: flex; align-items: baseline; gap: var(--space-2); justify-content: center; }
+.pzh__rating{ font-size: 40px; font-weight: 800; color: var(--color-text-primary); line-height: 1; }
+.pzh__prov{
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-warning);
+  background: var(--color-warning-subtle);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+}
+.pzh__rank{ font-size: 16px; font-weight: 700; color: var(--color-primary-text); }
+.pzh__track{
+  width: 100%;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+  margin-top: var(--space-1);
+}
+.pzh__fill{
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--color-primary-pressed), var(--color-primary));
+  transition: width .5s cubic-bezier(.22,.9,.3,1);
+}
+.pzh__next{ font-size: 12px; color: var(--color-text-secondary); }
+
+/* لغز اليوم */
+.pzh__daily{ position: relative; }
+.pzh__dtext{ color: var(--color-text-secondary); font-size: 14px; line-height: 1.5; }
+.pzh__streak{
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-warning);
+  background: var(--color-warning-subtle);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+}
+
+/* شبكة الأوضاع */
+.pzh__modes{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.pzh__mode{
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.pzh__mode:active{ transform: scale(.97); }
+.pzh__mode:hover{ border-color: var(--color-primary-border); }
+.pzh__mode--wide{ grid-column: 1 / -1; }
+.pzh__mode-title{ font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
+.pzh__mode-desc{ font-size: 12px; color: var(--color-text-secondary); line-height: 1.45; }
+.pzh__mode-best{
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary-text);
+}
+
+/* الأرقام */
+.pzh__grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+.pzh__cell{ display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pzh__cell-n{ font-size: 20px; font-weight: 800; color: var(--color-text-primary); }
+.pzh__cell-l{ font-size: 11px; color: var(--color-text-secondary); text-align: center; }
+
+/* القوّة والضعف */
+.pzh__tlist{ display: flex; flex-direction: column; gap: var(--space-2); }
+.pzh__trow{
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.pzh__trow-name{ font-size: 13px; color: var(--color-text-primary); text-align: start; }
+.pzh__trow-track{
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+.pzh__trow-fill{ display: block; height: 100%; border-radius: var(--radius-pill); }
+.pzh__trow-fill.is-good{ background: var(--color-success); }
+.pzh__trow-fill.is-weak{ background: var(--color-danger); }
+.pzh__trow-rate{ font-size: 12px; font-weight: 700; color: var(--color-text-secondary); min-width: 34px; text-align: end; }
+
+/* نور */
+.pzh__ctext{ color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+
+/* ── شاشة الحلّ ──────────────────────────────────────────────────────── */
+.pzg{
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3) var(--space-5);
+}
+.pzg__status{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 26px;
+}
+.pzg__st-left, .pzg__st-right{ display: flex; align-items: center; gap: var(--space-2); }
+.pzg__st-mode{ font-size: 14px; font-weight: 700; color: var(--color-primary-text); }
+.pzg__st-rating{ font-size: 12px; color: var(--color-text-secondary); }
+.pzg__st-score{ font-size: 14px; font-weight: 700; color: var(--color-text-primary); }
+.pzg__st-strikes{ font-size: 13px; color: var(--color-text-secondary); }
+.pzg__st-clock{
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  min-width: 46px;
+  text-align: end;
+}
+/* القلوب — نتوءات صغيرة، الغائب باهت (opacity فقط، لا لون يتغيّر أنميشن) */
+.pzg__hearts{ display: inline-flex; gap: 4px; }
+.pzg__heart{
+  width: 12px; height: 12px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(45deg);
+  background: var(--color-danger);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.pzg__heart.is-gone{ opacity: .18; transform: rotate(45deg) scale(.8); }
+
+/* المواجهة: نتيجتك · نتيجة الخصم، المتقدّم مُبرَز بالذهبي */
+.pzg__vs{ display: inline-flex; align-items: baseline; gap: 5px; font-variant-numeric: tabular-nums; }
+.pzg__vs-me, .pzg__vs-opp{ font-size: 16px; font-weight: 800; color: var(--color-text-secondary); transition: color .15s ease; }
+.pzg__vs-me.is-lead, .pzg__vs-opp.is-lead{ color: var(--color-primary-text); }
+.pzg__vs-sep{ color: var(--color-text-disabled); font-weight: 700; }
+
+/* الرقعة — نفس أصناف شاشة اللعب، لكن شبكة مستقلّة الحجم */
+.pzg__board{
+  width: min(92vw, 420px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,0,0,.4);
+  background: var(--color-surface-sunken);
+  touch-action: manipulation;
+}
+#pz-board .sq{ width: 100%; height: 100%; }
+/* لمعان التلميح: توهّج ذهبي حول المربّع، بلا تغيير لون خلفيّته */
+#pz-board .sq.pz-glow{ position: relative; }
+#pz-board .sq.pz-glow::after{
+  content: '';
+  position: absolute; inset: 8%;
+  border-radius: 12%;
+  box-shadow: 0 0 0 3px var(--color-primary), 0 0 14px 2px var(--color-primary);
+  pointer-events: none;
+  z-index: 3;
+  animation: pzGlow 1s ease-in-out infinite alternate;
+}
+@keyframes pzGlow{ from{ opacity: .55; } to{ opacity: 1; } }
+/* علامة صحّ/غلط لحظية فوق المربّع — تظهر وتختفي بالحجم والشفافية */
+.pz-mark{
+  position: absolute; inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  border-radius: 12%;
+  animation: pzMark .6s ease-out forwards;
+}
+.pz-mark--ok{ box-shadow: inset 0 0 0 3px var(--color-success); }
+.pz-mark--bad{ box-shadow: inset 0 0 0 3px var(--color-danger); }
+@keyframes pzMark{
+  0%{ opacity: 0; transform: scale(.7); }
+  30%{ opacity: 1; transform: scale(1); }
+  100%{ opacity: 0; transform: scale(1); }
+}
+
+/* شريط نور — الصورة + سطر واحد، ينزلق داخلًا */
+.pzg__coach{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  min-height: 48px;
+}
+.pzg__coach-av{
+  width: 34px; height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: url('./nour.png?v=2') center/cover no-repeat;
+  border: 1px solid var(--color-primary-border);
+}
+.pzg__coach-text{
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .28s ease, transform .28s ease;
+}
+.pzg__coach-text.is-in{ opacity: 1; transform: none; }
+
+/* شريط الأزرار */
+.pzg__bar{
+  width: 100%;
+  display: flex;
+  gap: var(--space-2);
+}
+.pz-btn{
+  flex: 1;
+  min-height: 46px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .12s ease, background-color .12s ease, opacity .12s ease;
+}
+.pz-btn:active{ transform: scale(.97); }
+.pz-btn:disabled{ opacity: .45; cursor: default; }
+.pz-btn--main{
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+.pz-btn--main:hover{ background: var(--color-primary-hover); }
+
+/* ── ورقة نتيجة اللغز ────────────────────────────────────────────────── */
+.pzr{ text-align: center; }
+.pzr__head{ margin-bottom: var(--space-3); }
+.pzr__badge{
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+}
+.pzr__head.is-win .pzr__badge{ color: var(--color-on-primary); background: var(--color-primary); }
+.pzr__rating{ display: flex; align-items: baseline; justify-content: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.pzr__r{ font-size: 30px; font-weight: 800; color: var(--color-text-primary); }
+.pzr__d{ font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pzr__d.is-up{ color: var(--color-success); }
+.pzr__d.is-down{ color: var(--color-danger); }
+.pzr__d.is-flat{ color: var(--color-text-secondary); font-size: 13px; font-weight: 700; }
+.pzr__rank{ font-size: 13px; color: var(--color-primary-text); align-self: center; }
+.pzr__why{
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  margin: var(--space-2) 0;
+}
+.pzr__tags{ display: flex; flex-wrap: wrap; gap: var(--space-1); justify-content: center; margin: var(--space-3) 0; }
+.pzr__tag{
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary-text);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: transform .12s ease;
+}
+.pzr__tag:active{ transform: scale(.95); }
+.pzr__actions{ display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
+
+/* ── نهاية الجولة المؤقّتة ───────────────────────────────────────────── */
+.pzo{ text-align: center; }
+.pzo__score{ font-size: 52px; font-weight: 800; color: var(--color-primary-text); line-height: 1; margin: var(--space-2) 0; }
+
+/* ── ورقة المواضيع ───────────────────────────────────────────────────── */
+.pzt__group{
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary-text);
+  margin: var(--space-3) 0 var(--space-2);
+}
+.pzt__group:first-child{ margin-top: 0; }
+.pzt__wrap{ display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.pzt__chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.pzt__chip:active{ transform: scale(.95); }
+.pzt__chip:hover{ border-color: var(--color-primary-border); }
+.pzt__chip-name{ font-weight: 600; }
+.pzt__chip-rate{ font-size: 11px; font-weight: 700; color: var(--color-primary-text); }
+
+/* ── حركات إضافية (transform/opacity فقط) ────────────────────────────── */
+/* كسر القلب: يرتجف ثم ينكمش ويبهت — لا لون يتأنمت */
+.pzg__heart.is-breaking{ animation: pzHeartBreak .6s ease-out forwards; }
+@keyframes pzHeartBreak{
+  0%{ opacity: 1; }
+  20%{ transform: rotate(45deg) scale(1.25); }
+  40%{ transform: rotate(35deg) scale(1.1); }
+  60%{ transform: rotate(55deg) scale(.9); }
+  100%{ opacity: .18; transform: rotate(45deg) scale(.8); }
+}
+
+/* الصعود لرتبة: اسم الرتبة يلمع ويكبر لحظة، وسطر «رتبة جديدة» يهبط */
+.pzr__rank.is-up{ color: var(--color-primary-text); animation: pzRankPop .7s cubic-bezier(.22,.9,.3,1); }
+@keyframes pzRankPop{ 0%{ transform: scale(.6); opacity: 0; } 55%{ transform: scale(1.15); opacity: 1; } 100%{ transform: scale(1); } }
+.pzr__rankup{
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-primary-text);
+  text-align: center;
+  margin: var(--space-1) 0 0;
+  animation: pzRankUpIn .5s ease-out;
+}
+@keyframes pzRankUpIn{ from{ opacity: 0; transform: translateY(-6px); } to{ opacity: 1; transform: none; } }
+
+/* اسأل نور: زرّ + جواب يهبط */
+.pzr__ask{ margin: var(--space-2) 0; }
+.pzr__ans{
+  margin-top: var(--space-2);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  animation: pzRankUpIn .32s ease-out;
+}
+
+/* شعلة السلسلة: نبضة دافئة خفيفة على بطاقة لغز اليوم حين توجد سلسلة */
+.pzh__streak{ animation: pzFlame 2.2s ease-in-out infinite; }
+@keyframes pzFlame{ 0%,100%{ transform: scale(1); opacity: .92; } 50%{ transform: scale(1.05); opacity: 1; } }

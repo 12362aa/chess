@@ -1,0 +1,231 @@
+{
+ "version": 1,
+ "bands": [
+  {
+   "lo": 400,
+   "hi": 499,
+   "file": "pz-0400.txt",
+   "count": 300
+  },
+  {
+   "lo": 500,
+   "hi": 599,
+   "file": "pz-0500.txt",
+   "count": 400
+  },
+  {
+   "lo": 600,
+   "hi": 699,
+   "file": "pz-0600.txt",
+   "count": 600
+  },
+  {
+   "lo": 700,
+   "hi": 799,
+   "file": "pz-0700.txt",
+   "count": 900
+  },
+  {
+   "lo": 800,
+   "hi": 899,
+   "file": "pz-0800.txt",
+   "count": 1200
+  },
+  {
+   "lo": 900,
+   "hi": 999,
+   "file": "pz-0900.txt",
+   "count": 1500
+  },
+  {
+   "lo": 1000,
+   "hi": 1099,
+   "file": "pz-1000.txt",
+   "count": 1800
+  },
+  {
+   "lo": 1100,
+   "hi": 1199,
+   "file": "pz-1100.txt",
+   "count": 2000
+  },
+  {
+   "lo": 1200,
+   "hi": 1299,
+   "file": "pz-1200.txt",
+   "count": 2200
+  },
+  {
+   "lo": 1300,
+   "hi": 1399,
+   "file": "pz-1300.txt",
+   "count": 2400
+  },
+  {
+   "lo": 1400,
+   "hi": 1499,
+   "file": "pz-1400.txt",
+   "count": 2400
+  },
+  {
+   "lo": 1500,
+   "hi": 1599,
+   "file": "pz-1500.txt",
+   "count": 2400
+  },
+  {
+   "lo": 1600,
+   "hi": 1699,
+   "file": "pz-1600.txt",
+   "count": 2400
+  },
+  {
+   "lo": 1700,
+   "hi": 1799,
+   "file": "pz-1700.txt",
+   "count": 2400
+  },
+  {
+   "lo": 1800,
+   "hi": 1899,
+   "file": "pz-1800.txt",
+   "count": 2200
+  },
+  {
+   "lo": 1900,
+   "hi": 1999,
+   "file": "pz-1900.txt",
+   "count": 2000
+  },
+  {
+   "lo": 2000,
+   "hi": 2099,
+   "file": "pz-2000.txt",
+   "count": 1800
+  },
+  {
+   "lo": 2100,
+   "hi": 2199,
+   "file": "pz-2100.txt",
+   "count": 1600
+  },
+  {
+   "lo": 2200,
+   "hi": 2299,
+   "file": "pz-2200.txt",
+   "count": 1400
+  },
+  {
+   "lo": 2300,
+   "hi": 2399,
+   "file": "pz-2300.txt",
+   "count": 1200
+  },
+  {
+   "lo": 2400,
+   "hi": 2499,
+   "file": "pz-2400.txt",
+   "count": 1000
+  },
+  {
+   "lo": 2500,
+   "hi": 2599,
+   "file": "pz-2500.txt",
+   "count": 800
+  },
+  {
+   "lo": 2600,
+   "hi": 2699,
+   "file": "pz-2600.txt",
+   "count": 600
+  },
+  {
+   "lo": 2700,
+   "hi": 2799,
+   "file": "pz-2700.txt",
+   "count": 400
+  },
+  {
+   "lo": 2800,
+   "hi": 2899,
+   "file": "pz-2800.txt",
+   "count": 400
+  }
+ ],
+ "themes": {
+  "endgame": 20641,
+  "mate": 17991,
+  "short": 15863,
+  "middlegame": 14157,
+  "crushing": 11430,
+  "long": 11397,
+  "mateIn2": 8608,
+  "advantage": 6857,
+  "oneMove": 4655,
+  "mateIn1": 4653,
+  "veryLong": 4380,
+  "master": 3870,
+  "sacrifice": 3618,
+  "mateIn3": 3459,
+  "advancedPawn": 3154,
+  "fork": 2729,
+  "kingsideAttack": 2584,
+  "defensiveMove": 2349,
+  "pin": 2171,
+  "pawnEndgame": 2084,
+  "exposedKing": 1948,
+  "rookEndgame": 1926,
+  "promotion": 1770,
+  "opening": 1502,
+  "attraction": 1475,
+  "discoveredAttack": 1406,
+  "queensideAttack": 1322,
+  "hangingPiece": 1271,
+  "deflection": 1237,
+  "bishopEndgame": 1093,
+  "quietMove": 1086,
+  "queenEndgame": 1010,
+  "knightEndgame": 996,
+  "backRankMate": 983,
+  "operaMate": 983,
+  "doubleCheck": 975,
+  "mateIn4": 953,
+  "skewer": 935,
+  "pillsburysMate": 934,
+  "queenRookEndgame": 912,
+  "clearance": 861,
+  "attackingF2F7": 804,
+  "capturingDefender": 801,
+  "intermezzo": 800,
+  "xRayAttack": 786,
+  "epauletteMate": 771,
+  "trappedPiece": 770,
+  "zugzwang": 765,
+  "interference": 739,
+  "killBoxMate": 716,
+  "hookMate": 697,
+  "arabianMate": 689,
+  "dovetailMate": 666,
+  "cornerMate": 665,
+  "collinearMove": 660,
+  "swallowstailMate": 652,
+  "triangleMate": 633,
+  "morphysMate": 619,
+  "vukovicMate": 619,
+  "anastasiaMate": 609,
+  "underPromotion": 592,
+  "enPassant": 573,
+  "discoveredCheck": 556,
+  "smotheredMate": 549,
+  "balestraMate": 536,
+  "bodenMate": 529,
+  "blindSwineMate": 527,
+  "doubleBishopMate": 446,
+  "castling": 432,
+  "mateIn5": 318,
+  "masterVsMaster": 284,
+  "superGM": 27,
+  "equality": 17
+ },
+ "total": 36300
+}

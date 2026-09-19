@@ -1030,7 +1030,36 @@ app.get('/api/leaderboard', (req, res) => {
     let limit = parseInt(req.query.limit, 10);
     if (!isFinite(limit) || limit <= 0) limit = 100;
     limit = Math.min(limit, 200);
-    const sort = ['rating', 'wins', 'games'].includes(String(req.query.sort || '')) ? String(req.query.sort) : 'rating';
+    const sort = ['rating', 'wins', 'games', 'puzzles'].includes(String(req.query.sort || '')) ? String(req.query.sort) : 'rating';
+
+    /* صدارة الألغاز: تصنيف منفصل تمامًا (أعمدة puzzle_*)، وترتيب بالتصنيف
+       المتحفّظ زي المباريات، لكن على من لعب لغزًا مصنّفًا واحدًا على الأقل. */
+    if (sort === 'puzzles') {
+      const rows = db.prepare(`
+        SELECT id, display_name, username, provider, avatar_url, country,
+               puzzle_rating, puzzle_rd, puzzle_games, puzzle_peak, puzzle_solved
+        FROM users
+        WHERE puzzle_games >= 1
+        ORDER BY (puzzle_rating - 2 * puzzle_rd) DESC, puzzle_games DESC
+        LIMIT ?`).all(limit);
+      const out = rows.map((u, i) => {
+        const rd = isFinite(u.puzzle_rd) ? u.puzzle_rd : 350;
+        return {
+          rank: i + 1,
+          id: u.id,
+          name: resolveOnlineName(u),
+          avatar_url: u.avatar_url || null,
+          country: u.country || null,
+          rating: Math.round(isFinite(u.puzzle_rating) ? u.puzzle_rating : 1500),
+          provisional: rd > 110 || !(u.puzzle_games > 0),
+          peak: Math.round(isFinite(u.puzzle_peak) ? u.puzzle_peak : 1500),
+          rated_games: u.puzzle_games || 0,
+          solved: u.puzzle_solved || 0,
+        };
+      });
+      return res.json({ players: out, sort, updated_at: new Date().toISOString() });
+    }
+
     const order = sort === 'wins'
       ? 'wins DESC, (rating - 2 * rating_rd) DESC'
       : sort === 'games'
@@ -1638,6 +1667,48 @@ function onFlag(room, loserColor) {
 function socketsOf(userId) {
   const set = userSockets.get(Number(userId));
   return set ? [...set] : [];
+}
+
+/* ══ مواجهات الألغاز (رش ٣ دقائق مشترك) ══
+   حالة عابرة في الذاكرة فقط: الطرفان لازم أونلاين، فلا داعي لجدول. الخادم
+   ناقل غبيّ — العميل المُتحدِّي يختار مجموعة الألغاز من أرشيفه ويبعتها،
+   والحلّ محلّي فلا مزامنة نقلة‑بنقلة، فقط النتيجة. المفتاح رقم متزايد. */
+const puzzleBattles = new Map();
+let _battleSeq = 0;
+function bcastUser(userId, obj) {
+  let n = 0;
+  for (const s of socketsOf(userId)) { if (s.readyState === WebSocket.OPEN) { send(s, obj); n++; } }
+  return n;
+}
+/* ينهي مواجهة ويبلّغ الطرفين مرّة واحدة. reason: done | aborted | expired */
+function endPuzzleBattle(id, reason, payload) {
+  const b = puzzleBattles.get(id);
+  if (!b) return;
+  puzzleBattles.delete(id);
+  if (reason === 'done') {
+    const aScore = b.scores[b.a] || 0, bScore = b.scores[b.b] || 0;
+    const out = (uid) => {
+      const mine = b.scores[uid] || 0, opp = uid === b.a ? bScore : aScore;
+      return { type: 'puzzle:battle-result', battle_id: id,
+        your_score: mine, opp_score: opp,
+        outcome: mine > opp ? 'win' : mine < opp ? 'loss' : 'draw' };
+    };
+    bcastUser(b.a, out(b.a));
+    bcastUser(b.b, out(b.b));
+  } else {
+    const msg = { type: 'puzzle:battle-aborted', battle_id: id, reason: reason || 'aborted' };
+    bcastUser(b.a, msg); bcastUser(b.b, msg);
+  }
+}
+/* عند قطع اتصال مستخدم: أي مواجهة حيّة له تُلغى ويُبلَّغ الخصم */
+function abortUserBattles(userId) {
+  for (const [id, b] of puzzleBattles) {
+    if (b.a === userId || b.b === userId) {
+      const other = b.a === userId ? b.b : b.a;
+      puzzleBattles.delete(id);
+      bcastUser(other, { type: 'puzzle:battle-aborted', battle_id: id, reason: 'opponent-left' });
+    }
+  }
 }
 
 /* حالة المستخدم من السوكت مباشرة: أدق من العمود في القاعدة لأن القاعدة
@@ -3116,6 +3187,109 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
+      /* ══ مواجهة ألغاز: دعوة ══
+         نفس فحوصات دعوة المباراة (صداقة/حظر/خصوصية)، وعبر نفس سوكت
+         الحضور الموثَّق. المُتحدِّي هو «a». */
+      case 'puzzle:battle-invite': {
+        const senderId = socketUser.get(ws);
+        const friendId = Number(msg.friend_id);
+        if (!senderId) { send(ws, { type: 'puzzle:battle-error', reason: 'auth' }); break; }
+        if (!friendId || friendId === senderId) break;
+        try {
+          const isFriend = db.prepare('SELECT 1 FROM friendships WHERE user_id = ? AND friend_id = ?').get(senderId, friendId);
+          if (!isFriend) { send(ws, { type: 'puzzle:battle-error', reason: 'not-friend' }); break; }
+          const blocked = db.prepare(`SELECT 1 FROM friend_blocks
+                                      WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)`)
+            .get(senderId, friendId, friendId, senderId);
+          if (blocked) { send(ws, { type: 'puzzle:battle-error', reason: 'blocked' }); break; }
+          if (!privacyRouter.canGameInvite(senderId, friendId)) { send(ws, { type: 'puzzle:battle-error', reason: 'privacy' }); break; }
+          const targetSockets = socketsOf(friendId).filter(s => s.readyState === WebSocket.OPEN);
+          if (!targetSockets.length) { send(ws, { type: 'puzzle:battle-error', reason: 'offline' }); break; }
+
+          const id = 'pb' + (++_battleSeq) + '_' + Date.now();
+          puzzleBattles.set(id, { id, a: senderId, b: friendId, status: 'pending', scores: {}, ended: {}, createdAt: Date.now() });
+          const sender = db.prepare('SELECT id, username, display_name, avatar_url FROM users WHERE id = ?').get(senderId);
+          bcastUser(friendId, { type: 'puzzle:battle-incoming', battle_id: id, from: sender });
+          send(ws, { type: 'puzzle:battle-sent', battle_id: id, delivered: true });
+          /* تنظيف تلقائيّ لو ما اكتملت المصافحة خلال دقيقة */
+          setTimeout(() => { const b = puzzleBattles.get(id); if (b && b.status !== 'live') endPuzzleBattle(id, 'expired'); }, 60000);
+        } catch (e) {
+          console.error('[battle] invite:', e.message);
+          send(ws, { type: 'puzzle:battle-error', reason: 'server' });
+        }
+        break;
+      }
+
+      /* ══ مواجهة ألغاز: ردّ المدعوّ ══ */
+      case 'puzzle:battle-respond': {
+        const me = socketUser.get(ws);
+        const id = String(msg.battle_id || '');
+        const accept = msg.action === 'accept';
+        const b = puzzleBattles.get(id);
+        if (!me || !b || b.b !== me) { send(ws, { type: 'puzzle:battle-error', reason: 'expired' }); break; }
+        if (!accept) {
+          puzzleBattles.delete(id);
+          bcastUser(b.a, { type: 'puzzle:battle-declined', battle_id: id });
+          break;
+        }
+        if (!socketsOf(b.a).some(s => s.readyState === WebSocket.OPEN)) {
+          endPuzzleBattle(id, 'aborted');
+          send(ws, { type: 'puzzle:battle-error', reason: 'host-offline' });
+          break;
+        }
+        b.status = 'accepted';
+        /* المُتحدِّي يجهّز المجموعة الآن ويبعت setup */
+        bcastUser(b.a, { type: 'puzzle:battle-accepted', battle_id: id });
+        break;
+      }
+
+      /* ══ مواجهة ألغاز: المُتحدِّي يبعت المجموعة، الخادم يزامن البداية ══
+         نبعت نفس الصفوف للطرفين (لا نعتمد على تطابق الأرشيف بين النسختين)،
+         ونثبّت وقت بدء موحّدًا. */
+      case 'puzzle:battle-setup': {
+        const me = socketUser.get(ws);
+        const id = String(msg.battle_id || '');
+        const b = puzzleBattles.get(id);
+        if (!me || !b || b.a !== me || b.status !== 'accepted') break;
+        const puzzles = Array.isArray(msg.puzzles) ? msg.puzzles.slice(0, 60) : [];
+        if (!puzzles.length) { endPuzzleBattle(id, 'aborted'); break; }
+        const duration = Math.min(600, Math.max(30, Number(msg.duration) || 180));
+        b.status = 'live';
+        b.startAt = Date.now() + 3000;
+        b.duration = duration;
+        const begin = (role) => ({ type: 'puzzle:battle-begin', battle_id: id, role,
+          puzzles, duration, start_at: b.startAt });
+        bcastUser(b.a, begin('a'));
+        bcastUser(b.b, begin('b'));
+        /* حارس زمنيّ: بعد المدّة + هامش، لو ما وصل إنهاء الطرفين ننهيها */
+        setTimeout(() => { if (puzzleBattles.get(id)) endPuzzleBattle(id, 'done'); }, (duration + 20) * 1000);
+        break;
+      }
+
+      /* تحديث النتيجة الحيّ — يُنقَل للخصم فقط */
+      case 'puzzle:battle-score': {
+        const me = socketUser.get(ws);
+        const id = String(msg.battle_id || '');
+        const b = puzzleBattles.get(id);
+        if (!me || !b || (b.a !== me && b.b !== me)) break;
+        b.scores[me] = Math.max(0, Number(msg.score) || 0);
+        const other = b.a === me ? b.b : b.a;
+        bcastUser(other, { type: 'puzzle:battle-opp', battle_id: id, score: b.scores[me], idx: Number(msg.idx) || 0 });
+        break;
+      }
+
+      /* إنهاء لاعب — لمّا الاتنين يخلصوا (أو الحارس الزمنيّ) نحسب النتيجة */
+      case 'puzzle:battle-end': {
+        const me = socketUser.get(ws);
+        const id = String(msg.battle_id || '');
+        const b = puzzleBattles.get(id);
+        if (!me || !b || (b.a !== me && b.b !== me)) break;
+        b.scores[me] = Math.max(0, Number(msg.score) || 0);
+        b.ended[me] = true;
+        if (b.ended[b.a] && b.ended[b.b]) endPuzzleBattle(id, 'done');
+        break;
+      }
+
       /* إلغاء دعوة من الداعي قبل ما ترد */
       case 'friend:invite-cancel': {
         const me = socketUser.get(ws);
@@ -3833,6 +4007,8 @@ wss.on('connection', (ws, req) => {
               db.prepare(`UPDATE game_invites SET status = 'cancelled', responded_at = datetime('now') WHERE id = ?`).run(iv.id);
               for (const s of socketsOf(iv.to_id)) send(s, { type: 'friend:invite-cancelled', invite_id: iv.id });
             }
+            /* مواجهة ألغاز حيّة للمنقطع تُلغى ويُبلَّغ الخصم فورًا */
+            try { abortUserBattles(userId); } catch (e) {}
           } catch (e) {}
         } else {
           /* لسه فاتح على جهاز تاني — الحالة تتحدّث مش تبقى offline */

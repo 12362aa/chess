@@ -735,6 +735,17 @@ const amkhAuth = {
     return {};
   },
 
+  /* سجلّ الألغاز المختصر الذي يتبع الحساب. PZS.exportForSync هي المصدر
+     الوحيد. غيابها (القسم لسه مش محمّل) = لا شيء نرفعه. */
+  async _readLocalPuzzles() {
+    try {
+      if (window.PZS && typeof window.PZS.exportForSync === 'function') {
+        return await window.PZS.exportForSync();
+      }
+    } catch (e) {}
+    return null;
+  },
+
   async syncLocalData(tokenOverride) {
     /* التوكن يُمرَّر عند الحاجة: تسجيل الخروج بيرفع المعلّق قبل ما يمسح
        التوكن، والرفعة فيها await قبل fetch — فبدون التقاطه هنا كانت
@@ -743,8 +754,18 @@ const amkhAuth = {
     const localSettings = this._readLocalSettings();
     let localProgress = [];
     try { localProgress = await this._readLocalProgress(); } catch (e) {}
+    let localPuzzles = null;
+    try { localPuzzles = await this._readLocalPuzzles(); } catch (e) {}
 
     try {
+      const body = {
+        progress: localProgress,
+        settings: localSettings,
+        overwrite: false
+      };
+      /* الألغاز حقل اختياري: لا نرسله فارغًا فنكتب بلوبًا خاليًا فوق
+         سجلّ الحساب على جهاز لسه ما فتح القسم. */
+      if (localPuzzles && typeof localPuzzles === 'object') body.puzzles = localPuzzles;
       const res = await fetch(`${window.getApiBase()}/sync-local`, {
         method: 'POST',
         headers: {
@@ -752,11 +773,7 @@ const amkhAuth = {
           'Authorization': `Bearer ${tok}`,
           'ngrok-skip-browser-warning': 'true'
         },
-        body: JSON.stringify({
-          progress: localProgress,
-          settings: localSettings,
-          overwrite: false
-        })
+        body: JSON.stringify(body)
       });
       /* الرجوع بحالة الرفع لا بلا شيء: من غيرها كان المُنادي يفترض النجاح
          ويقدّم البصمة، فيضيع التغيير للأبد (شوف flushSettings تحت). */
@@ -840,6 +857,49 @@ const amkhAuth = {
   },
 
   /* ══════════════════════════════════════════════════════════════
+     سجلّ الألغاز: نفس منطق الإعدادات بالحرف
+     ──────────────────────────────────────────────────────────────
+     PZS.save() ينادي markPuzzlesDirty بعد كل تغيير (نفس درس build 37:
+     اللي يقفل التطبيق بعد لغز مباشرةً كان تقدّمه بيضيع). العَلَم على
+     القرص كمان فالفتحة التالية ترفع المعلّق قبل أي تنزيل. البصمة لا
+     تتقدّم إلا على ردّ ناجح، فتعثّر الشبكة يُعاد لا يُنسى. */
+  PUZZLES_DIRTY_KEY: 'amkh_pz_dirty',
+  _puzzlesDirty: false,
+  _puzzlesTimer: null,
+
+  _loadPuzzlesDirtyFlag() {
+    if (this._puzzlesDirty) return true;
+    try { if (localStorage.getItem(this.PUZZLES_DIRTY_KEY) === '1') this._puzzlesDirty = true; } catch (e) {}
+    return this._puzzlesDirty;
+  },
+
+  markPuzzlesDirty() {
+    if (!this.token) return;
+    this._puzzlesDirty = true;
+    try { localStorage.setItem(this.PUZZLES_DIRTY_KEY, '1'); } catch (e) {}
+    if (this._puzzlesTimer) clearTimeout(this._puzzlesTimer);
+    this._puzzlesTimer = setTimeout(() => {
+      this._puzzlesTimer = null;
+      this.flushPuzzles();
+    }, 700);
+  },
+
+  async flushPuzzles(tokenOverride) {
+    const tok = tokenOverride || this.token;
+    if (!tok || !this._loadPuzzlesDirtyFlag()) return true;
+    if (this._puzzlesTimer) { clearTimeout(this._puzzlesTimer); this._puzzlesTimer = null; }
+    let cur = '';
+    try { cur = JSON.stringify(await this._readLocalPuzzles()); } catch (e) { return false; }
+    const ok = await this.syncLocalData(tok);
+    if (ok) {
+      this.lastSyncPuzzles = cur;
+      this._puzzlesDirty = false;
+      try { localStorage.removeItem(this.PUZZLES_DIRTY_KEY); } catch (e) {}
+    }
+    return ok;
+  },
+
+  /* ══════════════════════════════════════════════════════════════
      مزامنة الحساب: تنزيل ثم رفع ثم متابعة
      ──────────────────────────────────────────────────────────────
      تلات أعطال كانت مجتمعة في البلاغ «شِلت التطبيق وسجّلت دخول فلقيت
@@ -888,6 +948,16 @@ const amkhAuth = {
             this.syncLocalData();
           }
         } catch (e) {}
+        /* الألغاز: markPuzzlesDirty بيرفع فورًا بعد كل حلّ، وده حبل أمان
+           لو رفعة اتعثّرت أو العَلَم رجع من القرص بعد إغلاق. */
+        try {
+          if (this._loadPuzzlesDirtyFlag()) { await this.flushPuzzles(); return; }
+          const pz = JSON.stringify(await this._readLocalPuzzles());
+          if (pz !== 'null' && pz !== this.lastSyncPuzzles) {
+            this.lastSyncPuzzles = pz;
+            this.syncLocalData();
+          }
+        } catch (e) {}
       }, 10000);
     }
   },
@@ -898,6 +968,7 @@ const amkhAuth = {
     /* لو التطبيق اتقفل وفيه تغيير معلّق، العَلَم راجع من القرص هنا قبل
        أي تنزيل — فالتنزيل مايكتبش فوقه. */
     this._loadDirtyFlag();
+    this._loadPuzzlesDirtyFlag();
     let pulledSettings = false;
     try {
       /* إعدادات الجهاز لازم تكون اتحمّلت من IDB الأول، وإلا الدمج
@@ -940,6 +1011,21 @@ const amkhAuth = {
           } catch (e) {}
         }
       }
+
+      /* سجلّ الألغاز: نُنزّل بلوب الحساب ونَدمجه محليًّا (PZS.importFromSync
+         الأعلى يفوز). تغييرٌ محلّي معلّق = الجهاز أحدث، فنرفع بدل ما ننزّل
+         فوقه — نفس حارس الإعدادات. الرفع اللاحق يوصّل المدموج للحساب. */
+      const resPz = await fetch(`${window.getApiBase()}/puzzles`, { headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' } });
+      if (resPz.ok) {
+        const serverPz = await resPz.json();
+        if (serverPz && typeof serverPz === 'object' && Object.keys(serverPz).length) {
+          try {
+            if (window.PZS && typeof window.PZS.importFromSync === 'function') {
+              await window.PZS.importFromSync(serverPz);
+            }
+          } catch (e) {}
+        }
+      }
     } catch (e) {}
 
     /* الرفع بعد التنزيل. البصمة ما بتتقدّمش إلا لو الرفع نجح فعلًا، فلو
@@ -952,6 +1038,13 @@ const amkhAuth = {
     if (!pulledSettings) this._settingsDirty = true;
     try { await this.flushSettings(); } catch (e) {}
     try { this.lastSyncProgress = JSON.stringify(await this._readLocalProgress()); } catch (e) {}
+    /* الألغاز: لو الدمج غيّر السجلّ المحلّي (أو كان فيه معلّق) نرفعه ونثبّت
+       البصمة على ردّ ناجح؛ وإلّا نضبط البصمة على الحالة الحالية فقط. */
+    if (this._loadPuzzlesDirtyFlag()) {
+      try { await this.flushPuzzles(); } catch (e) {}
+    } else {
+      try { this.lastSyncPuzzles = JSON.stringify(await this._readLocalPuzzles()); } catch (e) {}
+    }
     this.syncLocalData();
     if (pulledSettings) {
       /* مافيش إشعار: الشاشة نفسها اتغيّرت (الثيم والقطع والرقعة) وده
@@ -1193,6 +1286,12 @@ const amkhAuth = {
          ومن دخل يتفرّج للاعبين. الاتنين على سوكت الحضور المُوثَّق. */
       if (d.type.indexOf('spectate:') === 0) {
         try { if (window.amkhSpectate) window.amkhSpectate.handleSocketMessage(d); } catch (e) {}
+        return;
+      }
+      /* مواجهة الألغاز — رسائل puzzle:battle-* على نفس سوكت الحضور
+         المُوثَّق (لا chessWs المجهول). تُمرَّر لطبقة الشاشة PZU. */
+      if (d.type.indexOf('puzzle:') === 0) {
+        try { if (window.PZU && window.PZU.handleBattleFrame) window.PZU.handleBattleFrame(d, ws); } catch (e) {}
         return;
       }
       /* start / move / resign / chat / name / pimg… رسائل مباراة جاية على

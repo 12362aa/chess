@@ -761,6 +761,18 @@ const amkhFriends = {
       }
     };
     acts.appendChild(inviteBtn);
+
+    /* تحدَّ بالألغاز: رش مشترك ٣ دقائق. يمرّ عبر PZU على سوكت الحضور
+       نفسه، فلا يحتاج غرفة مباراة. متاح للمتّصل غير المنشغل بمباراة. */
+    if (window.PZU && typeof PZU.inviteBattle === 'function') {
+      const battleBtn = document.createElement('button');
+      battleBtn.type = 'button';
+      battleBtn.className = 'ds-btn ds-btn--secondary ds-btn--sm';
+      battleBtn.textContent = 'تحدَّ بالألغاز';
+      battleBtn.disabled = !f.online;
+      battleBtn.onclick = () => { U.sfx(); PZU.inviteBattle(f.id, window.amkhName(f)); };
+      acts.appendChild(battleBtn);
+    }
     }
 
     /* قائمة صغيرة: إزالة / حظر */

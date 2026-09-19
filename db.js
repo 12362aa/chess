@@ -279,6 +279,23 @@ function migrate() {
      بعد — فالنتيجة صحيحة في كل الأحوال. */
   if (addColumn('messages', 'pinned_until', 'TEXT')) added.push('messages.pinned_until');
 
+  /* ── سجلّ الألغاز يتبع الحساب ──
+     نسخة exportForSync (تصنيف + إجماليات + أرقام قياسية + مواضيع) بلوب
+     واحد على نفس صفّ user_settings — لا جدول جديد: البيانات صغيرة وتُقرأ/
+     تُكتب مع نفس دورة المزامنة. الدمج الفعليّ (الأعلى يفوز) يحصل على
+     الجهاز في PZS.importFromSync قبل الرفع، فالخادم يخزّن ما وصله. */
+  if (addColumn('user_settings', 'puzzles_json', 'TEXT')) added.push('user_settings.puzzles_json');
+
+  /* ── تصنيف الألغاز على users للصدارة ──
+     البلوب في puzzles_json كافٍ للمزامنة، لكنّ الصدارة تحتاج عمودًا
+     قابلًا للترتيب والفهرسة. ننسخ تصنيف الألغاز هنا مع كل مزامنة، منفصلًا
+     تمامًا عن تصنيف المباريات (rating) حفاظًا على مبدأ فصل التصنيفين. */
+  if (addColumn('users', 'puzzle_rating', 'REAL DEFAULT 1500')) added.push('users.puzzle_rating');
+  if (addColumn('users', 'puzzle_rd', 'REAL DEFAULT 350')) added.push('users.puzzle_rd');
+  if (addColumn('users', 'puzzle_games', 'INTEGER DEFAULT 0')) added.push('users.puzzle_games');
+  if (addColumn('users', 'puzzle_solved', 'INTEGER DEFAULT 0')) added.push('users.puzzle_solved');
+  if (addColumn('users', 'puzzle_peak', 'REAL DEFAULT 1500')) added.push('users.puzzle_peak');
+
   /* ── جروبات الأصدقاء (شات جماعي) ──
      groups: الجروب نفسه. group_members: العضوية. group_messages: الرسايل
      (نص/صوت). group_reads: آخر رسالة قراها كل عضو لحساب غير المقروء. */
