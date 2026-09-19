@@ -6690,6 +6690,16 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   box-shadow: 0 4px 16px rgba(216,180,90,.32);
 }
 .pz-btn--main:hover{ background: linear-gradient(180deg, var(--color-primary), var(--color-primary-pressed)); }
+/* أزرار التنقّل/الاستسلام: مربّعة مدمجة بأيقونة، لا تتمدّد مثل الرئيسي */
+.pz-btn--nav{
+  flex: 0 0 auto;
+  width: 54px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-text-secondary);
+}
+.pz-btn--nav:hover{ color: var(--color-text-primary); }
 
 /* ── ورقة نتيجة اللغز ────────────────────────────────────────────────── */
 .pzr{ text-align: center; }
@@ -6839,3 +6849,18 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 
 /* زرّ «ابدأ» بلغز اليوم أبرز */
 .pzh__daily .pz-btn--main{ min-height: 50px; margin-top: var(--space-1); }
+
+/* بلاطة الوضع: أيقونة قطعة + عمود نصّ (صفّ لا عمود) */
+.pzh__mode{ flex-direction: row !important; align-items: center; gap: var(--space-3); text-align: start; }
+.pzh__mode-ic{
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; line-height: 1;
+  color: var(--color-primary-text);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+}
+.pzh__mode-tx{ display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pzh__mode--wide .pzh__mode-ic{ width: 40px; height: 40px; font-size: 22px; }

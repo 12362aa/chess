@@ -323,15 +323,31 @@ const PZU = (() => {
       return;
     }
 
+    /* تنقّل: رجوع (يستعرض النقلة السابقة) — الاتجاه بصريّ لا منطقيّ فيتبع
+       اللغة. معطَّل عند طرفَي التاريخ. */
+    const hist = M.hist || [];
+    const back = btn('pz-btn pz-btn--nav', '‹', () => navTo((M.view < 0 ? hist.length - 1 : M.view) - 1));
+    back.setAttribute('aria-label', L('رجوع نقلة', 'Back'));
+    back.disabled = !(hist.length && M.view > 0);
+    const fwd = btn('pz-btn pz-btn--nav', '›', () => navTo((M.view < 0 ? hist.length - 1 : M.view) + 1));
+    fwd.setAttribute('aria-label', L('تقديم نقلة', 'Forward'));
+    fwd.disabled = atLive();
+
     const hintLabel = M.sess && M.sess.hintsUsed
       ? L('تلميح أوضح', 'Clearer hint') : L('تلميح', 'Hint');
-    const hb = btn('pz-btn', hintLabel, () => doHint());
+    const hb = btn('pz-btn pz-btn--main', hintLabel, () => doHint());
     /* في الأوضاع المؤقَّتة التلميح معطَّل: الجولة نتيجتها رقم يُقارَن،
        ومساعدة في جولة ورقم بلا مساعدة في أخرى يجعلان الرقمين لا يُقارَنان. */
     if (M.timed) { hb.disabled = true; hb.title = L('لا تلميح في الجولات المؤقّتة', 'No hints in timed rounds'); }
-    bar.appendChild(hb);
 
-    bar.appendChild(btn('pz-btn', L('عرض الحلّ', 'Show solution'), () => doGiveUp()));
+    /* عرض الحلّ كأيقونة راية بيضاء (استسلام) عشان لا يزاحم التلميح */
+    const give = btn('pz-btn pz-btn--nav', '⚑', () => doGiveUp());
+    give.setAttribute('aria-label', L('عرض الحلّ', 'Show solution'));
+
+    bar.appendChild(back);
+    bar.appendChild(give);
+    bar.appendChild(hb);
+    bar.appendChild(fwd);
   }
 
   /* ── عرض اللغز ─────────────────────────────────────────────────── */
@@ -347,8 +363,30 @@ const PZU = (() => {
     }, extra || {}));
   }
 
+  /* ── تنقّل النقلات (رجوع/تقديم زي chess.com) ─────────────────────
+     نلتقط لقطة للوضع بعد كل نصف‑نقلة (الافتتاح، نقلتك، ردّ الخصم). الرجوع
+     يستعرض اللقطات للقراءة فقط؛ الوصول لآخر لقطة يعيد اللعب الحيّ. */
+  function snap() {
+    if (!M || !M.sess) return;
+    M.hist = M.hist || [];
+    try { M.hist.push({ bd: E.clone(M.sess.board), last: M.last ? { from: M.last.from, to: M.last.to } : null }); }
+    catch (e) { return; }
+    M.view = M.hist.length - 1;
+  }
+  function atLive() { return !M || !M.hist || M.view >= M.hist.length - 1; }
+  function navTo(i) {
+    if (!M || !M.hist || !M.hist.length) return;
+    M.view = Math.max(0, Math.min(M.hist.length - 1, i));
+    const sn = M.hist[M.view];
+    M.sel = null; M.legal = [];
+    B.paint({ bd: sn.bd, flip: M.puzzle.playerCol === 'b', last: sn.last });
+    renderBar();
+  }
+
   function onSquare(r, c) {
     if (!M || !M.sess || M.finished || busy) return;
+    /* لو اللاعب يستعرض نقلة سابقة، أوّل لمسة تعيده للوضع الحيّ لا تلعب */
+    if (!atLive()) { navTo(M.hist.length - 1); return; }
     const s = M.sess;
     const code = s.board[r][c];
 
@@ -396,6 +434,7 @@ const PZU = (() => {
     view();
     B.slide(from, to);
     B.mark(to, 'ok');
+    snap();
     sfx(res.status === 'solved' && res.mate ? 'checkmate' : 'move');
 
     if (res.status === 'solved') { finish(true); return; }
@@ -409,6 +448,7 @@ const PZU = (() => {
       if (rep) { M.last = { from: rep.from, to: rep.to }; }
       view();
       if (rep) B.slide(rep.from, rep.to);
+      snap();
       sfx('move');
       busy = false;
       if (s.finished) finish(true);
@@ -632,6 +672,7 @@ const PZU = (() => {
   async function nextPuzzle() {
     if (!M) return;
     M.finished = false; M.gaveUp = false; M.sel = null; M.legal = []; M.last = null;
+    M.hist = []; M.view = -1;
     say(L('نحضّر اللغز…', 'Loading the puzzle…'));
 
     let p = null;
@@ -674,6 +715,7 @@ const PZU = (() => {
       M.last = { from: p.opening.from, to: p.opening.to };
       view();
       B.slide(p.opening.from, p.opening.to);
+      snap();
       sfx('move');
       busy = false;
       say(coachOn() ? PZN.intro(p) : null);
@@ -854,24 +896,33 @@ const PZU = (() => {
     host.appendChild(d);
 
     /* ── الأوضاع ── */
+    /* أيقونات قطع شطرنج لكل وضع — على طابع التطبيق لا إيموجي، تكسر
+       رتابة «قائمة نصوص» التي بدت بدائية. */
+    const MODE_IC = { rated: '♛', rush: '♞', streak: '♟', racer: '♝', easy: '♙', hard: '♜', theme: '❖' };
     const modes = el('div', 'pzh__modes');
-    for (const key of ['rated', 'rush', 'streak', 'racer', 'easy', 'hard']) {
+    const mkTile = (key, wide) => {
       const m = MODES[key];
-      const t = el('button', 'pzh__mode');
+      const t = el('button', 'pzh__mode' + (wide ? ' pzh__mode--wide' : ''));
       t.type = 'button';
-      t.appendChild(el('span', 'pzh__mode-title', L(m.ar, m.en)));
-      t.appendChild(el('span', 'pzh__mode-desc', L(m.dar, m.den)));
+      const ic = el('span', 'pzh__mode-ic', MODE_IC[key] || '♟');
+      ic.setAttribute('aria-hidden', 'true');
+      t.appendChild(ic);
+      const tx = el('span', 'pzh__mode-tx');
+      tx.appendChild(el('span', 'pzh__mode-title', L(m.ar, m.en)));
+      tx.appendChild(el('span', 'pzh__mode-desc', L(m.dar, m.den)));
       if (m.best && st.records && st.records[m.best]) {
-        t.appendChild(el('span', 'pzh__mode-best',
+        tx.appendChild(el('span', 'pzh__mode-best',
           L('أفضل نتيجة ' + st.records[m.best], 'Best ' + st.records[m.best])));
       }
+      t.appendChild(tx);
+      return t;
+    };
+    for (const key of ['rated', 'rush', 'streak', 'racer', 'easy', 'hard']) {
+      const t = mkTile(key, false);
       t.addEventListener('click', () => { sfx('btn'); start(key); });
       modes.appendChild(t);
     }
-    const tt2 = el('button', 'pzh__mode pzh__mode--wide');
-    tt2.type = 'button';
-    tt2.appendChild(el('span', 'pzh__mode-title', L(MODES.theme.ar, MODES.theme.en)));
-    tt2.appendChild(el('span', 'pzh__mode-desc', L(MODES.theme.dar, MODES.theme.den)));
+    const tt2 = mkTile('theme', true);
     tt2.addEventListener('click', () => { sfx('btn'); openThemes(); });
     modes.appendChild(tt2);
     host.appendChild(modes);
