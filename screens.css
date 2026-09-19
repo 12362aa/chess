@@ -2210,6 +2210,26 @@ body[data-ui-theme="gaming"]{
   gap: var(--space-5);
 }
 
+/* النسخة المختصرة (بلا قائمة مزايا): البطل والعنوان في وسط الشاشة،
+   والأزرار أسفلها — راقية ومركّزة كـchess.com، وبلا تمرير على الأغلب. */
+.wl-screen--min{ justify-content: center; text-align: center; }
+.wl-screen--min .wl-info{ margin-block: auto; gap: var(--space-4); }
+.wl-screen--min .wl-hero{ padding: var(--space-3) 0 var(--space-4); }
+.wl-screen--min .wl-board{ --wl-bs: 168px; animation: wlHeroDrop .6s cubic-bezier(.34,1.4,.5,1) both; }
+.wl-screen--min .wl-title{ font-size: 26px; }
+.wl-screen--min .wl-sub{ font-size: 16px; color: var(--color-text-secondary); }
+.wl-screen--min .wl-actions{ max-width: 420px; width: 100%; margin-inline: auto; }
+/* دخول البطل: يقفز من فوق ويستقرّ (transform فقط) */
+@keyframes wlHeroDrop{
+  0%{ opacity: 0; transform: translateY(-34px) scale(.9); }
+  60%{ opacity: 1; transform: translateY(6px) scale(1.02); }
+  100%{ opacity: 1; transform: none; }
+}
+@media (max-height: 640px){
+  .wl-screen--min .wl-board{ --wl-bs: 132px; }
+  .wl-screen--min .wl-hero{ padding: var(--space-2) 0; }
+}
+
 .wl-top{
   width: 100%;
   max-width: 520px;
@@ -6478,15 +6498,19 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .pzh__ctext{ color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
 
 /* ── شاشة الحلّ ──────────────────────────────────────────────────────── */
+/* شاشة الحلّ تملأ المساحة تحت الشريط: المدرّب فوق، الرقعة موسّطة بحجمها
+   الكامل، والأزرار مثبّتة أسفل — فلا فراغ ميّت (زي chess.com). */
+#s-puzzle.screen{ flex-direction: column; }
 .pzg{
   width: 100%;
-  max-width: 440px;
+  max-width: var(--board);
   margin: 0 auto;
+  min-height: calc(100dvh - var(--appbar-height) - env(safe-area-inset-top));
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3) var(--space-5);
+  padding: var(--space-3) 0 calc(var(--space-4) + env(safe-area-inset-bottom));
 }
 .pzg__status{
   width: 100%;
@@ -6526,20 +6550,38 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .pzg__vs-me.is-lead, .pzg__vs-opp.is-lead{ color: var(--color-primary-text); }
 .pzg__vs-sep{ color: var(--color-text-disabled); font-weight: 700; }
 
-/* الرقعة — نفس أصناف شاشة اللعب، لكن شبكة مستقلّة الحجم */
+/* الرقعة — نفس حجم رقعة اللعب بالضبط (var(--board))، موسّطة، تعيد
+   استعمال أصناف .sq/.piece فتتبع الثيم */
 .pzg__board{
-  width: min(92vw, 420px);
+  width: 100%;
+  max-width: var(--board);
   aspect-ratio: 1 / 1;
+  align-self: center;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(0,0,0,.4);
+  box-shadow: 0 10px 34px rgba(0,0,0,.45);
   background: var(--color-surface-sunken);
   touch-action: manipulation;
 }
 #pz-board .sq{ width: 100%; height: 100%; }
+/* ثيمات الرقعة المعتمدة على صورة: نطبّق نفس منطق #board — الصورة على
+   الحاوية والمربّعات تشفّ لتظهر تحتها. بدون هذا كانت رقعة «صورة» تظهر
+   بألوان مصمتة في الألغاز. */
+#pz-board.has-bg-image{ background-size: cover; background-position: center; }
+#pz-board.has-bg-image .sq.L:not(.SL):not(.SD):not(.ML):not(.MD),
+#pz-board.has-bg-image .sq.D:not(.SL):not(.SD):not(.ML):not(.MD){ background: transparent; position: relative; }
+#pz-board.has-bg-image .sq.L:not(.SL):not(.SD):not(.ML):not(.MD)::before,
+#pz-board.has-bg-image .sq.D:not(.SL):not(.SD):not(.ML):not(.MD)::before{
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+}
+#pz-board.has-bg-image .sq.L:not(.SL):not(.SD):not(.ML):not(.MD)::before{ background: rgba(255,255,255,0.12); }
+#pz-board.has-bg-image .sq.D:not(.SL):not(.SD):not(.ML):not(.MD)::before{ background: rgba(0,0,0,0.28); }
+#pz-board.has-bg-image.custom-board .sq.L,
+#pz-board.has-bg-image.custom-board .sq.D{ background: transparent !important; }
+#pz-board.has-bg-image.custom-board .sq.L::before,
+#pz-board.has-bg-image.custom-board .sq.D::before{ background: transparent !important; }
 /* لمعان التلميح: توهّج ذهبي حول المربّع، بلا تغيير لون خلفيّته */
 #pz-board .sq.pz-glow{ position: relative; }
 #pz-board .sq.pz-glow::after{
@@ -6568,28 +6610,49 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   100%{ opacity: 0; transform: scale(1); }
 }
 
-/* شريط نور — الصورة + سطر واحد، ينزلق داخلًا */
+/* نور المدرّب فوق الرقعة (زي chess.com): صورة كبيرة + فقاعة كلام بذيل */
 .pzg__coach{
   width: 100%;
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
-  min-height: 48px;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+  min-height: 64px;
 }
 .pzg__coach-av{
-  width: 34px; height: 34px;
+  width: 52px; height: 52px;
   flex-shrink: 0;
   border-radius: 50%;
   background: url('./nour.png?v=2') center/cover no-repeat;
-  border: 1px solid var(--color-primary-border);
+  border: 2px solid var(--color-primary-border);
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+}
+.pzg__coach-bubble{
+  position: relative;
+  flex: 1;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+/* ذيل الفقاعة ناحية الصورة — يتبع اتجاه اللغة تلقائيًّا */
+.pzg__coach-bubble::before{
+  content: '';
+  position: absolute;
+  inset-inline-start: -7px;
+  top: 20px;
+  width: 14px; height: 14px;
+  background: var(--color-surface-raised);
+  border-inline-start: 1px solid var(--color-border-subtle);
+  border-block-start: 1px solid var(--color-border-subtle);
+  transform: rotate(-45deg);
 }
 .pzg__coach-text{
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--color-text-primary);
   opacity: 0;
   transform: translateY(4px);
@@ -6597,32 +6660,36 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 }
 .pzg__coach-text.is-in{ opacity: 1; transform: none; }
 
-/* شريط الأزرار */
+/* شريط الأزرار — مثبّت أسفل الشاشة فلا فراغ ميّت تحته */
 .pzg__bar{
   width: 100%;
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  margin-top: auto;
+  padding: 0 var(--space-3);
 }
 .pz-btn{
   flex: 1;
-  min-height: 46px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  min-height: 54px;
+  border-radius: var(--radius-pill);
+  border: none;
   background: var(--color-surface-raised);
   color: var(--color-text-primary);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
-  transition: transform .12s ease, background-color .12s ease, opacity .12s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,.22);
+  transition: transform .12s ease, background-color .12s ease, opacity .12s ease, box-shadow .12s ease;
 }
 .pz-btn:active{ transform: scale(.97); }
-.pz-btn:disabled{ opacity: .45; cursor: default; }
+.pz-btn:hover{ background: var(--color-surface); }
+.pz-btn:disabled{ opacity: .4; cursor: default; box-shadow: none; }
 .pz-btn--main{
-  background: var(--color-primary);
+  background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary));
   color: var(--color-on-primary);
-  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(216,180,90,.32);
 }
-.pz-btn--main:hover{ background: var(--color-primary-hover); }
+.pz-btn--main:hover{ background: linear-gradient(180deg, var(--color-primary), var(--color-primary-pressed)); }
 
 /* ── ورقة نتيجة اللغز ────────────────────────────────────────────────── */
 .pzr{ text-align: center; }
@@ -6736,3 +6803,39 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 /* شعلة السلسلة: نبضة دافئة خفيفة على بطاقة لغز اليوم حين توجد سلسلة */
 .pzh__streak{ animation: pzFlame 2.2s ease-in-out infinite; }
 @keyframes pzFlame{ 0%,100%{ transform: scale(1); opacity: .92; } 50%{ transform: scale(1.05); opacity: 1; } }
+
+/* ══ صقل اللوحة: دخول متدرّج + عمق + هرميّة أوضح (بعيدًا عن الطابع البدائي) ══ */
+.pzh{ padding-top: var(--space-4); }
+.pzh__card{
+  box-shadow: 0 6px 22px rgba(0,0,0,.28);
+  animation: pzCardIn .4s cubic-bezier(.22,.9,.3,1) both;
+}
+.pzh__modes .pzh__mode{ animation: pzCardIn .4s cubic-bezier(.22,.9,.3,1) both; }
+/* تدرّج الظهور — الكروت تنزل واحدًا تلو الآخر */
+.pzh > *:nth-child(1){ animation-delay: .02s; }
+.pzh > *:nth-child(2){ animation-delay: .07s; }
+.pzh > *:nth-child(3){ animation-delay: .12s; }
+.pzh > *:nth-child(4){ animation-delay: .17s; }
+.pzh > *:nth-child(5){ animation-delay: .22s; }
+.pzh > *:nth-child(6){ animation-delay: .27s; }
+@keyframes pzCardIn{ from{ opacity: 0; transform: translateY(10px); } to{ opacity: 1; transform: none; } }
+
+/* بطاقة التصنيف بطلة اللوحة: رقم أضخم وحلقة ذهبية خفيفة */
+.pzh__top{
+  background: radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--color-primary) 12%, var(--color-surface)) 0%, var(--color-surface) 60%);
+  border-color: var(--color-primary-border);
+}
+.pzh__rating{ font-size: 46px; letter-spacing: -.5px; }
+
+/* بلاطات الأوضاع: عمق + رفعة عند اللمس، تبدو تفاعليّة لا مسطّحة */
+.pzh__mode{
+  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
+  box-shadow: 0 4px 14px rgba(0,0,0,.22);
+  min-height: 82px;
+  justify-content: center;
+}
+.pzh__mode:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.3); }
+.pzh__mode--wide{ min-height: 62px; }
+
+/* زرّ «ابدأ» بلغز اليوم أبرز */
+.pzh__daily .pz-btn--main{ min-height: 50px; margin-top: var(--space-1); }

@@ -3465,12 +3465,14 @@ html.amkh-preboot #amkh-preboot{
 
 <div id="s-puzzle" class="screen">
   <div class="pzg" data-no-i18n>
-    <div id="pz-status" class="pzg__status"></div>
-    <div id="pz-board" class="pzg__board"></div>
+    <!-- المدرّب فوق (زي chess.com): صورة + فقاعة كلام -->
     <div id="pz-coach" class="pzg__coach" hidden>
       <span class="pzg__coach-av" aria-hidden="true"></span>
-      <span id="pz-coach-text" class="pzg__coach-text"></span>
+      <span class="pzg__coach-bubble"><span id="pz-coach-text" class="pzg__coach-text"></span></span>
     </div>
+    <div id="pz-status" class="pzg__status"></div>
+    <!-- الرقعة بحجم رقعة اللعب الكاملة، موسّطة -->
+    <div id="pz-board" class="pzg__board"></div>
     <div id="pz-bar" class="pzg__bar"></div>
   </div>
 </div>

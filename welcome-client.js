@@ -229,15 +229,7 @@
       const ttl = $('.wl-title');
       if (ttl && ttl.firstChild && ttl.firstChild.nodeType === 3)
         ttl.firstChild.nodeValue = t('أهلًا بك في شطرنج ');
-      put('.wl-sub', 'اللعبة كاملة بلا إنترنت، والحساب يفتح باقي التطبيق');
-      const items = ov.querySelectorAll('.wl-feat');
-      FEATS.forEach((f, i) => {
-        const li = items[i];
-        if (!li) return;
-        const b = li.querySelector('.wl-feat__t'), s = li.querySelector('.wl-feat__s');
-        if (b) b.textContent = t(f[1]);
-        if (s) s.textContent = t(f[2]);
-      });
+      put('.wl-sub', 'العب. تعلّم. استمتع.');
       put('#wl-create', 'إنشاء حساب مجاني');
       put('.wl-g-label', 'المتابعة بحساب جوجل');
       put('#wl-login', 'لديّ حساب — تسجيل الدخول');
@@ -246,17 +238,10 @@
     },
 
     show() {
-      const feats = FEATS.map(f => `
-        <li class="wl-feat">
-          <span class="wl-feat__ic" aria-hidden="true">${ICO[f[0]]}</span>
-          <span class="wl-feat__txt">
-            <b class="wl-feat__t">${f[1]}</b>
-            <span class="wl-feat__s">${f[2]}</span>
-          </span>
-        </li>`).join('');
-
+      /* شاشة مختصرة راقية (على نهج chess.com): بطل متحرّك + سطر واحد +
+         أزرار الدخول — بلا قائمة مزايا طويلة تفرض التمرير. */
       const ov = window.amkhUI.mount('amkh-welcome', `
-        <div class="wl-screen" role="document">
+        <div class="wl-screen wl-screen--min" role="document">
           <div class="wl-lang" role="group" aria-label="Language" data-no-i18n>
             <button type="button" class="wl-lang__btn" id="wl-lang-ar" lang="ar">عربية</button>
             <button type="button" class="wl-lang__btn" id="wl-lang-en" lang="en">English</button>
@@ -265,9 +250,8 @@
             <div class="wl-top">
               <div class="wl-hero"><div class="wl-board-slot"></div></div>
               <h2 class="wl-title">أهلًا بك في شطرنج <span class="wl-brand">Am-Kh</span></h2>
-              <p class="wl-sub">اللعبة كاملة بلا إنترنت، والحساب يفتح باقي التطبيق</p>
+              <p class="wl-sub">العب. تعلّم. استمتع.</p>
             </div>
-            <ul class="wl-feats">${feats}</ul>
           </div>
           <div class="wl-actions">
             <button id="wl-create" class="ds-btn ds-btn--primary ds-btn--block ds-btn--lg">إنشاء حساب مجاني</button>

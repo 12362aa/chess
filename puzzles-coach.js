@@ -209,25 +209,33 @@ const PZN = (() => {
       ]);
     },
 
-    /* (٣) عند التلميح — فكرة لا حلّ. h من PZ.session().hint() */
+    /* (٣) عند التلميح — فكرة لا حلّ، متدرّجة ومتنوّعة الصياغة. h من
+       PZ.session().hint(). التنويع يمنع إحساس «جملة ثابتة في الكود». */
     hint(h) {
       if (mode === 'silent' || !h) return null;
       if (h.level === 1) {
         const where = h.side === 'kingside'
           ? L('جناح الملك', 'the kingside') : L('جناح الوزير', 'the queenside');
-        return L(`النقلة تبدأ من ${where}. ابحث هناك.`,
-                 `The move starts on ${where}. Look there.`);
+        return vary('hint1', [
+          L(`القطعة الحاسمة عند ${where}. ابدأ بحثك هناك.`, `The key piece is on ${where}. Start your search there.`),
+          L(`مفتاح الموقف في ${where}.`, `The key to this position is on ${where}.`),
+          L(`انظر إلى ${where}؛ من هناك تبدأ النقلة.`, `Look at ${where}; that is where the move begins.`),
+        ]);
       }
+      const sq = (typeof PZ !== 'undefined') ? PZ.rcToSq(h.from[0], h.from[1]) : '';
       if (h.level === 2) {
         const nm = pieceName(h.piece);
-        const sq = (typeof PZ !== 'undefined') ? PZ.rcToSq(h.from[0], h.from[1]) : '';
-        return L(`القطعة هي ${nm} على ${sq}. إلى أين تذهب؟`,
-                 `The piece is ${nm} on ${sq}. Where does it go?`);
+        return vary('hint2', [
+          L(`إنه ${nm} على ${sq}. إلى أين يذهب؟`, `It is ${nm} on ${sq}. Where does it go?`),
+          L(`حرّك ${nm} من ${sq} — فكّر في أقوى وجهة له.`, `Move ${nm} from ${sq} — think of its strongest square.`),
+        ]);
       }
-      const a = (typeof PZ !== 'undefined') ? PZ.rcToSq(h.from[0], h.from[1]) : '';
+      const a = sq;
       const b = (typeof PZ !== 'undefined') ? PZ.rcToSq(h.to[0], h.to[1]) : '';
-      return L(`النقلة: من ${a} إلى ${b}. العبها وانظر لماذا تعمل.`,
-               `The move: ${a} to ${b}. Play it and see why it works.`);
+      return vary('hint3', [
+        L(`النقلة: من ${a} إلى ${b}. العبها وتأمّل لماذا تنجح.`, `The move: ${a} to ${b}. Play it and see why it works.`),
+        L(`من ${a} إلى ${b} — هذه هي.`, `From ${a} to ${b} — this is it.`),
+      ]);
     },
 
     /* (٤) بعد الحلّ — تسمية الفكرة. res: {mistakes, hintsUsed, ms} */

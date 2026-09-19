@@ -414,6 +414,7 @@
     'درّب بصرك على التكتيك': 'Train your tactical eye',
     'لغز مكافأة': 'Bonus puzzle',
     'تحدَّ بالألغاز': 'Puzzle battle',
+    'العب. تعلّم. استمتع.': 'Play. Learn. Have fun.',
     'أفضل الحلّالين — تصنيف ألغاز مصنّف': 'Top solvers — rated puzzle rating',
     'لغز اليوم بانتظارك': 'Today\'s puzzle awaits',
     'حلّ لغز اليوم وحافظ على سلسلتك.': 'Solve today\'s puzzle and keep your streak.',

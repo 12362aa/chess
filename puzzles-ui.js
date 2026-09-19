@@ -139,15 +139,30 @@ const PZU = (() => {
       /* صورة الرقعة المخصّصة تُطبَّق على #board وحدها في الإعدادات،
          فنعكسها هنا يدويًّا وإلّا ظهر القسم بثيم غير ثيم المستخدم. */
       try {
-        const src = document.getElementById('board');
-        if (src && src.classList.contains('has-bg-image')) {
-          host.style.backgroundImage = src.style.backgroundImage;
+        /* نحسب ثيم الرقعة من الإعداد مباشرةً (resolveBoardVisual) لا بنسخ
+           ستايل #board الحيّ — لأنّ اللاعب قد يفتح الألغاز قبل أن تُرسم
+           رقعة اللعب أصلًا، فتظهر ألوان مصمتة بدل الصورة. */
+        let vis = null;
+        try { if (typeof resolveBoardVisual === 'function') vis = resolveBoardVisual(); } catch (e2) {}
+        if (!vis && typeof window !== 'undefined' && window.resolveBoardVisual) { try { vis = window.resolveBoardVisual(); } catch (e2) {} }
+        if (vis && vis.hasImage) {
+          host.style.backgroundImage = 'url("' + vis.imagePath + '")';
           host.style.backgroundSize = 'cover';
+          host.style.backgroundPosition = 'center';
+          host.style.backgroundRepeat = 'no-repeat';
           host.classList.add('has-bg-image');
-          if (src.classList.contains('custom-board')) host.classList.add('custom-board');
+          host.classList.toggle('custom-board', !!vis.isCustom);
         } else {
-          host.style.backgroundImage = '';
-          host.classList.remove('has-bg-image', 'custom-board');
+          const src = document.getElementById('board');
+          if (src && src.classList.contains('has-bg-image')) {
+            host.style.backgroundImage = src.style.backgroundImage;
+            host.style.backgroundSize = 'cover';
+            host.classList.add('has-bg-image');
+            if (src.classList.contains('custom-board')) host.classList.add('custom-board');
+          } else {
+            host.style.backgroundImage = '';
+            host.classList.remove('has-bg-image', 'custom-board');
+          }
         }
       } catch (e) {}
     },

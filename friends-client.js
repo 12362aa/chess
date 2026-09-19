@@ -761,18 +761,6 @@ const amkhFriends = {
       }
     };
     acts.appendChild(inviteBtn);
-
-    /* تحدَّ بالألغاز: رش مشترك ٣ دقائق. يمرّ عبر PZU على سوكت الحضور
-       نفسه، فلا يحتاج غرفة مباراة. متاح للمتّصل غير المنشغل بمباراة. */
-    if (window.PZU && typeof PZU.inviteBattle === 'function') {
-      const battleBtn = document.createElement('button');
-      battleBtn.type = 'button';
-      battleBtn.className = 'ds-btn ds-btn--secondary ds-btn--sm';
-      battleBtn.textContent = 'تحدَّ بالألغاز';
-      battleBtn.disabled = !f.online;
-      battleBtn.onclick = () => { U.sfx(); PZU.inviteBattle(f.id, window.amkhName(f)); };
-      acts.appendChild(battleBtn);
-    }
     }
 
     /* قائمة صغيرة: إزالة / حظر */
@@ -785,6 +773,11 @@ const amkhFriends = {
       U.sfx();
       const name = window.amkhName(f);
       const items = [{ key: 'profile', label: 'الملف الشخصي' }];
+      /* تحدّي الألغاز في القائمة لا كزرّ في الصفّ — الزرّ كان يزاحم الاسم
+         فيظهر مقطوعًا. متاح للمتّصل غير المنشغل بمباراة. */
+      if (f.online && f.status !== 'in-game' && window.PZU && typeof PZU.inviteBattle === 'function') {
+        items.push({ key: 'battle', label: 'تحدَّ بالألغاز' });
+      }
       if (f.status === 'in-game') items.push({ key: 'watch', label: 'مشاهدة المباراة' });
       items.push({ key: 'remove', label: 'إزالة من الأصدقاء' });
       items.push({ key: 'block', label: 'حظر' });
@@ -792,6 +785,7 @@ const amkhFriends = {
       if (choice === 'profile' && window.PlayerCard) {
         window.PlayerCard.open(f.id, { name, avatar_url: f.avatar_url, country: f.country, status: f.status });
       }
+      if (choice === 'battle' && window.PZU) PZU.inviteBattle(f.id, name);
       if (choice === 'watch' && window.amkhSpectate) window.amkhSpectate.start(f.id, name);
       if (choice === 'remove') this.removeFriend(f.id, name);
       if (choice === 'block') this.blockUser(f.id, name);
