@@ -649,6 +649,10 @@ const amkhAuth = {
        معلّقًا فيُرفَع أوّل دخول جاي بدل ما الاختيار يضيع. اللي بيطفّيه
        هو النجاح وحده. */
     try { if (this._settingsDirty) this.flushSettings(this.token); } catch (e) {}
+    /* وسجلّ الألغاز معها بالحرف: كان بيتنسى هنا، فاللي يحلّ ألغازًا ثم
+       يخرج قبل ما مؤقّت الرفع يدقّ كان تقدّمه يضيع — والدخول التالي
+       ينزّل سجلًّا أقدم فوقه فيرجع التصنيف لـ١٢٠٠ (بلاغ أحمد). */
+    try { if (this._loadPuzzlesDirtyFlag()) this.flushPuzzles(this.token); } catch (e) {}
     if (this._settingsTimer) { clearTimeout(this._settingsTimer); this._settingsTimer = null; }
     this.token = null;
     this.user = null;
@@ -1174,12 +1178,23 @@ const amkhAuth = {
     if (this._presHooked) return;
     this._presHooked = true;
     const go = (why) => { try { this.revive(why); } catch (e) {} };
-    try { document.addEventListener('visibilitychange', () => { if (!document.hidden) go('visible'); }); } catch (e) {}
+    /* الخروج للخلفية = آخر لحظة مضمونة قبل ما النظام يقتل الـWebView.
+       أي تغيير معلّق (إعدادات أو ألغاز) يُرفَع هنا بلا انتظار مؤقّت. */
+    const park = () => {
+      try { if (this._settingsDirty) this.flushSettings(); } catch (e) {}
+      try { if (this._loadPuzzlesDirtyFlag()) this.flushPuzzles(); } catch (e) {}
+    };
+    try {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) park(); else go('visible');
+      });
+    } catch (e) {}
+    try { window.addEventListener('pagehide', park); } catch (e) {}
     try { window.addEventListener('online', () => go('net')); } catch (e) {}
     try { window.addEventListener('focus', () => go('focus')); } catch (e) {}
     try {
       const C = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
-      if (C && C.addListener) C.addListener('appStateChange', (s) => { if (s && s.isActive) go('app'); });
+      if (C && C.addListener) C.addListener('appStateChange', (s) => { if (s && s.isActive) go('app'); else park(); });
     } catch (e) {}
   },
 

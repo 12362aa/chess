@@ -383,6 +383,7 @@ const PZS = (() => {
         streak: this.dayStreak(st.days),
         records: st.best,
         recent: a.slice(0, 10),
+        days: st.days.slice(0, 14),   /* شريط آخر أسبوع في اللوحة */
       };
     },
 
@@ -421,6 +422,10 @@ const PZS = (() => {
         v: 1, rating: st.rating, totals: st.totals,
         best: st.best, days: st.days.slice(0, 60), daily: st.daily,
         themes: st.themes,
+        /* «لا تكرّر عليّ لغزًا» لازم يسافر مع الحساب كمان: من غيره الجهاز
+           الجديد بيرجّع للاعب ألغازًا حلّها على جهازه القديم. مقصوص على
+           ٣٠٠ عشان البلوب يفضل صغيرًا. */
+        seen: st.seen.slice(0, 300),
       };
     },
 
@@ -430,9 +435,15 @@ const PZS = (() => {
       if (!remote || typeof remote !== 'object') return false;
       const st = await load();
       const r = remote.rating || {};
-      if ((Number(r.games) || 0) > (Number(st.rating.games) || 0)) {
-        st.rating = Object.assign(PZR.blank(), r);
-      }
+      /* أيُّ السجلّين أحدث؟ عدد المحاولات وحده (games) كان بيخون: اللغز
+         المحلول بمساعد مابيزوّدش games، فلاعب حلّ عشرة بمساعد على جهاز
+         تاني كان سجلّه يُهمَل بالكامل. المقياس هنا كل ما جرى فعلًا. */
+      const act = x => (Number(x && x.games) || 0) + (Number(x && x.assisted) || 0)
+                     + (Number(x && x.solved) || 0) + (Number(x && x.failed) || 0);
+      if (act(r) > act(st.rating)) st.rating = Object.assign(PZR.blank(), r);
+      /* القمّة وأصعب لغز لا ينزلان أبدًا مهما كان الفائز في المقارنة */
+      st.rating.best = Math.max(Number(st.rating.best) || 0, Number(r.best) || 0);
+      st.rating.hardest = Math.max(Number(st.rating.hardest) || 0, Number(r.hardest) || 0);
       for (const k of Object.keys(st.totals)) {
         st.totals[k] = Math.max(st.totals[k] || 0, Number(remote.totals && remote.totals[k]) || 0);
       }
@@ -442,6 +453,38 @@ const PZS = (() => {
       if (Array.isArray(remote.days)) {
         const all = new Set(st.days.concat(remote.days));
         st.days = [...all].sort().reverse().slice(0, MAX_DAYS);
+      }
+      if (Array.isArray(remote.seen)) {
+        const all = new Set(st.seen.concat(remote.seen));
+        st.seen = [...all].slice(0, MAX_SEEN);
+      }
+      /* ── لغز اليوم ──
+         كان غائبًا عن الدمج تمامًا، فالحساب كان بيرجع بسجلّ بلا حالة
+         اليوم — واللاعب اللي حلّ لغز اليوم ثم سجّل الدخول من جديد كان
+         بيلاقيه مفتوحًا للّعب تاني (بلاغ أحمد). القاعدة: لغز اليوم
+         محسوم لصالح «حُلّ»، لأن نسيان حلٍّ حصل أسوأ من تكرار عرضه. */
+      const rd2 = remote.daily;
+      if (rd2 && typeof rd2 === 'object' && rd2.day) {
+        const today = dayKey();
+        const mine = st.daily;
+        if (!mine || !mine.day || rd2.day > mine.day) {
+          /* سجلّ الحساب أحدث (أو ما عندناش حاجة) → نأخذه كما هو */
+          st.daily = Object.assign({}, rd2);
+        } else if (mine.day === rd2.day) {
+          st.daily = {
+            day: mine.day,
+            id: mine.id || rd2.id || null,
+            hearts: Math.min(Number(mine.hearts) >= 0 ? mine.hearts : 5,
+                             Number(rd2.hearts) >= 0 ? rd2.hearts : 5),
+            done: !!(mine.done || rd2.done),
+            solved: !!(mine.solved || rd2.solved),
+            hints: Math.max(Number(mine.hints) || 0, Number(rd2.hints) || 0),
+          };
+        }
+        /* لو حالة اليوم المدموجة «حُلّ» فاليوم لازم يبقى في سلسلة الأيام */
+        if (st.daily && st.daily.day === today && st.daily.solved && st.days[0] !== today) {
+          st.days = [today].concat(st.days.filter(d => d !== today)).slice(0, MAX_DAYS);
+        }
       }
       if (remote.themes && typeof remote.themes === 'object') {
         for (const k of Object.keys(remote.themes)) {

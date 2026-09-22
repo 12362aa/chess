@@ -936,73 +936,111 @@ body[data-ui-theme="glass"] .mc-tag{
 .back-btn:hover::before{transform:translateX(100%);}
 .back-btn:hover{background:rgba(255,255,255,.05);color:var(--text);border-color:rgba(255,255,255,.15);transform:translateX(3px);box-shadow:0 4px 12px rgba(255,255,255,.08);}
 
-/* ══════════ LEVELS ══════════ */
-#s-levels{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:46px 14px 24px;gap:11px;overflow-y:auto;}
-.lvl-hdr{text-align:center;width:100%;max-width:500px;}
-.lvl-hdr h2{font-family:'Amiri',serif;font-size:23px;color:var(--gold2);margin-bottom:3px;}
-.lvl-hdr p{font-size:13px;color:var(--text2);}
-.lp-card{width:100%;max-width:500px;background:var(--bg2);border:1px solid rgba(201,168,76,.13);border-radius:13px;padding:13px 16px;}
-.lp-top{font-size:12px;color:var(--text2);margin-bottom:7px;display:flex;justify-content:space-between;}
-.lp-bar{height:5px;background:var(--bg3);border-radius:5px;overflow:hidden;position:relative;}
-.lp-bar::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(90deg, transparent 0%, rgba(201,168,76,.1) 50%, transparent 100%);
-  animation:progressShine 2s ease-in-out infinite;
+/* ══════════ LEVELS — «درب نور» ══════════
+   القسم كلّه من رسمٍ متجهيّ: صور المراحل الاثنتي عشرة أُزيلت، وبقيت
+   صورة نور الرمزيّة وحدها في الرأس. البناء في levels-ui.js (NLV).
+   قاعدة #140: الحركة transform/opacity فقط، ولا لون/عرض متحرّك. */
+#s-levels{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:44px 14px 26px;overflow-y:auto;}
+.nlv{width:100%;max-width:540px;display:flex;flex-direction:column;gap:16px;}
+
+/* ── الرأس: نور وحلقة التقدّم ── */
+.nlv__hero{display:flex;align-items:center;gap:16px;background:linear-gradient(150deg,var(--bg2),rgba(20,26,44,.55));border:1px solid rgba(201,168,76,.16);border-radius:20px;padding:16px 18px;box-shadow:0 12px 34px rgba(0,0,0,.34);}
+.nlv__av{position:relative;width:96px;height:96px;flex-shrink:0;}
+.nlv__ring{position:absolute;inset:0;width:100%;height:100%;}
+.nlv__ringBg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:5;}
+.nlv__ringOn{fill:none;stroke:var(--gold2);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.22,1,.36,1);filter:drop-shadow(0 0 5px rgba(201,168,76,.5));}
+.nlv__face{position:absolute;inset:11px;width:calc(100% - 22px);height:calc(100% - 22px);border-radius:50%;object-fit:cover;background:var(--bg3);}
+.nlv__pct{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);background:var(--bg1);border:1px solid rgba(201,168,76,.3);color:var(--gold2);font-size:10px;font-weight:800;padding:2px 8px;border-radius:9px;box-shadow:0 3px 8px rgba(0,0,0,.4);}
+.nlv__hx{flex:1;min-width:0;}
+.nlv__kick{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);opacity:.9;}
+.nlv__ttl{font-family:'Amiri',serif;font-size:24px;line-height:1.15;color:var(--text);margin:2px 0 4px;}
+.nlv__sub{font-size:12px;color:var(--text2);line-height:1.5;}
+.nlv__chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.nlv__chip{display:inline-flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:5px 10px;}
+.nlv__chipK{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);}
+.nlv__chipV{font-size:13px;font-weight:800;color:var(--text);}
+
+/* ── الطريق ── */
+.nlv__road{display:flex;flex-direction:column;gap:9px;}
+.nlvT{display:flex;align-items:center;gap:9px;padding:8px 4px 3px;color:var(--tc,#e8b782);}
+.nlvT__ic{width:34px;height:16px;flex-shrink:0;color:inherit;}
+.nlvT__sig{width:100%;height:100%;}
+.nlvT__nm{font-size:13px;font-weight:800;color:var(--text);letter-spacing:.3px;}
+.nlvT__ct{margin-inline-start:auto;font-size:11px;font-weight:700;color:var(--text3);background:rgba(255,255,255,.05);border-radius:9px;padding:2px 9px;}
+.nlvT.is-full .nlvT__ct{color:var(--green);background:rgba(74,222,128,.12);}
+.nlv__grp{display:flex;flex-direction:column;gap:9px;}
+
+/* ── بطاقة المرحلة ── */
+.nlvL{position:relative;display:flex;align-items:center;gap:13px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:12px 14px;cursor:pointer;overflow:hidden;transition:transform .25s cubic-bezier(.34,1.4,.64,1),box-shadow .25s,border-color .25s;}
+.nlvL::before{content:'';position:absolute;inset-inline-start:0;top:12%;bottom:12%;width:3px;border-radius:3px;background:var(--tc,#e8b782);opacity:.55;transition:opacity .25s;}
+.nlvL.is-open:hover,.nlvL.is-done:hover{transform:translateY(-2px);border-color:var(--tc,rgba(201,168,76,.4));box-shadow:0 12px 30px rgba(0,0,0,.32),0 0 0 1px var(--tg,transparent);}
+.nlvL.is-open:hover::before,.nlvL.is-now::before{opacity:1;}
+.nlvL.is-now{border-color:var(--tc);box-shadow:0 0 0 1px var(--tg);}
+.nlvL.is-locked{cursor:not-allowed;}
+.nlvL.is-locked .nlvL__b{opacity:.62;}
+.nlvL.is-shake{animation:nlvShake .4s;}
+@keyframes nlvShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.nlvL__cr{width:52px;height:66px;flex-shrink:0;}
+.nlvC{width:100%;height:100%;display:block;}
+.nlvC__rn{font-family:'Times New Roman',Georgia,serif;font-weight:800;letter-spacing:.5px;}
+.nlvL__b{flex:1;min-width:0;}
+.nlvL__top{display:flex;align-items:center;gap:8px;}
+.nlvL__rn{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--tc,var(--gold2));}
+.nlvL__now{font-size:9px;font-weight:800;color:var(--bg1);background:var(--tc,var(--gold2));border-radius:8px;padding:1px 7px;}
+.nlvL__nm{font-size:15px;font-weight:800;color:var(--text);margin:1px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nlvL__ds{font-size:11px;color:var(--text2);line-height:1.5;}
+.nlvL__hint{font-size:11px;color:var(--gold2);margin-top:4px;}
+.nlvL__ft{display:flex;align-items:center;gap:9px;margin-top:6px;}
+.nlvL__bd{font-size:10px;font-weight:700;padding:2px 9px;border-radius:9px;}
+.nlvL__bd.is-open{color:var(--gold2);background:rgba(201,168,76,.13);border:1px solid rgba(201,168,76,.28);}
+.nlvL__bd.is-done{color:var(--green);background:rgba(74,222,128,.11);border:1px solid rgba(74,222,128,.24);}
+.nlvL__bd.is-locked{color:var(--text3);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
+.nlvL__st{display:inline-flex;gap:2px;}
+.nlvS{width:15px;height:15px;fill:rgba(255,255,255,.14);}
+.nlvS.is-on{fill:var(--gold2);filter:drop-shadow(0 0 4px rgba(201,168,76,.55));}
+.nlvL__go{flex-shrink:0;width:22px;height:22px;color:var(--text3);opacity:.7;transition:transform .25s,opacity .25s;}
+.nlvL__go svg{width:100%;height:100%;display:block;}
+[dir="rtl"] .nlvL__go{transform:scaleX(-1);}
+.nlvL.is-open:hover .nlvL__go,.nlvL.is-done:hover .nlvL__go{opacity:1;color:var(--tc,var(--gold2));}
+[dir="rtl"] .nlvL.is-open:hover .nlvL__go,[dir="rtl"] .nlvL.is-done:hover .nlvL__go{transform:scaleX(-1) translateX(-3px);}
+.nlvL.is-open:hover:not([dir="rtl"] *) .nlvL__go{transform:translateX(3px);}
+.nlvL.is-locked .nlvL__go{opacity:.35;}
+.nlv__back{margin-top:6px;align-self:center;}
+
+/* ── نافذة التهنئة ── */
+.nlvh{text-align:center;max-width:400px;}
+.nlvh__art{position:relative;width:168px;height:168px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:var(--tc,var(--gold2));}
+.nlvh__rays{position:absolute;inset:0;width:100%;height:100%;animation:nlvSpin 22s linear infinite;transform-origin:50% 50%;}
+.nlvh__crest{position:relative;width:78px;height:100px;display:block;filter:drop-shadow(0 6px 16px rgba(0,0,0,.45));animation:nlvPop .6s cubic-bezier(.2,1.5,.4,1) both;}
+.nlvh__crest .nlvC{width:100%;height:100%;}
+.nlvh__wreath{width:100%;height:100%;animation:nlvPop .7s cubic-bezier(.2,1.4,.4,1) both;}
+.nlvh.is-crown .nlvh__art{width:196px;height:196px;}
+@keyframes nlvSpin{to{transform:rotate(360deg);}}
+@keyframes nlvPop{0%{opacity:0;transform:scale(.72);}100%{opacity:1;transform:scale(1);}}
+.nlvh__kick{display:block;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);opacity:.9;}
+.nlvh__ttl{font-family:'Amiri',serif;font-size:26px;color:var(--text);margin:4px 0 8px;}
+.nlvh__tx{font-size:13.5px;line-height:1.7;color:var(--text2);margin-bottom:18px;}
+.nlvh__ok{width:100%;}
+
+@media (prefers-reduced-motion:reduce){
+  .nlvh__rays,.nlvh__crest,.nlvh__wreath{animation:none !important;}
+  .nlvL.is-shake{animation:none !important;}
+  .nlv__ringOn{transition:none !important;}
 }
-@keyframes progressShine{
-  0%{transform:translateX(-100%);}
-  100%{transform:translateX(100%);}
+/* لوحيّ وحاسوب: القسم يتّسع والبطاقات تنتظم في عمودين، فلا يبقى شريطًا
+   نحيلًا وسط شاشةٍ عريضة. الرأس يمتدّ عبر العمودين. */
+@media (min-width:760px){
+  .nlv{max-width:720px;gap:18px;}
+  .nlv__hero{padding:20px 24px;}
+  .nlv__av{width:112px;height:112px;}
+  .nlv__ttl{font-size:28px;}
+  .nlv__grp{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .nlvL__nm{font-size:16px;}
 }
-.lp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:5px;transition:width .5s ease;box-shadow:0 0 8px rgba(201,168,76,.4);position:relative;z-index:1;}
-.lvl-section{width:100%;max-width:500px;padding:5px 4px;font-size:12px;color:var(--text2);letter-spacing:2px;font-weight:700;text-transform:uppercase;}
-.lvl-grid{display:flex;flex-direction:column;gap:9px;width:100%;max-width:500px;}
-.lc{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;display:flex;align-items:center;gap:13px;}
-.lc::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, transparent 0%, rgba(201,168,76,.05) 50%, transparent 100%);
-  opacity:0;
-  transition:opacity .3s;
+@media (min-width:1120px){
+  .nlv{max-width:860px;}
+  .nlv__grp{grid-template-columns:1fr 1fr 1fr;}
 }
-.lc:hover::before{opacity:1;}
-.lc.open{border-color:rgba(201,168,76,.14);}
-.lc.open:hover{transform:translateX(-4px);border-color:rgba(201,168,76,.4);box-shadow:0 8px 28px rgba(201,168,76,.1),0 0 0 1px rgba(201,168,76,.06);}
-.lc.done{border-color:rgba(74,222,128,.2);}
-.lc.done::before{content:'';position:absolute;inset:0;background:rgba(74,222,128,.03);}
-.lc.done::after{
-  content:'✓';
-  position:absolute;
-  top:8px;
-  right:8px;
-  width:24px;
-  height:24px;
-  background:rgba(74,222,128,.2);
-  border:1px solid rgba(74,222,128,.4);
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:14px;
-  color:var(--green);
-  font-weight:900;
-}
-.lc.locked{opacity:.5;cursor:not-allowed;}
-.lc-ico{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;transition:transform .3s;}
-.lc.open:hover .lc-ico{transform:scale(1.1) rotate(-5deg);}
-.lc-info{flex:1;}
-.lc-name{font-size:14px;font-weight:700;}
-.lc-desc{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5;}
-.lc-badge{font-size:10px;padding:2px 8px;border-radius:10px;margin-top:3px;display:inline-block;}
-.bl{background:rgba(255,255,255,.05);color:var(--text3);border:1px solid rgba(255,255,255,.07);}
-.bd2{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.22);}
-.bo{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid rgba(201,168,76,.26);}
-.lc-stars{display:flex;gap:2px;margin-top:3px;}
-.star{font-size:13px;color:var(--text3);}
-.star.on{color:var(--gold2);text-shadow:0 0 8px rgba(201,168,76,.6);}
-.lc-right{display:flex;align-items:center;}
 
 /* ══════════ SETTINGS ══════════ */
 #s-settings{flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:46px 14px 24px;gap:11px;overflow-y:auto;}
@@ -1472,6 +1510,135 @@ body[data-ui-theme="glass"] .mc-tag{
 .pb-ast{font-size:9px;padding:1px 6px;border-radius:10px;margin-top:1px;display:inline-block;background:transparent;border:1px solid transparent;color:transparent;min-height:14px;}
 .pb-ast.on{background:rgba(96,165,250,.13);color:var(--blue);border-color:rgba(96,165,250,.22);}
 .pb-ast.spy{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2);}
+
+/* ══════════ مايك المباراة (البند ٧) ══════════
+   صفٌّ صغير تحت اسم اللاعب يظهر في الأونلاين والبلوتوث فقط. الارتفاع
+   ١٨px مقصود: الرقعة والبارات هما المنتج، فأيّ ميزانيّةٍ رأسيّة تُؤخذ
+   من الزخرفة لا منهما — ولذلك النصّ يختفي على الشاشات الضيّقة جدًّا
+   ويبقى الرمز المرسوم وحده. */
+.mic{display:flex;align-items:center;gap:5px;min-height:18px;margin-top:1px;}
+.mic__b{
+  width:18px;height:18px;flex-shrink:0;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:6px;color:var(--text3);cursor:pointer;
+  transition:color .22s,border-color .22s,background .22s,transform .22s cubic-bezier(.34,1.56,.64,1);
+}
+.mic__b svg{width:12px;height:12px;display:block;}
+.mic__b:hover:not(:disabled){border-color:rgba(201,168,76,.42);color:var(--gold2);transform:scale(1.08);}
+.mic__b:active:not(:disabled){transform:scale(.94);}
+.mic__b:disabled{cursor:default;}
+.mic__t{
+  font-size:9px;line-height:14px;color:var(--text3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:104px;
+  display:flex;align-items:center;gap:4px;
+}
+/* مايكٌ مفتوح — ذهبيّ حيّ */
+.mic.is-live .mic__b{border-color:rgba(201,168,76,.62);color:var(--gold2);background:rgba(201,168,76,.14);}
+.mic.is-live .mic__t{color:var(--gold2);}
+/* بانتظار الموافقة — باهتٌ ساكن */
+.mic.is-wait .mic__b{opacity:.5;}
+.mic.is-wait .mic__t{opacity:.72;}
+/* رُفض الطلب — الإشارة الحمراء ومهلة الدقائق الثلاث */
+.mic.is-no .mic__b{border-color:rgba(248,113,113,.5);color:var(--red);background:rgba(248,113,113,.1);}
+.mic.is-no .mic__t{color:var(--red);}
+/* شريط الخصم قبل منح الإذن: رمزٌ باهت بلا نصّ — يملأ مكانه المحجوز
+   بمعنًى («لا صوت بعد») بدل فراغٍ ميّت، ولا يتحوّل إلى زرّ */
+.mic.is-peer.is-idle{opacity:.26;pointer-events:none;}
+.mic.is-peer .mic__b{background:transparent;}
+/* شُرَطُ الكلام — إزاحةٌ فقط، بلا scale ولا تغيير أبعاد (قاعدة #140) */
+.mic__wv{display:inline-flex;align-items:center;gap:2px;height:9px;}
+.mic__wv i{width:2px;height:9px;border-radius:1px;background:var(--gold2);transform:translateY(3px) scaleY(.34);transform-origin:center;animation:micWv .9s ease-in-out infinite;}
+.mic__wv i:nth-child(2){animation-delay:.15s;}
+.mic__wv i:nth-child(3){animation-delay:.3s;}
+@keyframes micWv{0%,100%{transform:translateY(3px) scaleY(.34);}50%{transform:translateY(0) scaleY(1);}}
+@media (prefers-reduced-motion:reduce){
+  .mic__wv i{animation:none;transform:translateY(0) scaleY(.7);}
+  .mic__b{transition:none;}
+}
+/* لوحيّ وحاسوب: مساحةٌ أوسع فالنصّ يكبر ويتنفّس */
+@media (min-width:760px){
+  .mic{min-height:20px;gap:6px;}
+  .mic__b{width:21px;height:21px;border-radius:7px;}
+  .mic__b svg{width:14px;height:14px;}
+  .mic__t{font-size:10.5px;line-height:16px;max-width:170px;}
+  .mic__wv{height:11px;}
+  .mic__wv i{height:11px;}
+}
+/* هواتف ضيّقة جدًّا: الرمز وحده — الرقعة أولى بالمساحة من الكلام */
+@media (max-width:349px){
+  .mic__t{display:none;}
+}
+
+/* ── نافذة «طلب تحدّث» ──
+   على ثيم التطبيق وبصوتها الخاص (MODAL_SFX.micAsk)، تحمل اسم الطالب
+   عنوانًا لأن السؤال عنه هو. الرموز مرسومة لا حروفًا تعبيريّة. */
+.mica{max-width:360px;}
+.mica__art{
+  width:74px;height:74px;margin:0 auto var(--space-4);
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 38%,rgba(216,180,90,.20),rgba(216,180,90,.05) 62%,transparent 72%);
+  border:1px solid rgba(216,180,90,.30);
+  color:var(--color-primary-text);
+  position:relative;
+}
+.mica__art svg{width:34px;height:34px;display:block;}
+/* حلقةٌ نابضة — opacity فقط (قاعدة #140) */
+.mica__art::after{
+  content:'';position:absolute;inset:-7px;border-radius:50%;
+  border:1px solid rgba(216,180,90,.34);
+  animation:micaRing 2.1s ease-in-out infinite;
+}
+@keyframes micaRing{0%,100%{opacity:.14;}50%{opacity:.62;}}
+.mica__k{
+  display:block;font-size:11px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--color-primary-text);opacity:.82;
+  margin-bottom:var(--space-2);
+}
+.mica__h{
+  font-family:var(--font-family-base);
+  font-size:21px;line-height:1.35;font-weight:800;
+  color:var(--color-text-primary);
+  margin:0 0 var(--space-3);
+  overflow-wrap:anywhere;
+}
+.mica__p{
+  font-size:13.5px;line-height:1.72;color:var(--color-text-secondary);
+  margin:0 0 var(--space-5);
+}
+.mica__r{display:flex;gap:10px;}
+.mica__no,.mica__ok{
+  flex:1;min-height:44px;padding:0 14px;border-radius:12px;
+  font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;
+  transition:background .2s,border-color .2s,color .2s,transform .18s cubic-bezier(.34,1.56,.64,1);
+}
+.mica__no{
+  background:rgba(244,117,111,.10);
+  border:1px solid rgba(244,117,111,.30);
+  color:var(--color-danger);
+}
+.mica__no:hover{background:rgba(244,117,111,.18);border-color:rgba(244,117,111,.48);}
+.mica__ok{
+  background:var(--color-primary);
+  border:1px solid var(--color-primary);
+  color:#1a1408;
+}
+.mica__ok:hover{filter:brightness(1.06);}
+.mica__no:active,.mica__ok:active{transform:scale(.97);}
+@media (min-width:760px){
+  .mica{max-width:400px;}
+  .mica__art{width:84px;height:84px;}
+  .mica__art svg{width:39px;height:39px;}
+  .mica__h{font-size:23px;}
+  .mica__p{font-size:14.5px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .mica__art::after{animation:none;opacity:.34;}
+  .mica__no,.mica__ok{transition:none;}
+}
 .pb-caps{flex:1;text-align:center;font-size:10px;line-height:1.6;padding:0 3px;display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;}
 #cap-w,#cap-b{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;}
 .captured-piece{width:14px;height:14px;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));border-radius:2px;}
@@ -2987,17 +3154,11 @@ html.amkh-preboot #amkh-preboot{
   </div>
 </div>
 
-<!-- LEVELS -->
+<!-- LEVELS — «درب نور»: تبنيه وحدة NLV (levels-ui.js) بالكامل في الذاكرة
+     ثم تركّبه هنا. البناء الاحتياطي في LVL.buildUI يعيد استخدام #lvl-grid
+     لو تعذّر تحميل الوحدة. -->
 <div id="s-levels" class="screen">
-  <div style="flex-direction:column;align-items:center;width:100%;gap:11px;padding:0 14px 24px;display:flex;">
-    <div class="lvl-hdr"><p>12 مرحلة من المبتدئ إلى الأسطورة</p></div>
-    <div class="lp-card">
-      <div class="lp-top"><span>التقدم الكلي</span><span id="lp-txt">0 / 12</span></div>
-      <div class="lp-bar"><div class="lp-fill" id="lp-fill" style="width:0%"></div></div>
-    </div>
-    <div class="lvl-grid" id="lvl-grid"></div>
-    <button class="back-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn();Nav.menu()">← العودة للقائمة</button>
-  </div>
+  <div id="lvl-grid"></div>
 </div>
 
 
@@ -4140,6 +4301,21 @@ const SFX=(()=>{
     pzRecord:[{f:523.25,t0:0,dur:0.09,vol:0.11},{f:698.46,t0:0.08,dur:0.09,vol:0.12},{f:880,t0:0.16,dur:0.10,vol:0.12},{f:1318.51,t0:0.25,dur:0.24,vol:0.13}],
     /* انتهت الجولة بلا رقم قياسي: نغمتان محايدتان تستقرّان. */
     pzOver:[{f:659.25,t0:0,dur:0.10,vol:0.09},{f:493.88,t0:0.09,dur:0.18,vol:0.10}],
+    /* الصعود لرتبة جديدة في المسار: خمس نغمات صاعدة فخمة — أوسع من كل ما سبق */
+    pzRankUp:[{f:523.25,t0:0,dur:0.09,vol:0.11},{f:659.25,t0:0.08,dur:0.09,vol:0.12},{f:783.99,t0:0.16,dur:0.09,vol:0.12},{f:1046.5,t0:0.24,dur:0.10,vol:0.13},{f:1318.51,t0:0.34,dur:0.26,vol:0.13}],
+    /* عبور إلى أرضٍ جديدة في المسار: نَفَسٌ منخفض دافئ يفتح المشهد ثم
+       خماسيّة صاعدة واسعة تنتهي بنغمة معلّقة — أعرض وأبطأ من pzRankUp
+       عشان الودان تعرف إن اللي حصل أكبر من ترقية رتبة. */
+    pzWorld:[{f:196,t0:0,dur:0.34,type:'sine',vol:0.09,f2:293.66},{f:392,t0:0.20,dur:0.14,type:'triangle',vol:0.10},{f:587.33,t0:0.32,dur:0.14,vol:0.11},{f:783.99,t0:0.44,dur:0.14,vol:0.12},{f:1174.66,t0:0.56,dur:0.16,vol:0.12},{f:1567.98,t0:0.70,dur:0.38,type:'sine',vol:0.11}],
+    /* درب نور — طَورٌ اكتمل: ثلاثيّةٌ صاعدة دافئة يسندها خُمسٌ منخفض،
+       فخمة لكنها أقصر من التاج عشان تبقى «محطّة» لا «نهاية». */
+    lvlTier:[{f:329.63,t0:0,dur:0.30,type:'sine',vol:0.07,f2:392},{f:523.25,t0:0.06,dur:0.12,vol:0.11},{f:659.25,t0:0.17,dur:0.12,vol:0.12},{f:987.77,t0:0.29,dur:0.30,vol:0.12}],
+    /* درب نور — إتمام الرحلة كلّها (قهر نور): نداءٌ ملكيّ من ستّ نغمات
+       يفتح بخُمسٍ عريض ويُتوَّج بأوكتافٍ معلّق — أفخم صوتٍ في القسم. */
+    lvlCrown:[{f:261.63,t0:0,dur:0.34,type:'sine',vol:0.08,f2:392},{f:523.25,t0:0.22,dur:0.13,vol:0.11},{f:659.25,t0:0.34,dur:0.13,vol:0.12},{f:783.99,t0:0.46,dur:0.13,vol:0.12},{f:1046.5,t0:0.58,dur:0.15,vol:0.13},{f:1567.98,t0:0.73,dur:0.44,type:'sine',vol:0.12}],
+    /* مايك المباراة — طلبُ تحدّث (البند ٧): نقرتان متصاعدتان تشبهان
+       «نداءً على السلكي»، قصيرتان عشان ما تقطعاش تركيز اللاعب. */
+    micAsk:[{f:659.25,t0:0,dur:0.11,type:'triangle',vol:0.10},{f:880,t0:0.13,dur:0.13,type:'triangle',vol:0.11},{f:1174.66,t0:0.28,dur:0.20,type:'sine',vol:0.09}],
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
@@ -4170,6 +4346,12 @@ const SFX=(()=>{
     select() {uiClick();},
     btn()    {uiClick();},
     hint()   {uiClick();},
+    /* نقرةُ رفضٍ قصيرة — لمسُ مرحلةٍ مقفولة في درب نور */
+    err()    {play('error');},
+    /* مايك المباراة: نغمةٌ صاعدة عند الفتح وهابطة عند الكتم، عشان
+       اللاعب يعرف حالة مايكه بأذنه وهو ناظرٌ إلى الرقعة. */
+    micOpen(){ tones([{f:587.33,t0:0,dur:0.09,type:'triangle',vol:0.09},{f:880,t0:0.09,dur:0.14,type:'sine',vol:0.10}]); },
+    micClose(){ tones([{f:880,t0:0,dur:0.09,type:'triangle',vol:0.08},{f:523.25,t0:0.09,dur:0.14,type:'sine',vol:0.09}]); },
     undo()   {play('move');},  // Use move sound for undo
     chat()   {
       if(!Cfg.data.sound)return;
@@ -4192,6 +4374,8 @@ const SFX=(()=>{
     pzClean(){ tones(MODAL_SFX.pzClean); },
     pzSolved(){ tones(MODAL_SFX.pzSolved); },
     pzMiss(){ tones(MODAL_SFX.pzMiss); },
+    pzRankUp(){ tones(MODAL_SFX.pzRankUp); },
+    pzWorld(){ tones(MODAL_SFX.pzWorld); },
     init(){_init();}
   };
   window.SFX = api;
@@ -4810,6 +4994,9 @@ window.addEventListener('amkh:lang',()=>{
   try{ markAppLang(); }catch(e){}
   try{ if(typeof Home!=='undefined') Home.render(); }catch(e){}
   try{ if(window.Notifications&&Notifications._refreshTokenLang) Notifications._refreshTokenLang(); }catch(e){}
+  /* لوحة الألغاز نصوصها كلها مبنيّة بـLP وقت التوليد لا بالقاموس، فالكنس
+     ما يلمسها — تعيد بناء نفسها باللغة الجديدة لو كانت مفتوحة. */
+  try{ if(window.PZH&&PZH.relang) PZH.relang(); }catch(e){}
 });
 
 /* التقويم يتبع اللغة: 'ar-EG' يكتب «٦ سبتمبر» بأرقام هندية وأسماء شهور
@@ -5943,6 +6130,8 @@ const Cfg={
       _loadChessPieces(); // Fallback to default
     }
     updateCurrentPieceDisplay(theme);
+    /* لوحة الألغاز تعرض قطع الرتب من نفس المجموعة — تجدّد صورها فورًا */
+    try{ if(window.PZH&&PZH.refreshPieces) PZH.refreshPieces(); }catch(e){}
     if(save){this._persist();}
   },
   uiTheme(name,save=true){
@@ -7074,7 +7263,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 37;
+const APP_VERSION_CODE = 41;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -8356,6 +8545,10 @@ const LVL={
         }).catch(()=>{});
       }
     }catch(e){}
+    /* تهنئة درب نور: لو هذا الفوز أغلق طَورًا كاملًا أو الرحلة كلّها،
+       ترفع NLV اللافتة الفخمة على الثيم بصوتها الخاص. تُنادى بعد الحفظ
+       عشان تقرأ التقدّم بعد تحديثه. */
+    try{ if(window.NLV&&NLV.afterSave) NLV.afterSave(id,p); }catch(e){}
   },
   async unlocked(id){
     if(id===0)return true;
@@ -8439,38 +8632,26 @@ const LVL={
     return p[id]?.stars||0;
   },
   calcStars(moves,id){const r=LEVELS_DEF[id].starReq;if(moves<=r[2])return 3;if(moves<=r[1])return 2;return 1;},
+  /* بناء الشاشة صار في levels-ui.js (وحدة NLV = «درب نور»): شاراتٌ
+     مرسومة وترقيمٌ لاتينيّ وتهنئةٌ على الثيم. نُفوّض لها كما تُفوّض
+     PZU لـPZH. لو الملف ماتحمّلش لأيّ سبب نُبقي بناءً احتياطيًّا بسيطًا. */
   async buildUI(){
-    const grid=document.getElementById('lvl-grid');grid.innerHTML='';
+    if(window.NLV&&NLV.build){ await NLV.build(); return; }
+    const grid=document.getElementById('lvl-grid');if(!grid)return;grid.innerHTML='';
     const p=await this.get();let done=0;
-    LEVELS_DEF.forEach(lv=>{
-      if(p[lv.id]?.done)done++;
-    });
     for(const lv of LEVELS_DEF){
+      if(p[lv.id]?.done)done++;
       const isUnlocked=await this.unlocked(lv.id);
-      const starCount=await this.stars(lv.id);
       const isDone=!!p[lv.id]?.done;
-      const secs=[['◆ مبتدئ',0],['◆◆ متوسط',4],['◆◆◆ متقدم',8],['◆◆◆◆ نخبة',10]];
-      secs.forEach(([t,i])=>{if(lv.id===i){const s=document.createElement('div');s.className='lvl-section';s.textContent=t;grid.appendChild(s);}});
       const card=document.createElement('div');
       card.className='lc '+(!isUnlocked?'locked':isDone?'done':'open');
-      const bCl=!isUnlocked?'bl':isDone?'bd2':'bo';
-      const bTx=!isUnlocked?'◆ مقفولة':isDone?'◉ مكتملة':'◈ العب الآن';
-      const ibg=isDone?'rgba(74,222,128,.11)':isUnlocked?'rgba(201,168,76,.11)':'rgba(255,255,255,.04)';
-      const sh=isDone?`<div class="lc-stars">${[1,2,3].map(i=>`<span class="star${i<=starCount?' on':''}">${i<=starCount?'✦':'◇'}</span>`).join('')}</div>`:'';
-      // Use Nour stage image with fallback to emoji if image fails to load
-      const imgHtml=`<img src="./${lv.img}" style="width:44px;height:44px;object-fit:cover;border-radius:11px;" onerror="this.style.display='none';this.parentElement.textContent='♟';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';" />`;
-      card.innerHTML=`<div class="lc-ico" style="background:${ibg};padding:0;overflow:hidden;">${imgHtml}</div>
-        <div class="lc-info">
-          <div class="lc-name">المرحلة ${lv.id+1} — ${lv.name}</div>
-          <div class="lc-desc">${lv.desc}</div>
-          <span class="lc-badge ${bCl}">${bTx}</span>${sh}
-        </div>
-        <div class="lc-right">${!isUnlocked?'<span style="color:var(--text3)">◆</span>':'<span style="font-size:20px;color:var(--gold2)">◈</span>'}</div>`;
+      card.innerHTML=`<div class="lc-info"><div class="lc-name">المرحلة ${lv.id+1} — ${lv.name}</div>
+        <div class="lc-desc">${lv.desc}</div></div>`;
       if(isUnlocked)card.onclick=()=>{SFX.btn();G.startLevel(lv.id);};
       grid.appendChild(card);
     }
-    document.getElementById('lp-txt').textContent=done+' / 12';
-    document.getElementById('lp-fill').style.width=(done/12*100)+'%';
+    const t=document.getElementById('lp-txt');if(t)t.textContent=done+' / '+LEVELS_DEF.length;
+    const f=document.getElementById('lp-fill');if(f)f.style.width=(done/LEVELS_DEF.length*100)+'%';
   }
 };
 /* نفس سبب window.Cfg: ملف المزامنة بيقرأ التقدّم من هنا بالاسم. */
@@ -12784,6 +12965,11 @@ const G={
     const sg=document.getElementById('s-game');
     sg.classList.remove('mode-local','mode-bot','mode-online','mode-engine','mode-bluetooth');
     sg.classList.add('mode-'+mode);
+    /* مايك المباراة (البند ٧): أي بداية جديدة تفكّ مايك المباراة السابقة
+       وتشيل أزرارها من الشريطين. اللي بيركّبها من جديد هو مسار البدء
+       نفسه (أونلاين/بلوتوث) بعد ما يتحدّد لوني — لأن الزرّ لازم يعرف
+       أي شريطٍ هو شريطي. */
+    try{ if(window.MIC) MIC.stop(); }catch(e){}
     /* هوية المود تتضبط مركزيًا هنا عشان كل مسارات البدء تعدي عليها —
        البلوتوث كان مابيعيّنش gmode خالص فكان بيورث عنوان اللعبة السابقة. */
     GameIdentity.apply(mode);
@@ -13821,6 +14007,9 @@ const OL=(()=>{
     clearTimeout(_reconnectTimer);
     clearTimeout(_connTimeoutTimer);
     clearInterval(_pingTimer);
+    /* مايك المباراة (البند ٧): المباراة انتهت فالقناة الصوتية تُفكّ
+       وأزرارها تُشال. لازم تسبق قفل السوكت عشان mic:leave يلحق يوصل. */
+    try{ if(window.MIC) MIC.stop(); }catch(e){}
     _oppUserId=null; _myUserId=null;
     try{ _unwireBarProfiles(); }catch(e){}
     /* #14: شارة المتفرّجين تختفي مع المباراة */
@@ -14008,6 +14197,14 @@ const OL=(()=>{
     if(d && typeof d.type==='string' && d.type.indexOf('friend:')===0){
       try{ if(window.amkhFriends && window.amkhFriends.handleSocketMessage(d)) return; }catch(e){}
     }
+    /* ══ إشارات المايك (البند ٧) ══
+       طلب الإذن والرفض والقبول ومفاوضة WebRTC وتبديل الكتم. السيرفر
+       بيرحّلها للخصم كما هي، ووحدة MIC بتستهلكها كلها — فبنخرج بعدها
+       بدل ما نكمل في switch مالوش حالة ليها. */
+    if(d && typeof d.type==='string' && d.type.indexOf('mic:')===0){
+      try{ if(window.MIC) MIC.onSignal(d); }catch(e){}
+      return;
+    }
     if(d && typeof d.type==='string' && d.type.indexOf('chat:')===0){
       try{ if(window.amkhChat) window.amkhChat.handleSocketMessage(d); }catch(e){}
       return;
@@ -14186,6 +14383,9 @@ const OL=(()=>{
     setBarName(oc==='w'?'nm-w':'nm-b', oppLabel, _oppRatingSnap);
     _wireBarProfiles(mc, myName, oppLabel);
     fixBars(mc);
+    /* مايك المباراة (البند ٧): يتركّب الآن لأن لوني اتحدّد خلاص، فالزرّ
+       يعرف شريطي من شريط الخصم. الإذن يبدأ مرفوضًا حتى يوافق الخصم. */
+    try{ if(window.MIC) MIC.start('online', mc); }catch(e){}
     CHAT.show();
     setTimeout(()=>{
       send({type:'name',name:myName});
@@ -14354,7 +14554,16 @@ const OL=(()=>{
       });
     },
     sendMove(mv){send({type:'move',fr:mv.fr,to:mv.to,promo:mv.promo,deviceId:LVL._getDeviceId()});},
-    sendAssist(on){send({type:'assist',on,deviceId:LVL._getDeviceId()});},
+    /* ══ مايك المباراة (البند ٧) ══
+       وحدة MIC بتبعت إشاراتها بمفتاح t، والسيرفر بيرحّل حسب type —
+       فبنحوّل هنا. بترجّع false لو السوكت مقفول عشان الوحدة تقول
+       للّاعب إن مافيش اتصال بدل ما تفضل مستنية موافقة مش جاية. */
+    sendMic(o){
+      if(!(ws&&ws.readyState===WebSocket.OPEN))return false;
+      const m=Object.assign({},o);m.type=o.t;delete m.t;
+      send(m);
+      return true;
+    },    sendAssist(on){send({type:'assist',on,deviceId:LVL._getDeviceId()});},
     sendChat(txt){send({type:'chat',text:txt,deviceId:LVL._getDeviceId()});},
     sendVoice(audioData,durationSec,mime){send({type:'voice',audio:audioData,duration:durationSec,mime:mime||'',deviceId:LVL._getDeviceId()});},
     sendPimg(img){send({type:'pimg',img});},
@@ -15239,9 +15448,12 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-themes.js?v=20260919-b38"></script>
   <script src="puzzles-rating.js?v=20260919-b38"></script>
   <script src="puzzles-client.js?v=20260919-b38"></script>
-  <script src="puzzles-store.js?v=20260919-b38"></script>
+  <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
-  <script src="puzzles-ui.js?v=20260919-b38"></script>
+  <script src="puzzles-ui.js?v=20260920-b40"></script>
+  <script src="puzzles-hub.js?v=20260920-b40"></script>
+  <script src="levels-ui.js?v=20260921-b41"></script>
+  <script src="mic-client.js?v=20260922-b41"></script>
 <script>
 const BLEManager = {
   isHost: false,
@@ -15340,6 +15552,9 @@ const BLEManager = {
       this.connected = false;
       this.endpointId = null;
       this.setPhase('idle');
+      /* القناة راحت، فالمايك لازم يقفل فورًا: من غير كده يفضل الميكروفون
+         شغّالًا ومسار WebRTC مفتوحًا على طرفٍ مش موجود (البند ٧). */
+      try { if (window.MIC) MIC.stop(); } catch (e) {}
       if (S.mode === 'bluetooth' && !S.over && wasConnected) {
         GameIdentity.setConnection('lost', 'انقطع الاتصال بالجهاز الآخر');
         S.over = true;
@@ -15457,6 +15672,9 @@ const BLEManager = {
   },
 
   async disconnect() {
+    /* قبل ما نقطع: MIC.stop بتبعت mic:leave للطرف الآخر وهي القناة
+       لسه مفتوحة، فشريطه بيرجع خامل بدل ما يفضل مكتوبًا عليه «يتحدّث». */
+    try { if (window.MIC) MIC.stop(); } catch (e) {}
     if (this.connected) {
       try { await this.sendRaw("DISCONNECT"); } catch(e){}
     }
@@ -15626,6 +15844,7 @@ const BLEManager = {
         });
       }
     } else if (msg === "DISCONNECT") {
+      try { if (window.MIC) MIC.stop(); } catch (e) {}
       if (S.mode === 'bluetooth' && !S.over) {
         S.over = true;
         G.showOver({
@@ -15640,6 +15859,10 @@ const BLEManager = {
       const hostColor = msg.split(":")[1];
       this.myColor = hostColor === 'w' ? 'b' : 'w';
       this.startGameUI();
+    } else if (msg.startsWith("MIC:")) {
+      /* مايك المباراة على البلوتوث (البند ٧): إشارات WebRTC تمشي على
+         قناة Nearby نفسها، فلا يحتاج التفاوض إنترنتًا. */
+      try { if (window.MIC) MIC.onBleRaw(msg); } catch (e) {}
     } else if (msg.startsWith("MOVE:")) {
       const move = msg.split(":")[1];
       if (S.mode === 'bluetooth') {
@@ -15664,6 +15887,9 @@ const BLEManager = {
        لو لسه، updatePlayerImages بتعرض الافتراضية و_onAvEnd بتبدّلها بعدين. */
     if (this.opponentImage) S.oppImg = this.opponentImage;
     GameIdentity.setConnection('connected', 'متصل بـ ' + opp);
+    /* مايك المباراة (البند ٧): لوني اتحدّد خلاص فالزرّ يعرف شريطي.
+       على البلوتوث الطرف التاني بيوافق تلقائيًّا بلا نافذة ولا مهلة. */
+    try { if (window.MIC) MIC.start('bluetooth', this.myColor); } catch (e) {}
     Nav.game();
     await R.all();
     if (typeof updatePlayerImages === 'function') {

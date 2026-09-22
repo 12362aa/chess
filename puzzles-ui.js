@@ -245,14 +245,31 @@ const PZU = (() => {
   function say(text) {
     const box = $('pz-coach'), t = $('pz-coach-text');
     if (!box || !t) return;
-    if (!text) { box.hidden = true; return; }
+    if (!text) { box.hidden = true; _lastSay = ''; return; }
     box.hidden = false;
+    _lastSay = String(text);
     /* إعادة تشغيل الظهور: إزالة الصنف ثم إضافته في الإطار التالي، وإلّا
        ظلّ السطر الثاني بلا حركة فبدا كأنّ نورًا لم يتكلّم. */
     t.classList.remove('is-in');
     t.textContent = text;
     requestAnimationFrame(() => t.classList.add('is-in'));
   }
+  let _lastSay = '';
+
+  /* ══ إيقاع النوافذ في وضع الألغاز ══════════════════════════════
+     النافذة كانت بتفتح في نفس اللحظة اللي نور بيتكلّم فيها، فكلامه
+     ماكانش بيتقرأ أصلًا — والحلّ المعروض كان بيتلعب ورا نافذة مفتوحة
+     (بلاغ أحمد: «هناك كارثة»). القاعدتان هنا:
+       ١) لا نافذة قبل ما يخلص أي عرض جارٍ للحلّ.
+       ٢) ثم مهلة قراءة محسوبة من طول السطر لا رقم ثابت — سطر قصير
+          ما يستاهلش وقفة طويلة، والطويل ما ينفعش يتخطف.
+     الأرقام: ~٤٥ حرفًا في الثانية، بحدّ أدنى ١.١ ثانية وأقصى ٤.2. */
+  function readMs(text) {
+    const n = (text || '').length;
+    if (!n) return 620;
+    return Math.max(1100, Math.min(4200, 900 + n * 22));
+  }
+  const wait = ms => new Promise(r => setTimeout(r, ms));
 
   /* ── شريط الحالة فوق الرقعة ────────────────────────────────────── */
   function renderStatus() {
@@ -499,30 +516,38 @@ const PZU = (() => {
     M.gaveUp = true;
     if (M.strikes != null) M.roundOver = true;
     const rest = M.sess.giveUp();
-    replaySolution(rest.moves);
+    /* العرض ما يبدأش من هنا: finish() هي اللي بتنظّم الإيقاع — سطر نور
+       أوّلًا ويتقرأ، ثم الحلّ نقلةً نقلة، ثم النافذة. قبل كده كانت
+       الثلاثة بتحصل في نفس اللحظة فما بيتشافش منها حاجة. */
+    M.pendingReplay = rest.moves;
     finish(false);
   }
 
-  /* عرض بقيّة الحلّ نقلةً نقلة — التعلّم يحصل هنا لا في كلمة «خسرت» */
+  /* عرض بقيّة الحلّ نقلةً نقلة — التعلّم يحصل هنا لا في كلمة «خسرت».
+     الإيقاع بطيء عن قصد: ٩٠٠ms بين النقلتين لأن اللاعب بيقرأ الوضع مش
+     بيتفرّج على شريط. بيرجّع وعدًا ينتهي بانتهاء آخر نقلة. */
   function replaySolution(moves) {
-    if (!moves || !moves.length) return;
+    if (!moves || !moves.length) return Promise.resolve();
     const s = M.sess;
     let bd = E.clone(s.board), cas = JSON.parse(JSON.stringify(s.cas)),
         ep = s.ep ? [...s.ep] : null;
     let i = 0;
-    const step = () => {
-      if (!M || i >= moves.length) return;
-      const m = PZ.parseUci(moves[i++]);
-      if (!m) return;
-      const r = E.apply(bd, m.from, m.to, cas, ep, m.promo || 'Q');
-      bd = r.bd; cas = r.cas; ep = r.ep;
-      M.last = { from: m.from, to: m.to };
-      B.paint({ bd, flip: M.puzzle.playerCol === 'b', last: M.last });
-      B.slide(m.from, m.to);
-      sfx('move');
-      setTimeout(step, 520);
-    };
-    setTimeout(step, 260);
+    say(L('هذا هو الحلّ — تابِعه نقلةً نقلة.', 'Here is the solution — follow it move by move.'));
+    return new Promise(resolve => {
+      const step = () => {
+        if (!M || i >= moves.length) { resolve(); return; }
+        const m = PZ.parseUci(moves[i++]);
+        if (!m) { resolve(); return; }
+        const r = E.apply(bd, m.from, m.to, cas, ep, m.promo || 'Q');
+        bd = r.bd; cas = r.cas; ep = r.ep;
+        M.last = { from: m.from, to: m.to };
+        B.paint({ bd, flip: M.puzzle.playerCol === 'b', last: M.last });
+        B.slide(m.from, m.to);
+        sfx('move');
+        setTimeout(step, 900);
+      };
+      setTimeout(step, 560);
+    });
   }
 
   /* ── نهاية لغز ─────────────────────────────────────────────────── */
@@ -555,11 +580,35 @@ const PZU = (() => {
 
     renderStatus();
     renderBar();
-    if (!M.timed) showResult(res, out);
-    else if (M.roundOver) endRound();
-    /* في الأوضاع المؤقّتة نتقدّم للّغز التالي: المواجهة تتقدّم حتى بعد
-       الاستسلام (سباق)، وباقي المؤقّتة عند الحلّ فقط. */
-    else if (M.queue || solved) setTimeout(() => { if (M && M.finished) nextPuzzle(); }, 420);
+
+    /* ── الإيقاع ──
+       سطر نور يُقرأ، ثم الحلّ (لو الاستسلام)، ثم النافذة. كل انتظار
+       بيتأكّد إن الجولة لسه هي هي (M.sess === s) قبل ما يكمّل، فالخروج
+       أثناء الانتظار ما يفتحش نافذة على شاشة تانية. */
+    const alive = () => M && M.sess === s && M.finished;
+    /* الأوضاع المؤقّتة استثناء: الساعة بتجري، ووقفة قراءة فيها بتسرق من
+       اللاعب ألغازًا. هناك الإيقاع القديم السريع. */
+    if (M.timed) {
+      await wait(420);
+      if (!alive()) return;
+      if (M.roundOver) { endRound(); return; }
+      if (M.queue || solved) nextPuzzle();
+      return;
+    }
+    if (coachOn()) { await wait(readMs(_lastSay)); if (!alive()) return; }
+    if (M.pendingReplay && M.pendingReplay.length) {
+      const mv = M.pendingReplay;
+      M.pendingReplay = null;
+      await replaySolution(mv);
+      if (!alive()) return;
+      await wait(700);
+      if (!alive()) return;
+    } else if (!coachOn()) {
+      await wait(520);
+      if (!alive()) return;
+    }
+
+    showResult(res, out);
   }
 
   function persistDaily() {
@@ -672,7 +721,7 @@ const PZU = (() => {
   async function nextPuzzle() {
     if (!M) return;
     M.finished = false; M.gaveUp = false; M.sel = null; M.legal = []; M.last = null;
-    M.hist = []; M.view = -1;
+    M.hist = []; M.view = -1; M.pendingReplay = null;
     say(L('نحضّر اللغز…', 'Loading the puzzle…'));
 
     let p = null;
@@ -840,6 +889,9 @@ const PZU = (() => {
      اللوحة الرئيسية
      ══════════════════════════════════════════════════════════════ */
   async function openHub() {
+    /* اللوحة الجديدة «مسار الترقية» في PZH. نُبقي renderHub القديمة
+       كملاذ لو الملف ماوصلش للحزمة لأي سبب، فالقسم مايتعطّلش. */
+    if (window.PZH && typeof PZH.openHub === 'function') { await PZH.openHub(); return; }
     Nav.show('s-puzzles');
     await renderHub();
   }

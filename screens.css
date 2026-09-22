@@ -2215,19 +2215,41 @@ body[data-ui-theme="gaming"]{
 .wl-screen--min{ justify-content: center; text-align: center; }
 .wl-screen--min .wl-info{ margin-block: auto; gap: var(--space-4); }
 .wl-screen--min .wl-hero{ padding: var(--space-3) 0 var(--space-4); }
-.wl-screen--min .wl-board{ --wl-bs: 168px; animation: wlHeroDrop .6s cubic-bezier(.34,1.4,.5,1) both; }
-.wl-screen--min .wl-title{ font-size: 26px; }
-.wl-screen--min .wl-sub{ font-size: 16px; color: var(--color-text-secondary); }
+.wl-screen--min .wl-knight{ --wl-ks: min(62vw, 250px); animation: wlHeroDrop .7s cubic-bezier(.34,1.4,.5,1) both; }
+/* العنوان بطل الشاشة لا تعليق عليها: كبير، ثقيل، سطرين على الأكثر */
+.wl-screen--min .wl-title{
+  font-size: clamp(30px, 8.6vw, 42px);
+  line-height: 1.18;
+  font-weight: 800;
+  letter-spacing: -.3px;
+  margin: 0;
+}
+.wl-screen--min .wl-sub{ font-size: 16px; color: var(--color-text-secondary); max-width: 34ch; margin-inline: auto; }
 .wl-screen--min .wl-actions{ max-width: 420px; width: 100%; margin-inline: auto; }
+/* سطر العلامة فوق العنوان — صغير وهادي، مهمّته إنه يقول «مين إحنا» */
+.wl-brandline{
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+}
 /* دخول البطل: يقفز من فوق ويستقرّ (transform فقط) */
 @keyframes wlHeroDrop{
-  0%{ opacity: 0; transform: translateY(-34px) scale(.9); }
-  60%{ opacity: 1; transform: translateY(6px) scale(1.02); }
+  0%{ opacity: 0; transform: translateY(-40px) scale(.88); }
+  60%{ opacity: 1; transform: translateY(7px) scale(1.02); }
   100%{ opacity: 1; transform: none; }
 }
-@media (max-height: 640px){
-  .wl-screen--min .wl-board{ --wl-bs: 132px; }
+@media (max-height: 700px){
+  .wl-screen--min .wl-knight{ --wl-ks: min(48vw, 186px); }
   .wl-screen--min .wl-hero{ padding: var(--space-2) 0; }
+  .wl-screen--min .wl-title{ font-size: clamp(25px, 7vw, 32px); }
+}
+@media (max-height: 600px){
+  .wl-screen--min .wl-knight{ --wl-ks: 146px; }
+  .wl-screen--min .wl-sub{ font-size: 14px; }
 }
 
 .wl-top{
@@ -2239,39 +2261,67 @@ body[data-ui-theme="gaming"]{
 
 /* مبدّل اللغة — أوّل قرار في الشاشة، وأوّل عنصر فيها. كل خيار مكتوب
    بلغته هو (عربية / English) فيُقرأ مهما كانت اللغة السارية، وعليه
-   data-no-i18n كي لا تمسّه طبقة الترجمة. */
+   data-no-i18n كي لا تمسّه طبقة الترجمة.
+   الشكل: مفتاح مقسوم (segmented) بمؤشّر واحد ينزلق تحت الخيار المختار،
+   بدل زرّين بنّيين منفصلين كانا يبانا «كأزرار إعدادات» لا كاختيار
+   (بلاغ أحمد). المؤشّر عنصر واحد يتحرّك بـtransform — مافيش إعادة
+   تخطيط ولا وميض عند التبديل. */
 .wl-lang{
+  position: relative;
   flex: 0 0 auto;
   display: flex;
-  justify-content: center;
-  gap: var(--space-2);
-  width: 100%;
-  max-width: 520px;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
   margin: 0 auto;
-}
-.wl-lang__btn{
-  flex: 0 1 148px;
-  padding: 9px 14px;
+  padding: 4px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-surface-sunken, var(--color-surface));
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.28);
+  /* المفتاح نفسه لاتيني الترتيب دائمًا: «عربية» على الشمال وEnglish على
+     اليمين في اللغتين، فمكان الخيار ما بيتنطّش لما اللغة تتغيّر. */
+  direction: ltr;
+}
+.wl-lang__ind{
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg,
+    var(--color-primary-subtle) 0%,
+    var(--color-primary-subtle) 60%,
+    rgba(0,0,0,.05) 100%);
+  border: 1px solid var(--color-primary-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.28);
+  transform: translateX(0);
+  transition: transform .34s var(--easing-decelerate);
+  pointer-events: none;
+}
+.wl-lang.is-en .wl-lang__ind{ transform: translateX(100%); }
+.wl-lang__btn{
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  min-width: 116px;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: transparent;
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .2px;
   cursor: pointer;
   transition:
-    background-color var(--duration-fast) var(--easing-standard),
-    border-color     var(--duration-fast) var(--easing-standard),
-    color            var(--duration-fast) var(--easing-standard),
-    transform        var(--duration-fast) var(--easing-standard);
+    color     var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard);
 }
-.wl-lang__btn.is-on{
-  background: var(--color-primary-subtle);
-  border-color: var(--color-primary-border);
-  color: var(--color-primary-text);
-}
-.wl-lang__btn:active{ transform: scale(.97); }
+.wl-lang__btn.is-on{ color: var(--color-primary-text); }
+.wl-lang__btn:active{ transform: scale(.96); }
 .wl-lang__btn:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 /* ── الهالة اللي اللوح قاعد فوقها ──
    اللوح لوحده وسط شاشة غامقة كان بيبان كصورة ملزوقة. الهالة (تدرّج دائري
@@ -2299,76 +2349,122 @@ body[data-ui-theme="gaming"]{
     transparent 70%);
   pointer-events: none;
 }
-.wl-board-slot{ position: relative; }
-/* ── اللوح المصغّر اللي بيلعب المات المخنوق (welcome-client.js) ──
-   مقاسه كله من ‎--wl-bs‎: المربعات ٢٥٪ من اللوح والقطع ٢٥٪ برضه، فسطر
-   واحد في كل media query بيكبّر أو يصغّر المنظر كله. الرقعة بتاخد ألوان
-   ثيم الرقعة المختار (‎--sq-l/--sq-d‎) فاللوح ده مش لونه مستقل عن التطبيق.
-   direction:ltr عشان إحداثيات الأعمدة تفضل من الشمال لليمين زي الرقعة
-   الحقيقية جوّه صفحة RTL. */
-.wl-board{
-  --wl-bs: 132px;
+.wl-knight-slot{ position: relative; }
+/* ══ الفارس الدائر (welcome-client.js) ══════════════════════════
+   بطل الشاشة. المقاس كله مشتقّ من ‎--wl-ks‎ (ضلع اللوح): المربّع ٢٥٪
+   والقطعة ٢٧٪، فسطر واحد في أي media query بيكبّر المنظر كله.
+   ألوان المربّعات من ثيم الرقعة المختار (‎--sq-l/--sq-d‎) فالبطل مش
+   لونه مستقلًّا عن التطبيق. direction:ltr عشان أعمدة الشبكة تفضل من
+   الشمال لليمين جوّه صفحة RTL — نفس قاعدة ‎#board‎.
+   كل الحركة transform/opacity، ومحبوسة بـcontain:paint. */
+.wl-knight{
+  --wl-ks: 250px;
   direction: ltr;
   position: relative;
-  width: var(--wl-bs);
-  height: var(--wl-bs);
+  width: var(--wl-ks);
+  height: var(--wl-ks);
   margin: 0 auto;
-  border-radius: var(--radius-md);
-  overflow: hidden;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-primary-border);
-  box-shadow: 0 10px 26px rgba(0,0,0,.45), 0 0 0 4px var(--color-primary-subtle);
-  /* الحركة جوّاه بس، فالمتصفح مايحتاجش يعيد حساب أي حاجة براه */
+  box-shadow: 0 18px 40px rgba(0,0,0,.5), 0 0 0 5px var(--color-primary-subtle);
+  overflow: hidden;
   contain: paint;
 }
-/* لحظة إعادة الوضع الابتدائي: **القطع** وحدها هي اللي بتتلاشى، واللوح
-   (الإطار والمربعات) بيفضل مكانه. الأول كان اللوح كله بيروح شفافًا فيبان
-   كأن العرض خلص وسايب فراغ في نص الشاشة (بلاغ أحمد: «الانميشن بيختفي بعد
-   ما يخلص عرض») — والحقيقة إنه كان بيرجع بعد لحظة، بس الفراغ هو اللي
-   وصل للمستخدم. الرجوع للوضع الابتدائي بيحصل جوّه فترة التلاشي دي. */
-.wl-board__pcs{
-  position: absolute;
-  inset: 0;
-  transition: opacity var(--duration-normal) var(--easing-standard);
-}
-.wl-board--fade .wl-board__pcs{ opacity: 0; }
-.wl-board__grid{
+.wl-kn__grid{
   position: absolute;
   inset: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
 }
-.wl-sq{ display: block; transition: background-color .28s ease; }
-.wl-sq--l{ background: var(--sq-l, #f0d9b5); }
-.wl-sq--d{ background: var(--sq-d, #b58863); }
-.wl-sq--l.is-hl{ background: var(--sq-ml, #cdd26a); }
-.wl-sq--d.is-hl{ background: var(--sq-md, #aaa23a); }
-.wl-pc{
+.wl-kn__sq{ display: block; transition: background-color .3s ease; }
+.wl-kn__sq--l{ background: var(--sq-l, #f0d9b5); }
+.wl-kn__sq--d{ background: var(--sq-d, #b58863); }
+.wl-kn__sq--l.is-on{ background: var(--sq-ml, #cdd26a); }
+.wl-kn__sq--d.is-on{ background: var(--sq-md, #aaa23a); }
+
+/* مسار الـL المتقطّع — يُرسَم من المصدر للهدف مع كل نقلة.
+   pathLength="1" بيخلّي الطول ثابتًا مهما اختلف المسار، فحركة الرسم
+   واحدة دايمًا بلا حساب أطوال في JS. */
+.wl-kn__svg{
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 25%;
-  height: 25%;
-  /* المربع = عرض القطعة، فالنقل بنسبة مئوية من نفسها = مربع بالظبط */
-  transform: translate(calc(var(--c) * 100%), calc(var(--r) * 100%)) scale(var(--s, 1));
-  transition: transform .5s var(--easing-decelerate), opacity .3s ease, filter .25s ease;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.wl-kn__trail{
+  stroke: var(--color-primary, #d8b45a);
+  stroke-width: .07;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: .09 .07;
+  opacity: 0;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,.5));
+}
+.wl-kn__trail.is-draw{ animation: wlKnTrail 1.25s var(--easing-standard) both; }
+@keyframes wlKnTrail{
+  0%{   opacity: 0;   stroke-dashoffset: .5; }
+  18%{  opacity: .95; }
+  70%{  opacity: .95; stroke-dashoffset: 0; }
+  100%{ opacity: 0;   stroke-dashoffset: 0; }
+}
+
+/* حلقة الهدف: تنبض على المربّع اللي الفارس رايح له */
+.wl-kn__ring{
+  position: absolute;
+  top: 0; left: 0;
+  width: 25%; height: 25%;
+  transform: translate(calc(var(--c, 0) * 100%), calc(var(--r, 0) * 100%));
+  transition: transform .58s var(--easing-decelerate);
+  pointer-events: none;
+}
+.wl-kn__ring::before{
+  content: '';
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary, #d8b45a);
+  opacity: .55;
+  animation: wlKnRing 1.25s ease-in-out infinite;
+}
+@keyframes wlKnRing{
+  0%,100%{ transform: scale(.82); opacity: .28; }
+  50%{     transform: scale(1);   opacity: .6; }
+}
+
+/* القطعة: طبقتان — الخارجية بتنقل بين المربّعات، والداخلية بتعمل
+   القفزة (ارتفاع + تكبير) فالاتنين مايتعارضوش على نفس الـtransform. */
+.wl-kn__pc{
+  position: absolute;
+  top: 0; left: 0;
+  width: 25%; height: 25%;
+  transform: translate(calc(var(--c, 0) * 100%), calc(var(--r, 0) * 100%));
+  transition: transform .58s cubic-bezier(.34, .82, .32, 1);
   will-change: transform;
 }
-/* القطعة المأكولة: بتصغّر وتختفي في مكانها */
-.wl-pc--gone{ --s: .45; opacity: 0; }
-.wl-pc--check{ filter: drop-shadow(0 0 6px var(--color-danger)); }
-.wl-pc--mate{
-  filter: drop-shadow(0 0 9px var(--color-danger));
-  animation: wl-mate 1s var(--easing-standard) 2;
+.wl-kn__hop{
+  display: block;
+  width: 100%; height: 100%;
+  transform-origin: 50% 82%;
 }
-@keyframes wl-mate{
-  0%,100%{ filter: drop-shadow(0 0 9px var(--color-danger)); }
-  50%{ filter: drop-shadow(0 0 2px var(--color-danger)); }
+.wl-kn__hop.is-hop{ animation: wlKnHop .58s cubic-bezier(.34, .82, .32, 1) both; }
+@keyframes wlKnHop{
+  0%{   transform: translateY(0)     scale(1, 1); }
+  14%{  transform: translateY(2%)    scale(1.1, .9); }   /* الضغط قبل القفز */
+  50%{  transform: translateY(-34%)  scale(.94, 1.1); }  /* أعلى القوس */
+  86%{  transform: translateY(3%)    scale(1.12, .88); } /* الهبوط */
+  100%{ transform: translateY(0)     scale(1, 1); }
 }
-/* «حركة أقل» في إعدادات النظام: اللوح بيتعرض على وضع المات ثابتًا من غير
-   أي انتقال ولا نبض (welcome-client.js بيحطّ الكلاس ويوقف الدورة). */
-.wl-board--still .wl-pc{ transition: none; }
-.wl-board--still .wl-pc--mate{ animation: none; }
+.wl-kn__img{
+  display: block;
+  width: 108%;
+  height: 108%;
+  margin: -4%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,.55));
+}
 
 .wl-title{
   font-family: var(--font-family-base);
@@ -2496,8 +2592,7 @@ body[data-ui-theme="gaming"]{
   .wl-info{ gap: var(--space-4); }
   .wl-hero{ padding: var(--space-2) 0 var(--space-3); }
   .wl-hero::before{ width: 200px; height: 200px; }
-  .wl-board{ --wl-bs: 104px; }
-  .wl-title{ font-size: 22px; }
+  .wl-screen--min .wl-knight{ --wl-ks: min(48vw, 186px); }
   .wl-feats{ gap: var(--space-2); }
   .wl-feat{ padding: var(--space-2) var(--space-3); }
   .wl-feat__ic{ width: 36px; height: 36px; }
@@ -2510,7 +2605,7 @@ body[data-ui-theme="gaming"]{
   .wl-info{ gap: var(--space-3); }
   .wl-hero{ padding: 0 0 var(--space-2); }
   .wl-hero::before{ width: 170px; height: 170px; }
-  .wl-board{ --wl-bs: 88px; }
+  .wl-screen--min .wl-knight{ --wl-ks: min(42vw, 150px); }
   .wl-feats{ gap: var(--space-1); }
   .wl-feat{ padding: var(--space-2); }
   .wl-feat__s{ line-height: 1.4; }
@@ -2542,8 +2637,10 @@ body[data-ui-theme="gaming"]{
   .wl-top{ text-align: start; margin: 0; max-width: none; }
   .wl-hero{ padding: 0 0 var(--space-2); justify-content: flex-start; }
   .wl-hero::before{ display: none; }
-  .wl-board{ --wl-bs: 84px; margin-inline: 0; }
-  .wl-title{ font-size: 20px; margin-bottom: var(--space-1); }
+  .wl-screen--min .wl-knight{ --wl-ks: min(30vh, 148px); margin-inline: 0; }
+  .wl-screen--min .wl-title{ font-size: clamp(22px, 4.2vw, 30px); margin-bottom: var(--space-1); }
+  .wl-screen--min .wl-sub{ margin-inline: 0; }
+  .wl-brandline{ letter-spacing: 1.2px; }
   .wl-feats{ gap: var(--space-1); max-width: none; }
   .wl-feat{ padding: var(--space-1) var(--space-2); }
   .wl-feat__ic{ width: 32px; height: 32px; }
@@ -2563,7 +2660,9 @@ body[data-ui-theme="gaming"]{
    justify-content:center — عشان لو المحتوى طال عن الشاشة الهوامش تتصفّر
    والتمرير يشتغل من أوّل بكسل بدل ما القمّة تتقصّ. */
 @media (min-width: 700px) and (min-height: 800px){
-  .wl-board{ --wl-bs: 168px; }
+  .wl-screen--min .wl-knight{ --wl-ks: min(44vw, 330px); }
+  .wl-screen--min .wl-title{ font-size: clamp(38px, 5vw, 54px); }
+  .wl-screen--min .wl-sub{ font-size: 18px; max-width: 40ch; }
   .wl-hero::before{ width: 340px; height: 340px; }
   .wl-info, .wl-top, .wl-feats, .wl-actions{ max-width: 560px; }
   .wl-screen{ gap: var(--space-5); }
@@ -6359,143 +6458,536 @@ html.kb-open #amkh-chat-modal .ds-sheet{
    opacity بس (درس #140) — ولا عرض ولا لون بيتأنمَت.
 ════════════════════════════════════════════════════════════════════════ */
 
-/* ── اللوحة الرئيسية ─────────────────────────────────────────────────── */
-.pzh{
+/* ══════════════════════════════════════════════════════════════════════
+   لوحة الألغاز — «مسار الترقية»  (PZH / .pzx)
+   ──────────────────────────────────────────────────────────────────────
+   بطلها خريطة أفعى بتسع محطّات (الرتب التسع) وقطعة تترقّى معك وتمشي على
+   الخطّ. الهندسة كلّها نِسَب من ضلع الخريطة المربّع: كل خانة ثلثه، ومركز
+   المحطّة عند ‎(1/6 + c×1/3)‎. القطعة المتحرّكة صندوقٌ بحجم خانة واحدة
+   يُزاح بـtransform (نسبة من نفسه = نسبة من الخريطة) فينزلق على المُركّب
+   بلا لمس تخطيط. الخطّ يُرسَم بـstroke-dashoffset. لا عرض ولا لون يتأنمت
+   (درس #140)، والتحوّلات لا تُفعَّل قبل ‎.is-live‎.
+════════════════════════════════════════════════════════════════════════ */
+.pzx{
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-4) var(--space-6);
+  padding: var(--space-3) var(--space-4) var(--space-7);
 }
-.pzh__empty{
-  text-align: center;
-  color: var(--color-text-secondary);
-  padding: var(--space-6) var(--space-4);
+.pzx__empty{ text-align: center; color: var(--color-text-secondary); padding: var(--space-7) var(--space-4); }
+.pzx__ico{ display: inline-flex; width: 1em; height: 1em; }
+.pzx__ico svg{ width: 100%; height: 100%; display: block; }
+
+/* ── الرأس ── */
+.pzx__head{
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: radial-gradient(140% 160% at 8% 0%, var(--color-primary-subtle), var(--color-surface) 62%);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
-.pzh__card{
+.pzx__crest{ position: relative; width: 54px; height: 54px; flex: 0 0 auto; color: var(--color-primary); }
+.pzx__crest-sh{ width: 100%; height: 100%; filter: drop-shadow(0 3px 8px rgba(0,0,0,.4)); }
+.pzx__crest-pc{
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
+  width: 30px; height: 30px; object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.5));
+}
+.pzx__headtx{ min-width: 0; flex: 1; }
+.pzx__ratingrow{ display: flex; align-items: baseline; gap: var(--space-2); }
+.pzx__rating{ font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -.5px; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
+.pzx__prov{
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+  color: var(--color-warning); background: var(--color-warning-subtle);
+  padding: 2px 7px; border-radius: var(--radius-pill);
+}
+.pzx__rankname{ font-size: 15px; font-weight: 700; color: var(--color-primary-text); margin-top: 2px; }
+.pzx__pips{ display: flex; gap: 4px; margin-top: 8px; direction: ltr; }
+.pzx__pip{ width: 100%; height: 4px; border-radius: var(--radius-pill); background: var(--color-border); transition: background .3s var(--easing-standard); }
+.pzx__pip.is-on{ background: var(--color-primary); }
+
+/* ── البطاقة العامّة ── */
+.pzx__card{
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  box-shadow: var(--shadow-md);
 }
-.pzh__eyebrow{
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .03em;
-  color: var(--color-primary-text);
-  text-transform: uppercase;
+.pzx__crow{ display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-3); }
+.pzx__eyebrow{
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--color-text-secondary);
+}
+.pzx__eyebrow .pzx__ico{ font-size: 15px; color: var(--color-primary-text); }
+.pzx__jnext{ font-size: 12px; font-weight: 600; color: var(--color-primary-text); }
+
+/* ── رحلة الترقية: خمسة عوالم مرسومة ───────────────────────────
+   ليست بطاقةً بل منظر: المسرح إطارٌ واحد يحمل رسم العالم كاملًا
+   (السماء والجبال والأرض والدرب والبلاطات)، وفوقه طبقةُ الطقس ثم
+   طبقةُ البطل بالـHTML لأن انتقاله بين المحطّات transform.
+
+   المشهد ‎absolute‎ داخل المسرح لا ‎static‎: عند العبور إلى عالمٍ
+   جديد يتعايش مشهدان لحظةً — الداخل يظهر والخارج يذوب فوقه — فلو
+   كان أحدهما يشغل مكانًا في التخطيط لقفز الإطار. ولذلك ارتفاع
+   المسرح من ‎padding-top‎ بنسبة 640/400 لا من ارتفاع الصورة (ولا
+   من ‎aspect-ratio‎ الذي يتفاوت دعمه في WebView القديم).
+
+   قاعدة #140 محفوظة حرفيًّا: كل حركة هنا transform أو opacity
+   فقط — لا عرض ولا لون ولا فلتر متحرّك. ومحاور التحويل داخل
+   الـSVG كلّها إزاحة لا تكبير ولا دوران، فلا تعتمد على
+   ‎transform-box‎ الذي يتفاوت دعمه بين المحرّكات.
+────────────────────────────────────────────────────────────── */
+.pzx__world{ margin: 0 0 var(--space-4); }
+.pzx__wrow{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-2); margin: 0 0 var(--space-2); padding: 0 2px;
+}
+.pzx__wname{ color: var(--color-primary-text); display: inline-flex; align-items: baseline; gap: 6px; }
+.pzx__wnameT{ font-weight: 800; }
+.pzx__wnameN{
+  color: var(--color-text-secondary); font-weight: 600; font-size: 10px;
+  opacity: .85; white-space: nowrap;
+}
+.pzx__stage{
+  position: relative; width: 100%; max-width: 460px; margin: 0 auto;
+  direction: ltr; isolation: isolate;
+  border-radius: var(--radius-lg); overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: #101736;
+  box-shadow: var(--shadow-lg);
+}
+.pzx__stage::before{ content: ''; display: block; padding-top: 160%; }
+/* تعتيمٌ لطيف عند الحواف يذيب المنظر في خلفيّة التطبيق الداكنة
+   بدل أن ينقطع بحدٍّ حادّ، وخيطٌ ذهبيّ يربطه بهويّة التطبيق */
+.pzx__stage::after{
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit; z-index: 4;
+  box-shadow: inset 0 -30px 44px -20px rgba(5, 7, 16, .8),
+              inset 0 0 0 1px rgba(216, 180, 90, .2);
+}
+.pzx__scene{ position: absolute; inset: 0; z-index: 1; }
+.pzx__art{ display: block; width: 100%; height: 100%; }
+.pzx__art text{ font-family: inherit; }
+
+/* العبور: العالم الجديد يطلع من تحت، والقديم يذوب صاعدًا فوقه */
+.pzx__scene{ transition: opacity .9s var(--easing-standard), transform .9s var(--easing-decelerate); }
+.pzx__scene.is-enter{ opacity: 0; transform: translateY(14px); }
+.pzx__scene.is-out{ opacity: 0; transform: translateY(-16px); z-index: 2; }
+
+/* ── الطقس: طبقة HTML فوق الرسم ───────────────────────────────
+   كل جسيم «قضيبٌ» بارتفاع المسرح ونقطتُه في رأسه، فإزاحته المئويّة
+   الرأسيّة = ارتفاع المسرح بالضبط مهما تغيّر مقاس الشاشة. لو كانت
+   النقطة وحدها لكانت النسبة من قُطرها هي — أي بضعة بكسلات.
+────────────────────────────────────────────────────────────── */
+.pzx__wx{ position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 3; }
+.pzx__wxd{
+  position: absolute; top: 0; width: 0; height: 100%;
+  animation: pzxFall var(--dur, 9s) linear var(--sd, 0s) infinite;
+}
+.pzx__wxd::before{
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 6px; height: 6px; border-radius: 50%;
+  transform: scale(var(--sc, 1));
+}
+@keyframes pzxFall{
+  0%{ transform: translate(0, -8%); opacity: 0; }
+  9%{ opacity: .95; }
+  90%{ opacity: .95; }
+  100%{ transform: translate(var(--dx, 0px), 106%); opacity: 0; }
+}
+@keyframes pzxRise{
+  0%{ transform: translate(0, 104%); opacity: 0; }
+  12%{ opacity: .8; }
+  86%{ opacity: .8; }
+  100%{ transform: translate(var(--dx, 0px), -6%); opacity: 0; }
+}
+/* بتلاتُ الفجر: بويضاتٌ ورديّة مائلة */
+.pzx__wx--petals .pzx__wxd::before{
+  width: 7px; height: 5px; border-radius: 60% 40% 55% 45%;
+  background: #ffd3e2; box-shadow: 0 0 4px rgba(255, 190, 214, .6);
+}
+/* غبارُ الطَّلْع: يصعد لا يهبط */
+.pzx__wx--motes .pzx__wxd{ animation-name: pzxRise; }
+.pzx__wx--motes .pzx__wxd::before{
+  width: 4px; height: 4px; background: #f2ffd8;
+  box-shadow: 0 0 5px rgba(230, 255, 190, .8);
+}
+/* ثلجُ الهضاب */
+.pzx__wx--snow .pzx__wxd::before{
+  width: 5px; height: 5px; background: #fff;
+  box-shadow: 0 0 5px rgba(255, 255, 255, .85);
+}
+/* غبارُ النجوم */
+.pzx__wx--dust .pzx__wxd{ animation-name: pzxRise; }
+.pzx__wx--dust .pzx__wxd::before{
+  width: 3px; height: 3px; background: #ead6ff;
+  box-shadow: 0 0 6px rgba(196, 137, 255, .9);
+}
+/* يراعاتُ الغروب: لا تسقط — ترفرف مكانها وتنبض */
+.pzx__wx--flies .pzx__wxd{
+  height: auto; width: 5px;
+  animation: pzxFlit var(--dur, 3s) ease-in-out var(--sd, 0s) infinite alternate;
+}
+.pzx__wx--flies .pzx__wxd::before{
+  width: 5px; height: 5px; background: #ffe9ae;
+  box-shadow: 0 0 8px rgba(255, 223, 155, .95), 0 0 16px rgba(255, 200, 90, .5);
+}
+@keyframes pzxFlit{
+  0%{ transform: translate(0, 0); opacity: .25; }
+  50%{ opacity: 1; }
+  100%{ transform: translate(var(--dx, 10px), -14px); opacity: .35; }
+}
+/* نيزكٌ يعبر سماء القمّة */
+.pzx__meteor{
+  position: absolute; width: 2px; height: 2px; border-radius: 50%;
+  background: #fff6d8;
+  animation: pzxMeteor var(--dur, 8s) linear var(--sd, 0s) infinite;
+}
+.pzx__meteor::before{
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 54px; height: 1.5px; transform-origin: 0 50%;
+  transform: rotate(150deg);
+  background: linear-gradient(90deg, rgba(255, 246, 216, .9), rgba(255, 246, 216, 0));
+}
+@keyframes pzxMeteor{
+  0%{ transform: translate(0, 0); opacity: 0; }
+  4%{ opacity: 1; }
+  16%{ transform: translate(-150px, 86px); opacity: 0; }
+  100%{ transform: translate(-150px, 86px); opacity: 0; }
 }
 
-/* التصنيف والرتبة */
-.pzh__top{ align-items: center; text-align: center; gap: var(--space-1); }
-.pzh__num{ display: flex; align-items: baseline; gap: var(--space-2); justify-content: center; }
-.pzh__rating{ font-size: 40px; font-weight: 800; color: var(--color-text-primary); line-height: 1; }
-.pzh__prov{
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-warning);
-  background: var(--color-warning-subtle);
-  border-radius: var(--radius-pill);
-  padding: 2px 8px;
+/* لافتة العبور إلى عالمٍ جديد */
+.pzx__wbar{
+  position: absolute; left: 50%; top: 34%; z-index: 5;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 22px; border-radius: var(--radius-lg);
+  background: rgba(8, 11, 22, .88); border: 1px solid rgba(216, 180, 90, .6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .55);
+  text-align: center; pointer-events: none; opacity: 0;
 }
-.pzh__rank{ font-size: 16px; font-weight: 700; color: var(--color-primary-text); }
-.pzh__track{
-  width: 100%;
-  height: 7px;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-sunken);
-  overflow: hidden;
-  margin-top: var(--space-1);
+.pzx__wbar.is-in{ animation: pzxWbar 5.2s var(--easing-decelerate) both; }
+.pzx__wbar-t{
+  font-size: 10px; font-weight: 800; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--color-text-secondary);
 }
-.pzh__fill{
-  display: block;
-  height: 100%;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--color-primary-pressed), var(--color-primary));
-  transition: width .5s cubic-bezier(.22,.9,.3,1);
-}
-.pzh__next{ font-size: 12px; color: var(--color-text-secondary); }
-
-/* لغز اليوم */
-.pzh__daily{ position: relative; }
-.pzh__dtext{ color: var(--color-text-secondary); font-size: 14px; line-height: 1.5; }
-.pzh__streak{
-  align-self: flex-start;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-warning);
-  background: var(--color-warning-subtle);
-  border-radius: var(--radius-pill);
-  padding: 3px 10px;
+.pzx__wbar-n{ font-size: 17px; font-weight: 800; color: var(--color-primary-text); }
+@keyframes pzxWbar{
+  0%{ opacity: 0; transform: translate(-50%, -30%); }
+  10%{ opacity: 1; transform: translate(-50%, -50%); }
+  86%{ opacity: 1; transform: translate(-50%, -50%); }
+  100%{ opacity: 0; transform: translate(-50%, -62%); }
 }
 
-/* شبكة الأوضاع */
-.pzh__modes{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+/* ── حياة المشهد ── */
+.pzx__star{ animation: pzxTwinkle 3.6s ease-in-out infinite; animation-delay: var(--sd, 0s); }
+@keyframes pzxTwinkle{ 0%, 100%{ opacity: .28; } 50%{ opacity: .9; } }
+.pzx__sun{ animation: pzxSunPulse 6s ease-in-out infinite; }
+@keyframes pzxSunPulse{ 0%, 100%{ opacity: .92; } 50%{ opacity: 1; } }
+.pzx__clouds{ animation: pzxDrift 26s linear infinite; }
+@keyframes pzxDrift{ 0%{ transform: translateX(-10px); } 50%{ transform: translateX(10px); } 100%{ transform: translateX(-10px); } }
+.pzx__birds{ animation: pzxFly 22s ease-in-out infinite; }
+@keyframes pzxFly{ 0%{ transform: translate(-26px, 5px); } 50%{ transform: translate(26px, -5px); } 100%{ transform: translate(-26px, 5px); } }
+.pzx__sway{ animation: pzxSway 6.2s ease-in-out infinite; animation-delay: var(--sd, 0s); }
+@keyframes pzxSway{ 0%, 100%{ transform: translateX(-1.2px); } 50%{ transform: translateX(1.2px); } }
+.pzx__ripple{ animation: pzxRipple 5s ease-in-out infinite; }
+@keyframes pzxRipple{ 0%, 100%{ transform: translateX(-3px); opacity: .55; } 50%{ transform: translateX(3px); opacity: 1; } }
+.pzx__smoke{ animation: pzxSmoke 7s ease-in-out infinite; }
+@keyframes pzxSmoke{ 0%{ transform: translate(0, 4px); opacity: 0; } 30%{ opacity: 1; } 100%{ transform: translate(-6px, -18px); opacity: 0; } }
+.pzx__flag{ animation: pzxFlag 3.4s ease-in-out infinite; }
+@keyframes pzxFlag{ 0%, 100%{ transform: translateX(0); } 50%{ transform: translateX(-2.5px); } }
+.pzx__castle{ animation: pzxCastleIn .7s var(--easing-decelerate) both; }
+@keyframes pzxCastleIn{ from{ opacity: 0; transform: translateY(10px); } to{ opacity: 1; transform: none; } }
+/* الشفق فوق الهضاب: تموّجُ شفافيّةٍ لا حركة — الحركة هنا تكلّف */
+.pzx__aur{ animation: pzxAur 9s ease-in-out infinite; }
+@keyframes pzxAur{ 0%, 100%{ opacity: .55; } 50%{ opacity: 1; } }
+/* البلّورات تلمع كلٌّ في وقتها */
+.pzx__gem{ animation: pzxGem 4.4s ease-in-out infinite; animation-delay: var(--sd, 0s); }
+@keyframes pzxGem{ 0%, 100%{ opacity: .82; } 50%{ opacity: 1; } }
+/* هالةُ تاج القمّة */
+.pzx__aura{ animation: pzxAura 5.2s ease-in-out infinite; }
+@keyframes pzxAura{ 0%, 100%{ opacity: .55; } 50%{ opacity: 1; } }
+
+/* ── الدرب: الجزء المقطوع منه يضيء ──
+   لونُ الضوء من لوحة العالم نفسه: ذهبٌ على العشب، وضوءٌ ثلجيّ على
+   الثلج. خيطٌ أصفر واحد لكل العوالم كان ينشز فوق الهضاب البيضاء. */
+.pzx__trailOn{
+  stroke: var(--trailOn, #ffdf9b); stroke-dasharray: 1; stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 5px var(--trailGlow, rgba(255, 223, 155, .75)));
 }
-.pzh__mode{
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  text-align: start;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  cursor: pointer;
-  transition: transform .12s ease, border-color .12s ease;
+.pzx__stage.is-live .pzx__trailOn{ transition: stroke-dashoffset 1.15s var(--easing-decelerate); }
+
+/* ── البلاطات التسع ── */
+.pzx__st{
+  cursor: pointer; outline: none;
+  animation: pzxStoneIn .5s var(--easing-decelerate) both;
+  animation-delay: var(--d, 0s);
 }
-.pzh__mode:active{ transform: scale(.97); }
-.pzh__mode:hover{ border-color: var(--color-primary-border); }
-.pzh__mode--wide{ grid-column: 1 / -1; }
-.pzh__mode-title{ font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
-.pzh__mode-desc{ font-size: 12px; color: var(--color-text-secondary); line-height: 1.45; }
-.pzh__mode-best{
-  margin-top: 3px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-primary-text);
+@keyframes pzxStoneIn{ from{ opacity: 0; transform: translateY(16px); } to{ opacity: 1; transform: none; } }
+.pzx__stTop{ fill: var(--stTop, #c9a267); }
+.pzx__stSide{ fill: var(--stSide, #8a6a3c); }
+.pzx__stRing{ fill: none; stroke: var(--stRing, #a5813f); stroke-width: 2; opacity: .55; }
+.pzx__stHalo{ fill: none; }
+.pzx__stNum{
+  font-size: 15px; font-weight: 800; fill: #4a3620; text-anchor: middle;
+  paint-order: stroke; stroke: rgba(255, 246, 216, .5); stroke-width: 2.4;
+  pointer-events: none; user-select: none;
+}
+.pzx__stMark{ display: none; }
+.pzx__st:focus-visible .pzx__stTop{ stroke: var(--color-primary); stroke-width: 2.5; }
+.pzx__st:active{ opacity: .82; }
+
+/* مقطوعة: عشبٌ نما فوق الخشب، وعلامةُ صحّ بدل الرقم */
+.pzx__st.is-done .pzx__stTop{ fill: var(--stDoneTop, #63b984); }
+.pzx__st.is-done .pzx__stSide{ fill: var(--stDoneSide, #327a4e); }
+.pzx__st.is-done .pzx__stRing{ stroke: var(--stDoneRing, #24603c); opacity: .45; }
+.pzx__st.is-done .pzx__stNum{ display: none; }
+.pzx__st.is-done .pzx__stMark{ display: block; color: var(--stDoneMark, #12401f); }
+
+/* الحاليّة: ذهبٌ تحت قدمَيك، وهالةٌ تنبض */
+.pzx__st.is-now .pzx__stTop{ fill: #f0d68a; }
+.pzx__st.is-now .pzx__stSide{ fill: #b8923f; }
+.pzx__st.is-now .pzx__stRing{ stroke: #8a6a28; opacity: .65; }
+.pzx__st.is-now .pzx__stNum{ display: none; }
+.pzx__st.is-now .pzx__stHalo{
+  fill: #ffe9ae; animation: pzxHaloP 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 233, 174, .85));
+}
+@keyframes pzxHaloP{ 0%, 100%{ opacity: .22; } 50%{ opacity: .55; } }
+
+/* قادمة: حجرُ العالم نفسه لم تطأه قدم، ورقمُ المحطّة عليه. لا لون
+   خاصّ بها — ألوانها هي ‎--stTop/--stSide/--stRing‎ التي يضبطها كل
+   عالم، فتبدو البلاطة من أرضها لا غريبةً عنها. */
+.pzx__st.is-locked .pzx__stNum{ fill: #2e2a22; stroke: rgba(255, 250, 240, .5); }
+
+/* ── البطل: قطعتك واقفةً على بلاطتك ──────────────────────────
+   ‎.pzx__hero‎ بمقاس المسرح كلّه، فنسبة إزاحته المئويّة = نسبة من
+   المسرح بالضبط مهما تغيّر عرض الشاشة؛ وأبناؤه يُثبَّتون على تلك
+   النقطة بإزاحةٍ من أنفسهم. هكذا يبقى البطل ملتصقًا بالبلاطة على
+   الهاتف واللوحيّ والحاسوب بلا حساب بالبكسل.
+────────────────────────────────────────────────────────────── */
+.pzx__heroL{ position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.pzx__hero{
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  transform: translate(var(--hx, 0%), var(--hy, 0%));
+  will-change: transform;
+}
+.pzx__stage.is-live .pzx__hero{ transition: transform .95s var(--easing-spring); }
+.pzx__heroGlow{
+  position: absolute; left: 0; top: 0; width: 22%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 223, 155, .45), rgba(255, 223, 155, 0) 66%);
+  transform: translate(-50%, -54%);
+  animation: pzxHeroGlow 2.8s ease-in-out infinite;
+}
+@keyframes pzxHeroGlow{ 0%, 100%{ opacity: .5; } 50%{ opacity: 1; } }
+.pzx__heroSh{
+  position: absolute; left: 0; top: 0; width: 11%; aspect-ratio: 3.4 / 1; border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(8, 20, 10, .55), rgba(8, 20, 10, 0) 72%);
+  transform: translate(-50%, 6%);
+}
+.pzx__heroPc{
+  position: absolute; left: 0; top: 0; width: 12.5%; height: auto;
+  transform: translate(-50%, -88%);
+  filter: drop-shadow(0 3px 5px rgba(6, 10, 20, .6));
+}
+.pzx__hero.is-pop .pzx__heroPc{ animation: pzxHeroPop .66s var(--easing-spring); }
+@keyframes pzxHeroPop{
+  0%{ transform: translate(-50%, -88%) scale(1); }
+  42%{ transform: translate(-50%, -104%) scale(1.1); }
+  100%{ transform: translate(-50%, -88%) scale(1); }
+}
+.pzx__heroTag{
+  position: absolute; left: 0; top: 0; width: 12.5%; aspect-ratio: 1;
+  transform: translate(-50%, -190%);
+}
+.pzx__heroName{
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  white-space: nowrap; padding: 3px 10px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 800; color: var(--color-primary-text);
+  background: rgba(8, 11, 22, .86); border: 1px solid rgba(216, 180, 90, .55);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+}
+.pzx__heroName::after{
+  content: ''; position: absolute; top: 100%; left: 50%;
+  width: 0; height: 0; transform: translateX(-50%);
+  border: 4px solid transparent; border-top-color: rgba(216, 180, 90, .55);
 }
 
-/* الأرقام */
-.pzh__grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
-.pzh__cell{ display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.pzh__cell-n{ font-size: 20px; font-weight: 800; color: var(--color-text-primary); }
-.pzh__cell-l{ font-size: 11px; color: var(--color-text-secondary); text-align: center; }
-
-/* القوّة والضعف */
-.pzh__tlist{ display: flex; flex-direction: column; gap: var(--space-2); }
-.pzh__trow{
-  display: grid;
-  grid-template-columns: 1fr 2fr auto;
-  align-items: center;
-  gap: var(--space-2);
-  background: transparent;
-  border: none;
-  padding: 4px 0;
-  cursor: pointer;
+.pzx__jcap{ margin: var(--space-3) 0 0; font-size: 12.5px; line-height: 1.55; color: var(--color-text-secondary); text-align: center; min-height: 2.6em; }
+.pzx__rankup{
+  margin: var(--space-2) 0 0; text-align: center;
+  font-size: 14px; font-weight: 800; color: var(--color-primary-text);
 }
-.pzh__trow-name{ font-size: 13px; color: var(--color-text-primary); text-align: start; }
-.pzh__trow-track{
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-sunken);
-  overflow: hidden;
-}
-.pzh__trow-fill{ display: block; height: 100%; border-radius: var(--radius-pill); }
-.pzh__trow-fill.is-good{ background: var(--color-success); }
-.pzh__trow-fill.is-weak{ background: var(--color-danger); }
-.pzh__trow-rate{ font-size: 12px; font-weight: 700; color: var(--color-text-secondary); min-width: 34px; text-align: end; }
+.pzx__rankup.is-in{ animation: pzxRankUp .55s var(--easing-decelerate); }
+@keyframes pzxRankUp{ 0%{ opacity: 0; transform: translateY(-8px) scale(.85); } 55%{ transform: translateY(0) scale(1.12); } 100%{ opacity: 1; transform: none; } }
 
-/* نور */
-.pzh__ctext{ color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+/* ── لغز اليوم ── */
+.pzx__flame{ display: inline-flex; align-items: center; gap: 4px; font-size: 15px; color: var(--color-warning); }
+.pzx__flame .pzx__ico{ animation: pzFlame 2.2s ease-in-out infinite; }
+.pzx__flame-n{ font-size: 12px; font-weight: 800; color: var(--color-warning); }
+.pzx__dtext{ font-size: 13.5px; line-height: 1.5; color: var(--color-text-secondary); margin: 0 0 var(--space-3); }
+.pzx__week{ display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: var(--space-3); direction: ltr; }
+.pzx__day{
+  position: relative; aspect-ratio: 1; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-surface-sunken); border: 1px solid var(--color-border-subtle);
+}
+.pzx__day-w{ font-size: 10px; font-weight: 700; color: var(--color-text-disabled); }
+.pzx__day.is-done{ background: var(--color-success-subtle); border-color: var(--color-success); }
+.pzx__day.is-done .pzx__day-w{ display: none; }
+.pzx__day-c{ font-size: 15px; color: var(--color-success); }
+.pzx__day.is-today{ border-color: var(--color-primary); box-shadow: 0 0 0 1px var(--color-primary) inset; }
+.pzx__day.is-today .pzx__day-w{ color: var(--color-primary-text); }
+.pzx__hearts{ display: flex; gap: 5px; margin-bottom: var(--space-3); }
+.pzx__heart{ font-size: 17px; color: var(--color-border-strong); }
+.pzx__heart.is-on{ color: var(--color-danger); }
+.pzx__cta{
+  width: 100%; min-height: 50px; border: 0; border-radius: var(--radius-md); cursor: pointer;
+  font-family: inherit; font-size: 16px; font-weight: 800; color: var(--color-on-primary);
+  background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary));
+  box-shadow: var(--shadow-primary-glow); transition: transform .15s var(--easing-standard);
+}
+.pzx__cta:active{ transform: scale(.98); }
+.pzx__cta.is-done{ background: var(--color-surface-raised); color: var(--color-primary-text); box-shadow: none; border: 1px solid var(--color-primary-border); }
+
+/* ── الأوضاع ── */
+.pzx__modes{ display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.pzx__mode{
+  display: flex; align-items: center; gap: var(--space-3); text-align: start;
+  padding: var(--space-3); min-height: 76px; cursor: pointer;
+  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
+  border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform .16s var(--easing-standard), border-color .2s, box-shadow .2s;
+  animation: pzxCardIn .4s var(--easing-decelerate) both;
+}
+.pzx__mode--wide{ grid-column: 1 / -1; min-height: 64px; }
+.pzx__mode:active{ transform: scale(.98); }
+.pzx__mode:hover{ border-color: var(--color-primary-border); box-shadow: var(--shadow-md); }
+.pzx__mico{
+  flex: 0 0 auto; width: 42px; height: 42px; font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-primary-text); background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border); border-radius: var(--radius-md);
+}
+.pzx__mtx{ display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.pzx__mtitle{ font-size: 14.5px; font-weight: 700; color: var(--color-text-primary); }
+.pzx__mdesc{ font-size: 11px; line-height: 1.4; color: var(--color-text-secondary); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.pzx__mode:not(.pzx__mode--wide) .pzx__mdesc{ -webkit-line-clamp: 3; }
+.pzx__mbest{
+  flex: 0 0 auto; font-size: 10px; font-weight: 800; color: var(--color-primary-text);
+  background: var(--color-primary-subtle); border-radius: var(--radius-pill); padding: 2px 8px; white-space: nowrap;
+}
+.pzx__mgo{ flex: 0 0 auto; font-size: 16px; color: var(--color-text-disabled); }
+.pzx__mode:not(.pzx__mode--wide) .pzx__mgo{ display: none; }
+
+/* ── القوّة والضعف ── */
+.pzx__slist{ display: flex; flex-direction: column; gap: var(--space-2); }
+.pzx__shint{ font-size: 12.5px; line-height: 1.55; color: var(--color-text-secondary); margin: 0 0 var(--space-2); }
+.pzx__link{
+  align-self: flex-start; background: none; border: 0; cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 700; color: var(--color-primary-text);
+  padding: 4px 0; border-bottom: 1px solid var(--color-primary-border);
+}
+.pzx__srow{
+  display: flex; align-items: center; gap: var(--space-3); width: 100%;
+  background: none; border: 0; padding: 4px 0; cursor: pointer; font-family: inherit;
+  animation: pzxCardIn .4s var(--easing-decelerate) both; animation-delay: var(--d);
+}
+.pzx__sname{ flex: 0 0 40%; font-size: 13px; font-weight: 600; color: var(--color-text-primary); text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pzx__strack{ flex: 1; height: 8px; border-radius: var(--radius-pill); background: var(--color-surface-sunken); overflow: hidden; }
+.pzx__sfill{ display: block; height: 100%; border-radius: inherit; transform-origin: left center; transform: scaleX(var(--v,0)); transition: transform .7s var(--easing-decelerate); }
+.pzx__sfill.is-good{ background: var(--color-success); }
+.pzx__sfill.is-weak{ background: var(--color-danger); }
+.pzx__srate{ flex: 0 0 auto; min-width: 36px; text-align: end; font-size: 12px; font-weight: 800; color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+
+/* ── الأرقام ── */
+.pzx__grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+.pzx__cell{ display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.pzx__cell-n{ font-size: 21px; font-weight: 800; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
+.pzx__cell-l{ font-size: 10.5px; color: var(--color-text-secondary); text-align: center; }
+
+/* ── نور ── */
+.pzx__nour{ display: flex; align-items: center; gap: var(--space-3); }
+.pzx__navatar{
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%;
+  background: url('./nour.png?v=2') center/cover no-repeat;
+  border: 2px solid var(--color-primary-border); box-shadow: var(--shadow-sm);
+}
+.pzx__ntx{ flex: 1; min-width: 0; }
+.pzx__ntitle{ font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+.pzx__ntext{ margin: 2px 0 0; font-size: 12px; line-height: 1.45; color: var(--color-text-secondary); }
+.pzx__switch{
+  flex: 0 0 auto; width: 50px; height: 30px; border-radius: var(--radius-pill); cursor: pointer;
+  background: var(--color-border); border: 1px solid var(--color-border-strong); padding: 0; position: relative;
+  direction: ltr; transition: background .25s var(--easing-standard), border-color .25s;
+}
+.pzx__switch.is-on{ background: var(--color-primary); border-color: var(--color-primary); }
+.pzx__knob{
+  position: absolute; top: 50%; left: 3px; transform: translateY(-50%);
+  width: 22px; height: 22px; border-radius: 50%; background: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,.5); transition: transform .25s var(--easing-spring);
+}
+.pzx__switch.is-on .pzx__knob{ transform: translateY(-50%) translateX(20px); background: var(--color-on-primary); }
+
+/* دخول اللوحة متدرّجًا */
+.pzx > *{ animation: pzxCardIn .42s var(--easing-decelerate) both; }
+.pzx > *:nth-child(1){ animation-delay: .02s; }
+.pzx > *:nth-child(2){ animation-delay: .07s; }
+.pzx > *:nth-child(3){ animation-delay: .12s; }
+.pzx > *:nth-child(4){ animation-delay: .17s; }
+.pzx > *:nth-child(5){ animation-delay: .22s; }
+.pzx > *:nth-child(6){ animation-delay: .27s; }
+.pzx > *:nth-child(7){ animation-delay: .32s; }
+@keyframes pzxCardIn{ from{ opacity: 0; transform: translateY(12px); } to{ opacity: 1; transform: none; } }
+
+/* شاشات قصيرة: نقصّ ارتفاع المشهد لا عناصره — المسرح يقتطع من
+   سمائه فيبقى الوادي والدرب كاملَين بلا تمرير طويل */
+@media (max-height: 720px){
+  .pzx__stage{ max-width: 380px; }
+  .pzx__rating{ font-size: 34px; }
+  .pzx__card{ padding: var(--space-3); }
+}
+@media (max-width: 340px){
+  .pzx__mico{ width: 38px; height: 38px; font-size: 20px; }
+  .pzx__heroName{ font-size: 10px; padding: 2px 7px; }
+  .pzx__stNum{ font-size: 17px; }
+}
+/* أفقيّ منخفض: المشهد أضيق بكثير كي لا يبتلع الشاشة */
+@media (max-height: 460px) and (orientation: landscape){
+  .pzx__stage{ max-width: 250px; }
+}
+/* لوحيّ: مساحة أوسع، المشهد أكبر، والأرقام تتنفّس */
+@media (min-width: 768px){
+  .pzx{ max-width: 620px; padding-top: var(--space-5); gap: var(--space-4); }
+  .pzx__stage{ max-width: 520px; }
+  .pzx__rating{ font-size: 46px; }
+  .pzx__heroName{ font-size: 12.5px; padding: 4px 12px; }
+  .pzx__modes{ grid-template-columns: 1fr 1fr 1fr; }
+  .pzx__mode--wide{ grid-column: span 3; }
+  .pzx__cell-n{ font-size: 24px; }
+}
+/* الحاسوب: المشهد يتوسّط بأكبر مقاس مريح ولا يتمدّد بلا حدّ */
+@media (min-width: 1024px){
+  .pzx{ max-width: 760px; }
+  .pzx__stage{ max-width: 560px; }
+}
+/* من يفضّل حركة أقلّ: نوقف الأنميشن التلقائيّة، والوظيفة تبقى */
+@media (prefers-reduced-motion: reduce){
+  .pzx > *, .pzx__mode, .pzx__srow, .pzx__st, .pzx__castle{ animation: none !important; }
+  .pzx__star, .pzx__sun, .pzx__clouds, .pzx__birds, .pzx__sway, .pzx__ripple,
+  .pzx__smoke, .pzx__flag, .pzx__stHalo, .pzx__heroGlow, .pzx__aur, .pzx__gem,
+  .pzx__aura, .pzx__wxd, .pzx__meteor, .pzx__wbar,
+  .pzx__flame .pzx__ico{ animation: none !important; }
+  .pzx__hero, .pzx__trailOn, .pzx__sfill, .pzx__scene{ transition: none !important; }
+  .pzx__wx{ display: none; }
+}
 
 /* ── شاشة الحلّ ──────────────────────────────────────────────────────── */
 /* شاشة الحلّ تملأ المساحة تحت الشريط: المدرّب فوق، الرقعة موسّطة بحجمها
@@ -6560,28 +7052,46 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
+  /* ★ إجباري: شبكة الرقعة تُملأ من اليسار دائمًا.
+     من غيره الواجهة العربية (dir="rtl") بتملأ الأعمدة من اليمين
+     فالرقعة بتتقلب أفقيًّا — والحروف بتقرأ h g f e — ولمّا يكون الثيم
+     صورة، الصورة ما بتتقلبش معاها فتبان الألوان «مختلفة عن باقي
+     الأوضاع». دي كانت مشكلة العربية وحدها بالظبط (بلاغ أحمد).
+     نفس سطر ‎#board‎ في index.html بالحرف. */
+  direction: ltr;
   overflow: hidden;
   box-shadow: 0 10px 34px rgba(0,0,0,.45);
   background: var(--color-surface-sunken);
   touch-action: manipulation;
 }
 #pz-board .sq{ width: 100%; height: 100%; }
-/* ثيمات الرقعة المعتمدة على صورة: نطبّق نفس منطق #board — الصورة على
-   الحاوية والمربّعات تشفّ لتظهر تحتها. بدون هذا كانت رقعة «صورة» تظهر
-   بألوان مصمتة في الألغاز. */
+/* ثيمات الرقعة المعتمدة على صورة: القواعد هنا نسخة طبق الأصل من قواعد
+   ‎#board‎ في index.html (بما فيها استثناء ‎.CK‎ وطبقات الإبراز)، عشان
+   الرقعة في الألغاز تبان مطابقة لباقي الأوضاع حرفيًّا. أي فرق بين
+   المجموعتين بيظهر كـ«ألوان مختلفة» في شاشة واحدة بس. */
 #pz-board.has-bg-image{ background-size: cover; background-position: center; }
-#pz-board.has-bg-image .sq.L:not(.SL):not(.SD):not(.ML):not(.MD),
-#pz-board.has-bg-image .sq.D:not(.SL):not(.SD):not(.ML):not(.MD){ background: transparent; position: relative; }
-#pz-board.has-bg-image .sq.L:not(.SL):not(.SD):not(.ML):not(.MD)::before,
-#pz-board.has-bg-image .sq.D:not(.SL):not(.SD):not(.ML):not(.MD)::before{
-  content: ''; position: absolute; inset: 0; pointer-events: none;
+#pz-board.has-bg-image .sq.L:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD),
+#pz-board.has-bg-image .sq.D:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD){ background: transparent !important; position: relative; }
+#pz-board.has-bg-image .sq.L:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before,
+#pz-board.has-bg-image .sq.D:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before{
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
 }
-#pz-board.has-bg-image .sq.L:not(.SL):not(.SD):not(.ML):not(.MD)::before{ background: rgba(255,255,255,0.12); }
-#pz-board.has-bg-image .sq.D:not(.SL):not(.SD):not(.ML):not(.MD)::before{ background: rgba(0,0,0,0.28); }
+#pz-board.has-bg-image .sq.L:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before{ background: rgba(255,255,255,0.12); }
+#pz-board.has-bg-image .sq.D:not(.CK):not(.SL):not(.SD):not(.ML):not(.MD)::before{ background: rgba(0,0,0,0.28); }
 #pz-board.has-bg-image.custom-board .sq.L,
 #pz-board.has-bg-image.custom-board .sq.D{ background: transparent !important; }
-#pz-board.has-bg-image.custom-board .sq.L::before,
-#pz-board.has-bg-image.custom-board .sq.D::before{ background: transparent !important; }
+#pz-board.has-bg-image .sq.SL::before,
+#pz-board.has-bg-image .sq.SD::before{
+  content: ''; position: absolute; inset: 0; background: rgba(255,255,0,0.5); z-index: 1;
+}
+#pz-board.has-bg-image .sq.ML::before,
+#pz-board.has-bg-image .sq.MD::before{
+  content: ''; position: absolute; inset: 0; background: rgba(255,255,0,0.4); z-index: 1;
+}
+#pz-board.has-bg-image .sq.SL,
+#pz-board.has-bg-image .sq.SD,
+#pz-board.has-bg-image .sq.ML,
+#pz-board.has-bg-image .sq.MD{ background: transparent !important; }
 /* لمعان التلميح: توهّج ذهبي حول المربّع، بلا تغيير لون خلفيّته */
 #pz-board .sq.pz-glow{ position: relative; }
 #pz-board .sq.pz-glow::after{
@@ -6810,57 +7320,5 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   animation: pzRankUpIn .32s ease-out;
 }
 
-/* شعلة السلسلة: نبضة دافئة خفيفة على بطاقة لغز اليوم حين توجد سلسلة */
-.pzh__streak{ animation: pzFlame 2.2s ease-in-out infinite; }
 @keyframes pzFlame{ 0%,100%{ transform: scale(1); opacity: .92; } 50%{ transform: scale(1.05); opacity: 1; } }
 
-/* ══ صقل اللوحة: دخول متدرّج + عمق + هرميّة أوضح (بعيدًا عن الطابع البدائي) ══ */
-.pzh{ padding-top: var(--space-4); }
-.pzh__card{
-  box-shadow: 0 6px 22px rgba(0,0,0,.28);
-  animation: pzCardIn .4s cubic-bezier(.22,.9,.3,1) both;
-}
-.pzh__modes .pzh__mode{ animation: pzCardIn .4s cubic-bezier(.22,.9,.3,1) both; }
-/* تدرّج الظهور — الكروت تنزل واحدًا تلو الآخر */
-.pzh > *:nth-child(1){ animation-delay: .02s; }
-.pzh > *:nth-child(2){ animation-delay: .07s; }
-.pzh > *:nth-child(3){ animation-delay: .12s; }
-.pzh > *:nth-child(4){ animation-delay: .17s; }
-.pzh > *:nth-child(5){ animation-delay: .22s; }
-.pzh > *:nth-child(6){ animation-delay: .27s; }
-@keyframes pzCardIn{ from{ opacity: 0; transform: translateY(10px); } to{ opacity: 1; transform: none; } }
-
-/* بطاقة التصنيف بطلة اللوحة: رقم أضخم وحلقة ذهبية خفيفة */
-.pzh__top{
-  background: radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--color-primary) 12%, var(--color-surface)) 0%, var(--color-surface) 60%);
-  border-color: var(--color-primary-border);
-}
-.pzh__rating{ font-size: 46px; letter-spacing: -.5px; }
-
-/* بلاطات الأوضاع: عمق + رفعة عند اللمس، تبدو تفاعليّة لا مسطّحة */
-.pzh__mode{
-  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
-  box-shadow: 0 4px 14px rgba(0,0,0,.22);
-  min-height: 82px;
-  justify-content: center;
-}
-.pzh__mode:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.3); }
-.pzh__mode--wide{ min-height: 62px; }
-
-/* زرّ «ابدأ» بلغز اليوم أبرز */
-.pzh__daily .pz-btn--main{ min-height: 50px; margin-top: var(--space-1); }
-
-/* بلاطة الوضع: أيقونة قطعة + عمود نصّ (صفّ لا عمود) */
-.pzh__mode{ flex-direction: row !important; align-items: center; gap: var(--space-3); text-align: start; }
-.pzh__mode-ic{
-  flex: 0 0 auto;
-  width: 44px; height: 44px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; line-height: 1;
-  color: var(--color-primary-text);
-  background: var(--color-primary-subtle);
-  border: 1px solid var(--color-primary-border);
-  border-radius: var(--radius-md);
-}
-.pzh__mode-tx{ display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.pzh__mode--wide .pzh__mode-ic{ width: 40px; height: 40px; font-size: 22px; }

@@ -49,8 +49,49 @@ public class FcmService extends MessagingService {
             }
             return;
         }
+        // رسالة شات (فردية أو حفلة): بلّغ السيرفر إن الرسالة وصلت الجهاز فورًا
+        // عشان تظهر ✓✓ عند المُرسِل زيّ واتساب حتى والتطبيق مقفول (البند ٦).
+        // بيتم في الخلفية ولا يعطّل عرض الإشعار العادي تحته.
+        if ("chat".equals(kind) || "group".equals(kind)) {
+            try { ackDelivery(data); } catch (Exception e) {}
+        }
         // كل الإشعارات التانية: سلوك Capacitor الأصلي بدون تغيير.
         super.onMessageReceived(remoteMessage);
+    }
+
+    /** POST /api/delivered بتوكيع التسليم الموقّع اللي جاء جوّه بيانات الإشعار.
+     *  العنوان جاء كمان في api_base (رابط النفق اللي العميل بيكتشفه). مفيش JWT
+     *  للمستخدم ولا سرّ متخزّن هنا — التوكيع وحده بيثبت الهوية والصلاحية. */
+    private void ackDelivery(Map<String, String> data) {
+        final String token = data.get("deliver_token");
+        String base = data.get("api_base");
+        if (token == null || token.isEmpty() || base == null || base.isEmpty()) return;
+        while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+        final String endpoint = base + "/api/delivered";
+        new Thread(() -> {
+            java.net.HttpURLConnection conn = null;
+            try {
+                java.net.URL u = new java.net.URL(endpoint);
+                conn = (java.net.HttpURLConnection) u.openConnection();
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setRequestProperty("ngrok-skip-browser-warning", "true");
+                // بناء JSON يدويًا: القيمة توكيع JWT [A-Za-z0-9._-] فلا تحتاج هروبًا.
+                String payload = "{\"token\":\"" + token + "\"}";
+                byte[] out = payload.getBytes("UTF-8");
+                conn.getOutputStream().write(out);
+                conn.getOutputStream().flush();
+                conn.getResponseCode();   // نستهلك الرد فيُغلق الاتصال نظيفًا
+            } catch (Exception e) {
+                // فشل الشبكة غير حرِج: مسح «التسليم عند الاتصال» في السيرفر
+                // بيلحق العلامة أول ما التطبيق يفتح ويوصل سوكت الحضور.
+            } finally {
+                if (conn != null) try { conn.disconnect(); } catch (Exception e) {}
+            }
+        }).start();
     }
 
     /** لغة صاحب الجهاز كما بعتها السيرفر مع الرسالة. إشعار المكالمة بيتبني

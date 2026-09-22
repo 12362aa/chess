@@ -22,9 +22,6 @@
   'use strict';
 
   const KEY = 'amkh_welcomed';
-  const svg = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
-    + 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" '
-    + 'width="22" height="22" aria-hidden="true">' + d + '</svg>';
 
   /* ══ غطاء الإقلاع ══
      الغطاء بيتحطّ من سكربت متزامن في أول <body> (شوف index.html) عشان
@@ -35,147 +32,113 @@
   };
 
   /* ══════════════════════════════════════════════════════════════
-     لوح مصغّر بيلعب «المات المخنوق»
+     الفارس الدائر — بطل شاشة الترحيب
      ──────────────────────────────────────────────────────────────
-     الشاشة كانت علامة ساكنة وأربع سطور — مابتقولش إن ده تطبيق شطرنج
-     من أول نظرة. بقى في مكان العلامة لوح ٤×٤ (المنطقة e5–h8 من رقعة
-     حقيقية) بيلعب أشهر مات في الشطرنج بتسلسله الصحيح:
-         Qe6-g8+   Rf8xg8   Ng5-f7#
-     والوضع ده مات مقفول فعلًا مش تشبيه: الفارس على f7 بيكشف على الملك
-     في h8، وg8 بقى عليها رخّ أسود بعد ما أكل الملكة، وg7 وh7 عليهم
-     بيادق سودا — الملك مالوش مربع واحد يهرب له.
-     القطع صور من مجموعة التطبيق نفسها (pieces/neo، مرفقة في الحزمة)
-     مش محارف: المحرف ♟ على بعض أجهزة أندرويد بيقع على خط الإيموجي
-     الملوّن، وشاشة قالوا فيها «بلا إيموجي» ماينفعش يبان فيها إيموجي.
-     الحركة كلها transform (مش left/top) فالـcompositor بيشيلها من غير
-     إعادة تخطيط — نفس درس ومضة الـWebView.
+     اللوح الصغير اللي كان بيلعب «المات المخنوق» كان أصغر من إنه يبان
+     بطلًا لشاشة، وشكله بيقرّب من شاشة المنافس (بلاغ أحمد). البديل من
+     صناعتنا وحدنا: فارسٌ واحد كبير يدور دورة مغلقة.
+
+     الفكرة رياضية لا زخرفية: أربع نقلات فارس مجموع متّجهاتها صفر
+         (1,2) + (2,−1) + (−1,−2) + (−2,1) = (0,0)
+     فالفارس يعود لمربّعه الأوّل ثم يبدأ من جديد بلا «قطع» ولا إعادة
+     ضبط مرئية — دورة لا نهائية حقيقية، وهي أصغر دورة فارس مغلقة
+     ممكنة. مع كل نقلة يُرسَم مسار الـL نفسه بخطٍّ متقطّع يُكتب أمام
+     العين، وهو الشكل اللي أي لاعب شطرنج بيعرفه فورًا.
+
+     الحركة كلها transform وopacity (ودالّة رسم SVG واحدة) — مافيش
+     left/top ولا width: نفس درس ومضة الـWebView (#140).
   ══════════════════════════════════════════════════════════════ */
-  const PZ = 'pieces/neo/';
-  /* c = العمود (e f g h) و r = الصف (8 7 6 5) — الصفر فوق وعلى الشمال */
-  const B_START = [
-    { id: 'k', p: 'bk', c: 3, r: 0 },
-    { id: 'r', p: 'br', c: 1, r: 0 },
-    { id: 'p1', p: 'bp', c: 2, r: 1 },
-    { id: 'p2', p: 'bp', c: 3, r: 1 },
-    { id: 'n', p: 'wn', c: 2, r: 3 },
-    { id: 'q', p: 'wq', c: 0, r: 2 },
-  ];
-  const B_PLAY = [
-    { id: 'q', c: 2, r: 0, check: 1, sfx: 'check' },      /* الملكة تضحّي بنفسها على g8 */
-    { id: 'r', c: 2, r: 0, takes: 'q', sfx: 'capture' },  /* الرخّ مجبَر ياكلها */
-    { id: 'n', c: 1, r: 1, mate: 1, sfx: 'checkmate' },   /* الفارس ينزل f7 — مات */
-  ];
+  const KN_IMG = 'pieces/neo/wn.png';
+  /* مربّعات الدورة على شبكة ٤×٤ — c العمود وr الصفّ (الصفر فوق) */
+  const KN_PATH = [{ c: 0, r: 1 }, { c: 1, r: 3 }, { c: 3, r: 2 }, { c: 2, r: 0 }];
+  const KN_MS = 1250;
 
-  /* أصوات القطع نفسها المستخدمة في المباريات (SFX في index.html): بتحترم
-     إعداد الصوت وقوّته تلقائيًا، فلو المستخدم مقفّل الصوت مافيش أي صوت. */
-  const snd = name => { try { if (window.SFX && window.SFX[name]) window.SFX[name](); } catch (e) {} };
-
-
-  function makeBoard() {
+  function makeKnight() {
     const box = document.createElement('div');
-    box.className = 'wl-board';
+    box.className = 'wl-knight';
     box.setAttribute('aria-hidden', 'true');
 
     let sq = '';
     for (let r = 0; r < 4; r++) {
       for (let c = 0; c < 4; c++) {
-        /* لون المربع محسوب من إحداثيّاته الحقيقية على الرقعة (e=5، الصف
-           الأول 8) فالفاتح والغامق يقعوا زي أي رقعة شطرنج مضبوطة */
-        const light = ((5 + c) + (8 - r)) % 2 === 1;
-        sq += '<i class="wl-sq wl-sq--' + (light ? 'l' : 'd') + '"></i>';
+        sq += '<i class="wl-kn__sq wl-kn__sq--' + ((c + r) % 2 ? 'd' : 'l') + '"></i>';
       }
     }
-    const pcs = B_START.map(p =>
-      '<img class="wl-pc" data-p="' + p.id + '" src="' + PZ + p.p + '.png" alt=""'
-      + ' style="--c:' + p.c + ';--r:' + p.r + '">').join('');
-    box.innerHTML = '<div class="wl-board__grid">' + sq + '</div>'
-      + '<div class="wl-board__pcs">' + pcs + '</div>';
+    box.innerHTML =
+      '<div class="wl-kn__grid">' + sq + '</div>'
+      + '<svg class="wl-kn__svg" viewBox="0 0 4 4" preserveAspectRatio="none">'
+      + '<polyline class="wl-kn__trail" pathLength="1" fill="none" points=""/></svg>'
+      + '<span class="wl-kn__ring"></span>'
+      + '<span class="wl-kn__pc"><span class="wl-kn__hop">'
+      + '<img class="wl-kn__img" src="' + KN_IMG + '" alt=""></span></span>';
 
-    const sqs = box.querySelectorAll('.wl-sq');
-    const pc = id => box.querySelector('.wl-pc[data-p="' + id + '"]');
-    const at = (c, r) => sqs[r * 4 + c];
-    const clearHl = () => sqs.forEach(s => s.classList.remove('is-hl'));
+    const grid = box.querySelector('.wl-kn__grid');
+    const cells = box.querySelectorAll('.wl-kn__sq');
+    const trail = box.querySelector('.wl-kn__trail');
+    const ring = box.querySelector('.wl-kn__ring');
+    const pcs = box.querySelector('.wl-kn__pc');
+    const hop = box.querySelector('.wl-kn__hop');
 
-    const place = (el, c, r) => { el.style.setProperty('--c', c); el.style.setProperty('--r', r); };
-
-    const reset = () => {
-      clearHl();
-      B_START.forEach(p => {
-        const el = pc(p.id);
-        if (!el) return;
-        el.classList.remove('wl-pc--gone', 'wl-pc--mate', 'wl-pc--check');
-        place(el, p.c, p.r);
-      });
+    const put = (el, p) => {
+      el.style.setProperty('--c', p.c);
+      el.style.setProperty('--r', p.r);
     };
 
-    const play = i => {
-      const m = B_PLAY[i];
-      const el = pc(m.id);
-      if (!el) return;
-      clearHl();
-      const from = at(+el.style.getPropertyValue('--c'), +el.style.getPropertyValue('--r'));
-      if (from) from.classList.add('is-hl');
-      const to = at(m.c, m.r);
-      if (to) to.classList.add('is-hl');
-      if (m.takes) { const v = pc(m.takes); if (v) v.classList.add('wl-pc--gone'); }
-      place(el, m.c, m.r);
-      const k = pc('k');
-      if (k && m.check) k.classList.add('wl-pc--check');
-      if (k && m.mate) { k.classList.remove('wl-pc--check'); k.classList.add('wl-pc--mate'); }
-      if (m.sfx) snd(m.sfx);
+    /* مسار الـL: نقطتان وسيطتان — نتحرّك في المحور الأطول أوّلًا ثم
+       الأقصر، وهي الطريقة اللي أي لاعب بيرسم بيها نقلة الفارس بإصبعه */
+    const drawTrail = (a, b) => {
+      if (!trail) return;
+      const mid = (Math.abs(b.c - a.c) === 2) ? { c: b.c, r: a.r } : { c: a.c, r: b.r };
+      const pt = p => (p.c + 0.5) + ',' + (p.r + 0.5);
+      trail.setAttribute('points', pt(a) + ' ' + pt(mid) + ' ' + pt(b));
+      trail.classList.remove('is-draw');
+      /* إعادة تشغيل الرسم: قراءة تُجبر إعادة الحساب قبل إضافة الصنف */
+      void trail.getBoundingClientRect();
+      trail.classList.add('is-draw');
     };
 
-    /* «حركة أقل» في إعدادات النظام: نعرض وضع المات ثابتًا وخلاص */
+    const lightUp = p => {
+      cells.forEach(c => c.classList.remove('is-on'));
+      const el = cells[p.r * 4 + p.c];
+      if (el) el.classList.add('is-on');
+    };
+
+    let i = 0;
+    put(pcs, KN_PATH[0]);
+    put(ring, KN_PATH[0]);
+    lightUp(KN_PATH[0]);
+
     let reduced = false;
     try { reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
     if (reduced) {
-      box.classList.add('wl-board--still');
-      B_PLAY.forEach((m, i) => play(i));
+      drawTrail(KN_PATH[0], KN_PATH[1]);
       return { el: box, stop: () => {} };
     }
 
-    /* دورة العرض. اللوح نفسه (الإطار والمربعات) مابيختفيش أبدًا — القطع
-       وحدها بتتلاشى لحظة إعادة الوضع الابتدائي، لأن تلاشي اللوح كله كان
-       بيبان كأن الحركة وقفت وسابت فراغًا (بلاغ أحمد). */
-    const SEQ = [
-      { d: 900,  fn: () => {} },
-      { d: 1000, fn: () => play(0) },
-      { d: 1000, fn: () => play(1) },
-      { d: 2300, fn: () => play(2) },
-      { d: 300,  fn: () => box.classList.add('wl-board--fade') },
-      { d: 70,   fn: () => reset() },                              /* الرجوع وهي غير مرئية */
-      { d: 500,  fn: () => box.classList.remove('wl-board--fade') },
-    ];
-    let i = 0, timer = null, dead = false;
-    const next = () => {
+    let timer = null, dead = false;
+    const step = () => {
       if (dead) return;
-      const s = SEQ[i];
-      i = (i + 1) % SEQ.length;
-      try { s.fn(); } catch (e) {}
-      timer = setTimeout(next, s.d);
+      const from = KN_PATH[i];
+      i = (i + 1) % KN_PATH.length;
+      const to = KN_PATH[i];
+      drawTrail(from, to);
+      /* القفزة: الصنف يتشال ويترجع في الإطار التالي عشان الحركة تعيد
+         التشغيل من أوّلها بدل ما تتجاهَل لأنها «شغّالة أصلًا» */
+      hop.classList.remove('is-hop');
+      requestAnimationFrame(() => {
+        if (dead) return;
+        hop.classList.add('is-hop');
+        put(pcs, to);
+        put(ring, to);
+      });
+      setTimeout(() => { if (!dead) lightUp(to); }, 320);
+      timer = setTimeout(step, KN_MS);
     };
-    next();
+    timer = setTimeout(step, 700);
     /* لازم يتوقّف مع إغلاق الشاشة — مؤقّت شارد على شاشة مرمية بيفضل
        يشغّل transitions على عناصر مالهاش وجود على الشاشة */
-    return { el: box, stop: () => { dead = true; if (timer) clearTimeout(timer); } };
+    return { el: box, stop: () => { dead = true; if (timer) clearTimeout(timer); if (grid) grid.textContent = grid.textContent; } };
   }
-
-  /* أيقونات خطية من نفس عائلة أيقونات التطبيق — مافيش إيموجي في أي نص */
-  const ICO = {
-    friends: svg('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
-    rating:  svg('<path d="M6 21V10"/><path d="M12 21V4"/><path d="M18 21v-7"/><path d="M3 21h18"/>'),
-    chat:    svg('<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'),
-    sync:    svg('<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>'),
-  };
-
-  /* نصوص الشاشة بالفصحى — دي أول واجهة يشوفها المستخدم، والعامّية فيها
-     كانت بتخلّي التطبيق يبان أقل رسميّة (طلب أحمد). */
-  const FEATS = [
-    ['friends', 'لاعبون حقيقيون', 'تحدَّ أصدقاءك أو خصمًا في مستواك، في أي وقت'],
-    ['rating',  'تقييم يتغيّر بعد كل مباراة', 'مباريات مصنّفة ولوحة صدارة بين اللاعبين'],
-    ['chat',    'دردشة ومكالمات صوتية', 'تحدَّث مع أصدقائك أثناء اللعب، دون تطبيق آخر'],
-    ['sync',    'تقدّمك محفوظ', 'المراحل والإعدادات والصورة تعود معك على أي جهاز'],
-  ];
 
   const amkhWelcome = {
     _ov: null,
@@ -192,6 +155,19 @@
 
     maybeShow() {
       if (!this.shouldShow()) { unveil(); return; }   /* مش هتظهر → مانسيبش الغطاء */
+      /* ── اللغة الافتراضية إنجليزية ──
+         أول تشغيل بيفتح على الإنجليزية لا العربية (قرار أحمد): الحزمة
+         موجّهة لمتجر عالمي، والعربي بيلاقي زرّ «عربية» قدّامه في نفس
+         الشاشة فالتكلفة عليه نقرة واحدة. الضبط هنا — قبل mount — عشان
+         الشاشة تتبني بالإنجليزية من أوّل إطار بدل ما تتقلب قدام العين،
+         والغطاء (amkh-preboot) لسّه نازل فمافيش ومضة.
+         ‎I18N.chosen()‎ بيحمي مين اختار قبل كده: مافيش قرار بيتلغى. */
+      try {
+        if (window.I18N && typeof window.I18N.chosen === 'function'
+            && !window.I18N.chosen() && window.I18N.lang !== 'en') {
+          window.I18N.prime('en');
+        }
+      } catch (e) {}
       if (!this._ov) this.show();
     },
 
@@ -216,6 +192,9 @@
     _markLang(ov) {
       const cur = (window.I18N && window.I18N.lang === 'en') ? 'en' : 'ar';
       const a = ov.querySelector('#wl-lang-ar'), e = ov.querySelector('#wl-lang-en');
+      const box = ov.querySelector('.wl-lang');
+      /* المؤشّر المنزلق بيتحرّك بالصنف ده وحده — لا حساب مواضع في JS */
+      if (box) box.classList.toggle('is-en', cur === 'en');
       if (a) { a.classList.toggle('is-on', cur === 'ar'); a.setAttribute('aria-pressed', cur === 'ar' ? 'true' : 'false'); }
       if (e) { e.classList.toggle('is-on', cur === 'en'); e.setAttribute('aria-pressed', cur === 'en' ? 'true' : 'false'); }
     },
@@ -224,12 +203,13 @@
       const t = (window.I18N && window.I18N.t) || (s => s);
       const $ = s => ov.querySelector(s);
       const put = (sel, ar) => { const el = $(sel); if (el) el.textContent = t(ar); };
-      /* العنوان فيه <span> للعلامة التجارية بعد النصّ، فنكتب العقدة
-         النصّية وحدها كي لا نمسح الـspan */
-      const ttl = $('.wl-title');
-      if (ttl && ttl.firstChild && ttl.firstChild.nodeType === 3)
-        ttl.firstChild.nodeValue = t('أهلًا بك في شطرنج ');
-      put('.wl-sub', 'العب. تعلّم. استمتع.');
+      /* سطر العلامة فيه <span> لاتيني بعد النصّ، فنكتب العقدة النصّية
+         وحدها كي لا نمسح الـspan */
+      const bl = $('.wl-brandline');
+      if (bl && bl.firstChild && bl.firstChild.nodeType === 3)
+        bl.firstChild.nodeValue = t('شطرنج ');
+      put('.wl-title', 'فكِّر أبعد بنقلة');
+      put('.wl-sub', 'آلاف اللاعبين، وألغاز لا تنتهي، ومدرّبٌ لا ينام.');
       put('#wl-create', 'إنشاء حساب مجاني');
       put('.wl-g-label', 'المتابعة بحساب جوجل');
       put('#wl-login', 'لديّ حساب — تسجيل الدخول');
@@ -238,19 +218,21 @@
     },
 
     show() {
-      /* شاشة مختصرة راقية (على نهج chess.com): بطل متحرّك + سطر واحد +
-         أزرار الدخول — بلا قائمة مزايا طويلة تفرض التمرير. */
+      /* شاشة قصيرة بلا تمرير: بطل متحرّك كبير + جملة واحدة + أزرار
+         الدخول. الجملة من كتابتنا لا ترجمة لسطر أحد. */
       const ov = window.amkhUI.mount('amkh-welcome', `
         <div class="wl-screen wl-screen--min" role="document">
           <div class="wl-lang" role="group" aria-label="Language" data-no-i18n>
+            <span class="wl-lang__ind" aria-hidden="true"></span>
             <button type="button" class="wl-lang__btn" id="wl-lang-ar" lang="ar">عربية</button>
             <button type="button" class="wl-lang__btn" id="wl-lang-en" lang="en">English</button>
           </div>
           <div class="wl-info">
             <div class="wl-top">
-              <div class="wl-hero"><div class="wl-board-slot"></div></div>
-              <h2 class="wl-title">أهلًا بك في شطرنج <span class="wl-brand">Am-Kh</span></h2>
-              <p class="wl-sub">العب. تعلّم. استمتع.</p>
+              <div class="wl-hero"><div class="wl-knight-slot"></div></div>
+              <span class="wl-brandline">شطرنج <span class="wl-brand">Am-Kh</span></span>
+              <h2 class="wl-title">فكِّر أبعد بنقلة</h2>
+              <p class="wl-sub">آلاف اللاعبين، وألغاز لا تنتهي، ومدرّبٌ لا ينام.</p>
             </div>
           </div>
           <div class="wl-actions">
@@ -285,8 +267,8 @@
       /* اللوح بيتبني بعد ما الشاشة تتركّب: البناء بيرجّع stop() اللي
          close() بينادي عليها، فمافيش مؤقّت بيفضل شغّالًا ورا الشاشة */
       try {
-        const slot = $('.wl-board-slot');
-        if (slot) { this._board = makeBoard(); slot.appendChild(this._board.el); }
+        const slot = $('.wl-knight-slot');
+        if (slot) { this._board = makeKnight(); slot.appendChild(this._board.el); }
       } catch (e) {}
 
       /* الغطاء بيترفع بعد ما حركة الدخول تخلص — لو رفعناه قبلها الرئيسية

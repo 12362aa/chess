@@ -104,6 +104,25 @@ try {
 }
 
 const FRONTEND_URL = String(process.env.FRONTEND_URL || '').trim();
+/* العنوان العام للتطبيق كما يصله العميل: FRONTEND_URL لو مضبوط، وإلّا
+   نقرأه من url.json (نفس الملف اللي العميل بيكتشف منه رابط السيرفر خلف
+   النفق). نحتاجه عشان نحطّه في بيانات إشعار الشات، فخدمة FCM في الجهاز
+   تعرف على أي عنوان تبعت إيصال التسليم والتطبيق مقفول. مخبّأ ٣٠ث. */
+let _pubBaseCache = { at: 0, val: '' };
+function _publicBase() {
+  if (FRONTEND_URL) return FRONTEND_URL.replace(/\/$/, '');
+  const now = Date.now();
+  if (now - _pubBaseCache.at < 30000) return _pubBaseCache.val;
+  let val = '';
+  try {
+    const raw = require('fs').readFileSync(require('path').join(__dirname, 'url.json'), 'utf8')
+      .replace(/^﻿/, '');
+    const j = JSON.parse(raw);
+    if (j && typeof j.url === 'string') val = j.url.replace(/\/$/, '');
+  } catch (e) {}
+  _pubBaseCache = { at: now, val };
+  return val;
+}
 function _absUrl(p) {
   const pathPart = String(p || '');
   if (!pathPart) return '';
@@ -950,6 +969,66 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
   }
 });
 
+/* ══ إيصال التسليم عند وصول الإشعار (البند ٦) ══
+   واتساب بيحطّ العلامتين ✓✓ لحظة ما الرسالة توصل جهاز الطرف التاني، مش
+   لما يفتح التطبيق. عندنا كانت الرسالة تتعلّم «وصلت» بس لما سوكت الحضور
+   يتصل — يعني بعد فتح التطبيق. الفجوة: التطبيق مقفول والإشعار وصل الجهاز
+   فعلًا لكن الـJS مش شغّال أصلًا فمفيش مين يبلّغ السيرفر.
+
+   الحل: خدمة FCM في الجهاز (FcmService) تعمل POST هنا بتوكيع موقّع جاء
+   جوّه بيانات الإشعار نفسه — بلا JWT للمستخدم ولا تخزين سرّ في الجافا.
+   التوكيع بيثبت (المستقبِل، المُرسِل/الحفلة) فنعلّم الوصول ونبثّه للمُرسِل
+   فورًا. dl = محادثة ثنائية، gd = حفلة. */
+app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
+  try {
+    const token = req.body && req.body.token;
+    if (!token || typeof token !== 'string') return res.status(400).json({ ok: false, error: 'no-token' });
+    let d;
+    try { d = jwt.verify(token, JWT_SECRET); } catch (e) { return res.status(401).json({ ok: false, error: 'bad-token' }); }
+    if (!d) return res.status(400).json({ ok: false, error: 'bad' });
+
+    if (d.t === 'dl') {
+      /* ثنائية: علّم كل رسائل (المُرسِل ← المستقبِل) اللي لسه delivered_at
+         فاضي، واجمع مفاتيحها لنبلّغ المُرسِل بعلامة ✓✓ على كلٍّ منها. */
+      const from = Number(d.f), me = Number(d.u);
+      if (!(from > 0) || !(me > 0)) return res.status(400).json({ ok: false, error: 'bad-ids' });
+      const rows = db.prepare(`SELECT id, convo_key FROM messages
+                               WHERE recipient_id = ? AND sender_id = ? AND delivered_at IS NULL`).all(me, from);
+      if (!rows.length) return res.json({ ok: true, marked: 0 });
+      db.prepare(`UPDATE messages SET delivered_at = datetime('now')
+                  WHERE recipient_id = ? AND sender_id = ? AND delivered_at IS NULL`).run(me, from);
+      const convo = rows[0].convo_key;
+      const ids = rows.map(r => r.id);
+      for (const s of socketsOf(from)) {
+        if (s.readyState === WebSocket.OPEN) send(s, { type: 'chat:delivered', convo_key: convo, ids });
+      }
+      return res.json({ ok: true, marked: ids.length });
+    }
+
+    if (d.t === 'gd') {
+      /* حفلة: ارفع علامة «آخر مُسلَّم» لهذا العضو لأقصى رسالة في الحفلة،
+         ثم أعِد بثّ إيصالات الحفلة فيراها المُرسِلون. */
+      const gid = Number(d.g), me = Number(d.u);
+      if (!(gid > 0) || !(me > 0)) return res.status(400).json({ ok: false, error: 'bad-ids' });
+      const isMember = db.prepare('SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?').get(gid, me);
+      if (!isMember) return res.status(403).json({ ok: false, error: 'not-member' });
+      const top = db.prepare('SELECT MAX(id) AS m FROM group_messages WHERE group_id = ?').get(gid);
+      const maxId = top && top.m ? top.m : 0;
+      if (maxId) {
+        db.prepare(`INSERT INTO group_reads (group_id, user_id, last_delivered_id) VALUES (?, ?, ?)
+                    ON CONFLICT(group_id, user_id) DO UPDATE SET last_delivered_id = MAX(last_delivered_id, excluded.last_delivered_id)`)
+          .run(gid, me, maxId);
+        try { broadcastGroupReceipts(gid); } catch (e) {}
+      }
+      return res.json({ ok: true, marked: maxId });
+    }
+
+    return res.status(400).json({ ok: false, error: 'bad-type' });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: 'server' });
+  }
+});
+
 /* ══ إصدار التطبيق (#136) ══
    العميل بيسأل عن أحدث إصدار منشور وقت الإقلاع، ولو الإصدار المثبّت
    أقدم بيظهر إشعار «فيه تحديث» بستايل الثيم وصوت خاص. الوسم واسم الملف
@@ -977,12 +1056,17 @@ app.post('/api/call/answering', express.json({ limit: '4kb' }), (req, res) => {
    ولا كلمة إنجليزية في الوضع العربي — في الواجهة وفي إشعارات الهاتف
    وفي كلام نور نفسه. ولأن ملاحظات التحديث تُعرض داخل التطبيق، صارت
    تُرسَل باللغتين (notes وnotesEn) ويختار العميل ما يوافق لغته؛ البناءات
-   الأقدم تقرأ notes كما كانت فلا ينكسر عندها شيء. */
+   الأقدم تقرأ notes كما كانت فلا ينكسر عندها شيء.
+
+   وبناء 41 يوحّد الأرقام الثلاثة من جديد: build.gradle كان قد سبق إلى 40
+   بينما بقي APP_VERSION_CODE وLATEST_CODE عند 37، لأن إشعار التحديث
+   الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
+   الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 37;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2/chess-amkh-4.2.apk';
-const NOTES_AR = 'صار التطبيق ثنائيّ اللغة على الحقيقة: في الوضع الإنجليزي لا يظهر حرف عربي واحد، وفي الوضع العربي لا تظهر كلمة إنجليزية — في كل شاشة، وفي إشعارات الهاتف نفسها: الرسائل، ودعوات الحفلات، والمكالمات، والتذكير اليومي. واختيار اللغة من شاشة الترحيب صار يسري فورًا على كل ما بعده، فتحدّيات اليوم والصفحة الرئيسية تتبع اختيارك من اللحظة الأولى بلا حاجة إلى إعادة الاختيار من الإعدادات. ونور صار يقرأ لغتك من رسالتك لا من إعداداتك: إن كتبت إليه بالعربية أجابك بالعربية، وإن كتبت بالإنجليزية أجابك بالإنجليزية، وتعليقه على المباراة ومراجعته يتبعان لغة التطبيق. وأسماء الأطقم والثيمات ودرجات المحرّك صارت تُعرَض بالعربية في الوضع العربي بعد أن كانت لاتينية. وفي الإعدادات صار لكل لغة رمزها المرسوم بدل شريحتَي الثيم اللتين لا علاقة لهما باللغة، وبطاقة الإحصاءات السريعة في المراجعة استوت في منتصف الشاشة وعلامات تصنيف النقلات ثبتت داخل إطارها. وفي هذا البناء ثبت شريط اللاعب تمامًا فلم تعد الرقعة تهتزّ لحظة حساب المساعد، وصار اختيارك للرقعة ولنوع القطع يُحفظ في حسابك مع كل تغيير لا مع أوّل تغيير وحده فلا يعود القديم بعد تسجيل الخروج والدخول، وصارت رسالة تعذّر اللعب عبر الإنترنت مكتوبة للاعب لا للمطوّر.';
-const NOTES_EN = 'The app is now genuinely bilingual: in English mode not a single Arabic character appears, and in Arabic mode no English word does — on every screen, and in the phone notifications themselves: messages, party invites, calls and the daily reminder. Picking a language on the welcome screen now applies immediately to everything after it, so today’s challenges and the home screen follow your choice from the first moment, with no need to pick it again in Settings. Nour now reads your language from your message rather than your settings: write to him in Arabic and he answers in Arabic, write in English and he answers in English, while his post-game comment and review follow the app language. Piece-set names, theme names and engine levels are now shown in Arabic in Arabic mode instead of staying Latin. In Settings each language now has its own drawn icon instead of the two theme swatches that had nothing to do with language, the quick-stats card in the review is centred, and the move-classification badges stay inside their frame. This build also steadies the player bar so the board no longer shakes while the assistant thinks, saves your board and piece set to your account on every change rather than only the first — so the old choice no longer returns after you sign out and back in — and rewrites the "online play unavailable" message for players instead of developers.';
+const LATEST_CODE = 41;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b41/chess-amkh-4.2-b41.apk';
+const NOTES_AR = 'قسم الألغاز صار رحلةً تُرى لا قائمةً تُقرأ: لوحةٌ مرسومة بالكامل تمشي فيها قطعتك على تسع محطّات، وخمسةُ عوالم تتبدّل تحت قدميك كلّما ارتقيتَ — مرجُ الفجر، فغابةُ الصنوبر، فوادي الغروب، فالهضابُ الثلجيّة، فقمّةُ النجوم — لكلٍّ سماؤه وطقسه وضوؤه، وعبورٌ بينهما بلافتةٍ وصوتٍ خاصّين. ومراحل نور صارت «درب نور»: اثنتا عشرة مرحلةً بشاراتٍ مرسومةٍ وأرقامٍ لاتينيّة، وأربعةُ أطوارٍ من النحاس إلى البنفسج، وتهنئةٌ فخمة عند إتمام كلّ طور، وأخرى ملكيّة عند إتمام الرحلة كلّها. وفي المباراة صار بينك وبين خصمك مايك: تضغط الرمز تحت اسمك فيصله طلبٌ يحمل اسمك؛ فإن وافق انفتحت القناة لبقيّة المباراة يفتح كلٌّ مايكه ويغلقه متى شاء، وإن رفض لم تستطع معاودة الطلب ثلاث دقائق وظهرت لك إشارةٌ حمراء بعدٍّ تنازليّ. ويعمل المايك على الإنترنت وعلى البلوتوث معًا — وعلى البلوتوث بلا استئذانٍ ولا انتظار، لأنّ الجهازين متجاوران ابتداءً. وفي المحادثات صارت علامتا التسليم تظهران لحظة وصول الإشعار إلى جهاز صاحبك لا لحظة فتحه التطبيق، في المحادثة الفرديّة وفي محادثة الحفلة معًا. وشاشة الترحيب صار لها بطلٌ من صناعتنا وحدنا: فارسٌ واحد يدور دورةً مغلقةً لا تنتهي، ويُرسَم أمامك مسارُ نقلته في كلّ مرّة. وحُفِظ تقدّمك في الألغاز حفظًا لا يضيع: حالة لغز اليوم صارت تسافر مع حسابك فلا يُعرَض عليك لغزٌ حللتَه، والألغاز التي رأيتها لا تتكرّر على جهازك الجديد، وكلُّ تغييرٍ معلّق يُرفَع لحظة خروجك من التطبيق أو تسجيل خروجك لا بعد انتظار مؤقّت. وعند الخطأ صار بقيّة الحلّ تُعرَض عليك نقلةً نقلة لتتعلّم منها، بإيقاعٍ يمهلك القراءة إلّا في الأوضاع المؤقّتة التي تجري فيها الساعة.';
+const NOTES_EN = 'Puzzles are now a journey you can see rather than a list you read: a fully drawn board where your piece walks nine stations, and five worlds that change under your feet as you climb — Dawn Meadow, then Pine Forest, then Sunset Valley, then the Frost Highlands, then the Starlit Summit — each with its own sky, weather and light, and a crossing between them with its own banner and sound. Nour’s levels have become “Nour’s Path”: twelve levels with drawn crests and Latin numerals, four tiers from bronze to violet, a grand salute when you complete a tier and a royal one when you complete the whole journey. In a match there is now a mic between you and your opponent: press the icon under your name and a request reaches them carrying your name; if they accept, the channel stays open for the rest of the match and each of you opens and closes their own mic at will; if they decline you cannot ask again for three minutes, and a red marker with a countdown says so. The mic works both online and over Bluetooth — and over Bluetooth with no request and no waiting, since the two devices are side by side to begin with. In chats, the delivery ticks now appear the moment the notification reaches your friend’s device rather than the moment they open the app, in one-to-one chats and party chats alike. The welcome screen now has a hero of our own making: a single knight riding an endless closed tour, with the path of each move drawn in front of you. And your puzzle progress is now kept for good: the state of today’s puzzle travels with your account so a puzzle you have already solved is never offered again, the puzzles you have seen do not repeat on a new device, and any pending change is uploaded the moment you leave the app or sign out rather than after a timer. When you miss, the rest of the solution is now played out to you move by move so you can learn from it, at a pace that gives you time to read — except in the timed modes where the clock is running.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -2001,15 +2085,26 @@ function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds, 
              : null;
   const txt = String(body || '').slice(0, 100);
   const line = l => senderName + (mentioned ? (l === 'en' ? ' mentioned you: ' : ' ذكرك: ') : ': ') + (prev ? prev[l] : txt);
-  let tokens = [];
-  for (const uid of userIds) tokens = tokens.concat(getTokensForUser(uid));
-  if (!tokens.length) return;
-  sendPushToTokens(tokens, {
-    title: g.name ? g.name : { ar: 'حفلة شطرنجية', en: 'Chess party' },
-    body: { ar: line('ar'), en: line('en') },
-    tag: 'group-' + groupId,
-    data: { kind: 'group', group_id: String(groupId), from_id: String(fromId), group_name: groupName },
-  });
+  /* نبعت لكل عضو على حدة بدل تجميع كل التوكِنات في نداء واحد: كده كل جهاز
+     ياخد توكيع تسليم خاصّ بصاحبه (gd + معرّف العضو)، فخدمة FCM تقدر تبلّغ
+     /api/delivered فيرتفع «آخر مُسلَّم» له وتظهر ✓✓ للمُرسِلين — البند ٦. */
+  const apiBase = _publicBase();
+  const commonData = {
+    kind: 'group', group_id: String(groupId), from_id: String(fromId),
+    group_name: groupName, api_base: apiBase,
+  };
+  const title = g.name ? g.name : { ar: 'حفلة شطرنجية', en: 'Chess party' };
+  const bodyText = { ar: line('ar'), en: line('en') };
+  for (const uid of userIds) {
+    const tokens = getTokensForUser(uid);
+    if (!tokens.length) continue;
+    let dt = '';
+    try { dt = jwt.sign({ t: 'gd', g: Number(groupId), u: Number(uid) }, JWT_SECRET, { expiresIn: '3d' }); } catch (e) {}
+    sendPushToTokens(tokens, {
+      title, body: bodyText, tag: 'group-' + groupId,
+      data: { ...commonData, deliver_token: dt },
+    });
+  }
 }
 
 /* دالة موحّدة لإرسال رسالة دردشة: بتخزّن الأول (store-and-forward) وبعدين
@@ -2079,13 +2174,21 @@ function sendChatPushToUser(fromId, toId, kind, body, mentioned) {
              : null;
   const txt = String(body || '').slice(0, 120);
   const line = l => (mentioned ? (l === 'en' ? 'mentioned you: ' : 'ذكرك: ') : '') + (prev ? prev[l] : txt);
+  /* توكيع تسليم قصير العمر (٣ أيام): يثبت (المُرسِل ← المستقبِل) عشان خدمة
+     FCM في جهاز المستقبِل تبلّغ /api/delivered فورًا لحظة وصول الإشعار،
+     فتظهر ✓✓ عند المُرسِل زيّ واتساب حتى والتطبيق مقفول (البند ٦). */
+  let deliverToken = '';
+  try { deliverToken = jwt.sign({ t: 'dl', f: Number(fromId), u: Number(toId) }, JWT_SECRET, { expiresIn: '3d' }); } catch (e) {}
   sendPushToTokens(tokens, {
     title: name,
     body: { ar: line('ar'), en: line('en') },
     tag: 'chat-' + fromId,
     /* from_name: عشان التطبيق يفتح الشات باسم المرسِل فورًا لما يُنقر
        الإشعار، من غير ما يستنى قائمة الأصدقاء تتحمّل. */
-    data: { kind: 'chat', from_id: String(fromId), from_name: name },
+    data: {
+      kind: 'chat', from_id: String(fromId), from_name: name,
+      deliver_token: deliverToken, api_base: _publicBase(),
+    },
   });
 }
 
@@ -3960,6 +4063,26 @@ wss.on('connection', (ws, req) => {
         if (msg.type === 'resign' && info?.room?.kind === 'lan') {
           setTimeout(() => cleanupRoom(info.code), 1000);
         }
+        break;
+      }
+
+      /* ══ إشارات المايك داخل المباراة (البند ٧) ══
+         طلب/قبول/رفض التحدّث + مفاوضة WebRTC (offer/answer/ice) + تبديل
+         الكتم + الإنهاء. كلها تُرحَّل للخصم كما هي بلا إشعار دفع: الميزة
+         لحظيّة والطرفان داخل المباراة فعلًا. الأنواع mic:req / mic:accept /
+         mic:decline / mic:offer / mic:answer / mic:ice / mic:toggle /
+         mic:end / mic:leave. */
+      case 'mic:req':
+      case 'mic:accept':
+      case 'mic:decline':
+      case 'mic:offer':
+      case 'mic:answer':
+      case 'mic:ice':
+      case 'mic:toggle':
+      case 'mic:end':
+      case 'mic:leave': {
+        const info = getRoomAndSide(ws);
+        if (info) relay(ws, msg);
         break;
       }
 

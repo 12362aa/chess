@@ -415,6 +415,10 @@
     'لغز مكافأة': 'Bonus puzzle',
     'تحدَّ بالألغاز': 'Puzzle battle',
     'العب. تعلّم. استمتع.': 'Play. Learn. Have fun.',
+    /* شاشة الترحيب — كلامنا نحن، لا ترجمة لسطر أحد */
+    'فكِّر أبعد بنقلة': 'Think one move further',
+    'آلاف اللاعبين، وألغاز لا تنتهي، ومدرّبٌ لا ينام.': 'Thousands of players, endless puzzles, and a coach who never sleeps.',
+    'شطرنج': 'Chess',
     'أفضل الحلّالين — تصنيف ألغاز مصنّف': 'Top solvers — rated puzzle rating',
     'لغز اليوم بانتظارك': 'Today\'s puzzle awaits',
     'حلّ لغز اليوم وحافظ على سلسلتك.': 'Solve today\'s puzzle and keep your streak.',
