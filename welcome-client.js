@@ -32,112 +32,80 @@
   };
 
   /* ══════════════════════════════════════════════════════════════
-     الفارس الدائر — بطل شاشة الترحيب
+     البيدق القافز — بطل شاشة الترحيب
      ──────────────────────────────────────────────────────────────
-     اللوح الصغير اللي كان بيلعب «المات المخنوق» كان أصغر من إنه يبان
-     بطلًا لشاشة، وشكله بيقرّب من شاشة المنافس (بلاغ أحمد). البديل من
-     صناعتنا وحدنا: فارسٌ واحد كبير يدور دورة مغلقة.
+     بحثٌ حيّ على شاشة تسجيل chess.com (عبر متصفّح الجهاز) كشف أن بطلهم
+     أنيميشن Rive اسمه «onboarding-delightful-signup»: بيدقٌ لامع يقفز
+     قفزةً بهيجة على أرضيّةٍ عاكسة وحوله بريقٌ يلمع. صنعنا نظيره من عندنا:
+     بيدق SVG لامع بلون سِمة التطبيق (فيتناغم مع الأزرار)، يقفز بانبطاحٍ
+     وتمدّد (squash & stretch) وظلٌّ يكبر ويبهت مع ارتفاعه، ونجيماتٌ
+     تلمع، وصوتُ هبوطٍ ناعم مع كل قفزة (SFX.pawnHop).
 
-     الفكرة رياضية لا زخرفية: أربع نقلات فارس مجموع متّجهاتها صفر
-         (1,2) + (2,−1) + (−1,−2) + (−2,1) = (0,0)
-     فالفارس يعود لمربّعه الأوّل ثم يبدأ من جديد بلا «قطع» ولا إعادة
-     ضبط مرئية — دورة لا نهائية حقيقية، وهي أصغر دورة فارس مغلقة
-     ممكنة. مع كل نقلة يُرسَم مسار الـL نفسه بخطٍّ متقطّع يُكتب أمام
-     العين، وهو الشكل اللي أي لاعب شطرنج بيعرفه فورًا.
-
-     الحركة كلها transform وopacity (ودالّة رسم SVG واحدة) — مافيش
-     left/top ولا width: نفس درس ومضة الـWebView (#140).
+     كل الحركة CSS (transform/opacity) — JS هنا فقط يوقّت صوت الهبوط
+     مع لحظة ملامسة الأرض في دورة الأنميشن، ويحترم تقليل الحركة.
   ══════════════════════════════════════════════════════════════ */
-  const KN_IMG = 'pieces/neo/wn.png';
-  /* مربّعات الدورة على شبكة ٤×٤ — c العمود وr الصفّ (الصفر فوق) */
-  const KN_PATH = [{ c: 0, r: 1 }, { c: 1, r: 3 }, { c: 3, r: 2 }, { c: 2, r: 0 }];
-  const KN_MS = 1250;
+  const PAWN_SVG =
+    '<svg viewBox="0 0 100 128" aria-hidden="true">'
+    + '<defs>'
+    + '<linearGradient id="wlPwnBody" x1="28%" y1="6%" x2="74%" y2="98%">'
+    + '<stop offset="0" stop-color="var(--pawn-hi)"/>'
+    + '<stop offset="0.5" stop-color="var(--pawn-mid)"/>'
+    + '<stop offset="1" stop-color="var(--pawn-lo)"/>'
+    + '</linearGradient>'
+    + '<radialGradient id="wlPwnShine" cx="38%" cy="20%" r="42%">'
+    + '<stop offset="0" stop-color="rgba(255,255,255,0.9)"/>'
+    + '<stop offset="1" stop-color="rgba(255,255,255,0)"/>'
+    + '</radialGradient>'
+    + '</defs>'
+    + '<g fill="url(#wlPwnBody)">'
+    + '<ellipse cx="50" cy="115" rx="35" ry="11"/>'
+    + '<path d="M31 116 C33 99 40 92 44 84 L56 84 C60 92 67 99 69 116 Z"/>'
+    + '<rect x="35" y="77" width="30" height="9.5" rx="4.75"/>'
+    + '<circle cx="50" cy="55" r="21"/>'
+    + '</g>'
+    + '<circle cx="43" cy="47" r="9" fill="url(#wlPwnShine)"/>'
+    + '</svg>';
+  const STAR_SVG =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor"'
+    + ' d="M12 0 C13 7 17 11 24 12 C17 13 13 17 12 24 C11 17 7 13 0 12 C7 11 11 7 12 0 Z"/></svg>';
 
-  function makeKnight() {
+  const PAWN_CYCLE_MS = 1800;   /* لازم يطابق مدّة wlPawnBounce في screens.css */
+  const PAWN_LAND_MS = 1008;    /* لحظة ملامسة الأرض = 56% من الدورة */
+
+  function makePawn() {
     const box = document.createElement('div');
     box.className = 'wl-knight';
     box.setAttribute('aria-hidden', 'true');
-
-    let sq = '';
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        sq += '<i class="wl-kn__sq wl-kn__sq--' + ((c + r) % 2 ? 'd' : 'l') + '"></i>';
-      }
-    }
     box.innerHTML =
-      '<div class="wl-kn__grid">' + sq + '</div>'
-      + '<svg class="wl-kn__svg" viewBox="0 0 4 4" preserveAspectRatio="none">'
-      + '<polyline class="wl-kn__trail" pathLength="1" fill="none" points=""/></svg>'
-      + '<span class="wl-kn__ring"></span>'
-      + '<span class="wl-kn__pc"><span class="wl-kn__hop">'
-      + '<img class="wl-kn__img" src="' + KN_IMG + '" alt=""></span></span>';
-
-    const grid = box.querySelector('.wl-kn__grid');
-    const cells = box.querySelectorAll('.wl-kn__sq');
-    const trail = box.querySelector('.wl-kn__trail');
-    const ring = box.querySelector('.wl-kn__ring');
-    const pcs = box.querySelector('.wl-kn__pc');
-    const hop = box.querySelector('.wl-kn__hop');
-
-    const put = (el, p) => {
-      el.style.setProperty('--c', p.c);
-      el.style.setProperty('--r', p.r);
-    };
-
-    /* مسار الـL: نقطتان وسيطتان — نتحرّك في المحور الأطول أوّلًا ثم
-       الأقصر، وهي الطريقة اللي أي لاعب بيرسم بيها نقلة الفارس بإصبعه */
-    const drawTrail = (a, b) => {
-      if (!trail) return;
-      const mid = (Math.abs(b.c - a.c) === 2) ? { c: b.c, r: a.r } : { c: a.c, r: b.r };
-      const pt = p => (p.c + 0.5) + ',' + (p.r + 0.5);
-      trail.setAttribute('points', pt(a) + ' ' + pt(mid) + ' ' + pt(b));
-      trail.classList.remove('is-draw');
-      /* إعادة تشغيل الرسم: قراءة تُجبر إعادة الحساب قبل إضافة الصنف */
-      void trail.getBoundingClientRect();
-      trail.classList.add('is-draw');
-    };
-
-    const lightUp = p => {
-      cells.forEach(c => c.classList.remove('is-on'));
-      const el = cells[p.r * 4 + p.c];
-      if (el) el.classList.add('is-on');
-    };
-
-    let i = 0;
-    put(pcs, KN_PATH[0]);
-    put(ring, KN_PATH[0]);
-    lightUp(KN_PATH[0]);
+      '<div class="wl-pawn">'
+      + '<svg class="wl-pawn__floor" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">'
+      + '<path d="M50 6 L92 24 L50 40 L8 24 Z" fill="rgba(255,255,255,.10)"/>'
+      + '<path d="M50 6 L92 24 L50 40 Z" fill="rgba(0,0,0,.16)"/>'
+      + '</svg>'
+      + '<span class="wl-pawn__sh"></span>'
+      + '<span class="wl-pawn__pc">' + PAWN_SVG + '</span>'
+      + '<span class="wl-pawn__spark s1">' + STAR_SVG + '</span>'
+      + '<span class="wl-pawn__spark s2">' + STAR_SVG + '</span>'
+      + '<span class="wl-pawn__spark s3">' + STAR_SVG + '</span>'
+      + '</div>';
 
     let reduced = false;
     try { reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
-    if (reduced) {
-      drawTrail(KN_PATH[0], KN_PATH[1]);
-      return { el: box, stop: () => {} };
-    }
+    if (reduced) return { el: box, stop: () => {} };
 
-    let timer = null, dead = false;
-    const step = () => {
+    /* صوت الهبوط موقوتٌ على لحظة ملامسة الأرض في كل دورة قفز */
+    let dead = false, iv = null, t0 = null;
+    const hop = () => { if (dead) return; try { if (window.SFX && SFX.pawnHop) SFX.pawnHop(); } catch (e) {} };
+    t0 = setTimeout(() => {
       if (dead) return;
-      const from = KN_PATH[i];
-      i = (i + 1) % KN_PATH.length;
-      const to = KN_PATH[i];
-      drawTrail(from, to);
-      /* القفزة: الصنف يتشال ويترجع في الإطار التالي عشان الحركة تعيد
-         التشغيل من أوّلها بدل ما تتجاهَل لأنها «شغّالة أصلًا» */
-      hop.classList.remove('is-hop');
-      requestAnimationFrame(() => {
-        if (dead) return;
-        hop.classList.add('is-hop');
-        put(pcs, to);
-        put(ring, to);
-      });
-      setTimeout(() => { if (!dead) lightUp(to); }, 320);
-      timer = setTimeout(step, KN_MS);
+      hop();
+      iv = setInterval(hop, PAWN_CYCLE_MS);
+    }, PAWN_LAND_MS);
+
+    return {
+      el: box,
+      stop: () => { dead = true; if (t0) clearTimeout(t0); if (iv) clearInterval(iv); },
     };
-    timer = setTimeout(step, 700);
-    /* لازم يتوقّف مع إغلاق الشاشة — مؤقّت شارد على شاشة مرمية بيفضل
-       يشغّل transitions على عناصر مالهاش وجود على الشاشة */
-    return { el: box, stop: () => { dead = true; if (timer) clearTimeout(timer); if (grid) grid.textContent = grid.textContent; } };
   }
 
   const amkhWelcome = {
@@ -268,7 +236,7 @@
          close() بينادي عليها، فمافيش مؤقّت بيفضل شغّالًا ورا الشاشة */
       try {
         const slot = $('.wl-knight-slot');
-        if (slot) { this._board = makeKnight(); slot.appendChild(this._board.el); }
+        if (slot) { this._board = makePawn(); slot.appendChild(this._board.el); }
       } catch (e) {}
 
       /* الغطاء بيترفع بعد ما حركة الدخول تخلص — لو رفعناه قبلها الرئيسية

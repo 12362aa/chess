@@ -245,8 +245,17 @@ const PZU = (() => {
   function say(text) {
     const box = $('pz-coach'), t = $('pz-coach-text');
     if (!box || !t) return;
-    if (!text) { box.hidden = true; _lastSay = ''; return; }
+    /* الصندوق يحجز مساحته دائمًا (لا hidden) عشان الرقعة ما تتزحزحش لمّا
+       نور يتكلّم أو يصمت — الصمت يخفيه بصريًّا بـis-empty والمساحة باقية. */
     box.hidden = false;
+    if (!text) {
+      box.classList.add('is-empty');
+      t.classList.remove('is-in');
+      t.textContent = '';
+      _lastSay = '';
+      return;
+    }
+    box.classList.remove('is-empty');
     _lastSay = String(text);
     /* إعادة تشغيل الظهور: إزالة الصنف ثم إضافته في الإطار التالي، وإلّا
        ظلّ السطر الثاني بلا حركة فبدا كأنّ نورًا لم يتكلّم. */
@@ -812,11 +821,32 @@ const PZU = (() => {
       try { st = await PZS.dailyState(); } catch (e) {}
       M.hearts = st ? st.hearts : 5;
       if (st && st.done) {
-        /* حُلّ اليوم: نعرضه للمراجعة لا للّعب مرّة ثانية */
+        /* حُلّ اليوم: مراجعةٌ حقيقية — نعرض الحلّ كاملًا نقلةً نقلة ونور
+           يشرح، لا مجرّد وضعٍ جامد (بلاغ جوجو: زر «راجع» ما كان يراجع شيئًا). */
+        M.review = true;
         Nav.show('s-puzzle');
-        await nextPuzzle();
+        await nextPuzzle();                 /* يحمّل اللغز ويلعب نقلة الافتتاح */
+        if (!M) return;
         M.finished = true; M.roundOver = true;
-        say(L('لغز اليوم انتهى. غدًا لغز جديد.', 'Today\'s puzzle is done. A new one tomorrow.'));
+        renderStatus(); renderBar();
+        await wait(1150);                    /* نترك نقلة الافتتاح تستقر */
+        if (!M) return;
+        if (coachOn()) {
+          say(st.solved
+            ? L('لنراجع لغز اليوم معًا. حللتَه بنفسك، والآن هذا هو الحلّ كاملًا.',
+                'Let’s review today’s puzzle together. You solved it yourself; here is the full solution.')
+            : L('لنراجع لغز اليوم معًا. هذا هو الحلّ كاملًا — تابِعه نقلةً نقلة.',
+                'Let’s review today’s puzzle together. Here is the full solution — follow it move by move.'));
+          await wait(readMs(_lastSay));
+          if (!M) return;
+        }
+        const sol = (M.puzzle && M.puzzle.solution) || [];
+        if (sol.length) { await replaySolution(sol); if (!M) return; }
+        await wait(600);
+        say(coachOn()
+          ? L('انتهت المراجعة. عُد غدًا للغزٍ جديد.',
+              'Review complete. Come back tomorrow for a new puzzle.')
+          : L('لغز اليوم انتهى. غدًا لغز جديد.', 'Today\'s puzzle is done. A new one tomorrow.'));
         renderBar();
         return;
       }

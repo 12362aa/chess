@@ -98,6 +98,11 @@
       row.appendChild(btn);
       row.appendChild(el('span', 'mic__t'));
       host.appendChild(row);
+      /* الشريط الأب (.pb-l) بيفتح البطاقة الشخصية عند الضغط — لازم نوقف
+         الحدث عند صفّ المايك عشان مايفلتش لجدّه فيفتح الملف بالغلط
+         (بلاغ جوجو: الضغط على المايك بيفتح صفحة الملف الشخصي). */
+      ['click', 'pointerdown', 'mousedown', 'keydown'].forEach((ev) =>
+        row.addEventListener(ev, (e) => { e.stopPropagation(); }));
       if (mine) btn.addEventListener('click', onBtn);
       else btn.disabled = true;
       return row;

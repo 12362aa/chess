@@ -803,123 +803,170 @@ body[data-ui-theme="glass"] .mc-tag{
 
 /* Engine picker — أُعيد بناؤه بالكامل: مبني على design tokens
    فيتلوّن تلقائيًا مع كل ثيم، ويشتغل على الموبايل والتابلت. */
-#engine-ov{
+/* ══════════════════════════════════════════════════════════════════
+   منتقي المحرّك — «الغوص في المحيط» (البند ٥، طلب جوجو)
+   تجربةٌ غامرة **كاملة الشاشة** لا نافذة: تنزل من السطح المشمس إلى قاع
+   الخندق. مشهدٌ حيّ (أشعّة/فقاعات/ثلج بحريّ/أسماك/أعشاب)، ومحطّات
+   المستويات تغوص أعمق فأعمق، وبوّابة غوصٍ متوهّجة. بيئةٌ بصريّة مستقلّة
+   عن السِّمة (كلوحة الألغاز) بألوانٍ بحريّة عالية التباين. كل الحركة
+   transform/opacity. ══════════════════════════════════════════════ */
+.eng-ov{
+  --foam:#eaf7ff; --mist:#a9cfe3; --glow:#5fe6ff; --gold:#f2c14e;
+  --line:rgba(139,206,232,.18); --glass:rgba(9,34,54,.62);
   display:none;
-  position:fixed;
-  inset:0;
-  z-index:965;
-  padding:16px;
-  background:var(--color-overlay);
-  backdrop-filter:blur(14px) saturate(120%);
-  -webkit-backdrop-filter:blur(14px) saturate(120%);
-  align-items:center;
-  justify-content:center;
+  position:fixed; inset:0; z-index:965;
+  background:linear-gradient(180deg,
+    #1b6d93 0%, #0e4e73 16%, #0a3858 38%, #072940 60%, #051d30 80%, #030f1c 100%);
 }
-#engine-ov.open{display:flex;}
-.ep-card{
-  width:min(96vw,720px);
-  max-height:92vh;
-  overflow:auto;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-  border-radius:var(--radius-xl,24px);
-  border:1px solid var(--color-border);
-  background:var(--color-bg-elevated);
-  box-shadow:var(--shadow-xl,0 26px 80px rgba(0,0,0,.45));
-  padding:22px;
+.eng-ov.open{display:block;}
+
+/* ── طبقات المشهد (ثابتة خلف المحتوى) ── */
+.eng-sea{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.eng-rays{position:absolute;top:-10%;left:0;right:0;height:70%;mix-blend-mode:screen;}
+.eng-rays span{position:absolute;top:0;width:26%;height:100%;transform-origin:top center;
+  background:linear-gradient(180deg,rgba(180,240,255,.22),rgba(180,240,255,0) 78%);
+  filter:blur(3px);animation:engRay 8s ease-in-out infinite;}
+.eng-rays span:nth-child(1){left:4%;transform:rotate(10deg);}
+.eng-rays span:nth-child(2){left:40%;transform:rotate(-7deg);animation-delay:1.8s;opacity:.85;}
+.eng-rays span:nth-child(3){left:72%;transform:rotate(13deg);animation-delay:3.4s;opacity:.7;}
+@keyframes engRay{0%,100%{opacity:.45;}50%{opacity:.95;}}
+.eng-caustics{position:absolute;top:0;left:0;right:0;height:40%;opacity:.5;mix-blend-mode:screen;
+  background:radial-gradient(120% 60% at 30% 0%,rgba(150,235,255,.28),rgba(150,235,255,0) 60%),
+             radial-gradient(120% 60% at 78% 0%,rgba(120,220,255,.22),rgba(120,220,255,0) 55%);
+  animation:engCaustic 9s ease-in-out infinite;}
+@keyframes engCaustic{0%,100%{transform:translateX(-2%);opacity:.4;}50%{transform:translateX(3%);opacity:.62;}}
+.eng-snow,.eng-bubbles{position:absolute;inset:0;}
+.eng-mote{position:absolute;top:-12px;border-radius:50%;background:rgba(220,240,255,.5);
+  animation:engSnow linear infinite;}
+@keyframes engSnow{0%{transform:translateY(-12px);opacity:0;}8%{opacity:.55;}
+  92%{opacity:.4;}100%{transform:translateY(105vh);opacity:0;}}
+.eng-bub{position:absolute;bottom:-24px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.9),rgba(150,220,245,.28) 60%,rgba(150,220,245,0) 72%);
+  box-shadow:0 0 6px rgba(150,225,255,.35);animation:engBub linear infinite;}
+@keyframes engBub{0%{transform:translateY(0) translateX(0);opacity:0;}
+  10%{opacity:.9;}88%{opacity:.7;}100%{transform:translateY(-108vh) translateX(16px);opacity:0;}}
+.eng-fish{position:absolute;color:rgba(11,42,64,.55);width:64px;height:32px;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.3));}
+.eng-fish svg{width:100%;height:100%;display:block;}
+.eng-fish.ef1{top:30%;width:80px;height:40px;color:rgba(14,54,80,.5);animation:engSwim 26s linear infinite;}
+.eng-fish.ef2{top:54%;width:52px;height:26px;color:rgba(9,34,54,.6);animation:engSwimR 34s linear infinite;animation-delay:6s;}
+.eng-fish.ef3{top:72%;width:38px;height:20px;color:rgba(6,24,40,.7);animation:engSwim 44s linear infinite;animation-delay:12s;}
+@keyframes engSwim{0%{transform:translateX(-90px) scaleX(1);}100%{transform:translateX(108vw) scaleX(1);}}
+@keyframes engSwimR{0%{transform:translateX(108vw) scaleX(-1);}100%{transform:translateX(-90px) scaleX(-1);}}
+.eng-kelp{position:absolute;left:0;right:0;bottom:0;width:100%;height:150px;display:block;opacity:.9;}
+.eng-kelp-b{fill:rgba(46,132,140,.42);transform-origin:bottom center;animation:engSway 5.5s ease-in-out infinite;}
+.eng-kelp-b.k2{fill:rgba(46,132,140,.34);animation-delay:.9s;}
+.eng-kelp-b.k3{fill:rgba(46,132,140,.4);animation-delay:1.7s;}
+.eng-kelp-b.k4{fill:rgba(46,132,140,.3);animation-delay:2.4s;}
+@keyframes engSway{0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+.eng-vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 80% at 50% 30%,rgba(0,0,0,0) 55%,rgba(0,0,0,.4) 100%);}
+
+/* ── المحتوى القابل للتمرير فوق المشهد ── */
+.eng-scroll{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:1;
+  padding:calc(max(env(safe-area-inset-top,0px),22px) + 14px) 16px
+          calc(max(env(safe-area-inset-bottom,0px),14px) + 20px);}
+.eng-wrap{width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px;}
+.eng-close{position:sticky;top:0;align-self:flex-end;
+  width:42px;height:42px;border-radius:50%;flex-shrink:0;
+  border:1px solid var(--line);background:var(--glass);color:var(--foam);
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:3;}
+.eng-close:hover{border-color:rgba(120,200,235,.55);}
+.eng-head{text-align:center;margin-top:-30px;}
+.eng-kicker{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--glow);text-shadow:0 0 14px rgba(95,230,255,.5);}
+.eng-title{font-size:clamp(26px,7vw,36px);font-weight:800;color:var(--foam);margin:6px 0 0;line-height:1.12;text-shadow:0 2px 16px rgba(0,0,0,.5);}
+.eng-sub{margin:8px auto 0;max-width:34ch;font-size:13.5px;color:var(--mist);line-height:1.6;}
+.eng-vs{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;
+  padding:16px 14px;border-radius:20px;background:var(--glass);border:1px solid var(--line);
+  backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(0,0,0,.35);}
+.eng-vs-side{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+.eng-av{width:74px;height:74px;border-radius:50%;overflow:hidden;display:flex;align-items:center;
+  justify-content:center;font-size:28px;font-weight:800;color:var(--foam);
+  background:radial-gradient(circle at 50% 38%,#0a2c42,#03121e);
+  border:2px solid rgba(120,200,235,.3);background-size:cover;background-position:center;}
+.eng-av.fish{border-color:rgba(95,230,255,.6);
+  box-shadow:0 0 22px rgba(95,230,255,.4),inset 0 0 14px rgba(0,0,0,.55);
+  animation:engBob 3.4s ease-in-out infinite;}
+.eng-av.player{border-color:rgba(242,193,78,.45);}
+.eng-av img{width:100%;height:100%;object-fit:cover;display:block;}
+.eng-av.fish.fallback{color:var(--glow);}
+@keyframes engBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.eng-av-nm{font-size:15px;font-weight:700;color:var(--foam);}
+.eng-av-lvl{font-size:12px;font-weight:800;color:var(--glow);}
+.eng-vs-orb{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:900;letter-spacing:.06em;font-size:14px;color:#04141f;
+  background:radial-gradient(circle at 40% 34%,#9af0ff,#39b7d6);box-shadow:0 0 18px rgba(95,230,255,.45);}
+
+/* ── عمود الغوص: محطّاتٌ تنزل أعمق، مربوطةٌ بخيط تيّار ── */
+.eng-dive{position:relative;display:flex;flex-direction:column;gap:10px;padding:4px 0;}
+.eng-dive::before{content:'';position:absolute;top:6px;bottom:6px;
+  inset-inline-start:34px;width:3px;border-radius:3px;
+  background:linear-gradient(180deg,rgba(95,230,255,.5),rgba(242,193,78,.4) 60%,rgba(120,60,120,.35));}
+.eng-st{--hue:190;position:relative;display:flex;align-items:center;gap:12px;
+  padding:11px 14px;cursor:pointer;text-align:start;
+  border-radius:16px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(12,48,72,.55),rgba(5,22,36,.72));
+  color:var(--foam);transition:border-color .14s,background .14s,transform .14s,box-shadow .14s;}
+.eng-st:hover{border-color:rgba(120,200,235,.45);}
+.eng-st:active{transform:scale(.99);}
+.eng-st-num{position:relative;z-index:1;flex-shrink:0;width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;
+  color:#04131f;background:radial-gradient(circle at 40% 34%,hsl(var(--hue) 90% 75%),hsl(var(--hue) 80% 50%));
+  box-shadow:0 0 0 3px rgba(5,22,36,.9),0 0 14px hsla(var(--hue),90%,55%,.5);}
+.eng-st-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.eng-st-name{font-size:15px;font-weight:800;color:var(--foam);}
+.eng-st-zone{font-size:11.5px;color:var(--mist);}
+.eng-st-elo{flex-shrink:0;font-size:12px;font-weight:800;color:hsl(var(--hue) 85% 74%);
+  padding:3px 9px;border-radius:999px;background:rgba(4,18,30,.5);border:1px solid hsla(var(--hue),80%,55%,.3);}
+.eng-st-fish{flex-shrink:0;width:22px;opacity:0;transition:opacity .2s;color:var(--glow);}
+.eng-st-fish svg{width:100%;height:auto;display:block;}
+.eng-st.is-active{border-color:hsl(var(--hue) 90% 62%);
+  background:linear-gradient(180deg,hsla(var(--hue),70%,42%,.45),rgba(5,22,36,.82));
+  box-shadow:0 0 0 1px hsl(var(--hue) 90% 62%) inset,0 0 22px hsla(var(--hue),90%,55%,.4);}
+.eng-st.is-active .eng-st-fish{opacity:1;animation:engFishNudge 1.6s ease-in-out infinite;}
+@keyframes engFishNudge{0%,100%{transform:translateX(0);}50%{transform:translateX(-4px);}}
+
+/* قراءة السونار للمستوى المختار */
+.eng-readout{padding:14px 16px;border-radius:16px;background:var(--glass);border:1px solid var(--line);
+  backdrop-filter:blur(8px);}
+.eng-readout-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.eng-readout-title{font-size:18px;font-weight:800;color:var(--foam);}
+.eng-readout-elo{font-size:12px;font-weight:700;color:var(--glow);padding:2px 10px;border-radius:999px;
+  background:rgba(4,18,30,.55);border:1px solid rgba(95,230,255,.3);}
+.eng-readout-desc{margin:0;font-size:13px;line-height:1.7;color:var(--mist);}
+
+/* بوّابة الغوص: زرٌّ دائريّ متوهّج بحلقاتٍ متموّجة + إلغاء */
+.eng-gate-row{display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 0 2px;}
+.eng-gate{position:relative;width:150px;height:150px;border-radius:50%;border:0;cursor:pointer;
+  background:transparent;display:flex;align-items:center;justify-content:center;}
+.eng-gate-core{position:relative;z-index:2;width:112px;height:112px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:#032018;font-weight:900;
+  background:radial-gradient(circle at 42% 34%,#a9f4ff,#2fa9cf 70%,#1d7fa0);
+  box-shadow:0 0 30px rgba(95,230,255,.5),inset 0 -6px 16px rgba(0,0,0,.25),inset 0 6px 14px rgba(255,255,255,.4);}
+.eng-gate-txt{font-size:16px;}
+.eng-gate-arrow{font-size:18px;line-height:1;animation:engArrow 1.5s ease-in-out infinite;}
+@keyframes engArrow{0%,100%{transform:translateY(-1px);opacity:.8;}50%{transform:translateY(3px);opacity:1;}}
+.eng-gate-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(95,230,255,.55);
+  animation:engRipple 2.6s ease-out infinite;}
+.eng-gate-ring.r2{animation-delay:1.3s;}
+@keyframes engRipple{0%{transform:scale(.72);opacity:.7;}100%{transform:scale(1.15);opacity:0;}}
+.eng-gate:hover .eng-gate-core{filter:brightness(1.06);}
+.eng-gate:active{transform:scale(.97);}
+.eng-cancel{min-height:44px;padding:0 26px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);color:var(--mist);}
+.eng-cancel:hover{color:var(--foam);border-color:rgba(120,200,235,.5);}
+
+@media(min-width:820px){
+  .eng-wrap{max-width:680px;}
+  .eng-dive{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
+  .eng-dive::before{display:none;}
+  .eng-av{width:88px;height:88px;}
 }
-.ep-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
-.ep-kicker{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--color-secondary-text);margin-bottom:6px;}
-.ep-title{font-size:26px;font-weight:800;color:var(--color-text-primary);margin:0;line-height:1.15;}
-.ep-sub{margin:6px 0 0;font-size:13px;color:var(--color-text-secondary);line-height:1.6;}
-.ep-close{
-  flex-shrink:0;width:40px;height:40px;border-radius:12px;
-  border:1px solid var(--color-border);background:var(--color-surface);
-  color:var(--color-text-secondary);font-size:17px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-}
-.ep-close:hover{color:var(--color-text-primary);border-color:var(--color-border-strong);}
-.ep-versus{
-  display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;
-  padding:14px;border-radius:var(--radius-lg,18px);
-  background:var(--color-surface);border:1px solid var(--color-border-subtle);
-}
-.ep-vs-side{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
-.ep-vs-avatar{
-  width:64px;height:64px;border-radius:18px;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
-  font-size:26px;font-weight:800;
-  background:var(--color-surface-raised);border:1px solid var(--color-border);
-  color:var(--color-primary-text);
-  background-size:cover;background-position:center;
-}
-.ep-vs-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-.ep-vs-avatar.ai.fallback{color:var(--color-secondary-text);}
-.ep-vs-name{font-size:15px;font-weight:700;color:var(--color-text-primary);}
-.ep-vs-lvl{font-size:12px;font-weight:700;color:var(--color-primary-text);}
-.ep-vs-badge{
-  width:48px;height:48px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:900;letter-spacing:.08em;font-size:14px;
-  background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));
-  color:var(--color-on-primary);
-}
-.ep-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
-.ep-lvl{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:12px 6px;cursor:pointer;
-  border-radius:14px;border:1px solid var(--color-border);
-  background:var(--color-surface);color:var(--color-text-primary);
-  transition:border-color .12s ease,background .12s ease,transform .12s ease;
-}
-.ep-lvl:hover{border-color:var(--color-border-strong);}
-.ep-lvl:active{transform:scale(.97);}
-.ep-lvl.is-active{
-  border-color:var(--color-primary);
-  background:var(--color-primary-subtle);
-  box-shadow:0 0 0 1px var(--color-primary-border) inset;
-}
-.ep-lvl-num{font-size:20px;font-weight:900;color:var(--color-primary-text);line-height:1;}
-.ep-lvl.is-active .ep-lvl-num{color:var(--color-primary);}
-.ep-lvl-name{font-size:12px;font-weight:700;}
-.ep-lvl-elo{font-size:10px;color:var(--color-text-secondary);}
-.ep-detail{
-  padding:14px 16px;border-radius:var(--radius-lg,16px);
-  background:var(--color-primary-subtle);border:1px solid var(--color-primary-border);
-}
-.ep-detail-main{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
-.ep-detail-title{font-size:17px;font-weight:800;color:var(--color-text-primary);}
-.ep-detail-badge{
-  font-size:12px;font-weight:700;color:var(--color-primary-text);
-  padding:2px 10px;border-radius:999px;
-  background:var(--color-surface);border:1px solid var(--color-primary-border);
-}
-.ep-detail-desc{margin:0;font-size:13px;line-height:1.7;color:var(--color-text-secondary);}
-.ep-actions{display:flex;gap:10px;justify-content:flex-end;}
-.ep-btn{
-  min-height:48px;padding:0 22px;border-radius:14px;
-  font-size:15px;font-weight:800;cursor:pointer;border:1px solid transparent;
-}
-.ep-btn-ghost{background:var(--color-surface);border-color:var(--color-border);color:var(--color-text-secondary);}
-.ep-btn-ghost:hover{color:var(--color-text-primary);border-color:var(--color-border-strong);}
-.ep-btn-go{background:var(--color-primary);color:var(--color-on-primary);}
-.ep-btn-go:hover{background:var(--color-primary-hover);}
-@media(max-width:640px){
-  .ep-card{padding:16px;gap:14px;border-radius:20px;max-height:94vh;}
-  .ep-title{font-size:22px;}
-  .ep-grid{gap:6px;}
-  .ep-lvl{padding:10px 3px;}
-  .ep-lvl-num{font-size:17px;}
-  .ep-lvl-name{font-size:10px;}
-  .ep-lvl-elo{display:none;}
-  .ep-vs-avatar{width:52px;height:52px;}
-  .ep-actions{flex-direction:column-reverse;}
-  .ep-btn{width:100%;}
-}
-@media(max-width:380px){
-  .ep-grid{grid-template-columns:repeat(2,1fr);}
-  .ep-lvl-elo{display:block;}
+@media(prefers-reduced-motion:reduce){
+  .eng-rays span,.eng-caustics,.eng-bub,.eng-mote,.eng-fish,.eng-kelp-b,
+  .eng-av.fish,.eng-gate-ring,.eng-gate-arrow,.eng-st.is-active .eng-st-fish{animation:none !important;}
 }
 
 /* ══════════ SHARED ══════════ */
@@ -950,7 +997,7 @@ body[data-ui-theme="glass"] .mc-tag{
 .nlv__ringBg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:5;}
 .nlv__ringOn{fill:none;stroke:var(--gold2);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.22,1,.36,1);filter:drop-shadow(0 0 5px rgba(201,168,76,.5));}
 .nlv__face{position:absolute;inset:11px;width:calc(100% - 22px);height:calc(100% - 22px);border-radius:50%;object-fit:cover;background:var(--bg3);}
-.nlv__pct{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);background:var(--bg1);border:1px solid rgba(201,168,76,.3);color:var(--gold2);font-size:10px;font-weight:800;padding:2px 8px;border-radius:9px;box-shadow:0 3px 8px rgba(0,0,0,.4);}
+.nlv__pct{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);background:var(--bg1);border:1px solid rgba(201,168,76,.35);color:var(--gold2);font-size:10px;font-weight:800;padding:2px 8px;border-radius:9px;box-shadow:0 3px 8px rgba(0,0,0,.45);white-space:nowrap;z-index:2;}
 .nlv__hx{flex:1;min-width:0;}
 .nlv__kick{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);opacity:.9;}
 .nlv__ttl{font-family:'Amiri',serif;font-size:24px;line-height:1.15;color:var(--text);margin:2px 0 4px;}
@@ -2898,7 +2945,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260916-b37">
+<link rel="stylesheet" href="screens.css?v=20260922-b42">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3091,6 +3138,18 @@ html.amkh-preboot #amkh-preboot{
         </span>
         <span class="home-tile__title">الألغاز</span>
         <span class="home-tile__desc">درّب بصرك على التكتيك</span>
+      </button>
+
+      <!-- المتجر (طلب جوجو): بطاقة كاملة بجوار الألغاز، الضغط يفتح نافذة
+           «قريبًا». المحتوى (نظام اقتصاد) تحديثٌ ضخم قادم لاحقًا. -->
+      <button class="home-tile home-tile--soon" type="button" data-mode="store"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.store()">
+        <span class="home-tile__icon" aria-hidden="true">
+          <i class="ico ico--store" aria-hidden="true"></i>
+        </span>
+        <span class="home-tile__title">المتجر</span>
+        <span class="home-tile__desc">عناصر وأطقم قريبًا</span>
+        <span class="home-tile__soon" aria-hidden="true">قريبًا</span>
       </button>
     </div>
 
@@ -3627,7 +3686,7 @@ html.amkh-preboot #amkh-preboot{
 <div id="s-puzzle" class="screen">
   <div class="pzg" data-no-i18n>
     <!-- المدرّب فوق (زي chess.com): صورة + فقاعة كلام -->
-    <div id="pz-coach" class="pzg__coach" hidden>
+    <div id="pz-coach" class="pzg__coach is-empty">
       <span class="pzg__coach-av" aria-hidden="true"></span>
       <span class="pzg__coach-bubble"><span id="pz-coach-text" class="pzg__coach-text"></span></span>
     </div>
@@ -3830,46 +3889,79 @@ html.amkh-preboot #amkh-preboot{
   </div>
 </div>
 
-<!-- ENGINE PICKER -->
-<div id="engine-ov">
-  <div class="ep-card">
-    <div class="ep-head">
-      <div class="ep-head-txt">
-        <div class="ep-kicker">STOCKFISH · أوفلاين</div>
-        <h2 class="ep-title">اختر مستوى الخصم</h2>
-        <p class="ep-sub">عشرة مستويات متدرّجة من مبتدئ حتى القوة الكاملة</p>
-      </div>
-      <button class="ep-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()" aria-label="رجوع">✕</button>
+<!-- ENGINE PICKER — «الغوص في المحيط» (البند ٥، طلب جوجو): تجربةٌ غامرة
+     كاملة الشاشة — لا نافذة. تنزل من السطح المشمس إلى قاع الخندق: أشعّة،
+     فقاعات، ثلجٌ بحريّ، أسماكٌ تعبر، أعشابٌ متمايلة، والسمكة تغوص للمحطّة
+     المختارة. بوّابة غوصٍ متوهّجة بصوت ماء. بلغتين، مرسومٌ بالكامل. -->
+<div id="engine-ov" class="eng-ov">
+  <div class="eng-sea" aria-hidden="true">
+    <div class="eng-rays"><span></span><span></span><span></span></div>
+    <div class="eng-caustics"></div>
+    <div class="eng-snow" id="eng-snow"></div>
+    <div class="eng-bubbles" id="eng-bubbles"></div>
+    <div class="eng-fish ef1">
+      <svg viewBox="0 0 64 32"><path fill="currentColor" d="M2 16 C14 4 40 4 52 14 L62 6 L58 16 L62 26 L52 18 C40 28 14 28 2 16 Z"/><circle cx="46" cy="13" r="1.6" fill="rgba(0,0,0,.5)"/></svg>
     </div>
+    <div class="eng-fish ef2">
+      <svg viewBox="0 0 64 32"><path fill="currentColor" d="M2 16 C14 4 40 4 52 14 L62 6 L58 16 L62 26 L52 18 C40 28 14 28 2 16 Z"/></svg>
+    </div>
+    <div class="eng-fish ef3">
+      <svg viewBox="0 0 64 32"><path fill="currentColor" d="M2 16 C14 4 40 4 52 14 L62 6 L58 16 L62 26 L52 18 C40 28 14 28 2 16 Z"/></svg>
+    </div>
+    <svg class="eng-kelp" viewBox="0 0 400 160" preserveAspectRatio="none">
+      <path class="eng-kelp-b" d="M40 160 C36 120 52 108 42 78 C60 100 62 132 62 160 Z"/>
+      <path class="eng-kelp-b k2" d="M120 160 C116 128 130 116 122 92 C138 112 140 140 140 160 Z"/>
+      <path class="eng-kelp-b k3" d="M330 160 C326 116 344 104 332 72 C352 98 354 134 354 160 Z"/>
+      <path class="eng-kelp-b k4" d="M250 160 C246 132 258 120 250 98 C266 116 268 142 268 160 Z"/>
+    </svg>
+    <div class="eng-vignette"></div>
+  </div>
 
-    <div class="ep-versus">
-      <div class="ep-vs-side">
-        <div class="ep-vs-avatar player" id="engine-player-avatar">أ</div>
-        <div class="ep-vs-name" id="engine-player-name">أنت</div>
-      </div>
-      <div class="ep-vs-badge">VS</div>
-      <div class="ep-vs-side">
-        <div class="ep-vs-avatar ai">
-          <img src="./StockFish.png" alt="Stockfish" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent='♞';">
+  <div class="eng-scroll">
+    <div class="eng-wrap">
+      <button class="eng-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()" aria-label="رجوع">✕</button>
+      <header class="eng-head">
+        <span class="eng-kicker">STOCKFISH · غوص</span>
+        <h2 class="eng-title">اختر عمق الغوص</h2>
+        <p class="eng-sub">كلما غُصتَ أعمق اشتدّ الخصم — من السطح المشمس إلى قاع الخندق.</p>
+      </header>
+
+      <div class="eng-vs">
+        <div class="eng-vs-side">
+          <div class="eng-av player" id="engine-player-avatar">أ</div>
+          <span class="eng-av-nm" id="engine-player-name">أنت</span>
         </div>
-        <div class="ep-vs-name">Stockfish</div>
-        <div class="ep-vs-lvl" id="engine-sel-badge">مستوى 4</div>
+        <span class="eng-vs-orb">VS</span>
+        <div class="eng-vs-side">
+          <div class="eng-av fish" id="engine-fish-av">
+            <img src="./stockfish-cod.jpg" alt="Stockfish" onerror="this.style.display='none';this.parentElement.classList.add('fallback');this.parentElement.textContent='♞';">
+          </div>
+          <span class="eng-av-nm">Stockfish</span>
+          <span class="eng-av-lvl" id="engine-sel-badge">مستوى 4</span>
+        </div>
       </div>
-    </div>
 
-    <div class="ep-grid" id="engine-level-grid"></div>
+      <div class="eng-dive" id="engine-level-grid"></div>
 
-    <div class="ep-detail">
-      <div class="ep-detail-main">
-        <span class="ep-detail-title" id="engine-sel-title">متوسط</span>
-        <span class="ep-detail-badge" id="engine-sel-elo">~1800 تقييم</span>
+      <div class="eng-readout">
+        <div class="eng-readout-h">
+          <span class="eng-readout-title" id="engine-sel-title">متوسط</span>
+          <span class="eng-readout-elo" id="engine-sel-elo">~1800 تقييم</span>
+        </div>
+        <p class="eng-readout-desc" id="engine-sel-desc">لعب ثابت يناسب اللاعب العادي، بلا هدايا مجانية.</p>
       </div>
-      <p class="ep-detail-desc" id="engine-sel-desc">لعب ثابت يناسب اللاعب العادي، بلا هدايا مجانية.</p>
-    </div>
 
-    <div class="ep-actions">
-      <button class="ep-btn ep-btn-ghost" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">إلغاء</button>
-      <button class="ep-btn ep-btn-go" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.start()">ابدأ المواجهة ←</button>
+      <div class="eng-gate-row">
+        <button class="eng-gate" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.start()">
+          <span class="eng-gate-ring"></span>
+          <span class="eng-gate-ring r2"></span>
+          <span class="eng-gate-core">
+            <span class="eng-gate-txt">ابدأ الغوص</span>
+            <span class="eng-gate-arrow" aria-hidden="true">↓</span>
+          </span>
+        </button>
+        <button class="eng-cancel" onclick="if(typeof SFX !== 'undefined') SFX.btn(); ENGINE_PICKER.close()">إلغاء</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4352,6 +4444,10 @@ const SFX=(()=>{
        اللاعب يعرف حالة مايكه بأذنه وهو ناظرٌ إلى الرقعة. */
     micOpen(){ tones([{f:587.33,t0:0,dur:0.09,type:'triangle',vol:0.09},{f:880,t0:0.09,dur:0.14,type:'sine',vol:0.10}]); },
     micClose(){ tones([{f:880,t0:0,dur:0.09,type:'triangle',vol:0.08},{f:523.25,t0:0.09,dur:0.14,type:'sine',vol:0.09}]); },
+    /* هبوط بيدق شاشة الترحيب — «توب» ناعم منخفض ينبض مع كل قفزة */
+    pawnHop(){ tones([{f:174.61,t0:0,dur:0.11,type:'sine',vol:0.06},{f:349.23,t0:0.015,dur:0.07,type:'sine',vol:0.035}]); },
+    /* الغوص (منتقي المحرّك): هبوطٌ مائيّ — كنسةٌ نازلة + فقاعة */
+    dive(){ tones([{f:660,f2:170,t0:0,dur:0.5,type:'sine',vol:0.09},{f:300,f2:90,t0:0.1,dur:0.55,type:'sine',vol:0.07},{f:1200,t0:0.02,dur:0.06,type:'triangle',vol:0.04}]); },
     undo()   {play('move');},  // Use move sound for undo
     chat()   {
       if(!Cfg.data.sound)return;
@@ -6869,7 +6965,11 @@ const LEVEL_PUZZLE_THEME=[
   'attraction',     /* 10 الإمبراطور */
   'crushing',       /* 11 الخالد */
 ];
-const ENGINE_AVATAR_FILE='StockFish.png';
+/* صورة Stockfish الجديدة (سمكة القدّ مع الملك) — تُستخدم في منتقي المحرّك
+   وشريط اللاعب داخل مباراة المحرّك. في الجذر (لا assets/) عشان حلقة نسخ
+   build-web تلتقط أصول الجذر بالامتداد، بينما مجلّد assets/ غير مذكور في
+   assetDirectories فكان سيسقط من الـAPK بصمت (فخّ allow-list). */
+const ENGINE_AVATAR_FILE='stockfish-cod.jpg';
 /* ══════════════════════════════════════
    مستويات Stockfish — سُلّم عادل من 10 درجات
    ──────────────────────────────────────
@@ -7263,7 +7363,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 41;
+const APP_VERSION_CODE = 42;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7336,6 +7436,14 @@ if(UPDATE_NOTICE_ENABLED){
 ══════════════════════════════════════ */
 const ENGINE_PICKER={
   _sel:4,
+  /* مناطق العمق البحريّة لكل مستوى — تُترجَم عبر قاموس i18n كبقيّة النصوص */
+  _zones:[
+    'السطح المشمس · 5م','المياه الضحلة · 20م','منطقة الضوء · 50م','الشفق · 200م',
+    'الغسق العميق · 500م','منتصف الماء · 1000م','منطقة الظلام · 2000م','اللُّجّة · 4000م',
+    'الهاوية · 6000م','قاع الخندق · بلا قرار'
+  ],
+  _hue(lv){ return Math.round(190-(lv-1)*16.6); },
+  _fishMini(){ return '<svg viewBox="0 0 40 20" aria-hidden="true"><path fill="currentColor" d="M2 10 C10 3 26 3 32 8 L39 3 L36 10 L39 17 L32 12 C26 17 10 17 2 10 Z"/></svg>'; },
   _setPlayerPreview(){
     const avatar=document.getElementById('engine-player-avatar');
     const nameEl=document.getElementById('engine-player-name');
@@ -7352,6 +7460,22 @@ const ENGINE_PICKER={
       avatar.textContent=(getPlayerDisplayName()[0]||'أ').toUpperCase();
     }
   },
+  /* يولّد جسيمات الثلج البحريّ والفقاعات مرّةً واحدة (بمواضع/سرعات عشوائية) */
+  _spawnScene(){
+    const rnd=(a,b)=>a+Math.random()*(b-a);
+    const snow=document.getElementById('eng-snow');
+    if(snow && !snow.childElementCount){
+      let h='';
+      for(let i=0;i<26;i++){ const sz=rnd(1,3).toFixed(1); h+=`<span class="eng-mote" style="left:${rnd(0,100).toFixed(1)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(12,22).toFixed(1)}s;animation-delay:-${rnd(0,14).toFixed(1)}s"></span>`; }
+      snow.innerHTML=h;
+    }
+    const bub=document.getElementById('eng-bubbles');
+    if(bub && !bub.childElementCount){
+      let h='';
+      for(let i=0;i<14;i++){ const sz=rnd(3,11).toFixed(0); h+=`<span class="eng-bub" style="left:${rnd(0,100).toFixed(1)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(6,11).toFixed(1)}s;animation-delay:-${rnd(0,9).toFixed(1)}s"></span>`; }
+      bub.innerHTML=h;
+    }
+  },
   _renderGrid(){
     const grid=document.getElementById('engine-level-grid');
     if(!grid)return;
@@ -7359,12 +7483,17 @@ const ENGINE_PICKER={
     ENGINE_LEVELS.forEach(L=>{
       const b=document.createElement('button');
       b.type='button';
-      b.className='ep-lvl'+(L.level===this._sel?' is-active':'');
+      b.className='eng-st'+(L.level===this._sel?' is-active':'');
       b.dataset.level=String(L.level);
-      const num=document.createElement('span'); num.className='ep-lvl-num'; num.textContent=String(L.level);
-      const nm=document.createElement('span'); nm.className='ep-lvl-name'; nm.textContent=L.title;
-      const elo=document.createElement('span'); elo.className='ep-lvl-elo'; elo.textContent=L.limitless?'قوة كاملة':('~'+L.elo);
-      b.appendChild(num); b.appendChild(nm); b.appendChild(elo);
+      b.style.setProperty('--hue',String(this._hue(L.level)));
+      const num=document.createElement('span'); num.className='eng-st-num'; num.textContent=String(L.level);
+      const body=document.createElement('span'); body.className='eng-st-body';
+      const nm=document.createElement('span'); nm.className='eng-st-name'; nm.textContent=L.title;
+      const zn=document.createElement('span'); zn.className='eng-st-zone'; zn.textContent=this._zones[L.level-1]||'';
+      body.appendChild(nm); body.appendChild(zn);
+      const elo=document.createElement('span'); elo.className='eng-st-elo'; elo.textContent=L.limitless?'قوة كاملة':('~'+L.elo);
+      const fish=document.createElement('span'); fish.className='eng-st-fish'; fish.innerHTML=this._fishMini();
+      b.appendChild(num); b.appendChild(body); b.appendChild(elo); b.appendChild(fish);
       b.onclick=()=>{ if(typeof SFX!=='undefined')SFX.btn(); this.select(L.level); };
       grid.appendChild(b);
     });
@@ -7373,7 +7502,7 @@ const ENGINE_PICKER={
     this._sel=Math.max(1,Math.min(10,parseInt(level,10)||4));
     const preset=getEnginePreset(this._sel);
     const grid=document.getElementById('engine-level-grid');
-    if(grid)grid.querySelectorAll('.ep-lvl').forEach(el=>{
+    if(grid)grid.querySelectorAll('.eng-st').forEach(el=>{
       el.classList.toggle('is-active',parseInt(el.dataset.level,10)===this._sel);
     });
     const set=(id,txt)=>{const e=document.getElementById(id);if(e)e.textContent=txt;};
@@ -7381,17 +7510,23 @@ const ENGINE_PICKER={
     set('engine-sel-title',preset.title);
     set('engine-sel-elo',preset.badge);
     set('engine-sel-desc',preset.description);
+    /* هالة سمكة المواجهة تأخذ لون العمق المختار (سماويّ→ذهبيّ) */
+    const fav=document.getElementById('engine-fish-av');
+    if(fav)fav.style.boxShadow=`0 0 24px hsla(${this._hue(this._sel)},90%,55%,.5),inset 0 0 14px rgba(0,0,0,.55)`;
+    const act=grid&&grid.querySelector('.eng-st.is-active');
+    if(act&&act.scrollIntoView){ try{act.scrollIntoView({block:'nearest'});}catch(e){} }
   },
   open(){
     this._sel=Math.max(1,Math.min(10,parseInt(S.engineLevel??Cfg.data.engineLevel??4,10)||4));
     this._setPlayerPreview();
+    this._spawnScene();
     this._renderGrid();
     this.select(this._sel);
-    document.getElementById('engine-ov')?.classList.add('open');
+    const ov=document.getElementById('engine-ov');
+    if(ov){ ov.classList.add('open'); const sc=ov.querySelector('.eng-scroll'); if(sc)sc.scrollTop=0; }
     amkhGrabModalFreeze();
-    try{SFX.modalOpen('confirm');}catch(e){}
-    /* الـ overlay بيغطي الشاشة كلها وله زر رجوع خاص، فبنخفي الشريط
-       العلوي عشان مايفضلش معروض بسياق الشاشة اللي وراه */
+    try{ if(SFX.dive)SFX.dive(); else SFX.modalOpen('confirm'); }catch(e){}
+    /* الشاشة الغامرة تغطّي كل شيء ولها زر رجوعها، فنخفي الشريط العلوي */
     try{AppBar.setOverlay(true);}catch(e){}
   },
   close(){
@@ -7404,6 +7539,7 @@ const ENGINE_PICKER={
     Cfg.data.engineLevel=level;
     Cfg.saveData();
     S.engineLevel=level;
+    try{ if(SFX.dive)SFX.dive(); }catch(e){}   /* صوت الغطس عند الدخول للمباراة */
     this.close();
     G.startEngineGame(level);
   }
@@ -9620,6 +9756,66 @@ Write Nour's message now:`);
       }
     }catch(e){}
   },
+  /* ══ تعليق نور داخل مباراة المحرّك (بلاغ جوجو: «اللعب ضد المحرك صامت») ══
+     نور هنا **معلّقٌ ومشجّع** لا لاعب: اللاعب أبيض وStockfish أسود، فلا
+     نستعمل _nourId (المبنيّ على أن نور هو الخصم) ولا حارس الألوان. يحتاج
+     نتًا؛ أوفلاين يسقط بصمت فلا عطل. مخنوقٌ بمهلة كنور. */
+  engineAutoMsg(type,moveRes,isCheck,isCheckmate,cap,moveCount){
+    if(!isStockfishMode())return;
+    if(!this._engAutoTimes)this._engAutoTimes=[];
+    const now=Date.now();
+    if(this._engAutoTimes.length&&now-this._engAutoTimes[this._engAutoTimes.length-1]<11000)return;
+    this._engAutoTimes.push(now);
+    this._sendEngineAutoAI(type,moveRes,isCheck,isCheckmate,cap,moveCount);
+  },
+  async _sendEngineAutoAI(type,moveRes,isCheck,isCheckmate,cap,moveCount){
+    try{
+      const EN=(window.I18N&&I18N.lang==='en');
+      const P=(a,e)=>EN?e:a;
+      const pn=Cfg.data.playerName||P('اللاعب','Player');
+      const preset=(typeof getEnginePreset==='function')?getEnginePreset(S.engineLevel||4):null;
+      const lvlName=preset?T(preset.title):'';
+      const evalScore=E.eval(S.bd);
+      const evalText=Math.abs(evalScore)<50?P('متعادل','Equal'):evalScore>0
+        ?P(`الأبيض متقدّم بـ ${(evalScore/100).toFixed(1)}`,`White is ahead by ${(evalScore/100).toFixed(1)}`)
+        :P(`الأسود متقدّم بـ ${(Math.abs(evalScore)/100).toFixed(1)}`,`Black is ahead by ${(Math.abs(evalScore)/100).toFixed(1)}`);
+      const lastMove=S.hist.length?S.hist[S.hist.length-1]:P('لا شيء','none');
+      const capName=cap?P(({P:'بيدق',N:'حصان',B:'فيل',R:'رخ',Q:'وزير',K:'ملك'}[E.tp(cap)]||'قطعة'),
+        ({P:'pawn',N:'knight',B:'bishop',R:'rook',Q:'queen',K:'king'}[E.tp(cap)]||'piece')):'';
+      const eventText=type==='playerMove'
+        ?P(`${pn} (الأبيض) قام بنقلة`,`${pn} (White) just moved`)
+        :P('Stockfish (الأسود) قام بنقلة','Stockfish (Black) just moved');
+      const sys=P(
+`أنت "نور"، مدرّبٌ ودود يعلّق على مباراة ${pn} ضدّ محرّك Stockfish (مستوى ${lvlName}). ${pn} يلعب بالأبيض وStockfish بالأسود.
+- أنت معلّقٌ ومشجّع، لستَ لاعبًا؛ لا تنسب أيّ قطعةٍ لنفسك.
+- لا تدّعِ كشًّا أو أكلًا إلا إذا قالته المعطيات.
+- شجّع ${pn} وأعطه فكرةً قصيرة. جملة أو جملتان بالعربية فقط.`,
+`You are "Nour", a friendly coach commenting on ${pn}'s game against the Stockfish engine (level ${lvlName}). ${pn} plays White and Stockfish plays Black.
+- You are a commentator and cheerleader, not a player; never claim any piece as yours.
+- Never claim a check or capture unless the data says so.
+- Encourage ${pn} and give one short tip. One or two sentences, in plain English only.`);
+      const user=P(
+`[سياق]
+الحدث: ${eventText}
+آخر نقلة: ${lastMove}
+التقييم: ${evalText}
+هل يوجد كش الآن؟ ${isCheck?'نعم':'لا'}
+هل يوجد كش مات؟ ${isCheckmate?'نعم':'لا'}
+الأكل: ${cap?('تم أكل '+capName):'لا يوجد'}
+اكتب تعليق نور الآن:`,
+`[Context]
+Event: ${eventText}
+Last move: ${lastMove}
+Evaluation: ${evalText}
+Is there a check now? ${isCheck?'yes':'no'}
+Is there a checkmate? ${isCheckmate?'yes':'no'}
+Capture: ${cap?('a '+capName+' was captured'):'none'}
+Write Nour's comment now:`);
+      const json=await groqChat({model:GROQ_MODEL,messages:[{role:'system',content:sys},{role:'user',content:user}],max_tokens:110,temperature:0.7});
+      const reply=(json.choices?.[0]?.message?.content||'').trim();
+      if(reply&&reply.length>2){ setTimeout(()=>this._addMsg(reply,'opp'),Math.random()*500+220); }
+    }catch(e){}
+  },
   _setNourTyping(show){
     const el=document.getElementById('chat-msgs');
     if(!el)return;
@@ -9963,6 +10159,10 @@ Write Nour's message now:`);
     // Show Nour welcome in levels mode
     if(S.mode==='bot'&&S.levelId>=0){
       this._addMsg(T('مرحباً! أنا نور. تحدث معي في أي وقت'),'opp');
+    }
+    // مباراة المحرّك: نور معلّقٌ ومشجّع (بلاغ جوجو — لا تكن صامتة)
+    else if(isStockfishMode()){
+      this._addMsg(T('أنا نور، وسأعلّق على مواجهتك مع Stockfish. حظًّا موفّقًا!'),'opp');
     }
   },
   hide(){
@@ -13028,6 +13228,7 @@ const G={
     GameIdentity.setTitle(tt`ضد Stockfish · ${T(preset.badge)}`);
     fixBars('w');
     Nav.game();
+    CHAT.show();   /* نور يعلّق داخل مباراة المحرّك — لم تعد صامتة (بلاغ جوجو) */
     await R.all();
     updatePlayerImages();
   },
@@ -13152,6 +13353,9 @@ const G={
     else                SFX.move();
     await R.all();
     if(isNourLevelMode()){CHAT.nourAutoMsg(cl==='w'?'playerMove':'nourMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
+    /* مباراة المحرّك لم تعد صامتة (بلاغ جوجو): نور يعلّق كمدرّبٍ يشاهدك
+       تواجه Stockfish — أبيضك مقابل أسوده. تعليقٌ اختياريّ (يحتاج نتًا). */
+    else if(isStockfishMode()){CHAT.engineAutoMsg(cl==='w'?'playerMove':'engineMove',res,isCheck,isCheckmate,res.cap,S.moveCount);}
     R.ripple(to[0],to[1]);
     setTimeout(()=>{
       const sq=document.querySelector(`#board .sq[data-r="${to[0]}"][data-c="${to[1]}"]`);
@@ -13596,6 +13800,19 @@ const Nav={
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
   puzzles(){try{PZU.openHub();}catch(e){Nav.show('s-puzzles');}},
+  /* المتجر (طلب جوجو): لا محتوى بعد — نافذةٌ على نهج السِّمة بنفس صوت
+     النوافذ (Modal.show تفتح عبر DSOverlay فتأخذ SFX تلقائيًّا) تقول
+     «قريبًا». المحتوى الحقيقي (نظام اقتصاد) تحديثٌ ضخم لاحق. */
+  store(){
+    try{
+      if(window.Modal&&Modal.show){
+        Modal.show(
+          'قريبًا ستفتح المتجر على عناصر وأطقمٍ للقطع والرقعة، وأكثر — تحديثٌ كبير قادم.',
+          'المتجر في الطريق','◈',null);
+        return;
+      }
+    }catch(e){}
+  },
   game(){Nav.show('s-game');},
   back(){history.back();}
 };
@@ -15437,7 +15654,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="auth-client.js?v=20260916-b37"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260916-b37"></script>
+  <script src="welcome-client.js?v=20260922-b42"></script>
   <script src="friends-client.js?v=20260916-b37"></script>
   <script src="chat-client.js?v=20260916-b37"></script>
   <script src="call-client.js?v=20260916-b37"></script>
@@ -15452,8 +15669,8 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-client.js?v=20260919-b38"></script>
   <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
-  <script src="puzzles-ui.js?v=20260920-b40"></script>
-  <script src="puzzles-hub.js?v=20260920-b40"></script>
+  <script src="puzzles-ui.js?v=20260922-b42"></script>
+  <script src="puzzles-hub.js?v=20260922-b42"></script>
   <script src="levels-ui.js?v=20260921-b41"></script>
   <script src="mic-client.js?v=20260922-b41"></script>
 <script>
