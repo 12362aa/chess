@@ -342,6 +342,57 @@ function _daysSince(sqliteTs) {
   return Math.max(0, Math.floor((Date.now() - t) / 86400000));
 }
 
+/* حالة الألغاز من بلوب puzzles_json (يكتبه العميل، ويخزّنه /sync-local).
+   نحتاج شيئين للإشعار: هل حُلّ لغز اليوم؟ وما طول سلسلة الأيام؟ — كلاهما
+   يُقرأ من البلوب لا من أعمدة users (التي لا تحمل حالة اليوم ولا السلسلة).
+   نُعيد رمز اليوم وحساب السلسلة بنفس منطق العميل (puzzles-store.js):
+   السلسلة تُحسب من آخر يومٍ إن كان اليوم أو أمس، وإلّا فقد انقطعت. */
+function _pzDayKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' +
+         String(d.getMonth() + 1).padStart(2, '0') + '-' +
+         String(d.getDate()).padStart(2, '0');
+}
+function _pzDayIndex(d) {
+  d = d || new Date();
+  return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000);
+}
+function _pzDayStreak(days) {
+  if (!Array.isArray(days) || !days.length) return 0;
+  const idx = days.map(s => {
+    const p = String(s).split('-');
+    return _pzDayIndex(new Date(+p[0], (+p[1]) - 1, +p[2], 12, 0, 0));
+  }).filter(n => isFinite(n)).sort((a, b) => b - a);
+  if (!idx.length) return 0;
+  const today = _pzDayIndex();
+  if (idx[0] !== today && idx[0] !== today - 1) return 0;
+  let n = 1, prev = idx[0];
+  for (let i = 1; i < idx.length; i++) {
+    if (idx[i] === prev - 1) { n++; prev = idx[i]; }
+    else if (idx[i] < prev - 1) break;
+  }
+  return n;
+}
+function _puzzleState(userId) {
+  const out = { hasData: false, solvedToday: false, streak: 0, rating: 0, games: 0 };
+  let blob;
+  try {
+    const row = db.prepare('SELECT puzzles_json FROM user_settings WHERE user_id = ?').get(userId);
+    if (!row || !row.puzzles_json) return out;
+    blob = JSON.parse(row.puzzles_json);
+  } catch (e) { return out; }
+  if (!blob || typeof blob !== 'object') return out;
+  out.hasData = true;
+  const today = _pzDayKey();
+  const daily = blob.daily;
+  out.solvedToday = !!(daily && daily.day === today && (daily.solved || daily.done));
+  out.streak = _pzDayStreak(blob.days);
+  const r = blob.rating || {};
+  out.rating = Math.round(isFinite(r.r) ? r.r : 1500);
+  out.games = Number(r.games) || 0;
+  return out;
+}
+
 /* لقطة حالة المستخدم من القاعدة — كل الأرقام حيّة لحظة النداء */
 function buildUserSnapshot(userId) {
   const u = db.prepare(`SELECT display_name, username, rating, rating_games, rating_peak,
@@ -384,6 +435,8 @@ function buildUserSnapshot(userId) {
   const awaySeen = _daysSince(pres.last_seen_at);
   const away = Math.min(awayLogin == null ? 9999 : awayLogin, awaySeen == null ? 9999 : awaySeen);
 
+  const pz = _puzzleState(userId);
+
   return {
     userId,
     name: _firstName(u.display_name || u.username),
@@ -398,6 +451,12 @@ function buildUserSnapshot(userId) {
     friendsOnline, unread, invites,
     lastResult,
     daysAway: away === 9999 ? null : away,
+    /* الألغاز: حالة اليوم والسلسلة — أساس إشعارَي puzzle_daily/streak */
+    pzHasData: pz.hasData,
+    pzSolvedToday: pz.solvedToday,
+    pzStreak: pz.streak,
+    pzRating: pz.rating,
+    pzGames: pz.games,
   };
 }
 
@@ -416,6 +475,9 @@ function _sfLevel(r) {
 /* كام إشعار للمستخدم ده النهارده — أذكى: فيه سبب فوري = أكتر، غايب = أقل */
 function _plannedCount(s) {
   if (s.friendsOnline > 0 || s.unread > 0 || s.invites > 0) return NOTIF.maxPerDay;
+  /* سلسلة ألغازٍ حيّة على وشك الانقطاع = سببٌ فوريّ: لا نتركه يُجَوَّع
+     في التدوير لو كان عدد اليوم منخفضًا (راجع/جديد). */
+  if (s.pzStreak >= 2 && !s.pzSolvedToday) return Math.max(3, NOTIF.maxPerDay - 1);
   if (s.daysAway != null && s.daysAway >= NOTIF.lapsedDays) return 2; // راجع: مانلحّش
   if (s.ratingGames === 0 && s.nourStars === 0) return 3;             // جديد
   return 4;                                                          // نشِط
@@ -429,6 +491,10 @@ function _categories(s) {
   if (s.friendsOnline > 0) cats.push('friends');
   if (s.invites > 0) cats.push('invite');
   if (s.unread > 0) cats.push('unread');
+  /* سلسلة على وشك الانقطاع أوّلًا (الأكثر إلحاحًا)، ثم نداءُ لغز اليوم
+     العامّ. كلاهما مشروطٌ بأنّ لغز اليوم لم يُحلّ بعد. */
+  if (s.pzStreak >= 2 && !s.pzSolvedToday) cats.push('puzzle_streak');
+  if (!s.pzSolvedToday) cats.push('puzzle_daily');
   if (s.ratingGames > 0) cats.push('rating');
   if (s.nourStars === 0 || s.nourStages < 30) cats.push('nour');
   cats.push('stockfish'); // تدريب ضد المحرّك متاح دايمًا
@@ -557,6 +623,44 @@ function _renderNotif(cat, s, slotIndex, day) {
         title: { ar: `تقييمك ${s.rating} ♟`, en: `Your rating is ${s.rating} ♟` },
         body: pick2(vAr, vEn),
         data: { kind: 'adaptive', cat, rating: String(s.rating) }, tag: 'amkh-rating',
+      };
+    }
+    case 'puzzle_streak': {
+      const k = s.pzStreak;
+      /* سلسلةٌ حيّة لم يُختَم يومُها بعد: التذكير هنا «لا تكسر ما بنيتَ».
+         نستعمل صيغة الأيام العربية الموجودة أصلًا (_nDays/_eDays). */
+      return {
+        title: { ar: `سلسلتك ${_nDays(k)} يا ${nm} ♟`, en: `Your streak is ${_eDays(k)}, ${en} ♟` },
+        body: pick2([
+          `${nm}، سلسلة ألغازك بلغت ${_nDays(k)} متتالية — لغزُ اليوم وحده يُبقيها حيّة`,
+          `لا تكسر ما بنيتَ يا ${nm}: ${_nDays(k)} من الحلّ المتتابع، وحلُّ لغز اليوم يُكمل السلسلة`,
+          `${_nDays(k)} متتالية في الألغاز يا ${nm} — دقائقُ اليوم تحفظ سلسلتك من الانقطاع`,
+        ], [
+          `${en}, your puzzle streak has reached ${_eDays(k)} in a row — today’s puzzle alone keeps it alive`,
+          `Do not break what you built, ${en}: ${_eDays(k)} of solving in a row, and today’s puzzle continues the streak`,
+          `${_eDays(k)} in a row on puzzles, ${en} — a few minutes today saves your streak from breaking`,
+        ]),
+        data: { kind: 'puzzle', cat, streak: String(k) }, tag: 'amkh-puzzle-streak',
+      };
+    }
+    case 'puzzle_daily': {
+      const hasR = s.pzHasData && s.pzGames > 0;
+      const vAr = [
+        `${nm}، لغزُ اليوم بانتظارك — تكتيكٌ واحد يصقل بصرك قبل مباراةٍ مصنّفة ♟`,
+        `تدريبٌ سريع يا ${nm}: حُلَّ لغز اليوم، خمسةُ قلوبٍ وفكرةٌ واحدة تستحقّ الاكتشاف`,
+      ];
+      const vEn = [
+        `${en}, today’s puzzle is waiting for you — one tactic sharpens your eye before a rated game ♟`,
+        `Quick practice, ${en}: solve today’s puzzle — five hearts and one idea worth discovering`,
+      ];
+      if (hasR) {
+        vAr.push(`تقييمُ ألغازك ${s.pzRating} يا ${nm} — لغزُ اليوم يرفعه، وخطأٌ واحد يخصمه، فأتقِن`);
+        vEn.push(`Your puzzle rating is ${s.pzRating}, ${en} — today’s puzzle raises it, one mistake lowers it, so be precise`);
+      }
+      return {
+        title: { ar: `لغزُ اليوم يا ${nm} ♟`, en: `Today’s puzzle, ${en} ♟` },
+        body: pick2(vAr, vEn),
+        data: { kind: 'puzzle', cat, rating: hasR ? String(s.pzRating) : '' }, tag: 'amkh-puzzle-daily',
       };
     }
     case 'nour': {
@@ -4302,6 +4406,7 @@ if (process.env.AMKH_NO_LISTEN === '1') {
   module.exports = {
     buildUserSnapshot, _renderNotif, _categories, _plannedCount,
     _slotMinutes, _sfLevel, _communitySnapshot, _renderCommunity, _notifTick,
+    _puzzleState, _pzDayStreak, _pzDayKey,
   };
 } else {
   server.listen(PORT, () => {

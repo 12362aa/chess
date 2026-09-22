@@ -15120,6 +15120,8 @@ const Notifications={
           return;
         }
         if((kind==='friend'||kind==='invite')&&FR&&FR.showFriendsModal){ FR.showFriendsModal(); return; }
+        /* إشعارات الألغاز (لغز اليوم / السلسلة) تفتح قسم الألغاز مباشرة */
+        if(kind==='puzzle'&&window.Nav&&Nav.puzzles){ Nav.puzzles(); return; }
         /* لو الإشعار جاب رابط، نستخرج منه الـhash ونعالجه محليًا — بدون تنقّل */
         if(d.link){
           const s=String(d.link);
