@@ -820,37 +820,65 @@ body[data-ui-theme="glass"] .mc-tag{
 }
 .eng-ov.open{display:block;}
 
-/* ══ بوّابةُ الدخولِ المائيّة — ستارةُ ماءٍ تجتاحُ الشاشةَ لحظةَ الفتح ══
-   بلاغُ جوجو: كان مجرّدَ صوتٍ خفيفٍ بلا بوّابة. الآن موجةٌ مضيئةٌ تهبطُ
-   من الأعلى مع رذاذٍ وتموّجٍ ثمّ تنقشعُ كاشفةً مشهدَ الغوص. */
-.eng-wash{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:0;overflow:hidden;}
-.eng-wash.play{animation:engWashFade 1.15s ease-out forwards;}
-.eng-wash__sheet{position:absolute;left:-10%;right:-10%;top:0;height:160%;
-  transform:translateY(-115%);
-  background:linear-gradient(180deg,
-    rgba(234,247,255,.0) 0%, rgba(150,224,255,.55) 34%,
-    rgba(58,163,214,.85) 62%, rgba(9,52,80,.96) 100%);
-  filter:blur(.4px);}
-.eng-wash.play .eng-wash__sheet{animation:engWashDrop 1.05s cubic-bezier(.4,.02,.2,1) forwards;}
-.eng-wash__crest{position:absolute;left:-10%;right:-10%;height:70px;
-  transform:translateY(-140%);
-  background:radial-gradient(60% 100% at 50% 100%, rgba(255,255,255,.9), rgba(234,247,255,0) 70%);
-  filter:blur(1px);}
-.eng-wash.play .eng-wash__crest{animation:engWashCrest 1.05s cubic-bezier(.4,.02,.2,1) forwards;}
-.eng-wash__drop{position:absolute;top:-6px;width:5px;height:5px;border-radius:50%;
-  background:radial-gradient(circle at 40% 30%, #fff, rgba(150,224,255,.6) 70%, transparent);
-  transform:translateY(-40px);opacity:0;}
-.eng-wash.play .eng-wash__drop{animation:engWashDrop2 .95s ease-in forwards;}
-@keyframes engWashFade{0%,72%{opacity:1;}100%{opacity:0;}}
-@keyframes engWashDrop{0%{transform:translateY(-115%);}55%{transform:translateY(6%);}
-  72%{transform:translateY(-2%);}100%{transform:translateY(-125%);}}
-@keyframes engWashCrest{0%{transform:translateY(-140%);opacity:0;}
-  30%{opacity:1;}62%{transform:translateY(112vh);opacity:.9;}100%{opacity:0;}}
-@keyframes engWashDrop2{0%{transform:translateY(-40px);opacity:0;}
-  20%{opacity:1;}100%{transform:translateY(102vh);opacity:0;}}
+/* ══ بوّابةُ الدوّامة — دوّامةُ محيطٍ كاملةُ الشاشة (بلاغُ جوجو) ══
+   المطلوبُ بوّابةٌ راقيةٌ تحجبُ تفاصيلَ اللعبِ خلفَها ثوانيَ ثمّ تنقشع،
+   لا مجرّدَ تدفّقٍ لبنيٍّ قصير. فهذه طبقةٌ مُعتِمةٌ تملأُ الشاشةَ، فوقها
+   دوّامةٌ حلزونيّةٌ ضخمةٌ تدور وتُشفَطُ نحوَ مركزها (drain) كاشفةً المشهدَ
+   عند نهايتِها. الصوتُ ملفٌّ حقيقيٌّ (SFX.dive). */
+.eng-wash{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:0;overflow:hidden;
+  background:radial-gradient(120% 120% at 50% 42%, #0a4a70 0%, #073e5f 22%, #06304c 45%, #041f33 72%, #020e18 100%);}
+.eng-wash.play{animation:engWashHold 2.6s ease-out forwards;}
+/* الدوّامةُ الأمّ — قرصٌ حلزونيٌّ ضخمٌ يدور ويُشفَط */
+.eng-wash__vortex{position:absolute;left:50%;top:44%;width:260vmax;height:260vmax;
+  margin:-130vmax 0 0 -130vmax;border-radius:50%;
+  background:
+    conic-gradient(from 0deg,
+      rgba(234,247,255,.0) 0deg, rgba(150,224,255,.55) 26deg, rgba(234,247,255,0) 60deg,
+      rgba(150,224,255,.0) 120deg, rgba(120,205,240,.5) 152deg, rgba(234,247,255,0) 188deg,
+      rgba(150,224,255,.0) 244deg, rgba(160,225,245,.5) 278deg, rgba(234,247,255,0) 316deg,
+      rgba(150,224,255,.0) 360deg),
+    conic-gradient(from 0deg, #0a4a70, #0e5c86, #10709e, #0e5c86, #0a4a70, #083b5c, #0a4a70, #0e5c86, #0a4a70);
+  -webkit-mask:radial-gradient(circle, transparent 3%, #000 6%, #000 100%);
+          mask:radial-gradient(circle, transparent 3%, #000 6%, #000 100%);
+  opacity:0;}
+.eng-wash.play .eng-wash__vortex{animation:engVortex 2.6s cubic-bezier(.36,0,.2,1) forwards;}
+/* حلزونٌ ثانٍ أسرعُ وأفتحُ يعطي عمقَ الدوران */
+.eng-wash__spiral{position:absolute;left:50%;top:44%;width:190vmax;height:190vmax;
+  margin:-95vmax 0 0 -95vmax;border-radius:50%;
+  background:conic-gradient(from 0deg,
+    rgba(255,255,255,0) 0deg, rgba(255,255,255,.28) 18deg, rgba(255,255,255,0) 46deg,
+    rgba(255,255,255,0) 180deg, rgba(255,255,255,.22) 200deg, rgba(255,255,255,0) 228deg,
+    rgba(255,255,255,0) 360deg);
+  -webkit-mask:radial-gradient(circle, transparent 5%, #000 8%, #000 62%, transparent 74%);
+          mask:radial-gradient(circle, transparent 5%, #000 8%, #000 62%, transparent 74%);
+  filter:blur(1px);opacity:0;}
+.eng-wash.play .eng-wash__spiral{animation:engSpiral 2.6s cubic-bezier(.36,0,.2,1) forwards;}
+/* قلبُ الدوّامة المظلم (فتحةُ الشفط) وهالةُ رغوةٍ حولَه */
+.eng-wash__eye{position:absolute;left:50%;top:44%;width:22vmax;height:22vmax;
+  margin:-11vmax 0 0 -11vmax;border-radius:50%;
+  background:radial-gradient(circle, #01070d 0%, #041a2b 46%, rgba(4,26,43,0) 72%);
+  box-shadow:0 0 60px 20px rgba(2,10,20,.6);opacity:0;}
+.eng-wash.play .eng-wash__eye{animation:engEye 2.6s cubic-bezier(.36,0,.2,1) forwards;}
+@keyframes engWashHold{0%{opacity:0;}6%{opacity:1;}74%{opacity:1;}100%{opacity:0;}}
+@keyframes engVortex{
+  0%{transform:rotate(0deg) scale(2.6);opacity:0;}
+  12%{opacity:1;}
+  70%{transform:rotate(900deg) scale(1);opacity:1;}
+  100%{transform:rotate(1320deg) scale(.04);opacity:0;}}
+@keyframes engSpiral{
+  0%{transform:rotate(0deg) scale(2.2);opacity:0;}
+  14%{opacity:.9;}
+  70%{transform:rotate(-1160deg) scale(1);opacity:.9;}
+  100%{transform:rotate(-1640deg) scale(.05);opacity:0;}}
+@keyframes engEye{
+  0%{transform:scale(2.4);opacity:0;}
+  16%{opacity:1;}
+  70%{transform:scale(1);opacity:1;}
+  100%{transform:scale(.02);opacity:0;}}
 @media (prefers-reduced-motion: reduce){
-  .eng-wash.play{animation:none;opacity:0;}
-  .eng-wash.play .eng-wash__sheet,.eng-wash.play .eng-wash__crest,.eng-wash.play .eng-wash__drop{animation:none;}
+  /* بلا دوران: ومضةُ ماءٍ معتِمةٌ قصيرةٌ تنقشع */
+  .eng-wash.play{animation:engWashHold 1s ease-out forwards;}
+  .eng-wash__vortex,.eng-wash__spiral,.eng-wash__eye{display:none;}
 }
 
 /* ── طبقات المشهد (ثابتة خلف المحتوى) ── */
@@ -3989,14 +4017,9 @@ html.amkh-preboot #amkh-preboot{
      المختارة. بوّابة غوصٍ متوهّجة بصوت ماء. بلغتين، مرسومٌ بالكامل. -->
 <div id="engine-ov" class="eng-ov">
   <div class="eng-wash" id="eng-wash" aria-hidden="true">
-    <div class="eng-wash__sheet"></div>
-    <div class="eng-wash__crest"></div>
-    <span class="eng-wash__drop" style="left:14%;animation-delay:.04s"></span>
-    <span class="eng-wash__drop" style="left:31%;animation-delay:.12s"></span>
-    <span class="eng-wash__drop" style="left:48%;animation-delay:.02s"></span>
-    <span class="eng-wash__drop" style="left:63%;animation-delay:.16s"></span>
-    <span class="eng-wash__drop" style="left:79%;animation-delay:.08s"></span>
-    <span class="eng-wash__drop" style="left:91%;animation-delay:.20s"></span>
+    <div class="eng-wash__vortex"></div>
+    <div class="eng-wash__spiral"></div>
+    <div class="eng-wash__eye"></div>
   </div>
   <div class="eng-sea" aria-hidden="true">
     <div class="eng-rays"><span></span><span></span><span></span></div>
@@ -4169,7 +4192,8 @@ const SFX=(()=>{
     loss:   './error.wav',         // Defeat sound
     draw:   './move.mp3',          // Neutral sound
     resign: './error.wav',         // Same as loss
-    startgame: './startgame.mp3'    // Online game start sound
+    startgame: './startgame.mp3',   // Online game start sound
+    dive:   './dive.mp3'            // صوتُ دوّامةِ الماء لبوّابةِ المحرّك (ملفٌّ حقيقيّ من جوجو)
   };
   let ctx=null;
   const buffers={};
@@ -4589,25 +4613,19 @@ const SFX=(()=>{
        اللاعب يعرف حالة مايكه بأذنه وهو ناظرٌ إلى الرقعة. */
     micOpen(){ tones([{f:587.33,t0:0,dur:0.09,type:'triangle',vol:0.09},{f:880,t0:0.09,dur:0.14,type:'sine',vol:0.10}]); },
     micClose(){ tones([{f:880,t0:0,dur:0.09,type:'triangle',vol:0.08},{f:523.25,t0:0.09,dur:0.14,type:'sine',vol:0.09}]); },
-    /* هبوطُ بيدقِ شاشةِ الترحيب — «طقّةُ خشبٍ» جافّة.
-       مُعايَرةٌ على قياسٍ فعليٍّ لصوتِ النقلةِ في الموقعِ المنافس (نُزّل
-       ملفُّه وحُلِّل طيفيًّا): صعودٌ في 0ms، وقمّةٌ عند 0ms، و91% من
-       طاقتِه بين 250 و1500Hz، وأقوى تردداتِه 340/471/615/692/930/1111Hz.
-       النتيجةُ هنا: قمّةٌ 0.120 مقابل 0.132، وتوزيعُ طاقةٍ 49%/48% بين
-       النطاقين مقابل 41%/50% — أي البصمةُ نفسُها.
-       النسخةُ السابقة كانت 175Hz بصعودٍ 12ms وشدّةٍ 0.06: نطاقٌ لا يحمل
-       إلّا 7% من الطاقةِ وسمّاعةُ الهاتفِ لا تُصدرُه أصلًا، فسُمِعَت
-       خشخشةً مبهمةً لا طقّةَ هبوط. soft=الارتدادةُ الصغيرةُ عند 72%. */
+    /* نطّةُ بيدقِ شاشةِ الترحيب — صوتٌ لطيفٌ مرحٌ خاصٌّ بالأنيميشن، لا
+       صوتُ نقلةِ شطرنج. بلاغُ جوجو: الموقعُ المنافسُ يستخدمُ نغمةً بهيجةً
+       مصمّمةً لقفزةِ بيدقِه، لا طقّةَ تحريكِ قطعة. فالتصميمُ هنا: «بلوب»
+       صاعدٌ في النغمة (إحساسُ الوثب) تعلوه بريقةٌ لامعةٌ عند القمّة —
+       دافئٌ، قصير، لا يُملُّ مع التكرار. soft=الارتدادةُ الصغيرةُ أخفُّ
+       وأعلى نغمةً. لا نبضةَ ضجيجٍ (كانت هي «الطقّة» الشطرنجيّة). */
     pawnHop(soft){
-      const k=soft?0.42:1;
-      noiseHit([{t0:0,dur:0.020,f:1250,q:0.8,vol:0.120*k}]);
+      const k=soft?0.6:1;
       tones([
-        {f:1111,t0:0,dur:0.032,type:'triangle',vol:0.098*k,atk:0.0006},
-        {f:930, t0:0,dur:0.050,type:'triangle',vol:0.175*k,atk:0.0006},
-        {f:692, t0:0.001,dur:0.062,type:'sine',vol:0.160*k,atk:0.0008},
-        {f:615, t0:0.001,dur:0.070,type:'sine',vol:0.130*k,atk:0.0008},
-        {f:471, t0:0.003,dur:0.080,type:'sine',vol:0.090*k,atk:0.0010},
-        {f:340, t0:0.005,dur:0.085,type:'sine',vol:0.050*k,atk:0.0015},
+        {f:soft?540:360,  f2:soft?940:780,  t0:0,     dur:0.12, type:'sine',     vol:0.15*k,  atk:0.004}, // الوثبة (بلوب صاعد)
+        {f:soft?1080:720, f2:soft?1560:1220,t0:0.015, dur:0.10, type:'triangle', vol:0.05*k,  atk:0.004}, // توافقيّةٌ مرحة
+        {f:soft?1976:1568,t0:0.09,  dur:0.17, type:'sine', vol:0.062*k, atk:0.002},                        // بريقةٌ لامعة
+        {f:soft?2637:2093,t0:0.12,  dur:0.14, type:'sine', vol:0.034*k, atk:0.002},                        // ذيلُ البريق
       ]);
     },
     /* نغمة الترحيب — «وصولٌ» بهيج على نهج chess.com: نَفَسٌ دافئ منخفض
@@ -4626,23 +4644,33 @@ const SFX=(()=>{
        الانتظار لأول لمسة (سياسة الـautoplay). */
     ready(){ try{ return !!ctx && ctx.state==='running'; }catch(e){ return false; } },
     /* الغوص (منتقي المحرّك): هبوطٌ مائيّ — كنسةٌ نازلة + فقاعة */
-    /* ══ صوتُ بوّابةِ الماء (SFX.dive) ══
-       بلاغُ جوجو: الصوتُ السابقُ كان خفيفًا لا يُلحَظ. الآن غطسةٌ كاملةٌ
-       ملحوظة: (١) هسهسةٌ عريضةٌ تكنسُ من الحادِّ إلى الغائرِ = اندفاعُ
-       الماءِ فوقَ الرأس، (٢) دمدمةٌ عميقةٌ = ثقلُ الغطس، (٣) فقاعاتٌ
-       صاعدةٌ خفيفة = ما بعدَ الغمر. */
+    /* ══ صوتُ بوّابةِ الدوّامة (SFX.dive) ══
+       بلاغُ جوجو: الصوتُ المُصنَّعُ كان سيّئًا ومعه ضجيجٌ جانبيّ. الآن
+       نُشغّلُ ملفًّا حقيقيًّا لأجواءٍ تحتَ الماء (dive.mp3، أوّل ٣ ثوانٍ)
+       طوالَ ظهورِ الدوّامة، بتلاشٍ ناعمٍ في آخرِه. لو الملفُّ لسّه ما
+       حُمِّلَ (أوّل فتحٍ بلا شبكة) نرجعُ لصوتٍ مُصنَّعٍ بسيطٍ كضمانة. */
     dive(){
-      noiseHit([
-        {t0:0,    dur:0.34, f:5200, f2:360, q:0.55, vol:0.30, atk:0.006},  // اندفاعُ الماء (whoosh هابط)
-        {t0:0.02, dur:0.20, f:900,  f2:180, q:0.7,  vol:0.16, atk:0.004},  // طبقةُ رذاذٍ داخليّة
-      ]);
-      tones([
-        {f:150,f2:60,t0:0.05,dur:0.55,type:'sine',vol:0.16},   // دمدمةُ الغطسِ العميقة
-        {f:320,f2:120,t0:0.03,dur:0.28,type:'sine',vol:0.09},  // ثقلُ الاصطدامِ بالسطح
-        {f:1050,t0:0.30,dur:0.05,type:'sine',vol:0.05},        // فقاعةٌ صاعدة ١
-        {f:1500,t0:0.40,dur:0.05,type:'sine',vol:0.04},        // فقاعةٌ صاعدة ٢
-        {f:1850,t0:0.48,dur:0.045,type:'sine',vol:0.03},       // فقاعةٌ صاعدة ٣
-      ]);
+      try{
+        if(!Cfg.data.sound)return;
+        const c=getCtx();
+        if(c.state==='suspended')c.resume();
+        const buf=_extBuffers.dive;
+        if(buf){
+          const src=c.createBufferSource(), g=c.createGain();
+          src.buffer=buf;
+          const now=c.currentTime, v=Math.min(1.0,(Cfg.data.vol/100)*1.9);
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(v, now+0.12);   // اندفاعُ الدخول
+          g.gain.setValueAtTime(v, now+2.1);
+          g.gain.exponentialRampToValueAtTime(0.0001, now+2.75); // تلاشٍ مع انقشاعِ البوّابة
+          src.connect(g); g.connect(c.destination);
+          src.start(now); src.stop(now+2.85);
+          return;
+        }
+      }catch(e){}
+      /* ضمانةٌ مُصنَّعة لو الملفُّ غيرُ متاح */
+      noiseHit([{t0:0,dur:0.34,f:5200,f2:360,q:0.55,vol:0.30,atk:0.006}]);
+      tones([{f:150,f2:60,t0:0.05,dur:0.55,type:'sine',vol:0.16}]);
     },
     undo()   {play('move');},  // Use move sound for undo
     chat()   {
@@ -7588,7 +7616,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 45;
+const APP_VERSION_CODE = 46;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */

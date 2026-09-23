@@ -3,7 +3,7 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '4.2-b45';
+const SW_VERSION = '4.2-b46';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
@@ -34,6 +34,7 @@ const STATIC_ASSETS = [
   './checkmate.mp3',
   './startgame.mp3',
   './error.wav',
+  './dive.mp3',
   'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap',
 ];
 

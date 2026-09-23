@@ -1167,10 +1167,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 45;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b45/chess-amkh-4.2-b45.apk';
-const NOTES_AR = 'صوتٌ وحركةٌ أغنى: بيدقُ شاشةِ الترحيبِ صار له صوتُ هبوطٍ نقيٌّ عند كلِّ قفزة — مُعايَرٌ على طيفِ نقلةِ أعرقِ مواقعِ الشطرنج — بلا صوتٍ ثانٍ مُبهَم. وتعليقُ نور في اللعبِ ضدَّ المحرّكِ صار يُعلِنُ عن نفسه بنغمةٍ لطيفة. وبطاقةُ اللعبِ ضدَّ المحرّكِ تُفتَحُ الآن ببوّابةٍ مائيّةٍ تجتاحُ الشاشةَ وصوتِ غطسةٍ عميقٍ ملحوظ. ووضعُ البلوتوثِ أُعيد تصميمُه بالكامل: منصّةُ اقترانٍ حيّةٌ برادارٍ نابضٍ وجهازين يتّصلان، وبطاقتا دورٍ أوضح، وشريطُ حالةٍ يتلوّنُ مع كلِّ مرحلة.';
-const NOTES_EN = 'Richer sound and motion: the welcome-screen pawn now has a crisp landing sound on every hop — tuned to the move spectrum of the top chess site — with no more murky second sound. Nour’s commentary in play-vs-engine now announces itself with a gentle chime. The play-vs-engine card now opens through a water gate that washes across the screen with a deep, noticeable plunge sound. And Bluetooth mode was fully redesigned: a live pairing stage with a pulsing radar and two connecting devices, clearer role cards, and a status bar that changes color with each phase.';
+const LATEST_CODE = 46;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b46/chess-amkh-4.2-b46.apk';
+const NOTES_AR = 'صقلٌ لبوّابةِ الغوصِ وصوتِ الترحيب: بيدقُ شاشةِ الترحيبِ نال نغمةَ قفزٍ مرحةً لطيفةً مصمّمةً للأنيميشن — لا صوتَ نقلةِ شطرنج. وبطاقةُ اللعبِ ضدَّ المحرّكِ صارت تُفتَحُ ببوّابةِ دوّامةِ محيطٍ راقيةٍ تملأُ الشاشةَ وتدورُ ثمّ تُشفَطُ نحوَ مركزها كاشفةً المشهد، مصحوبةً بصوتِ ماءٍ حقيقيٍّ غامر. مع إبقاءِ نغمةِ تعليقِ نور وإعادةِ تصميمِ البلوتوث.';
+const NOTES_EN = 'Polished dive gate and welcome sound: the welcome-screen pawn now has a playful, delightful hop chime designed for the animation — not a chess move sound. The play-vs-engine card now opens through an elegant full-screen ocean whirlpool gate that spins and drains into its center to reveal the scene, with a real, immersive water sound. Nour’s commentary chime and the redesigned Bluetooth screen carry over.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
