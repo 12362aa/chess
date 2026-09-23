@@ -424,6 +424,7 @@
     'سؤال قبل الخروج من اللعبة': 'Ask before leaving a game',
     'سماوي': 'Sky',
     'شات': 'Chat',
+    'حدّث نور': 'Talk to Nour',
     'شريط صغير برسالة صديقك مع زرّ ردٍّ سريع. عند إيقافه يبقى العدّاد على أيقونة الحساب فقط': 'A small bar with your friend’s message and a quick reply button. When off, only the badge on the account icon remains',
     'شفاف': 'Translucent',
     'شكل القطع': 'Piece set',

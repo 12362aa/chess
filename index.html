@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20260923-b44"></script>
+<script src="i18n-en.js?v=20260923-b47"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -826,59 +826,16 @@ body[data-ui-theme="glass"] .mc-tag{
    دوّامةٌ حلزونيّةٌ ضخمةٌ تدور وتُشفَطُ نحوَ مركزها (drain) كاشفةً المشهدَ
    عند نهايتِها. الصوتُ ملفٌّ حقيقيٌّ (SFX.dive). */
 .eng-wash{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:0;overflow:hidden;
-  background:radial-gradient(120% 120% at 50% 42%, #0a4a70 0%, #073e5f 22%, #06304c 45%, #041f33 72%, #020e18 100%);}
-.eng-wash.play{animation:engWashHold 2.6s ease-out forwards;}
-/* الدوّامةُ الأمّ — قرصٌ حلزونيٌّ ضخمٌ يدور ويُشفَط */
-.eng-wash__vortex{position:absolute;left:50%;top:44%;width:260vmax;height:260vmax;
-  margin:-130vmax 0 0 -130vmax;border-radius:50%;
-  background:
-    conic-gradient(from 0deg,
-      rgba(234,247,255,.0) 0deg, rgba(150,224,255,.55) 26deg, rgba(234,247,255,0) 60deg,
-      rgba(150,224,255,.0) 120deg, rgba(120,205,240,.5) 152deg, rgba(234,247,255,0) 188deg,
-      rgba(150,224,255,.0) 244deg, rgba(160,225,245,.5) 278deg, rgba(234,247,255,0) 316deg,
-      rgba(150,224,255,.0) 360deg),
-    conic-gradient(from 0deg, #0a4a70, #0e5c86, #10709e, #0e5c86, #0a4a70, #083b5c, #0a4a70, #0e5c86, #0a4a70);
-  -webkit-mask:radial-gradient(circle, transparent 3%, #000 6%, #000 100%);
-          mask:radial-gradient(circle, transparent 3%, #000 6%, #000 100%);
-  opacity:0;}
-.eng-wash.play .eng-wash__vortex{animation:engVortex 2.6s cubic-bezier(.36,0,.2,1) forwards;}
-/* حلزونٌ ثانٍ أسرعُ وأفتحُ يعطي عمقَ الدوران */
-.eng-wash__spiral{position:absolute;left:50%;top:44%;width:190vmax;height:190vmax;
-  margin:-95vmax 0 0 -95vmax;border-radius:50%;
-  background:conic-gradient(from 0deg,
-    rgba(255,255,255,0) 0deg, rgba(255,255,255,.28) 18deg, rgba(255,255,255,0) 46deg,
-    rgba(255,255,255,0) 180deg, rgba(255,255,255,.22) 200deg, rgba(255,255,255,0) 228deg,
-    rgba(255,255,255,0) 360deg);
-  -webkit-mask:radial-gradient(circle, transparent 5%, #000 8%, #000 62%, transparent 74%);
-          mask:radial-gradient(circle, transparent 5%, #000 8%, #000 62%, transparent 74%);
-  filter:blur(1px);opacity:0;}
-.eng-wash.play .eng-wash__spiral{animation:engSpiral 2.6s cubic-bezier(.36,0,.2,1) forwards;}
-/* قلبُ الدوّامة المظلم (فتحةُ الشفط) وهالةُ رغوةٍ حولَه */
-.eng-wash__eye{position:absolute;left:50%;top:44%;width:22vmax;height:22vmax;
-  margin:-11vmax 0 0 -11vmax;border-radius:50%;
-  background:radial-gradient(circle, #01070d 0%, #041a2b 46%, rgba(4,26,43,0) 72%);
-  box-shadow:0 0 60px 20px rgba(2,10,20,.6);opacity:0;}
-.eng-wash.play .eng-wash__eye{animation:engEye 2.6s cubic-bezier(.36,0,.2,1) forwards;}
-@keyframes engWashHold{0%{opacity:0;}6%{opacity:1;}74%{opacity:1;}100%{opacity:0;}}
-@keyframes engVortex{
-  0%{transform:rotate(0deg) scale(2.6);opacity:0;}
-  12%{opacity:1;}
-  70%{transform:rotate(900deg) scale(1);opacity:1;}
-  100%{transform:rotate(1320deg) scale(.04);opacity:0;}}
-@keyframes engSpiral{
-  0%{transform:rotate(0deg) scale(2.2);opacity:0;}
-  14%{opacity:.9;}
-  70%{transform:rotate(-1160deg) scale(1);opacity:.9;}
-  100%{transform:rotate(-1640deg) scale(.05);opacity:0;}}
-@keyframes engEye{
-  0%{transform:scale(2.4);opacity:0;}
-  16%{opacity:1;}
-  70%{transform:scale(1);opacity:1;}
-  100%{transform:scale(.02);opacity:0;}}
+  background:radial-gradient(125% 125% at 50% 46%, #12688f 0%, #0b4f75 18%, #083c5b 42%, #05263a 68%, #02121d 100%);}
+/* تبدأ الستارةُ مُعتِمةً بالكامل من أوّلِ إطار (opacity:1) كي لا يومضَ أيُّ
+   جزءٍ من شاشةِ المحرّكِ خلفَها قبل الدوّامة — كان أهمَّ عيبٍ عند جوجو —
+   ثمّ تنقشعُ في آخرِ ٪18 كاشفةً المشهد. الدوّامةُ نفسُها تُرسَمُ على canvas. */
+.eng-wash.play{animation:engWashHold 2.7s linear forwards;}
+.eng-wash__cv{position:absolute;inset:0;width:100%;height:100%;display:block;}
+@keyframes engWashHold{0%{opacity:1;}82%{opacity:1;}100%{opacity:0;}}
 @media (prefers-reduced-motion: reduce){
-  /* بلا دوران: ومضةُ ماءٍ معتِمةٌ قصيرةٌ تنقشع */
-  .eng-wash.play{animation:engWashHold 1s ease-out forwards;}
-  .eng-wash__vortex,.eng-wash__spiral,.eng-wash__eye{display:none;}
+  .eng-wash.play{animation:engWashHold .9s linear forwards;}
+  .eng-wash__cv{display:none;}
 }
 
 /* ── طبقات المشهد (ثابتة خلف المحتوى) ── */
@@ -3136,7 +3093,6 @@ html.amkh-preboot #amkh-preboot{
         onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.amkhFriends)window.amkhFriends.showFriendsModal()">
         <i class="ico ico--friends" aria-hidden="true"></i>
       </button>
-      <span id="sf-status">SF ...</span>
       <!-- لوحة الصدارة: مكان ثابت بارز في الشريط العلوي (مش مدفونة في اللعبة).
            تظهر على الشاشة الرئيسية فقط عن طريق AppBar.sync. -->
       <button class="appbar__icon-btn" id="appbar-leaderboard" aria-label="لوحة الصدارة"
@@ -3895,7 +3851,8 @@ html.amkh-preboot #amkh-preboot{
       <span>◆</span><span id="hint-lbl">النقاط: تشغيل</span>
     </button>
     <button class="tbb2" id="btn-chat" onclick="CHAT.toggle()" style="display:none">
-      <span>◉</span><span>شات</span>
+      <span class="ncmt-btn-ava" id="chat-nour-ava" aria-hidden="true" style="display:none"></span>
+      <span id="chat-icon">◉</span><span id="chat-lbl">شات</span>
       <span class="chat-badge" id="chat-badge"></span>
     </button>
     <button class="tbb2" id="btn-ncomment" onclick="NCMT.toggle()" style="display:none">
@@ -4017,9 +3974,7 @@ html.amkh-preboot #amkh-preboot{
      المختارة. بوّابة غوصٍ متوهّجة بصوت ماء. بلغتين، مرسومٌ بالكامل. -->
 <div id="engine-ov" class="eng-ov">
   <div class="eng-wash" id="eng-wash" aria-hidden="true">
-    <div class="eng-wash__vortex"></div>
-    <div class="eng-wash__spiral"></div>
-    <div class="eng-wash__eye"></div>
+    <canvas class="eng-wash__cv" id="eng-wash-cv"></canvas>
   </div>
   <div class="eng-sea" aria-hidden="true">
     <div class="eng-rays"><span></span><span></span><span></span></div>
@@ -7616,7 +7571,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 46;
+const APP_VERSION_CODE = 47;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7687,6 +7642,90 @@ if(UPDATE_NOTICE_ENABLED){
 /* ══════════════════════════════════════
    INDEXEDDB STORAGE (Levels fallback)
 ══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   EngWash — بوّابةُ دوّامةِ المحيط (canvas): ماءٌ حلزونيٌّ واقعيٌّ يُشفَطُ
+   نحوَ فتحةِ التصريفِ في المركز، يحجبُ شاشةَ المحرّكِ تمامًا لثوانٍ ثمّ
+   ينقشعُ كاشفًا المشهد. تقنيةُ التغذيةِ الراجعة (feedback): نرسمُ اللوحةَ
+   على نفسِها مُدارةً مُصغَّرةً قليلًا فتنساقُ رغوةُ الحافّةِ حلزونيًّا نحوَ
+   المركزِ — سلوكُ دوّامةٍ حقيقيّة. طلبُ جوجو: دوّامةٌ واقعيّةٌ راقية. */
+const EngWash={
+  _raf:0,_cv:null,_ctx:null,
+  _prep(){
+    const cv=document.getElementById('eng-wash-cv'); if(!cv)return null;
+    const dpr=Math.min(window.devicePixelRatio||1,1.75);
+    const w=Math.max(1,Math.round((cv.clientWidth||window.innerWidth)*dpr));
+    const h=Math.max(1,Math.round((cv.clientHeight||window.innerHeight)*dpr));
+    if(cv.width!==w)cv.width=w; if(cv.height!==h)cv.height=h;
+    this._cv=cv; this._ctx=cv.getContext('2d'); return cv;
+  },
+  _ocean(ctx,W,H,cx,cy,R,a){
+    const g=ctx.createRadialGradient(cx,cy,R*0.02,cx,cy,R*0.72);
+    g.addColorStop(0,`rgba(20,120,168,${a})`); g.addColorStop(0.28,`rgba(11,85,126,${a})`);
+    g.addColorStop(0.55,`rgba(7,58,90,${a})`); g.addColorStop(0.80,`rgba(4,36,56,${a})`);
+    g.addColorStop(1,`rgba(2,16,26,${a})`);
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  },
+  _blob(ctx,x,y,r,head,a){
+    const g=ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,head+a+')'); g.addColorStop(1,head+'0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,6.2832); ctx.fill();
+  },
+  play(){
+    if(!this._prep())return;
+    const ctx=this._ctx,cv=this._cv;
+    const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    cancelAnimationFrame(this._raf);
+    const W=cv.width,H=cv.height,cx=W/2,cy=H*0.46,R=Math.hypot(W,H);
+    ctx.setTransform(1,0,0,1,0,0); ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
+    this._ocean(ctx,W,H,cx,cy,R,1);          /* أوّلُ إطارٍ مُعتِمٌ كاملٌ: لا يظهرُ شيءٌ خلفَه */
+    if(reduce)return;                          /* ستارةُ CSS تكفي بلا حركة */
+    const DUR=2500,t0=performance.now();
+    const step=(now)=>{
+      const p=Math.min(1,(now-t0)/DUR), drain=p<0.72?0:(p-0.72)/0.28;
+      const zoom=0.963-0.055*drain, spin=0.060+0.035*p+0.06*drain;
+      ctx.save(); ctx.globalAlpha=0.93;        /* تغذيةٌ راجعة: تدويرٌ + شفطٌ للداخل */
+      ctx.translate(cx,cy); ctx.rotate(spin); ctx.scale(zoom,zoom); ctx.translate(-cx,-cy);
+      ctx.drawImage(cv,0,0,W,H); ctx.restore(); ctx.globalAlpha=1;
+      ctx.globalAlpha=0.085; this._ocean(ctx,W,H,cx,cy,R,1); ctx.globalAlpha=1;
+      ctx.globalCompositeOperation='screen';   /* رغوةٌ ناعمةٌ عند الحافّة تلتقطُها الدوّامة */
+      for(let i=0;i<16;i++){ const a=Math.random()*6.2832, rr=R*(0.14+Math.random()*0.56);
+        this._blob(ctx,cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*0.98,R*(0.012+Math.random()*0.055),
+          'rgba(200,238,255,',(0.06+Math.random()*0.13)); }
+      /* أذرعُ الدوّامةِ الحلزونيّة (log-spiral) — ترسمُ كلَّ إطارٍ بزاويةٍ
+         متقدّمةٍ فتلتقطُها التغذيةُ الراجعةُ كخيوطِ ماءٍ تنسابُ نحوَ المركز */
+      const rotArm=(now-t0)*0.0046, arms=3, tw=2.6*6.2832, b=0.17, a0=R*0.045;
+      for(let k=0;k<arms;k++){
+        ctx.beginPath();
+        for(let s=0;s<=64;s++){ const th=(s/64)*tw, rr=a0*Math.exp(b*th);
+          const ang=th+rotArm+k*(6.2832/arms), x=cx+Math.cos(ang)*rr, y=cy+Math.sin(ang)*rr*0.98;
+          s?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+        ctx.lineWidth=R*0.022; ctx.lineCap='round';
+        ctx.strokeStyle='rgba(188,230,255,0.07)'; ctx.stroke();
+        ctx.lineWidth=R*0.008; ctx.strokeStyle='rgba(226,246,255,0.09)'; ctx.stroke();
+      }
+      ctx.globalCompositeOperation='source-over'; /* خيوطٌ زرقاءُ أعمقُ لعمقِ الدوران */
+      for(let i=0;i<6;i++){ const a=Math.random()*6.2832, rr=R*(0.16+Math.random()*0.44);
+        this._blob(ctx,cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*0.98,R*(0.03+Math.random()*0.08),
+          'rgba(3,28,47,',(0.10+Math.random()*0.12)); }
+      const eye=Math.max(1,R*(0.05+0.03*Math.sin(p*6.28)+0.55*drain)); /* فتحةُ التصريف */
+      const eg=ctx.createRadialGradient(cx,cy,0,cx,cy,eye);
+      eg.addColorStop(0,'rgba(1,7,13,0.98)'); eg.addColorStop(0.55,'rgba(2,16,28,0.92)');
+      eg.addColorStop(1,'rgba(2,16,28,0)');
+      ctx.fillStyle=eg; ctx.beginPath(); ctx.arc(cx,cy,eye*1.3,0,6.2832); ctx.fill();
+      ctx.globalCompositeOperation='screen';   /* حلقةُ رغوةٍ لامعةٌ حولَ الفتحة */
+      ctx.lineWidth=R*0.006; ctx.strokeStyle='rgba(210,240,255,'+(0.12+0.10*Math.sin(p*9))+')';
+      ctx.beginPath(); ctx.arc(cx,cy,eye*1.15,0,6.2832); ctx.stroke();
+      ctx.globalCompositeOperation='source-over';
+      const vg=ctx.createRadialGradient(cx,cy,R*0.28,cx,cy,R*0.62); /* تعميقُ القاع */
+      vg.addColorStop(0,'rgba(2,14,24,0)'); vg.addColorStop(1,'rgba(1,8,15,0.42)');
+      ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+      if(p<1)this._raf=requestAnimationFrame(step);
+    };
+    this._raf=requestAnimationFrame(step);
+  },
+  stop(){ cancelAnimationFrame(this._raf); this._raf=0; }
+};
+
 const ENGINE_PICKER={
   _sel:4,
   /* مناطق العمق البحريّة لكل مستوى — تُترجَم عبر قاموس i18n كبقيّة النصوص */
@@ -7813,11 +7852,13 @@ const ENGINE_PICKER={
     this.select(this._sel);
     const ov=document.getElementById('engine-ov');
     if(ov){ ov.classList.add('open'); const sc=ov.querySelector('.eng-scroll'); if(sc)sc.scrollTop=0; }
-    /* بوّابةُ الماءِ: ستارةٌ تهبطُ وتنقشعُ كاشفةً المشهد، مصحوبةً بصوتِ
-       الغطسة. نعيدُ تشغيلَ الأنيميشن بحذفِ الصنفِ ثمّ إعادتِه (reflow). */
+    /* بوّابةُ الدوّامة: نُشغّلُ ستارةَ CSS (opacity 1 من أوّلِ إطار) ونرسمُ
+       دوّامةَ المحيطِ على canvas فورًا داخلَ نفسِ المهمّة، فلا يومضُ أيُّ
+       جزءٍ من شاشةِ المحرّكِ خلفَها قبلَ ظهورِ البوّابة (بلاغُ جوجو). */
     try{
       const wash=document.getElementById('eng-wash');
       if(wash){ wash.classList.remove('play'); void wash.offsetWidth; wash.classList.add('play'); }
+      if(typeof EngWash!=='undefined')EngWash.play();
     }catch(e){}
     amkhGrabModalFreeze();
     try{ if(SFX.dive)SFX.dive(); else SFX.modalOpen('confirm'); }catch(e){}
@@ -7826,6 +7867,8 @@ const ENGINE_PICKER={
   },
   close(){
     document.getElementById('engine-ov')?.classList.remove('open');
+    try{ if(typeof EngWash!=='undefined')EngWash.stop(); }catch(e){}
+    document.getElementById('eng-wash')?.classList.remove('play');
     amkhReleaseModalFreeze();
     try{AppBar.setOverlay(false);}catch(e){}
   },
@@ -10462,6 +10505,15 @@ Write Nour's comment now:`);
   show(){
     document.getElementById('btn-chat').style.display='flex';
     document.getElementById('chat-msgs').innerHTML='';
+    /* في «مراحل نور» الشاتُ حديثٌ مع نور نفسِه، فالزرُّ يحملُ اسمَه وصورتَه
+       («حدّث نور»)؛ في الأونلاين هو شاتُ الخصمِ العاديّ فيبقى «شات». */
+    const isNour=(S.mode==='bot'&&S.levelId>=0);
+    const lbl=document.getElementById('chat-lbl');
+    const ava=document.getElementById('chat-nour-ava');
+    const ico=document.getElementById('chat-icon');
+    if(lbl)lbl.textContent=T(isNour?'حدّث نور':'شات');
+    if(ava)ava.style.display=isNour?'inline-block':'none';
+    if(ico)ico.style.display=isNour?'none':'';
     requestAnimationFrame(()=>{
       const el=document.getElementById('chat-msgs');
       if(el)el.scrollTop=0;

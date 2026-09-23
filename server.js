@@ -1167,10 +1167,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 46;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b46/chess-amkh-4.2-b46.apk';
-const NOTES_AR = 'صقلٌ لبوّابةِ الغوصِ وصوتِ الترحيب: بيدقُ شاشةِ الترحيبِ نال نغمةَ قفزٍ مرحةً لطيفةً مصمّمةً للأنيميشن — لا صوتَ نقلةِ شطرنج. وبطاقةُ اللعبِ ضدَّ المحرّكِ صارت تُفتَحُ ببوّابةِ دوّامةِ محيطٍ راقيةٍ تملأُ الشاشةَ وتدورُ ثمّ تُشفَطُ نحوَ مركزها كاشفةً المشهد، مصحوبةً بصوتِ ماءٍ حقيقيٍّ غامر. مع إبقاءِ نغمةِ تعليقِ نور وإعادةِ تصميمِ البلوتوث.';
-const NOTES_EN = 'Polished dive gate and welcome sound: the welcome-screen pawn now has a playful, delightful hop chime designed for the animation — not a chess move sound. The play-vs-engine card now opens through an elegant full-screen ocean whirlpool gate that spins and drains into its center to reveal the scene, with a real, immersive water sound. Nour’s commentary chime and the redesigned Bluetooth screen carry over.';
+const LATEST_CODE = 47;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b47/chess-amkh-4.2-b47.apk';
+const NOTES_AR = 'دوّامةُ المحيطِ صارت واقعيّةً: بوّابةُ اللعبِ ضدَّ المحرّكِ تُرسَمُ الآن ماءً حلزونيًّا حيًّا يدورُ ويُشفَطُ نحوَ فتحةِ التصريفِ في مركزِه ويحجبُ تفاصيلَ اللعبِ تمامًا لحظةَ الضغطِ ثمّ ينقشعُ — لا شاشةَ زرقاءَ مسطّحة. وأُزيلت شارةُ SF التطويريّةُ من الأعلى، وصار زرُّ الشاتِ في «مراحل نور» يحملُ اسمَ نور وصورتَه («حدّث نور»). مع إبقاءِ الصوتِ الحقيقيِّ للبوّابة.';
+const NOTES_EN = 'The ocean whirlpool is now realistic: the play-vs-engine gate renders live spiralling water that spins and drains into its center, fully hiding the game the instant you tap, then clears — no more flat blue screen. Removed the developer SF badge from the top bar, and the chat button in Nour Levels now shows Nour’s name and photo (“Talk to Nour”). The real water sound carries over.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
