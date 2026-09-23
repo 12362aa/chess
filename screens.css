@@ -1730,43 +1730,99 @@
   width: 100%; max-width: 560px;
   padding: 0 var(--space-4);
   padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
-  /* تملأ ارتفاع الشاشة تحت الشريط العلوي وتتوسّط المحتوى رأسيًّا فمافيش
-     فراغ ميت فوق ولا تحت — الكتلة كلها متمركزة كبطاقةٍ واحدة، وزر
-     العودة آخرها ظاهرٌ دايمًا (مش عايم في النص). */
   flex: 1 1 auto;
   min-height: calc(100dvh - var(--appbar-height) - var(--space-4));
   justify-content: center;
 }
-/* زر «العودة للقائمة» مفصولٌ عن المحتوى فوقه بمسافة واضحة، وبيبان
-   دايمًا كإجراء تذييل صريح مهما قلّ المحتوى. */
-.bt-shell > .ds-btn--block{
-  margin-top: var(--space-4);
-}
+.bt-shell > .ds-btn--block{ margin-top: var(--space-2); }
 
-/* الهوية */
-.bt-hero{
-  display: flex; align-items: center; gap: var(--space-4);
-  padding: var(--space-4);
+/* ══ منصّةُ الاقتران — المشهدُ الحيّ ══ */
+.bt-stage{
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  height: 188px; margin: var(--space-2) auto 0;
 }
-.bt-hero__icon{
-  display: inline-flex; align-items: center; justify-content: center;
-  flex: 0 0 auto;
-  width: 52px; height: 52px;
-  border-radius: var(--radius-md);
-  background: var(--color-info-subtle);
-  border: 1px solid var(--color-info);
-  color: var(--color-info);
-}.bt-hero__icon svg,
-.bt-hero__icon .ico{ width: 28px; height: 28px; }
-.bt-hero__body{ min-width: 0; }
-.bt-hero__title{
+.bt-radar{ position: relative; width: 168px; height: 168px; }
+.bt-radar__ring{
+  position: absolute; inset: 0; margin: auto;
+  width: 100%; height: 100%; border-radius: 50%;
+  border: 1.5px solid var(--color-info);
+  opacity: 0; transform: scale(.3);
+}
+#s-bluetooth[data-phase="scanning"] .bt-radar__ring,
+#s-bluetooth[data-phase="hosting"]  .bt-radar__ring,
+#s-bluetooth[data-phase="found"]    .bt-radar__ring{
+  animation: bt-ripple 2.4s ease-out infinite;
+}
+.bt-radar__ring.r2{ animation-delay: .8s; }
+.bt-radar__ring.r3{ animation-delay: 1.6s; }
+/* حلقةٌ خافتةٌ ثابتةٌ وقتَ السكون كي لا يبدو المشهدُ ميتًا */
+#s-bluetooth[data-phase="idle"] .bt-radar__ring.r1{ opacity:.18; transform:scale(1); }
+#s-bluetooth[data-phase="connected"] .bt-radar__ring{ border-color: var(--color-success); opacity:.22; transform:scale(1); }
+@keyframes bt-ripple{ 0%{opacity:.55;transform:scale(.28)} 70%{opacity:0} 100%{opacity:0;transform:scale(1.05)} }
+
+/* المسحُ الراداريّ — قطاعٌ يدور (يظهر وقتَ البحث فقط) */
+.bt-radar__sweep{
+  position: absolute; inset: 0; margin: auto;
+  width: 100%; height: 100%; border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--color-info) 0deg, rgba(0,0,0,0) 55deg);
+  opacity: 0; -webkit-mask: radial-gradient(circle, transparent 26%, #000 27%);
+  mask: radial-gradient(circle, transparent 26%, #000 27%);
+}
+#s-bluetooth[data-phase="scanning"] .bt-radar__sweep{ opacity:.28; animation: bt-sweep 2.2s linear infinite; }
+@keyframes bt-sweep{ to{ transform: rotate(360deg); } }
+
+/* النواةُ المركزيّة — أيقونةُ بلوتوثٍ نابضة */
+.bt-radar__core{
+  position: absolute; inset: 0; margin: auto;
+  width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 38% 30%, var(--color-info), color-mix(in srgb, var(--color-info) 62%, #000));
+  color: var(--color-on-secondary);
+  box-shadow: 0 6px 20px rgba(0,0,0,.35), 0 0 0 6px color-mix(in srgb, var(--color-info) 22%, transparent);
+}
+.bt-radar__core .ico{ width: 30px; height: 30px; }
+#s-bluetooth[data-phase="connected"] .bt-radar__core{
+  background: radial-gradient(circle at 38% 30%, var(--color-success), color-mix(in srgb, var(--color-success) 62%, #000));
+  box-shadow: 0 6px 20px rgba(0,0,0,.35), 0 0 0 6px color-mix(in srgb, var(--color-success) 22%, transparent);
+}
+#s-bluetooth:not([data-phase="idle"]) .bt-radar__core{ animation: bt-core-beat 1.6s ease-in-out infinite; }
+@keyframes bt-core-beat{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+/* الأجهزةُ التي تدورُ حولَ النواة */
+.bt-radar__peer{
+  position: absolute; top: 50%; left: 50%;
+  width: 34px; height: 34px; margin: -17px 0 0 -17px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--color-bg-elevated); border: 1.5px solid var(--color-info);
+  color: var(--color-info); opacity: 0; transition: opacity var(--duration-normal) var(--easing-standard);
+}
+.bt-radar__peer .ico{ width: 17px; height: 17px; }
+.bt-radar__peer.p1{ transform: translate(-64px,-30px); }
+.bt-radar__peer.p2{ transform: translate(64px,32px); }
+#s-bluetooth[data-phase="found"] .bt-radar__peer,
+#s-bluetooth[data-phase="connected"] .bt-radar__peer{ opacity: 1; }
+#s-bluetooth[data-phase="connected"] .bt-radar__peer{ border-color: var(--color-success); color: var(--color-success); }
+/* الخيطُ الواصلُ يظهرُ عند الاتصال */
+.bt-radar__link{
+  position: absolute; top: 50%; left: 50%; width: 128px; height: 2px;
+  margin: -1px 0 0 -64px; transform: rotate(24deg); transform-origin: center;
+  background: linear-gradient(90deg, transparent, var(--color-success), transparent);
+  opacity: 0; transition: opacity var(--duration-normal) var(--easing-standard);
+}
+#s-bluetooth[data-phase="connected"] .bt-radar__link{ opacity: .9; }
+
+/* العنوان */
+.bt-head{ text-align: center; }
+.bt-head__title{
   margin: 0 0 var(--space-1);
   font-family: var(--font-family-base);
   font-size: var(--font-size-card-title);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
 }
-.bt-hero__sub{
+.bt-head__sub{
   margin: 0;
   font-size: var(--font-size-caption);
   line-height: var(--line-height-caption);
@@ -1779,17 +1835,19 @@
   .bt-roles{ grid-template-columns: 1fr 1fr; }
 }
 .bt-role{
+  position: relative;
   display: flex; align-items: center; gap: var(--space-3);
   width: 100%; min-height: var(--touch-target-min);
   padding: var(--space-3) var(--space-4);
   background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   text-align: start; cursor: pointer;
   transition: border-color var(--duration-fast) var(--easing-standard),
               background-color var(--duration-fast) var(--easing-standard),
+              box-shadow var(--duration-fast) var(--easing-standard),
               transform var(--duration-fast) var(--easing-standard);
 }
 .bt-role:active{ transform: scale(.98); }
@@ -1797,12 +1855,25 @@
 .bt-role.is-active{
   border-color: var(--color-info);
   background: var(--color-info-subtle);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-info) 16%, transparent);
 }
+/* علامةُ الاختيار — تظهرُ في الزاويةِ عند تفعيلِ الدور */
+.bt-role__check{
+  position: absolute; inset-inline-end: var(--space-3); top: var(--space-2);
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-info); color: var(--color-on-secondary);
+  font-size: 12px; font-weight: var(--font-weight-bold);
+  opacity: 0; transform: scale(.5);
+  transition: opacity var(--duration-fast) var(--easing-standard),
+              transform var(--duration-fast) var(--easing-standard);
+}
+.bt-role.is-active .bt-role__check{ opacity: 1; transform: scale(1); }
 .bt-role__icon{
   display: inline-flex; flex: 0 0 auto;
-  width: 34px; height: 34px;
+  width: 40px; height: 40px;
   align-items: center; justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-info);
 }
@@ -1815,13 +1886,27 @@
   color: var(--color-text-secondary);
 }
 
-/* الحالة */
+/* الحالة — شريطٌ محاطٌ يتلوّنُ مع المرحلة */
 .bt-state{
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill, 999px);
+  justify-content: center;
+}
+#s-bluetooth[data-phase="scanning"] .bt-state,
+#s-bluetooth[data-phase="hosting"]  .bt-state,
+#s-bluetooth[data-phase="found"]    .bt-state{
+  border-color: var(--color-info);
+  background: var(--color-info-subtle);
+}
+#s-bluetooth[data-phase="connected"] .bt-state{
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
 }
 .bt-state__text{
-  margin: 0; min-width: 0;
+  margin: 0; min-width: 0; text-align: center;
   font-size: var(--font-size-body);
   line-height: var(--line-height-body);
   color: var(--color-text-secondary);
@@ -1907,6 +1992,11 @@
 
 @media (prefers-reduced-motion: reduce){
   .bt-state__pulse i{ animation: none !important; }
+  .bt-radar__ring, .bt-radar__sweep, .bt-radar__core{ animation: none !important; }
+  .bt-radar__sweep{ opacity: 0 !important; }
+  #s-bluetooth[data-phase="scanning"] .bt-radar__ring.r1,
+  #s-bluetooth[data-phase="hosting"] .bt-radar__ring.r1,
+  #s-bluetooth[data-phase="found"] .bt-radar__ring.r1{ opacity:.2; transform:scale(1); }
 }
 
 /* وسم "أنت" على شريط اللاعب في الأوضاع اللي كل لاعب على جهازه.

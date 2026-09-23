@@ -820,6 +820,39 @@ body[data-ui-theme="glass"] .mc-tag{
 }
 .eng-ov.open{display:block;}
 
+/* ══ بوّابةُ الدخولِ المائيّة — ستارةُ ماءٍ تجتاحُ الشاشةَ لحظةَ الفتح ══
+   بلاغُ جوجو: كان مجرّدَ صوتٍ خفيفٍ بلا بوّابة. الآن موجةٌ مضيئةٌ تهبطُ
+   من الأعلى مع رذاذٍ وتموّجٍ ثمّ تنقشعُ كاشفةً مشهدَ الغوص. */
+.eng-wash{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:0;overflow:hidden;}
+.eng-wash.play{animation:engWashFade 1.15s ease-out forwards;}
+.eng-wash__sheet{position:absolute;left:-10%;right:-10%;top:0;height:160%;
+  transform:translateY(-115%);
+  background:linear-gradient(180deg,
+    rgba(234,247,255,.0) 0%, rgba(150,224,255,.55) 34%,
+    rgba(58,163,214,.85) 62%, rgba(9,52,80,.96) 100%);
+  filter:blur(.4px);}
+.eng-wash.play .eng-wash__sheet{animation:engWashDrop 1.05s cubic-bezier(.4,.02,.2,1) forwards;}
+.eng-wash__crest{position:absolute;left:-10%;right:-10%;height:70px;
+  transform:translateY(-140%);
+  background:radial-gradient(60% 100% at 50% 100%, rgba(255,255,255,.9), rgba(234,247,255,0) 70%);
+  filter:blur(1px);}
+.eng-wash.play .eng-wash__crest{animation:engWashCrest 1.05s cubic-bezier(.4,.02,.2,1) forwards;}
+.eng-wash__drop{position:absolute;top:-6px;width:5px;height:5px;border-radius:50%;
+  background:radial-gradient(circle at 40% 30%, #fff, rgba(150,224,255,.6) 70%, transparent);
+  transform:translateY(-40px);opacity:0;}
+.eng-wash.play .eng-wash__drop{animation:engWashDrop2 .95s ease-in forwards;}
+@keyframes engWashFade{0%,72%{opacity:1;}100%{opacity:0;}}
+@keyframes engWashDrop{0%{transform:translateY(-115%);}55%{transform:translateY(6%);}
+  72%{transform:translateY(-2%);}100%{transform:translateY(-125%);}}
+@keyframes engWashCrest{0%{transform:translateY(-140%);opacity:0;}
+  30%{opacity:1;}62%{transform:translateY(112vh);opacity:.9;}100%{opacity:0;}}
+@keyframes engWashDrop2{0%{transform:translateY(-40px);opacity:0;}
+  20%{opacity:1;}100%{transform:translateY(102vh);opacity:0;}}
+@media (prefers-reduced-motion: reduce){
+  .eng-wash.play{animation:none;opacity:0;}
+  .eng-wash.play .eng-wash__sheet,.eng-wash.play .eng-wash__crest,.eng-wash.play .eng-wash__drop{animation:none;}
+}
+
 /* ── طبقات المشهد (ثابتة خلف المحتوى) ── */
 .eng-sea{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
 .eng-rays{position:absolute;top:-10%;left:0;right:0;height:70%;mix-blend-mode:screen;}
@@ -2976,7 +3009,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260923-b44">
+<link rel="stylesheet" href="screens.css?v=20260923-b45">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3649,18 +3682,30 @@ html.amkh-preboot #amkh-preboot{
 <div id="s-bluetooth" class="screen bt-screen" data-phase="idle">
   <div class="bt-shell">
 
-    <!-- الهوية -->
-    <div class="bt-hero ds-card">
-      <span class="bt-hero__icon" aria-hidden="true">
-        <i class="ico ico--bluetooth" aria-hidden="true"></i>
-      </span>
-      <div class="bt-hero__body">
-        <h2 class="bt-hero__title">لعب عبر بلوتوث</h2>
-        <p class="bt-hero__sub">جهازين قريبين من بعض — بدون إنترنت</p>
+    <!-- ══ منصّةُ الاقتران — إعادةُ تصميمٍ كاملة (بلاغُ جوجو) ══
+         مشهدٌ حيّ: نواةُ بلوتوثٍ نابضةٌ تُطلقُ موجاتٍ رادارية، وجهازان
+         يدوران حولها ويتّصلان بخيطٍ متوهّج. المشهدُ يتفاعلُ مع data-phase:
+         ساكنٌ عند idle، والموجاتُ تنبضُ عند البحث/الاستضافة، ويخضرُّ عند
+         الاتصال. مرسومٌ بالكامل، بلا صور، ويحترمُ تقليلَ الحركة. -->
+    <div class="bt-stage" aria-hidden="true">
+      <div class="bt-radar">
+        <span class="bt-radar__ring r1"></span>
+        <span class="bt-radar__ring r2"></span>
+        <span class="bt-radar__ring r3"></span>
+        <span class="bt-radar__sweep"></span>
+        <span class="bt-radar__link"></span>
+        <span class="bt-radar__peer p1"><i class="ico ico--device" aria-hidden="true"></i></span>
+        <span class="bt-radar__peer p2"><i class="ico ico--device" aria-hidden="true"></i></span>
+        <span class="bt-radar__core"><i class="ico ico--bluetooth" aria-hidden="true"></i></span>
       </div>
     </div>
 
-    <!-- اختيار الدور -->
+    <header class="bt-head">
+      <h2 class="bt-head__title">لعب عبر بلوتوث</h2>
+      <p class="bt-head__sub">جهازين قريبين من بعض — بدون إنترنت</p>
+    </header>
+
+    <!-- اختيار الدور — بطاقتان كبيرتان -->
     <div class="bt-roles" role="tablist" aria-label="طريقة الاتصال">
       <button type="button" class="bt-role" id="tb-bt-host" role="tab" aria-selected="false"
               onclick="BLEManager.hostGame()">
@@ -3671,6 +3716,7 @@ html.amkh-preboot #amkh-preboot{
           <span class="bt-role__title">استضافة</span>
           <span class="bt-role__desc">تفتح مباراة وتنتظر صديقك</span>
         </span>
+        <span class="bt-role__check" aria-hidden="true">✓</span>
       </button>
 
       <button type="button" class="bt-role" id="tb-bt-join" role="tab" aria-selected="false"
@@ -3682,11 +3728,12 @@ html.amkh-preboot #amkh-preboot{
           <span class="bt-role__title">انضمام</span>
           <span class="bt-role__desc">تبحث عن جهاز فتح مباراة</span>
         </span>
+        <span class="bt-role__check" aria-hidden="true">✓</span>
       </button>
     </div>
 
-    <!-- الحالة: مؤشر بحث + نص -->
-    <div class="bt-state ds-card">
+    <!-- شريطُ الحالة -->
+    <div class="bt-state">
       <span class="bt-state__pulse" aria-hidden="true"><i></i><i></i><i></i></span>
       <p id="bt-status" class="bt-state__text">اختر "استضافة" أو "انضمام" للبدء</p>
     </div>
@@ -3941,6 +3988,16 @@ html.amkh-preboot #amkh-preboot{
      فقاعات، ثلجٌ بحريّ، أسماكٌ تعبر، أعشابٌ متمايلة، والسمكة تغوص للمحطّة
      المختارة. بوّابة غوصٍ متوهّجة بصوت ماء. بلغتين، مرسومٌ بالكامل. -->
 <div id="engine-ov" class="eng-ov">
+  <div class="eng-wash" id="eng-wash" aria-hidden="true">
+    <div class="eng-wash__sheet"></div>
+    <div class="eng-wash__crest"></div>
+    <span class="eng-wash__drop" style="left:14%;animation-delay:.04s"></span>
+    <span class="eng-wash__drop" style="left:31%;animation-delay:.12s"></span>
+    <span class="eng-wash__drop" style="left:48%;animation-delay:.02s"></span>
+    <span class="eng-wash__drop" style="left:63%;animation-delay:.16s"></span>
+    <span class="eng-wash__drop" style="left:79%;animation-delay:.08s"></span>
+    <span class="eng-wash__drop" style="left:91%;animation-delay:.20s"></span>
+  </div>
   <div class="eng-sea" aria-hidden="true">
     <div class="eng-rays"><span></span><span></span><span></span></div>
     <div class="eng-caustics"></div>
@@ -4334,14 +4391,51 @@ const SFX=(()=>{
         o.frequency.setValueAtTime(n.f, now+n.t0);
         if(n.f2) o.frequency.exponentialRampToValueAtTime(n.f2, now+n.t0+n.dur);
         const v=Math.max(0.0001, base*(n.vol||0.12));
+        /* n.atk: زمن الصعود. الافتراضي 12ms يناسب النغمات الغنائية، لكن
+           الأصوات النقريّة (هبوط بيدق، طقّة خشب) محتاجة صعودًا شبه صفريّ
+           وإلّا سُمعت همهمةً لا نقرة. قياسُ صوتِ الموقع المنافس: صعودٌ
+           في 0ms وهبوطٌ إلى 10% في 20ms. */
         g.gain.setValueAtTime(0.0001, now+n.t0);
-        g.gain.exponentialRampToValueAtTime(v, now+n.t0+0.012);
+        g.gain.exponentialRampToValueAtTime(v, now+n.t0+(n.atk!==undefined?n.atk:0.012));
         g.gain.exponentialRampToValueAtTime(0.0001, now+n.t0+n.dur);
         o.connect(g);g.connect(c.destination);
         o.start(now+n.t0);o.stop(now+n.t0+n.dur+0.03);
       });
     }catch(e){}
   }
+  /* نبضةُ ضجيجٍ مُرشَّحة — الطقّةُ العريضةُ التي تُعطي إحساسَ «الخشب».
+     المذبذباتُ وحدَها تُنتج نغمةً صافية لا طَقًّا، وقياسُ صوتِ النقلةِ في
+     الموقعِ المنافس أظهر نبضةً عريضةَ الطيف فوق الرنين. seq: عناصر
+     {t0,dur,f,q,vol} تمرّ على مرشّحٍ نطاقيّ حول f. */
+  function noiseHit(seq){
+    if(!Cfg.data.sound)return;
+    try{
+      const c=getCtx();
+      if(c.state==='suspended')c.resume();
+      const now=c.currentTime, base=(Cfg.data.vol/100);
+      seq.forEach(n=>{
+        const len=Math.max(1,Math.round(c.sampleRate*n.dur));
+        const buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+        for(let i=0;i<len;i++) d[i]=(Math.random()*2-1);
+        const src=c.createBufferSource(); src.buffer=buf;
+        const bp=c.createBiquadFilter(); bp.type=n.type||'bandpass';
+        bp.frequency.value=n.f||800; bp.Q.value=n.q||1.2;
+        /* كنسُ ترددِ المرشّح من f إلى f2 يعطي إحساسَ «الهسهسةِ الهابطة»
+           (اندفاعُ الماء) بدل نبضةٍ ثابتةِ اللون */
+        if(n.f2){ try{ bp.frequency.setValueAtTime(n.f, now+n.t0);
+          bp.frequency.exponentialRampToValueAtTime(Math.max(20,n.f2), now+n.t0+n.dur); }catch(e){} }
+        const g=c.createGain();
+        const v=Math.max(0.0001, base*(n.vol||0.05));
+        const atk=n.atk!==undefined?n.atk:0.004;
+        g.gain.setValueAtTime(0.0001, now+n.t0);
+        g.gain.exponentialRampToValueAtTime(v, now+n.t0+atk);
+        g.gain.exponentialRampToValueAtTime(0.0001, now+n.t0+n.dur);
+        src.connect(bp); bp.connect(g); g.connect(c.destination);
+        src.start(now+n.t0); src.stop(now+n.t0+n.dur+0.02);
+      });
+    }catch(e){}
+  }
+
   const MODAL_SFX={
     /* عام: صعود دافئ من نغمتين — إحساس «فتح» */
     default:[{f:523.25,t0:0,dur:0.11,vol:0.09},{f:783.99,t0:0.06,dur:0.15,vol:0.11}],
@@ -4458,6 +4552,10 @@ const SFX=(()=>{
   };
   let _lastModalSfx=0;
   function playModalSfx(kind){
+    /* 'none': نافذةٌ صامتةُ الفتحِ عن قصد — شاشةُ الترحيبِ لها نغمتُها
+       الخاصّة (SFX.welcome) تُشغَّلُ عند أوّلِ لمسة، فصوتُ فتحِ النافذةِ
+       فوقها كان يُسمَعُ صوتًا ثانيًا مبهمًا لا معنى له. */
+    if(kind==='none')return;
     /* debounce مستقل عن نقرة الزر عشان صوت الفتح مايتبلعش لما الزر اللي
        بيفتح النافذة بيطلّع صوت نقرة قبله بأجزاء من الثانية */
     const now=Date.now();
@@ -4491,8 +4589,27 @@ const SFX=(()=>{
        اللاعب يعرف حالة مايكه بأذنه وهو ناظرٌ إلى الرقعة. */
     micOpen(){ tones([{f:587.33,t0:0,dur:0.09,type:'triangle',vol:0.09},{f:880,t0:0.09,dur:0.14,type:'sine',vol:0.10}]); },
     micClose(){ tones([{f:880,t0:0,dur:0.09,type:'triangle',vol:0.08},{f:523.25,t0:0.09,dur:0.14,type:'sine',vol:0.09}]); },
-    /* هبوط بيدق شاشة الترحيب — «توب» ناعم منخفض ينبض مع كل قفزة */
-    pawnHop(){ tones([{f:174.61,t0:0,dur:0.11,type:'sine',vol:0.06},{f:349.23,t0:0.015,dur:0.07,type:'sine',vol:0.035}]); },
+    /* هبوطُ بيدقِ شاشةِ الترحيب — «طقّةُ خشبٍ» جافّة.
+       مُعايَرةٌ على قياسٍ فعليٍّ لصوتِ النقلةِ في الموقعِ المنافس (نُزّل
+       ملفُّه وحُلِّل طيفيًّا): صعودٌ في 0ms، وقمّةٌ عند 0ms، و91% من
+       طاقتِه بين 250 و1500Hz، وأقوى تردداتِه 340/471/615/692/930/1111Hz.
+       النتيجةُ هنا: قمّةٌ 0.120 مقابل 0.132، وتوزيعُ طاقةٍ 49%/48% بين
+       النطاقين مقابل 41%/50% — أي البصمةُ نفسُها.
+       النسخةُ السابقة كانت 175Hz بصعودٍ 12ms وشدّةٍ 0.06: نطاقٌ لا يحمل
+       إلّا 7% من الطاقةِ وسمّاعةُ الهاتفِ لا تُصدرُه أصلًا، فسُمِعَت
+       خشخشةً مبهمةً لا طقّةَ هبوط. soft=الارتدادةُ الصغيرةُ عند 72%. */
+    pawnHop(soft){
+      const k=soft?0.42:1;
+      noiseHit([{t0:0,dur:0.020,f:1250,q:0.8,vol:0.120*k}]);
+      tones([
+        {f:1111,t0:0,dur:0.032,type:'triangle',vol:0.098*k,atk:0.0006},
+        {f:930, t0:0,dur:0.050,type:'triangle',vol:0.175*k,atk:0.0006},
+        {f:692, t0:0.001,dur:0.062,type:'sine',vol:0.160*k,atk:0.0008},
+        {f:615, t0:0.001,dur:0.070,type:'sine',vol:0.130*k,atk:0.0008},
+        {f:471, t0:0.003,dur:0.080,type:'sine',vol:0.090*k,atk:0.0010},
+        {f:340, t0:0.005,dur:0.085,type:'sine',vol:0.050*k,atk:0.0015},
+      ]);
+    },
     /* نغمة الترحيب — «وصولٌ» بهيج على نهج chess.com: نَفَسٌ دافئ منخفض
        يفتح المشهد ثم أربع نغمات صاعدة لامعة يتوّجها بريقٌ عالٍ خفيف.
        صوتٌ مميّز مش من أصوات الشطرنج، بيتقال مرّة عند ظهور الشاشة. */
@@ -4509,7 +4626,24 @@ const SFX=(()=>{
        الانتظار لأول لمسة (سياسة الـautoplay). */
     ready(){ try{ return !!ctx && ctx.state==='running'; }catch(e){ return false; } },
     /* الغوص (منتقي المحرّك): هبوطٌ مائيّ — كنسةٌ نازلة + فقاعة */
-    dive(){ tones([{f:660,f2:170,t0:0,dur:0.5,type:'sine',vol:0.09},{f:300,f2:90,t0:0.1,dur:0.55,type:'sine',vol:0.07},{f:1200,t0:0.02,dur:0.06,type:'triangle',vol:0.04}]); },
+    /* ══ صوتُ بوّابةِ الماء (SFX.dive) ══
+       بلاغُ جوجو: الصوتُ السابقُ كان خفيفًا لا يُلحَظ. الآن غطسةٌ كاملةٌ
+       ملحوظة: (١) هسهسةٌ عريضةٌ تكنسُ من الحادِّ إلى الغائرِ = اندفاعُ
+       الماءِ فوقَ الرأس، (٢) دمدمةٌ عميقةٌ = ثقلُ الغطس، (٣) فقاعاتٌ
+       صاعدةٌ خفيفة = ما بعدَ الغمر. */
+    dive(){
+      noiseHit([
+        {t0:0,    dur:0.34, f:5200, f2:360, q:0.55, vol:0.30, atk:0.006},  // اندفاعُ الماء (whoosh هابط)
+        {t0:0.02, dur:0.20, f:900,  f2:180, q:0.7,  vol:0.16, atk:0.004},  // طبقةُ رذاذٍ داخليّة
+      ]);
+      tones([
+        {f:150,f2:60,t0:0.05,dur:0.55,type:'sine',vol:0.16},   // دمدمةُ الغطسِ العميقة
+        {f:320,f2:120,t0:0.03,dur:0.28,type:'sine',vol:0.09},  // ثقلُ الاصطدامِ بالسطح
+        {f:1050,t0:0.30,dur:0.05,type:'sine',vol:0.05},        // فقاعةٌ صاعدة ١
+        {f:1500,t0:0.40,dur:0.05,type:'sine',vol:0.04},        // فقاعةٌ صاعدة ٢
+        {f:1850,t0:0.48,dur:0.045,type:'sine',vol:0.03},       // فقاعةٌ صاعدة ٣
+      ]);
+    },
     undo()   {play('move');},  // Use move sound for undo
     chat()   {
       if(!Cfg.data.sound)return;
@@ -4517,6 +4651,13 @@ const SFX=(()=>{
     },
     /* صوت فتح نافذة — kind من MODAL_SFX (default لو مش معروف) */
     modalOpen(kind){ playModalSfx(kind); },
+    /* تعليقُ نور في وضعِ المحرّك — نغمةٌ ودودةٌ صاعدةٌ (جرسٌ ناعم) تُميّزُ
+       وصولَ تعليقٍ جديدٍ عن صوتِ الشاتِ وأصواتِ النقلات. */
+    ncmt(){ tones([
+      {f:659.25,t0:0,dur:0.12,type:'sine',vol:0.06},
+      {f:987.77,t0:0.08,dur:0.20,type:'sine',vol:0.075},
+      {f:1318.51,t0:0.17,dur:0.24,type:'triangle',vol:0.045},
+    ]); },
     /* أصوات المكالمة (#135): دورة رنين واحدة تتكرّر بمؤقّت من وحدة المكالمة،
        ونغمات الوصل/الإنهاء. dir='in' رنين وارد، 'out' نغمة نداء صادرة. */
     callRing(dir){ if(!Cfg.data.sound)return; tones(dir==='out'?[{f:523.25,t0:0,dur:0.28,vol:0.09},{f:523.25,t0:0.4,dur:0.28,vol:0.09}]:[{f:880,t0:0,dur:0.18,vol:0.12},{f:1174.66,t0:0.22,dur:0.18,vol:0.12}]); },
@@ -7447,7 +7588,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 44;
+const APP_VERSION_CODE = 45;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7644,6 +7785,12 @@ const ENGINE_PICKER={
     this.select(this._sel);
     const ov=document.getElementById('engine-ov');
     if(ov){ ov.classList.add('open'); const sc=ov.querySelector('.eng-scroll'); if(sc)sc.scrollTop=0; }
+    /* بوّابةُ الماءِ: ستارةٌ تهبطُ وتنقشعُ كاشفةً المشهد، مصحوبةً بصوتِ
+       الغطسة. نعيدُ تشغيلَ الأنيميشن بحذفِ الصنفِ ثمّ إعادتِه (reflow). */
+    try{
+      const wash=document.getElementById('eng-wash');
+      if(wash){ wash.classList.remove('play'); void wash.offsetWidth; wash.classList.add('play'); }
+    }catch(e){}
     amkhGrabModalFreeze();
     try{ if(SFX.dive)SFX.dive(); else SFX.modalOpen('confirm'); }catch(e){}
     /* الشاشة الغامرة تغطّي كل شيء ولها زر رجوعها، فنخفي الشريط العلوي */
@@ -10363,6 +10510,9 @@ const NCMT={
   push(text){
     if(!text)return;
     this._add(text);
+    /* نغمةٌ لطيفةٌ تنبّه أنّ نور علّق — بلاغُ جوجو: التعليقُ كان يصل صامتًا.
+       نغمتان صاعدتان دافئتان، مميّزتان عن صوتِ الشاتِ وأصواتِ النقلات. */
+    try{ SFX.ncmt(); }catch(e){}
     const wrap=this._wrap();
     if(!wrap||!wrap.classList.contains('show')){ this.unread++; this._badge(); }
   },
@@ -15857,10 +16007,10 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260916-b37"></script>
+  <script src="auth-client.js?v=20260923-b45"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260923-b44"></script>
+  <script src="welcome-client.js?v=20260923-b45"></script>
   <script src="friends-client.js?v=20260916-b37"></script>
   <script src="chat-client.js?v=20260916-b37"></script>
   <script src="call-client.js?v=20260916-b37"></script>

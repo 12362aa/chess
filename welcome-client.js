@@ -71,6 +71,7 @@
 
   const PAWN_CYCLE_MS = 1800;   /* لازم يطابق مدّة wlPawnBounce في screens.css */
   const PAWN_LAND_MS = 1008;    /* لحظة ملامسة الأرض = 56% من الدورة */
+  const PAWN_REBOUND_MS = 1296; /* الارتدادة الصغيرة = 72% من الدورة */
 
   function makePawn() {
     const box = document.createElement('div');
@@ -93,18 +94,30 @@
     try { reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
     if (reduced) return { el: box, stop: () => {} };
 
-    /* صوت الهبوط موقوتٌ على لحظة ملامسة الأرض في كل دورة قفز */
-    let dead = false, iv = null, t0 = null;
-    const hop = () => { if (dead) return; try { if (window.SFX && SFX.pawnHop) SFX.pawnHop(); } catch (e) {} };
+    /* صوتُ الهبوطِ موقوتٌ على لحظةِ ملامسةِ الأرضِ في كلّ دورةِ قفز.
+       دورةُ wlPawnBounce فيها هبوطان: الرئيسُ عند 56% والارتدادةُ
+       الصغيرةُ عند 72% — فطقّتان: قويّةٌ ثمّ خفيفةٌ بعدها بـ288ms،
+       وبغيرِ الثانيةِ يبدو الارتدادُ المرئيُّ بلا صوت. */
+    let dead = false, iv = null, t0 = null, iv2 = null, t2 = null;
+    const hop = (soft) => { if (dead) return; try { if (window.SFX && SFX.pawnHop) SFX.pawnHop(soft); } catch (e) {} };
     t0 = setTimeout(() => {
       if (dead) return;
-      hop();
-      iv = setInterval(hop, PAWN_CYCLE_MS);
+      hop(false);
+      iv = setInterval(() => hop(false), PAWN_CYCLE_MS);
     }, PAWN_LAND_MS);
+    t2 = setTimeout(() => {
+      if (dead) return;
+      hop(true);
+      iv2 = setInterval(() => hop(true), PAWN_CYCLE_MS);
+    }, PAWN_REBOUND_MS);
 
     return {
       el: box,
-      stop: () => { dead = true; if (t0) clearTimeout(t0); if (iv) clearInterval(iv); },
+      stop: () => {
+        dead = true;
+        if (t0) clearTimeout(t0); if (iv) clearInterval(iv);
+        if (t2) clearTimeout(t2); if (iv2) clearInterval(iv2);
+      },
     };
   }
 
@@ -245,7 +258,7 @@
             <button id="wl-login" class="ds-btn ds-btn--ghost ds-btn--block">لديّ حساب — تسجيل الدخول</button>
             <button id="wl-skip" class="wl-skip">المتابعة بدون حساب</button>
           </div>
-        </div>`, { sfx: 'welcome', persistent: true });
+        </div>`, { sfx: false, persistent: true });
 
       this._ov = ov;
       const $ = s => ov.querySelector(s);

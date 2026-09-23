@@ -109,8 +109,10 @@ const amkhUI = {
     overlay.id = id;
     overlay.className = 'ds-overlay' + ((opts && opts.sheet) ? ' ds-overlay--sheet' : '');
     /* نوع صوت الفتح: مخصّص من opts.sfx، وإلا الأوراق السفلية تاخد صوت
-       sheet والباقي default. DSOverlay.open بيقرا الخاصية دي. */
-    if (opts && opts.sfx) overlay.dataset.sfx = opts.sfx;
+       sheet والباقي default. DSOverlay.open بيقرا الخاصية دي.
+       opts.sfx === false يعني صمتًا مقصودًا (نافذة لها صوتها الخاص). */
+    if (opts && opts.sfx === false) overlay.dataset.sfx = 'none';
+    else if (opts && opts.sfx) overlay.dataset.sfx = opts.sfx;
     else if (opts && opts.sheet) overlay.dataset.sfx = 'sheet';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
