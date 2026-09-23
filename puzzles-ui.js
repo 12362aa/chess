@@ -313,12 +313,14 @@ const PZU = (() => {
         L('أخطاء ' + M.misses + '/' + M.strikes, 'Misses ' + M.misses + '/' + M.strikes)));
     }
     if (M.mode === 'battle') {
-      /* المواجهة: نتيجتك ونتيجة الخصم جنبًا إلى جنب، الأعلى مُبرَز */
+      /* المواجهة: نتيجتك ونتيجة الخصم جنبًا إلى جنب، الأعلى مُبرَز. أخطاء
+         الخصم تظهر تحت رقمه (٣ أخطاء تُنهي جولته) كي ترى تقدّمه حيًّا. */
       const vs = el('span', 'pzg__vs');
       vs.appendChild(el('b', 'pzg__vs-me' + ((M.score || 0) >= (M.oppScore || 0) ? ' is-lead' : ''), String(M.score || 0)));
       vs.appendChild(el('span', 'pzg__vs-sep', '·'));
       vs.appendChild(el('b', 'pzg__vs-opp' + ((M.oppScore || 0) > (M.score || 0) ? ' is-lead' : ''), String(M.oppScore || 0)));
-      vs.title = L('أنت مقابل ' + (M.oppName || 'الخصم'), 'You vs ' + (M.oppName || 'opponent'));
+      vs.title = L('أنت ' + (M.misses || 0) + ' أخطاء · ' + (M.oppName || 'الخصم') + ' ' + (M.oppMiss || 0) + ' أخطاء',
+                   'You ' + (M.misses || 0) + ' misses · ' + (M.oppName || 'opponent') + ' ' + (M.oppMiss || 0) + ' misses');
       right.appendChild(vs);
     } else if (M.score != null) {
       right.appendChild(el('span', 'pzg__st-score', L('النتيجة ', 'Score ') + M.score));
@@ -505,6 +507,9 @@ const PZU = (() => {
       finish(false);
       return;
     }
+    /* المواجهة رش مثل الموقع المنافس: كل خطأ يُنهي اللغز ويقفز للتالي (لا
+       إعادة محاولة على نفس اللغز)، ويُحتسب خطأً في كسر التعادل. */
+    if (M.mode === 'battle') { finish(false); return; }
     renderStatus();
   }
 
@@ -584,7 +589,7 @@ const PZU = (() => {
 
     /* مواجهة: أبلغ الخصم بنتيجتك الحيّة بعد كل لغز (حلًّا كان أو استسلامًا) */
     if (M.mode === 'battle' && M.battleId) {
-      battleSend({ type: 'puzzle:battle-score', battle_id: M.battleId, score: M.score || 0, idx: M.qi });
+      battleSend({ type: 'puzzle:battle-score', battle_id: M.battleId, score: M.score || 0, misses: M.misses || 0, idx: M.qi });
     }
 
     renderStatus();
@@ -775,7 +780,9 @@ const PZU = (() => {
       B.slide(p.opening.from, p.opening.to);
       snap();
       sfx('move');
-      busy = false;
+      /* المواجهة قبل انطلاق العدّ: نترك نقلة الافتتاح تُعرَض لكن نُبقي
+         الرقعة مقفولة حتى ينتهي «٣·٢·١·ابدأ» فلا يلعب أحدٌ مبكّرًا. */
+      if (!(M.mode === 'battle' && !M.started)) busy = false;
       say(coachOn() ? PZN.intro(p) : null);
     }, 420);
   }
@@ -866,7 +873,7 @@ const PZU = (() => {
     if (M && M.mode === 'battle' && !M._ended) {
       M._ended = true; M.finished = true; M.roundOver = true;
       busy = false;
-      try { battleSend({ type: 'puzzle:battle-end', battle_id: M.battleId, score: M.score || 0 }); } catch (e) {}
+      try { battleSend({ type: 'puzzle:battle-end', battle_id: M.battleId, score: M.score || 0, misses: M.misses || 0 }); } catch (e) {}
       say(L('انتهى وقتك — بانتظار الخصم…', 'Time up — waiting for your opponent…'));
       renderBar();
       return;
@@ -907,8 +914,39 @@ const PZU = (() => {
     openHub();
   }
 
-  /* الخروج من الشاشة بزرّ الرجوع: لا نافذة نتيجة، فقط إنهاء نظيف */
+  /* الخروج من الشاشة بزرّ الرجوع: لا نافذة نتيجة، فقط إنهاء نظيف.
+     أثناء مواجهة حيّة الخروج انسحاب — نؤكّد أوّلًا كي لا تُخسَر بالخطأ، ثم
+     نبلّغ الخادم ليُعلن الخصم فائزًا (تمامًا مثل الموقع المنافس). */
   function leave() {
+    if (M && M.mode === 'battle' && M.started && !M._ended) {
+      confirmForfeit();
+      return;
+    }
+    stopClock();
+    M = null; busy = false;
+    close('pz-result'); close('pz-over');
+    openHub();
+  }
+
+  function confirmForfeit() {
+    const ov = $('pz-forfeit'), body = $('pz-forfeit-body');
+    if (!ov || !body) { doForfeit(); return; }
+    body.textContent = '';
+    ov.dataset.sfx = 'pzOver';
+    body.appendChild(el('div', 'ds-dialog__icon', '⚑'));
+    body.appendChild(el('h2', 'ds-dialog__title', L('الانسحاب من المواجهة؟', 'Forfeit the battle?')));
+    body.appendChild(el('p', 'ds-dialog__message',
+      L('لو خرجتَ الآن يُحتسب خصمك فائزًا.', 'If you leave now, your opponent wins.')));
+    const act = el('div', 'ds-dialog__actions');
+    act.appendChild(btn('ds-btn ds-btn--secondary', L('البقاء', 'Stay'), () => close('pz-forfeit')));
+    act.appendChild(btn('ds-btn ds-btn--primary', L('انسحاب', 'Forfeit'),
+      () => { close('pz-forfeit'); doForfeit(); }));
+    body.appendChild(act);
+    open('pz-forfeit');
+  }
+
+  function doForfeit() {
+    try { battleSend({ type: 'puzzle:battle-forfeit', battle_id: M && M.battleId, score: (M && M.score) || 0, misses: (M && M.misses) || 0 }); } catch (e) {}
     stopClock();
     M = null; busy = false;
     close('pz-result'); close('pz-over');
@@ -1166,6 +1204,7 @@ const PZU = (() => {
       case 'puzzle:battle-opp': {
         if (M && M.mode === 'battle' && M.battleId === d.battle_id) {
           M.oppScore = Number(d.score) || 0;
+          if (d.misses != null) M.oppMiss = Number(d.misses) || 0;
           renderStatus();
         }
         break;
@@ -1225,17 +1264,19 @@ const PZU = (() => {
     open('pz-battle-invite');
   }
 
-  /* يبدأ جولة المواجهة من رسالة begin: طابور مشترك، مؤقّت مُزامَن */
+  /* يبدأ جولة المواجهة من رسالة begin: طابور مشترك، عدّ تنازليّ مُزامَن،
+     وساعة محلّية صرف (لا فارق ساعة بين الجهازين). */
   function startBattleRound(o) {
     stopClock();
-    const startAt = Number(o.startAt) || Date.now();
     const dur = (Number(o.duration) || 180) * 1000;
     M = {
       mode: 'battle', battleId: o.battleId, role: o.role,
       queue: Array.isArray(o.puzzles) ? o.puzzles : [], qi: 0,
-      oppName: o.oppName || L('الخصم', 'opponent'), oppScore: 0,
-      score: 0, misses: 0, strikes: null, hearts: null, penalty: 0,
-      timed: true, total: dur, deadline: startAt + dur,
+      oppName: o.oppName || L('الخصم', 'opponent'), oppScore: 0, oppMiss: 0,
+      /* رش مثل الموقع المنافس: ٣ أخطاء تُنهي جولتك، والخصم يكمل حتى الوقت.
+         الأكثر حلًّا يفوز، وعند التعادل الأقلّ خطأً. */
+      score: 0, misses: 0, strikes: 3, hearts: null, penalty: 0,
+      timed: true, total: dur, deadline: null, started: false,
       climb: 0, finished: false, roundOver: false, _ended: false,
       sel: null, legal: [], last: null, t0: Date.now(),
     };
@@ -1243,7 +1284,44 @@ const PZU = (() => {
     /* المدرّب صامت في السباق: الكلام يبطّئ، والجولة نتيجتها رقم يُقارَن */
     try { PZN.setMode('silent'); } catch (e) {}
     Nav.show('s-puzzle');
-    nextPuzzle().then(() => { if (M && M.deadline) startClock(); });
+    busy = true;                       /* الرقعة مقفولة حتى ينتهي العدّ */
+    nextPuzzle().then(() => {
+      if (!M || M.mode !== 'battle') return;
+      battleCountdown();               /* ٣·٢·١·ابدأ ثم تشغيل الساعة المحلّية */
+    });
+  }
+
+  /* عدّ تنازليّ متزامن قبل انطلاق السباق. الطرفان يستلمان begin في لحظةٍ
+     متقاربة، وكلٌّ يعدّ ٣ ثوانٍ محلّيًا ثم يشغّل ساعته، فينطلقان معًا بلا
+     اعتمادٍ على ساعة الخادم (كان فارق الساعة يمنح أحدهما وقتًا أطول). */
+  function battleCountdown() {
+    const host = $('pz-count');
+    let n = 3;
+    const paint = (txt, go) => {
+      if (host) {
+        host.textContent = '';
+        host.classList.add('is-on');
+        host.appendChild(el('span', 'pz-count__n', txt));
+      }
+      try { sfx(go ? 'startgame' : 'select'); } catch (e) {}
+    };
+    const begin = () => {
+      M.deadline = Date.now() + M.total;   /* ساعة محلّية تبدأ الآن */
+      M.started = true;
+      busy = false;
+      renderStatus();
+      startClock();
+    };
+    paint(String(n));                      /* «٣» فورًا */
+    const iv = setInterval(() => {
+      if (!M || M.mode !== 'battle') { clearInterval(iv); if (host) host.classList.remove('is-on'); return; }
+      n--;
+      if (n > 0) { paint(String(n)); return; }   /* «٢» ثم «١» */
+      clearInterval(iv);
+      paint(L('ابدأ', 'Go'), true);              /* «ابدأ» مع انطلاق اللعب */
+      begin();
+      setTimeout(() => { if (host) { host.classList.remove('is-on'); host.textContent = ''; } }, 620);
+    }, 1000);
   }
 
   /* ورقة نتيجة المواجهة — تُعاد استعمال نافذة pz-over */
@@ -1256,6 +1334,7 @@ const PZU = (() => {
     if (!ov || !body) { openHub(); return; }
     body.textContent = '';
     const won = d.outcome === 'win', draw = d.outcome === 'draw';
+    const byForfeit = d.by === 'forfeit';
     ov.dataset.sfx = won ? 'pzRecord' : 'pzOver';
     body.appendChild(el('div', 'ds-dialog__icon', won ? '★' : draw ? '◈' : '◇'));
     body.appendChild(el('h2', 'ds-dialog__title',
@@ -1264,7 +1343,10 @@ const PZU = (() => {
     const sc = el('p', 'pzo__score', mine + ' · ' + opp);
     body.appendChild(sc);
     body.appendChild(el('p', 'ds-dialog__message',
-      L('أنت مقابل ' + name, 'You vs ' + name)));
+      byForfeit
+        ? (won ? L('انسحب خصمك — الفوز لك.', 'Your opponent left — you win.')
+               : L('انسحبتَ من المواجهة.', 'You forfeited the battle.'))
+        : L('أنت مقابل ' + name, 'You vs ' + name)));
     const act = el('div', 'ds-dialog__actions');
     act.appendChild(btn('ds-btn ds-btn--secondary', L('إلى اللوحة', 'To the hub'),
       () => { close('pz-over'); openHub(); }));

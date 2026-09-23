@@ -2994,7 +2994,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260923-b45">
+<link rel="stylesheet" href="screens.css?v=20260923-b48">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3754,7 +3754,10 @@ html.amkh-preboot #amkh-preboot{
     </div>
     <div id="pz-status" class="pzg__status"></div>
     <!-- الرقعة بحجم رقعة اللعب الكاملة، موسّطة -->
-    <div id="pz-board" class="pzg__board"></div>
+    <div id="pz-board" class="pzg__board">
+      <!-- عدّ تنازليّ متزامن قبل انطلاق المواجهة (٣·٢·١·ابدأ) -->
+      <div id="pz-count" class="pz-count" aria-hidden="true"></div>
+    </div>
     <div id="pz-bar" class="pzg__bar"></div>
   </div>
 </div>
@@ -3772,6 +3775,11 @@ html.amkh-preboot #amkh-preboot{
 <!-- دعوة مواجهة ألغاز واردة -->
 <div id="pz-battle-invite" class="ds-overlay" role="dialog" aria-modal="true">
   <div class="ds-dialog" id="pz-battle-invite-body" data-no-i18n></div>
+</div>
+
+<!-- تأكيد الانسحاب من مواجهة حيّة -->
+<div id="pz-forfeit" class="ds-overlay" role="dialog" aria-modal="true">
+  <div class="ds-dialog" id="pz-forfeit-body" data-no-i18n></div>
 </div>
 
 <!-- ورقة اختيار الموضوع -->
@@ -7571,7 +7579,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 47;
+const APP_VERSION_CODE = 48;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -16105,7 +16113,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-client.js?v=20260919-b38"></script>
   <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
-  <script src="puzzles-ui.js?v=20260922-b42"></script>
+  <script src="puzzles-ui.js?v=20260923-b48"></script>
   <script src="puzzles-hub.js?v=20260922-b42"></script>
   <script src="levels-ui.js?v=20260921-b41"></script>
   <script src="mic-client.js?v=20260922-b41"></script>

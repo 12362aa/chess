@@ -1167,10 +1167,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 47;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b47/chess-amkh-4.2-b47.apk';
-const NOTES_AR = 'دوّامةُ المحيطِ صارت واقعيّةً: بوّابةُ اللعبِ ضدَّ المحرّكِ تُرسَمُ الآن ماءً حلزونيًّا حيًّا يدورُ ويُشفَطُ نحوَ فتحةِ التصريفِ في مركزِه ويحجبُ تفاصيلَ اللعبِ تمامًا لحظةَ الضغطِ ثمّ ينقشعُ — لا شاشةَ زرقاءَ مسطّحة. وأُزيلت شارةُ SF التطويريّةُ من الأعلى، وصار زرُّ الشاتِ في «مراحل نور» يحملُ اسمَ نور وصورتَه («حدّث نور»). مع إبقاءِ الصوتِ الحقيقيِّ للبوّابة.';
-const NOTES_EN = 'The ocean whirlpool is now realistic: the play-vs-engine gate renders live spiralling water that spins and drains into its center, fully hiding the game the instant you tap, then clears — no more flat blue screen. Removed the developer SF badge from the top bar, and the chat button in Nour Levels now shows Nour’s name and photo (“Talk to Nour”). The real water sound carries over.';
+const LATEST_CODE = 48;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b48/chess-amkh-4.2-b48.apk';
+const NOTES_AR = 'مواجهةُ الألغازِ بين الأصدقاءِ صارت مثلَ الموقعِ المنافسِ تمامًا: عدٌّ تنازليٌّ مُزامَنٌ (٣·٢·١·ابدأ) يُطلِقُ اللاعبَينِ معًا، وساعةٌ محلّيّةٌ عادلةٌ بلا فارقِ توقيت، ورشُ ثلاثِ دقائقَ بثلاثةِ أخطاءٍ تُنهي جولتَكَ بينما يُكمِلُ خصمُكَ، والأكثرُ حلًّا يفوزُ (وعندَ التعادلِ الأقلُّ خطأً). وإذا انسحبَ أحدٌ أو خرجَ من الشاشةِ يُحتسَبُ الآخرُ فائزًا. مع تأكيدٍ قبلَ الانسحابِ ومتابعةٍ حيّةٍ لأخطاءِ الخصم.';
+const NOTES_EN = 'Friend puzzle battles now work exactly like the rival site: a synchronized 3·2·1·Go countdown launches both players together, a fair local clock with no time-drift, a 3-minute rush where three misses end your run while your opponent keeps solving, and most solved wins (fewest misses breaks a tie). If someone leaves or quits the screen, the other is declared the winner. Added a forfeit confirmation and a live view of your opponent’s misses.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -1868,18 +1868,37 @@ function bcastUser(userId, obj) {
   for (const s of socketsOf(userId)) { if (s.readyState === WebSocket.OPEN) { send(s, obj); n++; } }
   return n;
 }
-/* ينهي مواجهة ويبلّغ الطرفين مرّة واحدة. reason: done | aborted | expired */
+/* ينهي مواجهة ويبلّغ الطرفين مرّة واحدة.
+   reason: done | forfeit | aborted | expired */
 function endPuzzleBattle(id, reason, payload) {
   const b = puzzleBattles.get(id);
   if (!b) return;
   puzzleBattles.delete(id);
+  if (reason === 'forfeit') {
+    /* انسحب لاعب (خروج/قطع اتصال أثناء الجولة الحيّة): الخصم يفوز فورًا،
+       مثل الموقع المنافس. */
+    const loser = payload && payload.loser;
+    const winner = loser === b.a ? b.b : b.a;
+    bcastUser(winner, { type: 'puzzle:battle-result', battle_id: id,
+      your_score: b.scores[winner] || 0, opp_score: b.scores[loser] || 0, outcome: 'win', by: 'forfeit' });
+    bcastUser(loser, { type: 'puzzle:battle-result', battle_id: id,
+      your_score: b.scores[loser] || 0, opp_score: b.scores[winner] || 0, outcome: 'loss', by: 'forfeit' });
+    return;
+  }
   if (reason === 'done') {
     const aScore = b.scores[b.a] || 0, bScore = b.scores[b.b] || 0;
+    const aMiss = b.misses[b.a] || 0, bMiss = b.misses[b.b] || 0;
+    /* الفائز: الأكثر حلًّا؛ عند التعادل الأقلّ خطأً؛ وإلّا تعادل. */
     const out = (uid) => {
       const mine = b.scores[uid] || 0, opp = uid === b.a ? bScore : aScore;
-      return { type: 'puzzle:battle-result', battle_id: id,
-        your_score: mine, opp_score: opp,
-        outcome: mine > opp ? 'win' : mine < opp ? 'loss' : 'draw' };
+      const myMiss = b.misses[uid] || 0, opMiss = uid === b.a ? bMiss : aMiss;
+      let outcome;
+      if (mine > opp) outcome = 'win';
+      else if (mine < opp) outcome = 'loss';
+      else if (myMiss < opMiss) outcome = 'win';
+      else if (myMiss > opMiss) outcome = 'loss';
+      else outcome = 'draw';
+      return { type: 'puzzle:battle-result', battle_id: id, your_score: mine, opp_score: opp, outcome };
     };
     bcastUser(b.a, out(b.a));
     bcastUser(b.b, out(b.b));
@@ -1888,13 +1907,18 @@ function endPuzzleBattle(id, reason, payload) {
     bcastUser(b.a, msg); bcastUser(b.b, msg);
   }
 }
-/* عند قطع اتصال مستخدم: أي مواجهة حيّة له تُلغى ويُبلَّغ الخصم */
+/* عند قطع اتصال مستخدم: مواجهة حيّة له = انسحاب فيفوز الخصم؛ مواجهة لم
+   تنطلق بعدُ تُلغى بلا فائز. */
 function abortUserBattles(userId) {
   for (const [id, b] of puzzleBattles) {
     if (b.a === userId || b.b === userId) {
-      const other = b.a === userId ? b.b : b.a;
-      puzzleBattles.delete(id);
-      bcastUser(other, { type: 'puzzle:battle-aborted', battle_id: id, reason: 'opponent-left' });
+      if (b.status === 'live') {
+        endPuzzleBattle(id, 'forfeit', { loser: userId });
+      } else {
+        const other = b.a === userId ? b.b : b.a;
+        puzzleBattles.delete(id);
+        bcastUser(other, { type: 'puzzle:battle-aborted', battle_id: id, reason: 'opponent-left' });
+      }
     }
   }
 }
@@ -3414,7 +3438,7 @@ wss.on('connection', (ws, req) => {
           if (!targetSockets.length) { send(ws, { type: 'puzzle:battle-error', reason: 'offline' }); break; }
 
           const id = 'pb' + (++_battleSeq) + '_' + Date.now();
-          puzzleBattles.set(id, { id, a: senderId, b: friendId, status: 'pending', scores: {}, ended: {}, createdAt: Date.now() });
+          puzzleBattles.set(id, { id, a: senderId, b: friendId, status: 'pending', scores: {}, ended: {}, misses: {}, createdAt: Date.now() });
           const sender = db.prepare('SELECT id, username, display_name, avatar_url FROM users WHERE id = ?').get(senderId);
           bcastUser(friendId, { type: 'puzzle:battle-incoming', battle_id: id, from: sender });
           send(ws, { type: 'puzzle:battle-sent', battle_id: id, delivered: true });
@@ -3473,15 +3497,16 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
-      /* تحديث النتيجة الحيّ — يُنقَل للخصم فقط */
+      /* تحديث النتيجة الحيّ — يُنقَل للخصم فقط (النتيجة + الأخطاء) */
       case 'puzzle:battle-score': {
         const me = socketUser.get(ws);
         const id = String(msg.battle_id || '');
         const b = puzzleBattles.get(id);
         if (!me || !b || (b.a !== me && b.b !== me)) break;
         b.scores[me] = Math.max(0, Number(msg.score) || 0);
+        if (msg.misses != null) b.misses[me] = Math.max(0, Number(msg.misses) || 0);
         const other = b.a === me ? b.b : b.a;
-        bcastUser(other, { type: 'puzzle:battle-opp', battle_id: id, score: b.scores[me], idx: Number(msg.idx) || 0 });
+        bcastUser(other, { type: 'puzzle:battle-opp', battle_id: id, score: b.scores[me], misses: b.misses[me] || 0, idx: Number(msg.idx) || 0 });
         break;
       }
 
@@ -3492,8 +3517,27 @@ wss.on('connection', (ws, req) => {
         const b = puzzleBattles.get(id);
         if (!me || !b || (b.a !== me && b.b !== me)) break;
         b.scores[me] = Math.max(0, Number(msg.score) || 0);
+        if (msg.misses != null) b.misses[me] = Math.max(0, Number(msg.misses) || 0);
         b.ended[me] = true;
         if (b.ended[b.a] && b.ended[b.b]) endPuzzleBattle(id, 'done');
+        break;
+      }
+
+      /* انسحاب لاعب من الشاشة أثناء مواجهة حيّة — الخصم يفوز فورًا */
+      case 'puzzle:battle-forfeit': {
+        const me = socketUser.get(ws);
+        const id = String(msg.battle_id || '');
+        const b = puzzleBattles.get(id);
+        if (!me || !b || (b.a !== me && b.b !== me)) break;
+        if (msg.score != null) b.scores[me] = Math.max(0, Number(msg.score) || 0);
+        if (msg.misses != null) b.misses[me] = Math.max(0, Number(msg.misses) || 0);
+        if (b.status === 'live') {
+          endPuzzleBattle(id, 'forfeit', { loser: me });
+        } else {
+          puzzleBattles.delete(id);
+          const other = b.a === me ? b.b : b.a;
+          bcastUser(other, { type: 'puzzle:battle-aborted', battle_id: id, reason: 'opponent-left' });
+        }
         break;
       }
 
