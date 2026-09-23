@@ -185,6 +185,38 @@
       const er = $('#wl-err'); if (er) er.textContent = '';
     },
 
+    /* ══ نغمة الترحيب ══
+       الشاشة بتظهر تلقائيًّا وقت الإقلاع — قبل أي لمسة — وسياسة التشغيل
+       التلقائي في المتصفّح/WebView بتمنع الصوت لحد أول تفاعل. عشان كده:
+       لو السياق جاهز فعلًا (تشغيل تلقائي مسموح) بنطلّع النغمة فورًا،
+       وإلا بنستنّى أوّل لمسة/ضغطة على الشاشة فنطلّعها ساعتها — فالمستخدم
+       بيسمع «الوصول» أول ما يلمس، مش صامت زي قبل. مرّة واحدة بس. */
+    _armWelcomeSound(ov) {
+      if (!ov) return;
+      let played = false;
+      const fire = () => {
+        if (played) return;
+        played = true;
+        cleanup();
+        try { if (window.SFX && SFX.welcome) SFX.welcome(); } catch (e) {}
+      };
+      const cleanup = () => {
+        try {
+          ov.removeEventListener('pointerdown', fire, true);
+          ov.removeEventListener('touchstart', fire, true);
+          ov.removeEventListener('keydown', fire, true);
+        } catch (e) {}
+      };
+      try {
+        ov.addEventListener('pointerdown', fire, true);
+        ov.addEventListener('touchstart', fire, { capture: true, passive: true });
+        ov.addEventListener('keydown', fire, true);
+      } catch (e) {}
+      /* محاولة فوريّة: بتنجح على الويب/الـWebView اللي بيسمح بالتشغيل
+         التلقائي، وبتتجاهَل بأمان لو السياق لسّه موقوف (هننتظر اللمسة) */
+      try { if (window.SFX && SFX.ready && SFX.ready() && SFX.welcome) { played = true; cleanup(); SFX.welcome(); } } catch (e) {}
+    },
+
     show() {
       /* شاشة قصيرة بلا تمرير: بطل متحرّك كبير + جملة واحدة + أزرار
          الدخول. الجملة من كتابتنا لا ترجمة لسطر أحد. */
@@ -238,6 +270,9 @@
         const slot = $('.wl-knight-slot');
         if (slot) { this._board = makePawn(); slot.appendChild(this._board.el); }
       } catch (e) {}
+
+      /* نغمة الترحيب: فورًا لو مسموح، وإلا مع أوّل لمسة على الشاشة */
+      this._armWelcomeSound(ov);
 
       /* الغطاء بيترفع بعد ما حركة الدخول تخلص — لو رفعناه قبلها الرئيسية
          بتبان من ورا الشاشة وهي بتتلاشى داخلة، وهي دي الومضة نفسها */

@@ -898,34 +898,37 @@ body[data-ui-theme="glass"] .mc-tag{
   font-weight:900;letter-spacing:.06em;font-size:14px;color:#04141f;
   background:radial-gradient(circle at 40% 34%,#9af0ff,#39b7d6);box-shadow:0 0 18px rgba(95,230,255,.45);}
 
-/* ── عمود الغوص: محطّاتٌ تنزل أعمق، مربوطةٌ بخيط تيّار ── */
-.eng-dive{position:relative;display:flex;flex-direction:column;gap:10px;padding:4px 0;}
-.eng-dive::before{content:'';position:absolute;top:6px;bottom:6px;
-  inset-inline-start:34px;width:3px;border-radius:3px;
-  background:linear-gradient(180deg,rgba(95,230,255,.5),rgba(242,193,78,.4) 60%,rgba(120,60,120,.35));}
-.eng-st{--hue:190;position:relative;display:flex;align-items:center;gap:12px;
-  padding:11px 14px;cursor:pointer;text-align:start;
-  border-radius:16px;border:1px solid var(--line);
-  background:linear-gradient(180deg,rgba(12,48,72,.55),rgba(5,22,36,.72));
-  color:var(--foam);transition:border-color .14s,background .14s,transform .14s,box-shadow .14s;}
-.eng-st:hover{border-color:rgba(120,200,235,.45);}
-.eng-st:active{transform:scale(.99);}
-.eng-st-num{position:relative;z-index:1;flex-shrink:0;width:42px;height:42px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;
-  color:#04131f;background:radial-gradient(circle at 40% 34%,hsl(var(--hue) 90% 75%),hsl(var(--hue) 80% 50%));
-  box-shadow:0 0 0 3px rgba(5,22,36,.9),0 0 14px hsla(var(--hue),90%,55%,.5);}
-.eng-st-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
-.eng-st-name{font-size:15px;font-weight:800;color:var(--foam);}
-.eng-st-zone{font-size:11.5px;color:var(--mist);}
-.eng-st-elo{flex-shrink:0;font-size:12px;font-weight:800;color:hsl(var(--hue) 85% 74%);
-  padding:3px 9px;border-radius:999px;background:rgba(4,18,30,.5);border:1px solid hsla(var(--hue),80%,55%,.3);}
-.eng-st-fish{flex-shrink:0;width:22px;opacity:0;transition:opacity .2s;color:var(--glow);}
-.eng-st-fish svg{width:100%;height:auto;display:block;}
-.eng-st.is-active{border-color:hsl(var(--hue) 90% 62%);
-  background:linear-gradient(180deg,hsla(var(--hue),70%,42%,.45),rgba(5,22,36,.82));
-  box-shadow:0 0 0 1px hsl(var(--hue) 90% 62%) inset,0 0 22px hsla(var(--hue),90%,55%,.4);}
-.eng-st.is-active .eng-st-fish{opacity:1;animation:engFishNudge 1.6s ease-in-out infinite;}
-@keyframes engFishNudge{0%,100%{transform:translateX(0);}50%{transform:translateX(-4px);}}
+/* ── خريطة الغوص: مسارٌ متعرّجٌ ينزل من السطح إلى الخندق ومحطّاتٌ عليه ──
+   إعادة تصميم (بلاغ جوجو): بدل عمودِ بطاقاتٍ، خريطةٌ مرسومة كدرب الألغاز
+   لكن نازلةٌ في المحيط. خيطُ تيّارٍ متعرّج (SVG) والمحطّات العشر مركوزةٌ
+   عليه يمنةً ويسرة، والسمكة (القدّ) تسبح للمحطّة المختارة. */
+.eng-map{position:relative;width:100%;margin:2px auto 0;}
+.eng-map__thread{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible;}
+.eng-map__path{fill:none;stroke:rgba(120,200,235,.22);stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:2 15;}
+.eng-map__path.on{stroke:url(#engTrail);stroke-dasharray:none;stroke-width:5;
+  filter:drop-shadow(0 0 6px rgba(95,230,255,.4));}
+.eng-node{--hue:190;position:absolute;transform:translate(-50%,-50%);z-index:1;
+  display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;
+  background:none;border:0;padding:0;width:118px;}
+.eng-node__disc{position:relative;width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:900;
+  color:#04131f;background:radial-gradient(circle at 40% 34%,hsl(var(--hue) 92% 76%),hsl(var(--hue) 80% 48%));
+  box-shadow:0 0 0 3px rgba(5,22,36,.85),0 6px 16px rgba(0,0,0,.4),0 0 16px hsla(var(--hue),90%,55%,.45);
+  transition:transform .16s,box-shadow .16s;}
+.eng-node__cap{text-align:center;max-width:118px;}
+.eng-node__nm{display:block;font-size:12.5px;font-weight:800;color:var(--foam);line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.6);}
+.eng-node__elo{display:block;font-size:10.5px;font-weight:700;color:hsl(var(--hue) 85% 78%);margin-top:1px;}
+.eng-node__fish{position:absolute;top:-8px;inset-inline-end:-20px;width:30px;color:var(--glow);
+  opacity:0;transition:opacity .2s;pointer-events:none;filter:drop-shadow(0 0 6px rgba(95,230,255,.6));}
+.eng-node__fish svg{width:100%;height:auto;display:block;}
+.eng-node:hover .eng-node__disc{transform:scale(1.06);}
+.eng-node:active .eng-node__disc{transform:scale(.97);}
+.eng-node.is-active .eng-node__disc{transform:scale(1.16);
+  box-shadow:0 0 0 3px hsl(var(--hue) 90% 62%),0 8px 22px rgba(0,0,0,.45),0 0 26px hsla(var(--hue),95%,58%,.7);}
+.eng-node.is-active .eng-node__nm{color:hsl(var(--hue) 92% 82%);}
+.eng-node.is-active .eng-node__fish{opacity:1;animation:engFishNudge 1.7s ease-in-out infinite;}
+@keyframes engFishNudge{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
 
 /* قراءة السونار للمستوى المختار */
 .eng-readout{padding:14px 16px;border-radius:16px;background:var(--glass);border:1px solid var(--line);
@@ -960,13 +963,11 @@ body[data-ui-theme="glass"] .mc-tag{
 
 @media(min-width:820px){
   .eng-wrap{max-width:680px;}
-  .eng-dive{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
-  .eng-dive::before{display:none;}
   .eng-av{width:88px;height:88px;}
 }
 @media(prefers-reduced-motion:reduce){
   .eng-rays span,.eng-caustics,.eng-bub,.eng-mote,.eng-fish,.eng-kelp-b,
-  .eng-av.fish,.eng-gate-ring,.eng-gate-arrow,.eng-st.is-active .eng-st-fish{animation:none !important;}
+  .eng-av.fish,.eng-gate-ring,.eng-gate-arrow,.eng-node.is-active .eng-node__fish{animation:none !important;}
 }
 
 /* ══════════ SHARED ══════════ */
@@ -992,12 +993,17 @@ body[data-ui-theme="glass"] .mc-tag{
 
 /* ── الرأس: نور وحلقة التقدّم ── */
 .nlv__hero{display:flex;align-items:center;gap:16px;background:linear-gradient(150deg,var(--bg2),rgba(20,26,44,.55));border:1px solid rgba(201,168,76,.16);border-radius:20px;padding:16px 18px;box-shadow:0 12px 34px rgba(0,0,0,.34);}
-.nlv__av{position:relative;width:96px;height:96px;flex-shrink:0;}
+.nlv__av{position:relative;width:96px;height:96px;flex-shrink:0;margin-bottom:14px;}
 .nlv__ring{position:absolute;inset:0;width:100%;height:100%;}
 .nlv__ringBg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:5;}
 .nlv__ringOn{fill:none;stroke:var(--gold2);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.22,1,.36,1);filter:drop-shadow(0 0 5px rgba(201,168,76,.5));}
 .nlv__face{position:absolute;inset:11px;width:calc(100% - 22px);height:calc(100% - 22px);border-radius:50%;object-fit:cover;background:var(--bg3);}
-.nlv__pct{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);background:var(--bg1);border:1px solid rgba(201,168,76,.35);color:var(--gold2);font-size:10px;font-weight:800;padding:2px 8px;border-radius:9px;box-shadow:0 3px 8px rgba(0,0,0,.45);white-space:nowrap;z-index:2;}
+/* النسبة تنزل تحت الحلقة تمامًا: عند 50% ينتهي قوسُ التقدّم الذهبيّ
+   (بحدٍّ مدوّرٍ ووهجٍ) عند أسفل الحلقة بالضبط، فلو كانت النسبة ملاصقةً
+   للحافّة تتداخل معه. ندفعها كاملةً خارج مربّع الصورة (top ≈ الحافّة
+   السفلى) ونعطي ‎.nlv__av‎ هامشًا سفليًّا يستوعبها فلا تركب على الحلقة
+   ولا على نصّ الرأس. */
+.nlv__pct{position:absolute;top:100%;margin-top:3px;left:50%;transform:translateX(-50%);background:var(--bg1);border:1px solid rgba(201,168,76,.35);color:var(--gold2);font-size:10px;font-weight:800;padding:2px 8px;border-radius:9px;box-shadow:0 3px 8px rgba(0,0,0,.45);white-space:nowrap;z-index:2;line-height:1.2;}
 .nlv__hx{flex:1;min-width:0;}
 .nlv__kick{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);opacity:.9;}
 .nlv__ttl{font-family:'Amiri',serif;font-size:24px;line-height:1.15;color:var(--text);margin:2px 0 4px;}
@@ -1422,6 +1428,28 @@ body[data-ui-theme="glass"] .mc-tag{
 .chat-mic.recording{background:rgba(248,113,113,.6);border-color:rgba(248,113,113,.5);color:#fff;animation:pulse 1s infinite;}
 .chat-mic .rec-timer{font-size:10px;margin-inline-end:4px;min-width:24px;text-align:center;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+/* ══ نافذة «تعليق نور» (وضع المحرّك) ══
+   قراءةٌ فقط: نور يعلّق على المواجهة ولا يُراسَل ولا يردّ — ليست شاتًا.
+   تتبع الثيم بنفس صوت نوافذ التطبيق (bg/gold)، وتظهر أسفل عناصر اللعب
+   بكلاس .show زي لوحة الشات. صورة نور حاضرة في الرأس وفي كل تعليق. */
+.ncmt-wrap{width:100%;max-width:510px;background:linear-gradient(180deg,var(--bg2),var(--bg));border:1px solid color-mix(in srgb,var(--gold) 20%,transparent);border-radius:12px;overflow:hidden;display:none;flex-direction:column;height:190px;min-height:190px;box-shadow:0 10px 30px rgba(0,0,0,.34);}
+.ncmt-wrap.show{display:flex;}
+.ncmt-head{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid color-mix(in srgb,var(--gold) 14%,transparent);background:color-mix(in srgb,var(--gold) 7%,transparent);}
+.ncmt-face,.ncmt-btn-ava{background-image:url('./nour.png?v=2');background-size:cover;background-position:center;border-radius:50%;flex-shrink:0;}
+.ncmt-face{width:34px;height:34px;border:1.5px solid color-mix(in srgb,var(--gold) 45%,transparent);box-shadow:0 0 10px color-mix(in srgb,var(--gold) 30%,transparent);}
+.ncmt-btn-ava{width:16px;height:16px;border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);display:inline-block;vertical-align:middle;}
+.ncmt-id{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2;}
+.ncmt-name{font-weight:800;font-size:13px;color:var(--gold2);}
+.ncmt-role{font-size:10.5px;color:var(--text2);}
+.ncmt-x{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text2);font-size:13px;cursor:pointer;flex-shrink:0;line-height:1;}
+.ncmt-x:hover{background:rgba(255,255,255,.1);color:var(--text);}
+.ncmt-body{flex:1;overflow-y:auto;padding:9px 11px;display:flex;flex-direction:column-reverse;gap:7px;overscroll-behavior:contain;}
+.ncmt-c{display:flex;align-items:flex-start;gap:7px;animation:ncmtIn .26s ease both;}
+.ncmt-c__ava{width:22px;height:22px;border-radius:50%;background-image:url('./nour.png?v=2');background-size:cover;background-position:center;border:1px solid color-mix(in srgb,var(--gold) 22%,transparent);flex-shrink:0;}
+.ncmt-c__tx{font-size:12px;line-height:1.65;color:var(--text);background:var(--bg3);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:7px 10px;word-break:break-word;}
+.ncmt-c.think .ncmt-c__tx{color:var(--text2);font-style:italic;}
+@keyframes ncmtIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+#btn-ncomment .ncmt-btn-ava{margin-inline-end:2px;}
 /* ملاحظة: اتشال تثبيت لوحة الشات كـ overlay فوق الكيبورد (body.kb-chat)
    لأنه كان بيحوّل الشات لـ position:fixed بارتفاع 46vh عائم فوق الرقعة على
    الأندرويد (الكيبورد مش بيصغّر visualViewport في الويب-فيو)، فيقصّ الرقعة
@@ -2528,6 +2556,7 @@ body[data-ui-theme="glass"] .mc-tag{
   #s-game .sbar{order:3;width:100%;max-width:none;font-size:11px;min-height:30px;}
   #s-game .mvhist{order:4;width:100%;max-width:none;max-height:32px;}
   #s-game .chat-wrap{order:5;width:100%;max-width:none;}
+  #s-game .ncmt-wrap{order:5;width:100%;max-width:none;}
   .sc-row{display:none!important;}
   .pb-timer{font-size:15px;min-width:38px;}
   /* hide chat in mode-local only */
@@ -2863,6 +2892,7 @@ body[data-ui-theme="glass"] .mc-tag{
   #s-game.active .sbar{order:5;}
   #s-game.active .mvhist{order:6;}
   #s-game.active .chat-wrap{order:7;}
+  #s-game.active .ncmt-wrap{order:7;}
 
   #bar-w,#bar-b,#board-container,
   .gtbar,.sbar,.mvhist,.chat-wrap{
@@ -2941,6 +2971,7 @@ body[data-ui-theme="glass"] .mc-tag{
   #s-game.mode-engine .mvhist{order:5;}
   #s-game.mode-bot .chat-wrap,
   #s-game.mode-engine .chat-wrap{order:6;}
+  #s-game.mode-engine .ncmt-wrap{order:6;}
 }
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
@@ -3792,6 +3823,10 @@ html.amkh-preboot #amkh-preboot{
       <span>◉</span><span>شات</span>
       <span class="chat-badge" id="chat-badge"></span>
     </button>
+    <button class="tbb2" id="btn-ncomment" onclick="NCMT.toggle()" style="display:none">
+      <span class="ncmt-btn-ava" aria-hidden="true"></span><span>تعليق نور</span>
+      <span class="chat-badge" id="ncmt-badge"></span>
+    </button>
   </div>
   <div class="sbar" id="sbar">دور الأبيض</div>
   <div class="mvhist" id="mvhist"></div>
@@ -3814,6 +3849,18 @@ html.amkh-preboot #amkh-preboot{
              onkeydown="if(event.key==='Enter')CHAT.send()">
       <button class="chat-send" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="if(typeof SFX !== 'undefined') SFX.btn(); CHAT.send()">إرسال</button>
     </div>
+  </div>
+  <!-- تعليق نور (وضع المحرّك) — نافذة قراءةٍ فقط: نور يعلّق، لا شات ولا إرسال -->
+  <div class="ncmt-wrap" id="ncmt-wrap" role="log" aria-live="polite">
+    <div class="ncmt-head">
+      <span class="ncmt-face" aria-hidden="true"></span>
+      <div class="ncmt-id">
+        <span class="ncmt-name">نور</span>
+        <span class="ncmt-role" id="ncmt-role">يعلّق على مواجهتك</span>
+      </div>
+      <button class="ncmt-x" id="ncmt-x" onclick="NCMT.toggle()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="ncmt-body" id="ncmt-body"></div>
   </div>
 </div>
 
@@ -3941,7 +3988,7 @@ html.amkh-preboot #amkh-preboot{
         </div>
       </div>
 
-      <div class="eng-dive" id="engine-level-grid"></div>
+      <div class="eng-map" id="engine-level-grid"></div>
 
       <div class="eng-readout">
         <div class="eng-readout-h">
@@ -4446,6 +4493,21 @@ const SFX=(()=>{
     micClose(){ tones([{f:880,t0:0,dur:0.09,type:'triangle',vol:0.08},{f:523.25,t0:0.09,dur:0.14,type:'sine',vol:0.09}]); },
     /* هبوط بيدق شاشة الترحيب — «توب» ناعم منخفض ينبض مع كل قفزة */
     pawnHop(){ tones([{f:174.61,t0:0,dur:0.11,type:'sine',vol:0.06},{f:349.23,t0:0.015,dur:0.07,type:'sine',vol:0.035}]); },
+    /* نغمة الترحيب — «وصولٌ» بهيج على نهج chess.com: نَفَسٌ دافئ منخفض
+       يفتح المشهد ثم أربع نغمات صاعدة لامعة يتوّجها بريقٌ عالٍ خفيف.
+       صوتٌ مميّز مش من أصوات الشطرنج، بيتقال مرّة عند ظهور الشاشة. */
+    welcome(){ tones([
+      {f:130.81,t0:0,dur:0.62,type:'sine',vol:0.05,f2:196},
+      {f:523.25,t0:0.02,dur:0.15,type:'sine',vol:0.09},
+      {f:659.25,t0:0.12,dur:0.15,type:'sine',vol:0.10},
+      {f:783.99,t0:0.22,dur:0.15,type:'sine',vol:0.10},
+      {f:1046.5,t0:0.33,dur:0.32,type:'sine',vol:0.11},
+      {f:1567.98,t0:0.46,dur:0.36,type:'triangle',vol:0.055},
+    ]); },
+    /* هل الصوت جاهز للتشغيل الفوري الآن؟ (السياق موجود وشغّال) — شاشة
+       الترحيب بتستعمله عشان تفرّق بين التشغيل التلقائي المسموح وبين
+       الانتظار لأول لمسة (سياسة الـautoplay). */
+    ready(){ try{ return !!ctx && ctx.state==='running'; }catch(e){ return false; } },
     /* الغوص (منتقي المحرّك): هبوطٌ مائيّ — كنسةٌ نازلة + فقاعة */
     dive(){ tones([{f:660,f2:170,t0:0,dur:0.5,type:'sine',vol:0.09},{f:300,f2:90,t0:0.1,dur:0.55,type:'sine',vol:0.07},{f:1200,t0:0.02,dur:0.06,type:'triangle',vol:0.04}]); },
     undo()   {play('move');},  // Use move sound for undo
@@ -6877,7 +6939,23 @@ const Home={
       /* مباريات «لاعبَان» على نفس الجهاز مالهاش اسم خصم، فلو حطينا اسم
          الوضع في السطرين بيطلع «لاعبَان · لاعبَان · 52 نقلة». في الحالة
          دي الاسم ياخد الوضع والسطر التحتاني ينزل عليه النقلات بس. */
-      if(g.opp){
+      if(g.mode==='engine'){
+        /* اسم خصم المحرّك يتبنى وقت العرض من رقم المستوى فيتترجم مع اللغة
+           بدل ما يُعرض النصّ المحفوظ (اللي ممكن يكون بلغةٍ تانية فيسرّب).
+           المباريات القديمة (بلا رقم) بنستنتج مستواها من النصّ العربيّ
+           المحفوظ، وإلا نعرض «Stockfish» وحده بلا لاحقة. */
+        let et='';
+        try{
+          let L=(g.lvl>0&&g.lvl<=ENGINE_LEVELS.length)?getEngineLevel(g.lvl):null;
+          if(!L&&g.opp){
+            const tail=String(g.opp).split(/[—–-]/).pop().trim();
+            L=ENGINE_LEVELS.find(x=>x.title===tail)||null;
+          }
+          et=L?(' — '+T(L.title)):'';
+        }catch(e){}
+        nm.textContent='Stockfish'+et;
+        meta.textContent=mvTxt;
+      }else if(g.opp){
         nm.textContent=g.opp;
         meta.textContent=label+' · '+mvTxt;
       }else{
@@ -7128,7 +7206,13 @@ const DSOverlay={
      close() (زي amkhUI.mount وهو بيعيد البناء) القفل بيتصحّح لوحده ولا
      يعلَق → مافيش تجمّد تمرير في التطبيق كله. */
   _syncBodyLock(){
-    const anyOpen = document.querySelector('.ds-overlay.is-open, .is-open')
+    /* لازم يكون الانتقاء محصورًا في النوافذ الحقيقية فقط. كلاس ‎is-open‎
+       مش حِكرًا على النوافذ: بطاقات «درب نور» مثلًا بتاخده (‎.nlvL.is-open‎
+       للمرحلة المفتوحة)، فانتقاء ‎.is-open‎ المجرّد كان بيلقّطها ويفضل
+       القفل شغّالًا للأبد بعد أول زيارة للمراحل → تجمّد السكرول في التطبيق
+       كله. النوافذ كلها بتحمل ‎.ds-overlay‎ (mount + الـHTML الثابت)،
+       ونوافذ اللعب بتفتح بكلاس ‎.open‎، فنحصر عليهم وحدهم. */
+    const anyOpen = document.querySelector('.ds-overlay.is-open')
       || document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open');
     if(anyOpen){
       document.body.classList.add('amkh-modal-open');
@@ -7232,7 +7316,7 @@ function amkhReleaseModalFreeze(){
   /* بيعيد الحساب من حالة الـDOM: لو لسه فيه أي نافذة مفتوحة (DSOverlay
      أو لعب) القفل يفضل، غير كده يتشال. نفس منطق DSOverlay عشان مايتعارضوش. */
   try{ if(window.DSOverlay&&DSOverlay._syncBodyLock){ DSOverlay._syncBodyLock(); return; } }catch(e){}
-  if(document.querySelector('.is-open'))return;
+  if(document.querySelector('.ds-overlay.is-open'))return;
   if(document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open'))return;
   document.body.style.removeProperty('overflow');
   document.body.classList.remove('amkh-modal-open');
@@ -7363,7 +7447,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 42;
+const APP_VERSION_CODE = 43;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -7479,32 +7563,68 @@ const ENGINE_PICKER={
   _renderGrid(){
     const grid=document.getElementById('engine-level-grid');
     if(!grid)return;
-    grid.innerHTML='';
-    ENGINE_LEVELS.forEach(L=>{
+    /* هندسة الدرب المتعرّج: صفٌّ لكل محطّة تنزل، وx يتبادل يمنةً ويسرة.
+       الإحداثيّات: x بالنسبة المئويّة (0–100)، y بالبكسل. الـSVG
+       يتمدّد أفقيًّا (preserveAspectRatio=none) والحدُّ ثابتٌ بـ
+       non-scaling-stroke فلا يتشوّه. */
+    const n=ENGINE_LEVELS.length;
+    const TOP=46, ROW=104, BOT=54;
+    const H=TOP+(n-1)*ROW+BOT;
+    const xs=[], ys=[];
+    for(let i=0;i<n;i++){ xs.push(i%2===0?27:73); ys.push(TOP+i*ROW); }
+    grid.style.height=H+'px';
+    this._pts={xs,ys,H};
+    /* الخيط: مسارٌ باهتٌ كامل + مسارٌ متوهّجٌ يُقصَّ لاحقًا حتى المختار */
+    let d='M '+xs[0]+' '+ys[0];
+    for(let i=1;i<n;i++){
+      const my=(ys[i-1]+ys[i])/2;
+      d+=' C '+xs[i-1]+' '+my+' '+xs[i]+' '+my+' '+xs[i]+' '+ys[i];
+    }
+    grid.innerHTML=
+      '<svg class="eng-map__thread" viewBox="0 0 100 '+H+'" preserveAspectRatio="none" aria-hidden="true">'
+      +'<defs><linearGradient id="engTrail" x1="0" y1="0" x2="0" y2="1">'
+      +'<stop offset="0" stop-color="#7ee8ff"/><stop offset="0.6" stop-color="#f2c14e"/>'
+      +'<stop offset="1" stop-color="#a06bd0"/></linearGradient></defs>'
+      +'<path class="eng-map__path" vector-effect="non-scaling-stroke" d="'+d+'"/>'
+      +'<path class="eng-map__path on" id="eng-trail-on" vector-effect="non-scaling-stroke" d="'+d+'"/>'
+      +'</svg>';
+    ENGINE_LEVELS.forEach((L,i)=>{
       const b=document.createElement('button');
       b.type='button';
-      b.className='eng-st'+(L.level===this._sel?' is-active':'');
+      b.className='eng-node'+(L.level===this._sel?' is-active':'');
       b.dataset.level=String(L.level);
       b.style.setProperty('--hue',String(this._hue(L.level)));
-      const num=document.createElement('span'); num.className='eng-st-num'; num.textContent=String(L.level);
-      const body=document.createElement('span'); body.className='eng-st-body';
-      const nm=document.createElement('span'); nm.className='eng-st-name'; nm.textContent=L.title;
-      const zn=document.createElement('span'); zn.className='eng-st-zone'; zn.textContent=this._zones[L.level-1]||'';
-      body.appendChild(nm); body.appendChild(zn);
-      const elo=document.createElement('span'); elo.className='eng-st-elo'; elo.textContent=L.limitless?'قوة كاملة':('~'+L.elo);
-      const fish=document.createElement('span'); fish.className='eng-st-fish'; fish.innerHTML=this._fishMini();
-      b.appendChild(num); b.appendChild(body); b.appendChild(elo); b.appendChild(fish);
+      b.style.left=xs[i]+'%';
+      b.style.top=ys[i]+'px';
+      const elo=L.limitless?T('قوة كاملة'):('~'+L.elo);
+      const esc=(window.amkhUI&&amkhUI.esc)?amkhUI.esc:(s=>String(s==null?'':s));
+      b.innerHTML=
+        '<span class="eng-node__disc">'+L.level
+        +'<span class="eng-node__fish">'+this._fishMini()+'</span></span>'
+        +'<span class="eng-node__cap"><span class="eng-node__nm">'+esc(L.title)+'</span>'
+        +'<span class="eng-node__elo">'+esc(elo)+'</span></span>';
       b.onclick=()=>{ if(typeof SFX!=='undefined')SFX.btn(); this.select(L.level); };
       grid.appendChild(b);
     });
+    this._paintTrail();
+  },
+  /* يقصّ المسار المتوهّج حتى المحطّة المختارة (تقدّمُ الغوص) */
+  _paintTrail(){
+    const on=document.getElementById('eng-trail-on');
+    if(!on||!this._pts)return;
+    const len=on.getTotalLength?on.getTotalLength():0;
+    const idx=Math.max(0,Math.min(ENGINE_LEVELS.length-1,this._sel-1));
+    const frac=ENGINE_LEVELS.length>1?idx/(ENGINE_LEVELS.length-1):1;
+    if(len){ on.style.strokeDasharray=len; on.style.strokeDashoffset=len*(1-frac); }
   },
   select(level){
     this._sel=Math.max(1,Math.min(10,parseInt(level,10)||4));
     const preset=getEnginePreset(this._sel);
     const grid=document.getElementById('engine-level-grid');
-    if(grid)grid.querySelectorAll('.eng-st').forEach(el=>{
+    if(grid)grid.querySelectorAll('.eng-node').forEach(el=>{
       el.classList.toggle('is-active',parseInt(el.dataset.level,10)===this._sel);
     });
+    this._paintTrail();
     const set=(id,txt)=>{const e=document.getElementById(id);if(e)e.textContent=txt;};
     set('engine-sel-badge','مستوى '+preset.level);
     set('engine-sel-title',preset.title);
@@ -7513,7 +7633,7 @@ const ENGINE_PICKER={
     /* هالة سمكة المواجهة تأخذ لون العمق المختار (سماويّ→ذهبيّ) */
     const fav=document.getElementById('engine-fish-av');
     if(fav)fav.style.boxShadow=`0 0 24px hsla(${this._hue(this._sel)},90%,55%,.5),inset 0 0 14px rgba(0,0,0,.55)`;
-    const act=grid&&grid.querySelector('.eng-st.is-active');
+    const act=grid&&grid.querySelector('.eng-node.is-active');
     if(act&&act.scrollIntoView){ try{act.scrollIntoView({block:'nearest'});}catch(e){} }
   },
   open(){
@@ -7713,7 +7833,7 @@ const Leaderboard = {
     const noteEl = bar.querySelector('#lb-self-note');
     if(d && d.rank){
       rankEl.textContent = '#' + d.rank;
-      noteEl.textContent = `${r.games||0} مباراة مصنّفة` + (r.provisional ? ' · تقييم مبدئي' : '');
+      noteEl.textContent = T(`${r.games||0} مباراة مصنّفة`) + (r.provisional ? ' · ' + T('تقييم مبدئي') : '');
     }else{
       rankEl.textContent = 'ترتيبك';
       noteEl.textContent = 'العب مباراة مصنّفة لتدخل الترتيب العالمي';
@@ -8560,7 +8680,10 @@ const LVL={
         const lid=parseInt(item.id);
         if(!isNaN(lid)){
           progress[lid]={stars:item.stars||0,moves:item.moves||999,done:!!item.done};
-          if(lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
+          /* الفتح يُشتقّ من الإتمام فقط: سجلٌّ ‎done:false‎ (يكتبه
+             importFromSync لمرحلةٍ مفتوحة لم تُتَمّ) ما يفتحش التالية.
+             غير كده يتسلسل الفتح ويُفتَح ما بعد مرحلة اللاعب بالغلط. */
+          if(item.done && lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
         }
       });
     }catch(e){console.log('[IDB] Load failed:',e);}
@@ -8581,7 +8704,7 @@ const LVL={
               moves:Math.min(existing.moves||999,val.moves||999),
               done:!!(existing.done||val.done)
             };
-            if(lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
+            if(progress[lid].done && lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
           }
         });
       }
@@ -8604,7 +8727,7 @@ const LVL={
                 moves:Math.min(existing.moves||999,val.moves||999),
                 done:!!(existing.done||val.done)
               };
-              if(lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
+              if(progress[lid].done && lid+1<LEVELS_DEF.length)progress['u'+(lid+1)]=true;
             }
           });
         }
@@ -8689,7 +8812,12 @@ const LVL={
   async unlocked(id){
     if(id===0)return true;
     const p=await this.get();
-    return!!(p['u'+id]||p[id]?.done);
+    /* الفتح يُشتَقّ من الإتمام وحده: مرحلةٌ مفتوحة = هي نفسها مكتملة أو
+       سابقتها المباشرة مكتملة. لا نعتمد على رايات ‎u#‎ المخزَّنة إطلاقًا —
+       نسخةٌ قديمة كانت بتكتب رايات فتحٍ زائفة (u8/u9/u10) فتنفتح مراحلُ
+       بعد مرحلة اللاعب. الاشتقاق ده يشفي الحالة المعطوبة تلقائيًّا ويطبّق
+       قاعدة أحمد: لا يُفتَح إلا التالي مباشرةً بعد آخر مكتملة. */
+    return!!(p[id]?.done||p[id-1]?.done);
   },
 
   /* ══════════════════════════════════════════════════════════════
@@ -8709,14 +8837,16 @@ const LVL={
     const out=[];
     for(const lv of LEVELS_DEF){
       const r=p[lv.id];
-      const unlocked=!!p['u'+lv.id];
-      if(!r && !unlocked) continue;
+      /* نرفع المراحل ذات السجلّ الحقيقي فقط. رفع مرحلةٍ «مفتوحة بلا سجلّ»
+         كان بيولّد صفوف ‎completed:false‎ يعيد الاستيراد كتابتها كسجلّات
+         ‎done:false‎ فتلوّث التخزين. الفتح مشتقٌّ من الإتمام فلا يُزامَن. */
+      if(!r) continue;
       out.push({
         stage:lv.id+1,
-        completed:!!(r && r.done),
-        stars:(r && r.stars)||0,
+        completed:!!r.done,
+        stars:r.stars||0,
         /* 999 هي «مافيش رقم» في التخزين المحلي — مانرفعهاش كأنها نتيجة */
-        moves:(r && r.moves && r.moves<999)?r.moves:null
+        moves:(r.moves && r.moves<999)?r.moves:null
       });
     }
     return out;
@@ -8735,6 +8865,10 @@ const LVL={
       const srvStars=Number(row.stars)||0;
       const bm=Number(row.best_moves!=null?row.best_moves:row.moves);
       const srvMoves=(Number.isFinite(bm)&&bm>0)?bm:999;
+      /* صفٌّ بلا تقدّم حقيقيّ (غير مكتمل، بلا نجوم ولا نقلات) ومافيش
+         سجلّ محلّي = لا شيء نكتبه. كتابته كسجلّ ‎done:false‎ كانت بتلوّث
+         التخزين بلا فائدة. */
+      if(!srvDone&&!srvStars&&srvMoves===999&&!p[id])continue;
       const cur=p[id]||{stars:0,moves:999,done:false};
       const next={
         stars:Math.max(cur.stars||0,srvStars),
@@ -9813,7 +9947,13 @@ Capture: ${cap?('a '+capName+' was captured'):'none'}
 Write Nour's comment now:`);
       const json=await groqChat({model:GROQ_MODEL,messages:[{role:'system',content:sys},{role:'user',content:user}],max_tokens:110,temperature:0.7});
       const reply=(json.choices?.[0]?.message?.content||'').trim();
-      if(reply&&reply.length>2){ setTimeout(()=>this._addMsg(reply,'opp'),Math.random()*500+220); }
+      /* حارس اللغة: لو التطبيق إنجليزي والموديل ردّ فيه حروف عربية،
+         نسقط الردّ بدل ما نسرّب عربي في الإنجليزي (والعكس). */
+      if(reply&&reply.length>2){
+        if(EN&&/[؀-ۿ]/.test(reply))return;
+        if(!EN&&!/[؀-ۿ]/.test(reply)&&/[A-Za-z]/.test(reply))return;
+        setTimeout(()=>{ try{ NCMT.push(reply); }catch(e){} },Math.random()*500+220);
+      }
     }catch(e){}
   },
   _setNourTyping(show){
@@ -10160,10 +10300,8 @@ Write Nour's comment now:`);
     if(S.mode==='bot'&&S.levelId>=0){
       this._addMsg(T('مرحباً! أنا نور. تحدث معي في أي وقت'),'opp');
     }
-    // مباراة المحرّك: نور معلّقٌ ومشجّع (بلاغ جوجو — لا تكن صامتة)
-    else if(isStockfishMode()){
-      this._addMsg(T('أنا نور، وسأعلّق على مواجهتك مع Stockfish. حظًّا موفّقًا!'),'opp');
-    }
+    /* مباراة المحرّك لم تعد تستعمل الشات: نور يعلّق عبر نافذة «تعليق نور»
+       المخصَّصة (NCMT) لا شاتًا — بلاغ جوجو (لم يطلب شاتًا في وضع المحرّك). */
   },
   hide(){
     if(window.amkhFreezeFxFrame)amkhFreezeFxFrame();
@@ -10172,6 +10310,70 @@ Write Nour's comment now:`);
     document.getElementById('chat-msgs').innerHTML='';
   }
 };
+
+/* ══════════════════════════════════════════════════════════════
+   NCMT — «تعليق نور» في وضع المحرّك (Stockfish)
+   ──────────────────────────────────────────────────────────────
+   جوجو رفض شات نور في وضع المحرّك: هو لم يطلب شاتًا. البديل نافذةٌ
+   مصمَّمة للقراءة فقط تظهر أسفل عناصر اللعب عند الضغط على زر «تعليق
+   نور» — نور يعلّق على المواجهة (عبر Groq من _sendEngineAutoAI)، بلا
+   إرسال، ونور لا يردّ، وليست كشات مراحل نور. صورة نور حاضرة في الرأس
+   وفي كل تعليق. تُخفى وتُفرَّغ عند بدء أي مباراة جديدة (_reset).
+  ══════════════════════════════════════════════════════════════ */
+const NCMT={
+  unread:0,
+  _btn(){ return document.getElementById('btn-ncomment'); },
+  _wrap(){ return document.getElementById('ncmt-wrap'); },
+  _body(){ return document.getElementById('ncmt-body'); },
+  show(){
+    const btn=this._btn(); if(btn)btn.style.display='flex';
+    const body=this._body(); if(body)body.innerHTML='';
+    this.unread=0; this._badge();
+    const role=document.getElementById('ncmt-role');
+    if(role)role.textContent=T('يعلّق على مواجهتك');
+    /* تعليقٌ افتتاحيٌّ محلّيّ فورًا (بلا انتظار الشبكة) كي لا تُفتَح
+       النافذة فارغة — التعليقات الحيّة تأتي بعد النقلات. */
+    this._add(T('أنا معك في هذه المواجهة. العب بثقة وسأعلّق على نقلاتك.'));
+  },
+  toggle(){
+    try{ SFX.btn(); }catch(e){}
+    if(window.amkhFreezeFxFrame)amkhFreezeFxFrame();
+    const wrap=this._wrap(); if(!wrap)return;
+    const open=wrap.classList.toggle('show');
+    if(open){ this.unread=0; this._badge();
+      requestAnimationFrame(()=>{ const b=this._body(); if(b)b.scrollTop=0; }); }
+  },
+  _badge(){
+    const b=document.getElementById('ncmt-badge'); if(!b)return;
+    if(this.unread>0){ b.textContent=this.unread>9?'9+':String(this.unread); b.classList.add('show'); }
+    else{ b.textContent=''; b.classList.remove('show'); }
+  },
+  _add(text){
+    const body=this._body(); if(!body)return;
+    const row=document.createElement('div'); row.className='ncmt-c';
+    const ava=document.createElement('div'); ava.className='ncmt-c__ava';
+    const tx=document.createElement('div'); tx.className='ncmt-c__tx';
+    /* نصّ نور محتوى ديناميكيّ (من Groq أو مولَّد هنا) — نضعه كنصٍّ لا HTML */
+    tx.textContent=text;
+    row.appendChild(ava); row.appendChild(tx);
+    body.prepend(row);
+    requestAnimationFrame(()=>{ body.scrollTop=0; });
+  },
+  /* التعليقات الحيّة تدخل من هنا. لو النافذة مقفولة نزوّد عدّاد الشارة. */
+  push(text){
+    if(!text)return;
+    this._add(text);
+    const wrap=this._wrap();
+    if(!wrap||!wrap.classList.contains('show')){ this.unread++; this._badge(); }
+  },
+  hide(){
+    const btn=this._btn(); if(btn)btn.style.display='none';
+    const wrap=this._wrap(); if(wrap)wrap.classList.remove('show');
+    const body=this._body(); if(body)body.innerHTML='';
+    this.unread=0; this._badge();
+  }
+};
+try{ window.NCMT=NCMT; }catch(e){}
 
 const EVALBAR={
   update(bd){
@@ -11428,7 +11630,7 @@ Explain very briefly why it earned this classification and what could have been 
         }catch(e){
           stopMiniAnimator('review');
           console.error('Review analysis error:', e);
-          document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">تعذّر التحليل: ${e.message || 'Unknown error'}</div>`;
+          document.getElementById('rv-main').innerHTML=`<div style="color:var(--red);padding:30px;text-align:center">${T('تعذّر التحليل')}: ${e.message || 'Unknown error'}</div>`;
         }
       });
     },
@@ -13118,7 +13320,10 @@ const G={
     }catch(e){}
     Rec.add({
       mode:S.mode,
-      lvl:typeof S.levelId==='number'?S.levelId:-1,
+      /* لوضع المحرّك نخزّن رقم مستوى Stockfish (مش S.levelId اللي بتخصّ درب
+         نور) عشان نعيد بناء الاسم المترجَم وقت العرض بدل ما نخزّن نصًّا بلغةٍ
+         واحدة فيسرّب. باقي الأوضاع زي ما هي. */
+      lvl:S.mode==='engine'?(S.engineLevel||0):(typeof S.levelId==='number'?S.levelId:-1),
       opp,
       res,
       reason:st.reason||'',
@@ -13162,6 +13367,7 @@ const G={
     AST.clear();
     R.boardReset();
     CHAT.hide();
+    try{ NCMT.hide(); }catch(e){}
     const sg=document.getElementById('s-game');
     sg.classList.remove('mode-local','mode-bot','mode-online','mode-engine','mode-bluetooth');
     sg.classList.add('mode-'+mode);
@@ -13228,7 +13434,7 @@ const G={
     GameIdentity.setTitle(tt`ضد Stockfish · ${T(preset.badge)}`);
     fixBars('w');
     Nav.game();
-    CHAT.show();   /* نور يعلّق داخل مباراة المحرّك — لم تعد صامتة (بلاغ جوجو) */
+    NCMT.show();    /* زر «تعليق نور» ونافذة التعليق المصمَّمة — بدل الشات */
     await R.all();
     updatePlayerImages();
   },

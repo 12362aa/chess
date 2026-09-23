@@ -13,6 +13,28 @@
   if (typeof window === 'undefined' || !window.I18N) return;
   var A = window.I18N.add;
 
+  /* ═══════ سِمات وحقول لا يلتقطها المسح إلا بمفتاح صريح ═══════
+     نصوص placeholder/title/aria عربية بلا مفتاح كانت تتسرّب في الإنجليزي. */
+  A({
+    'ابحث عن دولة…': 'Search for a country…',
+    'أول حركة': 'First move',
+    'السابقة': 'Previous',
+    'التالية': 'Next',
+    'آخر حركة': 'Last move',
+    'كلمة المرور': 'Password',
+    'الاسم الظاهر للاعبين': 'Display name shown to players',
+    'كلمة المرور الجديدة': 'New password',
+    'تأكيد كلمة المرور': 'Confirm password',
+    'اكتب ردّك…': 'Type your reply…',
+    'اسم الحفلة': 'Party name',
+    'ابحث باسم اللاعب…': 'Search by player name…',
+    'مكالمة جماعية': 'Group call',
+    'مكالمة فيديو جماعية': 'Group video call',
+    'إخفاء': 'Hide',
+    'إرفاق صورة أو فيديو': 'Attach a photo or video',
+    'تسجيل صوتي': 'Voice recording',
+  });
+
   /* ═══════════ الشات: الرسائل والحفلات ═══════════ */
   A({
     'تنبيه': 'Alert',
@@ -290,6 +312,8 @@
     'النقلات': 'Moves',
     'تأكيد الخروج': 'Confirm exit',
     'تعليق نور': 'Nour’s comment',
+    'يعلّق على مواجهتك': 'Commenting on your game',
+    'أنا معك في هذه المواجهة. العب بثقة وسأعلّق على نقلاتك.': 'I’m with you in this match. Play with confidence and I’ll comment on your moves.',
     'حفظ': 'Save',
     'خاطف': 'Bullet',
     'ذهبي': 'Gold',
@@ -410,6 +434,7 @@
     'عرض نقاط التقدم': 'Show advantage points',
     'عشرة مستويات متدرّجة من مبتدئ حتى القوة الكاملة': 'Ten graded levels from beginner to full strength',
     /* منتقي المحرّك «الغوص في المحيط» — العناوين ومناطق العمق */
+    'STOCKFISH · غوص': 'STOCKFISH · Dive',
     'كلما نزلتَ أعمق اشتدّ الخصم — عشرةُ أعماقٍ من الضحل إلى القاع.': 'The deeper you go, the tougher the foe — ten depths from the shallows to the seabed.',
     'اختر عمق الغوص': 'Choose your dive depth',
     'كلما غُصتَ أعمق اشتدّ الخصم — من السطح المشمس إلى قاع الخندق.': 'The deeper you dive, the tougher the foe — from the sunlit surface to the trench floor.',
@@ -1521,6 +1546,7 @@
     'تعذّر الإرسال': 'Sending failed',
     'تعذّر إرسال النقلة': 'The move could not be sent',
     'تعذّر التحليل: {0}': 'Analysis failed: {0}',
+    'تعذّر التحليل': 'Analysis failed',
     'تعذّر تحديد اللاعب': 'Could not identify the player',
     'تعذّر تغيير الاسم': 'Could not change the name',
     'تعذّرت المشاهدة': 'Could not start spectating',
@@ -1569,6 +1595,7 @@
     'منذ دقيقة': 'a minute ago',
     'منذ ساعة': 'an hour ago',
     'منذ شهر': 'a month ago',
+    'منذ {0} شهور': '{0} months ago',
   });
 
   /* ═══════════ الحساب والصور والتحديث ═══════════ */

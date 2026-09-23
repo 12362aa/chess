@@ -1720,12 +1720,27 @@
   align-items: center;
   justify-content: flex-start;
   overflow-y: auto;
+  /* لازم الشاشة تملأ الارتفاع عشان القشرة تتمدّد جواها؛ من غير كده
+     المحتوى القصير كان يفضل فوق ويسيب فراغ ميت كبير تحت. */
+  min-height: 100dvh;
 }
 .bt-shell{
   display: flex; flex-direction: column;
   gap: var(--space-3);
   width: 100%; max-width: 560px;
-  padding: 0 var(--space-4) var(--space-5);
+  padding: 0 var(--space-4);
+  padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  /* تملأ ارتفاع الشاشة تحت الشريط العلوي وتتوسّط المحتوى رأسيًّا فمافيش
+     فراغ ميت فوق ولا تحت — الكتلة كلها متمركزة كبطاقةٍ واحدة، وزر
+     العودة آخرها ظاهرٌ دايمًا (مش عايم في النص). */
+  flex: 1 1 auto;
+  min-height: calc(100dvh - var(--appbar-height) - var(--space-4));
+  justify-content: center;
+}
+/* زر «العودة للقائمة» مفصولٌ عن المحتوى فوقه بمسافة واضحة، وبيبان
+   دايمًا كإجراء تذييل صريح مهما قلّ المحتوى. */
+.bt-shell > .ds-btn--block{
+  margin-top: var(--space-4);
 }
 
 /* الهوية */
@@ -1909,6 +1924,11 @@
   font-size: 10px;
   font-weight: var(--font-weight-semibold);
   vertical-align: middle;
+}
+/* الوسم عبر ::after لا يراه مُترجم i18n (عقدة نصّ CSS)، فنبدّله يدويًّا بالإنجليزي */
+html[lang="en"] #s-game.mode-bluetooth .pbar.is-me .pb-nm::after,
+html[lang="en"] #s-game.mode-online .pbar.is-me .pb-nm::after{
+  content: 'You';
 }
 /* شريط الخصم أهدى بصريًا فالتفرقة فورية */
 #s-game.mode-bluetooth .pbar:not(.is-me){ opacity: .88; }
@@ -2395,14 +2415,17 @@ body[data-ui-theme="gaming"]{
   contain: paint;
 }
 .wl-pawn{ position: absolute; inset: 0; }
-/* الأرضيّة: معيّنا رقعةٍ بمنظورٍ خافت تحت البيدق */
+/* الأرضيّة: لوحةٌ صغيرة بمنظورٍ تحت البيدق (زي المنافس) — معيّنٌ بوجهين
+   فيقرأ كمنصّةٍ ثلاثيّة الأبعاد، وتوهّجٌ خفيف بلون السِّمة تحتها كإضاءة
+   مسرح فتبان كمنصّةٍ مقصودة لا ظلّ باهت. */
 .wl-pawn__floor{
   position: absolute;
-  left: 50%; bottom: 12%;
-  width: 78%; height: 30%;
+  left: 50%; bottom: 11%;
+  width: 82%; height: 32%;
   transform: translateX(-50%);
   pointer-events: none;
-  opacity: .5;
+  opacity: .7;
+  filter: drop-shadow(0 4px 12px color-mix(in srgb, var(--color-primary, #d8b45a) 45%, transparent));
 }
 /* الظلّ: يكبر ويبهت كلما ارتفع البيدق (معكوسٌ للقفزة) */
 .wl-pawn__sh{
