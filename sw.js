@@ -3,7 +3,7 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '4.2-b37';
+const SW_VERSION = '4.2-b44';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
@@ -164,6 +164,26 @@ self.addEventListener('fetch', e => {
           return res;
         })
         .catch(() => caches.match(e.request).then(c => c || caches.match('./')))
+    );
+    return;
+  }
+
+  /* ملفّات الكود والتنسيق من نفس الأصل — Network First.
+     في تطبيق Capacitor «الشبكة» هي حزمة الـAPK المحليّة، فهي لا تفشل
+     ولا تكلّف شيئًا. السبب: مع Cache First كان أيّ تعديل في screens.css
+     أو i18n-en.js لا يظهر أبدًا على الجهاز لو نُسي ترقيم ?v=، فيبدو
+     البناء الجديد مطابقًا للقديم تمامًا. الكاش يبقى احتياطًا للأوفلاين. */
+  if (url.origin === location.origin && /\.(css|js)$/i.test(url.pathname)) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res && res.status === 200 && e.request.method === 'GET') {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(c => c || new Response('', { status: 503 })))
     );
     return;
   }

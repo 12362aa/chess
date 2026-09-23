@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20260916-b37"></script>
+<script src="i18n-en.js?v=20260923-b44"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -2976,7 +2976,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260922-b42">
+<link rel="stylesheet" href="screens.css?v=20260923-b44">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -7447,7 +7447,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 43;
+const APP_VERSION_CODE = 44;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -15860,7 +15860,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="auth-client.js?v=20260916-b37"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260922-b42"></script>
+  <script src="welcome-client.js?v=20260923-b44"></script>
   <script src="friends-client.js?v=20260916-b37"></script>
   <script src="chat-client.js?v=20260916-b37"></script>
   <script src="call-client.js?v=20260916-b37"></script>

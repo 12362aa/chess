@@ -1167,8 +1167,8 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 43;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b43/chess-amkh-4.2-b43.apk';
+const LATEST_CODE = 44;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b44/chess-amkh-4.2-b44.apk';
 const NOTES_AR = 'ما عادت العربيّةُ تتسرّب حين يكون التطبيقُ بالإنجليزيّة: تدقيقٌ شاملٌ سدّ كلَّ نصٍّ عربيٍّ ظاهر — ترويسةُ خريطة المحرّك صارت STOCKFISH · Dive، وسجلُّ المبارياتِ ولوحةُ الصدارةِ يعرضان Stockfish باسم المستوى الإنجليزيّ، ووسمُ اللاعبِ على شريطِ المباراةِ You، وحقولُ البحثِ وكلمةِ المرورِ والشاتِ والمكالمةِ الجماعيّةِ كلُّها بالإنجليزيّة، وتعليقُ نور صار مضبوطًا على لغةِ الواجهة. ووضعُ البلوتوثِ أُعيد تصميمُه: محتوًى متمركزٌ وزرُّ رجوعٍ ظاهرٌ بلا فراغٍ أسفلَ الشاشة. وشاشةُ الترحيبِ نالت لوحًا أنيقًا أسفلَ الجنديّ ونغمةَ ترحيبٍ تُشغَّلُ مع أوّلِ لمسة.';
 const NOTES_EN = 'No more Arabic leaking through when the app is in English: a thorough audit sealed every stray Arabic string — the engine-map header now reads STOCKFISH · Dive, game history and the leaderboard show Stockfish with its English level, the player tag on the match bar reads You, and the search, password, chat and group-call fields are all in English, while Nour’s commentary now follows the interface language. Bluetooth mode was redesigned: centered content and a visible back button with no empty gap at the bottom. And the welcome screen gained a sleek platform beneath the pawn and a welcome chime that plays on first touch.';
 app.get('/api/version', (req, res) => {
