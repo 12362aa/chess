@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20260924-b49"></script>
+<script src="i18n-en.js?v=20260924-b50"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -1263,7 +1263,7 @@ body[data-ui-theme="glass"] .mc-tag{
   border:1px solid rgba(201,168,76,.16);border-radius:26px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);}
 .settings-hero::after{content:'';position:absolute;inset:auto -10% -35% auto;width:260px;height:260px;border-radius:50%;background:rgba(201,168,76,.08);filter:blur(12px);pointer-events:none;}
 .settings-hero-main{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:stretch;}
-.settings-profile-card{display:flex;align-items:flex-start;gap:16px;}
+.settings-profile-card{display:flex;align-items:center;gap:16px;}
 .settings-profile-avatar{width:82px;height:82px;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(201,168,76,.26);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;box-shadow:0 10px 24px rgba(0,0,0,.24);}
 .settings-profile-avatar:hover{transform:translateY(-2px);border-color:rgba(201,168,76,.4);box-shadow:0 16px 30px rgba(0,0,0,.28);}
 .settings-profile-fallback{font-size:38px;}
@@ -1271,8 +1271,8 @@ body[data-ui-theme="glass"] .mc-tag{
 .settings-overline{font-size:11px;letter-spacing:.08em;color:var(--gold2);margin-bottom:6px;font-weight:800;}
 .settings-headline{font-size:28px;line-height:1.15;color:var(--text);margin:0 0 6px;font-family:'Amiri',serif;}
 .settings-subtitle{display:none;}
-.settings-input-row{display:flex;gap:10px;margin-top:14px;align-items:center;}
-.settings-name-input{flex:1;padding:11px 14px;border-radius:14px;border:1px solid rgba(201,168,76,.18);background:rgba(7,10,16,.48);color:var(--text);font-size:14px;box-sizing:border-box;outline:none;transition:border-color .2s ease,box-shadow .2s ease;}
+.settings-input-row{display:flex;gap:10px;margin-top:0;align-items:center;width:100%;}
+.settings-name-input{flex:1 1 auto;width:100%;min-width:0;padding:13px 16px;border-radius:14px;border:1px solid rgba(201,168,76,.18);background:rgba(7,10,16,.48);color:var(--text);font-size:15px;box-sizing:border-box;outline:none;transition:border-color .2s ease,box-shadow .2s ease;}
 .settings-name-input:focus{border-color:rgba(45,212,191,.42);box-shadow:0 0 0 3px rgba(45,212,191,.12);}
 .settings-save-mini{padding:10px 18px!important;font-size:12px!important;white-space:nowrap;border-radius:12px!important;}
 .settings-tabs-wrap{width:100%;}
@@ -2173,18 +2173,40 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;}
 .rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(45,212,191,.55);animation:dbt .7s ease-in-out infinite;}
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
-/* مشاعر نور: حلقةُ مزاجٍ ملوّنة حول الصورة + شارةُ تعبيرٍ مرسومة تُطلَق
-   مرّةً عند كلّ حركة. اللون والوجه يتحدّدان من تصنيف الحركة (لا عشوائيًّا). */
-.rv-coach-ava{position:relative;display:inline-flex;width:24px;height:24px;flex-shrink:0;}
-.rv-coach-ava .nour-icon{box-shadow:0 0 0 2px var(--mood,#5fa8ff),0 0 10px -2px var(--mood,#5fa8ff);transition:box-shadow .25s ease;}
-.rv-coach-emo{position:absolute;inset-inline-end:-5px;bottom:-5px;width:14px;height:14px;pointer-events:none;}
-.rv-coach-emo svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));transform-origin:center;animation:rvEmoPop .5s cubic-bezier(.34,1.56,.64,1) both;}
+/* مشاعرُ نور (مراجعةُ المباراة): وجهٌ حيٌّ يتنفّس ويتفاعل مع جودة الحركة.
+   اللونُ والتعبير يتحدّدان من تصنيف الحركة (لا عشوائيًّا). طبقتان منفصلتان:
+   • الصورة: هالةٌ ملوّنة تنبض باستمرار = «حيّ». • الشارة: دخولٌ منبثق + حركةُ
+   خمولٍ دائمة تختلف بحسب المزاج، فيبدو نور وكأنّ له مشاعرَ حقيقيّة. كلّه محصورٌ
+   داخل حيّز صورته ولا يتجاوزها إطلاقًا. */
+.rv-coach-ava{position:relative;display:inline-flex;width:30px;height:30px;flex-shrink:0;}
+.rv-coach-ava .nour-icon{width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px var(--mood,#5fa8ff),0 0 12px -3px var(--mood,#5fa8ff);transition:box-shadow .25s ease;animation:rvAura 2.6s ease-in-out infinite;}
+@keyframes rvAura{0%,100%{box-shadow:0 0 0 2px var(--mood,#5fa8ff),0 0 9px -4px var(--mood,#5fa8ff);}50%{box-shadow:0 0 0 2px var(--mood,#5fa8ff),0 0 17px 0 var(--mood,#5fa8ff);}}
+.rv-coach-emo{position:absolute;inset-inline-end:-6px;bottom:-6px;width:19px;height:19px;pointer-events:none;transform-origin:center bottom;}
+.rv-coach-emo svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));transform-origin:center;animation:rvEmoPop .5s cubic-bezier(.34,1.56,.64,1) both;}
 @keyframes rvEmoPop{0%{transform:scale(0) rotate(-40deg);opacity:0;}60%{opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+/* حركةُ الخمول الدائمة على الشارة (طبقةٌ مستقلّة عن الدخول على الـsvg) */
+.rv-coach-ava.is-wow .rv-coach-emo{animation:rvIdWow 1.1s ease-in-out .5s infinite;}
+@keyframes rvIdWow{0%,100%{transform:translateY(0) scale(1);}30%{transform:translateY(-2.5px) scale(1.09);}60%{transform:translateY(0) scale(1);}}
+.rv-coach-ava.is-happy .rv-coach-emo{animation:rvIdBob 1.9s ease-in-out .5s infinite;}
+@keyframes rvIdBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-1.6px);}}
+.rv-coach-ava.is-calm .rv-coach-emo{animation:rvIdBreathe 3s ease-in-out .5s infinite;}
+@keyframes rvIdBreathe{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
+.rv-coach-ava.is-concerned .rv-coach-emo{animation:rvIdTilt 2.3s ease-in-out .5s infinite;}
+@keyframes rvIdTilt{0%,100%{transform:rotate(-7deg);}50%{transform:rotate(7deg);}}
+.rv-coach-ava.is-sad .rv-coach-emo{animation:rvIdDroop 3.2s ease-in-out .5s infinite;}
+@keyframes rvIdDroop{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(1.8px) rotate(3deg);}}
+.rv-coach-ava.is-angry .rv-coach-emo{animation:rvIdFume .5s ease-in-out .5s infinite;}
+@keyframes rvIdFume{0%,100%{transform:translateX(0) rotate(0);}25%{transform:translateX(-1.2px) rotate(-4deg);}75%{transform:translateX(1.2px) rotate(4deg);}}
+/* ردُّ فعلٍ لمرّةٍ واحدة على كامل الصورة عند كلّ حركة */
 .rv-coach-ava.is-wow{animation:rvPop .55s ease both;}
 @keyframes rvPop{0%{transform:scale(1);}45%{transform:scale(1.14);}100%{transform:scale(1);}}
+.rv-coach-ava.is-happy{animation:rvNod .6s ease both;}
+@keyframes rvNod{0%{transform:translateY(0);}40%{transform:translateY(-2px);}100%{transform:translateY(0);}}
+.rv-coach-ava.is-sad{animation:rvSink .7s ease both;}
+@keyframes rvSink{0%{transform:translateY(-2px);opacity:.7;}100%{transform:translateY(0);opacity:1;}}
 .rv-coach-ava.is-angry{animation:rvShake .5s ease both;}
 @keyframes rvShake{0%,100%{transform:translateX(0);}18%{transform:translateX(-2px);}38%{transform:translateX(2px);}58%{transform:translateX(-1.5px);}78%{transform:translateX(1.5px);}}
-@media (prefers-reduced-motion:reduce){.rv-coach-emo svg,.rv-coach-ava.is-wow,.rv-coach-ava.is-angry{animation:none!important;}}
+@media (prefers-reduced-motion:reduce){.rv-coach-emo svg,.rv-coach-emo,.rv-coach-ava .nour-icon,.rv-coach-ava.is-wow,.rv-coach-ava.is-happy,.rv-coach-ava.is-sad,.rv-coach-ava.is-angry{animation:none!important;}}
 /* nav bar */
 .rv-nav{flex-shrink:0;display:flex;align-items:center;gap:5px;width:100%;max-width:400px;}
 /* #6: `flex:1` بلا `min-width:0` معناه العنصر مايصغرش تحت حجم محتواه (القيمة
@@ -3015,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260924-b49">
+<link rel="stylesheet" href="screens.css?v=20260924-b50">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3312,12 +3334,12 @@ html.amkh-preboot #amkh-preboot{
           <div class="settings-profile-body">
             <div class="settings-overline">ملف اللاعب</div>
             <h2 class="settings-headline" id="settings-username-display">لاعب</h2>
-            <div class="settings-input-row">
-              <input type="text" class="settings-name-input" id="settings-username-input" placeholder="اسم اللاعب" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
-              <button id="settings-save-btn" class="btnp settings-save-mini" style="display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
-            </div>
           </div>
           <input type="file" id="settings-profile-input" accept="image/*" style="display:none;" onchange="handleSettingsProfileImage(this)">
+        </div>
+        <div class="settings-input-row">
+          <input type="text" class="settings-name-input" id="settings-username-input" placeholder="اسم اللاعب" onkeydown="if(event.key==='Enter')saveSettingsUsername()" oninput="onSettingsUsernameInput(this.value)">
+          <button id="settings-save-btn" class="btnp settings-save-mini" style="display:none;" onclick="if(typeof SFX!=='undefined')SFX.btn();saveSettingsUsername()">حفظ</button>
         </div>
       </div>
     </div>
@@ -3643,12 +3665,12 @@ html.amkh-preboot #amkh-preboot{
       <div class="ol-row">
         <p class="ol-lbl" id="ol-lbl-tc">زمن المباراة</p>
         <div class="ol-chips" id="tc-time-opts" role="group" aria-labelledby="ol-lbl-tc">
-          <button type="button" class="ol-chip is-active" id="tcp-none"  onclick="OL.setTC('none')"><span class="ol-chip__t">بدون</span><span class="ol-chip__d">بلا ساعة</span></button>
-          <button type="button" class="ol-chip"           id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ol-chip__t">1+0</span><span class="ol-chip__d">خاطف</span></button>
-          <button type="button" class="ol-chip"           id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ol-chip__t">3+2</span><span class="ol-chip__d">خاطف</span></button>
-          <button type="button" class="ol-chip"           id="tcp-5+0"   onclick="OL.setTC('5+0')"><span class="ol-chip__t">5+0</span><span class="ol-chip__d">سريع</span></button>
-          <button type="button" class="ol-chip"           id="tcp-10+0"  onclick="OL.setTC('10+0')"><span class="ol-chip__t">10+0</span><span class="ol-chip__d">سريع</span></button>
-          <button type="button" class="ol-chip"           id="tcp-15+10" onclick="OL.setTC('15+10')"><span class="ol-chip__t">15+10</span><span class="ol-chip__d">متمهّل</span></button>
+          <button type="button" class="ol-chip is-active" id="tcp-none"  onclick="OL.setTC('none')"><svg class="ol-tc-ico" viewBox="0 0 24 24" fill="none" stroke="#9aa7bd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2 2"/><line x1="5" y1="19" x2="19" y2="5"/></svg><span class="ol-chip__t">بدون</span><span class="ol-chip__d">بلا ساعة</span></button>
+          <button type="button" class="ol-chip"           id="tcp-1+0"   onclick="OL.setTC('1+0')"><svg class="ol-tc-ico" viewBox="0 0 24 24" fill="#ffb454" stroke="#ffb454" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 L5 13 h5 l-1.5 9 L19 10 h-5.5 z"/></svg><span class="ol-chip__t">1+0</span><span class="ol-chip__d">خاطف</span></button>
+          <button type="button" class="ol-chip"           id="tcp-3+2"   onclick="OL.setTC('3+2')"><svg class="ol-tc-ico" viewBox="0 0 24 24" fill="#ffb454" stroke="#ffb454" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 L5 13 h5 l-1.5 9 L19 10 h-5.5 z"/></svg><span class="ol-chip__t">3+2</span><span class="ol-chip__d">خاطف</span></button>
+          <button type="button" class="ol-chip"           id="tcp-5+0"   onclick="OL.setTC('5+0')"><svg class="ol-tc-ico" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="7"/><path d="M12 14V10"/><path d="M10 2h4"/><path d="M18.5 7.5L20 6"/></svg><span class="ol-chip__t">5+0</span><span class="ol-chip__d">سريع</span></button>
+          <button type="button" class="ol-chip"           id="tcp-10+0"  onclick="OL.setTC('10+0')"><svg class="ol-tc-ico" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="7"/><path d="M12 14V10"/><path d="M10 2h4"/><path d="M18.5 7.5L20 6"/></svg><span class="ol-chip__t">10+0</span><span class="ol-chip__d">سريع</span></button>
+          <button type="button" class="ol-chip"           id="tcp-15+10" onclick="OL.setTC('15+10')"><svg class="ol-tc-ico" viewBox="0 0 24 24" fill="none" stroke="#5b9dff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12M6 21h12M8 3v4l4 4 4-4V3M8 21v-4l4-4 4 4v4"/></svg><span class="ol-chip__t">15+10</span><span class="ol-chip__d">متمهّل</span></button>
         </div>
       </div>
 
@@ -7619,7 +7641,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 49;
+const APP_VERSION_CODE = 50;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -8019,7 +8041,7 @@ const Leaderboard = {
     const sort = this._sort || 'rating';
     const big = p => sort==='wins' ? p.wins : sort==='games' ? p.games : Math.round(p.rating);
     const unit = sort==='wins' ? 'فوز' : sort==='games' ? 'مباراة' : '';
-    const prov = p => p.provisional ? '<span class="lb-prov">مبدئي</span>' : '';
+    const prov = p => p.provisional ? '<span class="lb-prov">'+T('مبدئي')+'</span>' : '';
     const top = players.slice(0, 3);
     const rest = players.slice(3);
     let html = '';
@@ -11587,7 +11609,7 @@ const REV=(()=>{
     <circle cx="18.5" cy="5.5" r="1" fill="#e8d080"/>
   </svg>`;
   // Try to use Nour's image, fallback to SVG
-  const NOUR_IMG=`<img src="./nour.png" class="nour-icon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+  const NOUR_IMG=`<img src="./nour.png" class="nour-icon" style="width:30px;height:30px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
   <span style="display:none;">${NOUR_SVG}</span>`;
 
   /* ══════════════════════════════════════════════════════════════
@@ -14826,34 +14848,31 @@ const OL=(()=>{
     return ov;
   }
 
-  function connect(onOpen){
+  function connect(onOpen, stTab){
+    if(!stTab) stTab='c';   /* أيّ لوحٍ يعرض حالة الاتصال — لا نلوّث البقية */
     destroy();
     if(!SERVER_URL){
-      setSt('c','◌ جارٍ تحميل بيانات الخادم...','conn');
-      setSt('j','◌ جارٍ تحميل بيانات الخادم...','conn');
+      setSt(stTab,'◌ جارٍ تحميل بيانات الخادم...','conn');
       loadServerUrl().then(()=>{
         if(!SERVER_URL){
           /* «تأكّد من أن الجهاز يعمل» كانت جملة مطوّر لا جملة لاعب: الجهاز
              المقصود هو الخادم لا هاتف اللاعب، فهو يقرؤها ويظن العطل عنده.
              اللاعب لا يملك من الأمر شيئًا، فالصواب أن نخبره بالحال ونطلب
              منه ما يستطيعه وحده: أن يعيد المحاولة بعد قليل. */
-          setSt('c','◆ خدمة اللعب عبر الإنترنت غير متاحة الآن — أعد المحاولة بعد قليل','err');
-          setSt('j','◆ خدمة اللعب عبر الإنترنت غير متاحة الآن — أعد المحاولة بعد قليل','err');
+          setSt(stTab,'◆ خدمة اللعب عبر الإنترنت غير متاحة الآن — أعد المحاولة بعد قليل','err');
           try{document.getElementById('btn-create').disabled=false;}catch(e){}
           return;
         }
-        connect(onOpen);
+        connect(onOpen, stTab);
       });
       return;
     }
-    setSt('c','◌ جارٍ الاتصال بالخادم...','conn');
-    setSt('j','◌ جارٍ الاتصال بالخادم...','conn');
+    setSt(stTab,'◌ جارٍ الاتصال بالخادم...','conn');
 
     _connTimeoutTimer = setTimeout(() => {
       SERVER_URL = '';
       destroy();
-      setSt('c','◆ تعذر الاتصال بالخادم (انتهت المهلة) — اعد المحاولة','err');
-      setSt('j','◆ تعذر الاتصال بالخادم (انتهت المهلة) — اعد المحاولة','err');
+      setSt(stTab,'◆ تعذر الاتصال بالخادم (انتهت المهلة) — اعد المحاولة','err');
       try{document.getElementById('btn-create').disabled=false;}catch(e){}
     }, 7000);
 
@@ -14867,8 +14886,7 @@ const OL=(()=>{
       SERVER_URL='';
       window.chessWs=null;
       clearTimeout(_connTimeoutTimer);
-      setSt('c','◆ تعذر الاتصال بالخادم','err');
-      setSt('j','◆ تعذر الاتصال بالخادم','err');
+      setSt(stTab,'◆ تعذر الاتصال بالخادم','err');
       try{document.getElementById('btn-create').disabled=false;}catch(e){}
       return;
     }
@@ -14909,8 +14927,7 @@ const OL=(()=>{
     ws.onerror=()=>{
       SERVER_URL = '';
       clearTimeout(_connTimeoutTimer);
-      setSt('c','◆ خطأ في الاتصال — تحقق من الإنترنت','err');
-      setSt('j','◆ خطأ في الاتصال — تحقق من الإنترنت','err');
+      setSt(stTab,'◆ خطأ في الاتصال — تحقق من الإنترنت','err');
       try{document.getElementById('btn-create').disabled=false;}catch(e){}
     };
   }
@@ -15188,6 +15205,15 @@ const OL=(()=>{
         if(b){b.classList.toggle('is-active',t===n);b.setAttribute('aria-selected',t===n?'true':'false');}
         if(p)p.classList.toggle('on',t===n);
       });
+      /* امسح أي حالةٍ عالقةٍ من عمليةٍ سابقة عند فتح اللوح — فلا تظهر
+         «في انتظار الخصم» أو «جارٍ الاتصال» إلا بعد فعلٍ حقيقيّ. نُبقي
+         حالة اللوح فقط إن كانت هناك عمليةٌ جاريةٌ فعلًا (غرفةٌ منتظرةٌ
+         ظاهرة، أو بحثٌ عن خصمٍ قيد التشغيل). */
+      try{
+        if(n==='c' && document.getElementById('rbox').style.display==='none') setSt('c','');
+        if(n==='j') setSt('j','');
+        if(n==='m'){ const mc=document.getElementById('btn-mc'); if(!mc || mc.style.display==='none') setSt('m',''); }
+      }catch(e){}
     },
     /* «لعب مع صديق» — الطريق الرابع اللي طلبه أحمد. الدعوة نفسها موجودة
        في نظام الأصدقاء، فبنفتح قائمة الأصدقاء ونمرّر لها إعدادات الشاشة
@@ -15227,7 +15253,7 @@ const OL=(()=>{
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
         }
-      });
+      },'c');
     },
     join(){
       SFX.btn();
@@ -15239,13 +15265,13 @@ const OL=(()=>{
         if(Cfg.data.playerImage){
           send({type:'pimg',img:Cfg.data.playerImage});
         }
-      });
+      },'j');
     },
     mmFind(){
       SFX.btn();
       connect(()=>{
         send({type:'mm-find',name:Cfg.data.playerName||'',deviceId:LVL._getDeviceId(),color:this.pc||'w',rated:!!this.rt,tc:this.tc||null,token:this._tok()});
-      });
+      },'m');
     },
     mmCancel(){
       SFX.btn();
@@ -15264,11 +15290,13 @@ const OL=(()=>{
       document.getElementById('rbox').style.display='none';
       // Reset create button
       document.getElementById('btn-create').disabled=false;
-      // If we're in a game, go back to online screen
+      /* «في انتظار الخصم…» لازم تختفي فورًا عند المغادرة — سواءٌ كنا في
+         مباراةٍ فعليّة أو لسه في غرفةٍ منتظرة. القديم كان يمسحها فقط لو
+         S.mode==='online' فتفضل عالقة لو غادرت قبل بدء اللعب. */
+      setSt('c','');
       if(S.mode==='online'){
         S.mode='';
         Nav.online();
-        setSt('c','◎ تم مغادرة الغرفة','');
       }
     },
     copy(){
@@ -16183,7 +16211,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-client.js?v=20260919-b38"></script>
   <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
-  <script src="puzzles-ui.js?v=20260923-b48"></script>
+  <script src="puzzles-ui.js?v=20260924-b50"></script>
   <script src="puzzles-hub.js?v=20260922-b42"></script>
   <script src="levels-ui.js?v=20260921-b41"></script>
   <script src="mic-client.js?v=20260922-b41"></script>

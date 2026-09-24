@@ -245,6 +245,7 @@ const PZU = (() => {
   function say(text) {
     const box = $('pz-coach'), t = $('pz-coach-text');
     if (!box || !t) return;
+    const av = box.querySelector('.pzg__coach-av');
     /* الصندوق يحجز مساحته دائمًا (لا hidden) عشان الرقعة ما تتزحزحش لمّا
        نور يتكلّم أو يصمت — الصمت يخفيه بصريًّا بـis-empty والمساحة باقية. */
     box.hidden = false;
@@ -253,10 +254,14 @@ const PZU = (() => {
       t.classList.remove('is-in');
       t.textContent = '';
       _lastSay = '';
+      if (av) av.classList.remove('is-talk', 'is-happy', 'is-oops', 'is-think', 'is-win', 'is-lose');
       return;
     }
     box.classList.remove('is-empty');
     _lastSay = String(text);
+    /* بهجةٌ خفيفةٌ حين يتكلّم نور: نبضةُ خمولٍ لطيفة على أفاتاره — تُضاف فقط
+       إن لم يكن ثمّة تفاعلٌ أقوى جارٍ (نطّة/رجفة/تفكير) لئلّا نطمسه. */
+    if (av && !/is-(happy|oops|think|win|lose)/.test(av.className)) av.classList.add('is-talk');
     /* إعادة تشغيل الظهور: إزالة الصنف ثم إضافته في الإطار التالي، وإلّا
        ظلّ السطر الثاني بلا حركة فبدا كأنّ نورًا لم يتكلّم. */
     t.classList.remove('is-in');
@@ -264,6 +269,46 @@ const PZU = (() => {
     requestAnimationFrame(() => t.classList.add('is-in'));
   }
   let _lastSay = '';
+
+  /* ══ مشاعرُ نور في الألغاز ═══════════════════════════════════════
+     لغةٌ بصريّةٌ مختلفةٌ عمدًا عن «مراجعة المباراة» (حيث شارةُ وجهٍ زاويّة):
+     هنا يتفاعل الأفاتارُ نفسه بكامله — نطّةُ فرحٍ للنقلة الصحيحة، رجفةٌ
+     للخطأ، ميلانُ تفكيرٍ عند طلب التلميح، احتفالٌ عند الحلّ، وانكسارٌ عند
+     الفشل — مع إشارةٍ مرسومةٍ ملوّنةٍ تطفو فوق رأسه لحظةً (لا إيموجي). بعد
+     ردّ الفعل يعود لخمولٍ هادئٍ (نبضةُ كلامٍ إن كان ما زال يتكلّم). كلُّه على
+     الأفاتار المنفصل فقط: لا يمسّ الرقعةَ ولا النقرَ ولا الأداء. */
+  const PZ_CUE = {
+    happy: '<svg viewBox="0 0 24 24"><path d="M12 3l2.1 6.7L21 12l-6.9 2.3L12 21l-2.1-6.7L3 12l6.9-2.3z" fill="#4fd67f"/></svg>',
+    oops:  '<svg viewBox="0 0 24 24"><rect x="10" y="4" width="4" height="10" rx="2" fill="#ff8a3d"/><circle cx="12" cy="18.4" r="2.3" fill="#ff8a3d"/></svg>',
+    think: '<svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8 1 .9 1.6h5.2c.1-.6.4-1.2.9-1.6A6 6 0 0 0 12 3z" fill="#ffcf4a"/><rect x="9.6" y="17" width="4.8" height="2.3" rx="1.15" fill="#ffcf4a"/><rect x="10.3" y="19.9" width="3.4" height="1.7" rx=".85" fill="#e0b43a"/></svg>',
+    win:   '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.4 7.1L22 12l-7.6 2.4L12 21.5l-2.4-7.1L2 12l7.6-2.4z" fill="#ffcf4a"/></svg>',
+    lose:  '<svg viewBox="0 0 24 24"><path d="M12 5v8m0 0l-3.5-3.5M12 13l3.5-3.5" stroke="#8a93a6" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  };
+  let _cueEl = null, _emoT = 0;
+  function pzAv() { const b = $('pz-coach'); return b ? b.querySelector('.pzg__coach-av') : null; }
+  function pzEmote(mood) {
+    const av = pzAv();
+    if (!av || !PZ_CUE[mood]) return;
+    clearTimeout(_emoT);
+    av.classList.remove('is-talk', 'is-happy', 'is-oops', 'is-think', 'is-win', 'is-lose');
+    void av.offsetWidth;                 /* إعادة تدفّق لإعادة تشغيل الأنميشن */
+    av.classList.add('is-' + mood);
+    /* إشارةٌ تطفو فوق الرأس — عنصرٌ واحدٌ يُعاد استخدامه */
+    if (!_cueEl) {
+      _cueEl = document.createElement('span');
+      _cueEl.className = 'pzg__coach-cue';
+      _cueEl.setAttribute('aria-hidden', 'true');
+    }
+    if (_cueEl.parentElement !== av) av.appendChild(_cueEl);
+    _cueEl.innerHTML = PZ_CUE[mood];
+    _cueEl.classList.remove('is-go'); void _cueEl.offsetWidth; _cueEl.classList.add('is-go');
+    /* بعد انتهاء ردّ الفعل نعود لخمولٍ هادئ (نبضةُ كلامٍ إن كان يتكلّم) */
+    const dur = (mood === 'win' || mood === 'lose') ? 1050 : (mood === 'think' ? 1650 : 750);
+    _emoT = setTimeout(() => {
+      const a = pzAv();
+      if (a) { a.classList.remove('is-' + mood); if (_lastSay) a.classList.add('is-talk'); }
+    }, dur);
+  }
 
   /* ══ إيقاع النوافذ في وضع الألغاز ══════════════════════════════
      النافذة كانت بتفتح في نفس اللحظة اللي نور بيتكلّم فيها، فكلامه
@@ -467,6 +512,9 @@ const PZU = (() => {
 
     if (res.status === 'solved') { finish(true); return; }
 
+    /* بهجةُ نقلةٍ صحيحة: نطّةُ فرحٍ على أفاتار نور (لا تمسّ الرقعة) */
+    if (coachOn()) pzEmote('happy');
+
     /* ردّ الخصم بعد مهلة قصيرة تكفي لرؤية نقلتنا */
     busy = true;
     const rep = res.reply;
@@ -493,6 +541,7 @@ const PZU = (() => {
         board: before.bd, cas: before.cas, ep: before.ep, turn: before.turn,
         from, to, promo,
       }));
+      pzEmote('oops');                    /* رجفةُ خطأٍ على أفاتار نور */
     }
     M.misses = (M.misses || 0) + 1;
     if (M.hearts != null) {
@@ -521,6 +570,7 @@ const PZU = (() => {
     if (h.level >= 2 && h.from) { view({ glow: h.from }); }
     else view();
     say(coachOn() ? PZN.hint(h) : null);
+    if (coachOn()) pzEmote('think');      /* بهجةُ تلميح: ميلانُ تفكيرٍ + مصباح */
     if (M.hearts != null) persistDaily();
     renderBar();
   }
@@ -577,6 +627,7 @@ const PZU = (() => {
     else { sfx('pzMiss'); buzz([50, 40, 50]); }
 
     say(coachOn() ? (solved ? PZN.solved(M.puzzle, res) : PZN.failed(M.puzzle)) : null);
+    if (coachOn()) pzEmote(solved ? 'win' : 'lose');   /* احتفالٌ أو انكسار */
 
     let out = null;
     try { out = await PZS.record(M.puzzle, res, { mode: M.mode }); } catch (e) {}
