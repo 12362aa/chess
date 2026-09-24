@@ -515,11 +515,28 @@ const amkhAuth = {
     }
     if (!idToken) return { success: false, error: 'تعذّر الحصول على هوية جوجل' };
 
-    const res = await fetch(`${window.getApiBase()}/google`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-      body: JSON.stringify({ idToken })
-    });
+    return this._completeGoogleLogin(idToken);
+  },
+
+  /* الجزء المشترك بعد الحصول على الـidToken: التحقّق على السيرفر وحفظ
+     الجلسة. بيُستدعى من مسار أندرويد (loginWithGoogle) ومن مسار الويب
+     (زر جوجل الرسمي في المتصفّح). السيرفر بيقبل الـcredential كـidToken
+     وبيتحقّق إن جمهوره هو الـweb client بتاعنا. */
+  async _completeGoogleLogin(idToken) {
+    if (!idToken) return { success: false, error: 'تعذّر الحصول على هوية جوجل' };
+    if (!await window.amkhEnsureServer()) {
+      return { success: false, error: 'تعذّر الوصول إلى الخادم. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.' };
+    }
+    let res;
+    try {
+      res = await fetch(`${window.getApiBase()}/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ idToken })
+      });
+    } catch (e) {
+      return { success: false, error: 'تعذّر الاتصال بالخادم. تأكّد من اتصال الإنترنت.' };
+    }
     const data = await res.json().catch(() => ({}));
     if (res.ok && data.token) {
       this.setToken(data.token, data.user);
@@ -1457,7 +1474,8 @@ const amkhAuth = {
        بيعمل الحساب لو مش موجود. فمافيش وضع «تسجيل» منفصل ليه. */
     const googleBtn = overlay.querySelector('#btn-google');
     if (googleBtn) {
-      /* على المتصفح الحزمة مش بتشتغل، فبنخفي الزر بدل ما نسيبه يخيّب */
+      /* على المتصفّح جوجل شغّالة عبر Firebase Auth (amkhGoogleAuth مفعَّل
+         للويب)، وعلى أندرويد عبر حزمة capgo. لو مش متاح نخفي الزر. */
       if (!window.amkhGoogleAuth || !window.amkhGoogleAuth.available) {
         googleBtn.style.display = 'none';
         const sep = overlay.querySelector('.amkh-auth-sep');
@@ -2044,3 +2062,78 @@ try {
   amkhAuth.updateUI();
 } catch (e) {}
 setTimeout(() => amkhAuth.init(), 1000);
+
+/* ══════════════════════════════════════════════════════════════════════
+   الدخول بجوجل على المتصفّح (الويب فقط) — عبر Firebase Authentication
+   ──────────────────────────────────────────────────────────────────────
+   حزمة capgo (gauth-bundle.js) أندرويد فقط، وGIS المباشر بيحتاج تسجيل
+   أصل الموقع في «Authorized JavaScript origins» بتاعة الـOAuth client
+   (وكان بيرجّع 403). الحل: Firebase Auth signInWithPopup — النافذة بتفتح
+   على chess-85a75.firebaseapp.com (redirect URI مسجَّل أصلًا)، ويكفي إن
+   أصل الموقع يكون في «Authorized domains» بتاعة Firebase (اتضاف بالفعل).
+   التوكن الراجع توكن Firebase (iss securetoken.google.com) والسيرفر أصلًا
+   بيقبله في /api/google ويربط الحساب بالإيميل — فنفس المستخدم على الويب
+   والتطبيق بيبقى نفس الحساب. مسار أندرويد ما اتغيّرش خالص (الكود ده بيشتغل
+   بس لما amkhIsNative() ترجّع false). */
+(function setupWebGoogle() {
+  try { if (window.amkhIsNative && window.amkhIsNative()) return; } catch (e) { return; }
+
+  const FB_CONFIG = {
+    apiKey: 'AIzaSyCVFjWtbHdXv7HG8IGyTH0Ogv_rZ4jWIVI',
+    authDomain: 'chess-85a75.firebaseapp.com',
+    projectId: 'chess-85a75',
+    storageBucket: 'chess-85a75.firebasestorage.app',
+    messagingSenderId: '467677566583',
+    appId: '1:467677566583:web:3ab926b218de5095b31872',
+  };
+  const SDK = 'https://www.gstatic.com/firebasejs/10.7.0/';
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('load failed: ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  let _ready = null;
+  async function ensureFirebaseAuth() {
+    if (_ready) return _ready;
+    _ready = (async () => {
+      if (!(window.firebase && window.firebase.auth)) {
+        if (!(window.firebase && window.firebase.initializeApp)) {
+          await loadScript(SDK + 'firebase-app-compat.js');
+        }
+        await loadScript(SDK + 'firebase-auth-compat.js');
+      }
+      if (!window.firebase.apps || !window.firebase.apps.length) {
+        window.firebase.initializeApp(FB_CONFIG);
+      }
+    })();
+    return _ready;
+  }
+
+  async function signIn() {
+    await ensureFirebaseAuth();
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const result = await window.firebase.auth().signInWithPopup(provider);
+    const idToken = result && result.user ? await result.user.getIdToken() : null;
+    if (!idToken) throw new Error('no idToken from firebase');
+    /* مش محتاجين جلسة Firebase بعد ما ناخد التوكن — بنطلع منها عشان
+       مانسيبش حالة دخول تانية موازية لجلسة السيرفر بتاعتنا. */
+    try { await window.firebase.auth().signOut(); } catch (e) {}
+    return { idToken };
+  }
+
+  async function signOut() {
+    try { if (window.firebase && window.firebase.auth) await window.firebase.auth().signOut(); } catch (e) {}
+  }
+
+  /* بنستبدل amkhGoogleAuth (اللي حطّته حزمة أندرويد) بنسخة الويب. نفس
+     العقد بالظبط: signIn() بترجّع { idToken } — فكل الأكواد القديمة
+     (loginWithGoogle وأزرار جوجل) بتشتغل زي ما هي بلا تعديل. */
+  window.amkhGoogleAuth = { available: true, _web: true, signIn, signOut };
+})();

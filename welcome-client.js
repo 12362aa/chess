@@ -291,8 +291,9 @@
          بتبان من ورا الشاشة وهي بتتلاشى داخلة، وهي دي الومضة نفسها */
       setTimeout(unveil, 520);
 
-      /* زر جوجل بيختفي على المتصفح (الحزمة أندرويد فقط) — نفس منطق نافذة
-         الدخول، عشان مانعرضش زرًّا بيخيّب لو اتضغط */
+      /* زر جوجل: على المتصفّح بيشتغل عبر Firebase Auth (amkhGoogleAuth
+         بيتفعّل للويب في auth-client)، وعلى أندرويد عبر حزمة capgo. لو مش
+         متاح بأي سبب نخفيه بدل ما نسيبه يخيّب. */
       const g = $('#wl-google');
       if (!window.amkhGoogleAuth || !window.amkhGoogleAuth.available) g.style.display = 'none';
       else g.onclick = async () => {
