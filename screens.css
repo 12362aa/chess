@@ -658,6 +658,105 @@
 }.home-daily__streak svg,
 .home-daily__streak .ico{ width: 14px; height: 14px; }
 .home-daily__streak[hidden]{ display: none; }
+
+/* ══════════════════════════════════════════════════════════════
+   النار الحيّة — أيقونة السلسلة
+   ──────────────────────────────────────────────────────────────
+   بدل السِّلويت المسطّح أحادي اللون: نارٌ من ثلاثة ألسنةٍ متدرّجةٍ
+   (أحمر → برتقالي → ذهبي) تعلوها نواةٌ بيضاء ساخنة، تحتها جمرةٌ
+   تتوهّج، وشرارتان تصعدان وتذوبان. كلّ الحركة CSS: رقصةٌ غير
+   متزامنةٍ للألسنة (scaleY + إمالة + انزياح) تعطي إحساس اللهب الحيّ،
+   لا مجرد نبضة. تهدأ تمامًا مع prefers-reduced-motion. */
+.amkh-flame{
+  position: relative;
+  width: 15px;
+  height: 19px;
+  display: inline-block;
+  flex-shrink: 0;
+  transform: translateZ(0);
+  filter: drop-shadow(0 0 4px rgba(255,120,20,.55));
+}
+.amkh-flame__tongue{
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  border-radius: 50% 50% 50% 50% / 88% 88% 32% 32%;
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+.amkh-flame__tongue--red{
+  width: 15px; height: 19px; margin-left: -7.5px;
+  background: radial-gradient(120% 90% at 50% 100%, #ff8a2a 0%, #ff4d1a 45%, #e2231a 78%, rgba(226,35,26,0) 100%);
+  animation: amkhFlameA 1.15s ease-in-out infinite;
+}
+.amkh-flame__tongue--orange{
+  width: 11px; height: 14px; margin-left: -5.5px;
+  background: radial-gradient(120% 90% at 50% 100%, #ffd24a 0%, #ff9d1e 50%, #ff6a12 100%);
+  animation: amkhFlameB 0.85s ease-in-out infinite;
+}
+.amkh-flame__tongue--gold{
+  width: 7px; height: 9.5px; margin-left: -3.5px;
+  background: radial-gradient(120% 90% at 50% 100%, #fff3c0 0%, #ffdb52 55%, #ffb018 100%);
+  animation: amkhFlameC 0.62s ease-in-out infinite;
+}
+.amkh-flame__core{
+  position: absolute;
+  left: 50%; bottom: 1px; margin-left: -2px;
+  width: 4px; height: 5px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 50% 60%, #fffdf2 0%, #fff2b0 60%, rgba(255,225,120,0) 100%);
+  animation: amkhFlameC 0.62s ease-in-out infinite;
+}
+.amkh-flame__ember{
+  position: absolute;
+  left: 50%; bottom: -1px; margin-left: -5px;
+  width: 10px; height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,140,40,.85) 0%, rgba(255,90,20,0) 70%);
+  animation: amkhEmber 1.15s ease-in-out infinite;
+}
+.amkh-flame__spark{
+  position: absolute;
+  left: 6px; bottom: 8px;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: #ffd66a;
+  opacity: 0;
+  animation: amkhSpark 1.5s ease-out infinite;
+}
+.amkh-flame__spark--b{ left: 9px; animation-delay: .75s; }
+@keyframes amkhFlameA{
+  0%,100%{ transform: scaleY(1) scaleX(1) skewX(0); opacity: .96; }
+  30%{ transform: scaleY(1.12) scaleX(.94) skewX(3deg); }
+  55%{ transform: scaleY(.9) scaleX(1.05) skewX(-3deg); opacity: 1; }
+  75%{ transform: scaleY(1.08) scaleX(.97) skewX(2deg); }
+}
+@keyframes amkhFlameB{
+  0%,100%{ transform: scaleY(1) skewX(0) translateX(0); }
+  35%{ transform: scaleY(1.15) skewX(-4deg) translateX(-.5px); }
+  70%{ transform: scaleY(.88) skewX(4deg) translateX(.5px); }
+}
+@keyframes amkhFlameC{
+  0%,100%{ transform: scaleY(1) translateY(0); opacity: 1; }
+  40%{ transform: scaleY(1.2) translateY(-1px); opacity: .9; }
+  70%{ transform: scaleY(.85) translateY(0); }
+}
+@keyframes amkhEmber{
+  0%,100%{ opacity: .55; transform: scaleX(1); }
+  50%{ opacity: 1; transform: scaleX(1.25); }
+}
+@keyframes amkhSpark{
+  0%{ opacity: 0; transform: translateY(0) scale(1); }
+  15%{ opacity: 1; }
+  100%{ opacity: 0; transform: translateY(-9px) scale(.4); }
+}
+@media (prefers-reduced-motion: reduce){
+  .amkh-flame__tongue,
+  .amkh-flame__core,
+  .amkh-flame__ember,
+  .amkh-flame__spark{ animation: none !important; }
+  .amkh-flame__spark{ opacity: 0; }
+}
 .home-daily__track{
   display: block;
   width: 100%;
@@ -3916,12 +4015,12 @@ body[data-ui-theme="glass"]{
   background: var(--color-surface-raised);
   color: var(--color-text-primary);
 }
-/* النشط: لون واحد صريح. التدرّجات القديمة كانت بتخلط الأساسي بالثانوي
-   (أخضر→كهرماني في سايبر) فالتبويب كان بيقرأ كقوس قزح صغير. */
+/* النشط: رقاقة مصمتة كانت تقرأ ككتلة صفراء ضخمة في ثيم أمخ. الآن
+   خلفية خفيفة + نص وحد باللون الأساسي — يتبع الثيم بلا صراخ لوني. */
 #s-settings .settings-tab.active{
-  background: var(--color-primary) !important;
-  color: var(--color-on-primary) !important;
-  box-shadow: none !important;
+  background: var(--color-primary-subtle) !important;
+  color: var(--color-primary-text) !important;
+  box-shadow: inset 0 0 0 1px var(--color-primary-border) !important;
 }
 
 /* ── مفتاح التبديل ── */
@@ -3984,6 +4083,65 @@ body[data-ui-theme="glass"]{
   line-height: 1;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   تحييد الذهبي المتصلّب — البلاغ: «ألوان الإعدادات صفراء والثيم مش أصفر»
+   ──────────────────────────────────────────────────────────────────────
+   الترويسة والأقسام والزرّ كانت مكتوبة بذهب ثابت (‎rgba(201,168,76)‎ و
+   ‎--gold‎) داخل الـ inline style، فتظهر صفراء مهما كان الثيم. هنا نعيدها
+   لتوكنات السطح/الحد فتتبع الثيم، ويبقى اللون الأساسي على اللمسات فقط
+   (زرّ، حدّ التبويب النشط، أيقونة القسم). البادئة ‎#s-settings‎ ترفع
+   الأولوية فوق قواعد الـ inline من غير حاجة لـ !important. */
+#s-settings .settings-hero{
+  background:
+    radial-gradient(circle at top right, var(--color-primary-subtle), transparent 44%),
+    linear-gradient(150deg, var(--color-surface-raised), var(--color-surface));
+  border: 1px solid var(--color-border-subtle);
+}
+#s-settings .settings-hero::after{ background: var(--color-primary-subtle); opacity: .55; }
+#s-settings .settings-overline{ color: var(--color-primary-text); }
+#s-settings .settings-profile-avatar{ border-color: var(--color-primary-border); }
+#s-settings .settings-name-input{
+  border-color: var(--color-border);
+  background: var(--color-bg-elevated);
+}
+#s-settings .settings-name-input:focus{
+  border-color: var(--color-primary-border);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+#s-settings .settings-section{
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+}
+#s-settings .settings-section::before{
+  background: linear-gradient(90deg, transparent, var(--color-primary-border), transparent);
+}
+/* زرّ «جميع القطع»: يبقى مصمتًا بالأساسي (نداء واضح) لكن باللون الحيّ
+   للثيم لا بالذهب الثابت. */
+#s-settings .settings-action-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: none;
+}
+#s-settings .settings-action-btn:hover{ box-shadow: none; filter: brightness(1.04); }
+/* بطاقة طقم القطع: صف واحد نظيف بعرض كامل (معاينة + اسم + زرّ) بدل
+   بطاقة مزنوقة جنب النص. تتبع سطح الثيم لا الذهب. */
+#s-settings .settings-piece-card{
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  width: 100%;
+}
+#s-settings .settings-piece-preview{
+  background: var(--color-surface);
+  border-color: var(--color-border-subtle);
+}
+/* شريط الصوت: القضيب والإبهام يتبعان الأساسي بدل الذهب الثابت */
+#s-settings .vsl{ background: var(--color-primary-subtle); }
+#s-settings .vsl::-webkit-slider-thumb{ background: var(--color-primary); box-shadow: none; }
+#s-settings .vsl::-moz-range-thumb{ background: var(--color-primary); box-shadow: none; }
+
 /* ── صف إعداد ──
    العنوان والوصف على اليمين والتحكّم على الشمال، والوصف تحت العنوان
    مش جنبه، عشان النص العربي الطويل مايزقّش المفتاح بره الشاشة. */
@@ -4036,6 +4194,7 @@ body[data-ui-theme="glass"]{
 #s-settings .setting-item:has(.board-theme-trigger),
 #s-settings .setting-item:has(.pc-grid),
 #s-settings .setting-item:has(.pc-current),
+#s-settings .setting-item:has(.settings-piece-card),
 #s-settings .setting-item:has(.vol-row){
   flex-direction: column !important;
   align-items: stretch;
@@ -4059,7 +4218,6 @@ body[data-ui-theme="glass"]{
    أبطلها فلزم !important هنا. العربية لا تُمسّ: قياسها سليم.
 ══════════════════════════════════════════════════════════════════════ */
 html.lang-en #s-settings .setting-item:has(> .toggle),
-html.lang-en #s-settings .setting-item:has(> .settings-piece-card),
 html.lang-en #s-settings .setting-item:has(> .ds-btn){
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -4079,7 +4237,6 @@ html.lang-en #s-settings .setting-item:has(> .ds-btn){
 html.lang-en #s-settings .setting-item > .setting-label{ grid-area: label; }
 html.lang-en #s-settings .setting-item > .setting-description{ grid-area: desc; }
 html.lang-en #s-settings .setting-item > .toggle,
-html.lang-en #s-settings .setting-item > .settings-piece-card,
 html.lang-en #s-settings .setting-item > .ds-btn{ grid-area: control; }
 /* الكلمة الإنجليزية الواحدة قد تفوق عرض عمودها (اسم ثيم مثلًا)، فتُقصّ
    بلا هذا. والسطر أوسع قليلًا لأن حروف Cairo اللاتينية عالية الجسم. */
@@ -6346,22 +6503,28 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   margin-block: auto;
 }
 
-/* الهوية */
+/* الهوية — شريطٌ بتدرّجٍ ناعمٍ ونبضةُ «مباشر» حيّة */
 .ol-hero{
+  position: relative;
   display: flex; align-items: center; gap: var(--space-4);
   padding: var(--space-4);
+  background: radial-gradient(135% 150% at 6% 0%, var(--color-primary-subtle), var(--color-bg-elevated) 62%);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 .ol-hero__icon{
   display: inline-flex; align-items: center; justify-content: center;
   flex: 0 0 auto;
   width: 52px; height: 52px;
   border-radius: var(--radius-md);
-  background: var(--color-primary-subtle);
+  background: var(--color-primary);
   border: 1px solid var(--color-primary-border);
-  color: var(--color-primary-text);
+  color: var(--color-on-primary);
+  box-shadow: 0 6px 16px -6px var(--color-primary);
 }
 .ol-hero__icon .ico{ width: 28px; height: 28px; }
-.ol-hero__body{ min-width: 0; }
+.ol-hero__body{ min-width: 0; flex: 1; }
 .ol-hero__title{
   margin: 0 0 var(--space-1);
   font-family: var(--font-family-base);
@@ -6375,6 +6538,27 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   line-height: var(--line-height-caption);
   color: var(--color-text-secondary);
 }
+.ol-hero__live{
+  display: inline-flex; align-items: center; gap: 5px;
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  background: rgba(52,211,153,.14);
+  color: #34d399;
+  font-size: 11px; font-weight: var(--font-weight-bold);
+  letter-spacing: .3px;
+}
+.ol-hero__dot{
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #34d399; box-shadow: 0 0 0 0 rgba(52,211,153,.6);
+  animation: olLive 1.8s var(--easing-standard) infinite;
+}
+@keyframes olLive{
+  0%{ box-shadow: 0 0 0 0 rgba(52,211,153,.55); }
+  70%{ box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+  100%{ box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+}
+@media (prefers-reduced-motion: reduce){ .ol-hero__dot{ animation: none; } }
 
 /* عناوين المجموعات وملاحظاتها */
 .ol-lbl{
@@ -6383,6 +6567,12 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
 }
+.ol-lbl--head{
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
 .ol-note{
   margin: 0;
   font-size: var(--font-size-caption);
@@ -6390,15 +6580,28 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   color: var(--color-text-secondary);
 }
 
-/* كتلة الإعدادات المشتركة */
+/* كتلة الإعدادات المشتركة — كارتٌ واحدٌ هادئٌ برأسٍ وصفوف، لا ثلاث مجموعاتٍ صاخبة */
 .ol-set{
-  display: flex; flex-direction: column; gap: var(--space-2);
+  display: flex; flex-direction: column; gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
 }
-.ol-set > .ol-lbl:first-child{ margin-top: 0; }
+.ol-set__head{
+  margin: 0;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .3px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+.ol-row{ display: flex; flex-direction: column; gap: var(--space-2); }
+.ol-row .ol-lbl{ margin: 0; }
+.ol-field{ display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+/* نوعُ المباراة ولونُ القطعة جنبًا إلى جنبٍ على المتّسع، وعمودًا على الضيّق */
+.ol-row--split{ display: grid; grid-template-columns: minmax(0,1fr); gap: var(--space-3); }
+@media (min-width: 460px){ .ol-row--split{ grid-template-columns: minmax(0,1fr) minmax(0,1fr); } }
 
 /* أزمنة المباراة — شبكة لا شريط، فالأرقام تُقرأ ولا تتزاحم */
 .ol-chips{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
@@ -6482,44 +6685,63 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   .ol-seg--3 .ol-seg__pc{ width: 20px; height: 20px; font-size: 13px; }
 }
 
-/* طرق البدء — بطاقة لكل طريقة باسمها وسطر يشرحها */
-.ol-modes{ display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
-@media (min-width: 480px){ .ol-modes{ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+/* طرق البدء — أربع بطاقاتٍ ملوّنة، لكلٍّ لونُها الخاصّ فلا تتشابه ولا تَمَلّ */
+.ol-modes{ display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: var(--space-2); }
 .ol-mode{
+  position: relative; overflow: hidden;
   display: flex; align-items: center; gap: var(--space-3);
   width: 100%; min-height: var(--touch-target-min);
   padding: var(--space-3) var(--space-4);
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   text-align: start; cursor: pointer;
   transition: border-color var(--duration-fast) var(--easing-standard),
               background-color var(--duration-fast) var(--easing-standard),
+              box-shadow var(--duration-fast) var(--easing-standard),
               transform var(--duration-fast) var(--easing-standard);
 }
+/* شريطٌ لونيٌّ رفيعٌ على الحافّة يُعرّف البطاقة بلونها */
+.ol-mode::before{
+  content: ""; position: absolute; inset-block: 0; inset-inline-start: 0;
+  width: 3px; background: var(--acc); opacity: .85;
+}
 .ol-mode:active{ transform: scale(.98); }
-.ol-mode:focus-visible{ outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.ol-mode:focus-visible{ outline: 2px solid var(--acc); outline-offset: 2px; }
 .ol-mode.is-active{
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
+  border-color: var(--acc);
+  background: var(--acc-soft);
+  box-shadow: 0 8px 22px -12px var(--acc);
 }
 .ol-mode__icon{
   display: inline-flex; flex: 0 0 auto;
-  width: 34px; height: 34px;
+  width: 40px; height: 40px;
   align-items: center; justify-content: center;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-primary-text);
+  border-radius: var(--radius-md);
+  background: var(--acc-soft);
+  color: var(--acc);
+  transition: background-color var(--duration-fast) var(--easing-standard),
+              color var(--duration-fast) var(--easing-standard);
 }
-.ol-mode.is-active .ol-mode__icon{ background: var(--color-primary); color: var(--color-on-primary); }
-.ol-mode__icon .ico{ width: 19px; height: 19px; }
+.ol-mode.is-active .ol-mode__icon{ background: var(--acc); color: #fff; }
+.ol-mode__icon .ico{ width: 21px; height: 21px; }
 .ol-mode__text{ display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ol-mode__title{ font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
+.ol-mode__title{ font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
 .ol-mode__desc{
   font-size: var(--font-size-caption); line-height: var(--line-height-caption);
   color: var(--color-text-secondary);
+}
+/* ألوانُ الطرق الأربع — ثابتةٌ بقصدٍ لتُميّز كلَّ طريقةٍ عبر كلّ الثيمات */
+.ol-mode--m{ --acc:#34d399; --acc-soft:rgba(52,211,153,.15); }  /* مطابقة سريعة */
+.ol-mode--f{ --acc:#5b9dff; --acc-soft:rgba(91,157,255,.15); }  /* لعب مع صديق */
+.ol-mode--c{ --acc:#a684ff; --acc-soft:rgba(166,132,255,.15); } /* إنشاء غرفة */
+.ol-mode--j{ --acc:#ffb454; --acc-soft:rgba(255,180,84,.15); }  /* الانضمام بكود */
+/* هاتفٌ ضيّقٌ جدًّا: الوصفُ يطول، فنسمح بسطرين ونصغّر الحشو قليلًا */
+@media (max-width: 360px){
+  .ol-mode{ padding: var(--space-3); gap: var(--space-2); }
+  .ol-mode__icon{ width: 36px; height: 36px; }
 }
 
 /* اللوح النشط — واحد ظاهر فقط، وفيه الفعل والحالة لا الإعدادات */

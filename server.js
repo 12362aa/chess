@@ -1167,10 +1167,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 48;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b48/chess-amkh-4.2-b48.apk';
-const NOTES_AR = 'مواجهةُ الألغازِ بين الأصدقاءِ صارت مثلَ الموقعِ المنافسِ تمامًا: عدٌّ تنازليٌّ مُزامَنٌ (٣·٢·١·ابدأ) يُطلِقُ اللاعبَينِ معًا، وساعةٌ محلّيّةٌ عادلةٌ بلا فارقِ توقيت، ورشُ ثلاثِ دقائقَ بثلاثةِ أخطاءٍ تُنهي جولتَكَ بينما يُكمِلُ خصمُكَ، والأكثرُ حلًّا يفوزُ (وعندَ التعادلِ الأقلُّ خطأً). وإذا انسحبَ أحدٌ أو خرجَ من الشاشةِ يُحتسَبُ الآخرُ فائزًا. مع تأكيدٍ قبلَ الانسحابِ ومتابعةٍ حيّةٍ لأخطاءِ الخصم.';
-const NOTES_EN = 'Friend puzzle battles now work exactly like the rival site: a synchronized 3·2·1·Go countdown launches both players together, a fair local clock with no time-drift, a 3-minute rush where three misses end your run while your opponent keeps solving, and most solved wins (fewest misses breaks a tie). If someone leaves or quits the screen, the other is declared the winner. Added a forfeit confirmation and a live view of your opponent’s misses.';
+const LATEST_CODE = 49;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b49/chess-amkh-4.2-b49.apk';
+const NOTES_AR = 'شاشةُ الإعداداتِ وُلدت من جديد: رموزُها المبهمةُ صارت أيقوناتٍ مرسومةً واضحةً، وألوانُها تتبعُ ثيمَك بدلَ الذهبِ الدائمِ، وبطاقةُ اختيارِ القطعِ صفٌّ نظيفٌ بعرضٍ كامل، وزُحزِحت الزحمةُ والنجومُ الغامضة — تعملُ بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح. وشاشةُ اللعبِ عبر الإنترنتِ أُعيد بناؤها كلِّها: أربعُ طرقِ بدءٍ ملوّنةٌ واضحة، وإعداداتٌ تُختارُ مرّةً واحدةً تنطبقُ على الكلّ، ونبضةُ «مباشر» حيّةٌ — بلا فوضى ولا تكرار. وفي مراجعةِ المباراةِ صار لنور المدرّبِ تعابيرُ وجهٍ مرسومةٌ تتفاعلُ بذكاءٍ مع جودةِ كلِّ نقلة: يغضبُ من الغلطةِ الفادحةِ، ويُبهَرُ من النقلةِ الرائعة. وأيقونةُ سلسلةِ الأيّامِ صارت شعلةً متحرّكةً حيّة.';
+const NOTES_EN = 'The Settings screen is reborn: cryptic glyphs are now clear drawn icons, its colours follow your theme instead of a permanent gold, the piece-picker is a clean full-width row, and the clutter and mysterious stars are gone — working in Arabic and English across phone, tablet and browser. The online play screen was rebuilt entirely: four clear, colourful ways to start, settings chosen once and applied to all, and a live “Live” pulse — no chaos, no repetition. In match review, Nour the coach now has drawn facial expressions that react intelligently to each move’s quality: angry at a blunder, impressed by a brilliancy. And the daily-streak icon is now a living animated flame.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,

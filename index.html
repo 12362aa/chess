@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20260923-b47"></script>
+<script src="i18n-en.js?v=20260924-b49"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -1280,7 +1280,16 @@ body[data-ui-theme="glass"] .mc-tag{
 .settings-tab{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 16px;background:transparent;border:none;border-radius:16px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease;white-space:nowrap;}
 .settings-tab:hover{background:rgba(255,255,255,.05);color:var(--text);transform:translateY(-1px);}
 .settings-tab.active{background:linear-gradient(135deg,var(--gold),#f1c766);color:#0b0f15;box-shadow:0 10px 24px rgba(201,168,76,.22);}
-.tab-icon{font-size:17px;line-height:1;}
+.tab-icon{font-size:17px;line-height:1;display:inline-flex;}
+/* الأيقونات المرسومة (SVG) بدل الرموز المجرّدة: تتبع currentColor
+   فتلوّن نفسها بلون التبويب/القسم النشط مع أي ثيم. */
+.s-ico{width:1em;height:1em;display:block;flex-shrink:0;}
+.tab-icon .s-ico{width:19px;height:19px;}
+.section-icon .s-ico{width:17px;height:17px;}
+.settings-action-btn .s-ico{width:15px;height:15px;display:inline-block;vertical-align:-2px;margin-inline-end:5px;}
+.board-theme-trigger__chevron .s-ico{width:18px;height:18px;}
+.vol-ico{display:inline-flex;color:var(--color-text-secondary);}
+.vol-ico .s-ico{width:18px;height:18px;}
 .tab-label{font-weight:800;}
 .settings-content{width:100%;}
 .settings-tab-content{display:none;}
@@ -2164,6 +2173,18 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;}
 .rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(45,212,191,.55);animation:dbt .7s ease-in-out infinite;}
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
+/* مشاعر نور: حلقةُ مزاجٍ ملوّنة حول الصورة + شارةُ تعبيرٍ مرسومة تُطلَق
+   مرّةً عند كلّ حركة. اللون والوجه يتحدّدان من تصنيف الحركة (لا عشوائيًّا). */
+.rv-coach-ava{position:relative;display:inline-flex;width:24px;height:24px;flex-shrink:0;}
+.rv-coach-ava .nour-icon{box-shadow:0 0 0 2px var(--mood,#5fa8ff),0 0 10px -2px var(--mood,#5fa8ff);transition:box-shadow .25s ease;}
+.rv-coach-emo{position:absolute;inset-inline-end:-5px;bottom:-5px;width:14px;height:14px;pointer-events:none;}
+.rv-coach-emo svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));transform-origin:center;animation:rvEmoPop .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes rvEmoPop{0%{transform:scale(0) rotate(-40deg);opacity:0;}60%{opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+.rv-coach-ava.is-wow{animation:rvPop .55s ease both;}
+@keyframes rvPop{0%{transform:scale(1);}45%{transform:scale(1.14);}100%{transform:scale(1);}}
+.rv-coach-ava.is-angry{animation:rvShake .5s ease both;}
+@keyframes rvShake{0%,100%{transform:translateX(0);}18%{transform:translateX(-2px);}38%{transform:translateX(2px);}58%{transform:translateX(-1.5px);}78%{transform:translateX(1.5px);}}
+@media (prefers-reduced-motion:reduce){.rv-coach-emo svg,.rv-coach-ava.is-wow,.rv-coach-ava.is-angry{animation:none!important;}}
 /* nav bar */
 .rv-nav{flex-shrink:0;display:flex;align-items:center;gap:5px;width:100%;max-width:400px;}
 /* #6: `flex:1` بلا `min-width:0` معناه العنصر مايصغرش تحت حجم محتواه (القيمة
@@ -2994,7 +3015,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260924-b48h">
+<link rel="stylesheet" href="screens.css?v=20260924-b49">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3221,7 +3242,17 @@ html.amkh-preboot #amkh-preboot{
         <!-- سلسلة الأيام: بتظهر بس لما تبقى موجودة فعلًا، عشان الرقم
              ما يفضلش صفر ثابت يعلّم إن المكان ده مالوش لازمة -->
         <span class="home-daily__streak" id="home-daily-streak" hidden>
-          <i class="ico ico--streak" aria-hidden="true"></i>
+          <!-- نارٌ حيّة بدل السِّلويت المسطّح: ألسنةٌ متدرّجةٌ ترقص وجمرةٌ
+               تنبض وشرارةٌ تصعد. حركةٌ CSS بحتة، تهدأ مع تقليل الحركة. -->
+          <span class="amkh-flame" aria-hidden="true">
+            <span class="amkh-flame__spark"></span>
+            <span class="amkh-flame__spark amkh-flame__spark--b"></span>
+            <span class="amkh-flame__tongue amkh-flame__tongue--red"></span>
+            <span class="amkh-flame__tongue amkh-flame__tongue--orange"></span>
+            <span class="amkh-flame__tongue amkh-flame__tongue--gold"></span>
+            <span class="amkh-flame__core"></span>
+            <span class="amkh-flame__ember"></span>
+          </span>
           <b id="home-daily-streak-n">0</b>
         </span>
       </div>
@@ -3294,25 +3325,25 @@ html.amkh-preboot #amkh-preboot{
     <div class="settings-tabs-wrap">
       <div class="settings-tabs">
         <button class="settings-tab active" data-tab="appearance" onclick="switchSettingsTab('appearance')">
-          <span class="tab-icon">◈</span>
+          <span class="tab-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg></span>
           <span class="tab-label">المظهر</span>
         </button>
         <button class="settings-tab" data-tab="board" onclick="switchSettingsTab('board')">
-          <span class="tab-icon">▦</span>
+          <span class="tab-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><rect x="3" y="3" width="9" height="9" fill="currentColor" stroke="none"/><rect x="12" y="12" width="9" height="9" fill="currentColor" stroke="none"/></svg></span>
           <span class="tab-label">الرقعة</span>
         </button>
         <button class="settings-tab" data-tab="gameplay" onclick="switchSettingsTab('gameplay')">
-          <span class="tab-icon">✦</span>
+          <span class="tab-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v18"/><path d="M5 4h12l-2.6 4L17 12H5"/></svg></span>
           <span class="tab-label">اللعب</span>
         </button>
         <button class="settings-tab" data-tab="sound" onclick="switchSettingsTab('sound')">
-          <span class="tab-icon">◉</span>
+          <span class="tab-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M17 8.5a5 5 0 0 1 0 7"/></svg></span>
           <span class="tab-label">الصوت</span>
         </button>
         <!-- الحساب: أول تبويب بيلمس السيرفر. كان مفيش مكان في الإعدادات
              يقول للاعب هو داخل بمين ولا يخلّيه يغيّر اسمه العام. -->
         <button class="settings-tab" data-tab="account" onclick="switchSettingsTab('account')">
-          <span class="tab-icon">☖</span>
+          <span class="tab-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"/></svg></span>
           <span class="tab-label">الحساب</span>
         </button>
       </div>
@@ -3321,7 +3352,7 @@ html.amkh-preboot #amkh-preboot{
         <!-- Appearance Tab -->
         <div class="settings-tab-content active" id="tab-appearance">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">◈</span> واجهة التطبيق</h3>
+            <h3 class="section-title"><span class="section-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg></span> واجهة التطبيق</h3>
             <div class="settings-grid">
               <!-- اللغة: أوّل صفّ في المظهر لأنه يغيّر كل نصّ بعده. التبديل
                    يعيد تحميل التطبيق عمدًا (I18N.set) — أضمن من محاولة عكس
@@ -3368,7 +3399,8 @@ html.amkh-preboot #amkh-preboot{
                     </div>
                   </div>
                   <button class="settings-action-btn" onclick="if(typeof SFX !== 'undefined') SFX.btn(); openPieceSettings();">
-                    ◇ جميع القطع
+                    <svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4"/></svg>
+                    جميع القطع
                   </button>
                 </div>
               </div>
@@ -3379,7 +3411,7 @@ html.amkh-preboot #amkh-preboot{
         <!-- Board Tab -->
         <div class="settings-tab-content" id="tab-board">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">⊕</span> إعدادات الرقعة</h3>
+            <h3 class="section-title"><span class="section-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><rect x="3" y="3" width="9" height="9" fill="currentColor" stroke="none"/><rect x="12" y="12" width="9" height="9" fill="currentColor" stroke="none"/></svg></span> إعدادات الرقعة</h3>
             <div class="settings-grid">
               <div class="setting-item">
                 <div class="setting-label">الإحداثيات</div>
@@ -3400,7 +3432,7 @@ html.amkh-preboot #amkh-preboot{
           </div>
 
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">▣</span> ألوان الرقعة</h3>
+            <h3 class="section-title"><span class="section-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3.5 4 6 7 6 10a6 6 0 0 1-12 0c0-3 2.5-6 6-10z"/></svg></span> ألوان الرقعة</h3>
             <!-- 21 لون — بيتعرضوا في ورقة سفلية بدل ما يطوّلوا الصفحة.
                  الشبكة نفسها بتتنقل جوه الورقة بالـ JS عند أول فتح. -->
             <button type="button" class="board-theme-trigger" onclick="if(typeof SFX!=='undefined')SFX.btn(); BoardThemeSheet.open()">
@@ -3409,21 +3441,21 @@ html.amkh-preboot #amkh-preboot{
                 <span class="board-theme-trigger__label">لون الرقعة</span>
                 <span class="board-theme-trigger__value" id="board-theme-current-name">خشب</span>
               </span>
-              <span class="board-theme-trigger__chevron">‹</span>
+              <span class="board-theme-trigger__chevron"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14 6 8 12 14 18"/></svg></span>
             </button>
             <div class="board-themes-grid" id="board-themes-grid">
-              <div class="th-opt on" id="th-classic"    onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>خشب ★</div>
+              <div class="th-opt on" id="th-classic"    onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('classic')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>خشب</div>
               <div class="th-opt"    id="th-burl_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood')"><div class="th-sw"><div class="sw" style="background:#d4a574"></div><div class="sw" style="background:#8b6f47"></div></div>بيرل</div>
               <div class="th-opt"    id="th-dark_wood"   onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood')"><div class="th-sw"><div class="sw" style="background:#9d8b7e"></div><div class="sw" style="background:#4a3a2a"></div></div>داكن</div>
               <div class="th-opt"    id="th-dark_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('dark_wood2')"><div class="th-sw"><div class="sw" style="background:#8b7d6b"></div><div class="sw" style="background:#3a2a1a"></div></div>داكن 2</div>
               <div class="th-opt"    id="th-burl_wood2"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('burl_wood2')"><div class="th-sw"><div class="sw" style="background:#c9a574"></div><div class="sw" style="background:#7a5a3a"></div></div>بيرل 2</div>
               <div class="th-opt"    id="th-green"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('green')"><div class="th-sw"><div class="sw" style="background:#eeeed2"></div><div class="sw" style="background:#769656"></div></div>أخضر</div>
-              <div class="th-opt"    id="th-wood_walnut" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_walnut')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>جوز ★</div>
-              <div class="th-opt"    id="th-wood_maple"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_maple')"><div class="th-sw"><div class="sw" style="background:#efc99e"></div><div class="sw" style="background:#c56e3a"></div></div>قيقب ★</div>
-              <div class="th-opt"    id="th-marble"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('marble')"><div class="th-sw"><div class="sw" style="background:#c3bca6"></div><div class="sw" style="background:#716c67"></div></div>رخام ★</div>
-              <div class="th-opt"    id="th-metal"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('metal')"><div class="th-sw"><div class="sw" style="background:#d8d8d8"></div><div class="sw" style="background:#757574"></div></div>معدن ★</div>
-              <div class="th-opt"    id="th-stone"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('stone')"><div class="th-sw"><div class="sw" style="background:#b1aea7"></div><div class="sw" style="background:#4e4d4b"></div></div>حجارة ★</div>
-              <div class="th-opt"    id="th-silver"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('silver')"><div class="th-sw"><div class="sw" style="background:#d9e3e4"></div><div class="sw" style="background:#99a1a0"></div></div>فضي ★</div>
+              <div class="th-opt"    id="th-wood_walnut" onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_walnut')"><div class="th-sw"><div class="sw" style="background:#ba9d79"></div><div class="sw" style="background:#74533a"></div></div>جوز</div>
+              <div class="th-opt"    id="th-wood_maple"  onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('wood_maple')"><div class="th-sw"><div class="sw" style="background:#efc99e"></div><div class="sw" style="background:#c56e3a"></div></div>قيقب</div>
+              <div class="th-opt"    id="th-marble"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('marble')"><div class="th-sw"><div class="sw" style="background:#c3bca6"></div><div class="sw" style="background:#716c67"></div></div>رخام</div>
+              <div class="th-opt"    id="th-metal"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('metal')"><div class="th-sw"><div class="sw" style="background:#d8d8d8"></div><div class="sw" style="background:#757574"></div></div>معدن</div>
+              <div class="th-opt"    id="th-stone"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('stone')"><div class="th-sw"><div class="sw" style="background:#b1aea7"></div><div class="sw" style="background:#4e4d4b"></div></div>حجارة</div>
+              <div class="th-opt"    id="th-silver"      onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('silver')"><div class="th-sw"><div class="sw" style="background:#d9e3e4"></div><div class="sw" style="background:#99a1a0"></div></div>فضي</div>
               <div class="th-opt"    id="th-blue"        onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('blue')"><div class="th-sw"><div class="sw" style="background:#717b8e"></div><div class="sw" style="background:#28303d"></div></div>أزرق</div>
               <div class="th-opt"    id="th-ocean"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('ocean')"><div class="th-sw"><div class="sw" style="background:#dee3e6"></div><div class="sw" style="background:#8ca2ad"></div></div>أوقيانوس</div>
               <div class="th-opt"    id="th-night"       onclick="if(typeof SFX !== 'undefined') SFX.btn(); Cfg.theme('night')"><div class="th-sw"><div class="sw" style="background:#e8e9db"></div><div class="sw" style="background:#4a7c59"></div></div>ليلي</div>
@@ -3438,7 +3470,7 @@ html.amkh-preboot #amkh-preboot{
               <label style="font-size:14px;color:var(--gold2);display:block;margin-bottom:12px;font-weight:700;">اختر صورة للرقعة:</label>
               <div style="display:flex;gap:12px;">
                 <label style="background:var(--bg2);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;flex:1;text-align:center;transition:all 0.2s;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg2)'">
-                  ◈ اختيار صورة
+                  <svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-inline-end:4px;"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg> اختيار صورة
                   <input type="file" id="board-image-input" accept="image/*" style="display:none;" onchange="Cfg.prepareCustomBoardImage(this)">
                 </label>
                 <button class="btnb" style="flex:1;padding:8px;" onclick="Cfg.applyCustomBoardImage()">تطبيق الصورة</button>
@@ -3451,7 +3483,7 @@ html.amkh-preboot #amkh-preboot{
         <!-- Gameplay Tab -->
         <div class="settings-tab-content" id="tab-gameplay">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">✦</span> إعدادات اللعب</h3>
+            <h3 class="section-title"><span class="section-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v18"/><path d="M5 4h12l-2.6 4L17 12H5"/></svg></span> إعدادات اللعب</h3>
             <div class="settings-grid">
               <div class="setting-item">
                 <div class="setting-label">عرض نقاط التقدم</div>
@@ -3521,7 +3553,7 @@ html.amkh-preboot #amkh-preboot{
         <!-- Sound Tab -->
         <div class="settings-tab-content" id="tab-sound">
           <div class="settings-section">
-            <h3 class="section-title"><span class="section-icon">◉</span> إعدادات الصوت</h3>
+            <h3 class="section-title"><span class="section-icon"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M17 8.5a5 5 0 0 1 0 7"/></svg></span> إعدادات الصوت</h3>
             <div class="settings-grid">
               <div class="setting-item">
                 <div class="setting-label">تفعيل الأصوات</div>
@@ -3532,9 +3564,9 @@ html.amkh-preboot #amkh-preboot{
                 <div class="setting-label">مستوى الصوت</div>
                 <div class="setting-description">اضبط مستوى صوت اللعبة</div>
                 <div class="vol-row">
-                  <span style="font-size:14px;color:var(--text2)">◁</span>
+                  <span class="vol-ico" aria-hidden="true"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h3l4 3.5V5.5L7 9H4z" fill="currentColor" stroke="none"/><path d="M14 10.5a3 3 0 0 1 0 3"/></svg></span>
                   <input type="range" class="vsl" id="set-vol" min="0" max="100" value="80" oninput="Cfg.save()">
-                  <span style="font-size:14px;color:var(--text2)">▷</span>
+                  <span class="vol-ico" aria-hidden="true"><svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h3l4 3.5V5.5L7 9H4z" fill="currentColor" stroke="none"/><path d="M14 10.5a3 3 0 0 1 0 3"/><path d="M17 7.5a7 7 0 0 1 0 9"/></svg></span>
                 </div>
               </div>
             </div>
@@ -3575,61 +3607,69 @@ html.amkh-preboot #amkh-preboot{
   <div class="ol-shell">
 
     <!-- الهوية -->
-    <div class="ol-hero ds-card">
+    <div class="ol-hero">
       <span class="ol-hero__icon" aria-hidden="true"><i class="ico ico--online" aria-hidden="true"></i></span>
       <div class="ol-hero__body">
         <h2 class="ol-hero__title">اللعب عبر الإنترنت</h2>
         <p class="ol-hero__sub">العب مع لاعبين من كل مكان، أو مع أصدقائك</p>
       </div>
+      <span class="ol-hero__live" aria-hidden="true"><span class="ol-hero__dot"></span>مباشر</span>
     </div>
 
-    <!-- إعدادات مشتركة: تُختار مرّة واحدة وتنطبق على كل طرق البدء -->
-    <div class="ol-set">
-      <p class="ol-lbl" id="ol-lbl-tc">زمن المباراة</p>
-      <div class="ol-chips" id="tc-time-opts" role="group" aria-labelledby="ol-lbl-tc">
-        <button type="button" class="ol-chip is-active" id="tcp-none"  onclick="OL.setTC('none')"><span class="ol-chip__t">بدون</span><span class="ol-chip__d">بلا ساعة</span></button>
-        <button type="button" class="ol-chip"           id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ol-chip__t">1+0</span><span class="ol-chip__d">خاطف</span></button>
-        <button type="button" class="ol-chip"           id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ol-chip__t">3+2</span><span class="ol-chip__d">خاطف</span></button>
-        <button type="button" class="ol-chip"           id="tcp-5+0"   onclick="OL.setTC('5+0')"><span class="ol-chip__t">5+0</span><span class="ol-chip__d">سريع</span></button>
-        <button type="button" class="ol-chip"           id="tcp-10+0"  onclick="OL.setTC('10+0')"><span class="ol-chip__t">10+0</span><span class="ol-chip__d">سريع</span></button>
-        <button type="button" class="ol-chip"           id="tcp-15+10" onclick="OL.setTC('15+10')"><span class="ol-chip__t">15+10</span><span class="ol-chip__d">متمهّل</span></button>
-      </div>
-      <p class="ol-note">إذا نفد وقت أحد اللاعبين فاز خصمه، وإن تكافأت المادة كان التعادل.</p>
-
-      <p class="ol-lbl" id="ol-lbl-rt">نوع المباراة</p>
-      <div class="ol-seg" id="rated-opts" role="group" aria-labelledby="ol-lbl-rt">
-        <button type="button" class="ol-seg__b is-active" id="rt-casual" onclick="OL.setRated(false)">ودّية</button>
-        <button type="button" class="ol-seg__b"           id="rt-rated"  onclick="OL.setRated(true)">مصنّفة</button>
-      </div>
-      <p class="ol-note" id="rt-hint">الودّية لا تغيّر تقييمك. والمصنّفة تحتاج تسجيل الدخول للطرفين.</p>
-
-      <p class="ol-lbl" id="ol-lbl-col">لون قطعك</p>
-      <div class="ol-seg ol-seg--3" role="group" aria-labelledby="ol-lbl-col">
-        <button type="button" class="ol-seg__b is-active" id="co-w" onclick="OL.col('w')"><span class="ol-seg__pc ol-seg__pc--w" aria-hidden="true">&#9818;</span>أبيض</button>
-        <button type="button" class="ol-seg__b"           id="co-b" onclick="OL.col('b')"><span class="ol-seg__pc ol-seg__pc--b" aria-hidden="true">&#9818;</span>أسود</button>
-        <button type="button" class="ol-seg__b"           id="co-r" onclick="OL.col('r')"><span class="ol-seg__pc ol-seg__pc--r" aria-hidden="true"></span>عشوائي</button>
-      </div>
-    </div>
-
-    <!-- كيف تبدأ -->
-    <p class="ol-lbl">كيف تبدأ</p>
+    <!-- كيف تبدأ — أربع طرق ملوّنة، كلٌّ بلونها وأيقونتها -->
+    <p class="ol-lbl ol-lbl--head">كيف تبدأ</p>
     <div class="ol-modes" role="tablist" aria-label="طريقة بدء المباراة">
-      <button type="button" class="ol-mode is-active" id="tb-m" role="tab" aria-selected="true" aria-controls="tc-m" onclick="OL.tab('m')">
+      <button type="button" class="ol-mode ol-mode--m is-active" id="tb-m" role="tab" aria-selected="true" aria-controls="tc-m" onclick="OL.tab('m')">
         <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--online" aria-hidden="true"></i></span>
         <span class="ol-mode__text"><span class="ol-mode__title">مطابقة سريعة</span><span class="ol-mode__desc">نجد لك خصمًا متاحًا الآن</span></span>
       </button>
-      <button type="button" class="ol-mode" id="tb-f" onclick="OL.friend()">
+      <button type="button" class="ol-mode ol-mode--f" id="tb-f" onclick="OL.friend()">
         <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--friends" aria-hidden="true"></i></span>
         <span class="ol-mode__text"><span class="ol-mode__title">لعب مع صديق</span><span class="ol-mode__desc">اختر صديقًا من قائمتك وأرسل له دعوة</span></span>
       </button>
-      <button type="button" class="ol-mode" id="tb-c" role="tab" aria-selected="false" aria-controls="tc-c" onclick="OL.tab('c')">
+      <button type="button" class="ol-mode ol-mode--c" id="tb-c" role="tab" aria-selected="false" aria-controls="tc-c" onclick="OL.tab('c')">
         <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--host" aria-hidden="true"></i></span>
         <span class="ol-mode__text"><span class="ol-mode__title">إنشاء غرفة</span><span class="ol-mode__desc">كود تشاركه مع من تريد</span></span>
       </button>
-      <button type="button" class="ol-mode" id="tb-j" role="tab" aria-selected="false" aria-controls="tc-j" onclick="OL.tab('j')">
+      <button type="button" class="ol-mode ol-mode--j" id="tb-j" role="tab" aria-selected="false" aria-controls="tc-j" onclick="OL.tab('j')">
         <span class="ol-mode__icon" aria-hidden="true"><i class="ico ico--join" aria-hidden="true"></i></span>
         <span class="ol-mode__text"><span class="ol-mode__title">الانضمام بكود</span><span class="ol-mode__desc">الصق الكود الذي وصلك</span></span>
       </button>
+    </div>
+
+    <!-- إعدادات المباراة: تُختار مرّة واحدة وتنطبق على كل طرق البدء -->
+    <div class="ol-set">
+      <p class="ol-set__head">إعدادات المباراة</p>
+      <div class="ol-row">
+        <p class="ol-lbl" id="ol-lbl-tc">زمن المباراة</p>
+        <div class="ol-chips" id="tc-time-opts" role="group" aria-labelledby="ol-lbl-tc">
+          <button type="button" class="ol-chip is-active" id="tcp-none"  onclick="OL.setTC('none')"><span class="ol-chip__t">بدون</span><span class="ol-chip__d">بلا ساعة</span></button>
+          <button type="button" class="ol-chip"           id="tcp-1+0"   onclick="OL.setTC('1+0')"><span class="ol-chip__t">1+0</span><span class="ol-chip__d">خاطف</span></button>
+          <button type="button" class="ol-chip"           id="tcp-3+2"   onclick="OL.setTC('3+2')"><span class="ol-chip__t">3+2</span><span class="ol-chip__d">خاطف</span></button>
+          <button type="button" class="ol-chip"           id="tcp-5+0"   onclick="OL.setTC('5+0')"><span class="ol-chip__t">5+0</span><span class="ol-chip__d">سريع</span></button>
+          <button type="button" class="ol-chip"           id="tcp-10+0"  onclick="OL.setTC('10+0')"><span class="ol-chip__t">10+0</span><span class="ol-chip__d">سريع</span></button>
+          <button type="button" class="ol-chip"           id="tcp-15+10" onclick="OL.setTC('15+10')"><span class="ol-chip__t">15+10</span><span class="ol-chip__d">متمهّل</span></button>
+        </div>
+      </div>
+
+      <div class="ol-row ol-row--split">
+        <div class="ol-field">
+          <p class="ol-lbl" id="ol-lbl-rt">نوع المباراة</p>
+          <div class="ol-seg" id="rated-opts" role="group" aria-labelledby="ol-lbl-rt">
+            <button type="button" class="ol-seg__b is-active" id="rt-casual" onclick="OL.setRated(false)">ودّية</button>
+            <button type="button" class="ol-seg__b"           id="rt-rated"  onclick="OL.setRated(true)">مصنّفة</button>
+          </div>
+        </div>
+        <div class="ol-field">
+          <p class="ol-lbl" id="ol-lbl-col">لون قطعك</p>
+          <div class="ol-seg ol-seg--3" role="group" aria-labelledby="ol-lbl-col">
+            <button type="button" class="ol-seg__b is-active" id="co-w" onclick="OL.col('w')"><span class="ol-seg__pc ol-seg__pc--w" aria-hidden="true">&#9818;</span>أبيض</button>
+            <button type="button" class="ol-seg__b"           id="co-b" onclick="OL.col('b')"><span class="ol-seg__pc ol-seg__pc--b" aria-hidden="true">&#9818;</span>أسود</button>
+            <button type="button" class="ol-seg__b"           id="co-r" onclick="OL.col('r')"><span class="ol-seg__pc ol-seg__pc--r" aria-hidden="true"></span>عشوائي</button>
+          </div>
+        </div>
+      </div>
+      <p class="ol-note" id="rt-hint">الودّية لا تغيّر تقييمك. والمصنّفة تحتاج تسجيل الدخول للطرفين.</p>
     </div>
 
     <!-- اللوح النشط: واحد فقط ظاهر، وفيه الفعل والحالة لا الإعدادات -->
@@ -7579,7 +7619,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 48;
+const APP_VERSION_CODE = 49;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -11549,7 +11589,41 @@ const REV=(()=>{
   // Try to use Nour's image, fallback to SVG
   const NOUR_IMG=`<img src="./nour.png" class="nour-icon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
   <span style="display:none;">${NOUR_SVG}</span>`;
-  const NOUR_LBL=`<div class="rv-coach-lbl">${NOUR_IMG}<span class="rv-coach-name">نور المدرب</span></div>`;
+
+  /* ══════════════════════════════════════════════════════════════
+     مشاعر نور — تفاعلٌ بالوجه لا صورةٌ صامتة
+     ──────────────────────────────────────────────────────────────
+     اللاعبون حسّوا نور «صورة بتتكلّم» بلا روح. الحلّ: عند صورته تظهر
+     شارةُ تعبيرٍ مرسومة (وجهٌ خطّيّ) تتغيّر بذكاءٍ حسب تصنيف الحركة —
+     لا عشوائيًّا: منبهرٌ للحركة الرائعة، فخورٌ للأفضل، هادئٌ للجيّدة،
+     قلِقٌ لغير الدقيقة، حزينٌ للخطأ، وغاضبٌ للخطأ الفادح. وحلقةٌ ملوّنةٌ
+     حول الصورة بلون المزاج، مع حركةٍ خفيفةٍ تُطلَق مرّةً عند كلّ حركة
+     (نطّةٌ للانبهار، رجفةٌ للغضب) — فيبدو نور متفاعلًا حيًّا. */
+  const MOOD_BY_RATING={
+    brilliant:'wow', great:'wow', best:'happy', excellent:'happy',
+    good:'calm', book:'calm', inaccuracy:'concerned',
+    mistake:'sad', miss:'sad', blunder:'angry'
+  };
+  const MOOD_COLOR={ wow:'#ffcf4a', happy:'#4fd67f', calm:'#5fa8ff', concerned:'#ffc24a', sad:'#ff8a3d', angry:'#ff5a5a' };
+  /* ملامحُ خطّيّةٌ بيضاء داخل قرصٍ بلون المزاج؛ عيونٌ ثمّ فمٌ ثمّ حاجبان */
+  const MOOD_FACE={
+    wow:'<circle cx="9" cy="10.5" r="1.7" fill="#fff"/><circle cx="15" cy="10.5" r="1.7" fill="#fff"/><circle cx="12" cy="15.3" r="2.4" fill="none" stroke="#fff" stroke-width="1.7"/>',
+    happy:'<path d="M7.6 11.2 Q9 9.3 10.4 11.2" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M13.6 11.2 Q15 9.3 16.4 11.2" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M7.8 13.6 Q12 18 16.2 13.6" fill="none" stroke="#fff" stroke-width="1.8"/>',
+    calm:'<circle cx="9" cy="11" r="1.3" fill="#fff"/><circle cx="15" cy="11" r="1.3" fill="#fff"/><path d="M9 14.6 Q12 16.4 15 14.6" fill="none" stroke="#fff" stroke-width="1.6"/>',
+    concerned:'<circle cx="9" cy="11.2" r="1.3" fill="#fff"/><circle cx="15" cy="11.2" r="1.3" fill="#fff"/><path d="M8.6 15 Q12 13.9 15.4 15" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M7.4 8.6 L10.4 9.4" stroke="#fff" stroke-width="1.4"/>',
+    sad:'<circle cx="9" cy="11.4" r="1.3" fill="#fff"/><circle cx="15" cy="11.4" r="1.3" fill="#fff"/><path d="M8 16.2 Q12 12.4 16 16.2" fill="none" stroke="#fff" stroke-width="1.7"/><path d="M7.2 9.6 L10.2 8.6" stroke="#fff" stroke-width="1.3"/><path d="M16.8 9.6 L13.8 8.6" stroke="#fff" stroke-width="1.3"/>',
+    angry:'<circle cx="9" cy="11.6" r="1.3" fill="#fff"/><circle cx="15" cy="11.6" r="1.3" fill="#fff"/><path d="M8.4 16.2 Q12 13.6 15.6 16.2" fill="none" stroke="#fff" stroke-width="1.7"/><path d="M7.4 8.6 L10.6 10" stroke="#fff" stroke-width="1.5"/><path d="M16.6 8.6 L13.4 10" stroke="#fff" stroke-width="1.5"/>'
+  };
+  function _mood(rating){ return MOOD_BY_RATING[rating]||'calm'; }
+  function nourAva(rating){
+    const mood=_mood(rating), color=MOOD_COLOR[mood];
+    return `<span class="rv-coach-ava is-${mood}" style="--mood:${color}">`
+      + NOUR_IMG
+      + `<span class="rv-coach-emo" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="${color}"/><g stroke-linecap="round" stroke-linejoin="round">${MOOD_FACE[mood]}</g></svg></span>`
+      + `</span>`;
+  }
+  function nourLbl(rating){ return `<div class="rv-coach-lbl">${nourAva(rating)}<span class="rv-coach-name">${T('نور المدرب')}</span></div>`; }
+  const NOUR_LBL=nourLbl('');   /* توافق مع أيّ استدعاءٍ قديمٍ بلا تصنيف */
 
   function _typeText(el, text, speed=22){
     el.textContent='';
@@ -11570,11 +11644,11 @@ const REV=(()=>{
     const coachEl=document.getElementById('rv-coach-txt');
     if(!coachEl)return;
     if(_coachCache[idx]!==undefined){
-      coachEl.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-txt" id="rv-coach-txt"></div>`;
+      coachEl.parentElement.innerHTML=nourLbl(mv.rating)+`<div class="rv-coach-txt" id="rv-coach-txt"></div>`;
       _typeText(document.getElementById('rv-coach-txt'), _coachCache[idx]);
       return;
     }
-    coachEl.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-inline-start:6px;color:var(--text2)">يُحلِّل…</span></div>`;
+    coachEl.parentElement.innerHTML=nourLbl(mv.rating)+`<div class="rv-coach-loading rv-coach-dots" id="rv-coach-txt"><span class="rv-dot"></span><span class="rv-dot"></span><span class="rv-dot"></span><span style="margin-inline-start:6px;color:var(--text2)">يُحلِّل…</span></div>`;
     const evalPawns=(mv.evalAfter/100).toFixed(1);
     /* #12: شاشة المراجعة بتعلّق على حركات الطرفين في أي مباراة (أونلاين،
        لاعبَان على جهاز، Stockfish، ومراحل نور). النصّ القديم كان بيقول
@@ -11666,13 +11740,13 @@ Explain very briefly why it earned this classification and what could have been 
       _coachCache[idx]=txt;
       const coachEl2=document.getElementById('rv-coach-txt');
       if(coachEl2){
-        coachEl2.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-txt" id="rv-coach-txt"></div>`;
+        coachEl2.parentElement.innerHTML=nourLbl(mv.rating)+`<div class="rv-coach-txt" id="rv-coach-txt"></div>`;
         _typeText(document.getElementById('rv-coach-txt'), txt);
       }
     }catch(e){
       console.error('[Nour Coach] Error:',e);
       const coachEl2=document.getElementById('rv-coach-txt');
-      if(coachEl2)coachEl2.parentElement.innerHTML=NOUR_LBL+`<div class="rv-coach-txt" id="rv-coach-txt" style="color:var(--text3)">تعذّر تحميل التحليل. تأكد من اتصال الإنترنت.</div>`;
+      if(coachEl2)coachEl2.parentElement.innerHTML=nourLbl(mv.rating)+`<div class="rv-coach-txt" id="rv-coach-txt" style="color:var(--text3)">تعذّر تحميل التحليل. تأكد من اتصال الإنترنت.</div>`;
     }
   }
 
@@ -11714,11 +11788,7 @@ Explain very briefly why it earned this classification and what could have been 
       </div>
       <div class="rv-card" id="rv-card"></div>
       <div class="rv-coach" id="rv-coach">
-        <div class="rv-coach-lbl">
-          <img src="./nour.png" class="nour-icon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
-          <svg class="nour-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;"><circle cx="12" cy="8" r="4" stroke="#c9a84c" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><path d="M16 3l1.5-1.5M18 6h2M16.5 9l1.5 1" stroke="#e8d080" stroke-width="1.2" stroke-linecap="round"/><path d="M9 5.5c-.5.3-1 .8-1.2 1.4" stroke="#e8d080" stroke-width="1" stroke-linecap="round"/><circle cx="18.5" cy="5.5" r="1" fill="#e8d080"/></svg>
-          <span class="rv-coach-name">نور المدرب</span>
-        </div>
+        ${nourLbl('')}
         <div class="rv-coach-txt" id="rv-coach-txt">اختر حركة لتحليلها</div>
       </div>
       <div class="rv-nav">
@@ -16095,10 +16165,10 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260924-b48h"></script>
+  <script src="auth-client.js?v=20260924-b49"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
-  <script src="welcome-client.js?v=20260924-b48h"></script>
+  <script src="welcome-client.js?v=20260924-b49"></script>
   <script src="friends-client.js?v=20260916-b37"></script>
   <script src="chat-client.js?v=20260916-b37"></script>
   <script src="call-client.js?v=20260916-b37"></script>
