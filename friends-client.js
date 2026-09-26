@@ -667,6 +667,7 @@ const amkhFriends = {
       av.textContent = initial;
     }
     row.appendChild(av);
+    try { if (window.amkhCos) window.amkhCos.paint(av, user && user.cosmetics); } catch (e) {}
 
     const info = document.createElement('div');
     info.className = 'fr-row__info';
@@ -681,6 +682,7 @@ const amkhFriends = {
     const nm = document.createElement('span');
     nm.className = 'fr-row__name';
     nm.textContent = label;
+    try { if (window.amkhCos) window.amkhCos.paintName(nm, user && user.cosmetics); } catch (e) {}
     nmRow.appendChild(nm);
 
     const stRow = document.createElement('div');

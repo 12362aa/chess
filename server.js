@@ -925,6 +925,20 @@ app.use('/api/privacy', privacyRouter);
 const economy = require('./economy');
 app.use('/api/economy', economy.router);
 
+/* التجميل المُجهَّز من صفٍّ يحمل أعمدة equipped_* (المرحلة ٣): يظهر عند
+   الآخرين في الصدارة/الملف/الأصدقاء/الشات. يرجّع null لو لا شيء مُجهَّز. */
+function cosOf(u) {
+  if (!u) return null;
+  const o = {};
+  if (u.equipped_frame) o.frame = u.equipped_frame;
+  if (u.equipped_background) o.background = u.equipped_background;
+  if (u.equipped_badge) o.badge = u.equipped_badge;
+  if (u.equipped_celebration) o.celebration = u.equipped_celebration;
+  if (u.equipped_mate_fx) o.mate_fx = u.equipped_mate_fx;
+  return Object.keys(o).length ? o : null;
+}
+const COS_COLS = 'equipped_frame, equipped_background, equipped_badge, equipped_celebration, equipped_mate_fx';
+
 /* مُدد التثبيت المؤقّت المسموحة للرسائل (#7) — بالأيام. أي قيمة غيرها
    تُعامَل كتثبيت دائم، فلا يستطيع عميل مُعدَّل أن يثبّت لمدة اعتباطية. */
 const PIN_DAYS = [3, 7, 30];
@@ -1170,10 +1184,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 53;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b53/chess-amkh-4.2-b53.apk';
-const NOTES_AR = 'المتجرُ صار حيًّا بحقّ: بوّابةُ خزنةٍ ذهبيّةٌ بمصراعينِ ينفرجانِ عن ضوءٍ ونثارِ عملات (لا دوّامةَ محرّكٍ بعدَ الآن)، وكلُّ عنصرٍ في الخزائنِ صار معاينةً حيّةً متحرّكةً بهُويّةٍ خاصّة — إطاراتٌ تلمعُ وتدورُ، وخلفيّاتُ شفقٍ وسديمٍ وغروب، وشاراتٌ تتلألأ، واحتفالاتٌ وألعابٌ ناريّةٌ ومؤثّراتُ برقٍ وثلج. بطاقاتٌ أفخمُ بلمعانٍ للأسطوريّ. كلُّ ما تشتريه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'The store is truly alive now: a golden vault portal whose two doors part to reveal light and a burst of coins (no more engine swirl), and every item in the vaults is a live animated preview with its own identity — frames that shimmer and spin, aurora/nebula/sunset backgrounds, twinkling badges, celebrations, fireworks, lightning and snow effects. Richer cards with a legendary shine. Everything you buy is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 54;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b54/chess-amkh-4.2-b54.apk';
+const NOTES_AR = 'زينتُك صارت تظهرُ للجميع في كلِّ مكان: جهِّز إطارًا أو خلفيّةً أو شارةً من متجرك، فتراها كلُّ اللاعبين حولَ صورتِك واسمِك — في لوحةِ الصدارة، وقائمةِ الأصدقاء، والدردشة، والمجموعات، وبطاقةِ ملفِّك. زرُّ «تجهيز/مُجهَّز» في المتجر يبدّلُ زينتَك فورًا، وكلُّ عنصرٍ جديدٍ (أكثرُ من خمسينَ الآن) له معاينةٌ حيّةٌ متحرّكةٌ بلونٍ خاصٍّ به. كلُّ ما تملكه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'Your cosmetics now show to everyone, everywhere: equip a frame, background or badge from your store and every player sees it around your avatar and name — on the leaderboard, friends list, chat, groups and your profile card. An Equip/Equipped toggle in the store swaps your look instantly, and every new item (over fifty now) has its own live animated, uniquely-colored preview. Everything you own is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -1228,7 +1242,8 @@ app.get('/api/leaderboard', (req, res) => {
     if (sort === 'puzzles') {
       const rows = db.prepare(`
         SELECT id, display_name, username, provider, avatar_url, country,
-               puzzle_rating, puzzle_rd, puzzle_games, puzzle_peak, puzzle_solved
+               puzzle_rating, puzzle_rd, puzzle_games, puzzle_peak, puzzle_solved,
+               ${COS_COLS}
         FROM users
         WHERE puzzle_games >= 1
         ORDER BY (puzzle_rating - 2 * puzzle_rd) DESC, puzzle_games DESC
@@ -1240,6 +1255,7 @@ app.get('/api/leaderboard', (req, res) => {
           id: u.id,
           name: resolveOnlineName(u),
           avatar_url: u.avatar_url || null,
+          cosmetics: cosOf(u),
           country: u.country || null,
           rating: Math.round(isFinite(u.puzzle_rating) ? u.puzzle_rating : 1500),
           provisional: rd > 110 || !(u.puzzle_games > 0),
@@ -1258,7 +1274,8 @@ app.get('/api/leaderboard', (req, res) => {
         : '(rating - 2 * rating_rd) DESC, rating_games DESC, wins DESC';
     const rows = db.prepare(`
       SELECT id, display_name, username, provider, avatar_url, country,
-             rating, rating_rd, rating_games, rating_peak, wins, losses, draws
+             rating, rating_rd, rating_games, rating_peak, wins, losses, draws,
+             ${COS_COLS}
       FROM users
       WHERE rating_games >= 1 OR (COALESCE(wins,0) + COALESCE(losses,0) + COALESCE(draws,0)) >= 1
       ORDER BY ${order}
@@ -1272,6 +1289,7 @@ app.get('/api/leaderboard', (req, res) => {
         id: u.id,
         name: resolveOnlineName(u),
         avatar_url: u.avatar_url || null,
+        cosmetics: cosOf(u),
         country: u.country || null,
         rating: Math.round(isFinite(u.rating) ? u.rating : 1500),
         provisional: rd > 110 || !(u.rating_games > 0),
@@ -1299,7 +1317,8 @@ app.get('/api/profile/:id', (req, res) => {
   if (!Number.isInteger(uid) || uid <= 0) return res.status(400).json({ error: 'لاعب غير صالح' });
   try {
     const u = db.prepare(`SELECT id, display_name, username, provider, avatar_url, country, created_at,
-                                 rating, rating_rd, rating_vol, rating_games, rating_peak, wins, losses, draws
+                                 rating, rating_rd, rating_vol, rating_games, rating_peak, wins, losses, draws,
+                                 ${COS_COLS}
                             FROM users WHERE id = ?`).get(uid);
     if (!u) return res.status(404).json({ error: 'لاعب غير موجود' });
     const stats = ratingStore.statsOf(uid);
@@ -1319,6 +1338,7 @@ app.get('/api/profile/:id', (req, res) => {
         id: u.id,
         name: resolveOnlineName(u),
         avatar_url: u.avatar_url || null,
+        cosmetics: cosOf(u),
         country: u.country || null,
         joined_at: u.created_at || null,
         status: liveStatus(u.id) || 'offline',
@@ -2098,11 +2118,12 @@ function pushGroupMessage(groupId, fromId, spec, clientId) {
                  .run(groupId, fromId, kind, body, audio, duration, mime, replyTo,
                       mentions.length ? JSON.stringify(mentions) : null);
   const row = db.prepare(`SELECT id, created_at FROM group_messages WHERE id = ?`).get(info.lastInsertRowid);
-  const sender = db.prepare('SELECT display_name, username, avatar_url, provider FROM users WHERE id = ?').get(fromId) || {};
+  const sender = db.prepare(`SELECT display_name, username, avatar_url, provider, ${COS_COLS} FROM users WHERE id = ?`).get(fromId) || {};
   const senderName = resolveOnlineName(sender);
   const payload = {
     type: 'group:message', id: row.id, group_id: groupId,
     from: fromId, sender_name: senderName, sender_avatar: sender.avatar_url || null,
+    sender_cos: cosOf(sender),
     kind, body, created_at: row.created_at, client_id: clientId || null,
     reply_to: replyTo, reply: replyTo ? replySnippet('group', replyTo) : null,
     mentions,
@@ -2262,10 +2283,11 @@ function pushChatMessage(fromId, toId, spec, clientId) {
                  .run(key, fromId, toId, body, kind, audio, duration, mime, replyTo,
                       mentions.length ? JSON.stringify(mentions) : null);
   const row = db.prepare(`SELECT id, created_at FROM messages WHERE id = ?`).get(info.lastInsertRowid);
-  const senderRow = db.prepare('SELECT display_name, username, avatar_url, provider FROM users WHERE id = ?').get(fromId) || {};
+  const senderRow = db.prepare(`SELECT display_name, username, avatar_url, provider, ${COS_COLS} FROM users WHERE id = ?`).get(fromId) || {};
   const payload = {
     type: 'chat:message', id: row.id, convo_key: key,
     from: fromId, sender_name: resolveOnlineName(senderRow), sender_avatar: senderRow.avatar_url || null,
+    sender_cos: cosOf(senderRow),
     to: toId, kind, body, created_at: row.created_at, client_id: clientId || null,
     reply_to: replyTo, reply: replyTo ? replySnippet('chat', replyTo) : null,
     mentions,

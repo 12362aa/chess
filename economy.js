@@ -92,6 +92,37 @@ const STORE_CATALOG = [
   { id: 'fx_lightning',  type: 'mate_fx',     rarity: 'legendary', ar: 'مؤثّرُ البرق',        en: 'Lightning Effect' },
   { id: 'fx_goldrain',   type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ المطرِ الذهبيّ', en: 'Gold Rain Effect' },
   { id: 'fx_seasonal_snow', type: 'mate_fx',  rarity: 'seasonal',  ar: 'مؤثّرُ الثلجِ الموسميّ', en: 'Seasonal Snow Effect' },
+
+  /* ══ توسعةُ الكتالوج (المرحلة ٣): عناصرٌ أكثر بجودةٍ متحرّكة ══ */
+  // إطارات إضافية
+  { id: 'frame_shadow',  type: 'frame',       rarity: 'epic',      ar: 'إطارُ الظلّ',         en: 'Shadow Frame' },
+  { id: 'frame_emerald', type: 'frame',       rarity: 'rare',      ar: 'إطارٌ زمرّديّ',       en: 'Emerald Frame' },
+  { id: 'frame_galaxy',  type: 'frame',       rarity: 'legendary', ar: 'إطارُ المجرّة',       en: 'Galaxy Frame' },
+  { id: 'frame_phoenix', type: 'frame',       rarity: 'legendary', ar: 'إطارُ العنقاء',       en: 'Phoenix Frame' },
+  { id: 'frame_sakura',  type: 'frame',       rarity: 'seasonal',  ar: 'إطارُ الكرز',         en: 'Sakura Frame' },
+  // خلفيات إضافية
+  { id: 'bg_ocean_deep', type: 'background',  rarity: 'rare',      ar: 'خلفيّةُ الأعماق',     en: 'Deep Ocean Background' },
+  { id: 'bg_volcano',    type: 'background',  rarity: 'epic',      ar: 'خلفيّةُ البركان',     en: 'Volcano Background' },
+  { id: 'bg_galaxy',     type: 'background',  rarity: 'legendary', ar: 'خلفيّةُ المجرّة',     en: 'Galaxy Background' },
+  { id: 'bg_matrix',     type: 'background',  rarity: 'epic',      ar: 'خلفيّةُ الشيفرة',     en: 'Matrix Background' },
+  { id: 'bg_cherry',     type: 'background',  rarity: 'seasonal',  ar: 'خلفيّةُ الكرز',       en: 'Cherry Blossom Background' },
+  // شارات إضافية
+  { id: 'badge_diamond', type: 'badge',       rarity: 'epic',      ar: 'شارةُ الألماس',       en: 'Diamond Badge' },
+  { id: 'badge_skull',   type: 'badge',       rarity: 'rare',      ar: 'شارةُ الجُمجمة',      en: 'Skull Badge' },
+  { id: 'badge_moon',    type: 'badge',       rarity: 'rare',      ar: 'شارةُ الهلال',        en: 'Crescent Badge' },
+  { id: 'badge_gem',     type: 'badge',       rarity: 'legendary', ar: 'شارةُ الجوهرة',       en: 'Gem Badge' },
+  { id: 'badge_heart',   type: 'badge',       rarity: 'common',    ar: 'شارةُ القلب',         en: 'Heart Badge' },
+  // احتفالات إضافية
+  { id: 'cel_coins',     type: 'celebration', rarity: 'rare',      ar: 'احتفالُ العملات',     en: 'Coin Shower Celebration' },
+  { id: 'cel_balloons',  type: 'celebration', rarity: 'common',    ar: 'احتفالُ البالونات',   en: 'Balloons Celebration' },
+  { id: 'cel_lasers',    type: 'celebration', rarity: 'epic',      ar: 'احتفالُ الليزر',      en: 'Laser Celebration' },
+  { id: 'cel_meteor',    type: 'celebration', rarity: 'legendary', ar: 'احتفالُ الشُّهُب',     en: 'Meteor Celebration' },
+  // مؤثّرات كش-مات إضافية
+  { id: 'fx_flames',     type: 'mate_fx',     rarity: 'epic',      ar: 'مؤثّرُ اللهب',        en: 'Flames Effect' },
+  { id: 'fx_supernova',  type: 'mate_fx',     rarity: 'legendary', ar: 'مؤثّرُ المستعر',      en: 'Supernova Effect' },
+  { id: 'fx_ink',        type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ الحبر',        en: 'Ink Effect' },
+  { id: 'fx_glitch',     type: 'mate_fx',     rarity: 'epic',      ar: 'مؤثّرُ التشويش',      en: 'Glitch Effect' },
+  { id: 'fx_frostbreak', type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ الصقيع',       en: 'Frost Shatter Effect' },
 ];
 const STORE_BY_ID = Object.create(null);
 for (const it of STORE_CATALOG) { it.price = RARITY_PRICE[it.rarity] || 300; STORE_BY_ID[it.id] = it; }
@@ -261,6 +292,49 @@ function snapshot(userId) {
   };
 }
 
+/* ══ التجهيز (المرحلة ٣): وضعُ عنصرٍ مملوك في خانته، أو إلغاؤه ══
+   الخانات على جدول users (لا في blob العميل) عشان تظهر عند الآخرين. */
+const EQUIP_COL = {
+  frame: 'equipped_frame',
+  background: 'equipped_background',
+  badge: 'equipped_badge',
+  celebration: 'equipped_celebration',
+  mate_fx: 'equipped_mate_fx',
+};
+const _updEquip = {};
+for (const t in EQUIP_COL) { _updEquip[t] = db.prepare('UPDATE users SET ' + EQUIP_COL[t] + ' = ? WHERE id = ?'); }
+
+/* تجهيز عنصرٍ مملوك (itemId) أو إلغاء تجهيز نوعٍ (itemId فارغ + type). */
+function equip(userId, itemId, type) {
+  userId = Number(userId);
+  if (!userId) return { ok: false, reason: 'bad_user' };
+  if (!itemId) {
+    if (!EQUIP_COL[type]) return { ok: false, reason: 'bad_type' };
+    _updEquip[type].run(null, userId);
+    return { ok: true, reason: 'unequipped' };
+  }
+  const item = STORE_BY_ID[itemId];
+  if (!item || !EQUIP_COL[item.type]) return { ok: false, reason: 'bad_item' };
+  if (!qOwnsItem.get(userId, itemId)) return { ok: false, reason: 'not_owned' };
+  _updEquip[item.type].run(itemId, userId);
+  return { ok: true, reason: 'ok' };
+}
+
+/* الحقول التجميليّة المُجهَّزة لمستخدم — للمُسلسِلات كي تظهر عند الآخرين.
+   يرجّع null لو لا شيء مُجهَّز (حمولة أصغر؛ العميل يفحص الوجود). */
+const qCos = db.prepare('SELECT equipped_frame f, equipped_background bg, equipped_badge b, equipped_celebration c, equipped_mate_fx m FROM users WHERE id = ?');
+function cosmeticsFor(userId) {
+  const r = qCos.get(Number(userId)) || {};
+  if (!r.f && !r.bg && !r.b && !r.c && !r.m) return null;
+  const o = {};
+  if (r.f) o.frame = r.f;
+  if (r.bg) o.background = r.bg;
+  if (r.b) o.badge = r.b;
+  if (r.c) o.celebration = r.c;
+  if (r.m) o.mate_fx = r.m;
+  return o;
+}
+
 /* عدد الألغاز المكسِبة اليوم (سقف يومي مضادّ للتفريخ). */
 const qPuzzleToday = db.prepare(
   "SELECT COUNT(*) AS n FROM coin_ledger WHERE user_id = ? AND reason = 'puzzle' AND date(created_at) = date('now')"
@@ -327,6 +401,20 @@ router.post('/store/buy', authenticateToken, (req, res) => {
   }
 });
 
+/* تجهيز/إلغاء عنصر تجميلي (يظهر فورًا عند الآخرين بعد المزامنة). */
+router.post('/equip', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  const itemId = (req.body && req.body.itemId != null) ? String(req.body.itemId).slice(0, 40) : '';
+  const type   = (req.body && req.body.type   != null) ? String(req.body.type).slice(0, 20)   : '';
+  try {
+    const r = equip(userId, itemId, type);
+    res.json({ ...r, ...snapshot(userId) });
+  } catch (e) {
+    console.error('[economy] /equip', e.message);
+    res.status(500).json({ error: 'economy_error' });
+  }
+});
+
 module.exports = {
   router,
   grant,
@@ -334,6 +422,8 @@ module.exports = {
   evaluateAchievements,
   ensureLaunchGrant,
   snapshot,
+  equip,
+  cosmeticsFor,
   levelForXp,
   xpToReach,
   purchase,

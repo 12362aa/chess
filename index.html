@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260926-b53">
+<link rel="stylesheet" href="screens.css?v=20260926-b54">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -6780,6 +6780,10 @@ function updatePlayerImages(){
   if(bb)bb.textContent='♟';
 }
 
+/* إعادة رسم تجميل اللاعب (إطار/شارة/خلفية) عند تغيّر التجهيز أو تحديث
+   الاقتصاد — الرئيسيّة تُعاد فورًا، وبقيّة الأسطح تُقرأ عند فتحها. */
+window.addEventListener('amkh:cosmetics', function(){ try{ Home._identity(); }catch(e){} });
+
 /* =====================================
    REC — سجل المباريات المحلي
    الشاشة الرئيسية كانت بتعرض تقدّم المراحل وبس، فأي حاجة تانية عليها
@@ -7028,13 +7032,16 @@ const Home={
   _identity(){
     const av=document.getElementById('home-id-av');
     const nm=document.getElementById('home-id-name');
+    const cos=(window.amkhCos&&window.amkhCos.self&&window.amkhCos.self())||null;
     if(nm){
       const n=((Cfg?.data?.playerName)||'').trim();
       nm.textContent=n||T('لاعب');
+      try{ if(window.amkhCos) window.amkhCos.paintName(nm, cos); }catch(e){}
     }
     if(av){
       const img=(Cfg?.data?.playerImage)||'';
       av.style.backgroundImage=`url("${img||DEFAULT_AVATAR}")`;
+      try{ if(window.amkhCos) window.amkhCos.paint(av, cos); }catch(e){}
     }
   },
   async _progress(){
@@ -7724,7 +7731,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 53;
+const APP_VERSION_CODE = 54;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -8048,6 +8055,9 @@ const Leaderboard = {
     return `<img class="lb-flag" loading="lazy" alt="${this._esc(cc)}" src="https://flagcdn.com/24x18/${c}.png" srcset="https://flagcdn.com/48x36/${c}.png 2x" onerror="this.style.display='none'">`;
   },
   _avStyle(url){ return url ? ` style="background-image:url('${String(url).replace(/'/g,"%27")}')"` : ''; },
+  _cos(p){ try{ return (window.amkhCos&&p&&p.cosmetics)?window.amkhCos.avatarLayers(p.cosmetics):''; }catch(e){ return ''; } },
+  _coshost(p){ try{ return (window.amkhCos&&p&&p.cosmetics&&(p.cosmetics.frame||p.cosmetics.background))?' cos-host':''; }catch(e){ return ''; } },
+  _bdg(p){ try{ return (window.amkhCos&&p&&p.cosmetics)?window.amkhCos.badgeHTML(p.cosmetics):''; }catch(e){ return ''; } },
   _initial(name){ return this._esc((String(name||'؟').trim()[0]||'؟').toUpperCase()); },
   async open(){
     const U = window.amkhUI;
@@ -8134,8 +8144,8 @@ const Leaderboard = {
         return `
         <button type="button" class="lb-pod lb-pod--${p.rank}${me}" data-uid="${this._esc(p.id)}">
           ${p.rank===1?`<span class="lb-pod__crown" aria-hidden="true">${CROWN}</span>`:''}
-          <div class="lb-pod__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}<span class="lb-pod__medal">${p.rank}</span></div>
-          <div class="lb-pod__name">${this._flag(p.country)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(p.name)}</span></div>
+          <div class="lb-pod__av${this._coshost(p)}"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}${this._cos(p)}<span class="lb-pod__medal">${p.rank}</span></div>
+          <div class="lb-pod__name">${this._flag(p.country)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(p.name)}</span>${this._bdg(p)}</div>
           <div class="lb-pod__rating">${big(p)}${unit?`<i class="lb-pod__u">${unit}</i>`:''}</div>
           <div class="lb-pod__wr">${sort==='puzzles'?(p.solved!=null?p.solved+' محلول':''):(p.win_rate!=null?p.win_rate+'% فوز':'')}</div>
           <div class="lb-pod__base"><span>${p.rank}</span></div>
@@ -8160,9 +8170,9 @@ const Leaderboard = {
         return `
         <button type="button" class="lb-row${me}" data-uid="${this._esc(p.id)}">
           <div class="lb-row__rank">${p.rank}</div>
-          <div class="lb-row__av"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}</div>
+          <div class="lb-row__av${this._coshost(p)}"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}${this._cos(p)}</div>
           <div class="lb-row__mid">
-            <div class="lb-row__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span>${prov(p)}</div>
+            <div class="lb-row__name">${this._flag(p.country)}<span>${this._esc(p.name)}</span>${this._bdg(p)}${prov(p)}</div>
             <div class="lb-row__meta">${meta}</div>
           </div>
           <div class="lb-row__rating">${big(p)}</div>
@@ -8311,7 +8321,10 @@ const PlayerCard = {
     const av = ov.querySelector('.pc__av');
     if(p.avatar_url){ av.setAttribute('style', `background-image:url('${String(p.avatar_url).replace(/'/g,'%27')}')`); av.textContent=''; }
     else av.textContent = this._initial(p.name);
-    ov.querySelector('.pc__name').innerHTML = this._flag(p.country) + `<span>${this._esc(p.name||T('لاعب'))}</span>`;
+    try{ if(window.amkhCos) window.amkhCos.paint(av, p.cosmetics); }catch(e){}
+    const nameEl = ov.querySelector('.pc__name');
+    nameEl.innerHTML = this._flag(p.country) + `<span>${this._esc(p.name||T('لاعب'))}</span>`;
+    try{ if(window.amkhCos) window.amkhCos.paintName(nameEl, p.cosmetics); }catch(e){}
     const bits = [this._statusText(p.status)];
     const j = this._joined(p.joined_at); if(j) bits.push(j);
     sub.innerHTML = `<span class="pc__dot pc__dot--${this._esc(p.status||'offline')}"></span>` + this._esc(bits.join(' · '));
@@ -16287,15 +16300,15 @@ window.addEventListener('beforeunload',()=>{
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
-  <script src="friends-client.js?v=20260916-b37"></script>
-  <script src="chat-client.js?v=20260916-b37"></script>
+  <script src="friends-client.js?v=20260926-b54"></script>
+  <script src="chat-client.js?v=20260926-b54"></script>
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260926-b51"></script>
+  <script src="economy-client.js?v=20260926-b54"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260926-b53"></script>
+  <script src="store-client.js?v=20260926-b54"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

@@ -144,11 +144,15 @@
       case 'fx_goldrain': return A('<g stroke="#ffd24a" stroke-width="3" stroke-linecap="round"><line x1="20" x2="20" y1="0" y2="10"><animate attributeName="y1" values="-12;72" dur="1.2s" repeatCount="indefinite"/><animate attributeName="y2" values="-2;82" dur="1.2s" repeatCount="indefinite"/></line><line x1="32" x2="32" y1="0" y2="10"><animate attributeName="y1" values="-24;72" dur="1.5s" repeatCount="indefinite"/><animate attributeName="y2" values="-14;82" dur="1.5s" repeatCount="indefinite"/></line><line x1="44" x2="44" y1="0" y2="10"><animate attributeName="y1" values="-6;72" dur="1s" repeatCount="indefinite"/><animate attributeName="y2" values="4;82" dur="1s" repeatCount="indefinite"/></line><line x1="54" x2="54" y1="0" y2="10"><animate attributeName="y1" values="-18;72" dur="1.4s" repeatCount="indefinite"/><animate attributeName="y2" values="-8;82" dur="1.4s" repeatCount="indefinite"/></line><line x1="62" x2="62" y1="0" y2="10"><animate attributeName="y1" values="-10;72" dur="1.3s" repeatCount="indefinite"/><animate attributeName="y2" values="0;82" dur="1.3s" repeatCount="indefinite"/></line></g>');
       case 'fx_seasonal_snow': return A('<g stroke="#eaf6ff" stroke-width="1.4" stroke-linecap="round" fill="none"><g><animateTransform attributeName="transform" type="translate" values="0 -14;0 74" dur="3s" repeatCount="indefinite"/><path d="M24 -6v12M18 0h12M20 -4l8 8M28 -4l-8 8"/></g><g><animateTransform attributeName="transform" type="translate" values="0 -28;0 74" dur="3.6s" repeatCount="indefinite"/><path d="M44 -6v12M38 0h12M40 -4l8 8M48 -4l-8 8"/></g><g><animateTransform attributeName="transform" type="translate" values="0 -6;0 74" dur="2.8s" repeatCount="indefinite"/><path d="M58 -6v12M52 0h12M54 -4l8 8M62 -4l-8 8"/></g></g>');
     }
-    if (it.type === 'frame') return A('<circle cx="40" cy="40" r="26" fill="none" stroke="currentColor" stroke-width="5"/>' + AV);
-    if (it.type === 'background') return A('<rect x="8" y="8" width="64" height="64" rx="14" fill="currentColor" opacity=".85"/>');
-    if (it.type === 'badge') return A('<path fill="currentColor" d="M40 8l8 17 18 2-13 13 3 18-16-8-16 8 3-18L14 27l18-2z"/>');
-    if (it.type === 'celebration') return A('<g stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M40 40L22 18"/><path d="M40 40l22-16"/><path d="M40 40l18 24"/><path d="M40 40L18 58"/></g>');
-    return A('<path fill="currentColor" d="M45 8L20 44h15l-8 28 30-40H42z"/>');
+    /* ── معايناتٌ عامّةٌ متحرّكةٌ لأيّ عنصرٍ جديد: لونٌ حتميٌّ مشتقٌّ من المُعرِّف
+       فيبدو كلُّ عنصرٍ نابضًا ومميّزًا بلا رسمٍ يدويٍّ لكلِّ واحد. ── */
+    var hh = 0; for (var k = 0; k < I.length; k++) hh = (hh * 31 + I.charCodeAt(k)) % 360;
+    var c1 = 'hsl(' + hh + ',85%,62%)', c2 = 'hsl(' + ((hh + 45) % 360) + ',85%,54%)', c3 = 'hsl(' + ((hh + 200) % 360) + ',85%,60%)';
+    if (it.type === 'frame') return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="5"/><circle cx="40" cy="40" r="26" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="14 200" opacity=".9"><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="2.8s" repeatCount="indefinite"/></circle>' + AV);
+    if (it.type === 'background') return A('<defs><clipPath id="c' + I + '"><rect x="8" y="8" width="64" height="64" rx="14"/></clipPath><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset=".5" stop-color="' + c3 + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient></defs><g clip-path="url(#c' + I + ')"><rect x="8" y="8" width="64" height="64" fill="url(#g' + I + ')"/><g fill="#fff"><circle cx="24" cy="24" r="1.2"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/></circle><circle cx="54" cy="30" r="1"><animate attributeName="opacity" values="1;0;1" dur="2.4s" repeatCount="indefinite"/></circle><circle cx="44" cy="54" r="1.1"><animate attributeName="opacity" values=".3;1;.3" dur="1.8s" repeatCount="indefinite"/></circle></g><rect x="8" y="8" width="26" height="64" fill="#fff" opacity=".08"><animate attributeName="x" values="-26;72" dur="3.2s" repeatCount="indefinite"/></rect></g><rect x="8" y="8" width="64" height="64" rx="14" fill="none" stroke="#fff" stroke-opacity=".14"/>');
+    if (it.type === 'badge') return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient></defs><g transform="translate(40 40)"><path fill="url(#g' + I + ')" d="M0 -24l7 15 16 2-12 11 4 16-15-8-15 8 4-16-12-11 16-2z"><animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="1.8s" repeatCount="indefinite"/></path></g>');
+    if (it.type === 'celebration') return A('<g><rect x="20" y="10" width="5" height="8" rx="1" fill="' + c1 + '"><animate attributeName="y" values="-8;72" dur="2.2s" repeatCount="indefinite"/></rect><rect x="38" y="0" width="5" height="8" rx="1" fill="' + c3 + '"><animate attributeName="y" values="-14;72" dur="2.6s" repeatCount="indefinite"/></rect><rect x="54" y="6" width="5" height="8" rx="1" fill="' + c2 + '"><animate attributeName="y" values="-10;72" dur="2s" repeatCount="indefinite"/></rect><rect x="30" y="4" width="5" height="8" rx="1" fill="' + c1 + '"><animate attributeName="y" values="-20;72" dur="2.8s" repeatCount="indefinite"/></rect><rect x="46" y="12" width="5" height="8" rx="1" fill="' + c3 + '"><animate attributeName="y" values="-6;72" dur="2.4s" repeatCount="indefinite"/></rect></g>');
+    return A('<defs><filter id="b' + I + '"><feGaussianBlur stdDeviation="2"/></filter></defs><path filter="url(#b' + I + ')" fill="' + c1 + '" d="M46 6L20 42h14l-6 32 30-44H42z"><animate attributeName="opacity" values=".25;.9;.25" dur="1.2s" repeatCount="indefinite"/></path><path fill="#fff" d="M46 6L20 42h14l-6 32 30-44H42z"><animate attributeName="opacity" values="1;.5;1" dur="1.2s" repeatCount="indefinite"/></path>');
   }
 
   var STORE = {
@@ -205,6 +209,9 @@
       grid.querySelectorAll('[data-buy]').forEach(function (b) {
         b.onclick = function () { try { if (window.SFX) SFX.btn(); } catch (e) {} STORE.buy(b.getAttribute('data-buy')); };
       });
+      grid.querySelectorAll('[data-equip]').forEach(function (b) {
+        b.onclick = function () { STORE.equip(b.getAttribute('data-equip'), b.getAttribute('data-type')); };
+      });
       this._startCountdown(data.serverNow, data.endsAt);
     },
 
@@ -214,8 +221,14 @@
       var have = owned || it.owned;
       var canAfford = (window.amkhEconomy ? amkhEconomy.coins() : 0) >= it.price;
       var action;
-      if (have) action = '<span class="store-owned">' + esc(L('مملوك', 'Owned')) + '</span>';
-      else action = '<button class="store-buy' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true"></span>' + it.price + '</button>';
+      if (have) {
+        var eq = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.equipped) || {};
+        var isEq = eq[it.type] === it.id;
+        action = '<button class="store-equip' + (isEq ? ' is-on' : '') + '" data-equip="' + esc(it.id) + '" data-type="' + esc(it.type) + '">'
+          + esc(isEq ? L('مُجهَّز', 'Equipped') : L('تجهيز', 'Equip')) + '</button>';
+      } else {
+        action = '<button class="store-buy' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true"></span>' + it.price + '</button>';
+      }
       return '<div class="store-card store-card--' + esc(it.rarity) + (have ? ' is-owned' : '') + '">'
         + '<span class="store-card__rar">' + esc(L(r.ar, r.en)) + '</span>'
         + '<div class="store-card__art store-art--' + esc(it.type) + '">' + art(it) + '</div>'
@@ -255,6 +268,26 @@
             self._toast(res.reason);
             if (res.store) { self._cur = res.store; self._render(res.store); }
           }
+        }).catch(function () {});
+    },
+
+    /* تجهيز/إلغاء عنصر مملوك — الخادم يضبط العمود، والمزامنة تُظهره للجميع. */
+    equip: function (itemId, type) {
+      var tok = token(); if (!tok) return;
+      var self = this;
+      var eq = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.equipped) || {};
+      var body = (eq[type] === itemId) ? { itemId: '', type: type } : { itemId: itemId };
+      fetch(api() + '/economy/equip', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify(body)
+      }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (res) {
+          if (!res) return;
+          try { if (window.SFX) SFX.btn(); } catch (e) {}
+          if (window.amkhEconomy) amkhEconomy.apply(res);
+          if (self._cur) self._render(self._cur);
+          try { window.dispatchEvent(new Event('amkh:cosmetics')); } catch (e) {}
         }).catch(function () {});
     },
 

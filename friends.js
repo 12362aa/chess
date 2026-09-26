@@ -39,7 +39,20 @@ function setRealtime(rt) {
 
 /* ── الحقول العامة لأي مستخدم ──
    أي استعلام بيرجّع مستخدم لازم يمرّ من هنا. مفيش email. */
-const PUBLIC_FIELDS = `u.id, u.username, u.display_name, u.avatar_url, u.provider, u.rating, u.rating_rd, u.rating_games`;
+const PUBLIC_FIELDS = `u.id, u.username, u.display_name, u.avatar_url, u.provider, u.rating, u.rating_rd, u.rating_games, u.equipped_frame, u.equipped_background, u.equipped_badge, u.equipped_celebration, u.equipped_mate_fx`;
+
+/* التجميل المُجهَّز (المرحلة ٣) من صفٍّ يحمل أعمدة equipped_*. عام (تجميليّ
+   بحت لا بيانات خاصة)، فيظهر عند الأصدقاء والبحث والطلبات. */
+function cosOf(row) {
+  if (!row) return null;
+  const o = {};
+  if (row.equipped_frame) o.frame = row.equipped_frame;
+  if (row.equipped_background) o.background = row.equipped_background;
+  if (row.equipped_badge) o.badge = row.equipped_badge;
+  if (row.equipped_celebration) o.celebration = row.equipped_celebration;
+  if (row.equipped_mate_fx) o.mate_fx = row.equipped_mate_fx;
+  return Object.keys(o).length ? o : null;
+}
 
 /* الحالة النهائية بتجمع القاعدة مع السوكت: القاعدة بتقول آخر حالة
    محفوظة، والسوكت بيقول الحقيقة دلوقتي. السوكت أولى لأنه لحظي. */
@@ -66,6 +79,7 @@ function decorateStatus(row, viewerId) {
     username: row.username,
     display_name: row.display_name,
     avatar_url: seeAvatar ? (row.avatar_url || null) : null,
+    cosmetics: cosOf(row),
     provider: row.provider || 'local',
     status,
     online: status !== 'offline',

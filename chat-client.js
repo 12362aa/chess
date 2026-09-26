@@ -1328,6 +1328,7 @@ const amkhChat = {
       img.src = meta.avatar_url;
       av.appendChild(img);
     } else av.textContent = initial;
+    try { if (window.amkhCos) window.amkhCos.paint(av, meta && meta.cosmetics); } catch (e) {}
   },
 
   /* صورة الحفلة: لو فيه صورة مرفوعة نعرضها، وإلا أيقونة مرسومة (مش إيموجي). */

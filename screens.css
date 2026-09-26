@@ -7887,5 +7887,45 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-buy.is-locked{ opacity:.55; filter:grayscale(.3); }
 .store-owned{ display:inline-flex; align-items:center; padding:8px 16px; border-radius:999px; font-weight:800; font-size:13px;
   color:#8ef0c0; background:rgba(56,224,192,.12); border:1px solid rgba(56,224,192,.4); }
+.store-equip{ display:inline-flex; align-items:center; justify-content:center; padding:8px 18px; border-radius:999px;
+  font-weight:800; font-size:13px; cursor:pointer; color:#cfe0ff; background:rgba(90,140,255,.14);
+  border:1px solid rgba(120,160,255,.5); transition:transform .12s ease, background .2s ease; }
+.store-equip:active{ transform:scale(.95); }
+.store-equip.is-on{ color:#0a1020; background:linear-gradient(180deg,#9fe0ff,#5aa0f5);
+  border-color:transparent; box-shadow:0 3px 12px rgba(90,160,245,.45); }
 .store-card.is-owned{ opacity:.92; }
+
+/* ══ التجميل الظاهر (المرحلة ٣): إطارات/خلفيات/شارات على الأفاتار والاسم ══
+   كله transform/opacity/filter فقط — لا يمسّ تخطيط الصفحة ولا أداء اللوح. */
+.cos-host{ position:relative; overflow:visible; }
+.cos-host > .cos-bg,
+.cos-host > .cos-frame{ pointer-events:none; }
+.cos-bg{ position:absolute; inset:0; border-radius:inherit; z-index:0;
+  background-size:220% 220%; background-position:0% 50%; opacity:.9;
+  animation:cosBgShift 9s ease-in-out infinite; }
+@keyframes cosBgShift{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+/* الإطار يحيط بالأفاتار ويتجاوز حدّه قليلًا فيبدو كطوق مضيء */
+.cos-frame{ position:absolute; inset:-13%; z-index:3; border-radius:50%; }
+.cos-frame svg{ width:100%; height:100%; display:block; overflow:visible;
+  filter:drop-shadow(0 0 4px rgba(255,255,255,.28)); }
+.cos-frame--frame_gold svg,.cos-frame--frame_royal svg{ filter:drop-shadow(0 0 5px rgba(247,215,116,.6)); }
+.cos-frame--frame_neon svg{ filter:drop-shadow(0 0 6px rgba(0,234,255,.7)); }
+.cos-frame--frame_flame svg,.cos-frame--frame_phoenix svg{ filter:drop-shadow(0 0 6px rgba(255,90,0,.6)); }
+.cos-frame--frame_galaxy svg,.cos-frame--frame_aurora svg{ filter:drop-shadow(0 0 6px rgba(138,92,255,.6)); }
+/* المحتوى (صورة/حرف) فوق الخلفية وتحت الإطار */
+.cos-host > *:not(.cos-bg):not(.cos-frame){ position:relative; z-index:1; }
+/* الشارة بجانب الاسم */
+.cos-badge{ display:inline-flex; width:1.05em; height:1.05em; margin:0 .28em; vertical-align:-.16em;
+  flex:0 0 auto; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+.cos-badge svg{ width:100%; height:100%; display:block; }
+.cos-badge--badge_crown,.cos-badge--badge_gem{ filter:drop-shadow(0 0 3px rgba(240,197,66,.7)); }
+.cos-badge--badge_bolt{ filter:drop-shadow(0 0 3px rgba(56,224,255,.8)); }
+@media (prefers-reduced-motion:reduce){
+  .cos-bg{ animation:none; }
+  .cos-frame svg *{ animation:none !important; }
+}
+/* الميدالية فوق الطوق؛ صناديق أفاتار الصدارة تسمح للطوق بتجاوز حدّها */
+.lb-pod__av.cos-host,.lb-row__av.cos-host{ overflow:visible; }
+.lb-pod__medal{ z-index:4; }
+
 
