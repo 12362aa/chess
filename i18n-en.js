@@ -465,6 +465,7 @@
     'قريبًا ستفتح المتجر على عناصر وأطقمٍ للقطع والرقعة، وأكثر — تحديثٌ كبير قادم.': 'Soon the Store will open with items and sets for pieces and boards, and more — a big update is coming.',
     /* متجر Am-Kh الديناميكيّ (المرحلة ٢) — نصوصُ الواجهة (أسماءُ العناصرِ نفسُها تأتي من الخادمِ باللغتين) */
     'AM-KH · المتجر': 'AM-KH · STORE',
+    'إطاراتٌ وشاراتٌ ومؤثّرات': 'Frames, badges & effects',
     'خزائنُ Am-Kh': 'Am-Kh Vaults',
     'عناصرُ تزيينٍ نادرةٌ تدورُ كلَّ أربعِ ساعات — اقتنِها بعملاتِك.': 'Rare cosmetics that rotate every four hours — claim them with your coins.',
     'التبديلُ بعد': 'Rotates in',

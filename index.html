@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260926-b52">
+<link rel="stylesheet" href="screens.css?v=20260926-b53">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3245,16 +3245,15 @@ html.amkh-preboot #amkh-preboot{
         <span class="home-tile__desc">درّب بصرك على التكتيك</span>
       </button>
 
-      <!-- المتجر (طلب جوجو): بطاقة كاملة بجوار الألغاز، الضغط يفتح نافذة
-           «قريبًا». المحتوى (نظام اقتصاد) تحديثٌ ضخم قادم لاحقًا. -->
-      <button class="home-tile home-tile--soon" type="button" data-mode="store"
+      <!-- المتجر (طلب جوجو): بطاقة كاملة بجوار الألغاز — تفتح خزائنَ Am-Kh
+           الديناميكيّة (بوّابةٌ + متجرٌ دوّارٌ كلَّ ٤ ساعات، store-client.js). -->
+      <button class="home-tile home-tile--store" type="button" data-mode="store"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.store()">
         <span class="home-tile__icon" aria-hidden="true">
           <i class="ico ico--store" aria-hidden="true"></i>
         </span>
         <span class="home-tile__title">المتجر</span>
-        <span class="home-tile__desc">عناصر وأطقم قريبًا</span>
-        <span class="home-tile__soon" aria-hidden="true">قريبًا</span>
+        <span class="home-tile__desc">إطاراتٌ وشاراتٌ ومؤثّرات</span>
       </button>
     </div>
 
@@ -7725,7 +7724,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 52;
+const APP_VERSION_CODE = 53;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -16296,7 +16295,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="economy-client.js?v=20260926-b51"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260926-b52"></script>
+  <script src="store-client.js?v=20260926-b53"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

@@ -1170,10 +1170,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 52;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b52/chess-amkh-4.2-b52.apk';
-const NOTES_AR = 'المتجرُ وصل! بوّابةٌ ذهبيّةٌ غامرةٌ تنقشعُ كاشفةً خزائنَ Am-Kh: عناصرُ تزيينٍ نادرةٌ (إطاراتٌ وخلفيّاتٌ وشاراتٌ واحتفالاتُ فوزٍ ومؤثّراتُ كش-مات) بندراتٍ ملوّنةٍ — شائعٌ ونادرٌ وملحميٌّ وأسطوريٌّ وموسميّ. تدورُ الخزائنُ كلَّ أربعِ ساعات، والعدّادُ التنازليُّ يخبرُك بموعدِ التبديل. اقتنِ ما تحبُّ بعملاتِك التي كسبتَها باللّعب، وكلُّ ما تشتريه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'The store is here! An immersive golden portal parts to reveal the Am-Kh Vaults: rare cosmetics (frames, backgrounds, badges, win celebrations and checkmate effects) in colorful rarities — common, rare, epic, legendary and seasonal. The vaults rotate every four hours, and a countdown tells you when they change. Grab what you love with the coins you earned by playing, and everything you buy is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 53;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b53/chess-amkh-4.2-b53.apk';
+const NOTES_AR = 'المتجرُ صار حيًّا بحقّ: بوّابةُ خزنةٍ ذهبيّةٌ بمصراعينِ ينفرجانِ عن ضوءٍ ونثارِ عملات (لا دوّامةَ محرّكٍ بعدَ الآن)، وكلُّ عنصرٍ في الخزائنِ صار معاينةً حيّةً متحرّكةً بهُويّةٍ خاصّة — إطاراتٌ تلمعُ وتدورُ، وخلفيّاتُ شفقٍ وسديمٍ وغروب، وشاراتٌ تتلألأ، واحتفالاتٌ وألعابٌ ناريّةٌ ومؤثّراتُ برقٍ وثلج. بطاقاتٌ أفخمُ بلمعانٍ للأسطوريّ. كلُّ ما تشتريه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'The store is truly alive now: a golden vault portal whose two doors part to reveal light and a burst of coins (no more engine swirl), and every item in the vaults is a live animated preview with its own identity — frames that shimmer and spin, aurora/nebula/sunset backgrounds, twinkling badges, celebrations, fireworks, lightning and snow effects. Richer cards with a legendary shine. Everything you buy is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
