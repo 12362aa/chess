@@ -21,6 +21,27 @@
     seasonal:  { ar: 'موسميّ',  en: 'Seasonal' }
   };
 
+  /* أنواعُ العناصرِ: اسمٌ للنوعِ + وصفٌ لِما يفعلُه وأينَ يظهرُ — ثنائيُّ اللغة.
+     يُستعملُ في رقاقاتِ التصفيةِ وفي بطاقةِ تفاصيلِ العنصرِ عندَ الضغط. */
+  var TYPE = {
+    frame:       { ar: 'إطارات',   en: 'Frames',       one: { ar: 'إطار',     en: 'Frame' },
+      desc: { ar: 'طوقٌ متحرّكٌ يحيطُ بصورتِك، ويراه كلُّ اللاعبين حولَك في الصدارةِ والدردشةِ والمباريات.',
+              en: 'An animated ring around your avatar that every player sees — on the leaderboard, in chat and in games.' } },
+    background:  { ar: 'خلفيّات',  en: 'Backgrounds',  one: { ar: 'خلفيّة',   en: 'Background' },
+      desc: { ar: 'مشهدٌ حيٌّ خلفَ صورتِك يظهرُ للجميعِ أينما ظهرَ اسمُك.',
+              en: 'A living scene behind your avatar, shown to everyone wherever your name appears.' } },
+    badge:       { ar: 'شارات',    en: 'Badges',       one: { ar: 'شارة',     en: 'Badge' },
+      desc: { ar: 'رمزٌ صغيرٌ يلمعُ بجانبِ اسمِك في كلِّ مكان.',
+              en: 'A small emblem that shines next to your name everywhere.' } },
+    celebration: { ar: 'احتفالات', en: 'Celebrations', one: { ar: 'احتفال',   en: 'Celebration' },
+      desc: { ar: 'مشهدُ فرحٍ ينفجرُ على الشاشةِ لحظةَ فوزِك بالمباراة.',
+              en: 'A burst of joy across the screen the moment you win a game.' } },
+    mate_fx:     { ar: 'مؤثّرات',  en: 'Effects',      one: { ar: 'مؤثّر',    en: 'Effect' },
+      desc: { ar: 'مؤثّرٌ مذهلٌ ينطلقُ عندَ إعلانِ كش-مات على خصمِك.',
+              en: 'A striking effect that fires when you deliver checkmate.' } }
+  };
+  var TYPE_ORDER = ['frame', 'background', 'badge', 'celebration', 'mate_fx'];
+
   /* ══ StoreWash: دوّامةُ كنزٍ ذهبيّةٌ كاملةُ الشاشة (تقنيةُ التغذيةِ الراجعةِ
      نفسُها في بوّابةِ المحرّكِ لكن بلوحةٍ ذهبيّةٍ/أرجوانيّةٍ تليقُ بالمتجر). */
   var StoreWash = {
@@ -143,6 +164,35 @@
       case 'fx_lightning': return A('<defs><filter id="b' + I + '"><feGaussianBlur stdDeviation="2"/></filter></defs><path filter="url(#b' + I + ')" fill="#8fd4ff" d="M46 6L20 42h14l-6 32 30-44H42z"><animate attributeName="opacity" values=".2;.9;.2;.7;.2" dur="1.3s" repeatCount="indefinite"/></path><path fill="#fff" d="M46 6L20 42h14l-6 32 30-44H42z"><animate attributeName="opacity" values="1;.4;1;.6;1" dur="1.3s" repeatCount="indefinite"/></path>');
       case 'fx_goldrain': return A('<g stroke="#ffd24a" stroke-width="3" stroke-linecap="round"><line x1="20" x2="20" y1="0" y2="10"><animate attributeName="y1" values="-12;72" dur="1.2s" repeatCount="indefinite"/><animate attributeName="y2" values="-2;82" dur="1.2s" repeatCount="indefinite"/></line><line x1="32" x2="32" y1="0" y2="10"><animate attributeName="y1" values="-24;72" dur="1.5s" repeatCount="indefinite"/><animate attributeName="y2" values="-14;82" dur="1.5s" repeatCount="indefinite"/></line><line x1="44" x2="44" y1="0" y2="10"><animate attributeName="y1" values="-6;72" dur="1s" repeatCount="indefinite"/><animate attributeName="y2" values="4;82" dur="1s" repeatCount="indefinite"/></line><line x1="54" x2="54" y1="0" y2="10"><animate attributeName="y1" values="-18;72" dur="1.4s" repeatCount="indefinite"/><animate attributeName="y2" values="-8;82" dur="1.4s" repeatCount="indefinite"/></line><line x1="62" x2="62" y1="0" y2="10"><animate attributeName="y1" values="-10;72" dur="1.3s" repeatCount="indefinite"/><animate attributeName="y2" values="0;82" dur="1.3s" repeatCount="indefinite"/></line></g>');
       case 'fx_seasonal_snow': return A('<g stroke="#eaf6ff" stroke-width="1.4" stroke-linecap="round" fill="none"><g><animateTransform attributeName="transform" type="translate" values="0 -14;0 74" dur="3s" repeatCount="indefinite"/><path d="M24 -6v12M18 0h12M20 -4l8 8M28 -4l-8 8"/></g><g><animateTransform attributeName="transform" type="translate" values="0 -28;0 74" dur="3.6s" repeatCount="indefinite"/><path d="M44 -6v12M38 0h12M40 -4l8 8M48 -4l-8 8"/></g><g><animateTransform attributeName="transform" type="translate" values="0 -6;0 74" dur="2.8s" repeatCount="indefinite"/><path d="M58 -6v12M52 0h12M54 -4l8 8M62 -4l-8 8"/></g></g>');
+      /* ═══ إطاراتٌ جديدةٌ بأشكالٍ مميّزةٍ (لا نسخٌ ملوّنةٌ من بعضها) ═══ */
+      case 'frame_shadow': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9b8ff"/><stop offset="1" stop-color="#2a1348"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="5.5"/><g fill="#7a5fc0"><circle cx="40" cy="14" r="4"><animate attributeName="r" values="4;6.5;4" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".5;.95;.5" dur="2s" repeatCount="indefinite"/></circle><circle cx="66" cy="52" r="3"><animate attributeName="r" values="3;5;3" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;.4;.9" dur="2.4s" repeatCount="indefinite"/></circle><circle cx="15" cy="47" r="3"><animate attributeName="r" values="3;5;3" dur="1.8s" repeatCount="indefinite"/></circle></g><circle cx="40" cy="40" r="26" fill="none" stroke="#d8caff" stroke-width="1.6" stroke-dasharray="3 9" opacity=".6"><animateTransform attributeName="transform" type="rotate" from="360 40 40" to="0 40 40" dur="5s" repeatCount="indefinite"/></circle>' + AV);
+      case 'frame_emerald': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b6ffd6"/><stop offset=".5" stop-color="#2fd07a"/><stop offset="1" stop-color="#0a7a44"/></linearGradient></defs><polygon points="40,11 57,21 67,40 57,59 40,69 23,59 13,40 23,21" fill="none" stroke="url(#g' + I + ')" stroke-width="5.5" stroke-linejoin="round"/><polygon points="40,19 51,26 57,40 51,54 40,61 29,54 23,40 29,26" fill="none" stroke="#e8fff2" stroke-width="1.3" opacity=".65"/><polygon points="40,11 57,21 67,40 57,59 40,69 23,59 13,40 23,21" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round" stroke-dasharray="9 190" stroke-linecap="round" opacity=".95"><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="3s" repeatCount="indefinite"/></polygon>' + AV);
+      case 'frame_galaxy': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b48bff"/><stop offset=".5" stop-color="#4a5cff"/><stop offset="1" stop-color="#1a2a8f"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="5"/><g><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="4.5s" repeatCount="indefinite"/><circle cx="40" cy="14" r="3.6" fill="#fff"/><circle cx="66" cy="46" r="2.6" fill="#c9b8ff"/><circle cx="18" cy="52" r="2.2" fill="#8fd4ff"/></g><g fill="#fff"><circle cx="30" cy="24" r="1"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="54" cy="28" r="1.1"><animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/></circle><circle cx="52" cy="56" r="1"><animate attributeName="opacity" values=".3;1;.3" dur="1.8s" repeatCount="indefinite"/></circle></g>' + AV);
+      case 'frame_phoenix': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2d00"/><stop offset=".5" stop-color="#ff8a1e"/><stop offset="1" stop-color="#ffd24a"/></linearGradient></defs><circle cx="40" cy="40" r="23" fill="none" stroke="url(#g' + I + ')" stroke-width="4.5"/><g fill="url(#g' + I + ')"><path d="M17 42 Q4 31 8 15 Q19 24 24 35 Q20 39 17 42Z"><animate attributeName="opacity" values=".7;1;.7" dur="1.1s" repeatCount="indefinite"/></path><path d="M63 42 Q76 31 72 15 Q61 24 56 35 Q60 39 63 42Z"><animate attributeName="opacity" values="1;.7;1" dur="1.1s" repeatCount="indefinite"/></path></g><g fill="#ffd98a"><circle cx="34" cy="70" r="1.6"><animate attributeName="cy" values="72;52" dur="1.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.4s" repeatCount="indefinite"/></circle><circle cx="47" cy="70" r="1.3"><animate attributeName="cy" values="74;50" dur="1.9s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.9s" repeatCount="indefinite"/></circle></g>' + AV);
+      case 'frame_sakura': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd6ea"/><stop offset="1" stop-color="#ff5fa2"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="4.5"/><g fill="#ff9ec4"><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="8s" repeatCount="indefinite"/><ellipse cx="40" cy="14" rx="3.4" ry="5.2"/><ellipse cx="62" cy="27" rx="3.4" ry="5.2" transform="rotate(60 62 27)"/><ellipse cx="62" cy="53" rx="3.4" ry="5.2" transform="rotate(120 62 53)"/><ellipse cx="40" cy="66" rx="3.4" ry="5.2"/><ellipse cx="18" cy="53" rx="3.4" ry="5.2" transform="rotate(60 18 53)"/><ellipse cx="18" cy="27" rx="3.4" ry="5.2" transform="rotate(120 18 27)"/></g><g fill="#ffc2dd"><ellipse cx="28" cy="6" rx="2.4" ry="3.6"><animate attributeName="cy" values="4;74" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="3s" repeatCount="indefinite"/></ellipse><ellipse cx="54" cy="0" rx="2" ry="3"><animate attributeName="cy" values="-2;74" dur="3.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="3.6s" repeatCount="indefinite"/></ellipse></g>' + AV);
+      /* ═══ شاراتٌ جديدة ═══ */
+      case 'badge_diamond': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cff9ff"/><stop offset="1" stop-color="#2fb6d8"/></linearGradient></defs><g><animate attributeName="opacity" values="1;.72;1" dur="2s" repeatCount="indefinite"/><path fill="url(#g' + I + ')" d="M40 12 L60 32 L40 68 L20 32 Z"/><path fill="#eafcff" opacity=".5" d="M40 12 L60 32 L40 32 Z"/><path stroke="#eafcff" stroke-width="1.2" opacity=".7" fill="none" d="M20 32h40M40 12v56M28 22 40 32 52 22"/></g>');
+      case 'badge_skull': return A('<g fill="#e6e9f2"><path d="M24 36a16 16 0 0 1 32 0v13a8 8 0 0 1-8 8h-1v6h-4v-6h-6v6h-4v-6h-1a8 8 0 0 1-8-8Z"/></g><g fill="#1a1f2b"><circle cx="33" cy="41" r="4.6"><animate attributeName="r" values="4.6;3;4.6" dur="2.6s" repeatCount="indefinite"/></circle><circle cx="47" cy="41" r="4.6"><animate attributeName="r" values="4.6;3;4.6" dur="2.6s" repeatCount="indefinite"/></circle><path d="M40 48l3.4 8h-6.8z"/></g>');
+      case 'badge_moon': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eaf1ff"/><stop offset="1" stop-color="#9fb4e0"/></linearGradient></defs><path fill="url(#g' + I + ')" d="M54 14a28 28 0 1 0 0 52 22 22 0 0 1 0-52Z"/><g fill="#fff"><circle cx="30" cy="24" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="24" cy="42" r="1.2"><animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/></circle><circle cx="34" cy="56" r="1"><animate attributeName="opacity" values=".2;1;.2" dur="1.8s" repeatCount="indefinite"/></circle></g>');
+      case 'badge_gem': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e5b8ff"/><stop offset="1" stop-color="#8a2be2"/></linearGradient></defs><g><animate attributeName="opacity" values="1;.7;1" dur="1.8s" repeatCount="indefinite"/><polygon fill="url(#g' + I + ')" points="26,20 54,20 68,40 54,60 26,60 12,40"/><polygon fill="#fbeaff" opacity=".45" points="26,20 54,20 40,40"/><path stroke="#fbeaff" stroke-width="1.2" fill="none" opacity=".7" d="M12 40h56M26 20 40 40 54 20M26 60 40 40 54 60"/></g>');
+      case 'badge_heart': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8fb0"/><stop offset="1" stop-color="#ff2d6b"/></linearGradient></defs><path fill="url(#g' + I + ')" d="M40 64C15 47 17 24 34 24c5 0 6 6 6 6s1-6 6-6c17 0 19 23-6 40Z"><animate attributeName="opacity" values="1;.7;1" dur="1.1s" repeatCount="indefinite"/></path>');
+      /* ═══ خلفيّاتٌ جديدة (مشهدٌ داخلَ مستطيلٍ مستدير) ═══ */
+      case 'bg_ocean_deep': return A('<defs><clipPath id="c' + I + '"><rect x="8" y="8" width="64" height="64" rx="14"/></clipPath><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a6ea0"/><stop offset="1" stop-color="#012036"/></linearGradient></defs><g clip-path="url(#c' + I + ')"><rect x="8" y="8" width="64" height="64" fill="url(#g' + I + ')"/><g fill="#bfeaff"><circle cx="26" cy="60" r="2"><animate attributeName="cy" values="66;10" dur="3.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.8;0" dur="3.4s" repeatCount="indefinite"/></circle><circle cx="46" cy="60" r="1.4"><animate attributeName="cy" values="70;12" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.7;0" dur="4s" repeatCount="indefinite"/></circle><circle cx="58" cy="60" r="1.8"><animate attributeName="cy" values="68;14" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.9;0" dur="3s" repeatCount="indefinite"/></circle></g><path fill="#9fe0ff" opacity=".14" d="M8 20 L40 8 L34 30 Z"/></g><rect x="8" y="8" width="64" height="64" rx="14" fill="none" stroke="#fff" stroke-opacity=".12"/>');
+      case 'bg_volcano': return A('<defs><clipPath id="c' + I + '"><rect x="8" y="8" width="64" height="64" rx="14"/></clipPath><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a0a0a"/><stop offset="1" stop-color="#1a0505"/></linearGradient></defs><g clip-path="url(#c' + I + ')"><rect x="8" y="8" width="64" height="64" fill="url(#g' + I + ')"/><path fill="#2a0808" d="M8 56 L28 34 L40 46 L52 30 L72 56 Z"/><path fill="#ff5a1e" opacity=".9" d="M8 60 L26 46 L40 54 L54 42 L72 60 Z"><animate attributeName="opacity" values=".7;1;.7" dur="1.6s" repeatCount="indefinite"/></path><g fill="#ffb347"><circle cx="30" cy="40" r="1.4"><animate attributeName="cy" values="42;14" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.2s" repeatCount="indefinite"/></circle><circle cx="52" cy="38" r="1.2"><animate attributeName="cy" values="40;12" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.6s" repeatCount="indefinite"/></circle></g></g><rect x="8" y="8" width="64" height="64" rx="14" fill="none" stroke="#ff6a2a" stroke-opacity=".3"/>');
+      case 'bg_galaxy': return A('<defs><clipPath id="c' + I + '"><rect x="8" y="8" width="64" height="64" rx="14"/></clipPath><radialGradient id="g' + I + '" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#7a4fd0"/><stop offset=".6" stop-color="#2a1a6a"/><stop offset="1" stop-color="#0a0620"/></radialGradient></defs><g clip-path="url(#c' + I + ')"><rect x="8" y="8" width="64" height="64" fill="url(#g' + I + ')"/><g><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="9s" repeatCount="indefinite"/><path fill="none" stroke="#b48bff" stroke-width="2.4" opacity=".55" d="M40 40 Q56 30 58 44 Q60 60 40 58"/><path fill="none" stroke="#8fd4ff" stroke-width="2.4" opacity=".55" d="M40 40 Q24 50 22 36 Q20 20 40 22"/></g><g fill="#fff"><circle cx="24" cy="24" r="1"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="56" cy="26" r="1.1"><animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/></circle><circle cx="52" cy="56" r="1"><animate attributeName="opacity" values=".3;1;.3" dur="1.8s" repeatCount="indefinite"/></circle></g></g><rect x="8" y="8" width="64" height="64" rx="14" fill="none" stroke="#fff" stroke-opacity=".12"/>');
+      case 'bg_matrix': return A('<defs><clipPath id="c' + I + '"><rect x="8" y="8" width="64" height="64" rx="14"/></clipPath></defs><g clip-path="url(#c' + I + ')"><rect x="8" y="8" width="64" height="64" fill="#001200"/><g fill="#00e676" font-family="monospace" font-size="7" opacity=".9"><text x="18" y="20">1<animate attributeName="y" values="6;74" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.2s" repeatCount="indefinite"/></text><text x="30" y="20">0<animate attributeName="y" values="0;74" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.8s" repeatCount="indefinite"/></text><text x="42" y="20">1<animate attributeName="y" values="10;74" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2s" repeatCount="indefinite"/></text><text x="54" y="20">0<animate attributeName="y" values="-4;74" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.5s" repeatCount="indefinite"/></text></g></g><rect x="8" y="8" width="64" height="64" rx="14" fill="none" stroke="#00e676" stroke-opacity=".3"/>');
+      case 'bg_cherry': return A('<defs><clipPath id="c' + I + '"><rect x="8" y="8" width="64" height="64" rx="14"/></clipPath><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd6e6"/><stop offset="1" stop-color="#ff7fa8"/></linearGradient></defs><g clip-path="url(#c' + I + ')"><rect x="8" y="8" width="64" height="64" fill="url(#g' + I + ')"/><g fill="#fff" opacity=".85"><ellipse cx="24" cy="16" rx="2.4" ry="3.6"><animateTransform attributeName="transform" type="translate" values="0 -12;6 68" dur="3.4s" repeatCount="indefinite"/></ellipse><ellipse cx="44" cy="10" rx="2" ry="3"><animateTransform attributeName="transform" type="translate" values="0 -8;-6 72" dur="4s" repeatCount="indefinite"/></ellipse><ellipse cx="58" cy="14" rx="2.2" ry="3.3"><animateTransform attributeName="transform" type="translate" values="0 -14;4 70" dur="3s" repeatCount="indefinite"/></ellipse></g></g><rect x="8" y="8" width="64" height="64" rx="14" fill="none" stroke="#fff" stroke-opacity=".2"/>');
+      /* ═══ احتفالاتٌ جديدة ═══ */
+      case 'cel_coins': return A('<g>' + [ [22,'#ffd24a',2.2], [34,'#ffe08a',2.8], [46,'#f5c451',2],[58,'#ffd24a',2.5] ].map(function (a) { return '<circle cx="' + a[0] + '" r="5" fill="' + a[1] + '" stroke="#b8860b" stroke-width="1.2"><animate attributeName="cy" values="-8;74" dur="' + a[2] + 's" repeatCount="indefinite"/></circle>'; }).join('') + '</g>');
+      case 'cel_balloons': return A('<g>' + [ [22,'#ff5da2',2.6], [40,'#5ad1ff',3.2], [58,'#ffd24a',2.9] ].map(function (a) { return '<g><animateTransform attributeName="transform" type="translate" values="0 78;0 -20" dur="' + a[2] + 's" repeatCount="indefinite"/><ellipse cx="' + a[0] + '" cy="20" rx="7" ry="9" fill="' + a[1] + '"/><path d="M' + a[0] + ' 29 v10" stroke="#fff" stroke-width="1" opacity=".6"/></g>'; }).join('') + '</g>');
+      case 'cel_lasers': return A('<g stroke-linecap="round"><g transform="translate(40 40)"><animateTransform attributeName="transform" type="rotate" values="0 40 40;360 40 40" dur="3s" repeatCount="indefinite" additive="sum"/><line x1="0" y1="0" x2="0" y2="-40" stroke="#ff2d6b" stroke-width="3"/><line x1="0" y1="0" x2="34" y2="20" stroke="#38e0ff" stroke-width="3"/><line x1="0" y1="0" x2="-34" y2="20" stroke="#7cff5a" stroke-width="3"/></g><circle cx="40" cy="40" r="4" fill="#fff"/></g>');
+      case 'cel_meteor': return A('<g stroke-linecap="round">' + [ [12,10,2.2,'#ffb347'], [30,0,2.8,'#ff7a2f'], [50,6,2,'#ffd24a'] ].map(function (a) { return '<g><animateTransform attributeName="transform" type="translate" values="-20 -20;70 70" dur="' + a[2] + 's" repeatCount="indefinite"/><line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + (a[0] - 14) + '" y2="' + (a[1] - 14) + '" stroke="' + a[3] + '" stroke-width="3" opacity=".8"/><circle cx="' + a[0] + '" cy="' + a[1] + '" r="2.6" fill="#fff"/></g>'; }).join('') + '</g>');
+      /* ═══ مؤثّراتُ كش-ماتٍ جديدة ═══ */
+      case 'fx_flames': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2d00"/><stop offset=".6" stop-color="#ff8a1e"/><stop offset="1" stop-color="#ffd24a"/></linearGradient></defs><g fill="url(#g' + I + ')"><path d="M40 12c12 14 18 22 18 34a18 18 0 0 1-36 0c0-7 4-12 7-16 2 5 5 6 7 6-2-9 0-18-3-24z"><animate attributeName="opacity" values=".8;1;.8" dur=".8s" repeatCount="indefinite"/></path></g><path fill="#ffe9a8" d="M40 40c4 5 6 10 6 14a6 6 0 0 1-12 0c0-4 2-7 6-14z"><animate attributeName="opacity" values="1;.5;1" dur=".7s" repeatCount="indefinite"/></path>');
+      case 'fx_supernova': return A('<g transform="translate(40 40)"><circle r="6" fill="#fff"><animate attributeName="r" values="4;9;4" dur="1.4s" repeatCount="indefinite"/></circle><g><circle r="14" fill="none" stroke="#ffd24a" stroke-width="3"><animate attributeName="r" values="6;34" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle r="14" fill="none" stroke="#ff7a2f" stroke-width="2"><animate attributeName="r" values="6;34" dur="1.6s" begin=".5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.6s" begin=".5s" repeatCount="indefinite"/></circle></g></g>');
+      case 'fx_ink': return A('<g fill="#1a1a24"><g><animateTransform attributeName="transform" type="scale" values=".2;1" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.2" dur="1.8s" repeatCount="indefinite"/><path d="M40 40 q-14 -8 -20 -2 q6 4 6 10 q-10 2 -8 12 q10 -2 14 4 q4 -10 14 -8 q-2 -12 6 -16 q-10 -4 -12 -12z" transform="translate(-40 -40)"/></g></g>');
+      case 'fx_glitch': return A('<g><rect x="8" y="30" width="64" height="6" fill="#ff2d6b" opacity=".85"><animate attributeName="x" values="8;20;2;8" dur=".5s" repeatCount="indefinite"/></rect><rect x="8" y="40" width="64" height="5" fill="#38e0ff" opacity=".85"><animate attributeName="x" values="8;-6;14;8" dur=".4s" repeatCount="indefinite"/></rect><rect x="8" y="48" width="64" height="4" fill="#7cff5a" opacity=".7"><animate attributeName="x" values="8;16;0;8" dur=".6s" repeatCount="indefinite"/></rect></g>');
+      case 'fx_frostbreak': return A('<g stroke="#bfe6ff" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M40 40 L18 16M40 40 L64 18M40 40 L14 58M40 40 L60 62M40 40 L40 12"><animate attributeName="opacity" values=".4;1;.4" dur="1.1s" repeatCount="indefinite"/></path></g><g fill="#eaf7ff"><path d="M40 40l-8-10-2 10z"><animate attributeName="opacity" values=".5;1;.5" dur="1s" repeatCount="indefinite"/></path><path d="M40 40l10-4 2 8z"><animate attributeName="opacity" values="1;.4;1" dur="1.2s" repeatCount="indefinite"/></path></g><circle cx="40" cy="40" r="3.4" fill="#fff"/>');
     }
     /* ── معايناتٌ عامّةٌ متحرّكةٌ لأيّ عنصرٍ جديد: لونٌ حتميٌّ مشتقٌّ من المُعرِّف
        فيبدو كلُّ عنصرٍ نابضًا ومميّزًا بلا رسمٍ يدويٍّ لكلِّ واحد. ── */
@@ -156,7 +206,7 @@
   }
 
   var STORE = {
-    _cur: null, _timer: 0, _open: false,
+    _cur: null, _timer: 0, _open: false, _filter: null,
 
     open: function () {
       var ov = document.getElementById('store-ov'); if (!ov) return;
@@ -172,6 +222,7 @@
     },
     close: function () {
       this._open = false;
+      this.closeDetail();
       var ov = document.getElementById('store-ov'); if (ov) ov.classList.remove('open');
       try { StoreWash.stop(); } catch (e) {}
       var w = document.getElementById('store-wash'); if (w) w.classList.remove('play');
@@ -202,17 +253,42 @@
 
     _render: function (data) {
       this._renderBalance();
+      this._renderFilters(data);
       var grid = document.getElementById('store-grid'); if (!grid) return;
       var owned = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.owned) || [];
       var self = this;
-      grid.innerHTML = data.items.map(function (it) { return self._card(it, owned.indexOf(it.id) >= 0); }).join('');
+      var items = data.items.filter(function (it) { return !self._filter || it.type === self._filter; });
+      if (!items.length) {
+        grid.innerHTML = '<p class="store-empty">' + esc(L('لا عناصرَ من هذا النوعِ في هذه النافذة.', 'No items of this kind in this window.')) + '</p>';
+      } else {
+        grid.innerHTML = items.map(function (it) { return self._card(it, owned.indexOf(it.id) >= 0); }).join('');
+      }
+      grid.querySelectorAll('.store-card').forEach(function (c) {
+        c.onclick = function (e) { if (e.target.closest('[data-buy],[data-equip]')) return; STORE.openDetail(c.getAttribute('data-id')); };
+      });
       grid.querySelectorAll('[data-buy]').forEach(function (b) {
-        b.onclick = function () { try { if (window.SFX) SFX.btn(); } catch (e) {} STORE.buy(b.getAttribute('data-buy')); };
+        b.onclick = function (e) { e.stopPropagation(); try { if (window.SFX) SFX.btn(); } catch (er) {} STORE.buy(b.getAttribute('data-buy')); };
       });
       grid.querySelectorAll('[data-equip]').forEach(function (b) {
-        b.onclick = function () { STORE.equip(b.getAttribute('data-equip'), b.getAttribute('data-type')); };
+        b.onclick = function (e) { e.stopPropagation(); STORE.equip(b.getAttribute('data-equip'), b.getAttribute('data-type')); };
       });
       this._startCountdown(data.serverNow, data.endsAt);
+    },
+
+    /* رقاقاتُ تصفيةٍ حسبَ النوعِ (الكلّ/إطارات/خلفيّات/…) — ثنائيّةُ اللغة. */
+    _renderFilters: function (data) {
+      var wrap = document.getElementById('store-filters'); if (!wrap) return;
+      var present = {}; data.items.forEach(function (it) { present[it.type] = 1; });
+      var self = this;
+      var chips = ['<button class="store-chip' + (self._filter ? '' : ' is-on') + '" data-filter="">' + esc(L('الكلّ', 'All')) + '</button>'];
+      TYPE_ORDER.forEach(function (t) {
+        if (!present[t]) return;
+        chips.push('<button class="store-chip' + (self._filter === t ? ' is-on' : '') + '" data-filter="' + t + '">' + esc(L(TYPE[t].ar, TYPE[t].en)) + '</button>');
+      });
+      wrap.innerHTML = chips.join('');
+      wrap.querySelectorAll('[data-filter]').forEach(function (b) {
+        b.onclick = function () { try { if (window.SFX) SFX.btn(); } catch (e) {} self._filter = b.getAttribute('data-filter') || null; if (self._cur) self._render(self._cur); };
+      });
     },
 
     _card: function (it, owned) {
@@ -229,12 +305,60 @@
       } else {
         action = '<button class="store-buy' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true"></span>' + it.price + '</button>';
       }
-      return '<div class="store-card store-card--' + esc(it.rarity) + (have ? ' is-owned' : '') + '">'
+      return '<div class="store-card store-card--' + esc(it.rarity) + (have ? ' is-owned' : '') + '" data-id="' + esc(it.id) + '" role="button" tabindex="0">'
         + '<span class="store-card__rar">' + esc(L(r.ar, r.en)) + '</span>'
+        + '<span class="store-card__info" aria-hidden="true">i</span>'
         + '<div class="store-card__art store-art--' + esc(it.type) + '">' + art(it) + '</div>'
         + '<div class="store-card__nm">' + esc(name) + '</div>'
         + '<div class="store-card__foot">' + action + '</div>'
         + '</div>';
+    },
+
+    /* بطاقةُ تفاصيلِ العنصرِ: معاينةٌ كبيرةٌ + النوعُ والندرةُ والوصفُ والسعرُ
+       أو زرُّ التجهيز. تُفتحُ بالضغطِ على أيِّ بطاقةٍ في الشبكة. ثنائيّةُ اللغة. */
+    openDetail: function (id) {
+      var data = this._cur; if (!data) return;
+      var it = null; for (var i = 0; i < data.items.length; i++) if (data.items[i].id === id) { it = data.items[i]; break; }
+      if (!it) return;
+      var sheet = document.getElementById('store-detail'); if (!sheet) return;
+      var owned = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.owned) || [];
+      var have = owned.indexOf(it.id) >= 0 || it.owned;
+      var r = RARITY[it.rarity] || RARITY.common;
+      var tp = TYPE[it.type] || {};
+      var canAfford = (window.amkhEconomy ? amkhEconomy.coins() : 0) >= it.price;
+      var action;
+      if (have) {
+        var eq = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.equipped) || {};
+        var isEq = eq[it.type] === it.id;
+        action = '<button class="store-equip store-detail__act' + (isEq ? ' is-on' : '') + '" data-equip="' + esc(it.id) + '" data-type="' + esc(it.type) + '">'
+          + esc(isEq ? L('مُجهَّز — اضغط للإلغاء', 'Equipped — tap to remove') : L('تجهيز', 'Equip')) + '</button>';
+      } else {
+        action = '<button class="store-buy store-detail__act' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true"></span>'
+          + it.price + '  ' + esc(L('شراء', 'Buy')) + '</button>'
+          + (canAfford ? '' : '<div class="store-detail__hint">' + esc(L('عملاتُك لا تكفي بعد.', 'Not enough coins yet.')) + '</div>');
+      }
+      var body = document.getElementById('store-detail-body');
+      body.innerHTML =
+        '<div class="store-detail__art store-art--' + esc(it.type) + ' store-card--' + esc(it.rarity) + '">' + art(it) + '</div>'
+        + '<div class="store-detail__rar" style="--rc:' + this._rc(it.rarity) + '">' + esc(L(r.ar, r.en)) + ' · ' + esc(L(tp.one ? tp.one.ar : '', tp.one ? tp.one.en : '')) + '</div>'
+        + '<h3 class="store-detail__nm">' + esc(L(it.ar, it.en)) + '</h3>'
+        + '<p class="store-detail__desc">' + esc(tp.desc ? L(tp.desc.ar, tp.desc.en) : '') + '</p>'
+        + (have ? '<div class="store-detail__badge">' + esc(L('مملوكٌ — محفوظٌ في حسابِك للأبد.', 'Owned — saved to your account forever.')) + '</div>' : '')
+        + '<div class="store-detail__foot">' + action + '</div>';
+      body.querySelectorAll('[data-buy]').forEach(function (b) {
+        b.onclick = function () { try { if (window.SFX) SFX.btn(); } catch (e) {} STORE.buy(b.getAttribute('data-buy')); STORE.closeDetail(); };
+      });
+      body.querySelectorAll('[data-equip]').forEach(function (b) {
+        b.onclick = function () { STORE.equip(b.getAttribute('data-equip'), b.getAttribute('data-type')); STORE.openDetail(id); };
+      });
+      sheet.classList.add('open');
+      try { if (window.SFX) SFX.btn(); } catch (e) {}
+    },
+    closeDetail: function () {
+      var sheet = document.getElementById('store-detail'); if (sheet) sheet.classList.remove('open');
+    },
+    _rc: function (rar) {
+      return ({ common: '#9fb0c0', rare: '#4aa3ff', epic: '#b46bff', legendary: '#ffb64a', seasonal: '#38e0c0' })[rar] || '#9fb0c0';
     },
 
     _startCountdown: function (serverNow, endsAt) {

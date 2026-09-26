@@ -157,7 +157,56 @@
     frame_sakura:  ['#ffc2dd', '#ff5fa2', '#ffe6f0'],
   };
   // إطارات ذات نبض توهّج بدل الدوران (تنوّع بصريّ)
-  var FRAME_GLOW = { frame_flame: 1, frame_phoenix: 1, frame_aurora: 1, frame_shadow: 1 };
+  var FRAME_GLOW = { frame_aurora: 1, frame_flame: 1 };
+
+  // رُسومٌ خاصّةٌ مميّزةٌ لكلّ إطارٍ متقدّم (مطابقةٌ لفنّ المتجر) — viewBox 0 0 100 100
+  var FRAME_SPECIAL = {
+    // العنقاء: حلقةٌ + جناحان ناريّان جانبيّان + جمراتٌ صاعدة
+    frame_phoenix: function (t, g) {
+      return '<circle cx="50" cy="50" r="42" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<g fill="url(#' + g + ')">'
+        + '<path d="M22 54 Q5 40 11 18 Q28 30 34 46 Q28 51 22 54Z"><animate attributeName="opacity" values="0.7;1;0.7" dur="1.1s" repeatCount="indefinite"/></path>'
+        + '<path d="M78 54 Q95 40 89 18 Q72 30 66 46 Q72 51 78 54Z"><animate attributeName="opacity" values="1;0.7;1" dur="1.1s" repeatCount="indefinite"/></path>'
+        + '</g>'
+        + '<g fill="' + t[2] + '">'
+        + '<circle cx="42" cy="92" r="2.2"><animate attributeName="cy" values="94;62" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.5s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="58" cy="92" r="1.8"><animate attributeName="cy" values="96;60" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2s" repeatCount="indefinite"/></circle>'
+        + '</g>';
+    },
+    // الكرز/الساكورا: حلقةٌ + إكليلُ بتلاتٍ دوّار (٦ بتلات) — مختلفٌ تمامًا عن العنقاء
+    frame_sakura: function (t, g) {
+      var pet = ['<ellipse cx="50" cy="9" rx="4.5" ry="7"/>',
+        '<ellipse cx="85.5" cy="29.5" rx="4.5" ry="7" transform="rotate(60 85.5 29.5)"/>',
+        '<ellipse cx="85.5" cy="70.5" rx="4.5" ry="7" transform="rotate(120 85.5 70.5)"/>',
+        '<ellipse cx="50" cy="91" rx="4.5" ry="7"/>',
+        '<ellipse cx="14.5" cy="70.5" rx="4.5" ry="7" transform="rotate(60 14.5 70.5)"/>',
+        '<ellipse cx="14.5" cy="29.5" rx="4.5" ry="7" transform="rotate(120 14.5 29.5)"/>'].join('');
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="4.5"/>'
+        + '<g fill="' + t[0] + '"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="9s" repeatCount="indefinite"/>' + pet + '</g>';
+    },
+    // المجرّة: حلقةٌ + كواكبُ/نجومٌ تدور حول المركز
+    frame_galaxy: function (t, g) {
+      return '<circle cx="50" cy="50" r="43" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="5s" repeatCount="indefinite"/>'
+        + '<circle cx="50" cy="7" r="4" fill="#ffffff"/><circle cx="90" cy="57" r="3.2" fill="' + t[2] + '"/><circle cx="13" cy="63" r="2.6" fill="' + t[0] + '"/></g>'
+        + '<circle cx="50" cy="50" r="10" fill="none" stroke="' + t[2] + '" stroke-width="1.2" opacity="0.5"/>';
+    },
+    // الزمرّد: مثمّنٌ مُوجَّهٌ + بريقٌ يدور على الحوافّ
+    frame_emerald: function (t, g) {
+      var oct = '50,6 76,18 94,50 76,82 50,94 24,82 6,50 24,18';
+      return '<polygon points="' + oct + '" fill="none" stroke="url(#' + g + ')" stroke-width="6" stroke-linejoin="round"/>'
+        + '<polygon points="' + oct + '" fill="none" stroke="' + t[2] + '" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="14 240"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/></polygon>';
+    },
+    // الظلّ: حلقةٌ + خصلاتٌ ظلاميّةٌ نابضةٌ حول الإطار
+    frame_shadow: function (t, g) {
+      return '<circle cx="50" cy="50" r="44" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<g fill="' + t[0] + '">'
+        + '<circle cx="50" cy="7" r="5"><animate attributeName="r" values="5;8;5" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.95;0.5" dur="2s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="90" cy="64" r="4"><animate attributeName="r" values="4;6.5;4" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.9;0.5" dur="2.4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="12" cy="58" r="4"><animate attributeName="r" values="4;6.5;4" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.9;0.5" dur="1.8s" repeatCount="indefinite"/></circle>'
+        + '</g>';
+    },
+  };
 
   // شارات: [لون، مسار SVG، عيون؟]
   var BADGE = {
@@ -195,13 +244,16 @@
     var t = FRAME[cos.frame] || FRAME.frame_gold;
     var gid = 'cf_' + id;
     var glow = FRAME_GLOW[cos.frame];
+    var special = FRAME_SPECIAL[cos.frame];
     var inner = ''
       + '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1">'
       + '<stop offset="0" stop-color="' + t[0] + '"/>'
       + '<stop offset="0.5" stop-color="' + t[2] + '"/>'
       + '<stop offset="1" stop-color="' + t[1] + '"/>'
       + '</linearGradient></defs>';
-    if (glow) {
+    if (special) {
+      inner += special(t, gid);
+    } else if (glow) {
       inner += '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + gid + ')" stroke-width="6">'
         + '<animate attributeName="stroke-width" values="4;7;4" dur="1.6s" repeatCount="indefinite"/>'
         + '<animate attributeName="opacity" values="0.75;1;0.75" dur="1.6s" repeatCount="indefinite"/>'

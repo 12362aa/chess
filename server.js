@@ -1184,10 +1184,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 54;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b54/chess-amkh-4.2-b54.apk';
-const NOTES_AR = 'زينتُك صارت تظهرُ للجميع في كلِّ مكان: جهِّز إطارًا أو خلفيّةً أو شارةً من متجرك، فتراها كلُّ اللاعبين حولَ صورتِك واسمِك — في لوحةِ الصدارة، وقائمةِ الأصدقاء، والدردشة، والمجموعات، وبطاقةِ ملفِّك. زرُّ «تجهيز/مُجهَّز» في المتجر يبدّلُ زينتَك فورًا، وكلُّ عنصرٍ جديدٍ (أكثرُ من خمسينَ الآن) له معاينةٌ حيّةٌ متحرّكةٌ بلونٍ خاصٍّ به. كلُّ ما تملكه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'Your cosmetics now show to everyone, everywhere: equip a frame, background or badge from your store and every player sees it around your avatar and name — on the leaderboard, friends list, chat, groups and your profile card. An Equip/Equipped toggle in the store swaps your look instantly, and every new item (over fifty now) has its own live animated, uniquely-colored preview. Everything you own is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 55;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b55/chess-amkh-4.2-b55.apk';
+const NOTES_AR = 'متجرٌ جديدٌ بالكامل: شاشةٌ أسطوريّةٌ بمُرشِّحاتٍ حسب النوع، واضغطْ أيَّ عنصرٍ لترى معاينتَه الكبيرةَ وتفاصيلَه — ماذا يفعل وأينَ يظهر. كلُّ إطارٍ وشارةٍ وخلفيّةٍ صار له تصميمٌ مرسومٌ مميّزٌ فريد (لا شكلَ متكرّرٌ بعدَ اليوم): العنقاءُ بجناحَينِ ناريَّينِ، والكرزُ بإكليلِ بتلاتٍ دوّار، والمجرّةُ بكواكبَ تدور، والزمرّدُ مثمَّنٌ متلألئ، والظلُّ بخصلاتٍ نابضة — وتظهرُ كلُّها كذلك حولَ صورتِك للجميع في كلِّ مكان. كلُّ ما تملكه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'A brand-new store: a legendary screen with type filters — tap any item for a big preview and its details (what it does and where it shows). Every frame, badge and background now has its own distinct hand-drawn design (no more look-alikes): the phoenix has fiery wings, cherry a spinning petal wreath, galaxy orbiting planets, emerald a shimmering octagon, shadow pulsing wisps — and they all appear around your avatar for everyone, everywhere too. Everything you own is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,

@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260926-b54">
+<link rel="stylesheet" href="screens.css?v=20260926-b55">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -4149,7 +4149,15 @@ html.amkh-preboot #amkh-preboot{
         <div class="store-balance"><span class="store-balance__coin" aria-hidden="true"></span><span id="store-balance-val">0</span></div>
         <div class="store-timer"><span class="store-timer__lbl">التبديلُ بعد</span><span class="store-timer__val" id="store-countdown">--:--:--</span></div>
       </div>
+      <div class="store-filters" id="store-filters"></div>
       <div class="store-grid" id="store-grid"></div>
+    </div>
+  </div>
+  <div class="store-detail" id="store-detail" role="dialog" aria-modal="true">
+    <div class="store-detail__scrim" onclick="if(window.STORE)STORE.closeDetail();"></div>
+    <div class="store-detail__panel">
+      <button class="store-detail__close" onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.STORE)STORE.closeDetail();" aria-label="إغلاق">✕</button>
+      <div class="store-detail__body" id="store-detail-body"></div>
     </div>
   </div>
 </div>
@@ -7731,7 +7739,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 54;
+const APP_VERSION_CODE = 55;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -16300,15 +16308,15 @@ window.addEventListener('beforeunload',()=>{
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
-  <script src="friends-client.js?v=20260926-b54"></script>
-  <script src="chat-client.js?v=20260926-b54"></script>
+  <script src="friends-client.js?v=20260926-b55"></script>
+  <script src="chat-client.js?v=20260926-b55"></script>
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260926-b54"></script>
+  <script src="economy-client.js?v=20260926-b55"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260926-b54"></script>
+  <script src="store-client.js?v=20260926-b55"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

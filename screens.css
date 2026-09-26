@@ -7895,6 +7895,52 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   border-color:transparent; box-shadow:0 3px 12px rgba(90,160,245,.45); }
 .store-card.is-owned{ opacity:.92; }
 
+/* ══ إعادة صناعة المتجر: رقاقاتُ التصفية + بطاقاتٌ قابلةٌ للنقر + بطاقةُ تفاصيل ══ */
+.store-filters{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; justify-content:center; }
+.store-chip{ border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05); color:rgba(255,255,255,.8);
+  padding:7px 15px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
+  transition:background .18s ease, color .18s ease, border-color .18s ease; }
+.store-chip.is-on{ color:#2a1a05; background:linear-gradient(180deg,var(--gold2),var(--gold));
+  border-color:transparent; box-shadow:0 3px 12px rgba(245,196,81,.35); }
+
+.store-card{ cursor:pointer; transition:transform .16s ease, box-shadow .2s ease; }
+.store-card:active{ transform:scale(.97); }
+@media (hover:hover){ .store-card:hover{ transform:translateY(-3px);
+  box-shadow:0 14px 30px rgba(0,0,0,.5),inset 0 0 30px color-mix(in srgb,var(--rc) 22%,transparent); } }
+.store-card:focus-visible{ outline:2px solid var(--rc); outline-offset:2px; }
+.store-card__art{ width:88px; height:88px; }
+.store-card__info{ position:absolute; top:10px; inset-inline-start:10px; width:18px; height:18px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; font-style:italic;
+  color:rgba(255,255,255,.7); background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); pointer-events:none; }
+
+/* بطاقةُ التفاصيلِ: طبقةٌ فوقَ شاشةِ المتجرِ عندَ الضغطِ على عنصر */
+.store-detail{ position:absolute; inset:0; z-index:80; display:none; }
+.store-detail.open{ display:block; }
+.store-detail__scrim{ position:absolute; inset:0; background:rgba(6,3,14,.72); backdrop-filter:blur(3px); animation:stdFade .2s ease; }
+.store-detail__panel{ position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:100%; max-width:460px;
+  background:linear-gradient(180deg,#241042,#160a2c); border:1px solid rgba(255,255,255,.12);
+  border-radius:26px 26px 0 0; padding:26px 22px calc(28px + env(safe-area-inset-bottom)); box-shadow:0 -14px 40px rgba(0,0,0,.55);
+  animation:stdRise .28s cubic-bezier(.2,.8,.2,1); }
+@keyframes stdFade{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes stdRise{ from{ transform:translate(-50%,20px); opacity:0; } to{ transform:translate(-50%,0); opacity:1; } }
+.store-detail__close{ position:absolute; top:14px; inset-inline-end:14px; width:38px; height:38px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; font-size:17px; cursor:pointer; }
+.store-detail__body{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px; }
+.store-detail__art{ width:132px; height:132px; color:var(--rc); position:relative;
+  filter:drop-shadow(0 0 16px color-mix(in srgb,var(--rc) 55%,transparent)); animation:stFloat 4s ease-in-out infinite; }
+.store-detail__art .st-svg{ width:100%; height:100%; display:block; }
+.store-detail__rar{ font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--rc);
+  padding:3px 12px; border-radius:999px; background:color-mix(in srgb,var(--rc) 16%,transparent);
+  border:1px solid color-mix(in srgb,var(--rc) 45%,transparent); }
+.store-detail__nm{ margin:2px 0 0; font-size:22px; font-weight:900; color:#fff; }
+.store-detail__desc{ margin:0; font-size:14px; line-height:1.7; color:rgba(255,255,255,.75); max-width:34ch; }
+.store-detail__badge{ font-size:12.5px; font-weight:700; color:#8ef0c0; background:rgba(56,224,192,.12);
+  border:1px solid rgba(56,224,192,.4); border-radius:999px; padding:6px 14px; }
+.store-detail__foot{ margin-top:8px; width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.store-detail__act{ font-size:16px; padding:12px 30px; }
+.store-detail__hint{ font-size:12px; color:rgba(255,255,255,.55); }
+@media (prefers-reduced-motion:reduce){ .store-detail__panel,.store-detail__scrim,.store-detail__art{ animation:none; } }
+
 /* ══ التجميل الظاهر (المرحلة ٣): إطارات/خلفيات/شارات على الأفاتار والاسم ══
    كله transform/opacity/filter فقط — لا يمسّ تخطيط الصفحة ولا أداء اللوح. */
 .cos-host{ position:relative; overflow:visible; }
