@@ -58,6 +58,20 @@ function safeJson(s) {
   catch (e) { return null; }
 }
 
+/* التجميل المُجهَّز من صفٍّ يحمل أعمدة equipped_* (نفس منطق friends.cosOf).
+   عام تجميليّ بحت، فيظهر إطار/شارة المُرسِل على فقاعات الحفلة وصور القراء. */
+const COS_COLS = 'u.equipped_frame, u.equipped_background, u.equipped_badge, u.equipped_celebration, u.equipped_mate_fx';
+function cosOf(row) {
+  if (!row) return null;
+  const o = {};
+  if (row.equipped_frame) o.frame = row.equipped_frame;
+  if (row.equipped_background) o.background = row.equipped_background;
+  if (row.equipped_badge) o.badge = row.equipped_badge;
+  if (row.equipped_celebration) o.celebration = row.equipped_celebration;
+  if (row.equipped_mate_fx) o.mate_fx = row.equipped_mate_fx;
+  return Object.keys(o).length ? o : null;
+}
+
 /* اسم العرض في الأونلاين: مستخدم جوجل → الاسم من جوجل (display_name)؛
    غير كده → الاسم المستعار (username) اللي بيتعدّل من الإعدادات. نفس قاعدة
    resolveOnlineName في server.js عشان الاسم يبقى موحَّد في كل مكان. */
@@ -115,12 +129,13 @@ function memberInfo(row) {
     display_name: row.display_name,
     provider: row.provider || null,
     avatar_url: row.avatar_url || null,
+    cosmetics: cosOf(row),   /* إطار/شارة العضو تظهر على صور القراء في الإيصالات (البند ١) */
   };
 }
 
 /* قائمة أعضاء الجروب (هوية عامة) — لعرض صور القراء في الإيصالات. */
 function memberList(groupId) {
-  const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.provider, u.avatar_url
+  const rows = db.prepare(`SELECT u.id, u.username, u.display_name, u.provider, u.avatar_url, ${COS_COLS}
                            FROM group_members gm JOIN users u ON u.id = gm.user_id
                            WHERE gm.group_id = ?`).all(groupId);
   return rows.map(memberInfo);
@@ -277,7 +292,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
   if (limit < 1) limit = 1; if (limit > 100) limit = 100;
   try {
     const cols = `m.id, m.sender_id, m.kind, m.body, m.audio_data, m.duration, m.mime, m.created_at, m.reply_to, m.pinned_at, m.pinned_until, m.mentions, m.deleted_at, m.deleted_by,
-                  u.username, u.display_name, u.provider, u.avatar_url`;
+                  u.username, u.display_name, u.provider, u.avatar_url, ${COS_COLS}`;
     /* «حذف عندي» بيتصفّى للعضو ده وحده (message_hides). */
     const hidden = `AND NOT EXISTS (SELECT 1 FROM message_hides h
                     WHERE h.scope = 'grp' AND h.message_id = m.id AND h.user_id = ?)`;
@@ -303,6 +318,7 @@ router.get('/:id/history', authenticateToken, (req, res) => {
       mine: m.sender_id === me,
       sender_name: resolveOnlineName(m),
       sender_avatar: m.avatar_url || null,
+      sender_cos: cosOf(m),   /* زينة إطار المُرسِل تظهر على فقاعة الحفلة (البند ١) */
       /* رسالة نظام: النوع سليم والبدن JSON بالحدث؛ العميل يصيغه بلغته.
          رسالة محذوفة عند الجميع: البدن متصفّى وشاهدة «حُذفت» تظهر. */
       kind: m.deleted_at ? 'text' : (m.kind || 'text'),

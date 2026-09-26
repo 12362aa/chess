@@ -5147,22 +5147,19 @@ html.kb-open .ch-input{
   margin-top: 6px; white-space: normal;
 }
 .ch-react{
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 7px; min-height: 22px;
-  border-radius: 999px; cursor: pointer;
-  border: 1px solid var(--color-border, rgba(255,255,255,.16));
-  background: var(--color-bg-elevated, rgba(0,0,0,.28));
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 1px 2px; min-height: 20px;
+  border: 0; background: transparent;             /* إيموجي خام بلا صندوق (البند ٧-أ) */
+  cursor: pointer;
   color: var(--color-text-primary, #fff);
   font-size: 12px; line-height: 1;
-  transition: transform .12s ease, border-color .12s ease;
+  transition: transform .12s ease;
 }
 .ch-react:active{ transform: scale(.92); }
-.ch-react.is-mine{
-  border-color: var(--color-primary, #6fd1ff);
-  background: rgba(111, 209, 255, .2);                                    /* احتياطي */
-  background: color-mix(in srgb, var(--color-primary, #6fd1ff) 22%, transparent);
-}
-.ch-react__em{ font-size: 14px; line-height: 1; }
+/* تفاعلك أنت: بلا مربّع أصفر يحوم حول الإيموجي — فقط عدّاد ملوّن خفيف. */
+.ch-react.is-mine{ background: transparent; border: 0; }
+.ch-react.is-mine .ch-react__n{ color: var(--color-primary, #D8B45A); }
+.ch-react__em{ font-size: 16px; line-height: 1; }
 .ch-react__n{ font-weight: 700; opacity: .85; font-variant-numeric: tabular-nums; }
 
 /* شريط الاختيار السريع أعلى قائمة إجراءات الرسالة */
@@ -8132,6 +8129,17 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 /* الميدالية فوق الطوق؛ صناديق أفاتار الصدارة تسمح للطوق بتجاوز حدّها */
 .lb-pod__av.cos-host,.lb-row__av.cos-host{ overflow:visible; }
 .lb-pod__medal{ z-index:4; }
+
+/* ══ إصلاح خروج الصورة من الإطار (البند ١) ══
+   صور الأفاتار (img) مالهاش border-radius خاص بيها — كانت بتتقصّ دايرية
+   بالاعتماد على overflow:hidden بتاع الصندوق الأب. لكن .cos-host بيقلب
+   overflow:visible عشان الطوق يبان، فتنفكّ القصّة وتطلع أركان الصورة
+   المربّعة برّه الطوق. الحل: نقصّ الصورة نفسها دايريًا فتفضل جوّه الطوق
+   بغضّ النظر عن overflow الأب. */
+.cos-host > img{ border-radius:50%; }
+.fr-row__av-img,
+.ch-conv__av-img, .ch-inbox__av-img,
+.ch-grow__av img{ border-radius:50%; }
 
 /* ══ احتفالاتُ الفوزِ ومؤثّراتُ المات (المرحلة ٤): تُشغَّلُ مِلءَ الشاشةِ عند
    الفوزِ بحسبِ المُجهَّزِ في amkhEconomy، ثمّ تُزيلُ نفسَها. transform/opacity

@@ -1,5 +1,6 @@
 package com.amkh.chess;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -17,6 +18,7 @@ import androidx.core.app.NotificationCompat;
 import com.capacitorjs.plugins.pushnotifications.MessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,6 +35,7 @@ import java.util.Map;
 public class FcmService extends MessagingService {
 
     public static final String CALL_CHANNEL_ID = "chess-call";
+    public static final String CHAT_CHANNEL_ID = "chess-amkh";
     public static final int CALL_NOTIF_ID = 42101;
     public static final String ACTION_REJECT = "com.amkh.chess.CALL_REJECT";
 
@@ -49,14 +52,111 @@ public class FcmService extends MessagingService {
             }
             return;
         }
-        // رسالة شات (فردية أو حفلة): بلّغ السيرفر إن الرسالة وصلت الجهاز فورًا
-        // عشان تظهر ✓✓ عند المُرسِل زيّ واتساب حتى والتطبيق مقفول (البند ٦).
-        // بيتم في الخلفية ولا يعطّل عرض الإشعار العادي تحته.
+        // رسالة شات (فردية أو حفلة): دلوقتي بتوصل data-only عشان onMessageReceived
+        // يشتغل حتى والتطبيق مقفول. بنبلّغ /api/delivered فتظهر ✓✓ عند المُرسِل
+        // زيّ واتساب (البند ٧-ب)، وبنبني إشعار الشريط بنفسنا لأن مفيش notification
+        // block. لو التطبيق مفتوح: نفوّض لـ Capacitor يوصّل الحدث للويب (سوكِت WS
+        // بيتكفّل بالعرض الحيّ) ومنعرضش إشعار شريط فوق شاشة الشات المفتوحة.
         if ("chat".equals(kind) || "group".equals(kind)) {
             try { ackDelivery(data); } catch (Exception e) {}
+            if (isAppForeground()) { super.onMessageReceived(remoteMessage); return; }
+            try { showChatNotification(data); }
+            catch (Exception e) { super.onMessageReceived(remoteMessage); }
+            return;
         }
         // كل الإشعارات التانية: سلوك Capacitor الأصلي بدون تغيير.
         super.onMessageReceived(remoteMessage);
+    }
+
+    /** هل التطبيق في المقدّمة الآن؟ لو أيوه منعرضش إشعار شريط للرسالة (الشاشة
+     *  الحيّة بتعرضها) ونسيب Capacitor يوصّل حدث الـpush للويب. */
+    private boolean isAppForeground() {
+        try {
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am == null) return false;
+            List<ActivityManager.RunningAppProcessInfo> procs = am.getRunningAppProcesses();
+            if (procs == null) return false;
+            String pkg = getPackageName();
+            for (ActivityManager.RunningAppProcessInfo p : procs) {
+                if (p.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                        && p.processName != null && p.processName.equals(pkg)) return true;
+            }
+        } catch (Exception e) {}
+        return false;
+    }
+
+    /** إشعار رسالة شات/حفلة مبنيّ يدويًا (لأن الرسالة data-only بلا notification
+     *  block). العنوان/النص/الوسم مطويّة جوّه data من السيرفر. النقر يفتح التطبيق. */
+    private void showChatNotification(Map<String, String> data) {
+        boolean en = isEn(data);
+        String kind = data.get("kind");
+        String title = data.get("title");
+        if (title == null || title.isEmpty()) title = data.get("from_name");
+        if (title == null || title.isEmpty()) title = data.get("group_name");
+        if (title == null || title.isEmpty()) title = en ? "Am-Kh Chess" : "شطرنج Am-Kh";
+        String body = data.get("body");
+        if (body == null || body.isEmpty()) body = en ? "New message" : "رسالة جديدة";
+        String tag = data.get("tag");
+        if (tag == null || tag.isEmpty()) tag = "chess-chat";
+
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+        ensureChatChannel(nm, en);
+
+        int piFlags = PendingIntent.FLAG_UPDATE_CURRENT
+                | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
+        Intent openIntent = new Intent(this, MainActivity.class);
+        openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        String link = data.get("link");
+        if (link != null && !link.isEmpty()) openIntent.putExtra("push_link", link);
+        if ("group".equals(kind)) {
+            String gid = data.get("group_id");
+            if (gid != null) openIntent.putExtra("open_group", gid);
+        } else {
+            String fid = data.get("from_id");
+            if (fid != null) openIntent.putExtra("open_chat", fid);
+        }
+        PendingIntent openPi = PendingIntent.getActivity(this, tag.hashCode(), openIntent, piFlags);
+
+        NotificationCompat.Builder b = new NotificationCompat.Builder(this, CHAT_CHANNEL_ID)
+                .setSmallIcon(getApplicationInfo().icon)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .setAutoCancel(true)
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setContentIntent(openPi);
+        // قبل أندرويد 8: الصوت/الاهتزاز على الإشعار نفسه (مفيش قنوات).
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            Uri snd = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            if (snd != null) b.setSound(snd);
+            b.setDefaults(NotificationCompat.DEFAULT_VIBRATE);
+        }
+        // نستعمل الوسم كـ tag عشان رسايل نفس المُرسِل/الحفلة تحدّث إشعارًا واحدًا.
+        nm.notify(tag, tag.hashCode(), b.build());
+    }
+
+    /* قناة الرسائل: إنشاؤها على نفس id بيحدّث الاسم/الوصف فقط لو موجودة (الأهمية
+       والصوت ثابتان بعد الإنشاء) — فتتحدّث لغة الاسم في إعدادات النظام. */
+    private void ensureChatChannel(NotificationManager nm, boolean en) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationChannel ch = new NotificationChannel(
+                CHAT_CHANNEL_ID, en ? "Messages" : "الرسائل",
+                NotificationManager.IMPORTANCE_HIGH);
+        ch.setDescription(en ? "Chat and party messages" : "رسائل الدردشة والحفلات");
+        ch.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        Uri snd = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        if (snd != null) {
+            AudioAttributes attrs = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+            ch.setSound(snd, attrs);
+        }
+        ch.enableVibration(true);
+        nm.createNotificationChannel(ch);
     }
 
     /** POST /api/delivered بتوكيع التسليم الموقّع اللي جاء جوّه بيانات الإشعار.

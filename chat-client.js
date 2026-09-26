@@ -1216,6 +1216,7 @@ const amkhChat = {
     this._friendMeta[fid] = {
       name: this._displayName(friend),
       avatar_url: friend.avatar_url || null,
+      cosmetics: friend.cosmetics || null,   /* زينة الإطار/الشارة تظهر في ترويسة الشات (البند ١) */
       status: friend.status, online: friend.online, last_seen_at: friend.last_seen_at,
     };
     const name = this._friendMeta[fid].name;
@@ -3052,7 +3053,10 @@ const amkhChat = {
 
   _inboxRow(r) {
     const f = r.friend || {};
-    const meta = this._friendMeta[f.id];
+    /* لو الشات ما اتفتحش قبل كده مايكونش فيه _friendMeta، فنبنيه من صف السيرفر
+       (r.friend). الزينة تجي من السيرفر (cosmetics) فتظهر في قائمة الرسائل (البند ١). */
+    const meta = this._friendMeta[f.id] || { name: this._displayName(f), avatar_url: f.avatar_url || null };
+    if (f.cosmetics && !meta.cosmetics) meta.cosmetics = f.cosmetics;
     const row = document.createElement('button');
     row.className = 'ch-inbox__row';
     row.dataset.fid = String(f.id);
@@ -3302,6 +3306,7 @@ const amkhChat = {
     const msg = {
       id: d.id, client_id: d.client_id || null, from: d.from, mine,
       sender_name: d.sender_name || 'صديق', sender_avatar: d.sender_avatar || null,
+      sender_cos: d.sender_cos || null,   /* زينة إطار المُرسِل تظهر على فقاعة الحفلة (البند ١) */
       kind: d.kind || 'text', body: d.body, audio: d.audio || null,
       duration: d.duration || 0, mime: d.mime || '', created_at: d.created_at,
       reply_to: d.reply_to || null, reply: d.reply || null,
@@ -3780,7 +3785,7 @@ const amkhChat = {
     if (showHead) {
       const av = document.createElement('span');
       av.className = 'ch-grow__av'; av.setAttribute('aria-hidden', 'true');
-      this._paintAvatar(av, { name: m.sender_name, avatar_url: m.sender_avatar });
+      this._paintAvatar(av, { name: m.sender_name, avatar_url: m.sender_avatar, cosmetics: m.sender_cos || null });
       wrap.appendChild(av);
     } else if (!m.mine) {
       const spacer = document.createElement('span');

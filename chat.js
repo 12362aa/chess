@@ -68,12 +68,21 @@ function blockedBetween(a, b) {
 function decorateStatus(row) {
   const live = realtime.statusOf(row.id);
   const status = live || (row.is_online ? (row.in_game ? 'in-game' : 'online') : 'offline');
+  /* التجميل المُجهَّز (إطار/شارة) عام تجميليّ بحت — يظهر في قائمة الرسائل
+     وترويسة الشات عند كل الأطراف (البند ١). */
+  const cos = {};
+  if (row.equipped_frame) cos.frame = row.equipped_frame;
+  if (row.equipped_background) cos.background = row.equipped_background;
+  if (row.equipped_badge) cos.badge = row.equipped_badge;
+  if (row.equipped_celebration) cos.celebration = row.equipped_celebration;
+  if (row.equipped_mate_fx) cos.mate_fx = row.equipped_mate_fx;
   return {
     id: row.id,
     username: row.username,
     display_name: row.display_name,
     avatar_url: row.avatar_url || null,
     provider: row.provider || 'local',
+    cosmetics: Object.keys(cos).length ? cos : null,
     status,
     online: status !== 'offline',
     last_seen_at: row.last_seen_at || null,
@@ -87,7 +96,7 @@ router.get('/conversations', authenticateToken, (req, res) => {
   const me = req.user.id;
   try {
     const friends = db.prepare(`
-      SELECT ${'u.id, u.username, u.display_name, u.avatar_url, u.provider'},
+      SELECT ${'u.id, u.username, u.display_name, u.avatar_url, u.provider, u.equipped_frame, u.equipped_background, u.equipped_badge, u.equipped_celebration, u.equipped_mate_fx'},
              p.is_online, p.in_game, p.last_seen_at
       FROM friendships f
       JOIN users u ON u.id = f.friend_id

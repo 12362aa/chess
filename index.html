@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260926-b57">
+<link rel="stylesheet" href="screens.css?v=20260927-b58">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -7801,7 +7801,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 57;
+const APP_VERSION_CODE = 58;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -12166,6 +12166,9 @@ const AST=(()=>{
 
   return{
     async compute(){
+      /* المساعد ممنوع في الأونلاين والبلوتوث (البند ٦) — دفاع أخير حتى لو
+         بقيت S.assistOn من جلسة سابقة قبل تغيير الوضع. */
+      if(isRemoteMatchMode()){S.astMove=null;S.astBusy=false;return;}
       if(!S.assistOn||S.over||S.busy){S.astMove=null;S.astBusy=false;return;}
       const isMyTurn=S.myCol==='both'?(S.mode==='bot'?S.turn==='w':true):S.turn===S.myCol;
       if(!isMyTurn){S.astMove=null;S.astBusy=false;return;}
@@ -12571,7 +12574,10 @@ const R={
       }
     }
     if(ba){
-      if(S.mode==='local'){ba.style.display='none';}
+      /* المساعد (أفضل نقلة) ممنوع في الأونلاين والبلوتوث — دي ميزة تنافسية
+         غير عادلة والمنافسون لا يتيحونها أصلًا أونلاين. يبقى فقط في الأوف-لاين
+         (ضد نور/Stockfish/لاعبين على نفس الجهاز الآن مخفي) — البند ٦. */
+      if(isRemoteMatchMode() || S.mode==='local'){ba.style.display='none';}
       else{
         ba.style.display='';
         if(S.assistOn){ba.classList.add('ast-on');document.getElementById('ast-lbl').textContent=S.astBusy?'المساعد: يحسب...':'المساعد: تشغيل';dot.style.display='inline-block';}
@@ -14334,6 +14340,9 @@ const G={
     if(S.levelId>=0)Nav.levels();else Nav.menu();
   },
   async toggleAst(){
+    /* دفاع ثانٍ: حتى لو ظهر الزر بأي طريق، المساعد ممنوع تمامًا في الأونلاين
+       والبلوتوث (البند ٦). الزر مخفي أصلًا في R.toolbar لهذه الأوضاع. */
+    if(isRemoteMatchMode())return;
     SFX.btn();S.assistOn=!S.assistOn;AST.clear();
     /* الخصم يُعلَم في كل مباراة بين شخصين — بلوتوثًا كما أونلاين. كان
        الإبلاغ في الأونلاين وحده، فمن لعب بلوتوثًا شغّل المساعد بلا أن
@@ -16374,7 +16383,7 @@ window.addEventListener('beforeunload',()=>{
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
   <script src="friends-client.js?v=20260926-b55"></script>
-  <script src="chat-client.js?v=20260926-b55"></script>
+  <script src="chat-client.js?v=20260927-b58"></script>
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->

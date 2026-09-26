@@ -1210,10 +1210,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 57;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b57/chess-amkh-4.2-b57.apk';
-const NOTES_AR = 'تحسيناتٌ على شاشةِ الجوائزِ والاقتصاد: عملةُ Am-Kh صارت قرصًا ذهبيًّا أنيقًا منقوشًا بحروفِ AK مع لمعةٍ حيّة، وشريطُ المستوى صارَ أوضحَ ويفتحُ الجوائزَ ليُريَك كيف ترتقي بالمهام. أُعيدَ تصميمُ الإطاراتِ كلِّها بمؤثّراتٍ حقيقيّةٍ مميّزة: الصقيعُ يُثلجُ فعلًا، واللهبُ يشتعلُ، والمحيطُ يتموّج، والملكيُّ يتلألأ — لا مجرّدَ حلقةٍ تدور. وبطاقةُ الجوائزِ في الرئيسيّةِ صارت شريطًا عريضًا بأيقونةٍ خاصّةٍ يملأُ الفراغَ، ولوحةُ الصدارةِ أنظفُ. كلُّ تقدّمِك محفوظٌ ولن يضيعَ. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'Rewards and economy polish: the Am-Kh coin is now an elegant gold token engraved with AK and a live shine, and the level bar is clearer and opens Rewards so you can see how to level up through missions. Every frame was redesigned with real, distinctive effects: Frost actually snows, Flame burns, Ocean ripples, Royal sparkles — no more just a spinning ring. The home Rewards card is now a wide banner with its own icon that fills the gap, and the leaderboard is cleaner. All your progress is saved and can never be lost. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 58;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b58/chess-amkh-4.2-b58.apk';
+const NOTES_AR = 'إصلاحاتٌ مهمّة: صارت إطاراتُك التجميليّةُ تظهرُ في كلِّ مكانٍ يظهرُ فيه اسمُك أو صورتُك — في رأسِ المحادثة، وقائمةِ الرسائل، ومحادثاتِ المجموعات — لا في قائمةِ الأصدقاءِ وحدَها، ولم تعُدْ صورتُك تتجاوزُ حدودَ الإطار. وفي الدردشةِ صارت علامةُ الاستلامِ مزدوجةً ✓✓ مثلَ واتساب فورَ وصولِ الرسالةِ لجهازِ المستقبِلِ ولو كان التطبيقُ مغلقًا، واختفى الإطارُ الأصفرُ القبيحُ حولَ تفاعلاتِ الإيموجي. وأُزيلَ زرُّ التلميحِ من كلِّ الأطوارِ الأونلاين والبلوتوث (يبقى في الأطوارِ الفرديّة). كلُّ تقدّمِك محفوظٌ. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'Important fixes: your cosmetic frames now appear everywhere your name or photo shows — the chat header, the messages list, and group chats — not just the friends list, and your photo no longer spills outside the frame ring. In chat, the receipt turns to a double check ✓✓ like WhatsApp the moment the message reaches the recipient\'s device even when the app is closed, and the ugly yellow box around emoji reactions is gone. The hint button was removed from all online and Bluetooth modes (kept in single-player modes). All your progress is saved. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -2280,7 +2280,11 @@ function sendGroupPushToUsers(groupId, fromId, senderName, kind, body, userIds, 
     try { dt = jwt.sign({ t: 'gd', g: Number(groupId), u: Number(uid) }, JWT_SECRET, { expiresIn: '3d' }); } catch (e) {}
     sendPushToTokens(tokens, {
       title, body: bodyText, tag: 'group-' + groupId,
-      data: { ...commonData, deliver_token: dt },
+      /* data-only: عشان onMessageReceived يشتغل والتطبيق مقفول فتبلّغ خدمة FCM
+         /api/delivered وتظهر ✓✓ للمُرسِلين — البند ٧-ب. الخدمة تبني الإشعار
+         بنفسها (title/body/tag/link مطويّة جوّه data). */
+      dataOnly: true,
+      data: { ...commonData, deliver_token: dt, tag: 'group-' + groupId },
     });
   }
 }
@@ -2362,10 +2366,12 @@ function sendChatPushToUser(fromId, toId, kind, body, mentioned) {
     title: name,
     body: { ar: line('ar'), en: line('en') },
     tag: 'chat-' + fromId,
-    /* from_name: عشان التطبيق يفتح الشات باسم المرسِل فورًا لما يُنقر
-       الإشعار، من غير ما يستنى قائمة الأصدقاء تتحمّل. */
+    /* data-only: زيّ المكالمة والحفلة — onMessageReceived يشتغل والتطبيق مقفول
+       فتبلّغ خدمة FCM /api/delivered فورًا وتظهر ✓✓ عند المُرسِل زيّ واتساب.
+       الخدمة تبني إشعار الرسالة بنفسها من title/body/tag المطويّة جوّه data. */
+    dataOnly: true,
     data: {
-      kind: 'chat', from_id: String(fromId), from_name: name,
+      kind: 'chat', from_id: String(fromId), from_name: name, tag: 'chat-' + fromId,
       deliver_token: deliverToken, api_base: _publicBase(),
     },
   });
