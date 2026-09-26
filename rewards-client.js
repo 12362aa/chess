@@ -48,6 +48,9 @@
       var ov = document.getElementById('rewards-ov'); if (ov) ov.classList.remove('open');
       this._open = false;
       try { if (window.AppBar && AppBar.setOverlay) AppBar.setOverlay(false); } catch (e) {}
+      /* لازم نسيب تجميد السكرول اللي مسكناه في open()، وإلا فضل
+         body.overflow=hidden للأبد فتجمّدت الشاشة الرئيسية (بلاغ جوجو). */
+      try { if (window.amkhReleaseModalFreeze) window.amkhReleaseModalFreeze(); } catch (e) {}
     },
 
     /* ══ الكتالوج (يُجلَب مرّةً) ══ */

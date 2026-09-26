@@ -1210,10 +1210,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 56;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b56/chess-amkh-4.2-b56.apk';
-const NOTES_AR = 'شاشةُ «الجوائز» الجديدةُ: مهامٌّ يوميّةٌ وأسبوعيّةٌ تُكسِبُك عملاتٍ وخبرةً، وإنجازاتٌ تُفتَحُ مع تقدّمِك، ومخزونٌ يعرضُ كلَّ ما تملكُ مع تجهيزٍ وإلغاءٍ بلمسة. وأخيرًا: احتفالاتُ الفوزِ ومؤثّراتُ الماتِ التي تشتريها صارت تنطلقُ مِلءَ الشاشةِ فعلًا عندَ فوزِك (قصاصاتٌ، ألعابٌ ناريّةٌ، نجومٌ، شُهُبٌ، برقٌ والمزيد). وإشعارٌ يُذكّرُك بتجدُّدِ المتجرِ كلَّ ٤ ساعات. كلُّ تقدّمِك وعملاتِك محفوظةٌ في حسابِك ولن تضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'The new Rewards screen: daily and weekly missions that earn you coins and XP, achievements that unlock as you progress, and an inventory of everything you own with one-tap equip and unequip. And at last: the win celebrations and checkmate effects you buy now actually play full-screen when you win (confetti, fireworks, starfall, meteors, lightning and more). Plus a reminder when the store refreshes every 4 hours. All your progress and coins live on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 57;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b57/chess-amkh-4.2-b57.apk';
+const NOTES_AR = 'تحسيناتٌ على شاشةِ الجوائزِ والاقتصاد: عملةُ Am-Kh صارت قرصًا ذهبيًّا أنيقًا منقوشًا بحروفِ AK مع لمعةٍ حيّة، وشريطُ المستوى صارَ أوضحَ ويفتحُ الجوائزَ ليُريَك كيف ترتقي بالمهام. أُعيدَ تصميمُ الإطاراتِ كلِّها بمؤثّراتٍ حقيقيّةٍ مميّزة: الصقيعُ يُثلجُ فعلًا، واللهبُ يشتعلُ، والمحيطُ يتموّج، والملكيُّ يتلألأ — لا مجرّدَ حلقةٍ تدور. وبطاقةُ الجوائزِ في الرئيسيّةِ صارت شريطًا عريضًا بأيقونةٍ خاصّةٍ يملأُ الفراغَ، ولوحةُ الصدارةِ أنظفُ. كلُّ تقدّمِك محفوظٌ ولن يضيعَ. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'Rewards and economy polish: the Am-Kh coin is now an elegant gold token engraved with AK and a live shine, and the level bar is clearer and opens Rewards so you can see how to level up through missions. Every frame was redesigned with real, distinctive effects: Frost actually snows, Flame burns, Ocean ripples, Royal sparkles — no more just a spinning ring. The home Rewards card is now a wide banner with its own icon that fills the gap, and the leaderboard is cleaner. All your progress is saved and can never be lost. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,

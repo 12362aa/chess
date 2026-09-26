@@ -256,8 +256,8 @@
 .home-econ__coins{
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px 4px 6px;
+  gap: 7px;
+  padding: 4px 12px 4px 5px;
   border-radius: var(--radius-pill);
   border: 1px solid rgba(240,185,60,.45);
   background: linear-gradient(135deg, rgba(255,214,102,.16), rgba(214,158,46,.10));
@@ -268,23 +268,38 @@
 }
 .home-econ__coins:hover{ transform: translateY(-1px); box-shadow: 0 4px 14px rgba(214,158,46,.28); }
 .home-econ__coins:active{ transform: scale(.97); }
-.home-econ__coin-ic{
-  width: 20px; height: 20px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffe9a8, #f5c451 45%, #c8901f 100%);
-  border: 1px solid #b97f18;
-  box-shadow: inset 0 0 0 3px rgba(255,255,255,.18), inset 0 -2px 3px rgba(120,80,10,.35);
-  flex-shrink: 0;
+/* عملة Am-Kh: قرصٌ ذهبيٌّ مرسومٌ بـSVG (نقش AK + لمعةٌ تعبر) — لا مربّعَ أصفر */
+.home-econ__coin-ic.amkh-coin{
+  width: 24px; height: 24px; flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(160,110,20,.5));
+  animation: amkhCoinPulse 3.4s ease-in-out infinite;
 }
+.home-econ__coin-ic.amkh-coin svg{ width: 100%; height: 100%; display: block; }
+@keyframes amkhCoinPulse{ 0%,100%{ transform: rotate(0) scale(1); } 50%{ transform: rotate(-4deg) scale(1.06); } }
 .home-econ__coin-val{
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-bold);
   color: #f2c65a;
   font-variant-numeric: tabular-nums;
 }
-.home-econ__level{ display: inline-flex; align-items: center; gap: 8px; }
+/* المستوى: زرٌّ يفتحُ الجوائزَ (حيثُ المهامُّ) فيَعرفُ اللاعبُ كيف يرتقي */
+.home-econ__level{
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 3px 10px 3px 4px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--easing-standard),
+              border-color var(--duration-fast) var(--easing-standard),
+              background var(--duration-fast) var(--easing-standard);
+}
+.home-econ__level:hover{ border-color: rgba(124,92,255,.55); background: rgba(124,92,255,.08); transform: translateY(-1px); }
+.home-econ__level:active{ transform: scale(.97); }
 .home-econ__lvl-badge{
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 24px; height: 24px; padding: 0 6px;
+  display: inline-flex; align-items: center; gap: 3px;
+  min-width: 30px; height: 24px; padding: 0 8px;
   border-radius: var(--radius-pill);
   background: linear-gradient(135deg, #7c5cff, #a878ff);
   color: #fff;
@@ -293,12 +308,15 @@
   font-variant-numeric: tabular-nums;
   box-shadow: 0 2px 8px rgba(124,92,255,.4);
 }
+.home-econ__lvl-tag{ font-size: 8px; font-weight: 800; letter-spacing: .5px; opacity: .8; }
+.home-econ__xpwrap{ display: inline-flex; flex-direction: column; gap: 3px; }
 .home-econ__xp{
   position: relative;
-  width: 96px; height: 7px;
+  width: 104px; height: 8px;
   border-radius: var(--radius-pill);
   background: var(--color-surface-raised);
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.25);
 }
 .home-econ__xp-fill{
   position: absolute; inset: 0 auto 0 0;
@@ -307,7 +325,19 @@
   border-radius: var(--radius-pill);
   transition: width var(--duration-normal) var(--easing-standard);
 }
+.home-econ__xp-fill::after{
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+  transform: translateX(-100%);
+  animation: amkhXpSheen 2.6s ease-in-out infinite;
+}
+@keyframes amkhXpSheen{ 0%{ transform: translateX(-100%); } 60%,100%{ transform: translateX(220%); } }
 [dir="rtl"] .home-econ__xp-fill{ inset: 0 0 0 auto; }
+.home-econ__xp-cap{
+  font-size: 9px; line-height: 1;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
 
 .home-id{
   display: flex;
@@ -383,7 +413,7 @@
   /* البطل + ثلاثة صفوف بطاقات (٦ بطاقات: محرّك/لاعبان/أونلاين/بلوتوث/ألغاز/متجر).
      كان صفّين فقط فكانت البطاقتان الأخيرتان تفيضان وتتراكبان مع أقسام
      البيانات تحتها — خصوصًا على التابلت (بلاغ جوجو). */
-  grid-template-rows: 1.15fr 1fr 1fr 1fr;
+  grid-template-rows: 1.15fr 1fr 1fr 1fr auto;
   gap: var(--space-3);
   width: 100%;
   /* بتكبر على الفراغ الفاضي لكن مابتصغرش أبدًا: بعد ما نزلت أقسام
@@ -599,6 +629,34 @@
   border: 1px solid var(--color-primary-border);
   white-space: nowrap;
 }
+
+/* بطاقة الجوائز (بلاغ جوجو): شريطٌ عريضٌ يملأ الصفَّ بدلَ الفراغِ الجانبيّ،
+   بأيقونةٍ ثمّ نصٍّ ثمّ سهمٍ — هُويّةٌ مميّزةٌ لا كأسُ الصدارة. */
+.home-tile--rewards{
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 0;
+  padding: var(--space-3) var(--space-4);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 160% at 100% 0%, rgba(124,92,255,.20), transparent 55%),
+    linear-gradient(135deg, rgba(255,214,102,.10), transparent 48%),
+    var(--color-bg-elevated);
+  border-color: var(--color-primary-border);
+}
+.home-tile--rewards .home-tile__icon{
+  width: 44px; height: 44px;
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+.home-tile--rewards .home-tile__title{ margin-top: 0; }
+.home-rw__text{ display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.home-rw__chev{ width: 20px; height: 20px; color: var(--color-text-disabled); flex-shrink: 0; }
+[dir="rtl"] .home-rw__chev{ transform: scaleX(-1); }
 
 .home-foot{
   margin-top: auto;
@@ -3921,6 +3979,9 @@ body[data-ui-theme="glass"] .home-tile::before{
 /* المتجر: حقيبة تسوّق — معناها واضح فورًا، بلا إيموجي. مُعرَّفة في :root
    وباقي الثيمات ترثها. */
 .ico--store    { --ico: var(--icon-store); }
+/* الجوائز: علبة هديّة بشريطة — مميّزة تمامًا عن كأس الصدارة (بلاغ جوجو:
+   كانت بتاخد نفس أيقونة لوحة الصدارة). مُعرَّفة في :root وباقي الثيمات ترثها. */
+.ico--rewards  { --ico: var(--icon-rewards); }
 
 /* ── 16.1 الطقم الافتراضي (amkh) — هندسة إسلامية ─────────────────────
    نفس معاني الأيقونات القديمة بلغة الثيم: الدوائر بقت مثمّنات، والقلب
@@ -3949,6 +4010,7 @@ body[data-ui-theme="glass"] .home-tile::before{
   --icon-puzzle:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M9 3.4 a1.9 1.9 0 0 1 6 0 h3 a1.4 1.4 0 0 1 1.4 1.4 V8 a1.9 1.9 0 0 1 0 6 v3.2 a1.4 1.4 0 0 1-1.4 1.4 H15 a1.9 1.9 0 0 0-6 0 H5.8 a1.4 1.4 0 0 1-1.4-1.4 V14 a1.9 1.9 0 0 1 0-6 V4.8 A1.4 1.4 0 0 1 5.8 3.4 Z'/></svg>");
   /* المتجر — حقيبة تسوّق بمقبضين وحزٍّ يلمّح إلى محتواها */
   --icon-store:     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round'><path d='M5.4 7.6 H18.6 L17.6 20.2 A1.4 1.4 0 0 1 16.2 21.4 H7.8 A1.4 1.4 0 0 1 6.4 20.2 Z'/><path d='M8.8 7.6 V6 A3.2 3.2 0 0 1 15.2 6 V7.6'/><path d='M8.8 11 A3.2 3.2 0 0 0 15.2 11'/></svg>");
+  --icon-rewards:   url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'><rect x='4.2' y='9' width='15.6' height='11' rx='1.4'/><rect x='3.2' y='5.6' width='17.6' height='3.4' rx='1'/><path d='M12 5.6 V20'/><path d='M12 5.6 C10.6 2.6 6.2 3 8.2 5.6'/><path d='M12 5.6 C13.4 2.6 17.8 3 15.8 5.6'/></svg>");
 }
 
 /* ══════════════════════════════════════════════════════════════════════

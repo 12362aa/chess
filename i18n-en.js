@@ -466,6 +466,13 @@
     /* متجر Am-Kh الديناميكيّ (المرحلة ٢) — نصوصُ الواجهة (أسماءُ العناصرِ نفسُها تأتي من الخادمِ باللغتين) */
     'AM-KH · المتجر': 'AM-KH · STORE',
     'إطاراتٌ وشاراتٌ ومؤثّرات': 'Frames, badges & effects',
+    /* بطاقة الجوائز في الرئيسية (المرحلة ٤) — نصوص الواجهة داخل الشاشة نفسها
+       تأتي عبر L(ar,en) من rewards-client.js، لكن نصّ البطاقة في الـHTML ثابت
+       فلازم يترجم هنا وإلّا سُرِّب بالعربية في الإنجليزيّة (بلاغ جوجو). */
+    'الجوائز': 'Rewards',
+    'مهامٌّ وإنجازاتٌ ومخزون': 'Missions, achievements & vault',
+    'مهامّ وإنجازات ومخزون': 'Missions, achievements & vault',
+    'أكمِلِ المهامَّ لترتقي': 'Complete missions to level up',
     'خزائنُ Am-Kh': 'Am-Kh Vaults',
     'عناصرُ تزيينٍ نادرةٌ تدورُ كلَّ أربعِ ساعات — اقتنِها بعملاتِك.': 'Rare cosmetics that rotate every four hours — claim them with your coins.',
     'التبديلُ بعد': 'Rotates in',

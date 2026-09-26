@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20260924-b50"></script>
+<script src="i18n-en.js?v=20260926-b57"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260926-b56">
+<link rel="stylesheet" href="screens.css?v=20260926-b57">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3167,15 +3167,37 @@ html.amkh-preboot #amkh-preboot{
     <!-- شريط الاقتصاد: عملات Am-Kh + مستوى/XP. يُملأ من economy-client.js
          (مرآة قراءة فقط من الخادم). مخفيّ افتراضيًا حتى تصل أول لقطة. -->
     <div class="home-econ" id="home-econ" hidden>
-      <button class="home-econ__coins" type="button" id="home-econ-coins"
+      <button class="home-econ__coins" type="button" id="home-econ-coins" aria-label="عملات Am-Kh"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); if(typeof Nav!=='undefined'&&Nav.store)Nav.store();">
-        <span class="home-econ__coin-ic" aria-hidden="true"></span>
+        <span class="home-econ__coin-ic amkh-coin" aria-hidden="true">
+          <svg viewBox="0 0 40 40">
+            <defs>
+              <radialGradient id="amkhCoinG" cx="38%" cy="30%" r="75%">
+                <stop offset="0" stop-color="#fff6cf"/><stop offset=".48" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/>
+              </radialGradient>
+              <clipPath id="amkhCoinClip"><circle cx="20" cy="20" r="17"/></clipPath>
+            </defs>
+            <circle cx="20" cy="20" r="18.5" fill="#7f5307"/>
+            <circle cx="20" cy="20" r="17" fill="url(#amkhCoinG)"/>
+            <circle cx="20" cy="20" r="14" fill="none" stroke="#fff2c0" stroke-width="1" opacity=".55"/>
+            <text x="20" y="20.5" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="13" letter-spacing="-.6" fill="#7a4e08">AK</text>
+            <g clip-path="url(#amkhCoinClip)">
+              <rect x="-16" y="-8" width="8" height="56" fill="#fffdf2" opacity=".5" transform="rotate(20 20 20)">
+                <animate attributeName="x" values="-16;46" dur="2.8s" repeatCount="indefinite"/>
+              </rect>
+            </g>
+          </svg>
+        </span>
         <span class="home-econ__coin-val" id="home-econ-coin-val">0</span>
       </button>
-      <div class="home-econ__level">
-        <span class="home-econ__lvl-badge" id="home-econ-lvl">1</span>
-        <span class="home-econ__xp"><span class="home-econ__xp-fill" id="home-econ-xp-fill"></span></span>
-      </div>
+      <button class="home-econ__level" type="button" id="home-econ-level" aria-label="المستوى والتقدّم"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.REWARDS)REWARDS.open();">
+        <span class="home-econ__lvl-badge"><span class="home-econ__lvl-tag">LV</span><span id="home-econ-lvl">1</span></span>
+        <span class="home-econ__xpwrap">
+          <span class="home-econ__xp"><span class="home-econ__xp-fill" id="home-econ-xp-fill"></span></span>
+          <span class="home-econ__xp-cap">أكمِلِ المهامَّ لترتقي</span>
+        </span>
+      </button>
     </div>
 
     <div class="home-grid">
@@ -3256,14 +3278,18 @@ html.amkh-preboot #amkh-preboot{
         <span class="home-tile__desc">إطاراتٌ وشاراتٌ ومؤثّرات</span>
       </button>
 
-      <!-- الجوائز والتقدّم (المرحلة ٤): مهامّ + إنجازات + مخزون -->
+      <!-- الجوائز والتقدّم (المرحلة ٤): بطاقةٌ عريضةٌ مميّزةٌ تملأ الصفّ (كانت
+           تترك فراغًا جانبها) بأيقونةِ هديّةٍ خاصّةٍ لا كأسِ الصدارة — بلاغ جوجو. -->
       <button class="home-tile home-tile--rewards" type="button" data-mode="rewards"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.REWARDS)REWARDS.open();">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--trophy" aria-hidden="true"></i>
+          <i class="ico ico--rewards" aria-hidden="true"></i>
         </span>
-        <span class="home-tile__title">الجوائز</span>
-        <span class="home-tile__desc">مهامٌّ وإنجازاتٌ ومخزون</span>
+        <span class="home-rw__text">
+          <span class="home-tile__title">الجوائز</span>
+          <span class="home-tile__desc">مهامٌّ وإنجازاتٌ ومخزون</span>
+        </span>
+        <i class="ico ico--chev home-rw__chev" aria-hidden="true"></i>
       </button>
     </div>
 
@@ -7775,7 +7801,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 56;
+const APP_VERSION_CODE = 57;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -8188,7 +8214,7 @@ const Leaderboard = {
         return `
         <button type="button" class="lb-pod lb-pod--${p.rank}${me}" data-uid="${this._esc(p.id)}">
           ${p.rank===1?`<span class="lb-pod__crown" aria-hidden="true">${CROWN}</span>`:''}
-          <div class="lb-pod__av${this._coshost(p)}"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}${this._cos(p)}<span class="lb-pod__medal">${p.rank}</span></div>
+          <div class="lb-pod__av${this._coshost(p)}"${this._avStyle(p.avatar_url)}>${p.avatar_url?'':this._initial(p.name)}${this._cos(p)}</div>
           <div class="lb-pod__name">${this._flag(p.country)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(p.name)}</span>${this._bdg(p)}</div>
           <div class="lb-pod__rating">${big(p)}${unit?`<i class="lb-pod__u">${unit}</i>`:''}</div>
           <div class="lb-pod__wr">${sort==='puzzles'?(p.solved!=null?p.solved+' محلول':''):(p.win_rate!=null?p.win_rate+'% فوز':'')}</div>
@@ -16352,13 +16378,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260926-b56"></script>
+  <script src="economy-client.js?v=20260926-b57"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260926-b55"></script>
+  <script src="store-client.js?v=20260926-b57"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20260926-b56"></script>
+  <script src="rewards-client.js?v=20260926-b57"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

@@ -156,11 +156,61 @@
     frame_phoenix: ['#ff8a3a', '#ff1e00', '#ffd27a'],
     frame_sakura:  ['#ffc2dd', '#ff5fa2', '#ffe6f0'],
   };
-  // إطارات ذات نبض توهّج بدل الدوران (تنوّع بصريّ)
-  var FRAME_GLOW = { frame_aurora: 1, frame_flame: 1 };
+  // (لم يعد فيه إطارٌ يعتمد على النبض العام — كلٌّ له رسمُه الخاصّ أدناه)
+  var FRAME_GLOW = {};
 
-  // رُسومٌ خاصّةٌ مميّزةٌ لكلّ إطارٍ متقدّم (مطابقةٌ لفنّ المتجر) — viewBox 0 0 100 100
+  // رُسومٌ خاصّةٌ مميّزةٌ لكلّ إطارٍ (مطابقةٌ/متفوّقةٌ على فنّ المتجر) — viewBox 0 0 100 100
+  // الإطارُ طوقٌ حولَ الأفاتار (بلا رسمِ وجهٍ)، فالحلقةُ الرئيسيّةُ عندَ r≈45.
   var FRAME_SPECIAL = {
+    // الذهب: طوقٌ ذهبيٌّ + قوسُ لمعانٍ دوّارٌ سريع
+    frame_gold: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#fff8dc" stroke-width="6" stroke-linecap="round" stroke-dasharray="26 320"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.8s" repeatCount="indefinite"/></circle>';
+    },
+    // النيون: هالةٌ متوهّجةٌ متبدّلةُ اللونِ + شرائطُ متقطّعةٌ منسابة
+    frame_neon: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="9" opacity="0.32"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[0] + '" dur="2.6s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="3" stroke-dasharray="8 10" stroke-linecap="round"><animate attributeName="stroke-dashoffset" from="0" to="36" dur="1.1s" repeatCount="indefinite"/><animate attributeName="stroke" values="' + t[2] + ';' + t[1] + ';' + t[2] + '" dur="2.6s" repeatCount="indefinite"/></circle>';
+    },
+    // اللهب: طوقٌ ناريٌّ + ألسنةُ لهبٍ ترفرفُ حولَ الحافّة
+    frame_flame: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<g fill="' + t[2] + '">'
+        + '<path d="M50 2 l4 10 -4 4 -4 -4z"><animate attributeName="opacity" values="0.4;1;0.4" dur="0.8s" repeatCount="indefinite"/></path>'
+        + '<path d="M84 26 l3 9 -5 1 -1 -5z"><animate attributeName="opacity" values="1;0.4;1" dur="0.7s" repeatCount="indefinite"/></path>'
+        + '<path d="M16 26 l4 6 -3 4 -4 -4z"><animate attributeName="opacity" values="0.5;1;0.5" dur="0.9s" repeatCount="indefinite"/></path>'
+        + '<path d="M88 60 l2 7 -4 1 -1 -4z"><animate attributeName="opacity" values="1;0.5;1" dur="0.75s" repeatCount="indefinite"/></path>'
+        + '<path d="M12 60 l3 6 -3 3 -3 -3z"><animate attributeName="opacity" values="0.5;1;0.5" dur="0.85s" repeatCount="indefinite"/></path>'
+        + '</g>';
+    },
+    // الصقيع: طوقٌ بلّوريٌّ + بلّوراتٌ + ثلجٌ متساقطٌ حيٌّ (طلب جوجو الأهمّ)
+    frame_frost: function (t, g) {
+      var flake = function (x, r, dur) {
+        return '<circle cx="' + x + '" cy="6" r="' + r + '"><animate attributeName="cy" values="4;96" dur="' + dur + 's" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.8;1" dur="' + dur + 's" repeatCount="indefinite"/></circle>';
+      };
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<g stroke="' + t[2] + '" stroke-width="2" stroke-linecap="round" opacity="0.95" fill="none"><path d="M50 12 v9 M45 16 h10 M50 12 l-4 4 M50 12 l4 4"/></g>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-dasharray="5 320" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.4s" repeatCount="indefinite"/></circle>'
+        + '<g fill="#ffffff">' + flake(38, 2, 3.2) + flake(58, 1.6, 3.9) + flake(50, 1.4, 2.9) + flake(30, 1.5, 3.5) + flake(66, 1.7, 4.2) + '</g>';
+    },
+    // الملكيّ: طوقٌ ذهبيٌّ + جواهرُ بنفسجيّةٌ عندَ الجهاتِ الأربعِ تتلألأ
+    frame_royal: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6.5"/>'
+        + '<g fill="' + t[1] + '"><circle cx="50" cy="6" r="4.2"/><circle cx="94" cy="50" r="4.2"/><circle cx="50" cy="94" r="4.2"/><circle cx="6" cy="50" r="4.2"/></g>'
+        + '<g fill="#ffffff"><circle cx="50" cy="6" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="94" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.4s" repeatCount="indefinite"/></circle><circle cx="50" cy="94" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="6" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="1.2s" repeatCount="indefinite"/></circle></g>';
+    },
+    // المحيط: طوقٌ + تيّارٌ متقطّعٌ منسابٌ + موجةٌ تتمدّدُ للخارج
+    frame_ocean: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="2.4" stroke-dasharray="6 9"><animate attributeName="stroke-dashoffset" from="30" to="0" dur="2s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="34" fill="none" stroke="' + t[2] + '" stroke-width="1.6"><animate attributeName="r" values="34;47;34" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;0;0.55" dur="2.4s" repeatCount="indefinite"/></circle>';
+    },
+    // الشفق: طوقٌ متبدّلُ الألوانِ (شفقيّ) + قوسُ لمعانٍ دوّار
+    frame_aurora: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="6" opacity="0.6"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[2] + ';' + t[0] + '" dur="4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-dasharray="12 320" stroke-linecap="round" opacity="0.85"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/></circle>';
+    },
     // العنقاء: حلقةٌ + جناحان ناريّان جانبيّان + جمراتٌ صاعدة
     frame_phoenix: function (t, g) {
       return '<circle cx="50" cy="50" r="42" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
