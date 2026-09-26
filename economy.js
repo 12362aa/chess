@@ -38,16 +38,42 @@ function levelForXp(xp) {
   return L;
 }
 
-/* ══ تعريفات الإنجازات (بذرة المرحلة ١) ══
-   retro=true تُحسَب بأثر رجعي من سجلّ الخادم عند أول دخول بعد التحديث. */
+/* ══ تعريفات الإنجازات (بذرة المرحلة ١، إثراء المرحلة ٤) ══
+   retro=true تُحسَب بأثر رجعي من سجلّ الخادم عند أول دخول بعد التحديث.
+   ar/en/desc ثنائيّة اللغة تُرسَل للعميل عبر /catalog (لا تسريب i18n).
+   icon: مُعرّفٌ يرسمه العميل SVG. */
 const ACHIEVEMENTS = [
-  { id: 'first_win',  coins: 30,  xp: 50,  retro: true,  test: s => s.wins >= 1 },
-  { id: 'wins_10',    coins: 80,  xp: 120, retro: true,  test: s => s.wins >= 10 },
-  { id: 'games_100',  coins: 150, xp: 200, retro: true,  test: s => s.games >= 100 },
-  { id: 'rating_1600',coins: 120, xp: 160, retro: true,  test: s => s.rating >= 1600 },
-  { id: 'puzzle_50',  coins: 90,  xp: 120, retro: true,  test: s => s.puzzles >= 50 },
-  { id: 'beat_nour',  coins: 60,  xp: 80,  retro: false, test: () => false }, // يُمنح بحدث من العميل لاحقًا
+  { id: 'first_win',   coins: 30,  xp: 50,  retro: true,  icon: 'medal',   test: s => s.wins >= 1,
+    ar: 'أوّلُ انتصار',        en: 'First Win',        descAr: 'افُزْ بأوّلِ مباراةٍ لك.',            descEn: 'Win your first game.' },
+  { id: 'wins_10',     coins: 80,  xp: 120, retro: true,  icon: 'medal',   test: s => s.wins >= 10,
+    ar: 'عشرةُ انتصارات',      en: '10 Wins',          descAr: 'افُزْ بعشرِ مباريات.',               descEn: 'Win 10 games.' },
+  { id: 'games_100',   coins: 150, xp: 200, retro: true,  icon: 'board',   test: s => s.games >= 100,
+    ar: 'مئةُ مباراة',         en: '100 Games',        descAr: 'العَبْ مئةَ مباراة.',                descEn: 'Play 100 games.' },
+  { id: 'rating_1600', coins: 120, xp: 160, retro: true,  icon: 'crown',   test: s => s.rating >= 1600,
+    ar: 'تقييمُ ١٦٠٠',         en: 'Rating 1600',      descAr: 'ابلغْ تقييمَ ١٦٠٠ أونلاين.',         descEn: 'Reach a 1600 online rating.' },
+  { id: 'puzzle_50',   coins: 90,  xp: 120, retro: true,  icon: 'bulb',    test: s => s.puzzles >= 50,
+    ar: 'خمسونَ لغزًا',        en: '50 Puzzles',       descAr: 'حُلَّ خمسينَ لغزًا.',                descEn: 'Solve 50 puzzles.' },
+  { id: 'beat_nour',   coins: 60,  xp: 80,  retro: false, icon: 'star',    test: () => false,
+    ar: 'هزيمةُ نور',          en: 'Beat Nour',        descAr: 'اهزِمْ نورَ في وضعِ اللعبِ ضدّه.',   descEn: 'Beat Nour in a match against him.' },
 ];
+
+/* ══ المهام اليومية/الأسبوعية (المرحلة ٤) ══
+   كلٌّ لها metric تُزاد خادميًّا عبر bumpMissions من أحداثٍ موثّقة
+   (نهاية مباراة/حلّ لغز)، وtarget، ومكافأة عملات+XP. period_key يعزل
+   دورة اليوم/الأسبوع فلا تُطالَب مكافأةٌ مرّتين. ثنائيّة اللغة تُرسَل
+   للعميل عبر /catalog. metric: games | wins | puzzles. */
+const MISSIONS = [
+  // يوميّة (تتصفّر كلَّ يوم)
+  { id: 'd_play3',  period: 'daily',  metric: 'games',   target: 3,  coins: 30,  xp: 40,  ar: 'العَبْ ٣ مباريات',   en: 'Play 3 games',    descAr: 'العَبْ ثلاثَ مبارياتٍ اليوم.',       descEn: 'Play 3 games today.' },
+  { id: 'd_win1',   period: 'daily',  metric: 'wins',    target: 1,  coins: 40,  xp: 50,  ar: 'افُزْ بمباراة',       en: 'Win a game',      descAr: 'افُزْ بمباراةٍ واحدةٍ اليوم.',        descEn: 'Win 1 game today.' },
+  { id: 'd_pz5',    period: 'daily',  metric: 'puzzles', target: 5,  coins: 35,  xp: 45,  ar: 'حُلَّ ٥ ألغاز',        en: 'Solve 5 puzzles', descAr: 'حُلَّ خمسةَ ألغازٍ اليوم.',           descEn: 'Solve 5 puzzles today.' },
+  // أسبوعيّة (تتصفّر كلَّ أسبوع)
+  { id: 'w_play20', period: 'weekly', metric: 'games',   target: 20, coins: 150, xp: 200, ar: 'العَبْ ٢٠ مباراة',   en: 'Play 20 games',   descAr: 'العَبْ عشرينَ مباراةً هذا الأسبوع.', descEn: 'Play 20 games this week.' },
+  { id: 'w_win10',  period: 'weekly', metric: 'wins',    target: 10, coins: 220, xp: 280, ar: 'افُزْ بـ١٠ مباريات', en: 'Win 10 games',    descAr: 'افُزْ بعشرِ مبارياتٍ هذا الأسبوع.',  descEn: 'Win 10 games this week.' },
+  { id: 'w_pz30',   period: 'weekly', metric: 'puzzles', target: 30, coins: 200, xp: 250, ar: 'حُلَّ ٣٠ لغزًا',       en: 'Solve 30 puzzles',descAr: 'حُلَّ ثلاثينَ لغزًا هذا الأسبوع.',    descEn: 'Solve 30 puzzles this week.' },
+];
+const MISSION_BY_ID = Object.create(null);
+for (const m of MISSIONS) MISSION_BY_ID[m.id] = m;
 
 /* ══════════════════════════════════════════════════════════════════
    المتجر (المرحلة ٢): كتالوج تجميليّ بحت + دوران حتميّ كل ٤ ساعات.
@@ -226,7 +252,12 @@ function awardGame(userId, outcome, roomRef) {
   const a = AWARD[key];
   if (!a) return;
   // ref فريد لكل (مستخدم، غرفة، نتيجة) يمنع منح نفس المباراة مرّتين
-  grant(userId, a.coins, a.xp, key, roomRef ? `game:${roomRef}` : null);
+  const fresh = grant(userId, a.coins, a.xp, key, roomRef ? `game:${roomRef}` : null);
+  // تقدّم المهام: مرّةً واحدةً لكلِّ مباراة (مموّنٌ بنفس شرط عدم التكرار)
+  if (fresh !== false) {
+    bumpMissions(userId, 'games', 1);
+    if (outcome === 'win') bumpMissions(userId, 'wins', 1);
+  }
   try { evaluateAchievements(userId); } catch (e) {}
 }
 
@@ -282,6 +313,7 @@ function snapshot(userId) {
     maxLevel: MAX_LEVEL,
     owned: qOwned.all(userId).map(r => r.item_id),
     achievements: qAch.all(userId).map(r => r.ach_id),
+    missions: missionsSnapshot(userId),
     equipped: {
       frame: eq.equipped_frame || null,
       background: eq.equipped_background || null,
@@ -340,10 +372,126 @@ const qPuzzleToday = db.prepare(
   "SELECT COUNT(*) AS n FROM coin_ledger WHERE user_id = ? AND reason = 'puzzle' AND date(created_at) = date('now')"
 );
 
+/* ══ المهام: مفاتيح الدورة + التقدّم + المطالبة (المرحلة ٤) ══
+   period_key يعزل كلَّ يومٍ/أسبوعٍ عن غيره فلا تُطالَب مكافأةٌ مرّتين. */
+function _dayKey(d) {
+  return d.getUTCFullYear() + '-' +
+    String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getUTCDate()).padStart(2, '0');
+}
+function _weekKey(d) {
+  // مفتاح أسبوع ISO-8601 (الأسبوع يبدأ الاثنين، الأسبوع ١ يحوي أوّل خميس).
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = (t.getUTCDay() + 6) % 7;            // الاثنين=0 … الأحد=6
+  t.setUTCDate(t.getUTCDate() - day + 3);          // خميس هذا الأسبوع
+  const firstThu = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+  const wk = 1 + Math.round(((t - firstThu) / 86400000 - 3 + ((firstThu.getUTCDay() + 6) % 7)) / 7);
+  return t.getUTCFullYear() + '-W' + String(wk).padStart(2, '0');
+}
+function periodKey(period, now) {
+  const d = (now == null) ? new Date() : new Date(now);
+  return period === 'weekly' ? _weekKey(d) : _dayKey(d);
+}
+
+const qMissionRow = db.prepare('SELECT progress, target, claimed FROM missions WHERE user_id = ? AND mission_id = ? AND period_key = ?');
+const insMissionRow = db.prepare('INSERT OR IGNORE INTO missions (user_id, mission_id, period, period_key, progress, target, claimed) VALUES (?,?,?,?,?,?,0)');
+const updMissionProg = db.prepare("UPDATE missions SET progress = MIN(target, progress + ?), updated_at = datetime('now') WHERE user_id = ? AND mission_id = ? AND period_key = ?");
+const setMissionClaimed = db.prepare("UPDATE missions SET claimed = 1, updated_at = datetime('now') WHERE user_id = ? AND mission_id = ? AND period_key = ?");
+
+/* رفعُ تقدّم كلِّ مهمّةٍ تتبع هذا الـmetric بمقدار amount (مقصوصٌ عند
+   الهدف). يُستدعى من أحداثٍ موثّقة فقط (نهاية مباراة/حلّ لغز). */
+function bumpMissions(userId, metric, amount) {
+  userId = Number(userId);
+  amount = Math.max(1, Math.round(Number(amount) || 1));
+  if (!userId) return;
+  try {
+    const tx = db.transaction(() => {
+      for (const m of MISSIONS) {
+        if (m.metric !== metric) continue;
+        const pk = periodKey(m.period);
+        insMissionRow.run(userId, m.id, m.period, pk, 0, m.target);
+        updMissionProg.run(amount, userId, m.id, pk);
+      }
+    });
+    tx();
+  } catch (e) { console.error('[economy] bumpMissions', e.message); }
+}
+
+/* لقطةُ مهام الدورة الحاليّة (يوميّة + أسبوعيّة) مع التقدّم والمطالبة. */
+function missionsSnapshot(userId) {
+  userId = Number(userId);
+  return MISSIONS.map(m => {
+    const pk = periodKey(m.period);
+    const row = qMissionRow.get(userId, m.id, pk) || { progress: 0, target: m.target, claimed: 0 };
+    return {
+      id: m.id, period: m.period, target: m.target,
+      progress: Math.min(m.target, Number(row.progress) || 0),
+      claimed: !!row.claimed,
+      done: (Number(row.progress) || 0) >= m.target,
+      coins: m.coins, xp: m.xp,
+    };
+  });
+}
+
+/* مطالبةُ مكافأة مهمّةٍ مكتملة (مرّة واحدة لكلِّ دورة). */
+function claimMission(userId, missionId) {
+  userId = Number(userId);
+  const m = MISSION_BY_ID[missionId];
+  if (!userId || !m) return { ok: false, reason: 'bad_mission' };
+  const pk = periodKey(m.period);
+  const tx = db.transaction(() => {
+    insMissionRow.run(userId, m.id, m.period, pk, 0, m.target);
+    const row = qMissionRow.get(userId, m.id, pk);
+    if (!row || (Number(row.progress) || 0) < m.target) return { ok: false, reason: 'incomplete' };
+    if (row.claimed) return { ok: false, reason: 'claimed' };
+    setMissionClaimed.run(userId, m.id, pk);
+    grant(userId, m.coins, m.xp, 'mission:' + m.id, 'mission:' + m.id + ':' + pk);
+    return { ok: true, reason: 'ok' };
+  });
+  try { return tx(); } catch (e) { console.error('[economy] claimMission', e.message); return { ok: false, reason: 'error' }; }
+}
+
+/* كتالوج ثابت ثنائيّ اللغة للعميل (إنجازات + مهامّ) — يُجلَب مرّةً. */
+function catalog() {
+  return {
+    achievements: ACHIEVEMENTS.map(a => ({
+      id: a.id, coins: a.coins, xp: a.xp, icon: a.icon || 'medal',
+      ar: a.ar, en: a.en, descAr: a.descAr, descEn: a.descEn,
+    })),
+    missions: MISSIONS.map(m => ({
+      id: m.id, period: m.period, metric: m.metric, target: m.target,
+      coins: m.coins, xp: m.xp, ar: m.ar, en: m.en, descAr: m.descAr, descEn: m.descEn,
+    })),
+    items: STORE_CATALOG.map(it => ({
+      id: it.id, type: it.type, rarity: it.rarity, price: it.price, ar: it.ar, en: it.en,
+    })),
+  };
+}
+
 /* ══ المسارات ══ */
 router.get('/me', authenticateToken, (req, res) => {
   try { res.json(snapshot(req.user.id)); }
   catch (e) { console.error('[economy] /me', e.message); res.status(500).json({ error: 'economy_error' }); }
+});
+
+/* كتالوج ثابت (إنجازات + مهامّ) ثنائيّ اللغة — يُجلَب مرّةً ويُخزَّن عميليًّا. */
+router.get('/catalog', authenticateToken, (req, res) => {
+  try { res.json(catalog()); }
+  catch (e) { console.error('[economy] /catalog', e.message); res.status(500).json({ error: 'economy_error' }); }
+});
+
+/* مطالبةُ مكافأة مهمّةٍ مكتملة. */
+router.post('/claim-mission', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  const missionId = (req.body && req.body.missionId != null) ? String(req.body.missionId).slice(0, 40) : '';
+  try {
+    ensureWallet(userId);
+    const r = claimMission(userId, missionId);
+    res.json({ ...r, ...snapshot(userId) });
+  } catch (e) {
+    console.error('[economy] /claim-mission', e.message);
+    res.status(500).json({ error: 'economy_error' });
+  }
 });
 
 /* حلّ لغز: كسب موثّق مع سقف يومي ومنع تكرار نفس اللغز في نفس اليوم.
@@ -359,6 +507,7 @@ router.post('/puzzle-solved', authenticateToken, (req, res) => {
     const day = new Date().toISOString().slice(0, 10);
     const ref = pid ? `pz:${pid}:${day}` : `pz:anon:${day}:${today}`;
     const ok = grant(userId, AWARD.puzzle.coins, AWARD.puzzle.xp, 'puzzle', ref);
+    if (ok) bumpMissions(userId, 'puzzles', 1);
     try { evaluateAchievements(userId); } catch (e) {}
     return res.json({ awarded: ok, reason: ok ? 'ok' : 'dup', ...snapshot(userId) });
   } catch (e) {
@@ -430,8 +579,14 @@ module.exports = {
   storeCurrent,
   storeItemsForEpoch,
   storeEpoch,
+  bumpMissions,
+  missionsSnapshot,
+  claimMission,
+  periodKey,
+  catalog,
   AWARD,
   ACHIEVEMENTS,
+  MISSIONS,
   STORE_CATALOG,
   STORE_PERIOD_MS,
 };

@@ -425,5 +425,12 @@
   };
 
   window.STORE = STORE;
+  /* كشفُ أدواتِ الرسمِ والوصفِ لوحدةِ الجوائز (المخزون) كي تعرضَ العناصرَ
+     بنفسِ الشكلِ تمامًا دونَ ازدواجِ الكود. */
+  STORE.art = art;
+  STORE.TYPE = TYPE;
+  STORE.RARITY = RARITY;
+  STORE.rarityColor = function (r) { return STORE._rc(r); };
+  STORE.L = L;
   try { window.addEventListener('amkh:lang', function () { if (STORE._open && STORE._cur) STORE._render(STORE._cur); }); } catch (e) {}
 })();

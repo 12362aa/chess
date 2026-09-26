@@ -38,6 +38,7 @@ const requiredFiles = new Set([
      مذكور هنا يخرج من الـAPK كـ<script> 404 بلا أي خطأ في البناء. */
   'economy-client.js',
   'store-client.js',
+  'rewards-client.js',
   'store_open.mp3',
   'store_buy.mp3',
   /* محرّكان متضمّنان: النسخة الكاملة بشبكة NNUE الكبيرة (single = بلا

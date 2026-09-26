@@ -300,6 +300,10 @@ const NOTIF = {
 
 /* حالة الإرسال لكل حساب (والمجتمع تحت مفتاح 'community') لليوم الحالي */
 const _notif = new Map(); // key -> { day, fired:Set<slotIndex>, lastMs }
+/* دورانُ المتجرِ كلَّ ٤ ساعات: نُذكّرُ الجميعَ مرّةً واحدةً عندَ كلِّ نافذةٍ
+   جديدةٍ (بلا إسپام). null = أوّلُ إقلاعٍ، نُزامِنُ بلا إرسالٍ ثمّ نُشعِرُ فقط
+   حينَ يتقدّمُ الـepoch. يُحترَمُ سياجُ ساعاتِ الهدوءِ (نفسُ _notifTick). */
+let _storeEpochNotified = null;
 
 function _firstName(s) {
   const t = String(s || '').trim();
@@ -764,6 +768,28 @@ async function _notifTick() {
   try { all = safeReadTokens(); } catch (e) { return; }
   if (!all || !all.length) return;
 
+  // ── دورانُ المتجرِ كلَّ ٤ ساعات: بثٌّ للجميعِ مرّةً لكلِّ نافذةٍ جديدة ──
+  try {
+    const curEpoch = economy.storeEpoch(nowMs);
+    if (_storeEpochNotified === null) {
+      _storeEpochNotified = curEpoch;                 // أوّلُ إقلاعٍ: زامِنْ بلا إرسال
+    } else if (curEpoch > _storeEpochNotified) {
+      _storeEpochNotified = curEpoch;
+      const allToks = all.map(t => t && t.token).filter(Boolean);
+      if (allToks.length) {
+        sendPushToTokens(allToks, {
+          title: { ar: 'المتجرُ تغيّر', en: 'The store refreshed' },
+          body: {
+            ar: 'عناصرُ جديدةٌ وصلتِ المتجرَ الآن — اكتشفْها قبلَ أن يدورَ بعدَ ٤ ساعات.',
+            en: 'Fresh items just landed in the store — grab them before the next 4-hour rotation.',
+          },
+          data: { kind: 'store-rotation' },
+          tag: 'amkh-store',
+        }).catch(() => {});
+      }
+    }
+  } catch (e) {}
+
   // جمّع التوكِنات حسب المستخدم؛ اللي من غير حساب = مجتمع
   const byUser = new Map();
   const anon = [];
@@ -1184,10 +1210,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 55;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b55/chess-amkh-4.2-b55.apk';
-const NOTES_AR = 'متجرٌ جديدٌ بالكامل: شاشةٌ أسطوريّةٌ بمُرشِّحاتٍ حسب النوع، واضغطْ أيَّ عنصرٍ لترى معاينتَه الكبيرةَ وتفاصيلَه — ماذا يفعل وأينَ يظهر. كلُّ إطارٍ وشارةٍ وخلفيّةٍ صار له تصميمٌ مرسومٌ مميّزٌ فريد (لا شكلَ متكرّرٌ بعدَ اليوم): العنقاءُ بجناحَينِ ناريَّينِ، والكرزُ بإكليلِ بتلاتٍ دوّار، والمجرّةُ بكواكبَ تدور، والزمرّدُ مثمَّنٌ متلألئ، والظلُّ بخصلاتٍ نابضة — وتظهرُ كلُّها كذلك حولَ صورتِك للجميع في كلِّ مكان. كلُّ ما تملكه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'A brand-new store: a legendary screen with type filters — tap any item for a big preview and its details (what it does and where it shows). Every frame, badge and background now has its own distinct hand-drawn design (no more look-alikes): the phoenix has fiery wings, cherry a spinning petal wreath, galaxy orbiting planets, emerald a shimmering octagon, shadow pulsing wisps — and they all appear around your avatar for everyone, everywhere too. Everything you own is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 56;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b56/chess-amkh-4.2-b56.apk';
+const NOTES_AR = 'شاشةُ «الجوائز» الجديدةُ: مهامٌّ يوميّةٌ وأسبوعيّةٌ تُكسِبُك عملاتٍ وخبرةً، وإنجازاتٌ تُفتَحُ مع تقدّمِك، ومخزونٌ يعرضُ كلَّ ما تملكُ مع تجهيزٍ وإلغاءٍ بلمسة. وأخيرًا: احتفالاتُ الفوزِ ومؤثّراتُ الماتِ التي تشتريها صارت تنطلقُ مِلءَ الشاشةِ فعلًا عندَ فوزِك (قصاصاتٌ، ألعابٌ ناريّةٌ، نجومٌ، شُهُبٌ، برقٌ والمزيد). وإشعارٌ يُذكّرُك بتجدُّدِ المتجرِ كلَّ ٤ ساعات. كلُّ تقدّمِك وعملاتِك محفوظةٌ في حسابِك ولن تضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'The new Rewards screen: daily and weekly missions that earn you coins and XP, achievements that unlock as you progress, and an inventory of everything you own with one-tap equip and unequip. And at last: the win celebrations and checkmate effects you buy now actually play full-screen when you win (confetti, fireworks, starfall, meteors, lightning and more). Plus a reminder when the store refreshes every 4 hours. All your progress and coins live on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,

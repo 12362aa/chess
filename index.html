@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260926-b55">
+<link rel="stylesheet" href="screens.css?v=20260926-b56">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3254,6 +3254,16 @@ html.amkh-preboot #amkh-preboot{
         </span>
         <span class="home-tile__title">المتجر</span>
         <span class="home-tile__desc">إطاراتٌ وشاراتٌ ومؤثّرات</span>
+      </button>
+
+      <!-- الجوائز والتقدّم (المرحلة ٤): مهامّ + إنجازات + مخزون -->
+      <button class="home-tile home-tile--rewards" type="button" data-mode="rewards"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.REWARDS)REWARDS.open();">
+        <span class="home-tile__icon" aria-hidden="true">
+          <i class="ico ico--trophy" aria-hidden="true"></i>
+        </span>
+        <span class="home-tile__title">الجوائز</span>
+        <span class="home-tile__desc">مهامٌّ وإنجازاتٌ ومخزون</span>
       </button>
     </div>
 
@@ -4158,6 +4168,32 @@ html.amkh-preboot #amkh-preboot{
     <div class="store-detail__panel">
       <button class="store-detail__close" onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.STORE)STORE.closeDetail();" aria-label="إغلاق">✕</button>
       <div class="store-detail__body" id="store-detail-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ الجوائز والتقدّم (المرحلة ٤): مهامّ يوميّة/أسبوعيّة + إنجازات + مخزون ══
+     شاشةٌ غامرةٌ على نمطِ المتجرِ (rewards-client.js). كلُّ التقدّمِ خادميّ
+     المصدرِ (amkhEconomy.state) والنصوصُ ثنائيّةُ اللغةِ عبر L(ar,en). -->
+<div id="rewards-ov" class="store-ov rw-ov">
+  <div class="store-scroll">
+    <div class="store-wrap">
+      <button class="store-close" onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.REWARDS)REWARDS.close();" aria-label="رجوع">✕</button>
+      <header class="store-head">
+        <span class="store-kicker" id="rw-kicker">AM-KH</span>
+        <h2 class="store-title" id="rw-title">—</h2>
+        <p class="store-sub" id="rw-sub">—</p>
+      </header>
+      <div class="store-bar">
+        <div class="store-balance"><span class="store-balance__coin" aria-hidden="true"></span><span id="rw-balance-val">0</span></div>
+        <div class="rw-levelbox"><span class="rw-lvl" id="rw-level">1</span><span class="rw-xpbar"><span class="rw-xp-fill" id="rw-xp-fill"></span></span></div>
+      </div>
+      <div class="rw-tabs" id="rw-tabs">
+        <button class="rw-tab is-on" type="button" data-tab="missions"></button>
+        <button class="rw-tab" type="button" data-tab="achievements"></button>
+        <button class="rw-tab" type="button" data-tab="inventory"></button>
+      </div>
+      <div class="rw-body" id="rw-body"></div>
     </div>
   </div>
 </div>
@@ -7739,7 +7775,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 55;
+const APP_VERSION_CODE = 56;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -13581,6 +13617,9 @@ const G={
     document.getElementById('go-ov').classList.add('open');
     amkhGrabModalFreeze();
     try{const _t=(S.endState&&S.endState.tone);SFX.modalOpen(_t==='loss'?'error':_t==='draw'?'default':'success');}catch(e){}
+    /* احتفالُ الفوزِ المُجهَّز (المرحلة ٤): يُشغَّلُ مِلءَ الشاشةِ عند الفوزِ فقط،
+       يقرأ المُجهَّزَ (celebration + mate_fx) من amkhEconomy ويُزيلُ نفسَه. */
+    try{ if(S.endState&&S.endState.tone==='win'&&window.amkhCos&&amkhCos.celebrate){ amkhCos.celebrate(); } }catch(e){}
     this._typeQuickText(document.getElementById('go-nour-t'),comment,token,()=>{
       if(token!==S._resultToken||!S.endState)return;
       S._goStageTimer=setTimeout(()=>{
@@ -16313,10 +16352,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260926-b55"></script>
+  <script src="economy-client.js?v=20260926-b56"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
   <script src="store-client.js?v=20260926-b55"></script>
+  <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
+       مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
+  <script src="rewards-client.js?v=20260926-b56"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

@@ -324,6 +324,109 @@
     catch (e) { return null; }
   }
 
+  /* ══ تشغيلُ احتفالِ الفوزِ / مؤثّرِ المات مِلءَ الشاشة ══
+     تُبنى الجُسيماتُ في DOM مع CSS keyframes (transform/opacity)، ثمّ تُزال
+     بعدَ ٤ ثوانٍ. لا تعترضُ اللمسَ ولا تمسّ اللوح. الاختيارُ من المُجهَّز. */
+  function _rnd(a, b) { return a + Math.random() * (b - a); }
+  var _CELCOL = ['#ff5da2', '#5ad1ff', '#ffd24a', '#6fffa8', '#c17bff', '#ff8a3a'];
+  var _NEON = ['#00eaff', '#ff2fd0', '#7cff5a', '#ffd24a'];
+  function _mk(cls, styles, inner) {
+    var d = document.createElement('div'); d.className = cls;
+    if (styles) for (var k in styles) { if (k.indexOf('--') === 0) d.style.setProperty(k, styles[k]); else d.style[k] = styles[k]; }
+    if (inner != null) d.innerHTML = inner;
+    return d;
+  }
+  function _fall(layer, n, cls, colorFn, drift) {
+    for (var i = 0; i < n; i++) {
+      var st = { left: _rnd(0, 100) + 'vw', animationDelay: _rnd(0, 1.0).toFixed(2) + 's', animationDuration: _rnd(2.0, 3.4).toFixed(2) + 's', '--spin': Math.round(_rnd(360, 900)) + 'deg' };
+      if (drift) st['--sway'] = _rnd(2, 7).toFixed(1) + 'vw';
+      var el = _mk((drift ? 'cosfx-drift ' : 'cosfx-fall ') + cls, st);
+      var c = colorFn ? colorFn(i) : null; if (c) el.style.background = c;
+      layer.appendChild(el);
+    }
+  }
+  function _meteors(layer, n) {
+    for (var i = 0; i < n; i++) layer.appendChild(_mk('cosfx-meteor', { left: _rnd(-10, 90) + 'vw', top: _rnd(-10, 40) + 'vh', animationDelay: _rnd(0, 1.4).toFixed(2) + 's', animationDuration: _rnd(0.9, 1.6).toFixed(2) + 's' }));
+  }
+  function _rise(layer, n, cls, colorFn) {
+    for (var i = 0; i < n; i++) {
+      var st = { left: _rnd(2, 96) + 'vw', animationDelay: _rnd(0, 1.2).toFixed(2) + 's', animationDuration: _rnd(2.6, 4.2).toFixed(2) + 's', '--tilt': _rnd(-12, 12).toFixed(0) + 'deg' };
+      var el = _mk('cosfx-rise ' + cls, st);
+      var c = colorFn ? colorFn(i) : null; if (c) el.style.background = c;
+      layer.appendChild(el);
+    }
+  }
+  function _burst(layer, origins, perOrigin, colors) {
+    origins.forEach(function (o) {
+      for (var i = 0; i < perOrigin; i++) {
+        var ang = _rnd(0, Math.PI * 2), dist = _rnd(16, 44), c = colors[i % colors.length];
+        var el = _mk('cosfx-spark', { left: o[0] + 'vw', top: o[1] + 'vh', animationDelay: o[2] + 's', animationDuration: _rnd(0.8, 1.4).toFixed(2) + 's', '--dx': (Math.cos(ang) * dist).toFixed(1) + 'vh', '--dy': (Math.sin(ang) * dist).toFixed(1) + 'vh' });
+        el.style.background = c; el.style.boxShadow = '0 0 8px ' + c;
+        layer.appendChild(el);
+      }
+    });
+  }
+  function _beams(layer, colors) {
+    [-40, -18, 6, 26, 44].forEach(function (a, i) {
+      var c = colors[i % colors.length];
+      var el = _mk('cosfx-beam', { '--a': a + 'deg', animationDelay: (i * 0.12).toFixed(2) + 's', animationDuration: '1.6s' });
+      el.style.background = 'linear-gradient(180deg,' + c + ',transparent)'; el.style.boxShadow = '0 0 14px ' + c;
+      layer.appendChild(el);
+    });
+  }
+  function _flash(layer, bg) { var el = _mk('cosfx-flash', { animationDuration: '1.1s' }); el.style.background = bg; layer.appendChild(el); }
+  function _glitch(layer) {
+    var cols = ['#ff004d', '#00eaff', '#ffffff'];
+    for (var i = 0; i < 10; i++) layer.appendChild(_mk('cosfx-glitchbar', { top: _rnd(0, 100) + 'vh', height: _rnd(6, 20).toFixed(0) + 'px', background: cols[i % cols.length], animationDelay: _rnd(0, 0.6).toFixed(2) + 's', animationDuration: _rnd(0.5, 1.0).toFixed(2) + 's' }));
+    _flash(layer, 'linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,234,255,.12))');
+  }
+  function _crack(layer, color) {
+    var lines = '';
+    for (var i = 0; i < 9; i++) lines += '<line x1="' + _rnd(30, 70).toFixed(0) + '" y1="' + _rnd(30, 70).toFixed(0) + '" x2="' + _rnd(0, 100).toFixed(0) + '" y2="' + _rnd(0, 100).toFixed(0) + '" stroke="' + color + '" stroke-width="' + _rnd(0.4, 1.4).toFixed(2) + '"/>';
+    layer.appendChild(_mk('cosfx-crack', { animationDuration: '1.2s' }, '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="filter:drop-shadow(0 0 4px ' + color + ')">' + lines + '</svg>'));
+  }
+  /* FX_DISPATCH_PLACEHOLDER */
+  function _playOne(layer, id) {
+    switch (id) {
+      case 'cel_confetti': _fall(layer, 54, 'cosfx-confetti', function (i) { return _CELCOL[i % _CELCOL.length]; }, false); break;
+      case 'cel_petals': _fall(layer, 40, 'cosfx-petal', function () { return ['#ffc2dd', '#ff8fb8', '#ffe0ec'][Math.floor(Math.random() * 3)]; }, true); break;
+      case 'cel_coins': _fall(layer, 40, 'cosfx-coin', null, false); break;
+      case 'cel_stars': _fall(layer, 44, 'cosfx-star', function (i) { return i % 2 ? '#fff2b0' : '#ffd24a'; }, true); break;
+      case 'cel_balloons': _rise(layer, 22, 'cosfx-balloon', function (i) { return _CELCOL[i % _CELCOL.length]; }); break;
+      case 'cel_fireworks': _burst(layer, [[25, 30, 0], [60, 22, 0.4], [45, 42, 0.8], [75, 38, 1.1]], 16, _CELCOL); break;
+      case 'cel_lasers': _beams(layer, _NEON); _flash(layer, 'radial-gradient(circle at 50% 60%,rgba(0,234,255,.12),transparent 60%)'); break;
+      case 'cel_meteor': _meteors(layer, 18); break;
+      case 'fx_goldrain': _fall(layer, 46, 'cosfx-goldrain', null, false); break;
+      case 'fx_seasonal_snow': _fall(layer, 50, 'cosfx-snow', null, true); break;
+      case 'fx_shatter': _crack(layer, '#eaf2ff'); _flash(layer, 'radial-gradient(circle at 50% 45%,rgba(255,255,255,.5),transparent 55%)'); break;
+      case 'fx_lightning': _flash(layer, 'linear-gradient(180deg,rgba(180,220,255,.5),rgba(120,160,255,.1))'); _burst(layer, [[50, 20, 0]], 14, ['#dff0ff', '#8ab6ff']); break;
+      case 'fx_flames': _rise(layer, 26, 'cosfx-flame', null); break;
+      case 'fx_supernova': _burst(layer, [[50, 44, 0]], 40, ['#ffffff', '#ffd24a', '#ff8a3a', '#5ad1ff']); _flash(layer, 'radial-gradient(circle at 50% 44%,rgba(255,240,200,.6),transparent 55%)'); break;
+      case 'fx_ink': _burst(layer, [[50, 45, 0]], 16, ['#0a0a12', '#20203a']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(8,8,18,.55),transparent 60%)'); break;
+      case 'fx_glitch': _glitch(layer); break;
+      case 'fx_frostbreak': _crack(layer, '#bfefff'); _flash(layer, 'radial-gradient(circle at 50% 45%,rgba(180,240,255,.4),transparent 55%)'); break;
+      default: return false;
+    }
+    return true;
+  }
+  var _fxBusy = false;
+  function celebrate(cos) {
+    try {
+      if (_fxBusy) return;
+      cos = cos || self();
+      if (!cos) return;
+      var ids = []; if (cos.celebration) ids.push(cos.celebration); if (cos.mate_fx) ids.push(cos.mate_fx);
+      if (!ids.length) return;
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      _fxBusy = true;
+      var ov = document.createElement('div'); ov.className = 'cos-fx-ov';
+      document.body.appendChild(ov);
+      var any = false; ids.forEach(function (id) { if (_playOne(ov, id)) any = true; });
+      if (!any) { ov.remove(); _fxBusy = false; return; }
+      setTimeout(function () { try { ov.remove(); } catch (e) {} _fxBusy = false; }, 4200);
+    } catch (e) { _fxBusy = false; }
+  }
+
   window.amkhCos = {
     frameHTML: frameHTML,
     badgeHTML: badgeHTML,
@@ -332,6 +435,7 @@
     paint: paint,
     paintName: paintName,
     self: self,
+    celebrate: celebrate,
     FRAME: FRAME, BADGE: BADGE, BG: BG,
   };
 })();
