@@ -631,6 +631,14 @@ const PZU = (() => {
 
     let out = null;
     try { out = await PZS.record(M.puzzle, res, { mode: M.mode }); } catch (e) {}
+    /* اقتصاد: حلّ حقيقيّ (لا استسلام) يكسب عملات/XP — الخادم يطبّق السقف
+       اليومي ويمنع تكرار نفس اللغز، فمِن الآمن الإبلاغ دائمًا. */
+    if (solved && !M.gaveUp) {
+      try {
+        var _pid = M.puzzle && (M.puzzle.id != null ? M.puzzle.id : (M.puzzle.puzzleId != null ? M.puzzle.puzzleId : (M.puzzle.PuzzleId || null)));
+        if (window.amkhEconomy) window.amkhEconomy.notifyPuzzleSolved(_pid);
+      } catch (e) {}
+    }
     if (M.mode === 'daily') {
       try { await PZS.setDailyState({ done: true, solved, hints: s.hintsUsed, hearts: M.hearts }); } catch (e) {}
     }

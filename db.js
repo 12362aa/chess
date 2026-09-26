@@ -521,6 +521,75 @@ function migrate() {
   `);
 
 
+  /* ══════════════════════════════════════════════════════════════════
+     الاقتصاد: محفظة Am-Kh Coins + XP + سجلّ معاملات + مخزون + إنجازات + مهام
+     ──────────────────────────────────────────────────────────────────
+     مبدأ ثابت (يحقّق «المستخدم لا يفقد شيئًا»): كل هذه جداول مُصمّمة
+     تُكتَب فقط من مسارات الخادم الموثّقة على req.user.id — لا من الـblob
+     العميلي (settings_json) اللي هو آخر-كتابة-تكسب ولا يُتحقّق منه.
+     coin_ledger أساس-إلحاقيّ (append-only) = مصدر الحقيقة؛ wallet.coins
+     نسخة مُشتقّة مخزّنة للسرعة تُطابَق مع مجموع الدفتر. user_cosmetics
+     ملكية دائمة لا تُحذف أبدًا. الأعمدة equipped_* على users عشان كل
+     حمولة عامة (صدارة/أصدقاء/بروفايل) تحملها لباقي المستخدمين. */
+  if (addColumn('users', 'equipped_frame',       'TEXT')) added.push('users.equipped_frame');
+  if (addColumn('users', 'equipped_background',  'TEXT')) added.push('users.equipped_background');
+  if (addColumn('users', 'equipped_badge',       'TEXT')) added.push('users.equipped_badge');
+  if (addColumn('users', 'equipped_celebration', 'TEXT')) added.push('users.equipped_celebration');
+  if (addColumn('users', 'equipped_mate_fx',     'TEXT')) added.push('users.equipped_mate_fx');
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS wallet (
+      user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      coins      INTEGER NOT NULL DEFAULT 0,
+      xp         INTEGER NOT NULL DEFAULT 0,
+      level      INTEGER NOT NULL DEFAULT 1,
+      granted    INTEGER NOT NULL DEFAULT 0,   -- 1 بعد منحة الإطلاق + الحساب الرجعي (مرّة واحدة)
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
+    /* دفتر إلحاقيّ لا يُحذَف منه صفّ أبدًا: كل كسب/خصم سطر. delta موجب
+       كسب وسالب خصم. reason نصّ ثابت (game_win/game_play/puzzle/ach:<id>/
+       mission:<id>/store:<item>/grant). ref مرجع اختياري لمنع التكرار. */
+    CREATE TABLE IF NOT EXISTS coin_ledger (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      delta      INTEGER NOT NULL,
+      xp         INTEGER NOT NULL DEFAULT 0,
+      reason     TEXT NOT NULL,
+      ref        TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ledger_user ON coin_ledger(user_id, id);
+    CREATE INDEX IF NOT EXISTS idx_ledger_ref  ON coin_ledger(user_id, ref);
+    /* الملكية الدائمة: أي عنصر اشتراه/كسبه المستخدم يفضل هنا للأبد. */
+    CREATE TABLE IF NOT EXISTS user_cosmetics (
+      user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      item_id     TEXT NOT NULL,
+      acquired_at TEXT DEFAULT (datetime('now')),
+      source      TEXT,                          -- store | mission | level | ach | grant
+      PRIMARY KEY (user_id, item_id)
+    );
+    /* الإنجازات: مفتاح مركّب يضمن منح كل إنجاز مرّة واحدة فقط. */
+    CREATE TABLE IF NOT EXISTS achievements (
+      user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      ach_id      TEXT NOT NULL,
+      unlocked_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, ach_id)
+    );
+    /* المهام اليومية/الأسبوعية: period_key يعزل كل دورة (يوم/أسبوع) عن
+       غيرها فلا تُطالَب مكافأة مرّتين. progress يتراكم خادميًا. */
+    CREATE TABLE IF NOT EXISTS missions (
+      user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      mission_id  TEXT NOT NULL,
+      period      TEXT NOT NULL,                 -- daily | weekly
+      period_key  TEXT NOT NULL,                 -- 2026-09-26 | 2026-W39
+      progress    INTEGER NOT NULL DEFAULT 0,
+      target      INTEGER NOT NULL DEFAULT 1,
+      claimed     INTEGER NOT NULL DEFAULT 0,
+      updated_at  TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, mission_id, period_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_missions_user ON missions(user_id, period_key);
+  `);
+
   /* فهارس على الأعمدة الجديدة — بعد ALTER عشان تكون موجودة */
   db.exec(`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username   ON users(username) WHERE username IS NOT NULL;

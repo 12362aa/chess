@@ -921,6 +921,9 @@ const groupsRouter = require('./groups');
 app.use('/api/groups', groupsRouter);
 const privacyRouter = require('./privacy');
 app.use('/api/privacy', privacyRouter);
+/* اقتصاد Am-Kh Coins (متجر/عملات/XP/إنجازات) — موثوق من الخادم بالكامل. */
+const economy = require('./economy');
+app.use('/api/economy', economy.router);
 
 /* مُدد التثبيت المؤقّت المسموحة للرسائل (#7) — بالأيام. أي قيمة غيرها
    تُعامَل كتثبيت دائم، فلا يستطيع عميل مُعدَّل أن يثبّت لمدة اعتباطية. */
@@ -1167,10 +1170,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 50;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b50/chess-amkh-4.2-b50.apk';
-const NOTES_AR = 'صار نور يشعر: في مراجعةِ المباراةِ وجهُه يتنفّسُ ويتفاعلُ حيًّا مع كلِّ نقلة — يُبهَرُ بالرائعةِ، يقلقُ من غيرِ الدقيقة، يحزنُ للخطأ، ويغضبُ من الفادحة، بأنيميشنٍ لطيفٍ لا شارةٍ صامتة. وفي الألغازِ لنور مشاعرُه الخاصّة: يفرحُ لنقلتِك الصحيحة، يرتجفُ من الخطأ، يفكّرُ عند طلبِ التلميح، ويحتفلُ عند الحلّ — دون أن يمسَّ الرقعةَ أو اللعب. وشعلةُ سلسلةِ الأيّامِ تحرّرت من صندوقِها فبانت أدقَّ وأجمل. وشاشةُ اللعبِ عبر الإنترنتِ صارت أهدأَ وأوضح: بلا حوافَّ ملوّنةٍ زائدة، ورسائلُ الحالةِ لم تعد تظهرُ قبل أوانِها. وأزرارُ زمنِ المباراةِ نالت أيقوناتٍ ملوّنةً مرسومة. وأُصلحت تسرّباتُ العربيّةِ في الإنجليزيّة، ورُوّض حقلُ الاسمِ في الإعدادات. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'Nour now has feelings. In match review his face breathes and reacts live to every move — impressed by a brilliancy, worried by an inaccuracy, sad at a mistake, angry at a blunder — with gentle animation, not a silent badge. In puzzles Nour has his own emotions: he cheers your correct move, flinches at a wrong one, thinks when you ask for a hint, and celebrates the solve — without ever touching the board or gameplay. The daily-streak flame broke free of its box, so its detail shines. The online screen is calmer and clearer: no extra coloured edges, and status messages no longer appear before their time. The time-control buttons gained colourful drawn icons. Arabic leaks in English were fixed and the Settings name field was tamed. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 51;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b51/chess-amkh-4.2-b51.apk';
+const NOTES_AR = 'بدايةُ اقتصادِ Am-Kh: عُملاتُك ومستواك صارا يظهرانِ في الرئيسيّة. تكسبُ العُملاتِ والخبرةَ من مبارياتِ الإنترنتِ ومن حلِّ الألغاز، وترتقي في المستوياتِ من ١ إلى ٥٠. ولأنّك كنتَ معنا من قبل، تنتظرُك هديّةُ ترحيبٍ من العُملاتِ، وتُحتسَبُ إنجازاتُك السابقةُ بأثرٍ رجعيٍّ من سجلِّك (أوّلُ فوز، عشرُ انتصارات، مئةُ مباراة، تقييمٌ مرموق، خمسونَ لغزًا). كلُّ ما تكسبُه محفوظٌ في حسابِك على الخادمِ ولن يضيعَ أبدًا. المتجرُ وعناصرُ التزيينِ في الطريق. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'The Am-Kh economy begins: your coins and level now appear on the home screen. Earn coins and XP from online games and by solving puzzles, and climb the levels from 1 to 50. Because you have been with us, a welcome gift of coins awaits you, and your past achievements are counted retroactively from your record (first win, ten wins, a hundred games, a strong rating, fifty puzzles). Everything you earn is stored on your account server-side and can never be lost. The store and cosmetic items are on the way. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -2862,6 +2865,18 @@ function finalizeGame(room, winnerColor, reason) {
         pushStatsUpdate(whiteId, st.white, winner === 'draw' ? 'draw' : (winner === 'white' ? 'win' : 'loss'));
         pushStatsUpdate(blackId, st.black, winner === 'draw' ? 'draw' : (winner === 'black' ? 'win' : 'loss'));
       }
+      /* اقتصاد: منح عملات + XP لكل طرف (تجميليّ بحت، لا يمسّ التقييم).
+         ref = كود الغرفة يمنع منح نفس المباراة مرّتين حتى لو استُدعيت
+         finalizeGame من أكثر من مسار. */
+      try {
+        const roomRef = room.code || `${whiteId}-${blackId}-${Date.now()}`;
+        const wOut = winner === 'draw' ? 'draw' : (winner === 'white' ? 'win' : 'loss');
+        const bOut = winner === 'draw' ? 'draw' : (winner === 'black' ? 'win' : 'loss');
+        economy.awardGame(whiteId, wOut, roomRef);
+        economy.awardGame(blackId, bOut, roomRef);
+        pushEconomyUpdate(whiteId);
+        pushEconomyUpdate(blackId);
+      } catch (e) { console.error('[economy] award game failed:', e.message); }
     } catch (e) { console.error('[stats] finalizeGame failed:', e.message); }
   }
 
@@ -2875,6 +2890,19 @@ function pushStatsUpdate(userId, stats, outcome) {
   for (const s of socketsOf(userId)) {
     if (s.readyState === WebSocket.OPEN) send(s, payload);
   }
+}
+
+/* بثّ محفظة الاقتصاد المحدَّثة لسوكتات المستخدم عشان الشريط يتحدّث فورًا
+   بعد المباراة دون طلب /me جديد. صامت لو الاقتصاد فشل (لا يكسر اللعب). */
+function pushEconomyUpdate(userId) {
+  if (!userId) return;
+  try {
+    const snap = economy.snapshot(userId);
+    const payload = { type: 'economy:update', economy: snap };
+    for (const s of socketsOf(userId)) {
+      if (s.readyState === WebSocket.OPEN) send(s, payload);
+    }
+  } catch (e) {}
 }
 
 /* استقبل JWT من رسالة لعب على سوكت غير مصادَق (ماتش‑ميكينج/كود) */

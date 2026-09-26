@@ -34,6 +34,9 @@ const requiredFiles = new Set([
   'friends-client.js',
   'chat-client.js',
   'call-client.js',
+  /* واجهة اقتصاد Am-Kh Coins. نفس تحذير القائمة الصريحة: أي ملف غير
+     مذكور هنا يخرج من الـAPK كـ<script> 404 بلا أي خطأ في البناء. */
+  'economy-client.js',
   /* محرّكان متضمّنان: النسخة الكاملة بشبكة NNUE الكبيرة (single = بلا
      SharedArrayBuffer، تشتغل في أي WebView) هي الأقوى ويُحاول تحميلها أولًا؛
      ونسخة lite الأخف تفضل موجودة كسقوط آمن للأجهزة المحدودة. الاتنين محتوى

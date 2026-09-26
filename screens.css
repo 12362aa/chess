@@ -240,6 +240,75 @@
 /* ── صف الهوية: صورة + اسم اللاعب، نقرة تفتح الإعدادات ──
    بديل الشعار العملاق القديم — الشريط العلوي فيه الاسم أصلًا، والمساحة
    دي أنفع لو بتعرّف اللاعب بنفسه. */
+/* ══ شريط الاقتصاد في الرئيسية: عملات Am-Kh + مستوى/XP ══
+   ألوان حيّة (ذهب للعملة، بنفسجي للمستوى) لا باهتة، بلا إيموجي —
+   أيقونة العملة قرص ذهبي مرسوم بـCSS. */
+.home-econ{
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  align-self: flex-start;
+  margin-top: calc(var(--space-1) * -1);
+  padding: 0 var(--space-2);
+  flex-wrap: wrap;
+}
+.home-econ[hidden]{ display: none; }
+.home-econ__coins{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 6px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(240,185,60,.45);
+  background: linear-gradient(135deg, rgba(255,214,102,.16), rgba(214,158,46,.10));
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  transition: transform var(--duration-fast) var(--easing-standard),
+              box-shadow var(--duration-fast) var(--easing-standard);
+}
+.home-econ__coins:hover{ transform: translateY(-1px); box-shadow: 0 4px 14px rgba(214,158,46,.28); }
+.home-econ__coins:active{ transform: scale(.97); }
+.home-econ__coin-ic{
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe9a8, #f5c451 45%, #c8901f 100%);
+  border: 1px solid #b97f18;
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,.18), inset 0 -2px 3px rgba(120,80,10,.35);
+  flex-shrink: 0;
+}
+.home-econ__coin-val{
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: #f2c65a;
+  font-variant-numeric: tabular-nums;
+}
+.home-econ__level{ display: inline-flex; align-items: center; gap: 8px; }
+.home-econ__lvl-badge{
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 24px; padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #7c5cff, #a878ff);
+  color: #fff;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 8px rgba(124,92,255,.4);
+}
+.home-econ__xp{
+  position: relative;
+  width: 96px; height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  overflow: hidden;
+}
+.home-econ__xp-fill{
+  position: absolute; inset: 0 auto 0 0;
+  width: 0%;
+  background: linear-gradient(90deg, #7c5cff, #b98bff);
+  border-radius: var(--radius-pill);
+  transition: width var(--duration-normal) var(--easing-standard);
+}
+[dir="rtl"] .home-econ__xp-fill{ inset: 0 0 0 auto; }
+
 .home-id{
   display: flex;
   align-items: center;

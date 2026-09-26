@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260924-b50">
+<link rel="stylesheet" href="screens.css?v=20260926-b51">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3163,6 +3163,20 @@ html.amkh-preboot #amkh-preboot{
         <i class="ico ico--chev" aria-hidden="true"></i>
       </span>
     </button>
+
+    <!-- شريط الاقتصاد: عملات Am-Kh + مستوى/XP. يُملأ من economy-client.js
+         (مرآة قراءة فقط من الخادم). مخفيّ افتراضيًا حتى تصل أول لقطة. -->
+    <div class="home-econ" id="home-econ" hidden>
+      <button class="home-econ__coins" type="button" id="home-econ-coins"
+        onclick="if(typeof SFX!=='undefined')SFX.btn(); if(typeof Nav!=='undefined'&&Nav.store)Nav.store();">
+        <span class="home-econ__coin-ic" aria-hidden="true"></span>
+        <span class="home-econ__coin-val" id="home-econ-coin-val">0</span>
+      </button>
+      <div class="home-econ__level">
+        <span class="home-econ__lvl-badge" id="home-econ-lvl">1</span>
+        <span class="home-econ__xp"><span class="home-econ__xp-fill" id="home-econ-xp-fill"></span></span>
+      </div>
+    </div>
 
     <div class="home-grid">
       <!-- البطاقة الرئيسية: رحلة المراحل — البطاقة الوحيدة اللي بتحمل بيانات حقيقية -->
@@ -7641,7 +7655,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 50;
+const APP_VERSION_CODE = 51;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -14961,6 +14975,12 @@ const OL=(()=>{
       try{ if(window.amkhChat) window.amkhChat.handleSocketMessage(d); }catch(e){}
       return;
     }
+    /* تحديث محفظة الاقتصاد (عملات/XP/مستوى) بعد المباراة — يوصل فورًا
+       على سوكت الحضور المصادَق فيتحدّث الشريط بلا طلب /me جديد. */
+    if(d && d.type==='economy:update'){
+      try{ if(window.amkhEconomy) window.amkhEconomy.apply(d.economy); }catch(e){}
+      return;
+    }
     switch(d.type){
       case 'mm-color-required':
         {
@@ -16200,6 +16220,9 @@ window.addEventListener('beforeunload',()=>{
   <script src="friends-client.js?v=20260916-b37"></script>
   <script src="chat-client.js?v=20260916-b37"></script>
   <script src="call-client.js?v=20260916-b37"></script>
+  <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
+       العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
+  <script src="economy-client.js?v=20260926-b51"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت
@@ -16211,7 +16234,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-client.js?v=20260919-b38"></script>
   <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
-  <script src="puzzles-ui.js?v=20260924-b50"></script>
+  <script src="puzzles-ui.js?v=20260926-b51"></script>
   <script src="puzzles-hub.js?v=20260922-b42"></script>
   <script src="levels-ui.js?v=20260921-b41"></script>
   <script src="mic-client.js?v=20260922-b41"></script>
