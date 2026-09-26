@@ -7887,6 +7887,13 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @keyframes storeWashHold{ 0%{opacity:1;} 80%{opacity:1;} 100%{opacity:0;} }
 @media (prefers-reduced-motion: reduce){ .store-wash.play{ animation:storeWashHold .8s linear forwards; } .store-wash__cv{ display:none; } }
 
+/* بوّابةُ الجوائز/المخزون — شروقُ "قاعةِ الشرف" (مختلفةٌ عن بوّابةِ المتجر) */
+.rw-wash{ position:absolute; inset:0; z-index:60; pointer-events:none; opacity:0; overflow:hidden;
+  background:radial-gradient(125% 125% at 50% 44%,#4a3208 0%,#2e1f06 44%,#160f04 74%,#0a0714 100%); }
+.rw-wash.play{ animation:storeWashHold 2.1s linear forwards; }
+.rw-wash__cv{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+@media (prefers-reduced-motion: reduce){ .rw-wash.play{ animation:storeWashHold .8s linear forwards; } .rw-wash__cv{ display:none; } }
+
 .store-scroll{ position:absolute; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:1; }
 .store-wrap{ max-width:640px; margin:0 auto; padding:22px 16px 40px; position:relative; }
 .store-close{ position:absolute; top:14px; inset-inline-end:14px; width:40px; height:40px; border-radius:50%;
@@ -7900,9 +7907,16 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-bar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin:16px 0 20px;
   background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:12px 16px; }
 .store-balance{ display:flex; align-items:center; gap:8px; font-size:20px; font-weight:800; color:var(--gold2); }
-.store-balance__coin,.store-buy__coin{ width:18px; height:18px; border-radius:50%; flex:0 0 auto;
-  background:radial-gradient(circle at 35% 30%,#fff2c0,#f5c451 55%,#b8862b); box-shadow:0 0 8px rgba(245,196,81,.5); }
+.store-balance__coin,.store-buy__coin,.rw-reward__coin{ position:relative; border-radius:50%; flex:0 0 auto;
+  width:18px; height:18px;
+  background:radial-gradient(circle at 38% 30%,#fff6cf,#f5c451 48%,#b9800f);
+  box-shadow:0 0 8px rgba(245,196,81,.5), inset 0 0 0 1px rgba(255,242,192,.55); }
+.store-balance__coin::after,.store-buy__coin::after,.rw-reward__coin::after{ content:'AK';
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font:900 8px/1 Arial,Helvetica,sans-serif; letter-spacing:-.04em; color:#7a4e08; }
 .store-buy__coin{ width:14px; height:14px; }
+.store-buy__coin::after{ font-size:6px; }
+.rw-reward__coin::after{ font-size:6.5px; }
 .store-timer{ text-align:center; display:flex; flex-direction:column; gap:2px; }
 .store-timer__lbl{ font-size:10px; letter-spacing:.14em; color:rgba(255,255,255,.55); }
 .store-timer__val{ font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:#fff; }
@@ -8003,10 +8017,10 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 /* ══ الجوائزُ والتقدّم (المرحلة ٤): شاشةٌ غامرةٌ بثلاثةِ ألسنة ══
    تعيدُ استعمالَ هيكلِ المتجر (store-ov/scroll/wrap/close/head/bar/balance)
    فوقَ لونٍ زُمُرُّديٍّ مميّزٍ، وتضيفُ عناصرَ المهامِّ/الإنجازاتِ/المخزون. */
-.rw-ov{ --acc:#38e0c0; --acc2:#7cf0d8; --gold:#f5c451; --gold2:#ffe08a;
-  background:linear-gradient(180deg,#07281f 0%,#0a2d24 32%,#08201a 64%,#050f0d 100%); }
+.rw-ov{ --acc:#e8b23a; --acc2:#ffd873; --gold:#f5c451; --gold2:#ffe08a; --ink:#2a1a02;
+  background:linear-gradient(180deg,#241a08 0%,#1c1305 32%,#130c14 64%,#080610 100%); }
 .rw-ov .store-kicker{ color:var(--acc2); }
-.rw-ov .store-title{ background:linear-gradient(90deg,var(--acc2),var(--acc),#1f9c86);
+.rw-ov .store-title{ background:linear-gradient(90deg,var(--acc2),var(--acc),#c98b2f);
   -webkit-background-clip:text; background-clip:text; color:transparent; }
 
 /* شريطُ الرصيدِ والمستوى */
@@ -8015,17 +8029,21 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .rw-levelbox__lbl{ letter-spacing:.12em; color:rgba(255,255,255,.55); }
 .rw-lvl{ font-weight:900; font-size:16px; color:var(--acc2); }
 .rw-xpbar{ height:8px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
-.rw-xp-fill{ display:block; height:100%; border-radius:999px; width:0;
-  background:linear-gradient(90deg,var(--acc),var(--acc2)); box-shadow:0 0 10px rgba(56,224,192,.6);
+.rw-xp-fill{ display:block; height:100%; border-radius:999px; width:0; position:relative; overflow:hidden;
+  background:linear-gradient(90deg,var(--acc),var(--acc2)); box-shadow:0 0 10px rgba(245,196,81,.6);
   transition:width .5s cubic-bezier(.22,1,.36,1); }
+.rw-xp-fill::after{ content:''; position:absolute; inset:0; border-radius:inherit;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);
+  transform:translateX(-100%); animation:rwSweep 2.6s ease-in-out infinite; }
+@keyframes rwSweep{ 0%{transform:translateX(-100%)} 60%,100%{transform:translateX(100%)} }
 
 /* الألسنة */
 .rw-tabs{ display:flex; gap:8px; margin:0 0 20px; justify-content:center; flex-wrap:wrap; }
 .rw-tab{ border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05); color:rgba(255,255,255,.8);
   padding:9px 20px; border-radius:999px; font-size:14px; font-weight:800; cursor:pointer; white-space:nowrap;
   transition:background .18s ease, color .18s ease, border-color .18s ease; }
-.rw-tab.is-on{ color:#052018; background:linear-gradient(180deg,var(--acc2),var(--acc));
-  border-color:transparent; box-shadow:0 3px 14px rgba(56,224,192,.4); }
+.rw-tab.is-on{ color:var(--ink); background:linear-gradient(180deg,var(--acc2),var(--acc));
+  border-color:transparent; box-shadow:0 3px 14px rgba(245,196,81,.45); }
 
 .rw-body{ min-height:40vh; }
 .rw-empty{ text-align:center; color:rgba(255,255,255,.6); padding:48px 12px; font-size:14px; }
@@ -8033,10 +8051,9 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   padding-inline-start:10px; border-inline-start:3px solid var(--acc); }
 .rw-grp:first-child{ margin-top:4px; }
 
-/* عملةُ المكافأة (نقطةٌ ذهبيّة صغيرة) */
+/* عملةُ المكافأة = قرصُ AK الذهبيُّ نفسُه (توحيدُ شكلِ العملة في الجوائز/المتجر) */
 .rw-reward{ display:inline-flex; align-items:center; gap:5px; font-weight:800; font-size:13px; color:var(--gold2); }
-.rw-reward__coin{ width:13px; height:13px; border-radius:50%; flex:0 0 auto;
-  background:radial-gradient(circle at 35% 30%,#fff2c0,#f5c451 55%,#b8862b); box-shadow:0 0 6px rgba(245,196,81,.5); }
+.rw-reward__coin{ width:15px; height:15px; }
 
 /* المهامّ */
 .rw-list{ display:flex; flex-direction:column; gap:10px; }
@@ -8056,7 +8073,7 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   background:linear-gradient(180deg,#ffe08a,#f5c451); box-shadow:0 3px 10px rgba(245,196,81,.4);
   transition:transform .12s ease; }
 .rw-claim:active{ transform:scale(.94); }
-.rw-claimed{ font-size:12px; font-weight:800; color:#8ef0c0; }
+.rw-claimed{ font-size:12px; font-weight:800; color:#ffd873; }
 
 /* الإنجازات */
 .rw-ach-grid{ display:grid; grid-template-columns:1fr; gap:12px; }
@@ -8076,7 +8093,7 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .rw-ach__foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .rw-ach__status{ font-size:11px; font-weight:800; letter-spacing:.05em; padding:3px 10px; border-radius:999px;
   color:rgba(255,255,255,.55); background:rgba(255,255,255,.06); }
-.rw-ach.is-un .rw-ach__status{ color:#052018; background:linear-gradient(180deg,var(--acc2),var(--acc)); }
+.rw-ach.is-un .rw-ach__status{ color:var(--ink); background:linear-gradient(180deg,var(--acc2),var(--acc)); }
 
 /* المخزون */
 .rw-inv-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
@@ -8085,17 +8102,35 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); }
 .rw-inv.is-eq{ border-color:color-mix(in srgb,var(--acc) 60%,transparent);
   box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 40%,transparent), inset 0 0 24px color-mix(in srgb,var(--acc) 12%,transparent); }
-.rw-inv__art{ width:72px; height:72px; color:var(--acc2); filter:drop-shadow(0 0 8px rgba(56,224,192,.4)); }
+.rw-inv__art{ width:72px; height:72px; color:var(--acc2); filter:drop-shadow(0 0 8px rgba(245,196,81,.45)); }
 .rw-inv__art .st-svg{ width:100%; height:100%; display:block; overflow:hidden; }
 .rw-inv__name{ font-size:12.5px; font-weight:700; text-align:center; color:#fff; min-height:2.2em;
   display:flex; align-items:center; }
-.rw-equip{ width:100%; border:1px solid rgba(120,240,216,.5); cursor:pointer; padding:8px 10px; border-radius:999px;
-  font-weight:800; font-size:12.5px; color:#bff0e4; background:rgba(56,224,192,.12);
+.rw-equip{ width:100%; border:1px solid rgba(245,196,81,.5); cursor:pointer; padding:8px 10px; border-radius:999px;
+  font-weight:800; font-size:12.5px; color:#ffe1a6; background:rgba(245,196,81,.12);
   transition:transform .12s ease, background .2s ease; }
 .rw-equip:active{ transform:scale(.95); }
-.rw-equip.is-on{ color:#052018; background:linear-gradient(180deg,var(--acc2),var(--acc)); border-color:transparent;
-  box-shadow:0 3px 12px rgba(56,224,192,.4); }
-@media (prefers-reduced-motion:reduce){ .rw-xp-fill,.rw-mission__bar > span{ transition:none; } }
+.rw-equip.is-on{ color:var(--ink); background:linear-gradient(180deg,var(--acc2),var(--acc)); border-color:transparent;
+  box-shadow:0 3px 12px rgba(245,196,81,.45); }
+@media (prefers-reduced-motion:reduce){ .rw-xp-fill,.rw-mission__bar > span{ transition:none; } .rw-xp-fill::after{ animation:none; display:none; } }
+
+/* دخولٌ متدرّجٌ لبطاقاتِ الجوائز (transform/opacity فقط) */
+@keyframes rwRise{ from{ opacity:0; transform:translateY(14px) scale(.98); } to{ opacity:1; transform:none; } }
+.rw-mission,.rw-ach,.rw-inv{ animation:rwRise .42s cubic-bezier(.22,1,.36,1) both; }
+.rw-mission:nth-child(2),.rw-ach:nth-child(2),.rw-inv:nth-child(2){ animation-delay:.05s; }
+.rw-mission:nth-child(3),.rw-ach:nth-child(3),.rw-inv:nth-child(3){ animation-delay:.10s; }
+.rw-mission:nth-child(4),.rw-ach:nth-child(4),.rw-inv:nth-child(4){ animation-delay:.15s; }
+.rw-mission:nth-child(n+5),.rw-ach:nth-child(n+5),.rw-inv:nth-child(n+5){ animation-delay:.2s; }
+/* المهمّةُ المكتملةُ تنبضُ برفقٍ لتلفتَ للمطالبة */
+.rw-mission.is-done:not(.is-claimed){ animation:rwRise .42s cubic-bezier(.22,1,.36,1) both, rwDoneGlow 2.2s ease-in-out .5s infinite; }
+@keyframes rwDoneGlow{ 0%,100%{ box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 22%,transparent); } 50%{ box-shadow:0 0 16px 2px color-mix(in srgb,var(--acc) 32%,transparent); } }
+/* لمعةٌ تمرُّ على زرِّ المطالبة */
+.rw-claim{ position:relative; overflow:hidden; }
+.rw-claim::after{ content:''; position:absolute; top:0; bottom:0; width:40%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
+  transform:skewX(-18deg) translateX(-260%); animation:rwClaimShine 2.8s ease-in-out infinite; }
+@keyframes rwClaimShine{ 0%,100%{ transform:skewX(-18deg) translateX(-260%); } 55%{ transform:skewX(-18deg) translateX(360%); } }
+@media (prefers-reduced-motion:reduce){ .rw-mission,.rw-ach,.rw-inv,.rw-mission.is-done:not(.is-claimed){ animation:none; } .rw-claim::after{ display:none; } }
 
 /* ══ التجميل الظاهر (المرحلة ٣): إطارات/خلفيات/شارات على الأفاتار والاسم ══
    كله transform/opacity/filter فقط — لا يمسّ تخطيط الصفحة ولا أداء اللوح. */

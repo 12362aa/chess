@@ -162,26 +162,31 @@
   // رُسومٌ خاصّةٌ مميّزةٌ لكلّ إطارٍ (مطابقةٌ/متفوّقةٌ على فنّ المتجر) — viewBox 0 0 100 100
   // الإطارُ طوقٌ حولَ الأفاتار (بلا رسمِ وجهٍ)، فالحلقةُ الرئيسيّةُ عندَ r≈45.
   var FRAME_SPECIAL = {
-    // الذهب: طوقٌ ذهبيٌّ + قوسُ لمعانٍ دوّارٌ سريع
+    // الذهب: طوقٌ مزدوجٌ + قوسا لمعانٍ متعاكسان + ٨ نجومٍ تتلألأ + نجمةٌ مدارية
     frame_gold: function (t, g) {
-      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
-        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#fff8dc" stroke-width="6" stroke-linecap="round" stroke-dasharray="26 320"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.8s" repeatCount="indefinite"/></circle>';
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="7"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="1.3" opacity="0.5"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#fff8dc" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="22 320"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.6s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="2" stroke-linecap="round" stroke-dasharray="8 58" opacity="0.7"><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="6s" repeatCount="indefinite"/></circle>'
+        + '<g fill="#fff8dc"><circle cx="50" cy="5" r="1.7"><animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/></circle><circle cx="82" cy="18" r="1.4"><animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="0.4s" repeatCount="indefinite"/></circle><circle cx="95" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="0.7s" repeatCount="indefinite"/></circle><circle cx="18" cy="82" r="1.4"><animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="1s" repeatCount="indefinite"/></circle><circle cx="5" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="1.3s" repeatCount="indefinite"/></circle></g>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/><path d="M50 2 l1.6 3.4 3.4 1.6 -3.4 1.6 -1.6 3.4 -1.6 -3.4 -3.4 -1.6 3.4 -1.6z" fill="#fff"/></g>';
     },
-    // النيون: هالةٌ متوهّجةٌ متبدّلةُ اللونِ + شرائطُ متقطّعةٌ منسابة
+    // النيون: هالةٌ متبدّلةُ اللونِ + شريطٌ منسابٌ + مذنّبٌ مداريٌّ متوهّج
     frame_neon: function (t, g) {
-      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="9" opacity="0.32"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[0] + '" dur="2.6s" repeatCount="indefinite"/></circle>'
-        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="3" stroke-dasharray="8 10" stroke-linecap="round"><animate attributeName="stroke-dashoffset" from="0" to="36" dur="1.1s" repeatCount="indefinite"/><animate attributeName="stroke" values="' + t[2] + ';' + t[1] + ';' + t[2] + '" dur="2.6s" repeatCount="indefinite"/></circle>';
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="10" opacity="0.28"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[0] + '" dur="2.6s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="4"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[2] + ';' + t[0] + '" dur="3.2s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="3" stroke-dasharray="7 11" stroke-linecap="round"><animate attributeName="stroke-dashoffset" from="0" to="36" dur="1s" repeatCount="indefinite"/></circle>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.2s" repeatCount="indefinite"/><circle cx="50" cy="5" r="3" fill="#fff"/><circle cx="50" cy="5" r="5" fill="' + t[2] + '" opacity="0.4"/><circle cx="58" cy="6" r="1.6" fill="' + t[2] + '" opacity="0.6"/><circle cx="66" cy="8" r="1" fill="' + t[2] + '" opacity="0.35"/></g>';
     },
-    // اللهب: طوقٌ ناريٌّ + ألسنةُ لهبٍ ترفرفُ حولَ الحافّة
+    // اللهب: طوقٌ ناريٌّ + ألسنةُ لهبٍ حولَ كاملِ الطوق + جمراتٌ صاعدة
     frame_flame: function (t, g) {
-      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
-        + '<g fill="' + t[2] + '">'
-        + '<path d="M50 2 l4 10 -4 4 -4 -4z"><animate attributeName="opacity" values="0.4;1;0.4" dur="0.8s" repeatCount="indefinite"/></path>'
-        + '<path d="M84 26 l3 9 -5 1 -1 -5z"><animate attributeName="opacity" values="1;0.4;1" dur="0.7s" repeatCount="indefinite"/></path>'
-        + '<path d="M16 26 l4 6 -3 4 -4 -4z"><animate attributeName="opacity" values="0.5;1;0.5" dur="0.9s" repeatCount="indefinite"/></path>'
-        + '<path d="M88 60 l2 7 -4 1 -1 -4z"><animate attributeName="opacity" values="1;0.5;1" dur="0.75s" repeatCount="indefinite"/></path>'
-        + '<path d="M12 60 l3 6 -3 3 -3 -3z"><animate attributeName="opacity" values="0.5;1;0.5" dur="0.85s" repeatCount="indefinite"/></path>'
-        + '</g>';
+      var tongue = function (cx, cy, s, rot, dur, bg) { return '<path d="M' + cx + ' ' + cy + ' q' + (-3 * s) + ' ' + (-6 * s) + ' 0 ' + (-12 * s) + ' q' + (3 * s) + ' ' + (6 * s) + ' 0 ' + (12 * s) + 'z" fill="' + bg + '" transform="rotate(' + rot + ' ' + cx + ' ' + cy + ')"><animate attributeName="opacity" values="0.35;1;0.35" dur="' + dur + 's" repeatCount="indefinite"/></path>'; };
+      var ring = '';
+      var pts = [[50,5,0],[73,12,42],[88,27,80],[95,50,90],[88,73,120],[73,88,150],[50,95,180],[27,88,210],[12,73,240],[5,50,270],[12,27,300],[27,12,330]];
+      for (var i = 0; i < pts.length; i++) ring += tongue(pts[i][0], pts[i][1], (i % 2 ? 1 : 1.4), pts[i][2], (0.6 + (i % 3) * 0.18).toFixed(2), i % 2 ? t[2] : t[0]);
+      return '<circle cx="50" cy="50" r="43" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<g>' + ring + '</g>'
+        + '<g fill="' + t[2] + '"><circle cx="40" cy="94" r="1.8"><animate attributeName="cy" values="94;56" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="60" cy="96" r="1.4"><animate attributeName="cy" values="96;54" dur="2.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.1s" repeatCount="indefinite"/></circle></g>';
     },
     // الصقيع: طوقٌ بلّوريٌّ + بلّوراتٌ + ثلجٌ متساقطٌ حيٌّ (طلب جوجو الأهمّ)
     frame_frost: function (t, g) {
@@ -193,22 +198,28 @@
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-dasharray="5 320" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.4s" repeatCount="indefinite"/></circle>'
         + '<g fill="#ffffff">' + flake(38, 2, 3.2) + flake(58, 1.6, 3.9) + flake(50, 1.4, 2.9) + flake(30, 1.5, 3.5) + flake(66, 1.7, 4.2) + '</g>';
     },
-    // الملكيّ: طوقٌ ذهبيٌّ + جواهرُ بنفسجيّةٌ عندَ الجهاتِ الأربعِ تتلألأ
+    // الملكيّ: طوقٌ ذهبيٌّ + تاجٌ في القمّةِ + جواهرُ تتلألأ + قوسُ ضوءٍ يجول
     frame_royal: function (t, g) {
       return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6.5"/>'
-        + '<g fill="' + t[1] + '"><circle cx="50" cy="6" r="4.2"/><circle cx="94" cy="50" r="4.2"/><circle cx="50" cy="94" r="4.2"/><circle cx="6" cy="50" r="4.2"/></g>'
-        + '<g fill="#ffffff"><circle cx="50" cy="6" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="94" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.4s" repeatCount="indefinite"/></circle><circle cx="50" cy="94" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="6" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="1.2s" repeatCount="indefinite"/></circle></g>';
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#fff8dc" stroke-width="3" stroke-linecap="round" stroke-dasharray="16 320" opacity="0.9"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/></circle>'
+        + '<g fill="' + t[1] + '"><circle cx="94" cy="50" r="4.2"/><circle cx="50" cy="94" r="4.2"/><circle cx="6" cy="50" r="4.2"/></g>'
+        + '<g><path d="M38 12 L43 3 L50 9 L57 3 L62 12 Z" fill="' + t[0] + '" stroke="' + t[1] + '" stroke-width="0.8"/><circle cx="50" cy="8" r="1.6" fill="#fff"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.4s" repeatCount="indefinite"/></circle></g>'
+        + '<g fill="#ffffff"><circle cx="94" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.4s" repeatCount="indefinite"/></circle><circle cx="50" cy="94" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="6" cy="50" r="1.5"><animate attributeName="opacity" values="0;1;0" dur="1.6s" begin="1.2s" repeatCount="indefinite"/></circle></g>';
     },
-    // المحيط: طوقٌ + تيّارٌ متقطّعٌ منسابٌ + موجةٌ تتمدّدُ للخارج
+    // المحيط: طوقٌ + تيّارٌ منسابٌ + موجتان تتمدّدان + فقاعاتٌ صاعدة
     frame_ocean: function (t, g) {
       return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="2.4" stroke-dasharray="6 9"><animate attributeName="stroke-dashoffset" from="30" to="0" dur="2s" repeatCount="indefinite"/></circle>'
-        + '<circle cx="50" cy="50" r="34" fill="none" stroke="' + t[2] + '" stroke-width="1.6"><animate attributeName="r" values="34;47;34" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;0;0.55" dur="2.4s" repeatCount="indefinite"/></circle>';
+        + '<circle cx="50" cy="50" r="34" fill="none" stroke="' + t[2] + '" stroke-width="1.6"><animate attributeName="r" values="34;47;34" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;0;0.55" dur="2.4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="34" fill="none" stroke="' + t[0] + '" stroke-width="1.2"><animate attributeName="r" values="34;47;34" dur="2.4s" begin="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0;0.4" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></circle>'
+        + '<g fill="none" stroke="' + t[2] + '" stroke-width="1"><circle cx="34" cy="90" r="2"><animate attributeName="cy" values="92;12" dur="3.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.9;0" dur="3.2s" repeatCount="indefinite"/></circle><circle cx="66" cy="88" r="1.5"><animate attributeName="cy" values="94;16" dur="3.9s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.8;0" dur="3.9s" repeatCount="indefinite"/></circle></g>';
     },
-    // الشفق: طوقٌ متبدّلُ الألوانِ (شفقيّ) + قوسُ لمعانٍ دوّار
+    // الشفق: طوقٌ متبدّلُ الألوانِ + شريطٌ شفقيٌّ في القمّةِ + نجومٌ سابحةٌ + قوسُ لمعان
     frame_aurora: function (t, g) {
       return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="6" opacity="0.6"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[2] + ';' + t[0] + '" dur="4s" repeatCount="indefinite"/></circle>'
+        + '<path d="M10 30 Q30 14 50 26 Q70 38 90 22" fill="none" stroke="' + t[2] + '" stroke-width="3" stroke-linecap="round" opacity="0.7"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="3s" repeatCount="indefinite"/><animate attributeName="stroke" values="' + t[2] + ';' + t[0] + ';' + t[1] + ';' + t[2] + '" dur="4s" repeatCount="indefinite"/></path>'
+        + '<g fill="#fff"><circle cx="26" cy="20" r="1.3"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/></circle><circle cx="74" cy="80" r="1.2"><animate attributeName="opacity" values="0;1;0" dur="2.3s" begin="0.6s" repeatCount="indefinite"/></circle><circle cx="84" cy="34" r="1" fill="' + t[2] + '"><animate attributeName="opacity" values="0;1;0" dur="1.8s" begin="1s" repeatCount="indefinite"/></circle></g>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-dasharray="12 320" stroke-linecap="round" opacity="0.85"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/></circle>';
     },
     // العنقاء: حلقةٌ + جناحان ناريّان جانبيّان + جمراتٌ صاعدة
@@ -234,27 +245,35 @@
       return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="4.5"/>'
         + '<g fill="' + t[0] + '"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="9s" repeatCount="indefinite"/>' + pet + '</g>';
     },
-    // المجرّة: حلقةٌ + كواكبُ/نجومٌ تدور حول المركز
+    // المجرّة: حلقةٌ + مداران متعاكسان بكواكبَ ونجومٍ + لبٌّ لولبيٌّ متوهّج + وميض
     frame_galaxy: function (t, g) {
       return '<circle cx="50" cy="50" r="43" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
         + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="5s" repeatCount="indefinite"/>'
-        + '<circle cx="50" cy="7" r="4" fill="#ffffff"/><circle cx="90" cy="57" r="3.2" fill="' + t[2] + '"/><circle cx="13" cy="63" r="2.6" fill="' + t[0] + '"/></g>'
-        + '<circle cx="50" cy="50" r="10" fill="none" stroke="' + t[2] + '" stroke-width="1.2" opacity="0.5"/>';
+        + '<circle cx="50" cy="7" r="4" fill="#ffffff"/><circle cx="50" cy="7" r="6" fill="#fff" opacity="0.3"/><circle cx="90" cy="57" r="3.2" fill="' + t[2] + '"/><circle cx="13" cy="63" r="2.6" fill="' + t[0] + '"/></g>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="8s" repeatCount="indefinite"/><circle cx="50" cy="18" r="2" fill="' + t[2] + '"/><circle cx="82" cy="50" r="1.6" fill="#fff"/><circle cx="22" cy="40" r="1.4" fill="' + t[0] + '"/></g>'
+        + '<circle cx="50" cy="50" r="10" fill="none" stroke="' + t[2] + '" stroke-width="1.2" opacity="0.5"><animate attributeName="opacity" values="0.25;0.7;0.25" dur="2.2s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="4" fill="' + t[2] + '" opacity="0.6"><animate attributeName="r" values="3;5;3" dur="2.2s" repeatCount="indefinite"/></circle>';
     },
-    // الزمرّد: مثمّنٌ مُوجَّهٌ + بريقٌ يدور على الحوافّ
+    // الزمرّد: مثمّنٌ مُوجَّهٌ + بريقٌ يجول على الحوافّ + جواهرُ تتلألأ على الزوايا
     frame_emerald: function (t, g) {
       var oct = '50,6 76,18 94,50 76,82 50,94 24,82 6,50 24,18';
+      var verts = [[50,6],[76,18],[94,50],[76,82],[50,94],[24,82],[6,50],[24,18]], gems = '';
+      for (var i = 0; i < verts.length; i++) gems += '<circle cx="' + verts[i][0] + '" cy="' + verts[i][1] + '" r="1.6" fill="#fff"><animate attributeName="opacity" values="0;1;0" dur="1.8s" begin="' + (i * 0.22).toFixed(2) + 's" repeatCount="indefinite"/></circle>';
       return '<polygon points="' + oct + '" fill="none" stroke="url(#' + g + ')" stroke-width="6" stroke-linejoin="round"/>'
-        + '<polygon points="' + oct + '" fill="none" stroke="' + t[2] + '" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="14 240"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/></polygon>';
+        + '<polygon points="' + oct + '" fill="none" stroke="' + t[1] + '" stroke-width="1.4" stroke-linejoin="round" opacity="0.6"/>'
+        + '<polygon points="' + oct + '" fill="none" stroke="' + t[2] + '" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="14 240"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/></polygon>'
+        + '<g>' + gems + '</g>';
     },
-    // الظلّ: حلقةٌ + خصلاتٌ ظلاميّةٌ نابضةٌ حول الإطار
+    // الظلّ: حلقةٌ + خصلاتٌ ظلاميّةٌ نابضةٌ + جمراتٌ بنفسجيّةٌ مداريّةٌ + قوسٌ متقطّعٌ معاكس
     frame_shadow: function (t, g) {
       return '<circle cx="50" cy="50" r="44" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<circle cx="50" cy="50" r="44" fill="none" stroke="' + t[2] + '" stroke-width="2" stroke-dasharray="4 12" stroke-linecap="round" opacity="0.6"><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="5s" repeatCount="indefinite"/></circle>'
         + '<g fill="' + t[0] + '">'
         + '<circle cx="50" cy="7" r="5"><animate attributeName="r" values="5;8;5" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.95;0.5" dur="2s" repeatCount="indefinite"/></circle>'
         + '<circle cx="90" cy="64" r="4"><animate attributeName="r" values="4;6.5;4" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.9;0.5" dur="2.4s" repeatCount="indefinite"/></circle>'
         + '<circle cx="12" cy="58" r="4"><animate attributeName="r" values="4;6.5;4" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.9;0.5" dur="1.8s" repeatCount="indefinite"/></circle>'
-        + '</g>';
+        + '</g>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.6s" repeatCount="indefinite"/><circle cx="50" cy="9" r="2" fill="' + t[2] + '"/><circle cx="50" cy="9" r="3.4" fill="' + t[2] + '" opacity="0.35"/></g>';
     },
   };
 

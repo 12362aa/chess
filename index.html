@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260927-b58">
+<link rel="stylesheet" href="screens.css?v=20260927-b59">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -4202,6 +4202,9 @@ html.amkh-preboot #amkh-preboot{
      شاشةٌ غامرةٌ على نمطِ المتجرِ (rewards-client.js). كلُّ التقدّمِ خادميّ
      المصدرِ (amkhEconomy.state) والنصوصُ ثنائيّةُ اللغةِ عبر L(ar,en). -->
 <div id="rewards-ov" class="store-ov rw-ov">
+  <div class="rw-wash" id="rw-wash" aria-hidden="true">
+    <canvas class="rw-wash__cv" id="rw-wash-cv"></canvas>
+  </div>
   <div class="store-scroll">
     <div class="store-wrap">
       <button class="store-close" onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.REWARDS)REWARDS.close();" aria-label="رجوع">✕</button>
@@ -4326,7 +4329,8 @@ const SFX=(()=>{
     startgame: './startgame.mp3',   // Online game start sound
     dive:   './dive.mp3',           // صوتُ دوّامةِ الماء لبوّابةِ المحرّك (ملفٌّ حقيقيّ من جوجو)
     storeOpen: './store_open.mp3',  // بوّابةُ المتجر — Magic sparkle whoosh (Mixkit، royalty-free)
-    storeBuy:  './store_buy.mp3'    // تأكيدُ الشراء — Magical coin win (Mixkit، royalty-free)
+    storeBuy:  './store_buy.mp3',   // تأكيدُ الشراء — Magical coin win (Mixkit، royalty-free)
+    rewardsOpen: './rewards_open.mp3' // بوّابةُ الجوائز/المخزون — Magic sweep game trophy (Mixkit، royalty-free)
   };
   let ctx=null;
   const buffers={};
@@ -4850,6 +4854,29 @@ const SFX=(()=>{
         }
       }catch(e){}
       tones([{f:659.25,t0:0,dur:0.12,type:'sine',vol:0.09},{f:987.77,t0:0.09,dur:0.16,type:'sine',vol:0.10},{f:1318.51,t0:0.2,dur:0.26,type:'triangle',vol:0.07}]);
+    },
+    /* بوّابةُ الجوائز/المخزونِ — "Magic sweep game trophy" (Mixkit، royalty-free).
+       صوتٌ فخمٌ مميّزٌ يليقُ بفتحِ خزنةِ الجوائز، غيرُ صوتِ بوّابةِ المتجر.
+       ضمانةٌ مُصنَّعةٌ (سُلَّمٌ ذهبيٌّ صاعد) لو لم يُحمَّل الملفُّ بعد. */
+    rewardsOpen(){
+      try{
+        if(!Cfg.data.sound)return;
+        const c=getCtx(); if(c.state==='suspended')c.resume();
+        const buf=_extBuffers.rewardsOpen;
+        if(buf){
+          const src=c.createBufferSource(), g=c.createGain();
+          src.buffer=buf;
+          const now=c.currentTime, v=Math.min(1.0,(Cfg.data.vol/100)*1.8);
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(v, now+0.08);
+          g.gain.setValueAtTime(v, now+1.3);
+          g.gain.exponentialRampToValueAtTime(0.0001, now+1.9);
+          src.connect(g); g.connect(c.destination);
+          src.start(now); src.stop(now+2.0);
+          return;
+        }
+      }catch(e){}
+      tones([{f:659.25,t0:0,dur:0.14,type:'sine',vol:0.09},{f:987.77,t0:0.10,dur:0.18,type:'sine',vol:0.09},{f:1318.51,t0:0.22,dur:0.22,type:'triangle',vol:0.08},{f:1760,t0:0.36,dur:0.30,type:'triangle',vol:0.06}]);
     },
     chat()   {
       if(!Cfg.data.sound)return;
@@ -7801,7 +7828,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 58;
+const APP_VERSION_CODE = 59;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -16387,13 +16414,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260926-b57"></script>
+  <script src="economy-client.js?v=20260927-b59"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
   <script src="store-client.js?v=20260926-b57"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20260926-b57"></script>
+  <script src="rewards-client.js?v=20260927-b59"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت
