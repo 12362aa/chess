@@ -37,6 +37,9 @@ const requiredFiles = new Set([
   /* واجهة اقتصاد Am-Kh Coins. نفس تحذير القائمة الصريحة: أي ملف غير
      مذكور هنا يخرج من الـAPK كـ<script> 404 بلا أي خطأ في البناء. */
   'economy-client.js',
+  'store-client.js',
+  'store_open.mp3',
+  'store_buy.mp3',
   /* محرّكان متضمّنان: النسخة الكاملة بشبكة NNUE الكبيرة (single = بلا
      SharedArrayBuffer، تشتغل في أي WebView) هي الأقوى ويُحاول تحميلها أولًا؛
      ونسخة lite الأخف تفضل موجودة كسقوط آمن للأجهزة المحدودة. الاتنين محتوى

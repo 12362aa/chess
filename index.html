@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260926-b51">
+<link rel="stylesheet" href="screens.css?v=20260926-b52">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -4132,6 +4132,29 @@ html.amkh-preboot #amkh-preboot{
   </div>
 </div>
 
+<!-- بوّابةُ + واجهةُ المتجرِ الديناميكيّ (المرحلة ٢) — بوّابةُ كنزٍ غامرةٌ تنقشعُ
+     كاشفةً واجهةَ متجرٍ نابضةٍ بالندرات. المنطقُ في store-client.js. -->
+<div id="store-ov" class="store-ov">
+  <div class="store-wash" id="store-wash" aria-hidden="true">
+    <canvas class="store-wash__cv" id="store-wash-cv"></canvas>
+  </div>
+  <div class="store-scroll">
+    <div class="store-wrap">
+      <button class="store-close" onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.STORE)STORE.close();" aria-label="رجوع">✕</button>
+      <header class="store-head">
+        <span class="store-kicker">AM-KH · المتجر</span>
+        <h2 class="store-title">خزائنُ Am-Kh</h2>
+        <p class="store-sub">عناصرُ تزيينٍ نادرةٌ تدورُ كلَّ أربعِ ساعات — اقتنِها بعملاتِك.</p>
+      </header>
+      <div class="store-bar">
+        <div class="store-balance"><span class="store-balance__coin" aria-hidden="true"></span><span id="store-balance-val">0</span></div>
+        <div class="store-timer"><span class="store-timer__lbl">التبديلُ بعد</span><span class="store-timer__val" id="store-countdown">--:--:--</span></div>
+      </div>
+      <div class="store-grid" id="store-grid"></div>
+    </div>
+  </div>
+</div>
+
 <!-- CUSTOM ALERT/MODAL -->
 <div id="custom-modal" class="ds-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="ds-dialog">
@@ -4232,7 +4255,9 @@ const SFX=(()=>{
     draw:   './move.mp3',          // Neutral sound
     resign: './error.wav',         // Same as loss
     startgame: './startgame.mp3',   // Online game start sound
-    dive:   './dive.mp3'            // صوتُ دوّامةِ الماء لبوّابةِ المحرّك (ملفٌّ حقيقيّ من جوجو)
+    dive:   './dive.mp3',           // صوتُ دوّامةِ الماء لبوّابةِ المحرّك (ملفٌّ حقيقيّ من جوجو)
+    storeOpen: './store_open.mp3',  // بوّابةُ المتجر — Magic sparkle whoosh (Mixkit، royalty-free)
+    storeBuy:  './store_buy.mp3'    // تأكيدُ الشراء — Magical coin win (Mixkit، royalty-free)
   };
   let ctx=null;
   const buffers={};
@@ -4712,6 +4737,51 @@ const SFX=(()=>{
       tones([{f:150,f2:60,t0:0.05,dur:0.55,type:'sine',vol:0.16}]);
     },
     undo()   {play('move');},  // Use move sound for undo
+    /* ══ بوّابةُ المتجرِ والشراء (المرحلة ٢) — ملفّاتٌ حقيقيّةٌ من Mixkit ══
+       storeOpen: زمجرةُ فتحِ البوّابةِ السحريّة (Magic sparkle whoosh).
+       storeBuy: نغمةُ فوزٍ ذهبيّةٌ عند الشراء (Magical coin win). كلاهما
+       مميّزٌ فخمٌ لا صوتَ نقلةٍ عاديّ (ذوقُ جوجو). ضمانةٌ مُصنَّعةٌ لو الملفُّ
+       لم يُحمَّل بعدُ (أوّلُ فتحٍ بلا شبكة). */
+    storeOpen(){
+      try{
+        if(!Cfg.data.sound)return;
+        const c=getCtx(); if(c.state==='suspended')c.resume();
+        const buf=_extBuffers.storeOpen;
+        if(buf){
+          const src=c.createBufferSource(), g=c.createGain();
+          src.buffer=buf;
+          const now=c.currentTime, v=Math.min(1.0,(Cfg.data.vol/100)*1.9);
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(v, now+0.10);
+          g.gain.setValueAtTime(v, now+1.6);
+          g.gain.exponentialRampToValueAtTime(0.0001, now+2.2);
+          src.connect(g); g.connect(c.destination);
+          src.start(now); src.stop(now+2.3);
+          return;
+        }
+      }catch(e){}
+      tones([{f:523.25,t0:0,dur:0.18,type:'sine',vol:0.10},{f:783.99,t0:0.10,dur:0.22,type:'sine',vol:0.10},{f:1046.5,t0:0.22,dur:0.30,type:'triangle',vol:0.08}]);
+    },
+    storeBuy(){
+      try{
+        if(!Cfg.data.sound)return;
+        const c=getCtx(); if(c.state==='suspended')c.resume();
+        const buf=_extBuffers.storeBuy;
+        if(buf){
+          const src=c.createBufferSource(), g=c.createGain();
+          src.buffer=buf;
+          const now=c.currentTime, v=Math.min(1.0,(Cfg.data.vol/100)*1.7);
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(v, now+0.05);
+          g.gain.setValueAtTime(v, now+1.0);
+          g.gain.exponentialRampToValueAtTime(0.0001, now+1.5);
+          src.connect(g); g.connect(c.destination);
+          src.start(now); src.stop(now+1.6);
+          return;
+        }
+      }catch(e){}
+      tones([{f:659.25,t0:0,dur:0.12,type:'sine',vol:0.09},{f:987.77,t0:0.09,dur:0.16,type:'sine',vol:0.10},{f:1318.51,t0:0.2,dur:0.26,type:'triangle',vol:0.07}]);
+    },
     chat()   {
       if(!Cfg.data.sound)return;
       try{const c=getCtx();const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1320;g.gain.setValueAtTime((Cfg.data.vol/100)*0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);o.connect(g);g.connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+0.13);}catch(e){}
@@ -7655,7 +7725,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 51;
+const APP_VERSION_CODE = 52;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -14350,16 +14420,17 @@ const Nav={
   local(){Nav.show('s-local');},
   settings(){Nav.show('s-settings');},
   puzzles(){try{PZU.openHub();}catch(e){Nav.show('s-puzzles');}},
-  /* المتجر (طلب جوجو): لا محتوى بعد — نافذةٌ على نهج السِّمة بنفس صوت
-     النوافذ (Modal.show تفتح عبر DSOverlay فتأخذ SFX تلقائيًّا) تقول
-     «قريبًا». المحتوى الحقيقي (نظام اقتصاد) تحديثٌ ضخم لاحق. */
+  /* المتجرُ الديناميكيّ (المرحلة ٢): بوّابةُ كنزٍ غامرةٌ تنقشعُ كاشفةً
+     واجهةَ المتجر (STORE.open في store-client.js). ضمانةٌ لو لم يُحمَّل. */
   store(){
+    try{
+      if(window.STORE&&STORE.open){ STORE.open(); return; }
+    }catch(e){}
     try{
       if(window.Modal&&Modal.show){
         Modal.show(
           'قريبًا ستفتح المتجر على عناصر وأطقمٍ للقطع والرقعة، وأكثر — تحديثٌ كبير قادم.',
           'المتجر في الطريق','◈',null);
-        return;
       }
     }catch(e){}
   },
@@ -16223,6 +16294,9 @@ window.addEventListener('beforeunload',()=>{
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
   <script src="economy-client.js?v=20260926-b51"></script>
+  <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
+       الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
+  <script src="store-client.js?v=20260926-b52"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

@@ -1170,10 +1170,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 51;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b51/chess-amkh-4.2-b51.apk';
-const NOTES_AR = 'بدايةُ اقتصادِ Am-Kh: عُملاتُك ومستواك صارا يظهرانِ في الرئيسيّة. تكسبُ العُملاتِ والخبرةَ من مبارياتِ الإنترنتِ ومن حلِّ الألغاز، وترتقي في المستوياتِ من ١ إلى ٥٠. ولأنّك كنتَ معنا من قبل، تنتظرُك هديّةُ ترحيبٍ من العُملاتِ، وتُحتسَبُ إنجازاتُك السابقةُ بأثرٍ رجعيٍّ من سجلِّك (أوّلُ فوز، عشرُ انتصارات، مئةُ مباراة، تقييمٌ مرموق، خمسونَ لغزًا). كلُّ ما تكسبُه محفوظٌ في حسابِك على الخادمِ ولن يضيعَ أبدًا. المتجرُ وعناصرُ التزيينِ في الطريق. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'The Am-Kh economy begins: your coins and level now appear on the home screen. Earn coins and XP from online games and by solving puzzles, and climb the levels from 1 to 50. Because you have been with us, a welcome gift of coins awaits you, and your past achievements are counted retroactively from your record (first win, ten wins, a hundred games, a strong rating, fifty puzzles). Everything you earn is stored on your account server-side and can never be lost. The store and cosmetic items are on the way. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 52;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b52/chess-amkh-4.2-b52.apk';
+const NOTES_AR = 'المتجرُ وصل! بوّابةٌ ذهبيّةٌ غامرةٌ تنقشعُ كاشفةً خزائنَ Am-Kh: عناصرُ تزيينٍ نادرةٌ (إطاراتٌ وخلفيّاتٌ وشاراتٌ واحتفالاتُ فوزٍ ومؤثّراتُ كش-مات) بندراتٍ ملوّنةٍ — شائعٌ ونادرٌ وملحميٌّ وأسطوريٌّ وموسميّ. تدورُ الخزائنُ كلَّ أربعِ ساعات، والعدّادُ التنازليُّ يخبرُك بموعدِ التبديل. اقتنِ ما تحبُّ بعملاتِك التي كسبتَها باللّعب، وكلُّ ما تشتريه محفوظٌ في حسابِك ولن يضيعَ أبدًا. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'The store is here! An immersive golden portal parts to reveal the Am-Kh Vaults: rare cosmetics (frames, backgrounds, badges, win celebrations and checkmate effects) in colorful rarities — common, rare, epic, legendary and seasonal. The vaults rotate every four hours, and a countdown tells you when they change. Grab what you love with the coins you earned by playing, and everything you buy is stored on your account and can never be lost. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,

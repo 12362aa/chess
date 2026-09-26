@@ -3,7 +3,7 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '4.2-b51';
+const SW_VERSION = '4.2-b52';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
@@ -27,6 +27,9 @@ const STATIC_ASSETS = [
   './chat-client.js',
   './call-client.js',
   './economy-client.js',
+  './store-client.js',
+  './store_open.mp3',
+  './store_buy.mp3',
   // Sound files - critical for offline gameplay
   './move.mp3',
   './capture.mp3',
