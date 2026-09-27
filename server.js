@@ -1210,10 +1210,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 59;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b59/chess-amkh-4.2-b59.apk';
-const NOTES_AR = 'تحديثٌ بصريٌّ فخم: أُعيدَ تصميمُ كلِّ الإطاراتِ التجميليّةِ لتصيرَ أسطوريّةً بطبقاتٍ حيّةٍ (لهبٌ وجمراتٌ، فقاعاتٌ وموجات، شفقٌ ونجومٌ سابحة، كواكبُ في مدارَينِ متعاكسَين، تاجٌ ملكيٌّ، جواهرُ تتلألأ) — لا مجرّدَ حلقةٍ تدور. وأُعيدَ تلوينُ شاشةِ الجوائزِ والمخزونِ من الأخضرِ إلى الذهبِ الفخمِ المتناسقِ مع هويّةِ التطبيقِ، مع حركاتٍ ناعمةٍ ووميضٍ، وتوحيدِ شكلِ العملةِ المنقوشةِ «AK» في كلِّ مكان. وصارَ للجوائزِ والمخزونِ بوّابةُ دخولٍ خاصّةٌ بها — شروقٌ ذهبيٌّ بأشعّةٍ وإكليلَي غارٍ ونجومٍ صاعدةٍ بصوتٍ مميّزٍ — مختلفةٌ كليًّا عن بوّابةِ المتجر. كلُّ تقدّمِك محفوظٌ. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'A premium visual update: every cosmetic frame was redesigned to legendary quality with living layers (flames and embers, bubbles and waves, aurora and drifting stars, planets on two counter-orbits, a royal crown, twinkling gems) — no longer just a spinning ring. The Rewards & Inventory screen was recolored from green to a rich gold that matches the app identity, with smooth motion and shimmer, and the engraved "AK" coin shape is now unified everywhere. Rewards & Inventory also gained its own entrance portal — a golden sunrise with rays, laurel wreaths and rising stars with its own distinctive sound — completely different from the store portal. All your progress is saved. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 60;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b60/chess-amkh-4.2-b60.apk';
+const NOTES_AR = 'أضخمُ تحديثٍ للاقتصاد: مهامٌّ ذكيّةٌ تُصنَعُ لك أنت — تتدرّجُ مع مستواك وتتكيّفُ مع أسلوبِ لعبِك، بأهدافٍ جديدةٍ (كش-مات، سلسلةُ فوز، هزيمةُ نور، تعادُل، ألغاز). وأُضيفَتْ ندرةٌ جديدةٌ فوقَ الأسطوريّ: «أسطوريٌّ نادرٌ» أحمرُ اللونِ بأعلى قيمة، مع ٢٨ عنصرًا مِلحميًّا (إطاراتُ التنّينِ والسماويِّ والجحيمِ والفراغِ والرعدِ والمنشورِ والملائكيِّ والسبج، وخلفيّاتٌ وشاراتٌ واحتفالاتٌ ومؤثّراتُ كش-ماتٍ مِلءَ الشاشة) — كلٌّ يظهرُ عليك في كلِّ مكان. وصارَ المتجرُ يعرضُ كلَّ الكتالوجِ دائمًا؛ المقفولُ يُرى بوسمِه ويُشترى حينَ تحينُ دورتُه. كلُّ تقدّمِك محفوظٌ. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'The biggest economy update: smart missions made just for you — they scale with your level and adapt to your playstyle, with new goals (checkmate, win streak, beating Nour, draws, puzzles). A new rarity above Legendary arrives: red "Mythic" at the highest value, with 28 mythic items (Dragon, Celestial, Inferno, Void, Thunder, Prism, Seraph and Obsidian frames, plus backgrounds, badges, celebrations and full-screen checkmate effects) — each shows on you everywhere. The store now always shows the whole catalog; locked items are visible with a badge and become buyable when their rotation comes. All your progress is saved. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -2926,8 +2926,8 @@ function finalizeGame(room, winnerColor, reason) {
         const roomRef = room.code || `${whiteId}-${blackId}-${Date.now()}`;
         const wOut = winner === 'draw' ? 'draw' : (winner === 'white' ? 'win' : 'loss');
         const bOut = winner === 'draw' ? 'draw' : (winner === 'black' ? 'win' : 'loss');
-        economy.awardGame(whiteId, wOut, roomRef);
-        economy.awardGame(blackId, bOut, roomRef);
+        economy.awardGame(whiteId, wOut, roomRef, reason);
+        economy.awardGame(blackId, bOut, roomRef, reason);
         pushEconomyUpdate(whiteId);
         pushEconomyUpdate(blackId);
       } catch (e) { console.error('[economy] award game failed:', e.message); }

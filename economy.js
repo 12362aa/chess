@@ -57,23 +57,77 @@ const ACHIEVEMENTS = [
     ar: 'هزيمةُ نور',          en: 'Beat Nour',        descAr: 'اهزِمْ نورَ في وضعِ اللعبِ ضدّه.',   descEn: 'Beat Nour in a match against him.' },
 ];
 
-/* ══ المهام اليومية/الأسبوعية (المرحلة ٤) ══
-   كلٌّ لها metric تُزاد خادميًّا عبر bumpMissions من أحداثٍ موثّقة
-   (نهاية مباراة/حلّ لغز)، وtarget، ومكافأة عملات+XP. period_key يعزل
-   دورة اليوم/الأسبوع فلا تُطالَب مكافأةٌ مرّتين. ثنائيّة اللغة تُرسَل
-   للعميل عبر /catalog. metric: games | wins | puzzles. */
-const MISSIONS = [
-  // يوميّة (تتصفّر كلَّ يوم)
-  { id: 'd_play3',  period: 'daily',  metric: 'games',   target: 3,  coins: 30,  xp: 40,  ar: 'العَبْ ٣ مباريات',   en: 'Play 3 games',    descAr: 'العَبْ ثلاثَ مبارياتٍ اليوم.',       descEn: 'Play 3 games today.' },
-  { id: 'd_win1',   period: 'daily',  metric: 'wins',    target: 1,  coins: 40,  xp: 50,  ar: 'افُزْ بمباراة',       en: 'Win a game',      descAr: 'افُزْ بمباراةٍ واحدةٍ اليوم.',        descEn: 'Win 1 game today.' },
-  { id: 'd_pz5',    period: 'daily',  metric: 'puzzles', target: 5,  coins: 35,  xp: 45,  ar: 'حُلَّ ٥ ألغاز',        en: 'Solve 5 puzzles', descAr: 'حُلَّ خمسةَ ألغازٍ اليوم.',           descEn: 'Solve 5 puzzles today.' },
-  // أسبوعيّة (تتصفّر كلَّ أسبوع)
-  { id: 'w_play20', period: 'weekly', metric: 'games',   target: 20, coins: 150, xp: 200, ar: 'العَبْ ٢٠ مباراة',   en: 'Play 20 games',   descAr: 'العَبْ عشرينَ مباراةً هذا الأسبوع.', descEn: 'Play 20 games this week.' },
-  { id: 'w_win10',  period: 'weekly', metric: 'wins',    target: 10, coins: 220, xp: 280, ar: 'افُزْ بـ١٠ مباريات', en: 'Win 10 games',    descAr: 'افُزْ بعشرِ مبارياتٍ هذا الأسبوع.',  descEn: 'Win 10 games this week.' },
-  { id: 'w_pz30',   period: 'weekly', metric: 'puzzles', target: 30, coins: 200, xp: 250, ar: 'حُلَّ ٣٠ لغزًا',       en: 'Solve 30 puzzles',descAr: 'حُلَّ ثلاثينَ لغزًا هذا الأسبوع.',    descEn: 'Solve 30 puzzles this week.' },
-];
-const MISSION_BY_ID = Object.create(null);
-for (const m of MISSIONS) MISSION_BY_ID[m.id] = m;
+/* ══ المهام اليومية/الأسبوعية الذكيّة (البناء ٦٠) ══
+   لم تعد ٦ مهامّ ثابتة للكلّ، بل مولّدة لكلّ لاعب: تُختار ٣ قوالب يوميّة
+   و٣ أسبوعيّة بترجيحٍ مشتقٍّ من سلوكه الفعليّ (تكيّف)، وتتدرّج أهدافها مع
+   مستواه (تدرّج). الاختيار حتميّ بالبذرة (period+periodKey+userId) ويُثبَّت
+   في جدول missions عند أوّل لمسةٍ للدورة (bumpMissions/snapshot/claim) فلا
+   يتغيّر لو تبدّلت الإحصاءات أثناء الدورة. metrics المدعومة:
+   games | wins | puzzles | checkmate | streak | nour | draws.
+   النصوص دوالٌّ تأخذ الهدف t فتُبنى ثنائيّة اللغة ديناميكيًّا (لا تسريب i18n).
+   coins = coinsPer*target، xp = xpPer*target، target = base + per*floor(level/5). */
+function _arNum(n) { return String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[+d]); }
+/* تمييزٌ عربيٌّ صحيحٌ نحويًّا حسب العدد: [مفرد، مثنّى، جمع ٣-١٠، تمييز >١٠]. */
+function _ar_p(n, f) { return n === 1 ? f[0] : n === 2 ? f[1] : (n >= 3 && n <= 10) ? f[2] : f[3]; }
+const _AR_MATCH  = ['مباراة', 'مباراتين', 'مباريات', 'مباراة'];
+const _AR_WIN    = ['فوزٍ', 'فوزين', 'انتصارات', 'فوزًا'];
+const _AR_PUZ    = ['لغزٍ', 'لغزين', 'ألغاز', 'لغزًا'];
+const _AR_TIME   = ['مرّة', 'مرّتين', 'مرّات', 'مرّة'];
+function _s(n) { return n === 1 ? '' : 's'; }
+
+const MISSION_TEMPLATES = {
+  daily: [
+    { key: 'games',     metric: 'games',     base: 3, per: 1, cpt: 10, xpt: 13,
+      ar: t => `العَبْ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)}`,        en: t => `Play ${t} game${_s(t)}`,
+      descAr: t => `العَبْ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} اليوم.`, descEn: t => `Play ${t} game${_s(t)} today.` },
+    { key: 'wins',      metric: 'wins',      base: 1, per: 1, cpt: 40, xpt: 50,
+      ar: t => `افُزْ بـ${_arNum(t)} ${_ar_p(t, _AR_MATCH)}`,       en: t => `Win ${t} game${_s(t)}`,
+      descAr: t => `افُزْ بـ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} اليوم.`, descEn: t => `Win ${t} game${_s(t)} today.` },
+    { key: 'puzzles',   metric: 'puzzles',   base: 5, per: 2, cpt: 7,  xpt: 9,
+      ar: t => `حُلَّ ${_arNum(t)} ${_ar_p(t, _AR_PUZ)}`,          en: t => `Solve ${t} puzzle${_s(t)}`,
+      descAr: t => `حُلَّ ${_arNum(t)} ${_ar_p(t, _AR_PUZ)} اليوم.`,  descEn: t => `Solve ${t} puzzle${_s(t)} today.` },
+    { key: 'checkmate', metric: 'checkmate', base: 1, per: 1, cpt: 45, xpt: 55,
+      ar: t => `سدّدْ ${_arNum(t)} كش-مات`,                        en: t => `Deliver ${t} checkmate${_s(t)}`,
+      descAr: t => `أنهِ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} بكش-مات اليوم.`, descEn: t => `Win ${t} game${_s(t)} by checkmate today.` },
+    { key: 'streak',    metric: 'streak',    base: 2, per: 1, cpt: 30, xpt: 40,
+      ar: t => `سلسلةُ ${_arNum(t)} انتصارات`,                     en: t => `${t}-win streak`,
+      descAr: t => `افُزْ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} متتالية دون خسارة.`, descEn: t => `Win ${t} games in a row without a loss.` },
+    { key: 'nour',      metric: 'nour',      base: 1, per: 0, cpt: 50, xpt: 60,
+      ar: t => `اهزِمْ نورَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`,    en: t => `Beat Nour ${t} time${_s(t)}`,
+      descAr: t => `اهزِمْ نورَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)} اليوم.`, descEn: t => `Beat Nour ${t} time${_s(t)} today.` },
+    { key: 'draws',     metric: 'draws',     base: 1, per: 0, cpt: 25, xpt: 30,
+      ar: t => `تعادَلْ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`,       en: t => `Draw ${t} game${_s(t)}`,
+      descAr: t => `أنهِ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} بالتعادل اليوم.`, descEn: t => `Draw ${t} game${_s(t)} today.` },
+  ],
+  weekly: [
+    { key: 'games',     metric: 'games',     base: 20, per: 3, cpt: 8,  xpt: 10,
+      ar: t => `العَبْ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)}`,        en: t => `Play ${t} game${_s(t)}`,
+      descAr: t => `العَبْ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} هذا الأسبوع.`, descEn: t => `Play ${t} game${_s(t)} this week.` },
+    { key: 'wins',      metric: 'wins',      base: 10, per: 2, cpt: 22, xpt: 28,
+      ar: t => `افُزْ بـ${_arNum(t)} ${_ar_p(t, _AR_MATCH)}`,       en: t => `Win ${t} game${_s(t)}`,
+      descAr: t => `افُزْ بـ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} هذا الأسبوع.`, descEn: t => `Win ${t} game${_s(t)} this week.` },
+    { key: 'puzzles',   metric: 'puzzles',   base: 30, per: 5, cpt: 7,  xpt: 8,
+      ar: t => `حُلَّ ${_arNum(t)} ${_ar_p(t, _AR_PUZ)}`,          en: t => `Solve ${t} puzzle${_s(t)}`,
+      descAr: t => `حُلَّ ${_arNum(t)} ${_ar_p(t, _AR_PUZ)} هذا الأسبوع.`, descEn: t => `Solve ${t} puzzle${_s(t)} this week.` },
+    { key: 'checkmate', metric: 'checkmate', base: 5, per: 1, cpt: 30, xpt: 38,
+      ar: t => `سدّدْ ${_arNum(t)} كش-مات`,                        en: t => `Deliver ${t} checkmate${_s(t)}`,
+      descAr: t => `أنهِ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} بكش-مات هذا الأسبوع.`, descEn: t => `Win ${t} game${_s(t)} by checkmate this week.` },
+    { key: 'streak',    metric: 'streak',    base: 4, per: 1, cpt: 50, xpt: 60,
+      ar: t => `سلسلةُ ${_arNum(t)} انتصارات`,                     en: t => `${t}-win streak`,
+      descAr: t => `افُزْ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} متتالية دون خسارة.`, descEn: t => `Win ${t} games in a row without a loss.` },
+    { key: 'nour',      metric: 'nour',      base: 3, per: 0, cpt: 40, xpt: 50,
+      ar: t => `اهزِمْ نورَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`,    en: t => `Beat Nour ${t} time${_s(t)}`,
+      descAr: t => `اهزِمْ نورَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)} هذا الأسبوع.`, descEn: t => `Beat Nour ${t} time${_s(t)} this week.` },
+    { key: 'draws',     metric: 'draws',     base: 3, per: 0, cpt: 25, xpt: 30,
+      ar: t => `تعادَلْ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`,       en: t => `Draw ${t} game${_s(t)}`,
+      descAr: t => `أنهِ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} بالتعادل هذا الأسبوع.`, descEn: t => `Draw ${t} game${_s(t)} this week.` },
+  ],
+};
+/* فهرسٌ للقالب من mission_id (`${period}_${key}`) لإعادة اشتقاق النصّ/المكافأة. */
+const MISSION_TPL_BY_ID = Object.create(null);
+for (const period of ['daily', 'weekly']) {
+  for (const t of MISSION_TEMPLATES[period]) MISSION_TPL_BY_ID[period + '_' + t.key] = Object.assign({ period }, t);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    المتجر (المرحلة ٢): كتالوج تجميليّ بحت + دوران حتميّ كل ٤ ساعات.
@@ -85,7 +139,7 @@ for (const m of MISSIONS) MISSION_BY_ID[m.id] = m;
    الاسمان (ar/en) يُرسَلان من الخادم مباشرةً فلا تسريب i18n ولا ازدواج. */
 const STORE_PERIOD_MS = 4 * 3600 * 1000;   // نافذة الدوران: ٤ ساعات
 const STORE_SLOTS = 6;                      // عدد العناصر المعروضة كل نافذة
-const RARITY_PRICE = { common: 120, rare: 300, epic: 650, legendary: 1400, seasonal: 1000 };
+const RARITY_PRICE = { common: 120, rare: 300, epic: 650, legendary: 1400, seasonal: 1000, mythic: 3000 };
 
 const STORE_CATALOG = [
   // إطارات الأفاتار (تظهر حول صورة اللاعب في كل مكان — المرحلة ٣)
@@ -149,6 +203,43 @@ const STORE_CATALOG = [
   { id: 'fx_ink',        type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ الحبر',        en: 'Ink Effect' },
   { id: 'fx_glitch',     type: 'mate_fx',     rarity: 'epic',      ar: 'مؤثّرُ التشويش',      en: 'Glitch Effect' },
   { id: 'fx_frostbreak', type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ الصقيع',       en: 'Frost Shatter Effect' },
+
+  /* ══ دفعةُ Mythic (المرحلة الأخيرة — البناء ٦٠): أعلى ندرة (حمراء)، أغلى
+     سعرًا، وأضخم بصريًّا. ٨ إطارات + ٦ خلفيّات + ٦ شارات + ٤ احتفال + ٤ مؤثّر
+     كش-مات. كلٌّ مرسومٌ خصّيصًا في العميل (لا يسقط للمولّد العامّ). ══ */
+  // إطارات Mythic (8)
+  { id: 'frame_dragon',    type: 'frame',       rarity: 'mythic',    ar: 'إطارُ التنّين',       en: 'Dragon Frame' },
+  { id: 'frame_celestial', type: 'frame',       rarity: 'mythic',    ar: 'إطارٌ سماويّ',        en: 'Celestial Frame' },
+  { id: 'frame_inferno',   type: 'frame',       rarity: 'mythic',    ar: 'إطارُ الجحيم',        en: 'Inferno Frame' },
+  { id: 'frame_void',      type: 'frame',       rarity: 'mythic',    ar: 'إطارُ الفراغ',        en: 'Void Frame' },
+  { id: 'frame_thunder',   type: 'frame',       rarity: 'mythic',    ar: 'إطارُ الرعد',         en: 'Thunder Frame' },
+  { id: 'frame_prism',     type: 'frame',       rarity: 'mythic',    ar: 'إطارُ المنشور',       en: 'Prism Frame' },
+  { id: 'frame_seraph',    type: 'frame',       rarity: 'mythic',    ar: 'إطارٌ ملائكيّ',       en: 'Seraph Frame' },
+  { id: 'frame_obsidian',  type: 'frame',       rarity: 'mythic',    ar: 'إطارُ السبج',         en: 'Obsidian Frame' },
+  // خلفيّات Mythic (6)
+  { id: 'bg_dragon_lair',  type: 'background',  rarity: 'mythic',    ar: 'خلفيّةُ وكرِ التنّين', en: 'Dragon Lair Background' },
+  { id: 'bg_cosmos',       type: 'background',  rarity: 'mythic',    ar: 'خلفيّةُ الكون',       en: 'Cosmos Background' },
+  { id: 'bg_inferno',      type: 'background',  rarity: 'mythic',    ar: 'خلفيّةُ الجحيم',      en: 'Inferno Background' },
+  { id: 'bg_void',         type: 'background',  rarity: 'mythic',    ar: 'خلفيّةُ الفراغ',      en: 'Void Background' },
+  { id: 'bg_thunderstorm', type: 'background',  rarity: 'mythic',    ar: 'خلفيّةُ العاصفة',     en: 'Thunderstorm Background' },
+  { id: 'bg_prism',        type: 'background',  rarity: 'mythic',    ar: 'خلفيّةُ المنشور',     en: 'Prism Background' },
+  // شارات Mythic (6)
+  { id: 'badge_dragon',    type: 'badge',       rarity: 'mythic',    ar: 'شارةُ التنّين',       en: 'Dragon Badge' },
+  { id: 'badge_phoenix',   type: 'badge',       rarity: 'mythic',    ar: 'شارةُ العنقاء',       en: 'Phoenix Badge' },
+  { id: 'badge_infinity',  type: 'badge',       rarity: 'mythic',    ar: 'شارةُ اللانهاية',     en: 'Infinity Badge' },
+  { id: 'badge_trophy',    type: 'badge',       rarity: 'mythic',    ar: 'شارةُ الكأس',         en: 'Trophy Badge' },
+  { id: 'badge_lotus',     type: 'badge',       rarity: 'mythic',    ar: 'شارةُ اللوتس',        en: 'Lotus Badge' },
+  { id: 'badge_eye',       type: 'badge',       rarity: 'mythic',    ar: 'شارةُ العين',         en: 'Eye Badge' },
+  // احتفالات Mythic (4)
+  { id: 'cel_dragon',      type: 'celebration', rarity: 'mythic',    ar: 'زفيرُ التنّين',       en: 'Dragon Breath Celebration' },
+  { id: 'cel_galaxy',      type: 'celebration', rarity: 'mythic',    ar: 'انفجارٌ مجرّيّ',      en: 'Galaxy Burst Celebration' },
+  { id: 'cel_phoenix',     type: 'celebration', rarity: 'mythic',    ar: 'نهوضُ العنقاء',       en: 'Phoenix Rise Celebration' },
+  { id: 'cel_goldstorm',   type: 'celebration', rarity: 'mythic',    ar: 'عاصفةٌ ذهبيّة',       en: 'Gold Storm Celebration' },
+  // مؤثّرات كش-مات Mythic (4)
+  { id: 'fx_dragonfire',   type: 'mate_fx',     rarity: 'mythic',    ar: 'نارُ التنّين',        en: 'Dragonfire Effect' },
+  { id: 'fx_blackhole',    type: 'mate_fx',     rarity: 'mythic',    ar: 'الثقبُ الأسود',       en: 'Black Hole Effect' },
+  { id: 'fx_thunderstrike',type: 'mate_fx',     rarity: 'mythic',    ar: 'صاعقةٌ عظمى',         en: 'Thunderstrike Effect' },
+  { id: 'fx_prismburst',   type: 'mate_fx',     rarity: 'mythic',    ar: 'انفجارٌ منشوريّ',     en: 'Prism Burst Effect' },
 ];
 const STORE_BY_ID = Object.create(null);
 for (const it of STORE_CATALOG) { it.price = RARITY_PRICE[it.rarity] || 300; STORE_BY_ID[it.id] = it; }
@@ -175,15 +266,21 @@ function storeItemsForEpoch(epoch) {
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
   return pool.slice(0, STORE_SLOTS);
 }
+/* لقطةُ المتجر: نعرض **كلّ** الكتالوج دائمًا (حتى المقفول) — البناء ٦٠.
+   inWindow يحدّد أيّ العناصر ضمن نافذة الدوران الحاليّة (قابلة للشراء الآن)؛
+   الباقي يظهر بوسمٍ «يظهر في دورته» ولا يُشترى. windowIds مرفقةٌ للعميل
+   عشان يبرز عناصر الدورة ويفرزها أوّلًا. */
 function storeCurrent(userId, now) {
   const t = (now == null ? Date.now() : now);
   const epoch = storeEpoch(t);
   const owned = new Set(userId ? qOwned.all(userId).map(r => r.item_id) : []);
-  const items = storeItemsForEpoch(epoch).map(it => ({
+  const windowIds = storeItemsForEpoch(epoch).map(i => i.id);
+  const winSet = new Set(windowIds);
+  const items = STORE_CATALOG.map(it => ({
     id: it.id, type: it.type, rarity: it.rarity, price: it.price,
-    ar: it.ar, en: it.en, owned: owned.has(it.id),
+    ar: it.ar, en: it.en, owned: owned.has(it.id), inWindow: winSet.has(it.id),
   }));
-  return { epoch, endsAt: (epoch + 1) * STORE_PERIOD_MS, serverNow: t, periodMs: STORE_PERIOD_MS, items };
+  return { epoch, endsAt: (epoch + 1) * STORE_PERIOD_MS, serverNow: t, periodMs: STORE_PERIOD_MS, windowIds, items };
 }
 
 /* الشراء: تحقّق ذرّيّ — العنصر ضمن النافذة الحاليّة + غير مملوك + الرصيد
@@ -221,6 +318,8 @@ const qAch      = db.prepare('SELECT ach_id FROM achievements WHERE user_id = ?'
 const insAch    = db.prepare('INSERT OR IGNORE INTO achievements (user_id, ach_id) VALUES (?, ?)');
 const qOwned    = db.prepare('SELECT item_id FROM user_cosmetics WHERE user_id = ?');
 const qEquipped = db.prepare('SELECT equipped_frame, equipped_background, equipped_badge, equipped_celebration, equipped_mate_fx FROM users WHERE id = ?');
+const qStreak   = db.prepare('SELECT win_streak FROM users WHERE id = ?');
+const updStreak = db.prepare('UPDATE users SET win_streak = ? WHERE id = ?');
 
 function ensureWallet(userId) {
   insWallet.run(userId);
@@ -246,8 +345,12 @@ function grant(userId, coins, xp, reason, ref) {
   try { return tx(); } catch (e) { console.error('[economy] grant failed:', e.message); return false; }
 }
 
-/* كسب نتيجة مباراة (يُستدعى من finalizeGame). outcome: win|draw|loss. */
-function awardGame(userId, outcome, roomRef) {
+/* كسب نتيجة مباراة (يُستدعى من finalizeGame). outcome: win|draw|loss.
+   reason: سبب الإنهاء من العميل ('checkmate'|'timeout'|'resign'|...) — يُستعمل
+   لتقدّم مهمّة الكش-مات فقط. كلُّ زياداتِ المهام مموّنةٌ بشرط عدم التكرار
+   (fresh !== false) فلا تُحسَب نفسُ المباراة مرّتين. سلسلةُ الفوز تُتبَّع على
+   users.win_streak (تُزاد بالفوز، تُصفَّر بالتعادل/الخسارة). */
+function awardGame(userId, outcome, roomRef, reason) {
   const key = outcome === 'win' ? 'game_win' : outcome === 'draw' ? 'game_draw' : 'game_loss';
   const a = AWARD[key];
   if (!a) return;
@@ -256,7 +359,20 @@ function awardGame(userId, outcome, roomRef) {
   // تقدّم المهام: مرّةً واحدةً لكلِّ مباراة (مموّنٌ بنفس شرط عدم التكرار)
   if (fresh !== false) {
     bumpMissions(userId, 'games', 1);
-    if (outcome === 'win') bumpMissions(userId, 'wins', 1);
+    let streak = 0;
+    try { const r = qStreak.get(userId); streak = r ? (Number(r.win_streak) || 0) : 0; } catch (e) {}
+    if (outcome === 'win') {
+      bumpMissions(userId, 'wins', 1);
+      if (String(reason || '').toLowerCase().indexOf('checkmate') !== -1) bumpMissions(userId, 'checkmate', 1);
+      streak = streak + 1;
+      setMissionsMetric(userId, 'streak', streak);
+    } else if (outcome === 'draw') {
+      bumpMissions(userId, 'draws', 1);
+      streak = 0;
+    } else {
+      streak = 0;
+    }
+    try { updStreak.run(streak, Number(userId)); } catch (e) {}
   }
   try { evaluateAchievements(userId); } catch (e) {}
 }
@@ -396,72 +512,157 @@ function periodKey(period, now) {
 const qMissionRow = db.prepare('SELECT progress, target, claimed FROM missions WHERE user_id = ? AND mission_id = ? AND period_key = ?');
 const insMissionRow = db.prepare('INSERT OR IGNORE INTO missions (user_id, mission_id, period, period_key, progress, target, claimed) VALUES (?,?,?,?,?,?,0)');
 const updMissionProg = db.prepare("UPDATE missions SET progress = MIN(target, progress + ?), updated_at = datetime('now') WHERE user_id = ? AND mission_id = ? AND period_key = ?");
+const setMissionMax  = db.prepare("UPDATE missions SET progress = MAX(progress, MIN(target, ?)), updated_at = datetime('now') WHERE user_id = ? AND mission_id = ? AND period_key = ?");
 const setMissionClaimed = db.prepare("UPDATE missions SET claimed = 1, updated_at = datetime('now') WHERE user_id = ? AND mission_id = ? AND period_key = ?");
+const qMissionCount = db.prepare('SELECT COUNT(*) AS n FROM missions WHERE user_id = ? AND period = ? AND period_key = ?');
+const qMissionsForPeriod = db.prepare('SELECT mission_id, progress, target, claimed FROM missions WHERE user_id = ? AND period = ? AND period_key = ?');
+
+/* ══ التوليد الذكيّ للمهام (البناء ٦٠) ══ */
+function _levelOf(userId) { const w = qWallet.get(userId); return w ? (Number(w.level) || 1) : 1; }
+function _targetFor(tpl, level) { return Math.max(1, tpl.base + tpl.per * Math.floor((Number(level) || 1) / 5)); }
+
+/* أوزانُ الترجيح مشتقّةٌ من سلوك اللاعب الفعليّ (التكيّف). كلّما لعب/فاز/حلّ
+   أكثر في محورٍ ما رجّحنا مهامّه — مع إبقاء «العَبْ» حاضرًا دائمًا للجميع. */
+function _weights(stats) {
+  const g = Number(stats.games) || 0, w = Number(stats.wins) || 0, d = Number(stats.draws) || 0, p = Number(stats.puzzles) || 0;
+  const winRate = g ? w / g : 0.4;
+  const drawRate = g ? d / g : 0.1;
+  const puzRate = (p + g) ? p / (p + g) : 0.3;
+  return {
+    games:     1.0,
+    wins:      0.8 + winRate * 1.2,
+    puzzles:   0.5 + puzRate * 2.0,
+    checkmate: 0.6 + winRate * 1.0,
+    streak:    0.4 + winRate * 1.6,
+    nour:      0.45,
+    draws:     0.3 + drawRate * 2.5,
+  };
+}
+/* اختيارُ ٣ قوالبَ متمايزةٍ بترجيحٍ بلا إبدال، باستخدام rng حتميّ. */
+function _pick3(templates, weights, rng) {
+  const pool = templates.map(t => ({ t, w: Math.max(0.05, weights[t.metric] || 0.3) }));
+  const out = [];
+  for (let k = 0; k < 3 && pool.length; k++) {
+    const total = pool.reduce((s, x) => s + x.w, 0);
+    let r = rng() * total, idx = 0;
+    for (; idx < pool.length; idx++) { r -= pool[idx].w; if (r <= 0) break; }
+    if (idx >= pool.length) idx = pool.length - 1;
+    out.push(pool[idx].t);
+    pool.splice(idx, 1);
+  }
+  return out;
+}
+/* بذرُ مهامِّ الدورة مرّةً واحدة (حتميّة + تُثبَّت في الجدول فلا تتغيّر لو
+   تبدّلت الإحصاءات لاحقًا). يُستدعى من كلِّ مسار يلمس المهام. */
+function ensureSeeded(userId, period) {
+  const pk = periodKey(period);
+  let n = 0;
+  try { n = qMissionCount.get(userId, period, pk).n; } catch (e) {}
+  if (n > 0) return pk;
+  const level = _levelOf(userId);
+  const stats = statsSnapshot(userId);
+  const rng = _mulberry32(_fnv1a('missions:' + period + ':' + pk + ':' + userId));
+  const chosen = _pick3(MISSION_TEMPLATES[period], _weights(stats), rng);
+  try {
+    db.transaction(() => {
+      for (const tpl of chosen) insMissionRow.run(userId, period + '_' + tpl.key, period, pk, 0, _targetFor(tpl, level));
+    })();
+  } catch (e) { console.error('[economy] seed missions', e.message); }
+  return pk;
+}
+/* بناءُ كائن المهمّة الكامل من صفٍّ + قالبه (النصّ/المكافأة تُشتقّ من target). */
+function _missionView(tpl, row) {
+  const target = Number(row.target) || _targetFor(tpl, 1);
+  const raw = Number(row.progress) || 0;
+  return {
+    id: tpl.period + '_' + tpl.key, period: tpl.period, metric: tpl.metric, target,
+    progress: Math.min(target, raw), claimed: !!row.claimed, done: raw >= target,
+    coins: tpl.cpt * target, xp: tpl.xpt * target,
+    ar: tpl.ar(target), en: tpl.en(target), descAr: tpl.descAr(target), descEn: tpl.descEn(target),
+  };
+}
+/* تطبيقُ دالّةٍ على كلِّ مهمّةٍ مبذورةٍ تتبع هذا الـmetric في كلا الدورتين. */
+function _applyMetric(userId, metric, fn) {
+  for (const period of ['daily', 'weekly']) {
+    const pk = ensureSeeded(userId, period);
+    for (const row of qMissionsForPeriod.all(userId, period, pk)) {
+      const tpl = MISSION_TPL_BY_ID[row.mission_id];
+      if (tpl && tpl.metric === metric) fn(row.mission_id, pk);
+    }
+  }
+}
 
 /* رفعُ تقدّم كلِّ مهمّةٍ تتبع هذا الـmetric بمقدار amount (مقصوصٌ عند
-   الهدف). يُستدعى من أحداثٍ موثّقة فقط (نهاية مباراة/حلّ لغز). */
+   الهدف، تراكميّ). يُستدعى من أحداثٍ موثّقة فقط (نهاية مباراة/حلّ لغز/نور). */
 function bumpMissions(userId, metric, amount) {
   userId = Number(userId);
   amount = Math.max(1, Math.round(Number(amount) || 1));
   if (!userId) return;
   try {
-    const tx = db.transaction(() => {
-      for (const m of MISSIONS) {
-        if (m.metric !== metric) continue;
-        const pk = periodKey(m.period);
-        insMissionRow.run(userId, m.id, m.period, pk, 0, m.target);
-        updMissionProg.run(amount, userId, m.id, pk);
-      }
-    });
-    tx();
+    db.transaction(() => {
+      _applyMetric(userId, metric, (missionId, pk) => updMissionProg.run(amount, userId, missionId, pk));
+    })();
   } catch (e) { console.error('[economy] bumpMissions', e.message); }
 }
 
-/* لقطةُ مهام الدورة الحاليّة (يوميّة + أسبوعيّة) مع التقدّم والمطالبة. */
-function missionsSnapshot(userId) {
+/* تعيينُ تقدّمِ مهامِّ metric بقيمةٍ مطلقةٍ بحدٍّ أقصى (لا تراكم) — لمهمّة
+   «سلسلة الفوز»: التقدّم = أطولُ سلسلةٍ بلغها اللاعب في الدورة، لا مجموعها. */
+function setMissionsMetric(userId, metric, value) {
   userId = Number(userId);
-  return MISSIONS.map(m => {
-    const pk = periodKey(m.period);
-    const row = qMissionRow.get(userId, m.id, pk) || { progress: 0, target: m.target, claimed: 0 };
-    return {
-      id: m.id, period: m.period, target: m.target,
-      progress: Math.min(m.target, Number(row.progress) || 0),
-      claimed: !!row.claimed,
-      done: (Number(row.progress) || 0) >= m.target,
-      coins: m.coins, xp: m.xp,
-    };
-  });
+  value = Math.max(0, Math.round(Number(value) || 0));
+  if (!userId) return;
+  try {
+    db.transaction(() => {
+      _applyMetric(userId, metric, (missionId, pk) => setMissionMax.run(value, userId, missionId, pk));
+    })();
+  } catch (e) { console.error('[economy] setMissionsMetric', e.message); }
 }
 
-/* مطالبةُ مكافأة مهمّةٍ مكتملة (مرّة واحدة لكلِّ دورة). */
+/* لقطةُ مهام الدورة الحاليّة (٣ يوميّة + ٣ أسبوعيّة مولّدة) مع التقدّم والمطالبة.
+   تحمل الآن ar/en/descAr/descEn/target/coins/xp كاملةً (لا كتالوج ثابت). */
+function missionsSnapshot(userId) {
+  userId = Number(userId);
+  const out = [];
+  for (const period of ['daily', 'weekly']) {
+    const pk = ensureSeeded(userId, period);
+    for (const row of qMissionsForPeriod.all(userId, period, pk)) {
+      const tpl = MISSION_TPL_BY_ID[row.mission_id];
+      if (tpl) out.push(_missionView(tpl, row));
+    }
+  }
+  return out;
+}
+
+/* مطالبةُ مكافأة مهمّةٍ مكتملة (مرّة واحدة لكلِّ دورة). لا يمكن المطالبة إلا
+   بمهمّةٍ مبذورةٍ فعلًا هذه الدورة (ضمن الـ٣ المختارة) وبلغت هدفها. */
 function claimMission(userId, missionId) {
   userId = Number(userId);
-  const m = MISSION_BY_ID[missionId];
-  if (!userId || !m) return { ok: false, reason: 'bad_mission' };
-  const pk = periodKey(m.period);
+  const tpl = MISSION_TPL_BY_ID[missionId];
+  if (!userId || !tpl) return { ok: false, reason: 'bad_mission' };
+  const pk = ensureSeeded(userId, tpl.period);
   const tx = db.transaction(() => {
-    insMissionRow.run(userId, m.id, m.period, pk, 0, m.target);
-    const row = qMissionRow.get(userId, m.id, pk);
-    if (!row || (Number(row.progress) || 0) < m.target) return { ok: false, reason: 'incomplete' };
+    const row = qMissionRow.get(userId, missionId, pk);
+    if (!row) return { ok: false, reason: 'incomplete' };  // غير مختارةٍ هذه الدورة
+    const target = Number(row.target) || _targetFor(tpl, 1);
+    if ((Number(row.progress) || 0) < target) return { ok: false, reason: 'incomplete' };
     if (row.claimed) return { ok: false, reason: 'claimed' };
-    setMissionClaimed.run(userId, m.id, pk);
-    grant(userId, m.coins, m.xp, 'mission:' + m.id, 'mission:' + m.id + ':' + pk);
+    setMissionClaimed.run(userId, missionId, pk);
+    grant(userId, tpl.cpt * target, tpl.xpt * target, 'mission:' + missionId, 'mission:' + missionId + ':' + pk);
     return { ok: true, reason: 'ok' };
   });
   try { return tx(); } catch (e) { console.error('[economy] claimMission', e.message); return { ok: false, reason: 'error' }; }
 }
 
-/* كتالوج ثابت ثنائيّ اللغة للعميل (إنجازات + مهامّ) — يُجلَب مرّةً. */
+/* كتالوج ثابت ثنائيّ اللغة للعميل (إنجازات + عناصر) — يُجلَب مرّةً.
+   المهامّ لم تعد ثابتةً (مولّدة لكلّ لاعب) فمصدرُ عرضِها صار snapshot.missions؛
+   نُبقي missions:[] للتوافق مع العملاء القدامى فقط. */
 function catalog() {
   return {
     achievements: ACHIEVEMENTS.map(a => ({
       id: a.id, coins: a.coins, xp: a.xp, icon: a.icon || 'medal',
       ar: a.ar, en: a.en, descAr: a.descAr, descEn: a.descEn,
     })),
-    missions: MISSIONS.map(m => ({
-      id: m.id, period: m.period, metric: m.metric, target: m.target,
-      coins: m.coins, xp: m.xp, ar: m.ar, en: m.en, descAr: m.descAr, descEn: m.descEn,
-    })),
+    missions: [],
     items: STORE_CATALOG.map(it => ({
       id: it.id, type: it.type, rarity: it.rarity, price: it.price, ar: it.ar, en: it.en,
     })),
@@ -528,6 +729,9 @@ router.post('/beat-nour', authenticateToken, (req, res) => {
       grant(userId, AWARD.beat_nour.coins, AWARD.beat_nour.xp, 'ach:beat_nour', 'ach:beat_nour');
       awarded = true;
     }
+    // مهمّة «هزيمة نور» متكرّرة كلَّ دورة (مقصوصةٌ عند الهدف) بخلاف الإنجاز
+    // الذي يُمنح مرّةً واحدةً مدى الحياة.
+    bumpMissions(userId, 'nour', 1);
     res.json({ awarded, ...snapshot(userId) });
   } catch (e) { res.status(500).json({ error: 'economy_error' }); }
 });
@@ -580,13 +784,15 @@ module.exports = {
   storeItemsForEpoch,
   storeEpoch,
   bumpMissions,
+  setMissionsMetric,
   missionsSnapshot,
   claimMission,
+  ensureSeeded,
   periodKey,
   catalog,
   AWARD,
   ACHIEVEMENTS,
-  MISSIONS,
+  MISSION_TEMPLATES,
   STORE_CATALOG,
   STORE_PERIOD_MS,
 };

@@ -230,8 +230,9 @@
 
     /* ══ لسانُ المهام ══ */
     _missionsHTML: function () {
-      var s = state() || {}, cat = this._cat || {}, defs = cat.missions || [];
-      var live = {}; (s.missions || []).forEach(function (m) { live[m.id] = m; });
+      /* المصدرُ الآن لقطةُ الخادمِ مباشرةً: مهامٌّ مولّدةٌ لكلِّ لاعبٍ تحملُ
+         ar/en/period/target/coins/progress/done/claimed — لا كتالوجَ ثابت. */
+      var s = state() || {}, defs = s.missions || [];
       if (!defs.length) return '<div class="rw-empty">' + esc(L('لا مهامَّ الآن.', 'No missions right now.')) + '</div>';
       var groups = [{ p: 'daily', t: L('يوميّة', 'Daily') }, { p: 'weekly', t: L('أسبوعيّة', 'Weekly') }];
       var html = '';
@@ -240,9 +241,8 @@
         if (!rows.length) return;
         html += '<h3 class="rw-grp">' + esc(g.t) + '</h3><div class="rw-list">';
         rows.forEach(function (d) {
-          var lv = live[d.id] || { progress: 0, claimed: false, done: false };
-          var prog = Math.min(d.target, Number(lv.progress) || 0), pct = d.target ? Math.round(prog / d.target * 100) : 0;
-          var done = (lv.done || prog >= d.target), claimed = !!lv.claimed;
+          var prog = Math.min(d.target, Number(d.progress) || 0), pct = d.target ? Math.round(prog / d.target * 100) : 0;
+          var done = (d.done || prog >= d.target), claimed = !!d.claimed;
           var btn = claimed
             ? '<span class="rw-claimed">' + esc(L('مُستلَمة', 'Claimed')) + '</span>'
             : done

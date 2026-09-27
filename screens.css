@@ -8014,6 +8014,37 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-detail__hint{ font-size:12px; color:rgba(255,255,255,.55); }
 @media (prefers-reduced-motion:reduce){ .store-detail__panel,.store-detail__scrim,.store-detail__art{ animation:none; } }
 
+/* ══ ندرةُ Mythic (حمراء) + الكتالوجُ الكامل: المقفولُ يُشترى في دورته ══ */
+.store-card--mythic{ --rc:#ff3b3b; }
+.store-card--mythic{ border-width:1.5px;
+  box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 22px rgba(255,59,59,.32),inset 0 0 34px rgba(255,59,59,.22); }
+.store-card--mythic::after{ content:''; position:absolute; top:0; left:-60%; width:45%; height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,120,120,.45),transparent); transform:skewX(-18deg);
+  animation:stShine 2.8s ease-in-out infinite; pointer-events:none; }
+@media (hover:hover){ .store-card--mythic:hover{
+  box-shadow:0 16px 34px rgba(0,0,0,.55),0 0 30px rgba(255,59,59,.5),inset 0 0 38px rgba(255,59,59,.3); } }
+.store-detail__art{ }
+.store-card--mythic .store-card__art,.store-detail--mythic .store-detail__art{
+  filter:drop-shadow(0 0 14px rgba(255,59,59,.7)); }
+
+/* عنصرٌ متاحٌ الآن (داخلَ نافذةِ الدوران) */
+.store-card__now{ position:absolute; top:10px; inset-inline-end:10px; z-index:2; font-size:9.5px; font-weight:800;
+  letter-spacing:.08em; color:#0a1a10; padding:3px 9px; border-radius:999px;
+  background:linear-gradient(180deg,#9bf0c0,#38e0a0); box-shadow:0 2px 8px rgba(56,224,160,.5); }
+.store-card.in-window{ box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1.5px color-mix(in srgb,var(--rc) 60%,transparent),
+  inset 0 0 30px color-mix(in srgb,var(--rc) 20%,transparent); }
+
+/* عنصرٌ مقفولٌ خارجَ دورته: باهتٌ + قفل، لا يُشترى */
+.store-card.is-window-locked{ opacity:.62; filter:grayscale(.35); }
+.store-card.is-window-locked .store-card__art{ animation:none; }
+.store-soon{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px;
+  font-weight:800; font-size:12px; color:rgba(255,255,255,.7);
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); }
+.store-soon__lock{ width:12px; height:12px; display:inline-block; }
+.store-soon__lock svg{ width:100%; height:100%; display:block; }
+.store-detail__soon{ font-size:13px; font-weight:700; line-height:1.6; color:#ffd0a0;
+  background:rgba(255,160,80,.10); border:1px solid rgba(255,160,80,.32); border-radius:14px; padding:10px 16px; max-width:34ch; }
+
 /* ══ الجوائزُ والتقدّم (المرحلة ٤): شاشةٌ غامرةٌ بثلاثةِ ألسنة ══
    تعيدُ استعمالَ هيكلِ المتجر (store-ov/scroll/wrap/close/head/bar/balance)
    فوقَ لونٍ زُمُرُّديٍّ مميّزٍ، وتضيفُ عناصرَ المهامِّ/الإنجازاتِ/المخزون. */
@@ -8233,6 +8264,23 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   40%{ transform:translateX(6vw); } 70%{ transform:translateX(-3vw); opacity:.7; } 100%{ opacity:0; } }
 .cosfx-crack{ position:absolute; inset:0; will-change:opacity; animation:cosfxFlash ease-out forwards; }
 .cosfx-crack svg{ width:100%; height:100%; display:block; }
+/* ═══ Mythic FX ═══ */
+/* حلقاتُ صدمةٍ تتّسعُ من المركز (رعد/منشور/مجرّة) */
+.cosfx-shock{ position:absolute; top:50%; left:50%; width:24px; height:24px; margin:-12px 0 0 -12px;
+  border:3px solid #fff; border-radius:50%; will-change:transform,opacity; animation:cosfxShock ease-out forwards; }
+@keyframes cosfxShock{ 0%{ transform:scale(.2); opacity:0; } 14%{ opacity:.95; }
+  100%{ transform:scale(46); opacity:0; } }
+/* جُسيماتٌ تُبتلَعُ نحوَ المركز (الثقبُ الأسود) */
+.cosfx-implode{ position:absolute; top:50%; left:50%; width:8px; height:8px; margin:-4px 0 0 -4px; border-radius:50%;
+  will-change:transform,opacity; animation:cosfxImplode ease-in forwards; }
+@keyframes cosfxImplode{ 0%{ transform:translate(var(--dx,0),var(--dy,0)) scale(1.1); opacity:0; }
+  18%{ opacity:1; } 100%{ transform:translate(0,0) scale(.05); opacity:0; } }
+/* قرصُ ثقبٍ أسودَ دوّارٌ في المركز */
+.cosfx-vortex{ position:absolute; top:50%; left:50%; width:44vh; height:44vh; margin:-22vh 0 0 -22vh;
+  will-change:transform,opacity; animation:cosfxVortex ease-in-out forwards; }
+.cosfx-vortex svg{ width:100%; height:100%; display:block; filter:drop-shadow(0 0 26px rgba(140,90,220,.7)); }
+@keyframes cosfxVortex{ 0%{ transform:rotate(0deg) scale(.2); opacity:0; } 16%{ opacity:1; }
+  80%{ opacity:1; } 100%{ transform:rotate(520deg) scale(1.15); opacity:0; } }
 @media (prefers-reduced-motion:reduce){ .cos-fx-ov{ display:none; } }
 
 

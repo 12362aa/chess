@@ -155,6 +155,15 @@
     frame_galaxy:  ['#a86bff', '#2233aa', '#e0c8ff'],
     frame_phoenix: ['#ff8a3a', '#ff1e00', '#ffd27a'],
     frame_sakura:  ['#ffc2dd', '#ff5fa2', '#ffe6f0'],
+    // ═══ Mythic (الأندرُ — طوقٌ متعدّدُ الطبقاتِ فخم) ═══
+    frame_dragon:    ['#ff7a2f', '#7a1500', '#ffd27a'],
+    frame_celestial: ['#8fd4ff', '#183a8f', '#ffffff'],
+    frame_inferno:   ['#ff3d00', '#3a0505', '#ffb347'],
+    frame_void:      ['#b06bff', '#0a0618', '#e0c8ff'],
+    frame_thunder:   ['#ffe14a', '#2a2d6a', '#fff7c4'],
+    frame_prism:     ['#5affc0', '#ff6ad5', '#8fd4ff'],
+    frame_seraph:    ['#fff0b0', '#c9a84c', '#ffffff'],
+    frame_obsidian:  ['#7a7a90', '#0a0a12', '#d0d0e0'],
   };
   // (لم يعد فيه إطارٌ يعتمد على النبض العام — كلٌّ له رسمُه الخاصّ أدناه)
   var FRAME_GLOW = {};
@@ -275,6 +284,75 @@
         + '</g>'
         + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.6s" repeatCount="indefinite"/><circle cx="50" cy="9" r="2" fill="' + t[2] + '"/><circle cx="50" cy="9" r="3.4" fill="' + t[2] + '" opacity="0.35"/></g>';
     },
+    // ═══ Mythic ═══
+    // التنّين: طوقٌ ناريٌّ مزدوجٌ + رأسُ تنّينٍ في القمّةِ بعينٍ متوهّجةٍ + جناحان + جمراتٌ صاعدة
+    frame_dragon: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="7"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="2" stroke-linecap="round" stroke-dasharray="10 300"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/></circle>'
+        + '<g fill="url(#' + g + ')"><path d="M18 40 Q2 34 6 14 Q22 24 30 40 Q24 42 18 40Z"><animate attributeName="opacity" values="0.7;1;0.7" dur="1.2s" repeatCount="indefinite"/></path><path d="M82 40 Q98 34 94 14 Q78 24 70 40 Q76 42 82 40Z"><animate attributeName="opacity" values="1;0.7;1" dur="1.2s" repeatCount="indefinite"/></path></g>'
+        + '<g fill="' + t[0] + '"><path d="M40 8 Q50 -2 60 8 Q66 12 62 18 L58 14 Q50 8 42 14 L38 18 Q34 12 40 8Z"/><circle cx="46" cy="11" r="1.6" fill="#fff"><animate attributeName="opacity" values="0.4;1;0.4" dur="0.9s" repeatCount="indefinite"/></circle><circle cx="54" cy="11" r="1.6" fill="#fff"><animate attributeName="opacity" values="1;0.4;1" dur="0.9s" repeatCount="indefinite"/></circle></g>'
+        + '<g fill="' + t[2] + '"><circle cx="40" cy="94" r="2"><animate attributeName="cy" values="94;58" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.5s" repeatCount="indefinite"/></circle><circle cx="60" cy="96" r="1.6"><animate attributeName="cy" values="96;56" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2s" repeatCount="indefinite"/></circle></g>';
+    },
+    // السماويّ: طوقٌ + هالةٌ متّسعةٌ + كوكبان مداريّان + سحابةُ نجوم
+    frame_celestial: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<circle cx="50" cy="50" r="38" fill="none" stroke="' + t[2] + '" stroke-width="1.4"><animate attributeName="r" values="38;47;38" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0.6" dur="3s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-dasharray="14 300" stroke-linecap="round" opacity="0.9"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/></circle>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="6s" repeatCount="indefinite"/><circle cx="50" cy="6" r="3.4" fill="#fff"/><circle cx="50" cy="6" r="5.5" fill="' + t[0] + '" opacity="0.35"/><circle cx="94" cy="50" r="2.6" fill="' + t[2] + '"/></g>'
+        + '<g fill="#fff"><circle cx="28" cy="22" r="1.3"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="74" cy="26" r="1.1"><animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/></circle><circle cx="70" cy="76" r="1.2"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.8s" repeatCount="indefinite"/></circle><circle cx="26" cy="74" r="1" fill="' + t[0] + '"><animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/></circle></g>';
+    },
+    // الجحيم: طوقٌ + ألسنةُ لهبٍ كثيفةٌ حولَ كاملِ المحيطِ + توهّجٌ أحمرُ نابضٌ داخليّ
+    frame_inferno: function (t, g) {
+      var tongue = function (cx, cy, s, rot, dur) { return '<path d="M' + cx + ' ' + cy + ' q' + (-4 * s) + ' ' + (-8 * s) + ' 0 ' + (-16 * s) + ' q' + (4 * s) + ' ' + (8 * s) + ' 0 ' + (16 * s) + 'z" fill="url(#' + g + ')" transform="rotate(' + rot + ' ' + cx + ' ' + cy + ')"><animate attributeName="opacity" values="0.4;1;0.4" dur="' + dur + 's" repeatCount="indefinite"/></path>'; };
+      var pts = [[50,5,0],[73,12,42],[88,27,80],[95,50,90],[88,73,120],[73,88,150],[50,95,180],[27,88,210],[12,73,240],[5,50,270],[12,27,300],[27,12,330]], ring = '';
+      for (var i = 0; i < pts.length; i++) ring += tongue(pts[i][0], pts[i][1], (i % 2 ? 1.1 : 1.5), pts[i][2], (0.5 + (i % 3) * 0.16).toFixed(2));
+      return '<circle cx="50" cy="50" r="42" fill="' + t[1] + '" opacity="0.35"><animate attributeName="opacity" values="0.15;0.5;0.15" dur="1.2s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="42" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<g>' + ring + '</g>'
+        + '<circle cx="50" cy="50" r="42" fill="none" stroke="' + t[2] + '" stroke-width="1.6" stroke-dasharray="6 10"><animate attributeName="stroke-dashoffset" from="0" to="32" dur="0.8s" repeatCount="indefinite"/></circle>';
+    },
+    // الفراغ: دوّامةٌ سوداءُ + حلقتان بنفسجيّتان تنكمشان نحوَ المركزِ + جسيماتٌ تُبتَلَع
+    frame_void: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<circle cx="50" cy="50" r="30" fill="' + t[1] + '"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="2" stroke-dasharray="8 8"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="26" fill="none" stroke="' + t[2] + '" stroke-width="1.4"><animate attributeName="r" values="45;10" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0" dur="2.4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="26" fill="none" stroke="' + t[0] + '" stroke-width="1.4"><animate attributeName="r" values="45;10" dur="2.4s" begin="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></circle>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/><circle cx="50" cy="8" r="2" fill="#fff"/><circle cx="86" cy="60" r="1.6" fill="' + t[2] + '"/><circle cx="16" cy="58" r="1.4" fill="' + t[0] + '"/></g>';
+    },
+    /*MYTHIC_FRAMES_MORE*/
+    // الرعد: طوقٌ + صواعقُ دوّارةٌ خارجةٌ من المحيطِ + ومضةٌ عامّةٌ نابضة
+    frame_thunder: function (t, g) {
+      var bolt = function (rot) { return '<path d="M50 6 L46 24 L53 24 L47 44" fill="none" stroke="' + t[2] + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="rotate(' + rot + ' 50 50)"><animate attributeName="opacity" values="0;1;0" dur="1.1s" begin="' + (rot / 360).toFixed(2) + 's" repeatCount="indefinite"/></path>'; };
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="7" opacity="0.25"><animate attributeName="opacity" values="0.1;0.5;0.1" dur="0.9s" repeatCount="indefinite"/></circle>'
+        + '<g>' + bolt(0) + bolt(90) + bolt(180) + bolt(270) + '</g>'
+        + '<g fill="' + t[0] + '"><circle cx="82" cy="24" r="1.4"><animate attributeName="opacity" values="0;1;0" dur="0.7s" repeatCount="indefinite"/></circle><circle cx="20" cy="76" r="1.2"><animate attributeName="opacity" values="1;0;1" dur="0.9s" repeatCount="indefinite"/></circle></g>';
+    },
+    // المنشور: طوقٌ قزحيٌّ متبدّلٌ + شعاعٌ طيفيٌّ دوّارٌ + وميضٌ أبيضُ نقيّ
+    frame_prism: function (t, g) {
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="7"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="6" opacity="0.5"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[2] + ';#ffe14a;' + t[0] + '" dur="3s" repeatCount="indefinite"/></circle>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/>'
+        + '<path d="M50 50 L50 3 L60 6 Z" fill="' + t[1] + '" opacity="0.7"/><path d="M50 50 L94 40 L92 52 Z" fill="' + t[2] + '" opacity="0.7"/><path d="M50 50 L58 96 L46 94 Z" fill="#ffe14a" opacity="0.7"/><path d="M50 50 L8 60 L10 47 Z" fill="' + t[0] + '" opacity="0.7"/></g>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 300" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2s" repeatCount="indefinite"/></circle>';
+    },
+    // الملائكيّ (السيراف): طوقٌ ذهبيٌّ + زوجا أجنحةٍ جانبيّةٌ + هالةٌ + ريشٌ متساقط
+    frame_seraph: function (t, g) {
+      var wing = function (sx, dir) { return '<g fill="url(#' + g + ')" opacity="0.9"><path d="M' + sx + ' 40 q' + (dir * 18) + ' -6 ' + (dir * 24) + ' -20 q' + (dir * -2) + ' 12 ' + (dir * -8) + ' 16 q' + (dir * 14) + ' -2 ' + (dir * 18) + ' -12 q' + (dir * -1) + ' 12 ' + (dir * -10) + ' 18 q' + (dir * 10) + ' 0 ' + (dir * 12) + ' -6 q' + (dir * 1) + ' 10 ' + (dir * -12) + ' 14 Z"><animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/></path></g>'; };
+      return '<circle cx="50" cy="50" r="43" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
+        + wing(28, -1) + wing(72, 1)
+        + '<ellipse cx="50" cy="12" rx="12" ry="4" fill="none" stroke="' + t[2] + '" stroke-width="2"><animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/></ellipse>'
+        + '<g fill="#ffffff"><circle cx="40" cy="92" r="1.4"><animate attributeName="cy" values="86;96" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.4s" repeatCount="indefinite"/></circle><circle cx="60" cy="90" r="1.2"><animate attributeName="cy" values="84;96" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="3s" repeatCount="indefinite"/></circle></g>';
+    },
+    // السبج: طوقٌ حجريٌّ داكنٌ مشظّى + بريقٌ زجاجيٌّ يجولُ على الحوافّ + شظايا لامعة
+    frame_obsidian: function (t, g) {
+      var oct = '50,5 74,14 92,38 95,62 78,86 50,95 22,86 5,62 8,38 26,14';
+      return '<polygon points="' + oct + '" fill="' + t[1] + '" stroke="url(#' + g + ')" stroke-width="4" stroke-linejoin="round"/>'
+        + '<polygon points="' + oct + '" fill="none" stroke="' + t[2] + '" stroke-width="1" stroke-linejoin="round" opacity="0.5"/>'
+        + '<polygon points="' + oct + '" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="12 220" stroke-linecap="round" opacity="0.85"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.4s" repeatCount="indefinite"/></polygon>'
+        + '<g fill="' + t[2] + '"><path d="M50 14 l3 5 -3 5 -3 -5z"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" repeatCount="indefinite"/></path><path d="M84 50 l4 4 -4 4 -4 -4z"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></path><path d="M16 50 l4 4 -4 4 -4 -4z"><animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/></path></g>';
+    },
   };
 
   // شارات: [لون، مسار SVG، عيون؟]
@@ -289,6 +367,16 @@
     badge_moon:    ['#cfd6e6', 'M64 12 A40 40 0 1 0 64 88 A32 32 0 1 1 64 12 Z'],
     badge_gem:     ['#b06bff', 'M30 20 H70 L90 50 L70 80 H30 L10 50 Z'],
     badge_heart:   ['#ff5a7a', 'M50 88 C10 58 12 22 38 22 C48 22 50 34 50 34 C50 34 52 22 62 22 C88 22 90 58 50 88 Z'],
+    // ═══ Mythic (رموزٌ فخمةٌ نادرة) ═══
+    badge_dragon:  ['#ff6a2f', 'M12 58 Q22 40 40 42 Q46 30 60 30 Q55 38 59 45 Q78 42 88 58 Q75 54 64 58 Q67 69 56 66 Q50 75 42 66 Q33 71 29 62 Q19 65 12 58 Z',
+                    '<circle cx="58" cy="41" r="2.4" fill="#1a1020"/>'],
+    badge_phoenix: ['#ff8a3a', 'M50 10 C57 24 70 26 67 41 C76 37 85 44 80 54 C88 57 85 69 74 68 C66 84 50 94 50 94 C50 94 34 84 26 68 C15 69 12 57 20 54 C15 44 24 37 33 41 C30 26 43 24 50 10 Z'],
+    badge_infinity:['#8fd4ff', 'M50 50 C40 33 16 33 16 50 C16 67 40 67 50 50 C60 33 84 33 84 50 C84 67 60 67 50 50 Z M28 50 A6 6 0 1 1 40 50 A6 6 0 1 1 28 50 Z M60 50 A6 6 0 1 0 72 50 A6 6 0 1 0 60 50 Z'],
+    badge_trophy:  ['#ffd54a', 'M28 14 H72 V20 C84 20 90 30 84 42 C80 50 72 53 68 53 C65 60 59 64 55 65 V74 H67 V82 H33 V74 H45 V65 C41 64 35 60 32 53 C28 53 20 50 16 42 C10 30 16 20 28 20 Z'],
+    badge_lotus:   ['#ff7ab0', 'M50 86 C34 78 20 60 28 40 C35 51 44 55 50 44 C56 55 65 51 72 40 C80 60 66 78 50 86 Z',
+                    '<path d="M50 82 C42 74 36 62 42 50 C46 57 50 58 50 50 C50 58 54 57 58 50 C64 62 58 74 50 82 Z" fill="#ffd6e6" opacity="0.7"/>'],
+    badge_eye:     ['#b06bff', 'M8 50 Q50 16 92 50 Q50 84 8 50 Z',
+                    '<circle cx="50" cy="50" r="12" fill="#170a24"/><circle cx="50" cy="50" r="5.5" fill="#e0c8ff"/><circle cx="53" cy="47" r="2" fill="#fff"/>'],
   };
 
   // خلفيات: تدرّجات تتحرّك ببطء (background-position)
@@ -303,6 +391,13 @@
     bg_galaxy:    'linear-gradient(135deg,#140a3a,#5a2da0,#2233aa,#140a3a)',
     bg_matrix:    'linear-gradient(180deg,#001a00,#00b140,#003300,#00b140)',
     bg_cherry:    'linear-gradient(135deg,#5f2d4a,#ff9fc4,#ffd6e6,#ff9fc4)',
+    // ═══ Mythic ═══
+    bg_dragon_lair: 'radial-gradient(circle at 50% 120%,#ff5a1e,#7a1500,#1a0505,#3a0a0a)',
+    bg_cosmos:      'radial-gradient(circle at 30% 30%,#7a4fd0,#2a1a6a,#0a0620,#140a3a)',
+    bg_inferno:     'linear-gradient(0deg,#ff3d00,#7a1500,#2a0505,#ff8a1e)',
+    bg_void:        'radial-gradient(circle at 50% 50%,#b06bff,#3a1d6b,#050310,#0a0618)',
+    bg_thunderstorm:'linear-gradient(160deg,#2a2d6a,#4a4f9a,#0a0a1a,#ffe14a)',
+    bg_prism:       'linear-gradient(120deg,#5affc0,#8fd4ff,#ff6ad5,#ffe14a,#5affc0)',
   };
 
   function esc(s) { return String(s == null ? '' : s).replace(/[^a-zA-Z0-9_-]/g, ''); }
@@ -341,12 +436,14 @@
     var id = esc(cos.badge);
     var b = BADGE[cos.badge];
     if (!b) return '';
-    var eyes = b[2]
+    /* b[2]: إمّا 1 (عينا جمجمةٍ) أو نصُّ SVG إضافيٌّ يُركَّبُ فوقَ الشكلِ
+       (بؤبؤٌ للعينِ، بتلاتٌ داخليّةٌ للّوتس…) — يرفعُ ثراءَ الشاراتِ النادرة. */
+    var extra = b[2] === 1
       ? '<circle cx="41" cy="48" r="4.5" fill="#20242e"/><circle cx="59" cy="48" r="4.5" fill="#20242e"/>'
-      : '';
+      : (typeof b[2] === 'string' ? b[2] : '');
     return '<span class="cos-badge cos-badge--' + id + '" aria-hidden="true"><svg viewBox="0 0 100 100">'
       + '<path d="' + b[1] + '" fill="' + b[0] + '"><animate attributeName="opacity" values="1;0.55;1" dur="2.4s" repeatCount="indefinite"/></path>'
-      + eyes + '</svg></span>';
+      + extra + '</svg></span>';
   }
 
   function bgHTML(cos) {
@@ -454,6 +551,28 @@
     for (var i = 0; i < 9; i++) lines += '<line x1="' + _rnd(30, 70).toFixed(0) + '" y1="' + _rnd(30, 70).toFixed(0) + '" x2="' + _rnd(0, 100).toFixed(0) + '" y2="' + _rnd(0, 100).toFixed(0) + '" stroke="' + color + '" stroke-width="' + _rnd(0.4, 1.4).toFixed(2) + '"/>';
     layer.appendChild(_mk('cosfx-crack', { animationDuration: '1.2s' }, '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="filter:drop-shadow(0 0 4px ' + color + ')">' + lines + '</svg>'));
   }
+  /* حلقاتُ صدمةٍ تتّسعُ من المركز (رعد/منشور/انفجار). */
+  function _shock(layer, colors) {
+    colors.forEach(function (c, i) {
+      var el = _mk('cosfx-shock', { animationDelay: (i * 0.18).toFixed(2) + 's', animationDuration: '1.4s' });
+      el.style.borderColor = c; el.style.boxShadow = '0 0 22px ' + c + ',inset 0 0 22px ' + c;
+      layer.appendChild(el);
+    });
+  }
+  /* جُسيماتٌ تُبتلَعُ نحوَ المركز (الثقبُ الأسود). */
+  function _implode(layer, n, colors) {
+    for (var i = 0; i < n; i++) {
+      var ang = _rnd(0, Math.PI * 2), dist = _rnd(34, 62), c = colors[i % colors.length];
+      var el = _mk('cosfx-implode', { animationDelay: _rnd(0, 0.9).toFixed(2) + 's', animationDuration: _rnd(0.9, 1.5).toFixed(2) + 's', '--dx': (Math.cos(ang) * dist).toFixed(1) + 'vh', '--dy': (Math.sin(ang) * dist).toFixed(1) + 'vh' });
+      el.style.background = c; el.style.boxShadow = '0 0 9px ' + c;
+      layer.appendChild(el);
+    }
+  }
+  /* قرصُ ثقبٍ أسودَ دوّارٌ في المركز. */
+  function _vortex(layer, color) {
+    layer.appendChild(_mk('cosfx-vortex', { animationDuration: '1.8s' },
+      '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="18" fill="#050310"/><circle cx="50" cy="50" r="27" fill="none" stroke="' + color + '" stroke-width="4" stroke-dasharray="12 9" stroke-linecap="round"/><circle cx="50" cy="50" r="34" fill="none" stroke="' + color + '" stroke-width="2" stroke-dasharray="4 12" opacity="0.6"/></svg>'));
+  }
   /* FX_DISPATCH_PLACEHOLDER */
   function _playOne(layer, id) {
     switch (id) {
@@ -474,6 +593,15 @@
       case 'fx_ink': _burst(layer, [[50, 45, 0]], 16, ['#0a0a12', '#20203a']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(8,8,18,.55),transparent 60%)'); break;
       case 'fx_glitch': _glitch(layer); break;
       case 'fx_frostbreak': _crack(layer, '#bfefff'); _flash(layer, 'radial-gradient(circle at 50% 45%,rgba(180,240,255,.4),transparent 55%)'); break;
+      /* ═══ Mythic — احتفالاتٌ ومؤثّراتٌ مِلءَ الشاشةِ الأفخم ═══ */
+      case 'cel_dragon': _flash(layer, 'radial-gradient(circle at 50% 100%,rgba(255,90,30,.6),rgba(122,21,0,.22),transparent 72%)'); _rise(layer, 36, 'cosfx-flame', function (i) { return i % 2 ? '#ff5a1e' : '#ffb347'; }); _burst(layer, [[50, 72, 0], [30, 82, 0.3], [70, 80, 0.6]], 14, ['#ff5a1e', '#ffd27a', '#ff8a1e']); break;
+      case 'cel_galaxy': _burst(layer, [[50, 40, 0], [28, 32, 0.3], [72, 34, 0.6], [40, 56, 0.9], [62, 52, 1.1]], 20, ['#b48bff', '#8fd4ff', '#ffffff', '#ff6ad5']); _shock(layer, ['#b48bff', '#8fd4ff', '#ff6ad5']); _flash(layer, 'radial-gradient(circle at 50% 44%,rgba(140,120,255,.42),transparent 62%)'); _meteors(layer, 12); break;
+      case 'cel_phoenix': _rise(layer, 32, 'cosfx-flame', function () { return ['#ff8a3a', '#ffd27a', '#ff3d00'][Math.floor(Math.random() * 3)]; }); _flash(layer, 'radial-gradient(circle at 50% 72%,rgba(255,138,58,.5),transparent 66%)'); _burst(layer, [[50, 52, 0.2]], 26, ['#ffd27a', '#ff5a1e', '#ffffff']); break;
+      case 'cel_goldstorm': _fall(layer, 60, 'cosfx-coin', null, false); _fall(layer, 30, 'cosfx-goldrain', null, false); _flash(layer, 'radial-gradient(circle at 50% 28%,rgba(255,210,74,.42),transparent 62%)'); break;
+      case 'fx_dragonfire': _flash(layer, 'radial-gradient(circle at 50% 60%,rgba(255,60,0,.62),rgba(122,21,0,.26),transparent 70%)'); _rise(layer, 30, 'cosfx-flame', function (i) { return i % 2 ? '#ff3d00' : '#ff8a1e'; }); _crack(layer, '#ff7a2f'); break;
+      case 'fx_blackhole': _vortex(layer, '#c48bff'); _implode(layer, 34, ['#b06bff', '#e0c8ff', '#7a4fd0']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(10,6,24,.72),rgba(122,60,180,.22),transparent 60%)'); break;
+      case 'fx_thunderstrike': _flash(layer, 'linear-gradient(180deg,rgba(220,235,255,.72),rgba(120,140,255,.18))'); _burst(layer, [[50, 18, 0], [50, 18, 0.35], [50, 18, 0.7]], 16, ['#ffffff', '#8fd4ff', '#ffe14a']); _shock(layer, ['#ffffff', '#8fd4ff']); break;
+      case 'fx_prismburst': _burst(layer, [[50, 46, 0]], 40, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a', '#ffffff']); _beams(layer, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a']); _shock(layer, ['#8fd4ff', '#ff6ad5', '#5affc0']); _flash(layer, 'radial-gradient(circle at 50% 46%,rgba(255,255,255,.55),transparent 56%)'); break;
       default: return false;
     }
     return true;

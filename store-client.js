@@ -13,12 +13,16 @@
   function token() { try { return window.amkhAuth && window.amkhAuth.token; } catch (e) { return null; } }
   function esc(s) { try { return (window.amkhUI && amkhUI.esc) ? amkhUI.esc(s) : String(s == null ? '' : s); } catch (e) { return String(s == null ? '' : s); } }
 
+  /* قفلٌ مرسومٌ (بلا إيموجي) لحالةِ «خارجَ الدورة». */
+  var LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+
   var RARITY = {
     common:    { ar: 'شائع',    en: 'Common' },
     rare:      { ar: 'نادر',    en: 'Rare' },
     epic:      { ar: 'ملحميّ',  en: 'Epic' },
     legendary: { ar: 'أسطوريّ', en: 'Legendary' },
-    seasonal:  { ar: 'موسميّ',  en: 'Seasonal' }
+    seasonal:  { ar: 'موسميّ',  en: 'Seasonal' },
+    mythic:    { ar: 'أسطوريٌّ نادر', en: 'Mythic' }
   };
 
   /* أنواعُ العناصرِ: اسمٌ للنوعِ + وصفٌ لِما يفعلُه وأينَ يظهرُ — ثنائيُّ اللغة.
@@ -193,6 +197,31 @@
       case 'fx_ink': return A('<g fill="#1a1a24"><g><animateTransform attributeName="transform" type="scale" values=".2;1" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.2" dur="1.8s" repeatCount="indefinite"/><path d="M40 40 q-14 -8 -20 -2 q6 4 6 10 q-10 2 -8 12 q10 -2 14 4 q4 -10 14 -8 q-2 -12 6 -16 q-10 -4 -12 -12z" transform="translate(-40 -40)"/></g></g>');
       case 'fx_glitch': return A('<g><rect x="8" y="30" width="64" height="6" fill="#ff2d6b" opacity=".85"><animate attributeName="x" values="8;20;2;8" dur=".5s" repeatCount="indefinite"/></rect><rect x="8" y="40" width="64" height="5" fill="#38e0ff" opacity=".85"><animate attributeName="x" values="8;-6;14;8" dur=".4s" repeatCount="indefinite"/></rect><rect x="8" y="48" width="64" height="4" fill="#7cff5a" opacity=".7"><animate attributeName="x" values="8;16;0;8" dur=".6s" repeatCount="indefinite"/></rect></g>');
       case 'fx_frostbreak': return A('<g stroke="#bfe6ff" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M40 40 L18 16M40 40 L64 18M40 40 L14 58M40 40 L60 62M40 40 L40 12"><animate attributeName="opacity" values=".4;1;.4" dur="1.1s" repeatCount="indefinite"/></path></g><g fill="#eaf7ff"><path d="M40 40l-8-10-2 10z"><animate attributeName="opacity" values=".5;1;.5" dur="1s" repeatCount="indefinite"/></path><path d="M40 40l10-4 2 8z"><animate attributeName="opacity" values="1;.4;1" dur="1.2s" repeatCount="indefinite"/></path></g><circle cx="40" cy="40" r="3.4" fill="#fff"/>');
+      /* ═══ Mythic (حمراء) — إطاراتٌ فاخرةٌ حولَ الأفاتار ═══ */
+      case 'frame_dragon': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7a1500"/><stop offset=".5" stop-color="#ff5a1e"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="6"/><g fill="#ff7a2f"><path d="M40 8 q6 4 4 10 q-4 3 -8 0 q-2 -6 4 -10z"><animate attributeName="opacity" values=".6;1;.6" dur="1s" repeatCount="indefinite"/></path></g><g fill="#ffd27a"><circle cx="16" cy="52" r="1.6"><animate attributeName="cy" values="54;36" dur="1.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.4s" repeatCount="indefinite"/></circle><circle cx="64" cy="50" r="1.4"><animate attributeName="cy" values="52;34" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.8s" repeatCount="indefinite"/></circle></g>' + AV);
+      case 'frame_celestial': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd4ff"/><stop offset="1" stop-color="#183a8f"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="5.5"/><g><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="6s" repeatCount="indefinite"/><circle cx="40" cy="14" r="2.6" fill="#fff"/><circle cx="66" cy="46" r="2" fill="#cfeaff"/><circle cx="16" cy="48" r="1.8" fill="#eaf6ff"/></g><g fill="#fff"><circle cx="30" cy="26" r="1"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="54" cy="30" r="1.1"><animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/></circle></g>' + AV);
+      case 'frame_inferno': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3a0505"/><stop offset=".5" stop-color="#ff3d00"/><stop offset="1" stop-color="#ffb347"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="6"/><g fill="#ff6a1e"><path d="M40 8l3 7-3 3-3-3z"><animate attributeName="opacity" values=".4;1;.4" dur=".7s" repeatCount="indefinite"/></path><path d="M62 22l2 6-4 1-1-4z"><animate attributeName="opacity" values="1;.4;1" dur=".8s" repeatCount="indefinite"/></path><path d="M18 22l3 5-2 3-3-3z"><animate attributeName="opacity" values=".5;1;.5" dur=".9s" repeatCount="indefinite"/></path></g>' + AV);
+      case 'frame_void': return A('<defs><radialGradient id="g' + I + '" cx=".5" cy=".5" r=".55"><stop offset="0" stop-color="#0a0618"/><stop offset=".7" stop-color="#6a2fb0"/><stop offset="1" stop-color="#b06bff"/></radialGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="6"/><circle cx="40" cy="40" r="26" fill="none" stroke="#e0c8ff" stroke-width="2" stroke-dasharray="4 12" stroke-linecap="round" opacity=".8"><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="2.4s" repeatCount="indefinite"/></circle>' + AV);
+      case 'frame_thunder': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7c4"/><stop offset="1" stop-color="#2a2d6a"/></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="5.5"/><g fill="#ffe14a"><path d="M46 10l-12 18h8l-4 16 14-20h-8z"><animate attributeName="opacity" values=".3;1;.3" dur=".9s" repeatCount="indefinite"/></path></g>' + AV);
+      case 'frame_prism': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5affc0"><animate attributeName="stop-color" values="#5affc0;#ff6ad5;#8fd4ff;#5affc0" dur="3.5s" repeatCount="indefinite"/></stop><stop offset=".5" stop-color="#8fd4ff"><animate attributeName="stop-color" values="#8fd4ff;#5affc0;#ff6ad5;#8fd4ff" dur="3.5s" repeatCount="indefinite"/></stop><stop offset="1" stop-color="#ff6ad5"><animate attributeName="stop-color" values="#ff6ad5;#8fd4ff;#5affc0;#ff6ad5" dur="3.5s" repeatCount="indefinite"/></stop></linearGradient></defs><circle cx="40" cy="40" r="26" fill="none" stroke="url(#g' + I + ')" stroke-width="6"/>' + AV);
+      case 'frame_seraph': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset="1" stop-color="#c9a84c"/></linearGradient></defs><circle cx="40" cy="40" r="24" fill="none" stroke="url(#g' + I + ')" stroke-width="5"/><g fill="url(#g' + I + ')"><path d="M16 40 Q4 30 8 16 Q18 24 22 34 Q19 38 16 40Z"><animate attributeName="opacity" values=".7;1;.7" dur="1.2s" repeatCount="indefinite"/></path><path d="M64 40 Q76 30 72 16 Q62 24 58 34 Q61 38 64 40Z"><animate attributeName="opacity" values="1;.7;1" dur="1.2s" repeatCount="indefinite"/></path></g>' + AV);
+      case 'frame_obsidian': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a0a12"/><stop offset=".5" stop-color="#7a7a90"/><stop offset="1" stop-color="#d0d0e0"/></linearGradient></defs><polygon points="40,11 60,24 60,56 40,69 20,56 20,24" fill="none" stroke="url(#g' + I + ')" stroke-width="5.5" stroke-linejoin="round"/><polygon points="40,11 60,24 60,56 40,69 20,56 20,24" fill="none" stroke="#eef0ff" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="8 190" stroke-linecap="round" opacity=".9"><animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="4s" repeatCount="indefinite"/></polygon>' + AV);
+      /* ═══ Mythic — شاراتٌ ═══ */
+      case 'badge_dragon': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb347"/><stop offset="1" stop-color="#c21a00"/></linearGradient></defs><path fill="url(#g' + I + ')" d="M20 44c0-14 12-22 24-20 6 1 10 5 12 10-6-2-10 0-12 4 8 0 12 4 12 12-8 2-14-2-16-8-4 6-12 8-20 2z"><animate attributeName="opacity" values=".85;1;.85" dur="1.4s" repeatCount="indefinite"/></path><circle cx="30" cy="38" r="2" fill="#fff"/>');
+      case 'badge_phoenix': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2d00"/><stop offset=".6" stop-color="#ff8a1e"/><stop offset="1" stop-color="#ffe08a"/></linearGradient></defs><path fill="url(#g' + I + ')" d="M40 14c4 6 4 12 2 16 6-4 10-4 14-2-4 6-10 8-14 8 6 2 10 6 10 14-8 0-14-4-16-10-2 6-8 10-16 10 0-8 4-12 10-14-4 0-10-2-14-8 4-2 8-2 14 2-2-4-2-10 2-16 4 4 6 8 6 12 2-4 4-8 8-12z"><animate attributeName="opacity" values=".8;1;.8" dur="1.1s" repeatCount="indefinite"/></path>');
+      case 'badge_infinity': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8fd4ff"/><stop offset="1" stop-color="#b06bff"/></linearGradient></defs><path fill="none" stroke="url(#g' + I + ')" stroke-width="7" stroke-linecap="round" d="M28 40a10 10 0 1 1 12 0 10 10 0 1 0 12 0 10 10 0 1 1 -12 0 10 10 0 1 0 -12 0z"><animate attributeName="stroke-dasharray" values="0 120;60 120" dur="2s" repeatCount="indefinite"/></path>');
+      case 'badge_trophy': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#c9922f"/></linearGradient></defs><path fill="url(#g' + I + ')" d="M28 16h24v10a12 12 0 0 1-24 0z"/><path d="M28 20h-6a6 6 0 0 0 6 8M52 20h6a6 6 0 0 1-6 8" fill="none" stroke="url(#g' + I + ')" stroke-width="3"/><rect x="37" y="38" width="6" height="10" fill="url(#g' + I + ')"/><rect x="30" y="48" width="20" height="6" rx="2" fill="url(#g' + I + ')"/><circle cx="40" cy="24" r="1.4" fill="#fff"><animate attributeName="opacity" values="0;1;0" dur="1.4s" repeatCount="indefinite"/></circle>');
+      case 'badge_lotus': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd6ea"/><stop offset="1" stop-color="#ff5fa2"/></linearGradient></defs><g fill="url(#g' + I + ')"><animate attributeName="opacity" values=".85;1;.85" dur="2s" repeatCount="indefinite"/><path d="M40 24c6 6 8 14 0 28-8-14-6-22 0-28z"/><path d="M40 52c-10-2-18-8-20-18 10-2 18 4 20 18z"/><path d="M40 52c10-2 18-8 20-18-10-2-18 4-20 18z"/></g>');
+      case 'badge_eye': return A('<defs><radialGradient id="g' + I + '" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#8fd4ff"/><stop offset="1" stop-color="#183a8f"/></radialGradient></defs><path fill="#0a0e1e" stroke="#cfe6ff" stroke-width="2" d="M14 40q26-22 52 0-26 22-52 0z"/><circle cx="40" cy="40" r="9" fill="url(#g' + I + ')"/><circle cx="40" cy="40" r="4" fill="#0a0e1e"><animate attributeName="r" values="4;2.4;4" dur="2.4s" repeatCount="indefinite"/></circle><circle cx="42" cy="37" r="1.4" fill="#fff"/>');
+      /* ═══ Mythic — احتفالاتٌ ومؤثّرات ═══ */
+      case 'cel_dragon': return A('<g fill="#ff5a1e"><path d="M40 12c14 16 20 26 20 38a20 20 0 0 1-40 0c0-8 4-14 8-18 2 6 6 7 8 7-2-10 0-20-4-27z"><animate attributeName="opacity" values=".8;1;.8" dur=".8s" repeatCount="indefinite"/></path></g><path fill="#ffd27a" d="M40 40c4 6 6 11 6 16a6 6 0 0 1-12 0c0-5 2-9 6-16z"><animate attributeName="opacity" values="1;.5;1" dur=".7s" repeatCount="indefinite"/></path>');
+      case 'cel_galaxy': return A('<g transform="translate(40 40)"><g><animateTransform attributeName="transform" type="rotate" values="0;360" dur="6s" repeatCount="indefinite"/><path fill="none" stroke="#b48bff" stroke-width="3" opacity=".7" d="M0 0 Q18 -8 20 6 Q22 22 0 20"/><path fill="none" stroke="#8fd4ff" stroke-width="3" opacity=".7" d="M0 0 Q-18 8 -20 -6 Q-22 -22 0 -20"/></g><circle r="4" fill="#fff"/></g><g fill="#fff"><circle cx="18" cy="18" r="1"><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="60" cy="24" r="1.1"><animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/></circle></g>');
+      case 'cel_phoenix': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2d00"/><stop offset=".6" stop-color="#ff8a1e"/><stop offset="1" stop-color="#ffe08a"/></linearGradient></defs><path fill="url(#g' + I + ')" d="M40 12c4 8 4 14 2 18 8-6 12-6 16-2-4 8-12 10-16 10 6 4 10 8 10 16-10 0-16-6-18-12-2 6-8 12-18 12 0-8 4-12 10-16-4 0-12-2-16-10 4-4 8-4 16 2-2-4-2-10 2-18 4 4 6 8 6 12 2-4 4-8 8-12z"><animate attributeName="opacity" values=".8;1;.8" dur="1s" repeatCount="indefinite"/></path>');
+      case 'cel_goldstorm': return A('<g>' + [[20,'#ffd24a',1.8],[32,'#ffe08a',2.4],[44,'#f5c451',2],[56,'#ffd24a',2.6],[64,'#ffe08a',2.2]].map(function (a) { return '<circle cx="' + a[0] + '" r="4.4" fill="' + a[1] + '" stroke="#b8860b" stroke-width="1"><animate attributeName="cy" values="-8;76" dur="' + a[2] + 's" repeatCount="indefinite"/></circle>'; }).join('') + '</g>');
+      case 'fx_dragonfire': return A('<defs><linearGradient id="g' + I + '" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7a1500"/><stop offset=".5" stop-color="#ff3d00"/><stop offset="1" stop-color="#ffb347"/></linearGradient></defs><path fill="url(#g' + I + ')" d="M12 44 Q30 30 50 38 Q64 44 70 34 Q66 52 48 50 Q30 48 20 58 Q14 52 12 44z"><animate attributeName="opacity" values=".7;1;.7" dur=".8s" repeatCount="indefinite"/></path><circle cx="66" cy="34" r="2.4" fill="#fff7c4"/>');
+      case 'fx_blackhole': return A('<g transform="translate(40 40)"><circle r="10" fill="#050310"/><g><animateTransform attributeName="transform" type="rotate" values="0;360" dur="2s" repeatCount="indefinite"/><circle r="16" fill="none" stroke="#b06bff" stroke-width="4" stroke-dasharray="10 8" stroke-linecap="round"/><circle r="22" fill="none" stroke="#8fd4ff" stroke-width="2" stroke-dasharray="4 12" opacity=".6"/></g></g>');
+      case 'fx_thunderstrike': return A('<defs><filter id="b' + I + '"><feGaussianBlur stdDeviation="1.8"/></filter></defs><path filter="url(#b' + I + ')" fill="#8fd4ff" d="M46 6L18 42h14l-6 32 32-44H42z"><animate attributeName="opacity" values=".2;.95;.2;.7;.2" dur="1.1s" repeatCount="indefinite"/></path><path fill="#fff" d="M46 6L18 42h14l-6 32 32-44H42z"><animate attributeName="opacity" values="1;.4;1;.6;1" dur="1.1s" repeatCount="indefinite"/></path>');
+      case 'fx_prismburst': return A('<g transform="translate(40 40)"><g><animateTransform attributeName="transform" type="rotate" values="0;90" dur="1.6s" repeatCount="indefinite"/>' + [0,1,2,3,4,5].map(function (i) { var c = ['#5affc0','#8fd4ff','#ff6ad5','#ffe14a','#5affc0','#8fd4ff'][i]; var a = i * 60; return '<line x1="0" y1="0" x2="' + (Math.cos(a * Math.PI / 180) * 30).toFixed(1) + '" y2="' + (Math.sin(a * Math.PI / 180) * 30).toFixed(1) + '" stroke="' + c + '" stroke-width="3" stroke-linecap="round"/>'; }).join('') + '</g><circle r="4" fill="#fff"><animate attributeName="r" values="3;6;3" dur="1.2s" repeatCount="indefinite"/></circle></g>');
     }
     /* ── معايناتٌ عامّةٌ متحرّكةٌ لأيّ عنصرٍ جديد: لونٌ حتميٌّ مشتقٌّ من المُعرِّف
        فيبدو كلُّ عنصرٍ نابضًا ومميّزًا بلا رسمٍ يدويٍّ لكلِّ واحد. ── */
@@ -258,6 +287,16 @@
       var owned = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.owned) || [];
       var self = this;
       var items = data.items.filter(function (it) { return !self._filter || it.type === self._filter; });
+      /* الفرزُ: عناصرُ الدورةِ الحاليّةِ أوّلًا (متاحةٌ للشراءِ الآن)، ثمّ الباقي
+         حسبَ النوعِ (TYPE_ORDER) فالندرةِ نزوليًّا (Mythic أعلى). */
+      var RANK = { mythic: 6, legendary: 5, seasonal: 4, epic: 3, rare: 2, common: 1 };
+      items = items.slice().sort(function (a, b) {
+        var aw = (a.inWindow !== false) ? 0 : 1, bw = (b.inWindow !== false) ? 0 : 1;
+        if (aw !== bw) return aw - bw;
+        var at = TYPE_ORDER.indexOf(a.type), bt = TYPE_ORDER.indexOf(b.type);
+        if (at !== bt) return at - bt;
+        return (RANK[b.rarity] || 0) - (RANK[a.rarity] || 0);
+      });
       if (!items.length) {
         grid.innerHTML = '<p class="store-empty">' + esc(L('لا عناصرَ من هذا النوعِ في هذه النافذة.', 'No items of this kind in this window.')) + '</p>';
       } else {
@@ -295,6 +334,7 @@
       var r = RARITY[it.rarity] || RARITY.common;
       var name = L(it.ar, it.en);
       var have = owned || it.owned;
+      var inWin = it.inWindow !== false;                 /* الخادمُ الجديدُ يبعثُ كلَّ الكتالوجِ مع inWindow */
       var canAfford = (window.amkhEconomy ? amkhEconomy.coins() : 0) >= it.price;
       var action;
       if (have) {
@@ -302,10 +342,15 @@
         var isEq = eq[it.type] === it.id;
         action = '<button class="store-equip' + (isEq ? ' is-on' : '') + '" data-equip="' + esc(it.id) + '" data-type="' + esc(it.type) + '">'
           + esc(isEq ? L('مُجهَّز', 'Equipped') : L('تجهيز', 'Equip')) + '</button>';
-      } else {
+      } else if (inWin) {
         action = '<button class="store-buy' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true"></span>' + it.price + '</button>';
+      } else {
+        /* خارجَ نافذةِ العرضِ: يُرى دائمًا لكن لا يُشترى إلا في دورتِه. */
+        action = '<span class="store-soon"><span class="store-soon__lock" aria-hidden="true">' + LOCK_SVG + '</span>' + esc(L('يظهر في دورتِه', 'Unlocks in rotation')) + '</span>';
       }
-      return '<div class="store-card store-card--' + esc(it.rarity) + (have ? ' is-owned' : '') + '" data-id="' + esc(it.id) + '" role="button" tabindex="0">'
+      var stateCls = have ? ' is-owned' : (inWin ? ' in-window' : ' is-window-locked');
+      return '<div class="store-card store-card--' + esc(it.rarity) + stateCls + '" data-id="' + esc(it.id) + '" role="button" tabindex="0">'
+        + (inWin && !have ? '<span class="store-card__now">' + esc(L('متاحٌ الآن', 'Available now')) + '</span>' : '')
         + '<span class="store-card__rar">' + esc(L(r.ar, r.en)) + '</span>'
         + '<span class="store-card__info" aria-hidden="true">i</span>'
         + '<div class="store-card__art store-art--' + esc(it.type) + '">' + art(it) + '</div>'
@@ -323,6 +368,7 @@
       var sheet = document.getElementById('store-detail'); if (!sheet) return;
       var owned = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.owned) || [];
       var have = owned.indexOf(it.id) >= 0 || it.owned;
+      var inWin = it.inWindow !== false;
       var r = RARITY[it.rarity] || RARITY.common;
       var tp = TYPE[it.type] || {};
       var canAfford = (window.amkhEconomy ? amkhEconomy.coins() : 0) >= it.price;
@@ -332,10 +378,15 @@
         var isEq = eq[it.type] === it.id;
         action = '<button class="store-equip store-detail__act' + (isEq ? ' is-on' : '') + '" data-equip="' + esc(it.id) + '" data-type="' + esc(it.type) + '">'
           + esc(isEq ? L('مُجهَّز — اضغط للإلغاء', 'Equipped — tap to remove') : L('تجهيز', 'Equip')) + '</button>';
-      } else {
+      } else if (inWin) {
         action = '<button class="store-buy store-detail__act' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true"></span>'
           + it.price + '  ' + esc(L('شراء', 'Buy')) + '</button>'
           + (canAfford ? '' : '<div class="store-detail__hint">' + esc(L('عملاتُك لا تكفي بعد.', 'Not enough coins yet.')) + '</div>');
+      } else {
+        /* خارجَ الدورةِ: نعرضُ السعرَ للعلمِ ونوضّحُ أنّه لا يُشترى الآن. */
+        action = '<div class="store-detail__soon"><span class="store-soon__lock" aria-hidden="true">' + LOCK_SVG + '</span>'
+          + esc(L('هذا العنصرُ خارجَ دورةِ العرضِ حاليًّا — سيُتاحُ شراؤُه حين تحينُ دورتُه.',
+                  'This item is outside its rotation window right now — you can buy it when its turn comes.')) + '</div>';
       }
       var body = document.getElementById('store-detail-body');
       body.innerHTML =
@@ -358,7 +409,7 @@
       var sheet = document.getElementById('store-detail'); if (sheet) sheet.classList.remove('open');
     },
     _rc: function (rar) {
-      return ({ common: '#9fb0c0', rare: '#4aa3ff', epic: '#b46bff', legendary: '#ffb64a', seasonal: '#38e0c0' })[rar] || '#9fb0c0';
+      return ({ common: '#9fb0c0', rare: '#4aa3ff', epic: '#b46bff', legendary: '#ffb64a', seasonal: '#38e0c0', mythic: '#ff3b3b' })[rar] || '#9fb0c0';
     },
 
     _startCountdown: function (serverNow, endsAt) {

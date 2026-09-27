@@ -536,6 +536,10 @@ function migrate() {
   if (addColumn('users', 'equipped_badge',       'TEXT')) added.push('users.equipped_badge');
   if (addColumn('users', 'equipped_celebration', 'TEXT')) added.push('users.equipped_celebration');
   if (addColumn('users', 'equipped_mate_fx',     'TEXT')) added.push('users.equipped_mate_fx');
+  /* سلسلة الانتصارات المتتالية (تتبّع خادميّ بحت لمهمّة «سلسلة فوز»):
+     تُزاد بكل فوز وتُصفَّر بأوّل تعادل/خسارة. تعيّن progress بحدٍّ أقصى (لا
+     تُراكَم) عشان المهمّة تعكس أطول سلسلة حاليّة لا مجموع الانتصارات. */
+  if (addColumn('users', 'win_streak',           'INTEGER DEFAULT 0')) added.push('users.win_streak');
   db.exec(`
     CREATE TABLE IF NOT EXISTS wallet (
       user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
