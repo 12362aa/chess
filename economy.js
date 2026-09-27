@@ -38,22 +38,75 @@ function levelForXp(xp) {
   return L;
 }
 
-/* ══ تعريفات الإنجازات (بذرة المرحلة ١، إثراء المرحلة ٤) ══
+/* ══ تعريفات الإنجازات (بذرة المرحلة ١، توسعةٌ كبرى في البناء ٦٢) ══
    retro=true تُحسَب بأثر رجعي من سجلّ الخادم عند أول دخول بعد التحديث.
    ar/en/desc ثنائيّة اللغة تُرسَل للعميل عبر /catalog (لا تسريب i18n).
-   icon: مُعرّفٌ يرسمه العميل SVG. */
+   icon: مُعرّفٌ يرسمه العميل SVG. tier: برونز/فضّة/ذهب/أسطورة (بطاقةٌ مرسومةٌ
+   لكلِّ رتبة). cat: مجموعةُ العرضِ (قتال/إتقان/ألغاز/مقتنيات/خاصّ).
+   كلُّها تمنح coins + xp معًا — لا إنجازَ بلا خبرة. */
 const ACHIEVEMENTS = [
-  { id: 'first_win',   coins: 30,  xp: 50,  retro: true,  icon: 'medal',   test: s => s.wins >= 1,
+  /* ── قتال: انتصاراتٌ ومبارياتٌ وسلاسل ── */
+  { id: 'first_win',   coins: 30,  xp: 50,   retro: true,  icon: 'sword',  tier: 'bronze', cat: 'battle', test: s => s.wins >= 1,
     ar: 'أوّلُ انتصار',        en: 'First Win',        descAr: 'افُزْ بأوّلِ مباراةٍ لك.',            descEn: 'Win your first game.' },
-  { id: 'wins_10',     coins: 80,  xp: 120, retro: true,  icon: 'medal',   test: s => s.wins >= 10,
+  { id: 'wins_10',     coins: 80,  xp: 120,  retro: true,  icon: 'sword',  tier: 'bronze', cat: 'battle', test: s => s.wins >= 10,
     ar: 'عشرةُ انتصارات',      en: '10 Wins',          descAr: 'افُزْ بعشرِ مباريات.',               descEn: 'Win 10 games.' },
-  { id: 'games_100',   coins: 150, xp: 200, retro: true,  icon: 'board',   test: s => s.games >= 100,
+  { id: 'wins_50',     coins: 200, xp: 300,  retro: true,  icon: 'sword',  tier: 'silver', cat: 'battle', test: s => s.wins >= 50,
+    ar: 'خمسونَ انتصارًا',     en: '50 Wins',          descAr: 'افُزْ بخمسينَ مباراة.',              descEn: 'Win 50 games.' },
+  { id: 'wins_100',    coins: 400, xp: 600,  retro: true,  icon: 'sword',  tier: 'gold',   cat: 'battle', test: s => s.wins >= 100,
+    ar: 'مئةُ انتصار',         en: '100 Wins',         descAr: 'افُزْ بمئةِ مباراة.',                descEn: 'Win 100 games.' },
+  { id: 'wins_250',    coins: 900, xp: 1200, retro: true,  icon: 'trophy', tier: 'legend', cat: 'battle', test: s => s.wins >= 250,
+    ar: 'مئتانِ وخمسون انتصارًا', en: '250 Wins',      descAr: 'افُزْ بمئتينِ وخمسينَ مباراة.',      descEn: 'Win 250 games.' },
+  { id: 'games_10',    coins: 40,  xp: 60,   retro: true,  icon: 'board',  tier: 'bronze', cat: 'battle', test: s => s.games >= 10,
+    ar: 'عشرُ مباريات',        en: '10 Games',         descAr: 'العَبْ عشرَ مباريات.',               descEn: 'Play 10 games.' },
+  { id: 'games_100',   coins: 150, xp: 200,  retro: true,  icon: 'board',  tier: 'silver', cat: 'battle', test: s => s.games >= 100,
     ar: 'مئةُ مباراة',         en: '100 Games',        descAr: 'العَبْ مئةَ مباراة.',                descEn: 'Play 100 games.' },
-  { id: 'rating_1600', coins: 120, xp: 160, retro: true,  icon: 'crown',   test: s => s.rating >= 1600,
+  { id: 'games_500',   coins: 600, xp: 800,  retro: true,  icon: 'board',  tier: 'gold',   cat: 'battle', test: s => s.games >= 500,
+    ar: 'خمسُ مئةِ مباراة',    en: '500 Games',        descAr: 'العَبْ خمسَ مئةِ مباراة.',           descEn: 'Play 500 games.' },
+  { id: 'draws_10',    coins: 90,  xp: 140,  retro: true,  icon: 'shield', tier: 'silver', cat: 'battle', test: s => s.draws >= 10,
+    ar: 'صمودُ العشرة',        en: 'Ten Standoffs',    descAr: 'أنهِ عشرَ مبارياتٍ بالتعادل.',       descEn: 'Draw 10 games.' },
+  { id: 'streak_3',    coins: 70,  xp: 110,  retro: true,  icon: 'flame',  tier: 'bronze', cat: 'battle', test: s => s.streak >= 3,
+    ar: 'سلسلةُ ثلاثة',        en: '3-Win Streak',     descAr: 'افُزْ بثلاثِ مبارياتٍ متتالية.',     descEn: 'Win 3 games in a row.' },
+  { id: 'streak_5',    coins: 140, xp: 220,  retro: true,  icon: 'flame',  tier: 'silver', cat: 'battle', test: s => s.streak >= 5,
+    ar: 'سلسلةُ خمسة',        en: '5-Win Streak',     descAr: 'افُزْ بخمسِ مبارياتٍ متتالية.',      descEn: 'Win 5 games in a row.' },
+  { id: 'streak_10',   coins: 350, xp: 500,  retro: true,  icon: 'flame',  tier: 'gold',   cat: 'battle', test: s => s.streak >= 10,
+    ar: 'سلسلةُ عشرة',        en: '10-Win Streak',    descAr: 'افُزْ بعشرِ مبارياتٍ متتالية.',      descEn: 'Win 10 games in a row.' },
+  /* ── إتقان: تقييمٌ ومستوى ── */
+  { id: 'rating_1600', coins: 120, xp: 160,  retro: true,  icon: 'crown',  tier: 'silver', cat: 'mastery', test: s => s.rating >= 1600,
     ar: 'تقييمُ ١٦٠٠',         en: 'Rating 1600',      descAr: 'ابلغْ تقييمَ ١٦٠٠ أونلاين.',         descEn: 'Reach a 1600 online rating.' },
-  { id: 'puzzle_50',   coins: 90,  xp: 120, retro: true,  icon: 'bulb',    test: s => s.puzzles >= 50,
+  { id: 'rating_1800', coins: 300, xp: 420,  retro: true,  icon: 'crown',  tier: 'gold',   cat: 'mastery', test: s => s.rating >= 1800,
+    ar: 'تقييمُ ١٨٠٠',         en: 'Rating 1800',      descAr: 'ابلغْ تقييمَ ١٨٠٠ أونلاين.',         descEn: 'Reach an 1800 online rating.' },
+  { id: 'rating_2000', coins: 700, xp: 950,  retro: true,  icon: 'crown',  tier: 'legend', cat: 'mastery', test: s => s.rating >= 2000,
+    ar: 'تقييمُ ٢٠٠٠',         en: 'Rating 2000',      descAr: 'ابلغْ تقييمَ ٢٠٠٠ أونلاين.',         descEn: 'Reach a 2000 online rating.' },
+  { id: 'level_5',     coins: 80,  xp: 60,   retro: true,  icon: 'level',  tier: 'bronze', cat: 'mastery', test: s => s.level >= 5,
+    ar: 'المستوى ٥',           en: 'Level 5',          descAr: 'ابلغْ المستوى الخامس.',              descEn: 'Reach level 5.' },
+  { id: 'level_10',    coins: 180, xp: 150,  retro: true,  icon: 'level',  tier: 'silver', cat: 'mastery', test: s => s.level >= 10,
+    ar: 'المستوى ١٠',          en: 'Level 10',         descAr: 'ابلغْ المستوى العاشر.',              descEn: 'Reach level 10.' },
+  { id: 'level_25',    coins: 500, xp: 400,  retro: true,  icon: 'level',  tier: 'gold',   cat: 'mastery', test: s => s.level >= 25,
+    ar: 'المستوى ٢٥',          en: 'Level 25',         descAr: 'ابلغْ المستوى الخامسَ والعشرين.',    descEn: 'Reach level 25.' },
+  { id: 'level_50',    coins: 1500,xp: 1000, retro: true,  icon: 'level',  tier: 'legend', cat: 'mastery', test: s => s.level >= 50,
+    ar: 'القمّةُ: المستوى ٥٠',  en: 'Peak: Level 50',   descAr: 'ابلغْ المستوى الخمسين — أقصى ما يُنال.', descEn: 'Reach level 50 — the very top.' },
+  /* ── ألغاز ── */
+  { id: 'puzzle_10',   coins: 40,  xp: 60,   retro: true,  icon: 'bulb',   tier: 'bronze', cat: 'puzzle', test: s => s.puzzles >= 10,
+    ar: 'عشرةُ ألغاز',         en: '10 Puzzles',       descAr: 'حُلَّ عشرةَ ألغاز.',                 descEn: 'Solve 10 puzzles.' },
+  { id: 'puzzle_50',   coins: 90,  xp: 120,  retro: true,  icon: 'bulb',   tier: 'silver', cat: 'puzzle', test: s => s.puzzles >= 50,
     ar: 'خمسونَ لغزًا',        en: '50 Puzzles',       descAr: 'حُلَّ خمسينَ لغزًا.',                descEn: 'Solve 50 puzzles.' },
-  { id: 'beat_nour',   coins: 60,  xp: 80,  retro: false, icon: 'star',    test: () => false,
+  { id: 'puzzle_200',  coins: 300, xp: 400,  retro: true,  icon: 'bulb',   tier: 'gold',   cat: 'puzzle', test: s => s.puzzles >= 200,
+    ar: 'مئتا لغز',            en: '200 Puzzles',      descAr: 'حُلَّ مئتَي لغز.',                   descEn: 'Solve 200 puzzles.' },
+  { id: 'puzzle_500',  coins: 800, xp: 1000, retro: true,  icon: 'brain',  tier: 'legend', cat: 'puzzle', test: s => s.puzzles >= 500,
+    ar: 'خمسُ مئةِ لغز',       en: '500 Puzzles',      descAr: 'حُلَّ خمسَ مئةِ لغز.',               descEn: 'Solve 500 puzzles.' },
+  /* ── مقتنيات: المتجرُ والمخزون ── */
+  { id: 'collect_5',   coins: 60,  xp: 80,   retro: true,  icon: 'gem',    tier: 'bronze', cat: 'collect', test: s => s.owned >= 5,
+    ar: 'خمسُ مقتنيات',        en: '5 Cosmetics',      descAr: 'امتلكْ خمسةَ عناصرَ تجميليّة.',      descEn: 'Own 5 cosmetic items.' },
+  { id: 'collect_15',  coins: 200, xp: 260,  retro: true,  icon: 'gem',    tier: 'silver', cat: 'collect', test: s => s.owned >= 15,
+    ar: 'خمسَ عشرةَ مقتنيات',  en: '15 Cosmetics',     descAr: 'امتلكْ خمسةَ عشرَ عنصرًا تجميليًّا.', descEn: 'Own 15 cosmetic items.' },
+  { id: 'collect_30',  coins: 500, xp: 650,  retro: true,  icon: 'gem',    tier: 'gold',   cat: 'collect', test: s => s.owned >= 30,
+    ar: 'ثلاثونَ مقتنى',       en: '30 Cosmetics',     descAr: 'امتلكْ ثلاثينَ عنصرًا تجميليًّا.',   descEn: 'Own 30 cosmetic items.' },
+  { id: 'own_legendary',coins: 180,xp: 240,  retro: true,  icon: 'trophy', tier: 'silver', cat: 'collect', test: s => s.legendary >= 1,
+    ar: 'أوّلُ أسطوريّ',       en: 'First Legendary',  descAr: 'امتلكْ عنصرًا أسطوريًّا واحدًا.',    descEn: 'Own one legendary item.' },
+  { id: 'own_mythic',  coins: 400, xp: 500,  retro: true,  icon: 'dragon', tier: 'legend', cat: 'collect', test: s => s.mythic >= 1,
+    ar: 'صائدُ الميثِك',       en: 'Mythic Hunter',    descAr: 'امتلكْ عنصرًا من أعلى ندرة (Mythic).', descEn: 'Own an item of the highest rarity (Mythic).' },
+  /* ── خاصّ ── */
+  { id: 'beat_nour',   coins: 60,  xp: 80,   retro: false, icon: 'star',   tier: 'silver', cat: 'special', test: () => false,
     ar: 'هزيمةُ نور',          en: 'Beat Nour',        descAr: 'اهزِمْ نورَ في وضعِ اللعبِ ضدّه.',   descEn: 'Beat Nour in a match against him.' },
 ];
 
@@ -240,6 +293,66 @@ const STORE_CATALOG = [
   { id: 'fx_blackhole',    type: 'mate_fx',     rarity: 'mythic',    ar: 'الثقبُ الأسود',       en: 'Black Hole Effect' },
   { id: 'fx_thunderstrike',type: 'mate_fx',     rarity: 'mythic',    ar: 'صاعقةٌ عظمى',         en: 'Thunderstrike Effect' },
   { id: 'fx_prismburst',   type: 'mate_fx',     rarity: 'mythic',    ar: 'انفجارٌ منشوريّ',     en: 'Prism Burst Effect' },
+
+  /* ══ توسعةُ الندراتِ المتوسّطة (البناء ٦٢) ══
+     العلّة: الميثِك كان ٣٦٪ من الكتالوج فكان يطلُّ في كلِّ دورةٍ تقريبًا. العلاج
+     شقّان: (أ) ٤٠ عنصرًا جديدًا أغلبُها نادرٌ/ملحميّ — بجودةِ العناصرِ الفاخرةِ
+     نفسِها لا حشوًا، (ب) دورانٌ موزونٌ بالندرةِ بسقفٍ صارمٍ أدناه. ══ */
+  // إطاراتٌ نادرة (4)
+  { id: 'frame_steel',   type: 'frame',       rarity: 'rare',      ar: 'إطارٌ فولاذيّ',       en: 'Steel Frame' },
+  { id: 'frame_vine',    type: 'frame',       rarity: 'rare',      ar: 'إطارُ اللبلاب',       en: 'Vine Frame' },
+  { id: 'frame_ruby',    type: 'frame',       rarity: 'rare',      ar: 'إطارُ الياقوت',       en: 'Ruby Frame' },
+  { id: 'frame_sand',    type: 'frame',       rarity: 'rare',      ar: 'إطارُ الرمال',        en: 'Sand Frame' },
+  // إطاراتٌ ملحميّة (4)
+  { id: 'frame_tide',    type: 'frame',       rarity: 'epic',      ar: 'إطارُ المدّ',         en: 'Tide Frame' },
+  { id: 'frame_storm',   type: 'frame',       rarity: 'epic',      ar: 'إطارُ العاصفة',       en: 'Storm Frame' },
+  { id: 'frame_arcane',  type: 'frame',       rarity: 'epic',      ar: 'إطارُ الطلاسم',       en: 'Arcane Frame' },
+  { id: 'frame_venom',   type: 'frame',       rarity: 'epic',      ar: 'إطارُ السموم',        en: 'Venom Frame' },
+  // إطاراتٌ أسطوريّة (2)
+  { id: 'frame_solar',   type: 'frame',       rarity: 'legendary', ar: 'إطارُ الشمس',         en: 'Solar Frame' },
+  { id: 'frame_lunar',   type: 'frame',       rarity: 'legendary', ar: 'إطارُ القمر',         en: 'Lunar Frame' },
+  // خلفيّاتٌ نادرة (4)
+  { id: 'bg_steel',      type: 'background',  rarity: 'rare',      ar: 'خلفيّةٌ فولاذيّة',    en: 'Steel Background' },
+  { id: 'bg_meadow',     type: 'background',  rarity: 'rare',      ar: 'خلفيّةُ المرج',       en: 'Meadow Background' },
+  { id: 'bg_desert',     type: 'background',  rarity: 'rare',      ar: 'خلفيّةُ الصحراء',     en: 'Desert Background' },
+  { id: 'bg_rain',       type: 'background',  rarity: 'rare',      ar: 'خلفيّةُ المطر',       en: 'Rain Background' },
+  // خلفيّاتٌ ملحميّة (3)
+  { id: 'bg_temple',     type: 'background',  rarity: 'epic',      ar: 'خلفيّةُ المعبد',      en: 'Temple Background' },
+  { id: 'bg_arcane',     type: 'background',  rarity: 'epic',      ar: 'خلفيّةُ الطلاسم',     en: 'Arcane Background' },
+  { id: 'bg_reef',       type: 'background',  rarity: 'epic',      ar: 'خلفيّةُ الشِّعاب',     en: 'Reef Background' },
+  // خلفيّةٌ أسطوريّة (1)
+  { id: 'bg_eclipse',    type: 'background',  rarity: 'legendary', ar: 'خلفيّةُ الخسوف',      en: 'Eclipse Background' },
+  // شاراتٌ نادرة (4)
+  { id: 'badge_anchor',  type: 'badge',       rarity: 'rare',      ar: 'شارةُ المرساة',       en: 'Anchor Badge' },
+  { id: 'badge_leaf',    type: 'badge',       rarity: 'rare',      ar: 'شارةُ الورقة',        en: 'Leaf Badge' },
+  { id: 'badge_sword',   type: 'badge',       rarity: 'rare',      ar: 'شارةُ السيف',         en: 'Sword Badge' },
+  { id: 'badge_rook',    type: 'badge',       rarity: 'rare',      ar: 'شارةُ الحِصن',        en: 'Rook Badge' },
+  // شاراتٌ ملحميّة (3)
+  { id: 'badge_knight',  type: 'badge',       rarity: 'epic',      ar: 'شارةُ الفارس',        en: 'Knight Badge' },
+  { id: 'badge_rune',    type: 'badge',       rarity: 'epic',      ar: 'شارةُ الطلسم',        en: 'Rune Badge' },
+  { id: 'badge_wing',    type: 'badge',       rarity: 'epic',      ar: 'شارةُ الجناح',        en: 'Wing Badge' },
+  // شارةٌ أسطوريّة (1)
+  { id: 'badge_sun',     type: 'badge',       rarity: 'legendary', ar: 'شارةُ الشمس',         en: 'Sun Badge' },
+  // احتفالاتٌ نادرة (3)
+  { id: 'cel_ribbons',   type: 'celebration', rarity: 'rare',      ar: 'احتفالُ الأشرطة',     en: 'Ribbons Celebration' },
+  { id: 'cel_bubbles',   type: 'celebration', rarity: 'rare',      ar: 'احتفالُ الفقاعات',    en: 'Bubbles Celebration' },
+  { id: 'cel_leaves',    type: 'celebration', rarity: 'rare',      ar: 'احتفالُ الأوراق',     en: 'Leaves Celebration' },
+  // احتفالاتٌ ملحميّة (3)
+  { id: 'cel_sparks',    type: 'celebration', rarity: 'epic',      ar: 'احتفالُ الشرر',       en: 'Sparks Celebration' },
+  { id: 'cel_aurora',    type: 'celebration', rarity: 'epic',      ar: 'احتفالُ الشفق',       en: 'Aurora Celebration' },
+  { id: 'cel_crowns',    type: 'celebration', rarity: 'epic',      ar: 'احتفالُ التيجان',     en: 'Crowns Celebration' },
+  // احتفالٌ أسطوريّ (1)
+  { id: 'cel_sunburst',  type: 'celebration', rarity: 'legendary', ar: 'انفجارُ الشمس',       en: 'Sunburst Celebration' },
+  // مؤثّراتُ كش-ماتٍ نادرة (3)
+  { id: 'fx_sandstorm',  type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ العاصفةِ الرمليّة', en: 'Sandstorm Effect' },
+  { id: 'fx_ripple',     type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ التموّج',       en: 'Ripple Effect' },
+  { id: 'fx_leafstorm',  type: 'mate_fx',     rarity: 'rare',      ar: 'مؤثّرُ عاصفةِ الأوراق', en: 'Leaf Storm Effect' },
+  // مؤثّراتٌ ملحميّة (3)
+  { id: 'fx_venom',      type: 'mate_fx',     rarity: 'epic',      ar: 'مؤثّرُ السمّ',         en: 'Venom Effect' },
+  { id: 'fx_quake',      type: 'mate_fx',     rarity: 'epic',      ar: 'مؤثّرُ الزلزال',      en: 'Quake Effect' },
+  { id: 'fx_eclipse',    type: 'mate_fx',     rarity: 'epic',      ar: 'مؤثّرُ الخسوف',       en: 'Eclipse Effect' },
+  // مؤثّرٌ أسطوريّ (1)
+  { id: 'fx_solarflare', type: 'mate_fx',     rarity: 'legendary', ar: 'مؤثّرُ التوهّجِ الشمسيّ', en: 'Solar Flare Effect' },
 ];
 const STORE_BY_ID = Object.create(null);
 for (const it of STORE_CATALOG) { it.price = RARITY_PRICE[it.rarity] || 300; STORE_BY_ID[it.id] = it; }
@@ -260,11 +373,64 @@ function _mulberry32(a) {
   };
 }
 function storeEpoch(now) { return Math.floor((now == null ? Date.now() : now) / STORE_PERIOD_MS); }
+/* ══ خطّةُ الدورة (البناء ٦٢) ══
+   قبلًا كان الخلطُ منتظمًا على الكتالوجِ كلِّه، والميثِك ٣٦٪ منه، فكان يطلُّ
+   مرّتين أو ثلاثًا في كلِّ دورةٍ فيفقدُ هيبتَه تمامًا. الآن: خانتان نادرتان،
+   خانتان ملحميّتان، خانةٌ متغيّرة، وخانةُ صدارةٍ واحدةٌ فقط للأعلى ندرة
+   (أسطوريّ ٥٠٪ · ميثِك ٣٣٪ · موسميّ ١٧٪) ⇒ الميثِك ≈ دورةٌ من ثلاث. */
+const ROTATION_PLAN = [
+  ['rare'],
+  ['rare'],
+  ['epic'],
+  ['epic'],
+  ['common', 'common', 'rare', 'epic'],
+  ['legendary', 'legendary', 'legendary', 'mythic', 'mythic', 'seasonal'],
+];
+const RARITY_ORDER = ['rare', 'epic', 'common', 'legendary', 'seasonal', 'mythic'];
+const MAX_PER_TYPE = 2;   /* تنويعُ الأنواع: لا أكثرَ من عنصرين من نوعٍ واحد */
+
 function storeItemsForEpoch(epoch) {
   const rng = _mulberry32(_fnv1a('amkh-store:' + epoch));
-  const pool = STORE_CATALOG.slice();
-  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
-  return pool.slice(0, STORE_SLOTS);
+  /* طابورٌ مخلوطٌ لكلِّ ندرةٍ على حِدة، بترتيبِ مفاتيحَ ثابتٍ فتبقى النتيجةُ
+     حتميّةً تمامًا عند الخادمِ وكلِّ العملاءِ لنفسِ الـepoch. */
+  const queues = Object.create(null);
+  for (const rar of RARITY_ORDER) {
+    const a = STORE_CATALOG.filter(i => i.rarity === rar);
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+    queues[rar] = a;
+  }
+  const out = [];
+  const typeCount = Object.create(null);
+  const take = (rar) => {
+    const a = queues[rar];
+    if (!a || !a.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      const it = a[i];
+      if ((typeCount[it.type] || 0) >= MAX_PER_TYPE) continue;
+      a.splice(i, 1);
+      typeCount[it.type] = (typeCount[it.type] || 0) + 1;
+      out.push(it);
+      return true;
+    }
+    return false;
+  };
+  for (let s = 0; s < STORE_SLOTS; s++) {
+    const plan = ROTATION_PLAN[s % ROTATION_PLAN.length];
+    if (take(plan[Math.floor(rng() * plan.length)])) continue;
+    /* الطابورُ المطلوبُ فرغَ أو حجبَه سقفُ النوع ⇒ نزولٌ بترتيبٍ ثابت. */
+    let done = false;
+    for (const rar of RARITY_ORDER) { if (take(rar)) { done = true; break; } }
+    if (!done) break;
+  }
+  /* شبكةُ أمان: لو ضاقت الأنواعُ ولم تكتمل الخانات، نُكمِل بترتيبٍ حتميّ. */
+  if (out.length < STORE_SLOTS) {
+    const have = new Set(out.map(i => i.id));
+    for (const it of STORE_CATALOG) {
+      if (out.length >= STORE_SLOTS) break;
+      if (!have.has(it.id)) { out.push(it); have.add(it.id); }
+    }
+  }
+  return out.slice(0, STORE_SLOTS);
 }
 /* لقطةُ المتجر: نعرض **كلّ** الكتالوج دائمًا (حتى المقفول) — البناء ٦٠.
    inWindow يحدّد أيّ العناصر ضمن نافذة الدوران الحاليّة (قابلة للشراء الآن)؛
@@ -395,6 +561,22 @@ function evaluateAchievements(userId, retroOnly) {
 
 function statsSnapshot(userId) {
   const u = qStats.get(userId) || {};
+  /* حقولٌ إضافيّةٌ للإنجازاتِ الموسّعةِ (البناء ٦٢): السلسلةُ والمستوى وعددُ
+     المقتنياتِ بندراتِها — كلُّها من سجلِّ الخادمِ فلا يمكنُ تلفيقُها. */
+  let streak = 0;
+  try { const st = qStreak.get(userId); streak = Number(st && st.win_streak) || 0; } catch (e) {}
+  let xp = 0;
+  try { const w = qWallet.get(userId); xp = Number(w && w.xp) || 0; } catch (e) {}
+  let owned = 0, mythic = 0, legendary = 0;
+  try {
+    for (const r of qOwned.all(userId)) {
+      owned++;
+      const it = STORE_BY_ID[r.item_id];
+      if (!it) continue;
+      if (it.rarity === 'mythic') mythic++;
+      else if (it.rarity === 'legendary') legendary++;
+    }
+  } catch (e) {}
   return {
     rating: Math.round(Number(u.rating) || 1500),
     games: Number(u.rating_games) || ((Number(u.wins) || 0) + (Number(u.losses) || 0) + (Number(u.draws) || 0)),
@@ -402,6 +584,8 @@ function statsSnapshot(userId) {
     losses: Number(u.losses) || 0,
     draws: Number(u.draws) || 0,
     puzzles: Number(u.puzzle_solved) || 0,
+    streak, owned, mythic, legendary,
+    level: levelForXp(xp),
   };
 }
 
@@ -516,6 +700,9 @@ const setMissionMax  = db.prepare("UPDATE missions SET progress = MAX(progress, 
 const setMissionClaimed = db.prepare("UPDATE missions SET claimed = 1, updated_at = datetime('now') WHERE user_id = ? AND mission_id = ? AND period_key = ?");
 const qMissionCount = db.prepare('SELECT COUNT(*) AS n FROM missions WHERE user_id = ? AND period = ? AND period_key = ?');
 const qMissionsForPeriod = db.prepare('SELECT mission_id, progress, target, claimed FROM missions WHERE user_id = ? AND period = ? AND period_key = ?');
+/* حذفُ صفِّ مهمّةٍ مهجورةٍ (قالبُها لم يعد موجودًا بعد تحديث) — لازمٌ لأنّ
+   بقاءَها كان يخنقُ بذرَ الدورة. البناء ٦٢. */
+const delMissionRow = db.prepare('DELETE FROM missions WHERE user_id = ? AND mission_id = ? AND period_key = ?');
 
 /* ══ التوليد الذكيّ للمهام (البناء ٦٠) ══ */
 function _levelOf(userId) { const w = qWallet.get(userId); return w ? (Number(w.level) || 1) : 1; }
@@ -556,9 +743,24 @@ function _pick3(templates, weights, rng) {
    تبدّلت الإحصاءات لاحقًا). يُستدعى من كلِّ مسار يلمس المهام. */
 function ensureSeeded(userId, period) {
   const pk = periodKey(period);
-  let n = 0;
-  try { n = qMissionCount.get(userId, period, pk).n; } catch (e) {}
-  if (n > 0) return pk;
+  /* العدُّ الأعمى (COUNT) كان يخنقُ الدورةَ: لو تبدّلت أسماءُ القوالبِ في
+     تحديثٍ (w_play20 ⇒ weekly_games) تبقى صفوفُ الدورةِ القديمةِ في الجدول،
+     فالعدُّ > 0 فيرجع فورًا بلا بذرٍ، ثمّ يسقطُها العرضُ لأنّ قالبَها اختفى
+     ⇒ صفرُ مهامٍّ أسبوعيّةٍ حتى الاثنين القادم. الصحيحُ: نعدُّ الصفوفَ الحيّةَ
+     فقط، ونحذفُ المهجورةَ، ونُكمِلُ الناقصَ (INSERT OR IGNORE ذرّيٌّ على
+     المفتاحِ الأساسيِّ فلا يلمسُ تقدّمًا قائمًا). البناء ٦٢. */
+  let live = 0;
+  const stale = [];
+  try {
+    for (const row of qMissionsForPeriod.all(userId, period, pk)) {
+      if (MISSION_TPL_BY_ID[row.mission_id]) live++; else stale.push(row.mission_id);
+    }
+  } catch (e) {}
+  if (stale.length) {
+    try { db.transaction(() => { for (const id of stale) delMissionRow.run(userId, id, pk); })(); }
+    catch (e) { console.error('[economy] purge stale missions', e.message); }
+  }
+  if (live >= 3) return pk;
   const level = _levelOf(userId);
   const stats = statsSnapshot(userId);
   const rng = _mulberry32(_fnv1a('missions:' + period + ':' + pk + ':' + userId));
@@ -660,6 +862,7 @@ function catalog() {
   return {
     achievements: ACHIEVEMENTS.map(a => ({
       id: a.id, coins: a.coins, xp: a.xp, icon: a.icon || 'medal',
+      tier: a.tier || 'bronze', cat: a.cat || 'battle',
       ar: a.ar, en: a.en, descAr: a.descAr, descEn: a.descEn,
     })),
     missions: [],
@@ -671,6 +874,10 @@ function catalog() {
 
 /* ══ المسارات ══ */
 router.get('/me', authenticateToken, (req, res) => {
+  /* تقييمُ الإنجازاتِ عند كلِّ فتحٍ للشاشة: الإنجازاتُ الجديدةُ (البناء ٦٢)
+     تُفتَحُ فورًا من سجلِّ الخادمِ بلا انتظارِ مباراةٍ جديدة. المنحُ ذرّيٌّ
+     ولا يتكرّرُ (achievements + مرجعٌ فريدٌ في coin_ledger). */
+  try { ensureWallet(req.user.id); evaluateAchievements(req.user.id); } catch (e) {}
   try { res.json(snapshot(req.user.id)); }
   catch (e) { console.error('[economy] /me', e.message); res.status(500).json({ error: 'economy_error' }); }
 });
@@ -747,6 +954,8 @@ router.post('/store/buy', authenticateToken, (req, res) => {
   try {
     ensureWallet(userId);
     const r = purchase(userId, itemId);
+    /* إنجازاتُ المقتنياتِ تُقاسُ من المخزونِ فتُقيَّمُ بعدَ كلِّ شراءٍ ناجح. */
+    if (r && r.ok) { try { evaluateAchievements(userId); } catch (e) {} }
     res.json({ ...r, store: storeCurrent(userId), ...snapshot(userId) });
   } catch (e) {
     console.error('[economy] /store/buy', e.message);

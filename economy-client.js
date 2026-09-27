@@ -96,13 +96,16 @@
       var lv = document.getElementById('home-econ-lvl');
       if (lv) lv.textContent = String(s.level || 1);
       var fill = document.getElementById('home-econ-xp-fill');
+      var cap = document.getElementById('home-econ-xp-cap');
+      var lo = Number(s.thisLevelXp) || 0, hi = Number(s.nextLevelXp) || (lo + 1);
+      var xp = Number(s.xp) || 0, maxed = (s.level || 1) >= (s.maxLevel || 50);
       if (fill) {
-        var lo = Number(s.thisLevelXp) || 0, hi = Number(s.nextLevelXp) || (lo + 1);
-        var xp = Number(s.xp) || 0;
         var pct = hi > lo ? Math.max(0, Math.min(100, ((xp - lo) / (hi - lo)) * 100)) : 100;
-        if (s.level >= (s.maxLevel || 50)) pct = 100;
+        if (maxed) pct = 100;
         fill.style.width = pct.toFixed(1) + '%';
       }
+      /* رقمُ XP صريحٌ تحتَ الشريطِ (محايدُ اللغةِ: XP مفهومةٌ في اللغتين). */
+      if (cap) cap.textContent = maxed ? ('MAX · ' + this._fmt(xp) + ' XP') : (this._fmt(xp) + ' / ' + this._fmt(hi) + ' XP');
     },
 
     init: function () {
@@ -164,6 +167,17 @@
     frame_prism:     ['#5affc0', '#ff6ad5', '#8fd4ff'],
     frame_seraph:    ['#fff0b0', '#c9a84c', '#ffffff'],
     frame_obsidian:  ['#7a7a90', '#0a0a12', '#d0d0e0'],
+    // ═══ توسعةُ البناء ٦٢ — نادرٌ وملحميٌّ بجودةِ الفاخرِ نفسِها ═══
+    frame_steel:   ['#c8d2de', '#495568', '#ffffff'],
+    frame_vine:    ['#6fcf5a', '#1a5226', '#d8ffcc'],
+    frame_ruby:    ['#ff4a6a', '#7a0a20', '#ffc2cf'],
+    frame_sand:    ['#e8c37a', '#8a6020', '#fff0cc'],
+    frame_tide:    ['#4ad6ff', '#0a4a7a', '#cceeff'],
+    frame_storm:   ['#9fb0d6', '#1a1f3a', '#eef4ff'],
+    frame_arcane:  ['#c07aff', '#2a0a4a', '#eeccff'],
+    frame_venom:   ['#9fff2f', '#255208', '#e0ffb0'],
+    frame_solar:   ['#ffb02f', '#a03a00', '#fff0b0'],
+    frame_lunar:   ['#dce6f5', '#3a4a6a', '#ffffff'],
   };
   // (لم يعد فيه إطارٌ يعتمد على النبض العام — كلٌّ له رسمُه الخاصّ أدناه)
   var FRAME_GLOW = {};
@@ -353,6 +367,129 @@
         + '<polygon points="' + oct + '" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="12 220" stroke-linecap="round" opacity="0.85"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.4s" repeatCount="indefinite"/></polygon>'
         + '<g fill="' + t[2] + '"><path d="M50 14 l3 5 -3 5 -3 -5z"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" repeatCount="indefinite"/></path><path d="M84 50 l4 4 -4 4 -4 -4z"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></path><path d="M16 50 l4 4 -4 4 -4 -4z"><animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/></path></g>';
     },
+
+    /* ════ توسعةُ البناء ٦٢: عشرةُ إطاراتٍ جديدة ════
+       القاعدةُ نفسُها: الطوقُ عندَ r=45، ولا نرسمُ فوقَ الوجهِ إلّا جسيماتٍ
+       عابرةً كالثلجِ، وكلُّ إطارٍ له لغةٌ بصريّةٌ لا تشبهُ غيرَه. */
+
+    // الفولاذ: طوقٌ مصقولٌ مزدوجٌ + ثمانيةُ مساميرَ بارزةٍ + لمعةٌ معدنيّةٌ تجولُ
+    frame_steel: function (t, g) {
+      var P = [[95, 50], [81.8, 81.8], [50, 95], [18.2, 81.8], [5, 50], [18.2, 18.2], [50, 5], [81.8, 18.2]];
+      var riv = '';
+      for (var i = 0; i < P.length; i++) riv += '<circle cx="' + P[i][0] + '" cy="' + P[i][1] + '" r="2.5" fill="' + t[2] + '" stroke="' + t[1] + '" stroke-width="0.9"/><circle cx="' + P[i][0] + '" cy="' + P[i][1] + '" r="1" fill="' + t[1] + '" opacity="0.55"/>';
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="8"/>'
+        + '<circle cx="50" cy="50" r="48.6" fill="none" stroke="' + t[1] + '" stroke-width="1.5" opacity="0.75"/>'
+        + '<circle cx="50" cy="50" r="41.4" fill="none" stroke="' + t[1] + '" stroke-width="1.5" opacity="0.75"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="7.4" stroke-dasharray="3 22" opacity="0.22"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-dasharray="15 268" opacity="0.85"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.2s" repeatCount="indefinite"/></circle>'
+        + riv;
+    },
+    // اللبلاب: طوقٌ خشبيٌّ + ساقٌ تلتفُّ حولَه + ثمانيةُ أوراقٍ تنبضُ نموًّا
+    frame_vine: function (t, g) {
+      var leaf = '';
+      for (var i = 0; i < 8; i++) {
+        leaf += '<g transform="rotate(' + (i * 45) + ' 50 50)"><ellipse cx="50" cy="5" rx="5" ry="2.7" fill="' + (i % 2 ? t[0] : t[2]) + '"><animate attributeName="rx" values="2.6;5.8;2.6" dur="' + (2 + (i % 3) * 0.55).toFixed(2) + 's" begin="' + (i * 0.3).toFixed(1) + 's" repeatCount="indefinite"/></ellipse><path d="M45.5 5 h9" stroke="' + t[1] + '" stroke-width="0.7" opacity="0.6"/></g>';
+      }
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="8"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="4.2" stroke-dasharray="11 7" stroke-linecap="round"><animate attributeName="stroke-dashoffset" from="0" to="36" dur="3.4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="1.6" stroke-dasharray="3 9" opacity="0.6"><animate attributeName="stroke-dashoffset" from="12" to="0" dur="2.4s" repeatCount="indefinite"/></circle>'
+        + leaf;
+    },
+    // الياقوت: طوقٌ داكنٌ + أربعُ ياقوتاتٍ مصقولةٍ ببريقٍ داخليّ + حلقةٌ معاكسة
+    frame_ruby: function (t, g) {
+      var gem = function (cx, cy) {
+        return '<g><polygon points="' + cx + ',' + (cy - 7.2) + ' ' + (cx + 5.6) + ',' + cy + ' ' + cx + ',' + (cy + 7.2) + ' ' + (cx - 5.6) + ',' + cy + '" fill="' + t[0] + '" stroke="' + t[2] + '" stroke-width="0.9"/>'
+          + '<polygon points="' + cx + ',' + (cy - 7.2) + ' ' + (cx + 5.6) + ',' + cy + ' ' + cx + ',' + cy + '" fill="' + t[2] + '" opacity="0.5"/>'
+          + '<circle cx="' + cx + '" cy="' + cy + '" r="1.7" fill="#ffffff"><animate attributeName="opacity" values="0.15;1;0.15" dur="1.8s" repeatCount="indefinite"/></circle></g>';
+      };
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="9"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="3.4"/>'
+        + '<circle cx="50" cy="50" r="41" fill="none" stroke="' + t[0] + '" stroke-width="1.6" stroke-dasharray="6 14" opacity="0.7"><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="7s" repeatCount="indefinite"/></circle>'
+        + gem(50, 5) + gem(95, 50) + gem(50, 95) + gem(5, 50)
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 274" opacity="0.7"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4.2s" repeatCount="indefinite"/></circle>';
+    },
+    // الرمال: طوقٌ صحراويٌّ + حبيباتٌ تدورُ في ثلاثِ مداراتٍ بسرعاتٍ مختلفة
+    frame_sand: function (t, g) {
+      var orb = function (r, n, dur, rad, op, rev) {
+        var s = '<g opacity="' + op + '"><animateTransform attributeName="transform" type="rotate" from="' + (rev ? 360 : 0) + ' 50 50" to="' + (rev ? 0 : 360) + ' 50 50" dur="' + dur + 's" repeatCount="indefinite"/>';
+        for (var i = 0; i < n; i++) {
+          var a = (i / n) * Math.PI * 2;
+          s += '<circle cx="' + (50 + r * Math.cos(a)).toFixed(1) + '" cy="' + (50 + r * Math.sin(a)).toFixed(1) + '" r="' + rad + '" fill="' + t[2] + '"/>';
+        }
+        return s + '</g>';
+      };
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="7"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="1.3" opacity="0.65"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="6.4" stroke-dasharray="3 7" opacity="0.32"><animate attributeName="stroke-dashoffset" from="0" to="20" dur="1.8s" repeatCount="indefinite"/></circle>'
+        + orb(48.6, 9, 9, 1.1, 0.9, 0) + orb(45, 12, 6, 0.8, 0.55, 1) + orb(41.4, 7, 12, 1.3, 0.45, 0);
+    },
+    // المدّ: قوسا ماءٍ متعاكسانِ + حلقةٌ داخليّةٌ مُتموّجةٌ + قطراتٌ تصعد
+    frame_tide: function (t, g) {
+      var drop = function (x, r, dur, bg) { return '<circle cx="' + x + '" cy="93" r="' + r + '" fill="' + bg + '"><animate attributeName="cy" values="93;9" dur="' + dur + 's" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.9;0" dur="' + dur + 's" repeatCount="indefinite"/></circle>'; };
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="8"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="5" stroke-linecap="round" stroke-dasharray="80 203"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4.6s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="3" stroke-linecap="round" stroke-dasharray="52 231" opacity="0.85"><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="3.2s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="40.5" fill="none" stroke="' + t[0] + '" stroke-width="1.5" stroke-dasharray="5 11" opacity="0.5"><animate attributeName="stroke-dashoffset" from="16" to="0" dur="1.4s" repeatCount="indefinite"/></circle>'
+        + drop(30, 1.6, 2.2, t[2]) + drop(70, 1.3, 2.8, t[0]) + drop(50, 1.1, 3.4, t[2]);
+    },
+    // العاصفة: طوقٌ رصاصيٌّ + دوّاماتُ ريحٍ تلتفّ + ثلاثُ صواعقَ تخفقُ تعاقبًا
+    frame_storm: function (t, g) {
+      var bolt = function (rot, dly) { return '<g transform="rotate(' + rot + ' 50 50)"><path d="M52 3 L45 16 L51 16 L47 25 L59 12 L52 12 Z" fill="' + t[2] + '"><animate attributeName="opacity" values="0;0;1;0.15;1;0" keyTimes="0;0.55;0.62;0.68;0.74;1" dur="2.8s" begin="' + dly + 's" repeatCount="indefinite"/></path></g>'; };
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="9.5"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="4"/>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="5.2s" repeatCount="indefinite"/><path d="M50 5 A45 45 0 0 1 81.8 18.2" fill="none" stroke="' + t[0] + '" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/><path d="M50 95 A45 45 0 0 1 18.2 81.8" fill="none" stroke="' + t[0] + '" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/></g>'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="3.6s" repeatCount="indefinite"/><path d="M50 10.5 A39.5 39.5 0 0 1 78 22" fill="none" stroke="' + t[2] + '" stroke-width="1.4" stroke-linecap="round" opacity="0.55"/></g>'
+        + bolt(0, 0) + bolt(120, 0.95) + bolt(240, 1.9);
+    },
+    // الطلاسم: طوقان + ١٢ رمزًا يدورُ ببطءٍ ويتنفّسُ + حلقةُ شَرَطاتٍ معاكسة
+    frame_arcane: function (t, g) {
+      var R = ['M-2 -4 h4 M0 -4 v8 M-2 4 h4', 'M-3 -4 l6 4 -6 4', 'M-3 -4 v8 M3 -4 v8 M-3 0 h6', 'M0 -4 l3 4 -3 4 -3 -4z', 'M-3 4 l3 -8 3 8', 'M-3 -4 h6 l-6 8 h6'];
+      var runes = '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="15s" repeatCount="indefinite"/>';
+      for (var i = 0; i < 12; i++) {
+        runes += '<g transform="rotate(' + (i * 30) + ' 50 50) translate(50 5)"><path d="' + R[i % R.length] + '" fill="none" stroke="' + t[2] + '" stroke-width="1.3" stroke-linecap="round"><animate attributeName="opacity" values="0.22;1;0.22" dur="2.8s" begin="' + (i * 0.23).toFixed(2) + 's" repeatCount="indefinite"/></path></g>';
+      }
+      runes += '</g>';
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="11"/>'
+        + '<circle cx="50" cy="50" r="49" fill="none" stroke="url(#' + g + ')" stroke-width="2"/>'
+        + '<circle cx="50" cy="50" r="41" fill="none" stroke="url(#' + g + ')" stroke-width="2"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="9" stroke-dasharray="1 15" opacity="0.35"><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="24s" repeatCount="indefinite"/></circle>'
+        + runes;
+    },
+    // السموم: طوقٌ حامضيٌّ + وميضٌ سامٌّ يسري + فقاقيعُ مجوّفةٌ تنزل
+    frame_venom: function (t, g) {
+      var bub = function (x, r, dur, dly) { return '<circle cx="' + x + '" cy="7" r="' + r + '" fill="none" stroke="' + t[0] + '" stroke-width="1.1"><animate attributeName="cy" values="7;95" dur="' + dur + 's" begin="' + dly + 's" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.82;1" dur="' + dur + 's" begin="' + dly + 's" repeatCount="indefinite"/></circle>'; };
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="9"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="4.5"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="8" stroke-dasharray="2 9" opacity="0.38"><animate attributeName="stroke-dashoffset" from="0" to="22" dur="2.2s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="11 272" opacity="0.6"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.8s" repeatCount="indefinite"/></circle>'
+        + bub(18, 2.2, 2.6, 0) + bub(82, 1.8, 3.2, 0.7) + bub(50, 1.5, 2.2, 1.3) + bub(66, 2.6, 3.8, 1.9);
+    },
+    // الشمس: إكليلٌ من ١٦ شعاعًا ينبضُ + توهّجٌ يمسحُ الطوقَ + قلبٌ ذهبيّ
+    frame_solar: function (t, g) {
+      var rays = '';
+      for (var i = 0; i < 16; i++) {
+        rays += '<g transform="rotate(' + (i * 22.5) + ' 50 50)"><path d="M50 4.6 L47.7 2.6 L50 0.4 L52.3 2.6 Z" fill="' + (i % 2 ? t[0] : t[2]) + '"><animate attributeName="opacity" values="0.25;1;0.25" dur="' + (1.6 + (i % 4) * 0.28).toFixed(2) + 's" begin="' + (i * 0.11).toFixed(2) + 's" repeatCount="indefinite"/></path></g>';
+      }
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="8.5"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="5"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="9" opacity="0.2"><animate attributeName="opacity" values="0.1;0.34;0.1" dur="2.6s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#fffbe6" stroke-width="6" stroke-linecap="round" stroke-dasharray="26 257" opacity="0.9"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.6s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="41" fill="none" stroke="' + t[2] + '" stroke-width="1.2" stroke-dasharray="4 8" opacity="0.6"><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="9s" repeatCount="indefinite"/></circle>'
+        + rays;
+    },
+    // القمر: طوقٌ فضّيٌّ + هلالٌ أعلى + نجومٌ تدورُ + بريقٌ باردٌ يسري
+    frame_lunar: function (t, g) {
+      var stars = '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="11s" repeatCount="indefinite"/>';
+      var S = [[50, 5, 1.9], [81.8, 18.2, 1.3], [95, 50, 1.6], [81.8, 81.8, 1.2], [50, 95, 1.7], [18.2, 81.8, 1.3], [5, 50, 1.5], [18.2, 18.2, 1.2]];
+      for (var i = 0; i < S.length; i++) stars += '<path d="M' + S[i][0] + ' ' + (S[i][1] - S[i][2] * 2) + ' l' + S[i][2] + ' ' + S[i][2] * 2 + ' l' + S[i][2] * 2 + ' ' + S[i][2] + ' l-' + S[i][2] * 2 + ' ' + S[i][2] + ' l-' + S[i][2] + ' ' + S[i][2] * 2 + ' l-' + S[i][2] + ' -' + S[i][2] * 2 + ' l-' + S[i][2] * 2 + ' -' + S[i][2] + ' l' + S[i][2] * 2 + ' -' + S[i][2] + 'z" fill="' + t[2] + '"><animate attributeName="opacity" values="0.2;1;0.2" dur="' + (1.8 + (i % 3) * 0.5).toFixed(1) + 's" begin="' + (i * 0.26).toFixed(2) + 's" repeatCount="indefinite"/></path>';
+      stars += '</g>';
+      return '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[1] + '" stroke-width="8.5"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="4.4"/>'
+        + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="4.4" stroke-linecap="round" stroke-dasharray="18 265" opacity="0.8"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="5.4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="50" cy="50" r="41" fill="none" stroke="' + t[0] + '" stroke-width="1.1" opacity="0.5"/>'
+        + stars
+        + '<path d="M50 10 A6 6 0 1 0 50 22 A4.4 4.4 0 1 1 50 10 Z" fill="' + t[2] + '" stroke="' + t[1] + '" stroke-width="0.6"><animate attributeName="opacity" values="0.65;1;0.65" dur="3s" repeatCount="indefinite"/></path>';
+    },
   };
 
   // شارات: [لون، مسار SVG، عيون؟]
@@ -377,6 +514,23 @@
                     '<path d="M50 82 C42 74 36 62 42 50 C46 57 50 58 50 50 C50 58 54 57 58 50 C64 62 58 74 50 82 Z" fill="#ffd6e6" opacity="0.7"/>'],
     badge_eye:     ['#b06bff', 'M8 50 Q50 16 92 50 Q50 84 8 50 Z',
                     '<circle cx="50" cy="50" r="12" fill="#170a24"/><circle cx="50" cy="50" r="5.5" fill="#e0c8ff"/><circle cx="53" cy="47" r="2" fill="#fff"/>'],
+    /* ═══ توسعةُ البناء ٦٢ — شاراتٌ نادرةٌ وملحميّة ═══ */
+    badge_anchor:  ['#7fd0e8', 'M46 18 h8 v54 h-8 Z M30 34 h40 v7 H30 Z M50 88 C28 84 15 68 14 46 H26 C27 64 36 75 50 78 Z M50 88 C72 84 85 68 86 46 H74 C73 64 64 75 50 78 Z',
+                    '<circle cx="50" cy="12" r="7" fill="none" stroke="#7fd0e8" stroke-width="4"/><path d="M14 46 l-6 -11 12 0z M86 46 l6 -11 -12 0z" fill="#7fd0e8"/>'],
+    badge_leaf:    ['#6fcf5a', 'M50 6 C74 22 86 46 74 68 C64 86 44 92 30 84 C14 74 12 48 26 28 C34 16 42 10 50 6 Z',
+                    '<path d="M50 12 C48 40 44 62 34 82" fill="none" stroke="#1a5226" stroke-width="3" stroke-linecap="round"/><path d="M47 30 l15 6 M45 45 l17 4 M42 59 l16 1" fill="none" stroke="#1a5226" stroke-width="2" opacity="0.65"/>'],
+    badge_sword:   ['#d8e2f0', 'M50 3 L59 24 V54 H41 V24 Z M25 54 H75 V63 H25 Z M45 63 H55 V84 H45 Z M39 84 H61 V93 H39 Z',
+                    '<path d="M50 9 V52" stroke="#4a5568" stroke-width="2.4" opacity="0.55"/><circle cx="50" cy="58.5" r="3" fill="#ffd54a"/>'],
+    badge_rook:    ['#e2c79a', 'M26 16 H36 V26 H44 V16 H56 V26 H64 V16 H74 V36 L66 44 V66 L74 86 H26 L34 66 V44 L26 36 Z',
+                    '<path d="M34 44 H66 M34 66 H66" stroke="#6a4a22" stroke-width="2.6" opacity="0.6"/><path d="M42 50 h6 v10 h-6z M52 50 h6 v10 h-6z" fill="#6a4a22" opacity="0.4"/>'],
+    badge_knight:  ['#cfd9ea', 'M24 88 H80 C80 74 76 62 68 52 C62 44 58 40 58 34 L68 24 L58 16 C50 10 40 12 34 20 L24 34 L36 38 L28 48 C24 56 30 62 38 60 C34 68 28 76 24 88 Z',
+                    '<circle cx="44" cy="28" r="2.6" fill="#16101f"/><path d="M58 20 L64 26" stroke="#16101f" stroke-width="2" opacity="0.5"/><path d="M28 36 L40 40" stroke="#16101f" stroke-width="2.4" opacity="0.4"/>'],
+    badge_rune:    ['#c07aff', 'M50 6 L86 26 V72 L50 94 L14 72 V26 Z',
+                    '<path d="M50 6 L86 26 V72 L50 94 L14 72 V26 Z" fill="none" stroke="#eeccff" stroke-width="2" opacity="0.7"/><path d="M38 28 V72 M38 28 L62 48 M38 50 L62 30 M38 72 H62" fill="none" stroke="#2a0a4a" stroke-width="4" stroke-linecap="round"/>'],
+    badge_wing:    ['#cfe4ff', 'M8 78 C14 48 32 24 58 12 C52 26 48 36 48 44 C60 34 74 28 90 28 C76 40 66 52 60 62 C70 60 80 60 90 64 C72 70 56 78 44 90 C34 84 20 80 8 78 Z',
+                    '<path d="M30 70 C40 58 52 46 66 36 M23 75 C33 66 43 56 55 48" fill="none" stroke="#5a7ba8" stroke-width="2" opacity="0.5"/>'],
+    badge_sun:     ['#ffc63a', 'M50 26 A24 24 0 1 1 49.9 26 Z M50 4 L44 26 L56 26 Z M50 96 L44 74 L56 74 Z M4 50 L26 44 L26 56 Z M96 50 L74 44 L74 56 Z M82 18 L66 28 L72 34 Z M18 18 L34 28 L28 34 Z M82 82 L66 72 L72 66 Z M18 82 L34 72 L28 66 Z',
+                    '<circle cx="50" cy="50" r="15" fill="#fff3c0" opacity="0.85"><animate attributeName="r" values="12;17;12" dur="2.6s" repeatCount="indefinite"/></circle>'],
   };
 
   // خلفيات: تدرّجات تتحرّك ببطء (background-position)
@@ -398,52 +552,67 @@
     bg_void:        'radial-gradient(circle at 50% 50%,#b06bff,#3a1d6b,#050310,#0a0618)',
     bg_thunderstorm:'linear-gradient(160deg,#2a2d6a,#4a4f9a,#0a0a1a,#ffe14a)',
     bg_prism:       'linear-gradient(120deg,#5affc0,#8fd4ff,#ff6ad5,#ffe14a,#5affc0)',
+    /* ═══ توسعةُ البناء ٦٢ — خلفيّاتٌ نادرةٌ وملحميّة ═══ */
+    bg_steel:       'linear-gradient(135deg,#2a3242,#6b7a90,#1a2028,#8fa0b4)',
+    bg_meadow:      'linear-gradient(180deg,#8fd0ff,#bfe89a,#3f8a3a,#2a6a28)',
+    bg_desert:      'linear-gradient(180deg,#ffd48a,#e8a94a,#a8702a,#6a4415)',
+    bg_rain:        'linear-gradient(180deg,#1a2233,#2f4256,#101822,#3a5570)',
+    bg_temple:      'linear-gradient(180deg,#2a1d3f,#6a4f9a,#1a1228,#c9a84c)',
+    bg_arcane:      'radial-gradient(circle at 50% 50%,#c07aff,#4a1a8a,#160a28,#2a0a4a)',
+    bg_reef:        'linear-gradient(180deg,#0a6ea0,#1fb8c8,#ff9f6a,#0a4a6a)',
+    bg_eclipse:     'radial-gradient(circle at 50% 42%,#0a0a12,#2a1a3a,#ffb02f,#0a0612)',
   };
 
   function esc(s) { return String(s == null ? '' : s).replace(/[^a-zA-Z0-9_-]/g, ''); }
 
-  function frameHTML(cos) {
-    if (!cos || !cos.frame) return '';
-    var id = esc(cos.frame);
-    var t = FRAME[cos.frame] || FRAME.frame_gold;
-    var gid = 'cf_' + id;
-    var glow = FRAME_GLOW[cos.frame];
-    var special = FRAME_SPECIAL[cos.frame];
-    var inner = ''
-      + '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1">'
+  /* عدّادٌ يضمنُ تفرّدَ مُعرِّفاتِ التدرّجِ عبرَ كلِّ نُسخةٍ (متجرٌ + أفاتاراتٌ حيّةٌ
+     كثيرةٌ في نفسِ الصفحةِ) فلا تتصادمُ مراجعُ url(#id). */
+  var _uid = 0;
+  /* الطبقةُ الداخليّةُ للإطارِ (viewBox 100، طوقٌ عندَ r≈45) — مصدرُ الحقيقةِ
+     الوحيدُ يستعملُها الأفاتارُ الحيُّ والمعاينةُ في المتجر/المخزونِ معًا. */
+  function _frameInner(fid) {
+    var t = FRAME[fid] || FRAME.frame_gold;
+    var gid = 'cf_' + esc(fid) + '_' + (++_uid);
+    var special = FRAME_SPECIAL[fid];
+    var inner = '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1">'
       + '<stop offset="0" stop-color="' + t[0] + '"/>'
       + '<stop offset="0.5" stop-color="' + t[2] + '"/>'
       + '<stop offset="1" stop-color="' + t[1] + '"/>'
       + '</linearGradient></defs>';
     if (special) {
       inner += special(t, gid);
-    } else if (glow) {
-      inner += '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + gid + ')" stroke-width="6">'
-        + '<animate attributeName="stroke-width" values="4;7;4" dur="1.6s" repeatCount="indefinite"/>'
-        + '<animate attributeName="opacity" values="0.75;1;0.75" dur="1.6s" repeatCount="indefinite"/>'
-        + '</circle>';
     } else {
       inner += '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="6s" repeatCount="indefinite"/>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + gid + ')" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 22"/>'
         + '</g>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[2] + '" stroke-width="1.4" opacity="0.45"/>';
     }
-    return '<span class="cos-frame cos-frame--' + id + '"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' + inner + '</svg></span>';
+    return inner;
+  }
+  function frameHTML(cos) {
+    if (!cos || !cos.frame) return '';
+    var id = esc(cos.frame);
+    return '<span class="cos-frame cos-frame--' + id + '"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' + _frameInner(cos.frame) + '</svg></span>';
   }
 
-  function badgeHTML(cos) {
-    if (!cos || !cos.badge) return '';
-    var id = esc(cos.badge);
-    var b = BADGE[cos.badge];
+  /* الطبقةُ الداخليّةُ للشارةِ (viewBox 100) — مشتركةٌ بينَ الشارةِ الحيّةِ بجانبِ
+     الاسمِ ومعاينةِ المتجرِ/المخزونِ فتتطابقان تمامًا. */
+  function _badgeInner(bid) {
+    var b = BADGE[bid];
     if (!b) return '';
     /* b[2]: إمّا 1 (عينا جمجمةٍ) أو نصُّ SVG إضافيٌّ يُركَّبُ فوقَ الشكلِ
        (بؤبؤٌ للعينِ، بتلاتٌ داخليّةٌ للّوتس…) — يرفعُ ثراءَ الشاراتِ النادرة. */
     var extra = b[2] === 1
       ? '<circle cx="41" cy="48" r="4.5" fill="#20242e"/><circle cx="59" cy="48" r="4.5" fill="#20242e"/>'
       : (typeof b[2] === 'string' ? b[2] : '');
-    return '<span class="cos-badge cos-badge--' + id + '" aria-hidden="true"><svg viewBox="0 0 100 100">'
-      + '<path d="' + b[1] + '" fill="' + b[0] + '"><animate attributeName="opacity" values="1;0.55;1" dur="2.4s" repeatCount="indefinite"/></path>'
-      + extra + '</svg></span>';
+    return '<path d="' + b[1] + '" fill="' + b[0] + '"><animate attributeName="opacity" values="1;0.55;1" dur="2.4s" repeatCount="indefinite"/></path>' + extra;
+  }
+  function badgeHTML(cos) {
+    if (!cos || !cos.badge) return '';
+    var id = esc(cos.badge);
+    var inner = _badgeInner(cos.badge);
+    if (!inner) return '';
+    return '<span class="cos-badge cos-badge--' + id + '" aria-hidden="true"><svg viewBox="0 0 100 100">' + inner + '</svg></span>';
   }
 
   function bgHTML(cos) {
@@ -602,6 +771,22 @@
       case 'fx_blackhole': _vortex(layer, '#c48bff'); _implode(layer, 34, ['#b06bff', '#e0c8ff', '#7a4fd0']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(10,6,24,.72),rgba(122,60,180,.22),transparent 60%)'); break;
       case 'fx_thunderstrike': _flash(layer, 'linear-gradient(180deg,rgba(220,235,255,.72),rgba(120,140,255,.18))'); _burst(layer, [[50, 18, 0], [50, 18, 0.35], [50, 18, 0.7]], 16, ['#ffffff', '#8fd4ff', '#ffe14a']); _shock(layer, ['#ffffff', '#8fd4ff']); break;
       case 'fx_prismburst': _burst(layer, [[50, 46, 0]], 40, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a', '#ffffff']); _beams(layer, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a']); _shock(layer, ['#8fd4ff', '#ff6ad5', '#5affc0']); _flash(layer, 'radial-gradient(circle at 50% 46%,rgba(255,255,255,.55),transparent 56%)'); break;
+
+      /* ═══ توسعةُ البناء ٦٢ — احتفالاتٌ ومؤثّراتٌ نادرةٌ وملحميّة ═══ */
+      case 'cel_ribbons': _fall(layer, 44, 'cosfx-ribbon', function (i) { return _CELCOL[i % _CELCOL.length]; }, true); _flash(layer, 'radial-gradient(circle at 50% 18%,rgba(255,255,255,.18),transparent 62%)'); break;
+      case 'cel_bubbles': _rise(layer, 30, 'cosfx-bubble', null); _flash(layer, 'radial-gradient(circle at 50% 80%,rgba(90,209,255,.22),transparent 66%)'); break;
+      case 'cel_leaves': _fall(layer, 40, 'cosfx-leaf', function (i) { return ['#6fcf5a', '#bfe89a', '#e8c37a', '#3f8a3a'][i % 4]; }, true); break;
+      case 'cel_sparks': _burst(layer, [[30, 40, 0], [56, 26, 0.32], [72, 46, 0.62], [42, 58, 0.9]], 18, ['#ffffff', '#ffd24a', '#ff8a3a']); _shock(layer, ['#ffd24a', '#ff8a3a']); _flash(layer, 'radial-gradient(circle at 50% 42%,rgba(255,210,120,.3),transparent 60%)'); break;
+      case 'cel_aurora': _beams(layer, ['#5affc0', '#8a5cff', '#8fd4ff', '#c8ffe6']); _fall(layer, 22, 'cosfx-star', function (i) { return i % 2 ? '#c8ffe6' : '#ffffff'; }, true); _flash(layer, 'linear-gradient(180deg,rgba(90,255,192,.2),rgba(138,92,255,.12),transparent 72%)'); break;
+      case 'cel_crowns': _fall(layer, 26, 'cosfx-crown', null, true); _fall(layer, 20, 'cosfx-coin', null, false); _flash(layer, 'radial-gradient(circle at 50% 24%,rgba(255,210,74,.34),transparent 62%)'); break;
+      case 'cel_sunburst': _beams(layer, ['#ffd24a', '#fff0b0', '#ffb02f', '#ffffff']); _burst(layer, [[50, 42, 0]], 32, ['#ffffff', '#ffd24a', '#ffb02f']); _shock(layer, ['#fff0b0', '#ffd24a', '#ffb02f']); _flash(layer, 'radial-gradient(circle at 50% 42%,rgba(255,240,180,.6),rgba(255,176,47,.2),transparent 60%)'); break;
+      case 'fx_sandstorm': _fall(layer, 62, 'cosfx-sand', null, true); _flash(layer, 'linear-gradient(120deg,rgba(232,195,122,.34),rgba(138,96,32,.2),transparent 74%)'); break;
+      case 'fx_ripple': _shock(layer, ['#cceeff', '#4ad6ff', '#8fd4ff', '#0a4a7a']); _rise(layer, 14, 'cosfx-bubble', null); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(74,214,255,.32),transparent 58%)'); break;
+      case 'fx_leafstorm': _fall(layer, 46, 'cosfx-leaf', function (i) { return ['#6fcf5a', '#3f8a3a', '#bfe89a'][i % 3]; }, true); _shock(layer, ['#6fcf5a', '#bfe89a']); _flash(layer, 'radial-gradient(circle at 50% 54%,rgba(111,207,90,.26),transparent 62%)'); break;
+      case 'fx_venom': _rise(layer, 26, 'cosfx-bubble', function () { return 'radial-gradient(circle at 34% 28%,rgba(224,255,176,.95),rgba(159,255,47,.3) 58%,rgba(159,255,47,0) 72%)'; }); _crack(layer, '#9fff2f'); _flash(layer, 'radial-gradient(circle at 50% 62%,rgba(159,255,47,.32),rgba(37,82,8,.22),transparent 66%)'); break;
+      case 'fx_quake': _crack(layer, '#e8c37a'); _shock(layer, ['#e8c37a', '#8a6020']); _fall(layer, 30, 'cosfx-sand', null, true); _flash(layer, 'linear-gradient(180deg,rgba(138,96,32,.28),rgba(232,195,122,.16),transparent 70%)'); break;
+      case 'fx_eclipse': _vortex(layer, '#ffb02f'); _implode(layer, 26, ['#ffb02f', '#fff0b0', '#c9a84c']); _flash(layer, 'radial-gradient(circle at 50% 46%,rgba(10,10,18,.7),rgba(255,176,47,.24),transparent 60%)'); break;
+      case 'fx_solarflare': _beams(layer, ['#ffb02f', '#fff0b0', '#ffd24a']); _burst(layer, [[50, 40, 0], [50, 40, 0.4]], 26, ['#ffffff', '#ffd24a', '#ffb02f']); _shock(layer, ['#fff0b0', '#ffb02f']); _flash(layer, 'radial-gradient(circle at 50% 40%,rgba(255,240,180,.62),rgba(160,58,0,.2),transparent 62%)'); break;
       default: return false;
     }
     return true;
@@ -624,6 +809,77 @@
     } catch (e) { _fxBusy = false; }
   }
 
+  /* ══ المعاينةُ الموحّدةُ للمتجرِ/المخزونِ (thumb) ══
+     تمثالُ أفاتارٍ وهميٌّ (100-box) تحيطُه نفسُ طبقةِ الإطارِ الحيّةِ بالضبطِ،
+     أو الشارةُ مكبّرةً — فيُصبِحُ ما يراه اللاعبُ في المتجرِ مطابقًا لِما سيظهرُ
+     حولَ أفاتارِه. يقضي هذا على تناقضِ الصقيعِ ويرفعُ فنَّ المتجرِ لمستوى الأفاتار. */
+  var _AV = '<circle cx="50" cy="53" r="30" fill="#140b26"/><circle cx="50" cy="42" r="10" fill="#3a2b55"/><path d="M32 70a18 16 0 0 1 36 0z" fill="#3a2b55"/>';
+  function thumb(it) {
+    if (!it || !it.type) return '';
+    if (it.type === 'frame') {
+      return '<svg viewBox="0 0 100 100" class="st-svg">' + _AV + _frameInner(it.id) + '</svg>';
+    }
+    if (it.type === 'badge') {
+      var inner = _badgeInner(it.id);
+      if (!inner) return '';
+      /* تكبيرٌ طفيفٌ حولَ المركزِ ليملأَ البطاقةَ مع هامشٍ آمن */
+      return '<svg viewBox="0 0 100 100" class="st-svg"><g transform="translate(50 50) scale(0.94) translate(-50 -50)">' + inner + '</g></svg>';
+    }
+    /* الخلفياتُ والاحتفالاتُ ومؤثّراتُ المات: مشاهدُها الغنيّةُ تُرسَمُ في
+       store-client (لا تناقضَ لأنّ الحيَّ خلفيّةٌ متدرّجةٌ/جُسيماتٌ DOM). */
+    return '';
+  }
+
+  /* ══ قرصُ العملةِ الموحّد (AK) ══
+     نفسُ عملةِ الرئيسيّةِ بالضبط: طوقٌ داكنٌ + قرصٌ متدرّجٌ + حلقةٌ داخليّةٌ + AK.
+     معرّفُ التدرّجِ فريدٌ لكلِّ نسخةٍ (يظهرُ عشراتٍ في المتجرِ/الجوائزِ معًا)،
+     وبلا SMIL حفاظًا على الأداءِ عندَ تعدّدِ النسخ. يوحّدُ شكلَ العملةِ في كلِّ مكان. */
+  function coin(px) {
+    var u = ++_uid, g = 'ac' + u;
+    var sz = px ? (' style="width:' + px + 'px;height:' + px + 'px"') : '';
+    return '<svg class="amkh-coin-svg" viewBox="0 0 40 40"' + sz + ' aria-hidden="true">'
+      + '<defs><radialGradient id="' + g + '" cx="38%" cy="30%" r="75%">'
+      + '<stop offset="0" stop-color="#fff6cf"/><stop offset=".48" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/>'
+      + '</radialGradient></defs>'
+      + '<circle cx="20" cy="20" r="18.5" fill="#7f5307"/>'
+      + '<circle cx="20" cy="20" r="17" fill="url(#' + g + ')"/>'
+      + '<circle cx="20" cy="20" r="14" fill="none" stroke="#fff2c0" stroke-width="1" opacity=".55"/>'
+      + '<text x="20" y="20.5" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="13" letter-spacing="-.6" fill="#7a4e08">AK</text>'
+      + '</svg>';
+  }
+
+  /* ══ احتفالُ الترقّي ══
+     يُستدعى من rewards-client عندَ ارتفاعِ المستوى (نصّان مترجمان يأتيان جاهزَين
+     فتبقى هذه الوحدةُ خاليةً من اللغة). ملءُ الشاشةِ بذوقِ جوجو، محترمٌ لتقليلِ الحركة. */
+  function levelUp(level, title, sub) {
+    try {
+      if (_fxBusy) return;
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      _fxBusy = true;
+      var ov = document.createElement('div'); ov.className = 'cos-fx-ov cos-fx-ov--keep';
+      document.body.appendChild(ov);
+      if (!reduce) {
+        _flash(ov, 'radial-gradient(circle at 50% 46%,rgba(255,210,74,.5),transparent 60%)');
+        _burst(ov, [[50, 46, 0], [32, 40, 0.25], [68, 42, 0.5]], 22, ['#ffd24a', '#fff2b0', '#ffae3a', '#ffffff']);
+        _fall(ov, 26, 'cosfx-star', function (i) { return i % 2 ? '#fff2b0' : '#ffd24a'; }, true);
+      }
+      var lg = 'lug' + (++_uid);
+      var card = document.createElement('div');
+      card.className = 'cos-levelup' + (reduce ? ' cos-levelup--still' : '');
+      card.innerHTML =
+        '<span class="cos-levelup__ring"><svg viewBox="0 0 120 120">'
+        + '<defs><linearGradient id="' + lg + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="1" stop-color="#e8a41e"/></linearGradient></defs>'
+        + '<circle cx="60" cy="60" r="52" fill="none" stroke="#7a5207" stroke-width="9"/>'
+        + '<circle cx="60" cy="60" r="52" fill="none" stroke="url(#' + lg + ')" stroke-width="6"/>'
+        + '<text x="60" y="63" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="46" fill="#ffe08a">' + (Number(level) || 1) + '</text>'
+        + '</svg></span>'
+        + '<span class="cos-levelup__ttl">' + (title || '') + '</span>'
+        + '<span class="cos-levelup__sub">' + (sub || '') + '</span>';
+      ov.appendChild(card);
+      setTimeout(function () { try { ov.remove(); } catch (e) {} _fxBusy = false; }, reduce ? 2200 : 3600);
+    } catch (e) { _fxBusy = false; }
+  }
+
   window.amkhCos = {
     frameHTML: frameHTML,
     badgeHTML: badgeHTML,
@@ -633,6 +889,9 @@
     paintName: paintName,
     self: self,
     celebrate: celebrate,
+    thumb: thumb,
+    coin: coin,
+    levelUp: levelUp,
     FRAME: FRAME, BADGE: BADGE, BG: BG,
   };
 })();

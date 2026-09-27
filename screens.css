@@ -7887,9 +7887,10 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @keyframes storeWashHold{ 0%{opacity:1;} 80%{opacity:1;} 100%{opacity:0;} }
 @media (prefers-reduced-motion: reduce){ .store-wash.play{ animation:storeWashHold .8s linear forwards; } .store-wash__cv{ display:none; } }
 
-/* بوّابةُ الجوائز/المخزون — شروقُ "قاعةِ الشرف" (مختلفةٌ عن بوّابةِ المتجر) */
+/* بوّابةُ الجوائز/المخزون — شروقُ "قاعةِ الشرف" (الحركةُ مختلفةٌ عن بوّابةِ
+   المتجرِ، لكنَّ اللوحةَ اللونيّةَ صارت واحدةً: ذهبٌ على أرجوانٍ — بلاغُ ٤) */
 .rw-wash{ position:absolute; inset:0; z-index:60; pointer-events:none; opacity:0; overflow:hidden;
-  background:radial-gradient(125% 125% at 50% 44%,#4a3208 0%,#2e1f06 44%,#160f04 74%,#0a0714 100%); }
+  background:radial-gradient(125% 125% at 50% 44%,#3a1c66 0%,#2a1450 44%,#160a2c 74%,#0a0518 100%); }
 .rw-wash.play{ animation:storeWashHold 2.1s linear forwards; }
 .rw-wash__cv{ position:absolute; inset:0; width:100%; height:100%; display:block; }
 @media (prefers-reduced-motion: reduce){ .rw-wash.play{ animation:storeWashHold .8s linear forwards; } .rw-wash__cv{ display:none; } }
@@ -7907,16 +7908,15 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-bar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin:16px 0 20px;
   background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:12px 16px; }
 .store-balance{ display:flex; align-items:center; gap:8px; font-size:20px; font-weight:800; color:var(--gold2); }
-.store-balance__coin,.store-buy__coin,.rw-reward__coin{ position:relative; border-radius:50%; flex:0 0 auto;
+/* قرصُ العملةِ الموحّد: الحاوياتُ تُحجَّمُ فقط، والشكلُ يأتي من SVG المشتركِ
+   (amkhCos.coin) المطابقِ لعملةِ الرئيسيّةِ تمامًا. الخلفيّةُ المتدرّجةُ تبقى
+   احتياطًا لو غابت الوحدةُ فلا يظهرُ قرصٌ فارغ. لا نصَّ AK زائفٌ (SVG يحملُه). */
+.store-balance__coin,.store-buy__coin,.rw-reward__coin{ position:relative; border-radius:50%; flex:0 0 auto; overflow:hidden;
   width:18px; height:18px;
   background:radial-gradient(circle at 38% 30%,#fff6cf,#f5c451 48%,#b9800f);
-  box-shadow:0 0 8px rgba(245,196,81,.5), inset 0 0 0 1px rgba(255,242,192,.55); }
-.store-balance__coin::after,.store-buy__coin::after,.rw-reward__coin::after{ content:'AK';
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font:900 8px/1 Arial,Helvetica,sans-serif; letter-spacing:-.04em; color:#7a4e08; }
+  box-shadow:0 0 8px rgba(245,196,81,.5); }
+.amkh-coin-svg{ width:100%; height:100%; display:block; }
 .store-buy__coin{ width:14px; height:14px; }
-.store-buy__coin::after{ font-size:6px; }
-.rw-reward__coin::after{ font-size:6.5px; }
 .store-timer{ text-align:center; display:flex; flex-direction:column; gap:2px; }
 .store-timer__lbl{ font-size:10px; letter-spacing:.14em; color:rgba(255,255,255,.55); }
 .store-timer__val{ font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:#fff; }
@@ -7940,7 +7940,7 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-card--legendary{ --rc:#ffb64a; }
 .store-card--seasonal{ --rc:#38e0c0; }
 .store-card__rar{ font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--rc);
-  align-self:center; padding:2px 10px; border-radius:999px;
+  padding:2px 10px; border-radius:999px; white-space:nowrap;
   background:color-mix(in srgb,var(--rc) 18%,transparent); border:1px solid color-mix(in srgb,var(--rc) 45%,transparent); }
 .store-card__art{ position:relative; z-index:1; width:78px; height:78px; color:var(--rc); animation:stFloat 4s ease-in-out infinite;
   filter:drop-shadow(0 0 10px color-mix(in srgb,var(--rc) 55%,transparent)); }
@@ -7976,13 +7976,20 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-chip.is-on{ color:#2a1a05; background:linear-gradient(180deg,var(--gold2),var(--gold));
   border-color:transparent; box-shadow:0 3px 12px rgba(245,196,81,.35); }
 
-.store-card{ cursor:pointer; transition:transform .16s ease, box-shadow .2s ease; }
+.store-card{ cursor:pointer; transition:transform .16s ease, box-shadow .2s ease;
+  /* أداء: تخطّي رسمِ البطاقاتِ خارجَ الرؤيةِ (يوقفُ SMIL/الرسومَ المتحرّكةَ فيها تلقائيًّا) */
+  content-visibility:auto; contain-intrinsic-size:auto 190px; }
 .store-card:active{ transform:scale(.97); }
 @media (hover:hover){ .store-card:hover{ transform:translateY(-3px);
   box-shadow:0 14px 30px rgba(0,0,0,.5),inset 0 0 30px color-mix(in srgb,var(--rc) 22%,transparent); } }
 .store-card:focus-visible{ outline:2px solid var(--rc); outline-offset:2px; }
 .store-card__art{ width:88px; height:88px; }
-.store-card__info{ position:absolute; top:10px; inset-inline-start:10px; width:18px; height:18px; border-radius:50%;
+/* صفُّ رأسِ البطاقة: خانتان فقط — وسمُ الندرةِ بدايةً و«i» نهايةً. وسمُ
+   «متاحٌ الآن» أُزيلَ كليًّا (بلاغُ جوجو: ناشزٌ بلا مكان)، فالإتاحةُ تُقرأُ من
+   توهّجِ .in-window ومن زرِّ الشراءِ في القدم. */
+.store-card__top{ position:relative; z-index:2; width:100%; display:flex;
+  align-items:center; justify-content:space-between; gap:6px; }
+.store-card__info{ flex:0 0 auto; width:18px; height:18px; border-radius:50%;
   display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; font-style:italic;
   color:rgba(255,255,255,.7); background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); pointer-events:none; }
 
@@ -8026,11 +8033,46 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-detail__art{ }
 .store-card--mythic .store-card__art,.store-detail--mythic .store-detail__art{
   filter:drop-shadow(0 0 14px rgba(255,59,59,.7)); }
+/* احترامُ تفضيلِ تقليلِ الحركةِ في المتجرِ كلِّه: نوقفُ الطفوَ واللمعانَ والوميضَ. */
+@media (prefers-reduced-motion:reduce){
+  .store-card__art{ animation:none; }
+  .store-card--legendary::after,.store-card--mythic::after{ animation:none; display:none; }
+  .store-card svg *{ animation:none !important; }
+}
 
-/* عنصرٌ متاحٌ الآن (داخلَ نافذةِ الدوران) */
-.store-card__now{ position:absolute; top:10px; inset-inline-end:10px; z-index:2; font-size:9.5px; font-weight:800;
-  letter-spacing:.08em; color:#0a1a10; padding:3px 9px; border-radius:999px;
-  background:linear-gradient(180deg,#9bf0c0,#38e0a0); box-shadow:0 2px 8px rgba(56,224,160,.5); }
+/* ══════════════════════════════════════════════════════════════════
+   صفائحُ الندراتِ المرسومة (البناء ٦٢ — بلاغُ جوجو ٧)
+   ──────────────────────────────────────────────────────────────────
+   بدلًا من «الألوانِ البرمجيّةِ الميتةِ» صار لكلِّ ندرةٍ صفيحةٌ مرسومةٌ
+   بهويّةٍ بصريّةٍ منفصلة: فولاذٌ مبرشمٌ للعاديّ، بلّورٌ مشظّى للنادر، شبكةُ
+   طلاسمَ للملحميّ، زخرفةٌ ملكيّةٌ بأشعّةٍ للأسطوريّ، ندفٌ وتلالٌ للموسميّ،
+   حرشفُ تنّينٍ متشقّقٍ للميثِك. كلُّها SVG مضمّنٌ في CSS: صورةٌ واحدةٌ ساكنةٌ
+   لكلِّ بطاقةٍ (بلا حركةٍ ولا أصلٍ ثنائيٍّ) فتُثري الشكلَ وتُخفِّفُ الواجهةَ
+   في الوقتِ نفسِه. المقاسُ 160×190 بنسبةِ البطاقةِ الحقيقيّةِ فلا يتشوّه.
+══════════════════════════════════════════════════════════════════ */
+.store-card__plate{ position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit;
+  background-repeat:no-repeat; background-position:50% 50%; background-size:100% 100%; opacity:.95; }
+.store-card__nm,.store-card__foot{ position:relative; z-index:1; }
+
+:root{
+  --plate-common:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 190' preserveAspectRatio='none'><g stroke='%23c8d6e4' stroke-opacity='.10' stroke-width='1.4'><path d='M0 26H160M0 164H160M16 0V190M144 0V190'/></g><g fill='none' stroke='%23c8d6e4' stroke-opacity='.20' stroke-width='1.6' stroke-linecap='round'><path d='M9 32V15H26M134 15H151V32M9 158V175H26M134 175H151V158'/></g><g fill='%23e4eef8' fill-opacity='.14'><circle cx='16' cy='26' r='2.6'/><circle cx='144' cy='26' r='2.6'/><circle cx='16' cy='164' r='2.6'/><circle cx='144' cy='164' r='2.6'/></g><g stroke='%23ffffff' stroke-opacity='.05' stroke-width='1'><path d='M-20 70L60 -10M20 110L110 20M60 150L150 60M100 190L170 120'/></g></svg>");
+  --plate-rare:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 190' preserveAspectRatio='none'><g fill='%234aa3ff' fill-opacity='.11'><polygon points='0,58 34,28 80,46 0,90'/><polygon points='160,54 126,24 80,46 160,88'/><polygon points='0,134 36,160 80,140 0,176'/><polygon points='160,132 124,162 80,140 160,174'/></g><g fill='none' stroke='%234aa3ff' stroke-opacity='.26' stroke-width='1.3'><path d='M0 58L34 28L80 46L126 24L160 54'/><path d='M0 134L36 160L80 140L124 162L160 132'/><path d='M34 28V0M126 24V0M36 160V190M124 162V190M80 46V140'/></g><g fill='%23cfe9ff' fill-opacity='.55'><circle cx='34' cy='28' r='1.8'/><circle cx='126' cy='24' r='1.8'/><circle cx='80' cy='46' r='1.5'/><circle cx='80' cy='140' r='1.5'/></g></svg>");
+  --plate-epic:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 190' preserveAspectRatio='none'><g fill='none' stroke='%23b46bff' stroke-opacity='.22' stroke-width='1.2'><path d='M80 6L106 21V51L80 66L54 51V21Z'/><path d='M80 124L106 139V169L80 184L54 169V139Z'/></g><g fill='none' stroke='%23d9b4ff' stroke-opacity='.22' stroke-width='1.3'><circle cx='80' cy='95' r='60'/><circle cx='80' cy='95' r='46' stroke-dasharray='5 9'/></g><g fill='%23b46bff' fill-opacity='.08'><circle cx='80' cy='95' r='46'/></g><g fill='%23e8d2ff' fill-opacity='.42'><circle cx='80' cy='35' r='2.2'/><circle cx='80' cy='155' r='2.2'/><circle cx='20' cy='95' r='2.2'/><circle cx='140' cy='95' r='2.2'/></g><g fill='none' stroke='%23e8d2ff' stroke-opacity='.3' stroke-width='1.4' stroke-linecap='round'><path d='M74 88L86 88M80 82V94M70 102L90 102'/></g></svg>");
+  --plate-legendary:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 190' preserveAspectRatio='none'><g stroke='%23ffcf6a' stroke-opacity='.09' stroke-width='11'><path d='M80 95L80 -24M80 95L206 18M80 95L206 172M80 95L80 214M80 95L-46 172M80 95L-46 18'/></g><g fill='none' stroke='%23ffcf6a' stroke-opacity='.34' stroke-width='1.7' stroke-linecap='round'><path d='M6 42Q6 8 40 8M120 8Q154 8 154 42M6 148Q6 182 40 182M120 182Q154 182 154 148'/><path d='M19 21Q31 30 40 21M141 21Q129 30 120 21M19 169Q31 160 40 169M141 169Q129 160 120 169'/></g><g fill='%23ffe6a8' fill-opacity='.5'><path d='M80 8l3.4 7.6 8.2.7-6.2 5.5 1.9 8-7.3-4.3-7.3 4.3 1.9-8-6.2-5.5 8.2-.7z'/><circle cx='80' cy='178' r='2.8'/></g></svg>");
+  --plate-seasonal:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 190' preserveAspectRatio='none'><g fill='%2338e0c0' fill-opacity='.10'><path d='M0 146Q40 116 80 146T160 144V190H0Z'/><path d='M0 166Q44 142 88 168T160 164V190H0Z' fill-opacity='.5'/></g><g stroke='%2338e0c0' stroke-opacity='.3' stroke-width='1.5' stroke-linecap='round'><path d='M30 26V52M18 32L42 46M42 32L18 46'/><path d='M128 34V56M118 39L138 51M138 39L118 51'/></g><g fill='%23a8fff0' fill-opacity='.45'><circle cx='112' cy='22' r='2'/><circle cx='52' cy='70' r='1.6'/><circle cx='96' cy='92' r='1.8'/><circle cx='26' cy='104' r='1.5'/><circle cx='138' cy='108' r='1.7'/></g></svg>");
+  --plate-mythic:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 190' preserveAspectRatio='none'><g fill='%23ff3b3b' fill-opacity='.11'><circle cx='80' cy='95' r='56'/></g><g fill='none' stroke='%23ff5555' stroke-opacity='.24' stroke-width='1.3'><path d='M0 28Q20 44 40 28T80 28T120 28T160 28'/><path d='M0 54Q20 70 40 54T80 54T120 54T160 54'/><path d='M0 136Q20 152 40 136T80 136T120 136T160 136'/><path d='M0 162Q20 178 40 162T80 162T120 162T160 162'/></g><g fill='none' stroke='%23ff9a9a' stroke-opacity='.34' stroke-width='1.7' stroke-linecap='round'><path d='M80 0L71 32L87 58L73 88'/><path d='M80 190L89 158L73 132L87 102'/><path d='M0 95L26 88L14 102'/><path d='M160 95L134 102L146 88'/></g><g fill='%23ffd0d0' fill-opacity='.5'><circle cx='80' cy='58' r='2'/><circle cx='80' cy='132' r='2'/></g></svg>");
+}
+.store-card--common .store-card__plate{ background-image:var(--plate-common); }
+.store-card--rare .store-card__plate{ background-image:var(--plate-rare); }
+.store-card--epic .store-card__plate{ background-image:var(--plate-epic); }
+.store-card--legendary .store-card__plate{ background-image:var(--plate-legendary); }
+.store-card--seasonal .store-card__plate{ background-image:var(--plate-seasonal); }
+.store-card--mythic .store-card__plate{ background-image:var(--plate-mythic); }
+
+/* المقفولُ خارجَ دورتِه: صفيحتُه أهدأُ كي لا تُوهِمَ بالإتاحة */
+.store-card.is-window-locked .store-card__plate{ opacity:.45; }
+
+/* إتاحةُ الشراء: توهّجُ حدٍّ أقوى بلونِ الندرةِ — بلا أيِّ وسمٍ نصّيّ */
 .store-card.in-window{ box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1.5px color-mix(in srgb,var(--rc) 60%,transparent),
   inset 0 0 30px color-mix(in srgb,var(--rc) 20%,transparent); }
 
@@ -8047,9 +8089,11 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 
 /* ══ الجوائزُ والتقدّم (المرحلة ٤): شاشةٌ غامرةٌ بثلاثةِ ألسنة ══
    تعيدُ استعمالَ هيكلِ المتجر (store-ov/scroll/wrap/close/head/bar/balance)
-   فوقَ لونٍ زُمُرُّديٍّ مميّزٍ، وتضيفُ عناصرَ المهامِّ/الإنجازاتِ/المخزون. */
-.rw-ov{ --acc:#e8b23a; --acc2:#ffd873; --gold:#f5c451; --gold2:#ffe08a; --ink:#2a1a02;
-  background:linear-gradient(180deg,#241a08 0%,#1c1305 32%,#130c14 64%,#080610 100%); }
+   و — من البناءِ ٦٢ — لوحتَه اللونيّةَ نفسَها بالحرف: أرجوانٌ عميقٌ للخلفيّةِ
+   وذهبٌ للتمييز (بلاغُ جوجو ٤: «وحّدْ ألوانَ واجهةِ المخزونِ والجوائزِ مع
+   ألوانِ المتجر»). ما يميّزُها هو الحركةُ والمحتوى لا الألوان. */
+.rw-ov{ --acc:#f5c451; --acc2:#ffe08a; --gold:#f5c451; --gold2:#ffe08a; --purple:#7c5cff; --ink:#2a1a05;
+  background:linear-gradient(180deg,#241042 0%,#1b0d34 30%,#140a28 60%,#0c0618 100%); }
 .rw-ov .store-kicker{ color:var(--acc2); }
 .rw-ov .store-title{ background:linear-gradient(90deg,var(--acc2),var(--acc),#c98b2f);
   -webkit-background-clip:text; background-clip:text; color:transparent; }
@@ -8059,6 +8103,9 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .rw-levelbox__top{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; }
 .rw-levelbox__lbl{ letter-spacing:.12em; color:rgba(255,255,255,.55); }
 .rw-lvl{ font-weight:900; font-size:16px; color:var(--acc2); }
+/* رقمُ XP الصريحُ بجانبِ المستوى: «X / Y XP» أو «المستوى الأقصى». */
+.rw-levelbox__xp{ font-size:11.5px; font-weight:700; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums;
+  letter-spacing:.02em; white-space:nowrap; }
 .rw-xpbar{ height:8px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
 .rw-xp-fill{ display:block; height:100%; border-radius:999px; width:0; position:relative; overflow:hidden;
   background:linear-gradient(90deg,var(--acc),var(--acc2)); box-shadow:0 0 10px rgba(245,196,81,.6);
@@ -8082,6 +8129,47 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   padding-inline-start:10px; border-inline-start:3px solid var(--acc); }
 .rw-grp:first-child{ margin-top:4px; }
 
+/* ══ ترويسةُ القسمِ المرسومة (بلاغا جوجو ٥ و٧) ══
+   كانت الأقسامُ سطرًا نصّيًّا عاريًا فبدت الشاشةُ «بسيطةً جدًّا». صارت الآن
+   لوحًا بلونِ المتجرِ البنفسجيِّ، بشريطٍ ذهبيٍّ جانبيٍّ وعنوانٍ وعدّادٍ فرعيٍّ
+   ووسمِ «جاهزٌ للاستلام» يبرزُ حينَ تكتملُ مهمّةٌ ولم تُستلَمْ بعد.
+   المهامُّ الأسبوعيّةُ تُقلَبُ ألوانُها (ذهبيُّ اللوحِ/بنفسجيُّ الشريط) فلا
+   تُلتبسُ باليوميّةِ أبدًا — كانت غيرَ بائنةٍ خالصًا. */
+.rw-sec{ margin:16px 0 20px; }
+.rw-sec:first-child{ margin-top:6px; }
+.rw-sec__hd{ position:relative; overflow:hidden; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin:0 0 12px; padding:10px 13px; border-radius:13px;
+  background:linear-gradient(90deg,rgba(124,92,255,.24),rgba(124,92,255,.04));
+  border:1px solid rgba(160,130,255,.3); }
+.rw-sec__hd::before{ content:''; position:absolute; inset-inline-start:0; top:0; bottom:0; width:4px;
+  background:linear-gradient(180deg,var(--gold2),var(--gold)); }
+.rw-sec__ttl{ font-size:14.5px; font-weight:900; color:#fff; letter-spacing:.02em; padding-inline-start:8px; }
+.rw-sec__sub{ font-size:11px; font-weight:700; color:rgba(255,255,255,.5); font-variant-numeric:tabular-nums; }
+.rw-sec__rdy{ margin-inline-start:auto; font-size:11px; font-weight:900; color:#2a1a05; white-space:nowrap;
+  padding:3px 11px; border-radius:999px; background:linear-gradient(180deg,var(--gold2),var(--gold));
+  box-shadow:0 2px 10px rgba(245,196,81,.45); font-variant-numeric:tabular-nums; }
+.rw-grp--week .rw-sec__hd{ background:linear-gradient(90deg,rgba(245,196,81,.2),rgba(245,196,81,.03));
+  border-color:rgba(245,196,81,.34); }
+.rw-grp--week .rw-sec__hd::before{ background:linear-gradient(180deg,#c3aeff,#7c5cff); }
+
+/* عدّادُ الإنجازاتِ المفتوحةِ أعلى اللسان */
+.rw-tally{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:6px 0 16px; padding:12px 14px;
+  border-radius:14px; background:linear-gradient(135deg,rgba(124,92,255,.2),rgba(245,196,81,.08));
+  border:1px solid rgba(180,150,255,.26); }
+.rw-tally__n{ font-size:19px; font-weight:900; color:var(--gold2); font-variant-numeric:tabular-nums;
+  text-shadow:0 0 12px rgba(245,196,81,.5); }
+.rw-tally__t{ font-size:12px; font-weight:700; color:rgba(255,255,255,.62); }
+.rw-tally__bar{ flex:1 1 120px; min-width:90px; height:7px; border-radius:999px; overflow:hidden;
+  background:rgba(0,0,0,.34); box-shadow:inset 0 1px 3px rgba(0,0,0,.5); }
+.rw-tally__bar > span{ display:block; height:100%; border-radius:999px;
+  background:linear-gradient(90deg,var(--gold),var(--gold2)); box-shadow:0 0 10px rgba(245,196,81,.6);
+  transition:width .6s cubic-bezier(.22,1,.36,1); }
+
+/* الصفيحةُ المرسومةُ المشتركة: نفسُ رسومِ ندراتِ المتجرِ تُعادُ هنا حرفيًّا
+   (توحيدُ الألوانِ والرسومِ — بلاغا جوجو ٤ و٧). رسمٌ ثابتٌ بلا حركةٍ فلا يُثقِل. */
+.rw-plate{ position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit;
+  background-repeat:no-repeat; background-position:50% 50%; background-size:100% 100%; opacity:.9; }
+
 /* عملةُ المكافأة = قرصُ AK الذهبيُّ نفسُه (توحيدُ شكلِ العملة في الجوائز/المتجر) */
 .rw-reward{ display:inline-flex; align-items:center; gap:5px; font-weight:800; font-size:13px; color:var(--gold2); }
 .rw-reward__coin{ width:15px; height:15px; }
@@ -8089,16 +8177,31 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 /* المهامّ */
 .rw-list{ display:flex; flex-direction:column; gap:10px; }
 .rw-mission{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:14px;
-  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); }
+  background:linear-gradient(135deg,rgba(124,92,255,.13),rgba(255,255,255,.04));
+  border:1px solid rgba(160,130,255,.2); }
 .rw-mission.is-done{ border-color:color-mix(in srgb,var(--acc) 55%,transparent);
-  background:color-mix(in srgb,var(--acc) 8%,rgba(255,255,255,.04)); }
+  background:color-mix(in srgb,var(--acc) 10%,rgba(124,92,255,.1)); }
 .rw-mission.is-claimed{ opacity:.6; }
+/* رمزُ المهمّةِ المرسومُ حسبَ مقياسِها — كانَ الصفُّ نصًّا عاريًا بلا أيقونة */
+.rw-mission__ic{ flex:0 0 auto; width:42px; height:42px; padding:9px; border-radius:13px; color:#e6d9ff;
+  background:radial-gradient(70% 70% at 50% 30%,rgba(160,130,255,.3),rgba(124,92,255,.12));
+  border:1px solid rgba(170,140,255,.34); box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
+.rw-mission__ic svg{ width:100%; height:100%; display:block; }
+.rw-mission.is-done .rw-mission__ic{ color:#fff0c8; border-color:rgba(245,196,81,.5);
+  background:radial-gradient(70% 70% at 50% 30%,rgba(245,196,81,.32),rgba(245,196,81,.08));
+  box-shadow:0 0 14px rgba(245,196,81,.38), inset 0 1px 0 rgba(255,255,255,.2); }
 .rw-mission__main{ flex:1 1 auto; min-width:0; }
 .rw-mission__name{ font-size:14px; font-weight:700; color:#fff; margin-bottom:8px; }
-.rw-mission__bar{ height:6px; border-radius:999px; background:rgba(255,255,255,.12); overflow:hidden; }
+.rw-mission__bar{ height:6px; border-radius:999px; background:rgba(0,0,0,.32); overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5); }
 .rw-mission__bar > span{ display:block; height:100%; border-radius:999px;
   background:linear-gradient(90deg,var(--acc),var(--acc2)); transition:width .5s cubic-bezier(.22,1,.36,1); }
 .rw-mission__side{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:0 0 auto; }
+/* صفُّ مكافآتِ المهمّة: العملةُ + شارةُ XP جنبًا إلى جنب */
+.rw-mission__rewards{ display:flex; align-items:center; gap:8px; margin-top:7px; }
+.rw-xp-chip{ font-size:11px; font-weight:800; letter-spacing:.03em; color:#cfe0ff; white-space:nowrap;
+  padding:2px 8px; border-radius:999px; background:rgba(90,140,255,.16); border:1px solid rgba(120,160,255,.4);
+  font-variant-numeric:tabular-nums; }
 .rw-prog-txt{ font-size:12px; font-weight:700; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums; }
 .rw-claim{ border:none; cursor:pointer; padding:7px 16px; border-radius:999px; font-weight:800; font-size:13px; color:#3a2500;
   background:linear-gradient(180deg,#ffe08a,#f5c451); box-shadow:0 3px 10px rgba(245,196,81,.4);
@@ -8109,41 +8212,125 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 /* الإنجازات */
 .rw-ach-grid{ display:grid; grid-template-columns:1fr; gap:12px; }
 @media (min-width:480px){ .rw-ach-grid{ grid-template-columns:repeat(2,1fr); } }
-.rw-ach{ display:flex; gap:12px; padding:14px; border-radius:16px; align-items:flex-start;
-  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); opacity:.62; filter:grayscale(.4);
-  transition:opacity .2s ease, filter .2s ease; }
-.rw-ach.is-un{ opacity:1; filter:none; border-color:color-mix(in srgb,var(--gold) 45%,transparent);
-  background:color-mix(in srgb,var(--gold) 7%,rgba(255,255,255,.04)); }
-.rw-ach__ic{ width:44px; height:44px; flex:0 0 auto; color:var(--gold2);
-  border-radius:12px; padding:9px; background:rgba(245,196,81,.12); }
-.rw-ach.is-un .rw-ach__ic{ box-shadow:0 0 14px rgba(245,196,81,.35); }
+/* ══ بطاقةُ الإنجازِ برتبتِها (بلاغا جوجو ٦ و٧) ══
+   لكلِّ رتبةٍ لونُها وصفيحتُها المرسومة: البرونزيُّ صفيحةُ الفولاذِ المبرشَم،
+   والفضّيُّ أوجهُ البلّورِ الأزرق، والذهبيُّ أشعّةُ الفلغرانِ الذهبيّة،
+   والأسطوريُّ حراشفُ التنّينِ القرمزيّة — نفسُ رسومِ ندراتِ المتجرِ بلا ازدواج.
+   والمكافأةُ تُعرَضُ عملةً **وXP** بعدَ أن كانتِ العملةَ وحدَها. */
+.rw-ach{ position:relative; display:flex; gap:12px; padding:14px; border-radius:16px; align-items:flex-start;
+  --tc:#9fb0c0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+  opacity:.66; filter:grayscale(.45); transition:opacity .2s ease, filter .2s ease, box-shadow .2s ease; }
+.rw-ach--bronze{ --tc:#d08b4a; }
+.rw-ach--silver{ --tc:#cfd8e3; }
+.rw-ach--gold{ --tc:#ffc65a; }
+.rw-ach--legend{ --tc:#ff5b6e; }
+.rw-ach--bronze  .rw-plate{ background-image:var(--plate-common); }
+.rw-ach--silver  .rw-plate{ background-image:var(--plate-rare); }
+.rw-ach--gold    .rw-plate{ background-image:var(--plate-legendary); }
+.rw-ach--legend  .rw-plate{ background-image:var(--plate-mythic); }
+.rw-ach:not(.is-un) .rw-plate{ opacity:.26; }
+.rw-ach.is-un{ opacity:1; filter:none;
+  border-color:color-mix(in srgb,var(--tc) 55%,transparent);
+  background:color-mix(in srgb,var(--tc) 9%,rgba(18,9,34,.6));
+  box-shadow:0 6px 20px color-mix(in srgb,var(--tc) 18%,transparent); }
+.rw-ach__ic{ position:relative; z-index:1; width:46px; height:46px; flex:0 0 auto; color:var(--tc);
+  border-radius:13px; padding:9px; background:color-mix(in srgb,var(--tc) 14%,rgba(0,0,0,.28));
+  border:1px solid color-mix(in srgb,var(--tc) 38%,transparent); }
+.rw-ach.is-un .rw-ach__ic{ box-shadow:0 0 16px color-mix(in srgb,var(--tc) 42%,transparent),
+  inset 0 1px 0 rgba(255,255,255,.18); }
 .rw-ach__ic svg{ width:100%; height:100%; display:block; }
-.rw-ach__body{ flex:1 1 auto; min-width:0; }
+.rw-ach__body{ position:relative; z-index:1; flex:1 1 auto; min-width:0; }
 .rw-ach__name{ font-size:14px; font-weight:800; color:#fff; }
 .rw-ach__desc{ font-size:12px; line-height:1.6; color:rgba(255,255,255,.62); margin:3px 0 8px; }
-.rw-ach__foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.rw-ach__foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.rw-ach__rw{ display:flex; align-items:center; gap:8px; }
 .rw-ach__status{ font-size:11px; font-weight:800; letter-spacing:.05em; padding:3px 10px; border-radius:999px;
-  color:rgba(255,255,255,.55); background:rgba(255,255,255,.06); }
-.rw-ach.is-un .rw-ach__status{ color:var(--ink); background:linear-gradient(180deg,var(--acc2),var(--acc)); }
+  color:rgba(255,255,255,.55); background:rgba(255,255,255,.06); white-space:nowrap; }
+.rw-ach.is-un .rw-ach__status{ color:#1a1206; border:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 72%,#fff),var(--tc));
+  box-shadow:0 2px 9px color-mix(in srgb,var(--tc) 45%,transparent); }
 
-/* المخزون */
+/* ══ المخزون ══
+   كلُّ بطاقةٍ صارت بندرةِ عنصرِها: لونُ الندرةِ (--rc) وصفيحتُها المرسومةُ
+   ووسمُ ندرةٍ في الرأس — نفسُ لغةِ المتجرِ البصريّةِ بالحرفِ (بلاغا جوجو ٤ و٧).
+   و`content-visibility` يمنعُ رسمَ بطاقاتٍ خارجَ الرؤيةِ فلا تثقُلُ الشاشةُ
+   حينَ يكبرُ المخزون (بلاغُ جوجو ١). */
 .rw-inv-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
 @media (min-width:520px){ .rw-inv-grid{ grid-template-columns:repeat(3,1fr); } }
-.rw-inv{ position:relative; border-radius:16px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:8px;
-  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); }
-.rw-inv.is-eq{ border-color:color-mix(in srgb,var(--acc) 60%,transparent);
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 40%,transparent), inset 0 0 24px color-mix(in srgb,var(--acc) 12%,transparent); }
-.rw-inv__art{ width:72px; height:72px; color:var(--acc2); filter:drop-shadow(0 0 8px rgba(245,196,81,.45)); }
+.rw-inv{ position:relative; overflow:hidden; border-radius:16px; padding:11px; display:flex; flex-direction:column;
+  align-items:center; gap:8px; --rc:#9fb0c0;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 10%,rgba(16,8,30,.7)),rgba(10,5,20,.72));
+  border:1px solid color-mix(in srgb,var(--rc) 34%,transparent);
+  content-visibility:auto; contain-intrinsic-size:180px 210px; }
+.rw-inv--common{ --rc:#9fb0c0; }
+.rw-inv--rare{ --rc:#4aa3ff; }
+.rw-inv--epic{ --rc:#b46bff; }
+.rw-inv--legendary{ --rc:#ffb64a; }
+.rw-inv--seasonal{ --rc:#38e0c0; }
+.rw-inv--mythic{ --rc:#ff3b3b; }
+.rw-inv--common .rw-plate{ background-image:var(--plate-common); }
+.rw-inv--rare .rw-plate{ background-image:var(--plate-rare); }
+.rw-inv--epic .rw-plate{ background-image:var(--plate-epic); }
+.rw-inv--legendary .rw-plate{ background-image:var(--plate-legendary); }
+.rw-inv--seasonal .rw-plate{ background-image:var(--plate-seasonal); }
+.rw-inv--mythic .rw-plate{ background-image:var(--plate-mythic); }
+.rw-inv.is-eq{ border-color:color-mix(in srgb,var(--rc) 78%,#fff);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 55%,transparent),
+             0 8px 22px color-mix(in srgb,var(--rc) 26%,transparent),
+             inset 0 0 26px color-mix(in srgb,var(--rc) 16%,transparent); }
+.rw-inv__rar{ position:relative; z-index:1; align-self:flex-start; font-size:10px; font-weight:900;
+  letter-spacing:.06em; padding:2px 9px; border-radius:999px; color:color-mix(in srgb,var(--rc) 68%,#fff);
+  background:color-mix(in srgb,var(--rc) 18%,rgba(0,0,0,.4));
+  border:1px solid color-mix(in srgb,var(--rc) 45%,transparent); }
+.rw-inv__art{ position:relative; z-index:1; width:74px; height:74px; color:var(--rc);
+  filter:drop-shadow(0 0 9px color-mix(in srgb,var(--rc) 55%,transparent)); }
 .rw-inv__art .st-svg{ width:100%; height:100%; display:block; overflow:hidden; }
-.rw-inv__name{ font-size:12.5px; font-weight:700; text-align:center; color:#fff; min-height:2.2em;
-  display:flex; align-items:center; }
-.rw-equip{ width:100%; border:1px solid rgba(245,196,81,.5); cursor:pointer; padding:8px 10px; border-radius:999px;
-  font-weight:800; font-size:12.5px; color:#ffe1a6; background:rgba(245,196,81,.12);
+.rw-inv__name{ position:relative; z-index:1; font-size:12.5px; font-weight:700; text-align:center; color:#fff;
+  min-height:2.2em; display:flex; align-items:center; text-shadow:0 1px 4px rgba(0,0,0,.7); }
+.rw-equip{ position:relative; z-index:1; width:100%; cursor:pointer; padding:8px 10px; border-radius:999px;
+  font-weight:800; font-size:12.5px; color:color-mix(in srgb,var(--rc) 55%,#fff);
+  background:color-mix(in srgb,var(--rc) 15%,rgba(0,0,0,.35));
+  border:1px solid color-mix(in srgb,var(--rc) 48%,transparent);
   transition:transform .12s ease, background .2s ease; }
 .rw-equip:active{ transform:scale(.95); }
-.rw-equip.is-on{ color:var(--ink); background:linear-gradient(180deg,var(--acc2),var(--acc)); border-color:transparent;
-  box-shadow:0 3px 12px rgba(245,196,81,.45); }
-@media (prefers-reduced-motion:reduce){ .rw-xp-fill,.rw-mission__bar > span{ transition:none; } .rw-xp-fill::after{ animation:none; display:none; } }
+.rw-equip.is-on{ color:#150c26; border-color:transparent;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 55%,#fff),var(--rc));
+  box-shadow:0 3px 12px color-mix(in srgb,var(--rc) 48%,transparent); }
+@media (prefers-reduced-motion:reduce){ .rw-xp-fill,.rw-mission__bar > span,.rw-tally__bar > span{ transition:none; } .rw-xp-fill::after{ animation:none; display:none; } }
+
+/* ══ حياةُ الواجهة (بلاغُ جوجو ٥: «مفيهاش أيقونات انميشن») ══
+   حركةٌ مقتصدةٌ بـtransform/opacity فقط، ومحصورةٌ في القليلِ اللافت:
+   لمعةٌ تمرُّ على الإنجازِ المفتوحِ وعلى شريطِ العدّاد، ونبضةُ هالةٍ حولَ
+   العنصرِ المُجهَّزِ وحولَ الأسطوريِّ/الميثكِ وحدَهما — وبطاقاتُ المخزونِ
+   خارجَ الرؤيةِ لا تُرسَمُ أصلًا (content-visibility) فلا تُحرَّك. */
+.rw-ach.is-un{ overflow:hidden; }
+.rw-ach.is-un::after{ content:''; position:absolute; top:0; bottom:0; inset-inline-start:0; width:38%; z-index:2;
+  pointer-events:none; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--tc) 30%,rgba(255,255,255,.5)),transparent);
+  transform:skewX(-16deg) translateX(-280%); animation:rwSheen 5.2s ease-in-out infinite; }
+.rw-ach--legend.is-un::after{ animation-duration:3.4s; }
+@keyframes rwSheen{ 0%,72%,100%{ transform:skewX(-16deg) translateX(-280%); } 88%{ transform:skewX(-16deg) translateX(380%); } }
+
+.rw-tally__bar > span{ position:relative; overflow:hidden; }
+.rw-tally__bar > span::after{ content:''; position:absolute; inset:0; border-radius:inherit;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);
+  transform:translateX(-100%); animation:rwTallyShine 2.9s ease-in-out infinite; }
+@keyframes rwTallyShine{ 0%,60%,100%{ transform:translateX(-100%); } 85%{ transform:translateX(100%); } }
+
+/* تُجمَعُ مع حركةِ الدخولِ (rwRise) عمدًا: قاعدةُ `.rw-inv.is-eq` أقوى
+   تخصيصًا من `.rw-inv` فلو أعلنتُ النبضةَ وحدَها لأكلَتْ حركةَ الدخول. */
+.rw-inv.is-eq{ animation:rwRise .42s cubic-bezier(.22,1,.36,1) both, rwEqPulse 2.6s ease-in-out .45s infinite; }
+@keyframes rwEqPulse{
+  0%,100%{ box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 55%,transparent), 0 8px 22px color-mix(in srgb,var(--rc) 22%,transparent), inset 0 0 26px color-mix(in srgb,var(--rc) 14%,transparent); }
+  50%    { box-shadow:0 0 0 2px color-mix(in srgb,var(--rc) 80%,transparent), 0 10px 30px color-mix(in srgb,var(--rc) 40%,transparent), inset 0 0 34px color-mix(in srgb,var(--rc) 22%,transparent); } }
+.rw-inv--legendary .rw-inv__art,.rw-inv--mythic .rw-inv__art{ animation:rwArtBreathe 3.6s ease-in-out infinite; }
+@keyframes rwArtBreathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.055); } }
+/* وسمُ الندرةِ في الميثكِ ينبضُ بلونِه فيُقرَأُ كإنذارٍ أحمرَ لافت */
+.rw-inv--mythic .rw-inv__rar{ animation:rwRarBeat 2.2s ease-in-out infinite; }
+@keyframes rwRarBeat{ 0%,100%{ opacity:.82; } 50%{ opacity:1; } }
+@media (prefers-reduced-motion:reduce){
+  .rw-ach.is-un::after,.rw-tally__bar > span::after{ animation:none; display:none; }
+  .rw-inv.is-eq,.rw-inv--legendary .rw-inv__art,.rw-inv--mythic .rw-inv__art,.rw-inv--mythic .rw-inv__rar{ animation:none; }
+}
 
 /* دخولٌ متدرّجٌ لبطاقاتِ الجوائز (transform/opacity فقط) */
 @keyframes rwRise{ from{ opacity:0; transform:translateY(14px) scale(.98); } to{ opacity:1; transform:none; } }
@@ -8230,6 +8417,23 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   background:linear-gradient(180deg,rgba(255,224,138,0),#ffd766,#b8862b); }
 .cosfx-star{ width:18px; height:18px;
   clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+/* ═══ أشكالُ البناء ٦٢ — أشرطةٌ وفقاعاتٌ وأوراقٌ وتيجانٌ ورملٌ ═══
+   كلُّها clip-path/تدرّجاتٌ خالصةٌ بلا أيّ أصلٍ ثنائيّ، وتُحرَّكُ بنفسِ
+   محرّكَي cosfx-fall/cosfx-rise فلا تكلفةَ إضافيّة. */
+.cosfx-ribbon{ width:7px; height:30px; border-radius:4px;
+  clip-path:polygon(50% 0,100% 16%,50% 32%,0 48%,50% 64%,100% 80%,50% 100%,0 84%); }
+.cosfx-leaf{ width:19px; height:12px; border-radius:100% 0 100% 0;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22); }
+.cosfx-crown{ width:24px; height:19px;
+  clip-path:polygon(0 100%,8% 26%,26% 58%,50% 8%,74% 58%,92% 26%,100% 100%);
+  background:linear-gradient(180deg,#fff2c0,#f5c451 52%,#b8862b);
+  filter:drop-shadow(0 0 6px rgba(245,196,81,.65)); }
+.cosfx-sand{ width:5px; height:5px; border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#fff0cc,#e8c37a 60%,rgba(138,96,32,.7));
+  opacity:.9; }
+.cosfx-bubble{ width:26px; height:26px; border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.95),rgba(140,220,255,.28) 58%,rgba(140,220,255,0) 72%);
+  box-shadow:inset 0 0 6px rgba(255,255,255,.55),0 0 8px rgba(120,210,255,.35); }
 /* الشُّهُب: خطوطٌ مائلةٌ تعبرُ الشاشة */
 .cosfx-meteor{ position:absolute; width:3px; height:120px; border-radius:3px; transform-origin:center;
   background:linear-gradient(180deg,rgba(255,255,255,0),#fff,rgba(120,180,255,.2));
@@ -8282,5 +8486,26 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @keyframes cosfxVortex{ 0%{ transform:rotate(0deg) scale(.2); opacity:0; } 16%{ opacity:1; }
   80%{ opacity:1; } 100%{ transform:rotate(520deg) scale(1.15); opacity:0; } }
 @media (prefers-reduced-motion:reduce){ .cos-fx-ov{ display:none; } }
+
+/* ══ احتفالُ الترقّي (بطاقةٌ مركزيّةٌ فوقَ طبقةِ المؤثّرات) ══ */
+.cos-fx-ov--keep{ display:flex; align-items:center; justify-content:center; }
+.cos-levelup{ display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+  padding:26px 34px; border-radius:26px; pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(60,42,10,.92),rgba(14,9,4,.92));
+  border:1px solid rgba(245,196,81,.5); box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(245,196,81,.35);
+  animation:cosLvIn .55s cubic-bezier(.2,.9,.25,1.3) both; }
+.cos-levelup__ring{ width:118px; height:118px; display:block; filter:drop-shadow(0 0 16px rgba(245,196,81,.6));
+  animation:cosLvSpin 6s linear infinite; }
+.cos-levelup__ring svg{ width:100%; height:100%; display:block; }
+.cos-levelup__ttl{ font-size:26px; font-weight:900; letter-spacing:.02em;
+  background:linear-gradient(90deg,#ffe08a,#f5c451,#c98b2f); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.cos-levelup__sub{ font-size:15px; font-weight:700; color:rgba(255,255,255,.82); }
+@keyframes cosLvIn{ from{ opacity:0; transform:translateY(24px) scale(.82); } to{ opacity:1; transform:none; } }
+@keyframes cosLvSpin{ to{ transform:rotate(360deg); } }
+.cos-levelup--still,.cos-levelup--still .cos-levelup__ring{ animation:none; }
+@media (prefers-reduced-motion:reduce){
+  .cos-fx-ov.cos-fx-ov--keep{ display:flex; }
+  .cos-levelup,.cos-levelup__ring{ animation:none; }
+}
 
 
