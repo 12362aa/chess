@@ -214,6 +214,17 @@ const amkhAuth = {
       const state = await this.fetchMe();
       if (state === 'ok') {
         console.log('Logged in as', this.user.display_name || this.user.email);
+        /* ختمُ ملكيّة بيانات الجهاز عند أوّل إقلاعٍ بعد التحديث (#64):
+           init لا تمرّ بـsetToken، فلو مافيش صاحبٌ مسجَّل بعدُ نُسنِد
+           البيانات المحليّة الحاليّة للحساب المستعاد. بلا مسح — نفس
+           الحساب — لكن ده يمنع دخولَ حسابٍ تاني لاحقًا من دمج بياناتِ
+           هذا الحساب باعتبارها بيانات ضيف. */
+        try {
+          const uid = (this.user && this.user.id != null) ? String(this.user.id) : '';
+          if (uid && !(localStorage.getItem('amkh_local_owner') || '')) {
+            localStorage.setItem('amkh_local_owner', uid);
+          }
+        } catch (e) {}
         this.updateUI();
         this.connectPresence();
         this.startAutoSync();
@@ -554,6 +565,30 @@ const amkhAuth = {
     /* بيانات المستخدم بتتحفظ كمان: عند بدء التطبيق بنعرضها فورًا قبل
        ما الشبكة ترد، فالواجهة تفتح والمستخدم داخل بدل ما تبان كأنه خرج. */
     try { localStorage.setItem('amkh_user', JSON.stringify(user || null)); } catch (e) {}
+    /* ── عزل بيانات الحسابات على الجهاز الواحد (بلاغ أحمد #64) ──
+       القاعدة: التقدّم والصورة يخصّان الحساب لا الجهاز. لو دخل حسابٌ
+       مختلفٌ عن صاحب البيانات المحليّة الحاليّة، نمسح كلّ البيانات
+       المحليّة الخاصّة بالمستخدم (صورة + تقدّم نور) قبل ما
+       _reconcileProfile يشوفها فيرفع صورة الحساب السابق للحساب الجديد.
+       الحالة الوحيدة المسموح فيها بالربط: لاعبٌ لعب بلا حساب (مافيش
+       صاحبٌ مسجَّل) ثم سجّل دخول — ساعتها البيانات ضيفٌ يُربَط بحسابه. */
+    this._deviceDataIsGuest = false;
+    try {
+      const uid = (user && user.id != null) ? String(user.id) : '';
+      const owner = localStorage.getItem('amkh_local_owner') || '';
+      if (uid) {
+        if (!owner) {
+          /* مافيش صاحبٌ سابق → البيانات المحليّة (إن وُجدت) لضيف؛ يُسمح بربطها */
+          this._deviceDataIsGuest = true;
+          localStorage.setItem('amkh_local_owner', uid);
+        } else if (owner !== uid) {
+          /* حسابٌ مختلفٌ على نفس الجهاز → لا خلط إطلاقًا: امسح ثم امتلك */
+          this._wipeLocalUserData();
+          localStorage.setItem('amkh_local_owner', uid);
+        }
+        /* owner === uid → نفس الحساب: نُبقي كلّ شيء، والخادم يزامنه */
+      }
+    } catch (e) {}
     this.updateUI();
     this.connectPresence();
     this._reconcileProfile();
@@ -702,9 +737,25 @@ const amkhAuth = {
      الدمج في الخادم غير مُدمِّر (النجوم بتاخد الأعلى، والمراحل المكتملة
      تفضل مكتملة). فبقى الربط تلقائيًا وصامتًا، مرة واحدة لكل حساب على كل
      جهاز، وبإشعار سطر واحد لو فعلًا اتنقلت بيانات — بلا أي نافذة. */
+  /* مسحُ كلّ البيانات المحليّة الخاصّة بالمستخدم عند دخول حسابٍ مختلفٍ
+     على نفس الجهاز (#64): الصورة + تقدّم نور. التقدّم يخصّ الحساب لا
+     الجهاز — والخادم يعيد بناء بيانات الحساب الجديد بعد المسح. */
+  _wipeLocalUserData() {
+    try { if (window.Cfg && typeof window.Cfg.wipeLocalForAccountSwitch === 'function') window.Cfg.wipeLocalForAccountSwitch(); } catch (e) {}
+    try { if (window.LVL && typeof window.LVL.clearLocal === 'function') window.LVL.clearLocal(); } catch (e) {}
+    /* لقطة تقدّم نور المعروضة في «درب نور» تُبنى من التخزين عند كلّ فتحٍ
+       (NLV.build) والكاش اتصفّر للتوّ، فالفتح التالي يقرأ تقدّم الحساب
+       الجديد فقط — لا يظهر تقدّم الحساب السابق. */
+  },
+
   async mergeDeviceData() {
     const uid = this.user && this.user.id;
     if (!uid) return;
+    /* عزل الحسابات (#64): الربط مسموحٌ فقط لو البيانات المحليّة لضيفٍ
+       لعب بلا حساب ثم سجّل دخول. أيّ حالةٍ تانية (حسابٌ سابقٌ مختلف، أو
+       نفس الحساب) مايتعملّهاش دمجٌ لتقدّم الجهاز — لا نخلط تقدّم
+       الحسابات ببعض إطلاقًا (قاعدة أحمد الصارمة). */
+    if (this._deviceDataIsGuest !== true) return;
     const flag = 'amkh_device_merged_' + uid;
     try { if (localStorage.getItem(flag) === '1') return; } catch (e) {}
     let progress = [];

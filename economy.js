@@ -454,6 +454,30 @@ function storeCurrent(userId, now) {
    يرجّع {ok, reason}. reason: ok | not_in_window | owned | insufficient | bad_item. */
 const qOwnsItem  = db.prepare('SELECT 1 FROM user_cosmetics WHERE user_id = ? AND item_id = ? LIMIT 1');
 const insCosmetic= db.prepare("INSERT OR IGNORE INTO user_cosmetics (user_id, item_id, source) VALUES (?, ?, 'store')");
+/* حسابُ المطوِّر/التجربة: يملكُ كلَّ عناصرِ المتجرِ تلقائيًّا (منحٌ خادميّ فقط،
+   لا يمسُّ العملةَ ولا Glicko، خاصٌّ بهذا الحساب وحده). */
+const DEV_EMAIL = 'mekhalifa890@gmail.com';
+const insCosmeticGrant = db.prepare("INSERT OR IGNORE INTO user_cosmetics (user_id, item_id, source) VALUES (?, ?, 'grant')");
+let _devUserId = 0, _devResolvedAt = 0, _devGranted = false;
+function _resolveDevId() {
+  if (_devUserId) return _devUserId;
+  const now = Date.now();
+  if (now - _devResolvedAt < 60000) return 0;   // خنقُ إعادةِ البحثِ لمرّةٍ كلَّ دقيقة
+  _devResolvedAt = now;
+  const row = db.prepare('SELECT id FROM users WHERE lower(email) = ?').get(DEV_EMAIL);
+  _devUserId = row ? Number(row.id) : 0;
+  return _devUserId;
+}
+function ensureDevGrant(userId) {
+  userId = Number(userId);
+  if (!userId || _devGranted) return;
+  const dev = _resolveDevId();
+  if (!dev || userId !== dev) return;
+  try {
+    db.transaction(() => { for (const it of STORE_CATALOG) insCosmeticGrant.run(userId, it.id); })();
+    _devGranted = true;   // مرّةٌ واحدةٌ لكلِّ تشغيل؛ إعادةُ التشغيلِ تشملُ عناصرَ الكتالوجِ الجديدة
+  } catch (e) { console.error('[economy] dev grant failed:', e.message); }
+}
 function purchase(userId, itemId) {
   userId = Number(userId);
   const item = STORE_BY_ID[itemId];
@@ -602,6 +626,7 @@ function ensureLaunchGrant(userId) {
 /* لقطة كاملة للعميل (مرآة قراءة فقط — العميل لا يكتبها للخادم). */
 function snapshot(userId) {
   ensureLaunchGrant(userId);
+  ensureDevGrant(userId);
   const w = qWallet.get(userId) || { coins: 0, xp: 0, level: 1 };
   const eq = qEquipped.get(userId) || {};
   return {

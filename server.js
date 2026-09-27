@@ -1210,10 +1210,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 63;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b63/chess-amkh-4.2-b63.apk';
-const NOTES_AR = 'إعادةُ صناعةٍ للعناصرِ التجميليّة: أُعيدَ رسمُ كلِّ الشاراتِ (٢٤ شارة) بأشكالٍ حيّةٍ متحرّكةٍ تُطابقُ أسماءَها فعلًا — ألماسةٌ بأوجهٍ حقيقيّة، فارسُ شطرنجٍ برأسِ حصان، رأسُ تنّينٍ بقرونٍ ونار، وعنقاءٌ بجناحين. وصارَت الخلفيّةُ لافتةً عريضةً متحرّكةً خلفَ اسمِك وصورتِك في الملفِّ الشخصيّ، وهالةً حولَ الصورةِ في الأماكنِ الصغيرة. وأُضيفَتْ أيقوناتٌ مرسومةٌ لأزرارِ المهامِّ والإنجازاتِ والمخزون. كلُّ تقدّمِك محفوظ. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'A rework of the cosmetics: all 24 badges were redrawn as living, animated shapes that truly match their names — a real faceted diamond, a chess knight with a horse head, a horned dragon head with fire, and a phoenix with two wings. Backgrounds are now a wide animated banner behind your name and avatar on the profile card, plus a halo around the avatar in small places. Drawn icons were added to the Missions, Achievements and Inventory buttons. All your progress is saved. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 64;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b64/chess-amkh-4.2-b64.apk';
+const NOTES_AR = 'إصلاحاتٌ مهمّة: صارَ إطارُك المُجهَّزُ يظهرُ حولَ صورتِك في كلِّ أوضاعِ اللعبِ وفي شاتِ نورٍ وشاتِ المباراةِ أونلاين — وإطارُ خصمِك كذلك — بنفسِ شكلِ المتجرِ تمامًا. وضُبِطَ الإطارُ في الإعداداتِ فلم تعُدِ الصورةُ تخرجُ منه. والأهمُّ: تقدّمُك وصورتُك صارا يخصّانِ حسابَك لا الجهاز — تسجيلُ الدخولِ بحسابٍ آخرَ على نفسِ الجهازِ لم يعُدْ يخلطُ صورَ الحساباتِ ولا تقدّمَ نورٍ ببعضِها أبدًا. وأُزيلَتِ النجمةُ المتراكبةُ فوقَ أيقونةِ الجوائز، وصارَتْ أيقوناتُ المهامِّ والإنجازاتِ والمخزونِ ملوّنةً مرسومةً. كلُّ تقدّمِك محفوظ. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'Important fixes: your equipped frame now shows around your avatar in every play mode and in the Nour chat and the online match chat — and your opponent\'s frame too — looking exactly like the store preview. The frame in Settings was fitted so the picture no longer spills out of it. Most importantly, your progress and picture now belong to your account, not the device — signing into a different account on the same device no longer ever mixes account pictures or Nour progress. The star overlapping the Rewards icon was removed, and the Missions, Achievements and Inventory icons are now colorful drawn icons. All your progress is saved. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -4119,6 +4119,9 @@ wss.on('connection', (ws, req) => {
         // Replay cached profile images (if they were sent before the opponent connected)
         if (room.host.pimg) send(room.guest.ws, { type: 'pimg', img: room.host.pimg });
         if (room.guest.pimg) send(room.host.ws, { type: 'pimg', img: room.guest.pimg });
+        // وإطار/خلفيّة كلٍّ منهما كذلك (بلاغ جوجو #64)
+        if (room.host.cos) send(room.guest.ws, { type: 'cos', cos: room.host.cos });
+        if (room.guest.cos) send(room.host.ws, { type: 'cos', cos: room.guest.cos });
 
         console.log(`[room] ${code} started | host=${room.host.color} guest=${room.guest.color}`);
         break;
@@ -4164,6 +4167,7 @@ wss.on('connection', (ws, req) => {
 
         if (opp?.name) send(ws, { type: 'name', name: opp.name });
         if (opp?.pimg) send(ws, { type: 'pimg', img: opp.pimg });
+        if (opp?.cos) send(ws, { type: 'cos', cos: opp.cos });
         if (room.state) send(ws, { type: 'resume-state', state: room.state });
 
         if (opp && opp.connected && opp.ws) {
@@ -4207,8 +4211,9 @@ wss.on('connection', (ws, req) => {
       case 'chat':
       case 'voice':
       case 'name':
-      case 'pimg': {
-        // Persist latest name/pimg in the room so late joiners get it.
+      case 'pimg':
+      case 'cos': {
+        // Persist latest name/pimg/cos in the room so late joiners get it.
         const info = getRoomAndSide(ws);
         if (info) {
           const { room, side } = info;
@@ -4239,6 +4244,10 @@ wss.on('connection', (ws, req) => {
           } else if (msg.type === 'pimg') {
             const img = msg.img || null;
             if (room[side]) room[side].pimg = img;
+          } else if (msg.type === 'cos') {
+            /* إطار/خلفيّة/شارة اللاعب — كائنٌ صغيرٌ يُخزَّن كما هو ويُعاد
+               بثّه للطرف الآخر وللمنضمّ متأخّرًا (بلاغ جوجو #64). */
+            if (room[side]) room[side].cos = (msg.cos && typeof msg.cos === 'object') ? msg.cos : null;
           } else if (msg.deviceId) {
             const did = String(msg.deviceId).slice(0, 80);
             if (room[side]) room[side].deviceId = did;

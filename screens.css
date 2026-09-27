@@ -3601,6 +3601,8 @@ body[data-ui-theme="amkh"] .home-tile{
   background-position: calc(100% + 26px) calc(100% + 24px);
   background-size: 96px 96px;
 }
+/* النجمةُ الإسلاميّةُ تتراكبُ فوقَ أيقونةِ الجوائزِ في الصفِّ العريض — نزيلُها هنا فقط */
+body[data-ui-theme="amkh"] .home-tile--rewards{ background-image: none; }
 body[data-ui-theme="amkh"] .home-hero__count,
 body[data-ui-theme="amkh"] .pb-timer{
   font-family: var(--font-family-display);
@@ -8121,7 +8123,7 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   padding:9px 18px; border-radius:999px; font-size:14px; font-weight:800; cursor:pointer; white-space:nowrap;
   display:inline-flex; align-items:center; gap:7px;
   transition:background .18s ease, color .18s ease, border-color .18s ease; }
-.rw-tab__ic{ width:17px; height:17px; flex:0 0 auto; }
+.rw-tab__ic{ width:19px; height:19px; flex:0 0 auto; filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); }
 .rw-tab.is-on{ color:var(--ink); background:linear-gradient(180deg,var(--acc2),var(--acc));
   border-color:transparent; box-shadow:0 3px 14px rgba(245,196,81,.45); }
 
@@ -8429,6 +8431,13 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .fr-row__av-img,
 .ch-conv__av-img, .ch-inbox__av-img,
 .ch-grow__av img{ border-radius:50%; }
+/* الأفاتار المرسومُ كـ<div> بخلفيّةِ صورة (الإعدادات/الرئيسيّة) ليس <img>،
+   فلا تطاله القاعدةُ أعلاه؛ نقصّه دايريًّا (border-radius يقصّ الخلفيّةَ
+   حتى مع overflow:visible) فتفضلُ الصورةُ داخلَ الطوق. */
+#settings-profile-img.cos-host,
+.settings-profile-avatar.cos-host,
+#home-id-av.cos-host,
+.home-id__av.cos-host{ border-radius:50%; }
 
 /* ══ احتفالاتُ الفوزِ ومؤثّراتُ المات (المرحلة ٤): تُشغَّلُ مِلءَ الشاشةِ عند
    الفوزِ بحسبِ المُجهَّزِ في amkhEconomy، ثمّ تُزيلُ نفسَها. transform/opacity

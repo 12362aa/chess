@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260927-b63">
+<link rel="stylesheet" href="screens.css?v=20260927-b64">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -6732,6 +6732,20 @@ const Cfg={
     /* امسحها من الخادم كمان عشان تختفي من عند الأصدقاء */
     this._syncAvatarToServer('');
   },
+  /* مسحُ الصورة المحليّة عند تبديل حسابٍ مختلفٍ على نفس الجهاز (عزل
+     الحسابات #64). بلا رفعٍ للخادم وبلا وسمِ «معلَّق»: البيانات ليست
+     ملكَ الحساب الجديد، والخادم هو المصدر — _reconcileProfile هيملأ
+     صورة الحساب الجديد بعدها إن وُجدت. _importing يمنع markSettingsDirty
+     من رفع الفراغ فوق صورة الحساب الجديد. */
+  wipeLocalForAccountSwitch(){
+    try{
+      this._importing=true;
+      this.data.playerImage='';
+      try{ this._persist(); } finally { this._importing=false; }
+      this._updateAvatar(this.data.playerName||'');
+      try{ if(typeof this.refreshProfileUI==='function') this.refreshProfileUI(); }catch(e){}
+    }catch(e){}
+  },
   /* تصغير الصورة لـ96×96 JPEG قبل رفعها — صغيرة تكفي لقائمة الأصدقاء
      ومناسبة لعمود قاعدة البيانات. بترجّع null لو الصورة تالفة. */
   _downscaleAvatar(src){
@@ -6843,6 +6857,11 @@ function updatePlayerImages(){
   };
 
   const isOnlineOrPreview=isRemoteMatchMode()||(S.oppImg!==null&&S.oppImg!==undefined);
+  /* الإطار المُجهَّز حول أفاتاري في كل أوضاع اللعب (بلاغ جوجو #64):
+     كان بيبان في الرئيسيّة والإعدادات بس. amkhCos.self() هو المُجهَّز،
+     ونرسمه بنفس المُصيّر الموحّد فيطابق المتجر وأي مكانٍ تاني بالضبط. */
+  const myCos=(window.amkhCos&&window.amkhCos.self&&window.amkhCos.self())||null;
+  const _paintCos=(sel,cos)=>{ try{ if(window.amkhCos){ const el=document.querySelector(sel); if(el) window.amkhCos.paint(el,cos||null); } }catch(e){} };
   if(isOnlineOrPreview){
     const myCol=S.myCol||'w';
     const oppCol=myCol==='w'?'b':'w';
@@ -6850,6 +6869,8 @@ function updatePlayerImages(){
        اللي مالوش صورة ياخد الافتراضية — مش خانة فاضية ولا صورة الطرف التاني. */
     setAvatar(document.querySelector('.av-'+myCol),playerImg||DEFAULT_AVATAR,myCol==='w'?'♙':'♟');
     setAvatar(document.querySelector('.av-'+oppCol),S.oppImg||DEFAULT_AVATAR,oppCol==='w'?'♙':'♟');
+    _paintCos('.av-'+myCol,myCos);
+    _paintCos('.av-'+oppCol,S.oppCos||null);
     return;
   }
 
@@ -6858,6 +6879,8 @@ function updatePlayerImages(){
     const nourAv=document.querySelector('.av-b');
     setAvatar(nourAv,'./nour.png','♟','var(--gold2)');
     if(nourAv)nourAv.style.border='1px solid rgba(201,168,76,.22)';
+    _paintCos('.av-w',myCos);
+    _paintCos('.av-b',null);   /* نور بلا إطار — وامسح إطار خصمٍ سابقٍ على نفس العنصر */
     return;
   }
 
@@ -6866,6 +6889,8 @@ function updatePlayerImages(){
     const engineAv=document.querySelector('.av-b');
     setAvatar(engineAv,'./'+ENGINE_AVATAR_FILE,'♞','#9afbf5');
     if(engineAv)engineAv.style.border='1px solid rgba(67,217,173,.28)';
+    _paintCos('.av-w',myCos);
+    _paintCos('.av-b',null);   /* المحرّك بلا إطار — وامسح أي إطارٍ سابق */
     return;
   }
 
@@ -6878,6 +6903,8 @@ function updatePlayerImages(){
   const bb=document.querySelector('.av-b');
   if(bw)bw.textContent='♙';
   if(bb)bb.textContent='♟';
+  _paintCos('.av-w',myCos);
+  _paintCos('.av-b',null);   /* الوضع المحلّي: الأبيض إطاري، الأسود بلا إطار */
 }
 
 /* إعادة رسم تجميل اللاعب (إطار/شارة/خلفية) عند تغيّر التجهيز أو تحديث
@@ -7833,7 +7860,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 63;
+const APP_VERSION_CODE = 64;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -9139,6 +9166,30 @@ const IDB=(()=>{
         tx.oncomplete=()=>res();
         tx.onerror=()=>rej(tx.error);
       });
+    },
+    /* مسحٌ صريحٌ لعزل الحسابات: تفريغ مخزن المراحل كلّه وحذف مفتاح KV
+       واحد. يُستدعى فقط من LVL.clearLocal عند تبديل حسابٍ مختلف. */
+    async clearStore(){
+      const db=await _open();
+      return new Promise((res)=>{
+        try{
+          const tx=db.transaction(STORE,'readwrite');
+          tx.objectStore(STORE).clear();
+          tx.oncomplete=()=>res();
+          tx.onerror=()=>res();
+        }catch(e){res();}
+      });
+    },
+    async kdel(k){
+      const db=await _open();
+      return new Promise((res)=>{
+        try{
+          const tx=db.transaction(KV_STORE,'readwrite');
+          tx.objectStore(KV_STORE).delete(k);
+          tx.oncomplete=()=>res();
+          tx.onerror=()=>res();
+        }catch(e){res();}
+      });
     }
   };
 })();
@@ -9306,6 +9357,18 @@ const LVL={
     return!!(p[id]?.done||p[id-1]?.done);
   },
 
+  /* ══════════════════════════════════════════════════════════════
+     مسحٌ كاملٌ للتقدّم المحلّيّ — عزلُ الحسابات (بلاغ أحمد: تقدّم نور
+     بتاع حسابٍ يظهر في حسابٍ تاني على نفس الجهاز). التقدّم يخصّ
+     الحساب لا الجهاز؛ فعند تسجيل دخولٍ بحسابٍ مختلفٍ نمسح كلّ الطبقات
+     الثلاث (IDB/levels + IDB/kv backup + localStorage backup) ثم
+     نصفّر الكاش عشان الخادم يعيد بناءه من تقدّم الحساب الصحيح. */
+  async clearLocal(){
+    this._cache=null;
+    try{ await IDB.clearStore(); }catch(e){}
+    try{ await IDB.kdel(this._backupKey); }catch(e){}
+    try{ localStorage.removeItem(this._backupKey); }catch(e){}
+  },
   /* ══════════════════════════════════════════════════════════════
      مزامنة تقدّم المراحل مع الحساب (بلاغ أحمد: «كنت في مرحلة ٣،
      شِلت التطبيق وسجّلت دخول، لقيت نفسي في مرحلة ١»)
@@ -9967,6 +10030,7 @@ const S={
   dragFrom:null,
   undoStack:[],
   oppImg:null,
+  oppCos:null,      /* إطار/خلفيّة الخصم أونلاين — بيوصل عبر رسالة 'cos' */
   endState:null,
   _engineTimer:null,
   _engineJob:0,
@@ -10092,6 +10156,19 @@ const CHAT={
           av.classList.add('nour');
         }
       }
+
+      /* الإطار المُجهَّز في شات المباراة أونلاين وشات نور (بلاغ جوجو #64):
+         رسالتي تحمل إطاري، ورسالةُ خصمِ الأونلاين تحمل إطاره — بنفس شكل
+         المتجر وأي مكانٍ تاني. نورُ لا إطارَ له (أفاتاره الخاصّ). */
+      try{
+        if(window.amkhCos){
+          if(type==='me'){
+            window.amkhCos.paint(av,(window.amkhCos.self&&window.amkhCos.self())||null);
+          }else if(type==='opp'&&isRemoteMatchMode()){
+            window.amkhCos.paint(av,S.oppCos||null);
+          }
+        }
+      }catch(e){}
 
       if(type==='me'){
         m.appendChild(av);
@@ -13889,6 +13966,7 @@ const G={
     clearPreMoveState();
     S.undoStack=[];
     S.oppImg=null; // Reset opponent image for every new game
+    S.oppCos=null; // وإطار الخصم كذلك — مايتسرّبش من مباراةٍ لأخرى
     S._engineTimer=null;
     S._engineJob=0;
     /* توكن النتيجة عدّاد تصاعدي لا يرجع لصفر أبدًا. كان بيتصفّر هنا، فكانت
@@ -15239,6 +15317,10 @@ const OL=(()=>{
            المباراة (إنشاء، انضمام، بحث عن خصم، دعوة صديق) — الاثنان
            الأخيران الغرفة بتتولد فيهما على الخادم بلا رسالة من العميل. */
         try{ send({type:'theme',theme:Cfg.liveTheme()}); }catch(e){}
+        /* إطاري/خلفيّتي للخصم: نفس منطق الثيم — نقطة واحدة تغطّي كل مسارات
+           بدء المباراة (إنشاء/انضمام/بحث/دعوة). الخصم يرسمها بالمُصيّر
+           الموحّد فتطابق المتجر. (بلاغ جوجو #64) */
+        try{ send({type:'cos',cos:(window.amkhCos&&window.amkhCos.self&&window.amkhCos.self())||null}); }catch(e){}
         /* التقييم يظهر في شريط اللاعب في المباريات المصنّفة فقط —
            في الودّية مفيش لازمة لعرضه جنب الأسماء. */
         _oppRatingSnap = d.rated ? (d.oppRating||null) : null;
@@ -15305,6 +15387,15 @@ const OL=(()=>{
             S.oppImg=d.img;
             updatePlayerImages();
           }
+        }
+        break;
+
+      case 'cos':
+        {
+          /* إطار/خلفيّة الخصم (بلاغ جوجو #64): يظهر حول أفاتاره في المباراة
+             وفي شات الأونلاين بنفس شكل المتجر. المُصيّر الموحّد نفسه. */
+          S.oppCos=d.cos||null;
+          try{ updatePlayerImages(); }catch(e){}
         }
         break;
 
@@ -16421,7 +16512,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260924-b49"></script>
+  <script src="auth-client.js?v=20260927-b64"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
@@ -16436,7 +16527,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="store-client.js?v=20260927-b63"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20260927-b63"></script>
+  <script src="rewards-client.js?v=20260927-b64"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت
