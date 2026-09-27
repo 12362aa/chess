@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260927-b64">
+<link rel="stylesheet" href="screens.css?v=20260927-b65">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3304,7 +3304,7 @@ html.amkh-preboot #amkh-preboot{
     <section class="home-daily" id="home-daily" aria-labelledby="home-daily-title">
       <div class="home-daily__head">
         <span class="home-daily__icon" aria-hidden="true">
-          <i class="ico ico--daily" aria-hidden="true"></i>
+          <svg class="home-daily__gem" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="dcG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="dcT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0f7ff"/><stop offset="1" stop-color="#7dd3fc"/></linearGradient></defs><path d="M12 2 L20.5 8 L12 22 L3.5 8 Z" fill="url(#dcG)" stroke="#1e3a8a" stroke-width=".7" stroke-linejoin="round"/><path d="M12 2 L20.5 8 L16 8 Z" fill="#a5f3fc" opacity=".85"/><path d="M12 2 L3.5 8 L8 8 Z" fill="#67e8f9" opacity=".7"/><path d="M8 8 L16 8 L12 2 Z" fill="url(#dcT)" opacity=".55"/><path d="M3.5 8 H20.5 M8 8 L12 22 M16 8 L12 22 M12 2 V8" fill="none" stroke="#eaf4ff" stroke-width=".7" opacity=".8"/><path d="M18.6 3.4 l.7 1.7 1.7 .7 -1.7 .7 -.7 1.7 -.7-1.7 -1.7-.7 1.7-.7 Z" fill="#fff6cf"/></svg>
         </span>
         <span class="home-daily__heading">
           <span class="home-sec__eyebrow">تحديات اليوم</span>
@@ -6841,7 +6841,10 @@ function updatePlayerImages(){
         /* الـurl بين علامتي اقتباس — أي قوس جوه data URL بيكسّر الصيغة بدونها */
         el.style.backgroundImage=`url("${src}")`;
         el.style.color='transparent';
-        el.textContent='';
+        /* لا نمسح كلَّ الأبناءِ بـtextContent='' لأنّ ذلك يمحو طبقةَ الإطارِ
+           (.cos-frame) المدسوسةَ فورَ استدعاءِ _paintCos، فيومضُ الإطارُ ثم
+           يختفي مع كلِّ نقلةٍ (بلاغ جوجو). نمسحُ النصوصَ فقط ونُبقي العناصر. */
+        for(let i=el.childNodes.length-1;i>=0;i--){ if(el.childNodes[i].nodeType===3) el.removeChild(el.childNodes[i]); }
       };
       img.onerror=()=>{
         el.style.backgroundImage='';
@@ -6903,8 +6906,12 @@ function updatePlayerImages(){
   const bb=document.querySelector('.av-b');
   if(bw)bw.textContent='♙';
   if(bb)bb.textContent='♟';
-  _paintCos('.av-w',myCos);
-  _paintCos('.av-b',null);   /* الوضع المحلّي: الأبيض إطاري، الأسود بلا إطار */
+  /* وضع «لاعبان» (pass-and-play) لا علاقةَ له بحسابِ اللاعبِ (بلاغ جوجو):
+     فلا يظهرُ فيه إطارٌ على أيِّ جانب. يبقى الإطارُ للأوضاعِ المرتبطةِ بالحساب
+     فقط (نور/المحرّك/أونلاين المعالَجةِ أعلاه). */
+  const twoPlayer = (S.mode==='local') || (S.myCol==='both');
+  _paintCos('.av-w', twoPlayer ? null : myCos);
+  _paintCos('.av-b',null);
 }
 
 /* إعادة رسم تجميل اللاعب (إطار/شارة/خلفية) عند تغيّر التجهيز أو تحديث
@@ -7860,7 +7867,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 64;
+const APP_VERSION_CODE = 65;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -14213,7 +14220,12 @@ const G={
     }
     if(!avail.length || insufficient || isThreefold || fiftyMove){
       S.over=true;
+      /* بلاغُ نتيجةِ المباراةِ المحليّة للمهامّ (بلاغ جوجو #9): نور/المحرّك
+         فقط — الحيّةُ يحسبُها الخادم، ولاعبانِ غيرُ مرتبطٍ بحساب. */
+      const _lm=isNourLevelMode()?'nour':(isStockfishMode()?'engine':null);
+      const _rep=(oc,rs)=>{ if(_lm){try{window.amkhEconomy&&amkhEconomy.notifyLocalResult(_lm,oc,rs||'');}catch(e){}} };
       if(insufficient){
+        _rep('draw','insufficient');
         setTimeout(()=>{
           try{SFX.draw();}catch(e){}
           this.showOver({
@@ -14229,6 +14241,19 @@ const G={
       if(isCheckmate){
         const w=E.opp(S.turn);
         const nm=w==='w'?pbName('nm-w'):pbName('nm-b');
+        /* مؤثّرُ الكشِ مات (بلاغ جوجو #7): يُطلَقُ لحظةَ المات لو أنا مَن
+           سدّدَه — لا على شاشةِ النهاية. أنا الأبيضُ دائمًا ضدّ نور/المحرّك،
+           وفي المباراةِ الحيّةِ لوني S.myCol. وضعُ لاعبَيْن غيرُ مرتبطٍ بحسابٍ
+           فلا مؤثّرَ فيه. */
+        const _iWon=(()=>{
+          const twoPlayer=(S.mode==='local')||(S.myCol==='both');
+          if(twoPlayer)return null;
+          const won=isRemoteMatchMode()?(w===S.myCol):(w==='w');
+          if(won){try{window.amkhCos&&amkhCos.mateFx();}catch(e){}}
+          return won;
+        })();
+        // للمهامّ: نتيجةُ المباراةِ المحليّة (فوزٌ لو أنا الفائزُ بالكش-مات)
+        if(_iWon!==null)_rep(_iWon?'win':'loss','checkmate');
         setTimeout(()=>{
           if(w==='w'&&S.levelId>=0){
             const stars=LVL.calcStars(S.moveCount,S.levelId);
@@ -14245,6 +14270,7 @@ const G={
           }
         },350);
       }else{
+        _rep('draw',isThreefold?'threefold':(fiftyMove?'fifty-move':'stalemate'));
         setTimeout(()=>{
           try{SFX.draw();}catch(e){}
           this.showOver({
@@ -16521,13 +16547,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260927-b63"></script>
+  <script src="economy-client.js?v=20260927-b65"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260927-b63"></script>
+  <script src="store-client.js?v=20260927-b65"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20260927-b64"></script>
+  <script src="rewards-client.js?v=20260927-b65"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

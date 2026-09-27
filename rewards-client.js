@@ -395,7 +395,8 @@
         var list = byType[tp]; if (!list || !list.length) return;
         list = list.slice().sort(function (a, b) { return (RANK[b.rarity] || 0) - (RANK[a.rarity] || 0); });
         var tn = T[tp] ? L(T[tp].ar, T[tp].en) : tp;
-        html += '<div class="rw-sec"><div class="rw-sec__hd"><span class="rw-sec__ttl">' + esc(tn) + '</span>'
+        var cic = (window.amkhCos && amkhCos.catIcon) ? amkhCos.catIcon(tp) : '';
+        html += '<div class="rw-sec"><div class="rw-sec__hd"><span class="rw-sec__ic" aria-hidden="true">' + cic + '</span><span class="rw-sec__ttl">' + esc(tn) + '</span>'
           + '<span class="rw-sec__sub">' + list.length + '</span></div><div class="rw-inv-grid">';
         list.forEach(function (m) {
           var art = (window.STORE && STORE.art) ? STORE.art(m) : '';

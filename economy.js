@@ -23,6 +23,7 @@ const AWARD = {
 };
 const WELCOME_COINS = 200;            // منحة الإطلاق للحسابات الموجودة/الجديدة
 const PUZZLE_DAILY_CAP = 20;          // سقف ألغاز مكسِبة يوميًّا (مضادّ للتفريخ)
+const LOCAL_MISSION_DAILY_CAP = 25;   // سقف بلاغات المباريات المحليّة المحسوبة للمهام يوميًّا (مضادّ للتفريخ)
 const MAX_LEVEL = 50;
 
 /* منحنى الخبرة: كلفة الانتقال من مستوى n إلى n+1 = 100 + (n-1)*25.
@@ -697,6 +698,12 @@ const qPuzzleToday = db.prepare(
   "SELECT COUNT(*) AS n FROM coin_ledger WHERE user_id = ? AND reason = 'puzzle' AND date(created_at) = date('now')"
 );
 
+/* عدد بلاغات المباريات المحليّة اليوم (سقف يومي مضادّ للتفريخ). نُسجّلها في
+   السجلّ بصفّ صفريّ العملة (reason='local') فيبقى العدّ ثابتًا عبر إعادة التشغيل. */
+const qLocalToday = db.prepare(
+  "SELECT COUNT(*) AS n FROM coin_ledger WHERE user_id = ? AND reason = 'local' AND date(created_at) = date('now')"
+);
+
 /* ══ المهام: مفاتيح الدورة + التقدّم + المطالبة (المرحلة ٤) ══
    period_key يعزل كلَّ يومٍ/أسبوعٍ عن غيره فلا تُطالَب مكافأةٌ مرّتين. */
 function _dayKey(d) {
@@ -966,6 +973,48 @@ router.post('/beat-nour', authenticateToken, (req, res) => {
     bumpMissions(userId, 'nour', 1);
     res.json({ awarded, ...snapshot(userId) });
   } catch (e) { res.status(500).json({ error: 'economy_error' }); }
+});
+
+/* نتيجةُ مباراةٍ محليّة (ضدّ نور أو المحرّك Stockfish) — تُقدّمُ المهامَّ فقط
+   (بلاغ جوجو #9: كش-مات نور لا يُحسَب). لا تُمنَحُ عملةُ المباراةِ هنا منعًا
+   للتفريخ؛ المهامُّ نفسُها محدودةُ الهدفِ لكلِّ دورةٍ فالسقفُ طبيعيّ، ويُضافُ
+   سقفٌ يوميٌّ لعددِ البلاغاتِ المحسوبة. لا مساسَ بتقييمِ Glicko. */
+router.post('/local-result', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  try {
+    ensureWallet(userId);
+    const b = req.body || {};
+    const outcome = b.outcome === 'win' ? 'win' : b.outcome === 'draw' ? 'draw' : 'loss';
+    const reason = String(b.reason || '').toLowerCase();
+    const mode = b.mode === 'nour' ? 'nour' : b.mode === 'engine' ? 'engine' : '';
+    if (!mode) return res.json({ awarded: false, reason: 'bad_mode', ...snapshot(userId) });
+    const n = qLocalToday.get(userId).n;
+    if (n >= LOCAL_MISSION_DAILY_CAP) return res.json({ awarded: false, reason: 'daily_cap', ...snapshot(userId) });
+    const day = new Date().toISOString().slice(0, 10);
+    // صفٌّ صفريُّ العملة لعدِّ البلاغِ (سقفٌ يوميّ) — ref فريدٌ يمنع التكرار
+    grant(userId, 0, 0, 'local', `local:${day}:${n}`);
+    bumpMissions(userId, 'games', 1);
+    let streak = 0;
+    try { const r = qStreak.get(userId); streak = r ? (Number(r.win_streak) || 0) : 0; } catch (e) {}
+    if (outcome === 'win') {
+      bumpMissions(userId, 'wins', 1);
+      if (reason.indexOf('checkmate') !== -1) bumpMissions(userId, 'checkmate', 1);
+      if (mode === 'nour') bumpMissions(userId, 'nour', 1);
+      streak = streak + 1;
+      setMissionsMetric(userId, 'streak', streak);
+    } else if (outcome === 'draw') {
+      bumpMissions(userId, 'draws', 1);
+      streak = 0;
+    } else {
+      streak = 0;
+    }
+    try { updStreak.run(streak, Number(userId)); } catch (e) {}
+    try { evaluateAchievements(userId); } catch (e) {}
+    return res.json({ awarded: true, ...snapshot(userId) });
+  } catch (e) {
+    console.error('[economy] /local-result', e.message);
+    res.status(500).json({ error: 'economy_error' });
+  }
 });
 
 /* ══ متجر: النافذة الحاليّة + الشراء ══ */

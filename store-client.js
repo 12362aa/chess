@@ -344,20 +344,31 @@
       this._byId = Object.create(null);
       data.items.forEach(function (it) { self._byId[it.id] = it; });
       var items = data.items.filter(function (it) { return !self._filter || it.type === self._filter; });
-      /* الفرزُ: عناصرُ الدورةِ الحاليّةِ أوّلًا (متاحةٌ للشراءِ الآن)، ثمّ الباقي
-         حسبَ النوعِ (TYPE_ORDER) فالندرةِ نزوليًّا (Mythic أعلى). */
+      /* الفرزُ داخلَ كلِّ قسمٍ: عناصرُ الدورةِ الحاليّةِ أوّلًا ثمّ الندرةِ نزوليًّا.
+         العرضُ صارَ أقسامًا بحسبِ النوعِ (بلاغ جوجو #6) بترويسةٍ ملوّنةٍ لكلِّ فئة. */
       var RANK = { mythic: 6, legendary: 5, seasonal: 4, epic: 3, rare: 2, common: 1 };
-      items = items.slice().sort(function (a, b) {
-        var aw = (a.inWindow !== false) ? 0 : 1, bw = (b.inWindow !== false) ? 0 : 1;
-        if (aw !== bw) return aw - bw;
-        var at = TYPE_ORDER.indexOf(a.type), bt = TYPE_ORDER.indexOf(b.type);
-        if (at !== bt) return at - bt;
-        return (RANK[b.rarity] || 0) - (RANK[a.rarity] || 0);
-      });
+      var groups = {};
+      items.forEach(function (it) { (groups[it.type] = groups[it.type] || []).push(it); });
+      var order = TYPE_ORDER.filter(function (t) { return groups[t] && groups[t].length; });
+      grid.classList.add('store-grid--sec');
       if (!items.length) {
+        grid.classList.remove('store-grid--sec');
         grid.innerHTML = '<p class="store-empty">' + esc(L('لا عناصرَ من هذا النوعِ في هذه النافذة.', 'No items of this kind in this window.')) + '</p>';
       } else {
-        grid.innerHTML = items.map(function (it) { return self._card(it, owned.indexOf(it.id) >= 0); }).join('');
+        grid.innerHTML = order.map(function (tp) {
+          var list = groups[tp].slice().sort(function (a, b) {
+            var aw = (a.inWindow !== false) ? 0 : 1, bw = (b.inWindow !== false) ? 0 : 1;
+            if (aw !== bw) return aw - bw;
+            return (RANK[b.rarity] || 0) - (RANK[a.rarity] || 0);
+          });
+          var cic = (window.amkhCos && amkhCos.catIcon) ? amkhCos.catIcon(tp) : '';
+          var tn = TYPE[tp] ? L(TYPE[tp].ar, TYPE[tp].en) : tp;
+          return '<section class="store-sec"><div class="store-sec__hd"><span class="store-sec__ic" aria-hidden="true">' + cic + '</span>'
+            + '<span class="store-sec__ttl">' + esc(tn) + '</span><span class="store-sec__sub">' + list.length + '</span></div>'
+            + '<div class="store-grid store-sec__grid">'
+            + list.map(function (it) { return self._card(it, owned.indexOf(it.id) >= 0); }).join('')
+            + '</div></section>';
+        }).join('');
       }
       grid.querySelectorAll('.store-card').forEach(function (c) {
         c.onclick = function (e) { if (e.target.closest('[data-buy],[data-equip]')) return; STORE.openDetail(c.getAttribute('data-id')); };

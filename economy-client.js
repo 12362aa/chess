@@ -75,6 +75,21 @@
         .then(function (res) { if (res) self.apply(res); }).catch(function () {});
     },
 
+    /* أبلغ الخادم بنتيجةِ مباراةٍ محليّة (نور/المحرّك) لتقديمِ المهامِّ فقط
+       (بلاغ جوجو #9). mode:'nour'|'engine'، outcome:'win'|'draw'|'loss'،
+       reason مثل 'checkmate'. لا عملةَ مباراةٍ هنا — سقفٌ يوميٌّ خادميّ. */
+    notifyLocalResult: function (mode, outcome, reason) {
+      var tok = this._token(); if (!tok) return;
+      if (mode !== 'nour' && mode !== 'engine') return;
+      var self = this;
+      fetch(this._api() + '/economy/local-result', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ mode: mode, outcome: outcome || 'loss', reason: reason || '' })
+      }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (res) { if (res) self.apply(res); }).catch(function () {});
+    },
+
     /* ══ العرض ══ */
     _fmt: function (n) {
       n = Number(n) || 0;
@@ -275,7 +290,7 @@
         + '<circle cx="50" cy="7" r="4" fill="#ffffff"/><circle cx="50" cy="7" r="6" fill="#fff" opacity="0.3"/><circle cx="90" cy="57" r="3.2" fill="' + t[2] + '"/><circle cx="13" cy="63" r="2.6" fill="' + t[0] + '"/></g>'
         + '<g><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="8s" repeatCount="indefinite"/><circle cx="50" cy="18" r="2" fill="' + t[2] + '"/><circle cx="82" cy="50" r="1.6" fill="#fff"/><circle cx="22" cy="40" r="1.4" fill="' + t[0] + '"/></g>'
         + '<circle cx="50" cy="50" r="10" fill="none" stroke="' + t[2] + '" stroke-width="1.2" opacity="0.5"><animate attributeName="opacity" values="0.25;0.7;0.25" dur="2.2s" repeatCount="indefinite"/></circle>'
-        + '<circle cx="50" cy="50" r="4" fill="' + t[2] + '" opacity="0.6"><animate attributeName="r" values="3;5;3" dur="2.2s" repeatCount="indefinite"/></circle>';
+        + '<circle cx="50" cy="50" r="2.4" fill="' + t[2] + '" opacity="0.5"><animate attributeName="r" values="1.6;3;1.6" dur="2.2s" repeatCount="indefinite"/></circle>';
     },
     // الزمرّد: مثمّنٌ مُوجَّهٌ + بريقٌ يجول على الحوافّ + جواهرُ تتلألأ على الزوايا
     frame_emerald: function (t, g) {
@@ -320,7 +335,7 @@
       var tongue = function (cx, cy, s, rot, dur) { return '<path d="M' + cx + ' ' + cy + ' q' + (-4 * s) + ' ' + (-8 * s) + ' 0 ' + (-16 * s) + ' q' + (4 * s) + ' ' + (8 * s) + ' 0 ' + (16 * s) + 'z" fill="url(#' + g + ')" transform="rotate(' + rot + ' ' + cx + ' ' + cy + ')"><animate attributeName="opacity" values="0.4;1;0.4" dur="' + dur + 's" repeatCount="indefinite"/></path>'; };
       var pts = [[50,5,0],[73,12,42],[88,27,80],[95,50,90],[88,73,120],[73,88,150],[50,95,180],[27,88,210],[12,73,240],[5,50,270],[12,27,300],[27,12,330]], ring = '';
       for (var i = 0; i < pts.length; i++) ring += tongue(pts[i][0], pts[i][1], (i % 2 ? 1.1 : 1.5), pts[i][2], (0.5 + (i % 3) * 0.16).toFixed(2));
-      return '<circle cx="50" cy="50" r="42" fill="' + t[1] + '" opacity="0.35"><animate attributeName="opacity" values="0.15;0.5;0.15" dur="1.2s" repeatCount="indefinite"/></circle>'
+      return '<circle cx="50" cy="50" r="40" fill="none" stroke="' + t[1] + '" stroke-width="3" opacity="0.5"><animate attributeName="opacity" values="0.25;0.7;0.25" dur="1.2s" repeatCount="indefinite"/></circle>'
         + '<circle cx="50" cy="50" r="42" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
         + '<g>' + ring + '</g>'
         + '<circle cx="50" cy="50" r="42" fill="none" stroke="' + t[2] + '" stroke-width="1.6" stroke-dasharray="6 10"><animate attributeName="stroke-dashoffset" from="0" to="32" dur="0.8s" repeatCount="indefinite"/></circle>';
@@ -328,7 +343,7 @@
     // الفراغ: دوّامةٌ سوداءُ + حلقتان بنفسجيّتان تنكمشان نحوَ المركزِ + جسيماتٌ تُبتَلَع
     frame_void: function (t, g) {
       return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="6"/>'
-        + '<circle cx="50" cy="50" r="30" fill="' + t[1] + '"/>'
+        + '<circle cx="50" cy="50" r="30" fill="none" stroke="' + t[1] + '" stroke-width="2.2" opacity="0.55"/>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="2" stroke-dasharray="8 8"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/></circle>'
         + '<circle cx="50" cy="50" r="26" fill="none" stroke="' + t[2] + '" stroke-width="1.4"><animate attributeName="r" values="45;10" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0" dur="2.4s" repeatCount="indefinite"/></circle>'
         + '<circle cx="50" cy="50" r="26" fill="none" stroke="' + t[0] + '" stroke-width="1.4"><animate attributeName="r" values="45;10" dur="2.4s" begin="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></circle>'
@@ -348,7 +363,7 @@
       return '<circle cx="50" cy="50" r="45" fill="none" stroke="url(#' + g + ')" stroke-width="7"/>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="' + t[0] + '" stroke-width="6" opacity="0.5"><animate attributeName="stroke" values="' + t[0] + ';' + t[1] + ';' + t[2] + ';#ffe14a;' + t[0] + '" dur="3s" repeatCount="indefinite"/></circle>'
         + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/>'
-        + '<path d="M50 50 L50 3 L60 6 Z" fill="' + t[1] + '" opacity="0.7"/><path d="M50 50 L94 40 L92 52 Z" fill="' + t[2] + '" opacity="0.7"/><path d="M50 50 L58 96 L46 94 Z" fill="#ffe14a" opacity="0.7"/><path d="M50 50 L8 60 L10 47 Z" fill="' + t[0] + '" opacity="0.7"/></g>'
+        + '<path d="M50 50 L50 3 L60 6 Z" fill="' + t[1] + '" opacity="0.32"/><path d="M50 50 L94 40 L92 52 Z" fill="' + t[2] + '" opacity="0.32"/><path d="M50 50 L58 96 L46 94 Z" fill="#ffe14a" opacity="0.32"/><path d="M50 50 L8 60 L10 47 Z" fill="' + t[0] + '" opacity="0.32"/></g>'
         + '<circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 300" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2s" repeatCount="indefinite"/></circle>';
     },
     // الملائكيّ (السيراف): طوقٌ ذهبيٌّ + زوجا أجنحةٍ جانبيّةٌ + هالةٌ + ريشٌ متساقط
@@ -362,7 +377,7 @@
     // السبج: طوقٌ حجريٌّ داكنٌ مشظّى + بريقٌ زجاجيٌّ يجولُ على الحوافّ + شظايا لامعة
     frame_obsidian: function (t, g) {
       var oct = '50,5 74,14 92,38 95,62 78,86 50,95 22,86 5,62 8,38 26,14';
-      return '<polygon points="' + oct + '" fill="' + t[1] + '" stroke="url(#' + g + ')" stroke-width="4" stroke-linejoin="round"/>'
+      return '<polygon points="' + oct + '" fill="none" stroke="url(#' + g + ')" stroke-width="5" stroke-linejoin="round"/>'
         + '<polygon points="' + oct + '" fill="none" stroke="' + t[2] + '" stroke-width="1" stroke-linejoin="round" opacity="0.5"/>'
         + '<polygon points="' + oct + '" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="12 220" stroke-linecap="round" opacity="0.85"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.4s" repeatCount="indefinite"/></polygon>'
         + '<g fill="' + t[2] + '"><path d="M50 14 l3 5 -3 5 -3 -5z"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" repeatCount="indefinite"/></path><path d="M84 50 l4 4 -4 4 -4 -4z"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></path><path d="M16 50 l4 4 -4 4 -4 -4z"><animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/></path></g>';
@@ -875,22 +890,25 @@
     return '<span class="cos-bg cos-bg--' + esc(cos.background) + '" style="background-image:' + g + '"></span>';
   }
 
-  /* أجزاء تُدسّ داخل صندوق أفاتار (خلفية أسفل + إطار أعلى). */
-  function avatarLayers(cos) { return bgHTML(cos) + frameHTML(cos); }
+  /* أجزاء تُدسّ داخل صندوق أفاتار: الإطارُ فقط (طوقٌ حولَ الصورة).
+     ملاحظةٌ مهمّة (طلبُ جوجو): الخلفيّةُ لا تُرسمُ أبدًا خلفَ الصورةِ نفسِها —
+     فهي تُشوّشُ الصورةَ ويراها الآخرون مشوَّشةً. الخلفيّةُ تظهرُ لافتةً عريضةً
+     في مناطقِ البطاقاتِ عبرَ paintBanner فقط، لا حولَ الأفاتار. */
+  function avatarLayers(cos) { return frameHTML(cos); }
 
-  /* رسم على عنصر DOM قائم (updatePlayerImages/الرئيسية): يزيل القديم ثم يضيف. */
+  /* رسم على عنصر DOM قائم (updatePlayerImages/الرئيسية): يزيل القديم ثم يضيف.
+     الإطارُ فقط يُدسُّ داخلَ الأفاتار؛ الخلفيّةُ لافتةٌ منفصلةٌ (paintBanner). */
   function paint(el, cos) {
     if (!el) return;
+    /* نزيلُ أيّ خلفيّةٍ قديمةٍ كانت تُرسَمُ خلفَ الصورةِ في بناءاتٍ سابقة. */
     var old = el.querySelectorAll(':scope > .cos-frame, :scope > .cos-bg');
     for (var i = 0; i < old.length; i++) old[i].remove();
-    if (cos && (cos.frame || cos.background)) {
+    if (cos && cos.frame) {
       el.classList.add('cos-host');
-      var html = avatarLayers(cos);
+      var html = frameHTML(cos);
       if (html) {
         var tmp = document.createElement('div');
         tmp.innerHTML = html;
-        // الخلفية أوّل عنصر (خلف)، الإطار آخر عنصر (أمام)
-        var bg = tmp.querySelector('.cos-bg'); if (bg) el.insertBefore(bg, el.firstChild);
         var fr = tmp.querySelector('.cos-frame'); if (fr) el.appendChild(fr);
       }
     }
@@ -1019,6 +1037,50 @@
     layer.appendChild(_mk('cosfx-vortex', { animationDuration: '1.8s' },
       '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="18" fill="#050310"/><circle cx="50" cy="50" r="27" fill="none" stroke="' + color + '" stroke-width="4" stroke-dasharray="12 9" stroke-linecap="round"/><circle cx="50" cy="50" r="34" fill="none" stroke="' + color + '" stroke-width="2" stroke-dasharray="4 12" opacity="0.6"/></svg>'));
   }
+  /* ══ مخلوقٌ ملحميٌّ مرسومٌ يعبرُ الشاشة (بلاغ جوجو #8) ══
+     svg = جسمُ الرسم، rise=true للعنقاءِ الصاعدةِ رأسيًّا. معرّفُ التدرّجِ
+     فريدٌ لكلِّ نسخة. glow = لونُ الهالةِ خلفَ المخلوق. */
+  function _creature(layer, svg, opt) {
+    opt = opt || {};
+    var el = _mk('cosfx-creature' + (opt.rise ? ' cosfx-creature--rise' : ''),
+      { animationDuration: (opt.dur || 2.6) + 's' }, svg);
+    el.style.filter = 'drop-shadow(0 0 22px ' + (opt.glow || 'rgba(255,90,20,.85)') + ')';
+    layer.appendChild(el);
+  }
+  /* تنّينٌ بجناحٍ خفّاقٍ وفكٍّ مفتوحٍ وذيلٍ مسنّن — تدرّجٌ نارِيّ. */
+  function _dragonSVG() {
+    var g = 'dg' + (++_uid);
+    return '<svg viewBox="0 0 100 100">'
+      + '<defs><linearGradient id="' + g + '" x1="0" y1="1" x2="1" y2="0">'
+      + '<stop offset="0" stop-color="#7a1500"/><stop offset=".45" stop-color="#ff5a1e"/><stop offset="1" stop-color="#ffd27a"/>'
+      + '</linearGradient></defs>'
+      + '<g fill="url(#' + g + ')">'
+      + '<path d="M14 78 C24 74 26 66 34 62 C44 57 52 60 60 54 C68 48 72 42 80 38 C74 46 70 52 62 58 C54 64 44 64 36 68 C28 72 24 76 14 78 Z"/>'
+      + '<path d="M76 40 C82 36 84 30 90 26 C88 32 90 34 94 34 C90 36 90 40 86 42 C90 42 92 44 90 46 L83 45 C80 45 77 44 76 40 Z"/>'
+      + '<path d="M88 28 L92 20 L90 29 Z"/>'
+      + '<path d="M14 78 L5 85 L12 74 L11 83 Z"/>'
+      + '</g>'
+      + '<g class="cfx-wing"><path d="M50 54 C40 40 34 28 40 14 C44 26 52 30 58 34 C52 30 50 36 56 40 C50 40 48 46 54 50 C50 50 50 54 50 54 Z" fill="url(#' + g + ')" opacity=".94"/></g>'
+      + '<circle cx="86" cy="37" r="1.7" fill="#fff2b0"/>'
+      + '</svg>';
+  }
+  /* عنقاءٌ بجناحَين مفرودَين وذيلٍ ريشيٍّ — تصعدُ ملتهبة. */
+  function _phoenixSVG() {
+    var g = 'ph' + (++_uid);
+    return '<svg viewBox="0 0 100 100">'
+      + '<defs><linearGradient id="' + g + '" x1="0" y1="1" x2="0" y2="0">'
+      + '<stop offset="0" stop-color="#ff3d00"/><stop offset=".5" stop-color="#ff8a3a"/><stop offset="1" stop-color="#ffe08a"/>'
+      + '</linearGradient></defs>'
+      + '<g fill="url(#' + g + ')">'
+      + '<path d="M50 30 C46 32 45 40 47 52 C49 62 50 70 50 80 C50 70 51 62 53 52 C55 40 54 32 50 30 Z"/>'
+      + '<path d="M50 84 C45 90 42 95 46 99 C49 93 49 89 50 85 C51 89 51 93 54 99 C58 95 55 90 50 84 Z"/>'
+      + '<circle cx="50" cy="26" r="5.4"/>'
+      + '<path d="M55 24 L61 22 L55 27 Z"/>'
+      + '</g>'
+      + '<g class="cfx-wing"><path d="M48 42 C34 30 18 30 6 40 C20 38 24 45 33 49 C22 49 18 56 29 60 C38 55 44 50 48 44 Z" fill="url(#' + g + ')"/></g>'
+      + '<g class="cfx-wing"><path d="M52 42 C66 30 82 30 94 40 C80 38 76 45 67 49 C78 49 82 56 71 60 C62 55 56 50 52 44 Z" fill="url(#' + g + ')"/></g>'
+      + '</svg>';
+  }
   /* FX_DISPATCH_PLACEHOLDER */
   function _playOne(layer, id) {
     switch (id) {
@@ -1040,11 +1102,11 @@
       case 'fx_glitch': _glitch(layer); break;
       case 'fx_frostbreak': _crack(layer, '#bfefff'); _flash(layer, 'radial-gradient(circle at 50% 45%,rgba(180,240,255,.4),transparent 55%)'); break;
       /* ═══ Mythic — احتفالاتٌ ومؤثّراتٌ مِلءَ الشاشةِ الأفخم ═══ */
-      case 'cel_dragon': _flash(layer, 'radial-gradient(circle at 50% 100%,rgba(255,90,30,.6),rgba(122,21,0,.22),transparent 72%)'); _rise(layer, 36, 'cosfx-flame', function (i) { return i % 2 ? '#ff5a1e' : '#ffb347'; }); _burst(layer, [[50, 72, 0], [30, 82, 0.3], [70, 80, 0.6]], 14, ['#ff5a1e', '#ffd27a', '#ff8a1e']); break;
+      case 'cel_dragon': _flash(layer, 'radial-gradient(circle at 50% 100%,rgba(255,90,30,.6),rgba(122,21,0,.22),transparent 72%)'); _creature(layer, _dragonSVG(), { dur: 2.7, glow: 'rgba(255,90,20,.9)' }); _rise(layer, 30, 'cosfx-flame', function (i) { return i % 2 ? '#ff5a1e' : '#ffb347'; }); _burst(layer, [[50, 72, 0.9], [30, 82, 1.2], [70, 80, 1.4]], 12, ['#ff5a1e', '#ffd27a', '#ff8a1e']); break;
       case 'cel_galaxy': _burst(layer, [[50, 40, 0], [28, 32, 0.3], [72, 34, 0.6], [40, 56, 0.9], [62, 52, 1.1]], 20, ['#b48bff', '#8fd4ff', '#ffffff', '#ff6ad5']); _shock(layer, ['#b48bff', '#8fd4ff', '#ff6ad5']); _flash(layer, 'radial-gradient(circle at 50% 44%,rgba(140,120,255,.42),transparent 62%)'); _meteors(layer, 12); break;
-      case 'cel_phoenix': _rise(layer, 32, 'cosfx-flame', function () { return ['#ff8a3a', '#ffd27a', '#ff3d00'][Math.floor(Math.random() * 3)]; }); _flash(layer, 'radial-gradient(circle at 50% 72%,rgba(255,138,58,.5),transparent 66%)'); _burst(layer, [[50, 52, 0.2]], 26, ['#ffd27a', '#ff5a1e', '#ffffff']); break;
+      case 'cel_phoenix': _creature(layer, _phoenixSVG(), { rise: true, dur: 2.7, glow: 'rgba(255,138,58,.9)' }); _rise(layer, 28, 'cosfx-flame', function () { return ['#ff8a3a', '#ffd27a', '#ff3d00'][Math.floor(Math.random() * 3)]; }); _flash(layer, 'radial-gradient(circle at 50% 72%,rgba(255,138,58,.5),transparent 66%)'); _burst(layer, [[50, 52, 1.1]], 22, ['#ffd27a', '#ff5a1e', '#ffffff']); break;
       case 'cel_goldstorm': _fall(layer, 60, 'cosfx-coin', null, false); _fall(layer, 30, 'cosfx-goldrain', null, false); _flash(layer, 'radial-gradient(circle at 50% 28%,rgba(255,210,74,.42),transparent 62%)'); break;
-      case 'fx_dragonfire': _flash(layer, 'radial-gradient(circle at 50% 60%,rgba(255,60,0,.62),rgba(122,21,0,.26),transparent 70%)'); _rise(layer, 30, 'cosfx-flame', function (i) { return i % 2 ? '#ff3d00' : '#ff8a1e'; }); _crack(layer, '#ff7a2f'); break;
+      case 'fx_dragonfire': _flash(layer, 'radial-gradient(circle at 50% 60%,rgba(255,60,0,.62),rgba(122,21,0,.26),transparent 70%)'); _creature(layer, _dragonSVG(), { dur: 2.4, glow: 'rgba(255,60,0,.92)' }); _rise(layer, 26, 'cosfx-flame', function (i) { return i % 2 ? '#ff3d00' : '#ff8a1e'; }); _crack(layer, '#ff7a2f'); break;
       case 'fx_blackhole': _vortex(layer, '#c48bff'); _implode(layer, 34, ['#b06bff', '#e0c8ff', '#7a4fd0']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(10,6,24,.72),rgba(122,60,180,.22),transparent 60%)'); break;
       case 'fx_thunderstrike': _flash(layer, 'linear-gradient(180deg,rgba(220,235,255,.72),rgba(120,140,255,.18))'); _burst(layer, [[50, 18, 0], [50, 18, 0.35], [50, 18, 0.7]], 16, ['#ffffff', '#8fd4ff', '#ffe14a']); _shock(layer, ['#ffffff', '#8fd4ff']); break;
       case 'fx_prismburst': _burst(layer, [[50, 46, 0]], 40, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a', '#ffffff']); _beams(layer, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a']); _shock(layer, ['#8fd4ff', '#ff6ad5', '#5affc0']); _flash(layer, 'radial-gradient(circle at 50% 46%,rgba(255,255,255,.55),transparent 56%)'); break;
@@ -1069,21 +1131,33 @@
     return true;
   }
   var _fxBusy = false;
-  function celebrate(cos) {
+  /* مُشغِّلٌ عامٌّ لطبقةِ المؤثّراتِ مِلءَ الشاشة. dur = عمرُ الطبقةِ بالمللي. */
+  function _playFx(ids, dur) {
     try {
       if (_fxBusy) return;
-      cos = cos || self();
-      if (!cos) return;
-      var ids = []; if (cos.celebration) ids.push(cos.celebration); if (cos.mate_fx) ids.push(cos.mate_fx);
-      if (!ids.length) return;
+      if (!ids || !ids.length) return;
       if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       _fxBusy = true;
       var ov = document.createElement('div'); ov.className = 'cos-fx-ov';
       document.body.appendChild(ov);
-      var any = false; ids.forEach(function (id) { if (_playOne(ov, id)) any = true; });
+      var any = false; ids.forEach(function (id) { if (id && _playOne(ov, id)) any = true; });
       if (!any) { ov.remove(); _fxBusy = false; return; }
-      setTimeout(function () { try { ov.remove(); } catch (e) {} _fxBusy = false; }, 4200);
+      setTimeout(function () { try { ov.remove(); } catch (e) {} _fxBusy = false; }, dur || 4200);
     } catch (e) { _fxBusy = false; }
+  }
+  /* احتفالُ الفوزِ (شاشةُ النهاية): مؤثّرُ الاحتفالِ المُجهَّزُ فقط. */
+  function celebrate(cos) {
+    cos = cos || self();
+    if (!cos || !cos.celebration) return;
+    _playFx([cos.celebration]);
+  }
+  /* مؤثّرُ الكشِ ماتِ (لحظةَ إنهاءِ المباراةِ بكشِ مات): مؤثّرُ المات المُجهَّزُ
+     فقط — يُطلَقُ فورَ المات لا على شاشةِ النهاية (بلاغ جوجو: التأثيرُ لم يعمل).
+     عمرٌ أقصرُ (2.6ث) كي ينتهيَ قبلَ احتفالِ الفوزِ فلا يتصادما على القفل. */
+  function mateFx(cos) {
+    cos = cos || self();
+    if (!cos || !cos.mate_fx) return;
+    _playFx([cos.mate_fx], 2600);
   }
 
   /* ══ المعاينةُ الموحّدةُ للمتجرِ/المخزونِ (thumb) ══
@@ -1123,6 +1197,56 @@
       + '<circle cx="20" cy="20" r="14" fill="none" stroke="#fff2c0" stroke-width="1" opacity=".55"/>'
       + '<text x="20" y="20.5" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="13" letter-spacing="-.6" fill="#7a4e08">AK</text>'
       + '</svg>';
+  }
+
+  /* ══ أيقوناتُ فئاتِ العناصرِ الملوّنة (المتجر/المخزون — بلاغ جوجو #2/#6) ══
+     أيقونةٌ فاخرةٌ ملوّنةٌ لكلِّ نوع (إطار/خلفيّة/شارة/احتفال/مؤثّر مات) بمعرّفاتِ
+     تدرّجٍ فريدةٍ لكلِّ نسخة، فتتكرّرُ بلا تصادمِ id. بلا إيموجي — SVG خالص. */
+  function catIcon(type) {
+    var u = ++_uid;
+    function G(id, stops, a) {
+      a = a || {};
+      var attrs = ' x1="' + (a.x1 || 0) + '" y1="' + (a.y1 || 0) + '" x2="' + (a.x2 || 1) + '" y2="' + (a.y2 || 1) + '"';
+      return '<linearGradient id="' + id + '"' + attrs + '>' + stops + '</linearGradient>';
+    }
+    var s = '<svg class="cat-ic" viewBox="0 0 24 24" aria-hidden="true">';
+    switch (type) {
+      case 'frame':
+        s += '<defs>' + G('ci' + u, '<stop offset="0" stop-color="#ffe9a8"/><stop offset=".5" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/>') + '</defs>'
+          + '<circle cx="12" cy="12" r="9" fill="none" stroke="url(#ci' + u + ')" stroke-width="3.2"/>'
+          + '<circle cx="12" cy="12" r="9" fill="none" stroke="#fff6cf" stroke-width=".7" opacity=".7"/>'
+          + '<circle cx="12" cy="3.4" r="1.9" fill="#fff6cf"/><circle cx="12" cy="20.6" r="1.5" fill="#f5c451"/>'
+          + '<circle cx="3.4" cy="12" r="1.5" fill="#f5c451"/><circle cx="20.6" cy="12" r="1.5" fill="#f5c451"/>';
+        break;
+      case 'background':
+        s += '<defs>' + G('ci' + u, '<stop offset="0" stop-color="#8b5cf6"/><stop offset=".5" stop-color="#6366f1"/><stop offset="1" stop-color="#22d3ee"/>', { x2: 0, y2: 1 }) + '</defs>'
+          + '<rect x="3" y="4.5" width="18" height="15" rx="3" fill="url(#ci' + u + ')" stroke="#3730a3" stroke-width="1"/>'
+          + '<circle cx="8" cy="9" r="2.2" fill="#fff6cf"/>'
+          + '<path d="M3.4 17 L9 12 L13 15 L16.5 11.5 L20.6 16 V17 Z" fill="#1e1b4b" opacity=".55"/>'
+          + '<path d="M3.4 19.5 H20.6" stroke="#c7d2fe" stroke-width=".7" opacity=".5"/>';
+        break;
+      case 'badge':
+        s += '<defs>' + G('ci' + u, '<stop offset="0" stop-color="#5eead4"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/>') + '</defs>'
+          + '<path d="M12 2.4 L14.9 8.3 L21.4 9.2 L16.7 13.8 L17.8 20.3 L12 17.2 L6.2 20.3 L7.3 13.8 L2.6 9.2 L9.1 8.3 Z" fill="url(#ci' + u + ')" stroke="#1e3a8a" stroke-width=".8" stroke-linejoin="round"/>'
+          + '<path d="M12 6.2 L13.6 9.6 L17.2 10.1 L14.6 12.7 L15.2 16.3 L12 14.6 Z" fill="#eaf4ff" opacity=".55"/>';
+        break;
+      case 'celebration':
+        s += '<defs>' + G('ci' + u, '<stop offset="0" stop-color="#fde047"/><stop offset="1" stop-color="#f97316"/>') + '</defs>'
+          + '<path d="M4 20 L9.5 8.5 L15.5 14.5 Z" fill="url(#ci' + u + ')" stroke="#b45309" stroke-width=".8" stroke-linejoin="round"/>'
+          + '<rect x="15" y="3.5" width="2.4" height="2.4" rx=".5" fill="#ec4899" transform="rotate(20 16.2 4.7)"/>'
+          + '<circle cx="19.5" cy="8" r="1.5" fill="#22d3ee"/><circle cx="12.5" cy="4.5" r="1.3" fill="#a3e635"/>'
+          + '<path d="M18.4 12.6 l.5 1.3 1.3 .5 -1.3 .5 -.5 1.3 -.5-1.3 -1.3-.5 1.3-.5 Z" fill="#fff6cf"/>';
+        break;
+      case 'mate_fx':
+        s += '<defs>' + G('ci' + u, '<stop offset="0" stop-color="#c4b5fd"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#4c1d95"/>', { x2: 0, y2: 1 }) + '</defs>'
+          + '<circle cx="12" cy="12" r="9" fill="url(#ci' + u + ')" stroke="#2e1065" stroke-width="1"/>'
+          + '<circle cx="12" cy="12" r="3.2" fill="#0b0616"/>'
+          + '<path d="M13 4 L11 11 L15 11 L10 20 L12 13 L8 13 Z" fill="#fde047" stroke="#b45309" stroke-width=".5" stroke-linejoin="round"/>';
+        break;
+      default:
+        s += '<circle cx="12" cy="12" r="8" fill="#64748b"/>';
+    }
+    return s + '</svg>';
   }
 
   /* ══ احتفالُ الترقّي ══
@@ -1168,8 +1292,10 @@
     paintBanner: paintBanner,
     self: self,
     celebrate: celebrate,
+    mateFx: mateFx,
     thumb: thumb,
     coin: coin,
+    catIcon: catIcon,
     levelUp: levelUp,
     FRAME: FRAME, BADGE: BADGE, BG: BG,
   };

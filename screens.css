@@ -5722,8 +5722,11 @@ html.kb-open .ch-input{
 .lb-self{
   position: sticky; bottom: 0; margin-top: 6px;
   display: flex; align-items: center; gap: 11px; padding: 12px;
-  background: linear-gradient(180deg, rgba(232,196,121,.14), #0e1526);
+  /* خلفيّةٌ معتمةٌ تمامًا: الشفّافةُ القديمة (.14 ذهبيّ) كانت تُظهِرُ رقمَ
+     تقييمِ الصفِّ خلفَها فيبدو رقمانِ متراكبانِ (بلاغ جوجو #5). */
+  background: linear-gradient(180deg, #17203a, #0e1526);
   border: 1px solid var(--lb-gold); border-radius: 14px;
+  box-shadow: 0 -10px 18px rgba(0,0,0,.5);
 }
 .lb-self__lbl{ flex: 0 0 auto; font-size: .72rem; font-weight: 800; color: var(--lb-gold); }
 .lb-self__mid{ flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
@@ -7926,6 +7929,23 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
 @media (min-width:520px){ .store-grid{ grid-template-columns:repeat(3,1fr); } }
 .store-empty{ grid-column:1/-1; text-align:center; color:rgba(255,255,255,.6); padding:40px 0; font-size:14px; }
+/* أقسامُ المتجرِ حسبَ النوعِ (بلاغ جوجو #6): الحاويةُ تصيرُ كتلةً، وكلُّ قسمٍ
+   شبكتُه الخاصّة بترويسةٍ ملوّنة. */
+.store-grid--sec{ display:block; }
+.store-sec{ margin:0 0 22px; }
+.store-sec:first-child{ margin-top:2px; }
+.store-sec__hd{ position:relative; display:flex; align-items:center; gap:9px; margin:0 0 12px; padding:8px 12px;
+  background:linear-gradient(90deg,rgba(124,92,255,.18),rgba(124,92,255,.02)); border-radius:12px;
+  border:1px solid rgba(255,255,255,.08); }
+.store-sec__hd::before{ content:''; position:absolute; inset-inline-start:0; top:0; bottom:0; width:4px;
+  border-radius:12px 0 0 12px; background:linear-gradient(180deg,#c3aeff,#7c5cff); }
+.store-sec__ic{ display:inline-flex; width:26px; height:26px; flex:0 0 auto; padding-inline-start:4px; }
+.store-sec__ic .cat-ic{ width:26px; height:26px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+.store-sec__ttl{ font-size:15px; font-weight:900; color:#fff; letter-spacing:.02em; }
+.store-sec__sub{ font-size:11.5px; font-weight:700; color:rgba(255,255,255,.5); font-variant-numeric:tabular-nums; }
+.rw-sec__ic{ display:inline-flex; width:22px; height:22px; flex:0 0 auto; }
+.rw-sec__ic .cat-ic{ width:22px; height:22px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+.cat-ic{ display:block; }
 
 .store-card{ --rc:#9fb0c0; position:relative; border-radius:18px; padding:14px 12px 12px; overflow:hidden;
   background:
@@ -8530,6 +8550,27 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .cosfx-vortex svg{ width:100%; height:100%; display:block; filter:drop-shadow(0 0 26px rgba(140,90,220,.7)); }
 @keyframes cosfxVortex{ 0%{ transform:rotate(0deg) scale(.2); opacity:0; } 16%{ opacity:1; }
   80%{ opacity:1; } 100%{ transform:rotate(520deg) scale(1.15); opacity:0; } }
+/* ═══ مخلوقاتٌ ملحميّةٌ مرسومة (تنّين/عنقاء) تعبرُ الشاشةَ — بلاغ جوجو #8 ═══
+   SVG كبيرٌ يطيرُ عبرَ الشاشةِ بقوسٍ وخفقِ جناحَين وهالةٍ متوهّجة. */
+.cosfx-creature{ position:absolute; top:50%; left:50%; width:74vh; height:74vh; margin:-37vh 0 0 -37vh;
+  will-change:transform,opacity; animation:cosfxCreature cubic-bezier(.4,.05,.35,1) forwards; }
+.cosfx-creature svg{ width:100%; height:100%; display:block; }
+.cosfx-creature .cfx-wing{ transform-box:fill-box; transform-origin:center; animation:cosfxWing .34s ease-in-out infinite; }
+@keyframes cosfxWing{ 0%,100%{ transform:rotate(0deg) scaleY(1); } 50%{ transform:rotate(-4deg) scaleY(.82); } }
+@keyframes cosfxCreature{
+  0%{ transform:translate(-88vw,34vh) rotate(-14deg) scale(.5); opacity:0; }
+  14%{ opacity:1; }
+  50%{ transform:translate(0,-6vh) rotate(2deg) scale(1); opacity:1; }
+  84%{ opacity:1; }
+  100%{ transform:translate(88vw,-30vh) rotate(12deg) scale(.72); opacity:0; } }
+/* عنقاءٌ صاعدةٌ من الأسفل (بدلَ العبور الأفقيّ) */
+.cosfx-creature--rise{ animation-name:cosfxCreatureRise; animation-timing-function:cubic-bezier(.2,.7,.3,1); }
+@keyframes cosfxCreatureRise{
+  0%{ transform:translate(0,54vh) scale(.42) rotate(0deg); opacity:0; }
+  18%{ opacity:1; }
+  60%{ transform:translate(0,-2vh) scale(1.02) rotate(0deg); opacity:1; }
+  84%{ opacity:1; }
+  100%{ transform:translate(0,-14vh) scale(1.1) rotate(0deg); opacity:0; } }
 @media (prefers-reduced-motion:reduce){ .cos-fx-ov{ display:none; } }
 
 /* ══ احتفالُ الترقّي (بطاقةٌ مركزيّةٌ فوقَ طبقةِ المؤثّرات) ══ */
