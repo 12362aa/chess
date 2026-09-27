@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260927-b62">
+<link rel="stylesheet" href="screens.css?v=20260927-b63">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -7143,6 +7143,8 @@ const Home={
       av.style.backgroundImage=`url("${img||DEFAULT_AVATAR}")`;
       try{ if(window.amkhCos) window.amkhCos.paint(av, cos); }catch(e){}
     }
+    /* لافتةُ الخلفيّةِ العريضةُ خلفَ هويّةِ اللاعبِ في الرئيسيّة (بلاغُ جوجو ٢). */
+    try{ if(window.amkhCos){ const card=document.querySelector('#s-menu .home-id'); if(card) window.amkhCos.paintBanner(card, cos); } }catch(e){}
   },
   async _progress(){
     const fill=document.getElementById('home-hero-fill');
@@ -7831,7 +7833,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 62;
+const APP_VERSION_CODE = 63;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -16015,6 +16017,17 @@ function loadSettingsProfile(){
     settingsImg.style.backgroundImage='';
     if(fallback)fallback.style.display='';
   }
+  /* التجميلُ على بطاقةِ الملفِّ: إطارٌ/هالةٌ حولَ الأفاتار + شارةٌ بجانبِ الاسمِ +
+     لافتةُ الخلفيّةِ العريضةِ خلفَ البطاقة (بلاغُ جوجو ٢). */
+  try{
+    const cos=(window.amkhCos&&window.amkhCos.self&&window.amkhCos.self())||null;
+    if(window.amkhCos){
+      if(settingsImg) window.amkhCos.paint(settingsImg, cos);
+      if(display) window.amkhCos.paintName(display, cos);
+      const card=document.querySelector('.settings-profile-card');
+      if(card) window.amkhCos.paintBanner(card, cos);
+    }
+  }catch(e){}
 }
 
 window.addEventListener('load',async ()=>{
@@ -16417,13 +16430,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260927-b62"></script>
+  <script src="economy-client.js?v=20260927-b63"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260927-b62"></script>
+  <script src="store-client.js?v=20260927-b63"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20260927-b62"></script>
+  <script src="rewards-client.js?v=20260927-b63"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

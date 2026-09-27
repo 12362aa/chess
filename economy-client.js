@@ -533,6 +533,237 @@
                     '<circle cx="50" cy="50" r="15" fill="#fff3c0" opacity="0.85"><animate attributeName="r" values="12;17;12" dur="2.6s" repeatCount="indefinite"/></circle>'],
   };
 
+  /* ═══════════════════════════════════════════════════════════════════
+     شاراتٌ فاخرةٌ مرسومةٌ (مصدرُ الحقيقةِ الوحيد) — لوحةُ ألوانٍ [رئيسيّ،
+     غامق، فاتح] + دوالُّ رسمٍ بطبقاتٍ وتدرّجٍ وتوهّجٍ وحركةٍ حقيقيّة، بشكلٍ
+     يطابقُ الاسمَ فعلًا (ألماسٌ مُوجَّهٌ، فارسُ شطرنجٍ، تنّينٌ بقرنَين…).
+     ترفعُ الشاراتِ لمستوى FRAME_SPECIAL نفسِه في المتجرِ والمخزونِ والأفاتار. */
+  var BADGE_ART = {
+    badge_star:['#ffd54a','#c8891a','#fff2b0'], badge_crown:['#f4c542','#b8801e','#fff0b8'],
+    badge_bolt:['#38e0ff','#0a7fb0','#d6fbff'], badge_shield:['#6fb3ff','#2b5fb0','#d6e8ff'],
+    badge_flame:['#ff7a2f','#c02a00','#ffe08a'], badge_diamond:['#7fe9ff','#1f8fc8','#eaffff'],
+    badge_skull:['#d7dbe6','#8a90a2','#ffffff'], badge_moon:['#cfd6e6','#7f8aa8','#ffffff'],
+    badge_gem:['#b06bff','#5a1fb0','#e8d0ff'], badge_heart:['#ff5a7a','#b01f45','#ffd0dc'],
+    badge_dragon:['#ff6a2f','#8a1500','#ffd08a'], badge_phoenix:['#ff8a3a','#c83a00','#ffe08a'],
+    badge_infinity:['#8fd4ff','#2f7fd0','#e0f4ff'], badge_trophy:['#ffd54a','#b8801e','#fff2b0'],
+    badge_lotus:['#ff7ab0','#c02a70','#ffd6e6'], badge_eye:['#b06bff','#4a1a8a','#e8d0ff'],
+    badge_anchor:['#7fd0e8','#2f7f9a','#d6f4ff'], badge_leaf:['#6fcf5a','#2a7a2a','#c8f0b0'],
+    badge_sword:['#d8e2f0','#8a94a8','#ffffff'], badge_rook:['#e2c79a','#9a7a4a','#fff0d0'],
+    badge_knight:['#cfd9ea','#7a8498','#ffffff'], badge_rune:['#c07aff','#4a1a8a','#eeccff'],
+    badge_wing:['#cfe4ff','#7f9ac0','#ffffff'], badge_sun:['#ffc63a','#d8801a','#fff2b0'],
+  };
+  var BADGE_SPECIAL = {
+    // نجمةٌ متلألئةٌ بطبقتَينِ وبريقٍ نابض
+    badge_star: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M50 8 L61 38 93 39 68 59 77 91 50 73 23 91 32 59 7 39 39 38 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2" stroke-linejoin="round"><animateTransform attributeName="transform" type="rotate" values="-4 50 50;4 50 50;-4 50 50" dur="5s" repeatCount="indefinite"/></path>'
+        + '<path d="M50 22 L56 40 74 41 59 52 65 72 50 60 35 72 41 52 26 41 44 40 Z" fill="' + t[2] + '" opacity="0.5"/>'
+        + '<path d="M40 30 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6Z" fill="#fff"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/></path></g>';
+    },
+    // تاجٌ مرصّعٌ بأحجارٍ ملوّنةٍ وطوقٍ ذهبيّ
+    badge_crown: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M12 78 L18 34 L34 54 L50 22 L66 54 L82 34 L88 78 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2" stroke-linejoin="round"/>'
+        + '<rect x="12" y="76" width="76" height="13" rx="3.5" fill="' + t[1] + '"/>'
+        + '<rect x="12" y="76" width="76" height="4" rx="2" fill="' + t[2] + '" opacity="0.7"/>'
+        + '<circle cx="18" cy="32" r="5" fill="' + t[2] + '"/><circle cx="50" cy="20" r="6" fill="#ff5a7a"/><circle cx="82" cy="32" r="5" fill="' + t[2] + '"/>'
+        + '<circle cx="34" cy="70" r="4" fill="#57e8ff"/><circle cx="50" cy="70" r="4.6" fill="#ff5a7a"/><circle cx="66" cy="70" r="4" fill="#5aff9a"/>'
+        + '<path d="M20 46 L34 60 50 40 66 60 80 46" fill="none" stroke="#fff" stroke-width="1.4" opacity="0.4"><animate attributeName="opacity" values="0.15;0.6;0.15" dur="2.6s" repeatCount="indefinite"/></path></g>';
+    },
+    // صاعقةٌ كهربيّةٌ ترتجفُ ببريقٍ داخليّ
+    badge_bolt: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M56 6 L26 52 45 52 40 94 74 40 53 40 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2" stroke-linejoin="round"><animate attributeName="opacity" values="1;0.5;1;0.85;1" dur="1.2s" repeatCount="indefinite"/></path>'
+        + '<path d="M54 16 L36 50 47 50 44 78" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/></g>';
+    },
+    // درعٌ بشعارِ صليبٍ + نبضةُ طاقةٍ حولَ القلب
+    badge_shield: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M50 8 L86 22 V50 C86 74 68 88 50 94 C32 88 14 74 14 50 V22 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2.5" stroke-linejoin="round"/>'
+        + '<path d="M50 16 L79 27 V50 C79 69 65 81 50 87 Z" fill="' + t[2] + '" opacity="0.22"/>'
+        + '<path d="M50 26 V74 M28 44 H72" stroke="' + t[2] + '" stroke-width="5.5" stroke-linecap="round"/>'
+        + '<circle cx="50" cy="44" r="6" fill="' + t[2] + '"/>'
+        + '<circle cx="50" cy="44" r="9" fill="none" stroke="#fff" stroke-width="1.6" opacity="0.6"><animate attributeName="r" values="9;15;9" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0.6" dur="2.6s" repeatCount="indefinite"/></circle></g>';
+    },
+    // لهبٌ حيٌّ يتماوجُ بلسانٍ داخليٍّ أفتح
+    badge_flame: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M50 6 C64 30 78 40 70 64 C66 86 34 86 30 64 C26 48 40 44 40 28 C48 40 44 52 54 54 C60 46 52 32 50 6 Z" fill="url(#' + g + ')"><animate attributeName="d" values="M50 6 C64 30 78 40 70 64 C66 86 34 86 30 64 C26 48 40 44 40 28 C48 40 44 52 54 54 C60 46 52 32 50 6 Z;M50 4 C68 28 74 42 70 64 C66 88 34 88 30 62 C27 46 42 46 41 26 C50 42 42 52 55 55 C61 46 50 30 50 4 Z;M50 6 C64 30 78 40 70 64 C66 86 34 86 30 64 C26 48 40 44 40 28 C48 40 44 52 54 54 C60 46 52 32 50 6 Z" dur="1.4s" repeatCount="indefinite"/></path>'
+        + '<path d="M50 34 C58 46 60 56 54 68 C50 76 44 74 43 66 C42 58 50 54 46 44 C50 48 50 52 52 52 C54 48 52 42 50 34 Z" fill="' + t[2] + '"><animate attributeName="opacity" values="0.7;1;0.7" dur="0.9s" repeatCount="indefinite"/></path></g>';
+    },
+    // ألماسةٌ حقيقيّةٌ بقصٍّ لامعٍ: طاولةٌ + أوجُهُ تاجٍ وبطنٍ متمايزةٌ الإضاءة + وميض
+    badge_diamond: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M32 24 H68 L84 44 L50 94 L16 44 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.6" stroke-linejoin="round"/>'
+        + '<path d="M32 24 L50 44 L16 44 Z" fill="' + t[2] + '" opacity="0.55"/>'
+        + '<path d="M68 24 L84 44 L50 44 Z" fill="' + t[1] + '" opacity="0.35"/>'
+        + '<path d="M32 24 H68 L50 44 Z" fill="' + t[2] + '" opacity="0.3"/>'
+        + '<path d="M16 44 L50 94 L32 44 Z" fill="' + t[1] + '" opacity="0.4"/>'
+        + '<path d="M84 44 L50 94 L68 44 Z" fill="' + t[2] + '" opacity="0.35"/>'
+        + '<path d="M32 44 L50 94 L50 44 Z" fill="' + t[2] + '" opacity="0.5"/>'
+        + '<path d="M16 44 H84 M32 24 V44 M68 24 V44 M32 44 L50 94 M68 44 L50 94 M50 44 V94 M32 24 L50 44 L68 24" fill="none" stroke="#fff" stroke-width="0.9" opacity="0.55"/>'
+        + '<path d="M40 20 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6 Z" fill="#fff"><animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/></path></g>';
+    },
+    // جمجمةٌ بمحجرَينِ متوهّجَينِ وأسنانٍ وفكّ
+    badge_skull: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M26 44 A24 24 0 0 1 74 44 V58 A8 8 0 0 1 68 66 Q68 78 58 80 L58 88 H52 V82 H48 V88 H42 V80 Q32 78 32 66 A8 8 0 0 1 26 58 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.6"/>'
+        + '<ellipse cx="40" cy="50" rx="8" ry="9" fill="#15111c"/><ellipse cx="60" cy="50" rx="8" ry="9" fill="#15111c"/>'
+        + '<circle cx="42" cy="52" r="2.6" fill="' + t[0] + '"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.4s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="58" cy="52" r="2.6" fill="' + t[0] + '"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.4s" begin="0.4s" repeatCount="indefinite"/></circle>'
+        + '<path d="M50 58 l-4.5 9 h9 Z" fill="#15111c"/>'
+        + '<path d="M42 74 V82 M50 74 V85 M58 74 V82" stroke="' + t[1] + '" stroke-width="2" opacity="0.7"/></g>';
+    },
+    // هلالٌ قمريٌّ بفوّهاتٍ ونجومٍ متلألئة
+    badge_moon: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M66 10 A40 40 0 1 0 66 90 A32 32 0 1 1 66 10 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.4"/>'
+        + '<circle cx="40" cy="34" r="5" fill="' + t[1] + '" opacity="0.4"/><circle cx="34" cy="56" r="7" fill="' + t[1] + '" opacity="0.35"/><circle cx="48" cy="68" r="4" fill="' + t[1] + '" opacity="0.4"/>'
+        + '<g fill="' + t[2] + '"><path d="M80 30 l1.4 3.4 3.4 1.4 -3.4 1.4 -1.4 3.4 -1.4 -3.4 -3.4 -1.4 3.4 -1.4Z"><animate attributeName="opacity" values="0.2;1;0.2" dur="2s" repeatCount="indefinite"/></path>'
+        + '<path d="M86 60 l1 2.6 2.6 1 -2.6 1 -1 2.6 -1 -2.6 -2.6 -1 2.6 -1Z"><animate attributeName="opacity" values="0.3;1;0.3" dur="2.6s" begin="0.6s" repeatCount="indefinite"/></path></g></g>';
+    },
+    // جوهرةٌ سداسيّةٌ بقصٍّ زمرّديٍّ وأوجُهٍ ووميض
+    badge_gem: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M30 18 H70 L90 50 L70 82 H30 L10 50 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.8" stroke-linejoin="round"/>'
+        + '<path d="M30 18 L40 34 H60 L70 18 Z" fill="' + t[2] + '" opacity="0.5"/>'
+        + '<path d="M10 50 L26 44 V56 Z" fill="' + t[2] + '" opacity="0.4"/><path d="M90 50 L74 44 V56 Z" fill="' + t[1] + '" opacity="0.4"/>'
+        + '<path d="M30 82 L40 66 H60 L70 82 Z" fill="' + t[1] + '" opacity="0.45"/>'
+        + '<path d="M40 34 H60 V66 H40 Z" fill="' + t[2] + '" opacity="0.25"/>'
+        + '<path d="M40 34 H60 M40 66 H60 M40 34 V66 M60 34 V66 M30 18 L40 34 M70 18 L60 34 M10 50 L40 50 M90 50 L60 50 M30 82 L40 66 M70 82 L60 66" fill="none" stroke="#fff" stroke-width="0.8" opacity="0.5"/>'
+        + '<path d="M36 26 l1.4 3.6 3.6 1.4 -3.6 1.4 -1.4 3.6 -1.4 -3.6 -3.6 -1.4 3.6 -1.4Z" fill="#fff"><animate attributeName="opacity" values="0;1;0" dur="2.4s" repeatCount="indefinite"/></path></g>';
+    },
+    // قلبٌ لمّاعٌ ببريقٍ وهالةِ نبض
+    badge_heart: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<circle cx="50" cy="50" r="30" fill="' + t[2] + '" opacity="0"><animate attributeName="opacity" values="0;0.35;0" dur="1.2s" repeatCount="indefinite"/></circle>'
+        + '<path d="M50 88 C10 58 12 22 38 22 C48 22 50 34 50 34 C50 34 52 22 62 22 C88 22 90 58 50 88 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2"/>'
+        + '<path d="M34 30 C26 32 24 44 30 52" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity="0.6"/></g>';
+    },
+    // رأسُ تنّينٍ حقيقيٍّ: قرنانِ مسحوبانِ للخلفِ + خطمٌ + عينٌ متوهّجةٌ + شعلةٌ من الفم
+    badge_dragon: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M64 34 Q74 16 90 14 Q80 24 78 40 Z" fill="' + t[1] + '"/>'
+        + '<path d="M56 40 Q64 24 78 22 Q70 32 68 46 Z" fill="' + t[1] + '"/>'
+        + '<path d="M20 54 Q30 44 46 46 Q52 38 62 40 Q60 30 70 30 Q78 34 74 44 Q84 48 78 58 Q82 68 72 70 Q66 66 60 68 Q54 74 44 70 Q34 72 30 64 Q22 64 20 54 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.8" stroke-linejoin="round"/>'
+        + '<path d="M20 54 L30 52 L26 58 Z M32 62 L40 60 L36 66 Z M46 66 L54 64 L50 70 Z" fill="#fff" opacity="0.85"/>'
+        + '<ellipse cx="26" cy="52" rx="2.4" ry="1.6" fill="' + t[1] + '"/>'
+        + '<path d="M40 48 L54 46 L47 55 Z" fill="#1a0d08"/><circle cx="46" cy="50" r="2.4" fill="#ffe14a"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.8s" repeatCount="indefinite"/></circle>'
+        + '<path d="M20 54 C10 52 6 56 2 54 C8 58 8 62 14 60 C10 66 14 70 18 66 C18 60 16 58 20 54 Z" fill="#ff5a1e"><animate attributeName="opacity" values="0.6;1;0.6" dur="0.8s" repeatCount="indefinite"/></path></g>';
+    },
+    // عنقاءٌ ناهضةٌ: جناحانِ مفرودانِ للأعلى + جسدٌ ورأسٌ + ذيلٌ من لهب
+    badge_phoenix: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M50 48 C34 34 20 32 8 42 C22 42 30 48 34 58 C24 56 16 62 12 72 C28 66 40 66 50 60 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.4" stroke-linejoin="round"/>'
+        + '<path d="M50 48 C66 34 80 32 92 42 C78 42 70 48 66 58 C76 56 84 62 88 72 C72 66 60 66 50 60 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.4" stroke-linejoin="round"/>'
+        + '<path d="M50 40 C55 46 55 62 50 78 C45 62 45 46 50 40 Z" fill="' + t[1] + '"/>'
+        + '<circle cx="50" cy="34" r="6" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1"/><path d="M50 30 L58 27 L50 24 Z" fill="' + t[2] + '"/>'
+        + '<path d="M50 74 C46 82 46 90 50 96 C54 90 54 82 50 74 Z M40 72 C34 80 33 88 36 94 C42 86 44 80 44 72 Z M60 72 C66 80 67 88 64 94 C58 86 56 80 56 72 Z" fill="' + t[2] + '"><animate attributeName="opacity" values="0.6;1;0.6" dur="1.1s" repeatCount="indefinite"/></path></g>';
+    },
+    // لانهايةٌ متدفّقةٌ بضوءٍ يجري في مسارها
+    badge_infinity: function (t, g, f) {
+      var p = 'M50 50 C40 32 14 32 14 50 C14 68 40 68 50 50 C60 32 86 32 86 50 C86 68 60 68 50 50 Z';
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="' + p + '" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2"/>'
+        + '<path d="' + p + '" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="20 200" opacity="0.85"><animate attributeName="stroke-dashoffset" values="0;-220" dur="2.6s" repeatCount="indefinite"/></path></g>';
+    },
+    // كأسُ بطولةٍ بمقبضَينِ ونجمةٍ وقاعدة
+    badge_trophy: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M30 24 H22 C18 30 22 40 30 44 Z M70 24 H78 C82 30 78 40 70 44 Z" fill="' + t[1] + '" opacity="0.6"/>'
+        + '<path d="M30 14 H70 V22 C82 22 88 32 82 42 C78 50 70 52 66 52 C63 60 56 64 54 65 V74 H66 V82 H34 V74 H46 V65 C44 64 37 60 34 52 C30 52 22 50 18 42 C12 32 18 22 30 22 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2"/>'
+        + '<path d="M50 26 l3.4 7.2 7.8 0.6 -6 5.2 1.9 7.6 -7.1 -4.2 -7.1 4.2 1.9 -7.6 -6 -5.2 7.8 -0.6 Z" fill="' + t[2] + '"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.2s" repeatCount="indefinite"/></path>'
+        + '<rect x="30" y="82" width="40" height="9" rx="2.5" fill="' + t[1] + '"/></g>';
+    },
+    // زهرةُ لوتسٍ بطبقاتِ بتلاتٍ متداخلة
+    badge_lotus: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M50 88 C30 80 16 60 22 40 C34 52 42 56 50 44 C58 56 66 52 78 40 C84 60 70 80 50 88 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.4"/>'
+        + '<path d="M50 86 C40 78 30 64 34 48 C42 58 46 60 50 50 C54 60 58 58 66 48 C70 64 60 78 50 86 Z" fill="' + t[2] + '" opacity="0.75"/>'
+        + '<path d="M50 84 C46 74 40 60 46 46 C48 56 50 58 50 50 C50 58 52 56 54 46 C60 60 54 74 50 84 Z" fill="#fff" opacity="0.6"/>'
+        + '<ellipse cx="50" cy="62" rx="4" ry="6" fill="' + t[2] + '"/></g>';
+    },
+    // عينٌ سحريّةٌ بقزحيّةٍ وبؤبؤٍ وحلقةٍ نابضة
+    badge_eye: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M8 50 Q50 14 92 50 Q50 86 8 50 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2"/>'
+        + '<path d="M8 50 Q50 14 92 50 Q50 86 8 50 Z" fill="#0a0618" opacity="0.35"/>'
+        + '<circle cx="50" cy="50" r="15" fill="' + t[1] + '"/><circle cx="50" cy="50" r="9" fill="#0a0410"/>'
+        + '<circle cx="50" cy="50" r="15" fill="none" stroke="' + t[2] + '" stroke-width="2"><animate attributeName="r" values="15;13;15" dur="3s" repeatCount="indefinite"/></circle>'
+        + '<circle cx="46" cy="46" r="3" fill="#fff"/>'
+        + '<path d="M8 50 Q50 14 92 50" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.4"/></g>';
+    },
+    // مرساةٌ بحلقةٍ وذراعَينِ ونجفةٍ معدنيّة
+    badge_anchor: function (t, g, f) {
+      return '<g filter="url(#' + f + ')"><g><animateTransform attributeName="transform" type="rotate" values="-5 50 50;5 50 50;-5 50 50" dur="4s" repeatCount="indefinite"/>'
+        + '<circle cx="50" cy="16" r="8" fill="none" stroke="url(#' + g + ')" stroke-width="5"/>'
+        + '<rect x="46" y="22" width="8" height="52" rx="2" fill="url(#' + g + ')"/>'
+        + '<rect x="30" y="34" width="40" height="7" rx="3" fill="url(#' + g + ')"/>'
+        + '<path d="M50 74 C30 72 16 56 14 40 L26 40 C28 56 38 66 50 68 Z M50 74 C70 72 84 56 86 40 L74 40 C72 56 62 66 50 68 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1"/>'
+        + '<path d="M14 40 l-6 -10 12 0 Z M86 40 l6 -10 -12 0 Z" fill="' + t[2] + '"/></g></g>';
+    },
+    // ورقةٌ خضراءُ بعروقٍ وبريقٍ وتمايلٍ خفيف
+    badge_leaf: function (t, g, f) {
+      return '<g filter="url(#' + f + ')"><g><animateTransform attributeName="transform" type="rotate" values="-4 50 60;4 50 60;-4 50 60" dur="3.6s" repeatCount="indefinite"/>'
+        + '<path d="M50 6 C76 22 88 48 74 70 C64 86 42 92 28 82 C12 72 12 46 26 26 C34 15 42 10 50 6 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.4"/>'
+        + '<path d="M50 12 C48 42 42 66 30 84" fill="none" stroke="' + t[1] + '" stroke-width="3" stroke-linecap="round"/>'
+        + '<path d="M47 30 l16 5 M45 46 l17 3 M42 60 l15 0" fill="none" stroke="' + t[1] + '" stroke-width="2" opacity="0.6"/>'
+        + '<ellipse cx="60" cy="26" rx="11" ry="8" fill="#fff" opacity="0.22"/></g></g>';
+    },
+    // سيفٌ بنصلٍ لمّاعٍ ومقبضٍ وجوهرةٍ في الحاجز
+    badge_sword: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M50 4 L58 22 V54 H42 V22 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.4"/>'
+        + '<path d="M50 6 V52" stroke="#fff" stroke-width="1.6" opacity="0.6"/>'
+        + '<path d="M44 10 L50 6 L50 22 Z" fill="#fff" opacity="0.5"><animate attributeName="opacity" values="0.2;0.75;0.2" dur="2.4s" repeatCount="indefinite"/></path>'
+        + '<rect x="24" y="54" width="52" height="8" rx="3" fill="' + t[1] + '"/>'
+        + '<circle cx="50" cy="58" r="4.5" fill="#ffd54a"/>'
+        + '<rect x="46" y="62" width="8" height="22" rx="2" fill="' + t[1] + '"/>'
+        + '<circle cx="50" cy="88" r="6" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1"/></g>';
+    },
+    // طابيةُ شطرنجٍ (قلعة) بشرفاتٍ وطبقاتٍ واضحة
+    badge_rook: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M24 16 H33 V25 H42 V16 H58 V25 H67 V16 H76 V38 L68 46 V64 L78 88 H22 L32 64 V46 L24 38 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2" stroke-linejoin="round"/>'
+        + '<path d="M32 46 H68 M30 64 H70" stroke="' + t[1] + '" stroke-width="2.6" opacity="0.55"/>'
+        + '<rect x="42" y="50" width="16" height="12" rx="2" fill="' + t[1] + '" opacity="0.4"/>'
+        + '<path d="M30 22 H70" stroke="' + t[2] + '" stroke-width="2" opacity="0.5"/></g>';
+    },
+    // فارسُ شطرنجٍ (رأسُ حصان) على قاعدةٍ — بعينٍ وعُرفٍ وخطم
+    badge_knight: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<rect x="22" y="84" width="56" height="9" rx="2.5" fill="' + t[1] + '"/>'
+        + '<rect x="30" y="76" width="40" height="9" rx="2.5" fill="' + t[1] + '" opacity="0.85"/>'
+        + '<path d="M32 80 C30 68 34 62 36 56 C25 54 20 44 26 34 C28 30 31 29 31 29 L27 33 C25 27 31 22 37 21 L35 15 C41 17 44 20 46 21 C49 12 58 9 66 15 C77 23 76 42 72 56 C70 64 68 70 68 80 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2" stroke-linejoin="round"/>'
+        + '<circle cx="57" cy="30" r="3.2" fill="#1a1420"/>'
+        + '<path d="M60 20 C69 26 71 40 68 54" fill="none" stroke="' + t[1] + '" stroke-width="2.4" opacity="0.55"/>'
+        + '<path d="M34 40 L42 42" stroke="' + t[1] + '" stroke-width="2.2" opacity="0.5" stroke-linecap="round"/>'
+        + '<path d="M40 26 L48 28" stroke="#fff" stroke-width="1.6" opacity="0.4"/></g>';
+    },
+    // حجرُ رونٍ بنقشٍ متوهّجٍ يسطع
+    badge_rune: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M50 6 L86 26 V72 L50 94 L14 72 V26 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="2"/>'
+        + '<path d="M50 6 L86 26 V72 L50 94 L14 72 V26 Z" fill="none" stroke="' + t[2] + '" stroke-width="1.4" opacity="0.6"/>'
+        + '<path d="M38 26 V74 M38 30 L62 48 M38 52 L62 34 M38 74 H60" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" repeatCount="indefinite"/></path></g>';
+    },
+    // جناحٌ مريّشٌ بصفوفِ ريشٍ وحافّةٍ لامعة
+    badge_wing: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<path d="M8 80 C16 50 34 26 60 12 C54 26 50 36 50 46 C62 34 76 28 92 28 C78 42 68 54 62 64 C72 62 82 62 92 66 C74 72 58 80 46 92 C34 84 20 82 8 80 Z" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.4"/>'
+        + '<path d="M24 74 C36 62 50 50 66 40 M20 78 C32 68 44 58 58 50 M30 82 C42 72 54 64 68 58" fill="none" stroke="' + t[1] + '" stroke-width="2" opacity="0.5" stroke-linecap="round"/>'
+        + '<path d="M8 80 C16 50 34 26 60 12" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.4"/></g>';
+    },
+    // شمسٌ بأشعّةٍ دوّارةٍ ونواةٍ نابضة
+    badge_sun: function (t, g, f) {
+      return '<g filter="url(#' + f + ')">'
+        + '<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="16s" repeatCount="indefinite"/>'
+        + '<path d="M50 2 L55 22 45 22Z M50 98 L55 78 45 78Z M2 50 L22 45 22 55Z M98 50 L78 45 78 55Z M15 15 L31 27 27 31Z M85 15 L69 27 73 31Z M15 85 L31 73 27 69Z M85 85 L69 73 73 69Z" fill="' + t[0] + '"/></g>'
+        + '<circle cx="50" cy="50" r="24" fill="url(#' + g + ')" stroke="' + t[1] + '" stroke-width="1.6"/>'
+        + '<circle cx="50" cy="50" r="16" fill="' + t[2] + '" opacity="0.6"><animate attributeName="r" values="14;18;14" dur="2.8s" repeatCount="indefinite"/></circle></g>';
+    },
+  };
+
   // خلفيات: تدرّجات تتحرّك ببطء (background-position)
   var BG = {
     bg_aurora:    'linear-gradient(135deg,#0b2f2a,#1d6b5a,#3a2d6b,#1d6b5a)',
@@ -598,6 +829,28 @@
   /* الطبقةُ الداخليّةُ للشارةِ (viewBox 100) — مشتركةٌ بينَ الشارةِ الحيّةِ بجانبِ
      الاسمِ ومعاينةِ المتجرِ/المخزونِ فتتطابقان تمامًا. */
   function _badgeInner(bid) {
+    /* المصدرُ الفاخر: تدرّجٌ شعاعيٌّ + مرشّحُ توهّجٍ يُعرَّفانِ لكلِّ نسخةٍ بمعرِّفٍ
+       فريدٍ (تفادي تصادمِ url(#id) مع أفاتاراتٍ كثيرةٍ في الصفحة)، ثمّ رسمٌ
+       بطبقاتٍ يطابقُ الاسم. لو الشارةُ غيرُ مُرقّاةٍ نرجعُ للرسمِ المسطّحِ القديم. */
+    var pal = BADGE_ART[bid];
+    var special = BADGE_SPECIAL[bid];
+    if (pal && special) {
+      var uid = ++_uid;
+      var gid = 'bg_' + esc(bid) + '_' + uid;
+      var glow = 'bh_' + esc(bid) + '_' + uid;
+      var defs = '<defs>'
+        + '<radialGradient id="' + gid + '" cx="0.4" cy="0.32" r="0.85">'
+        + '<stop offset="0" stop-color="' + pal[2] + '"/>'
+        + '<stop offset="0.55" stop-color="' + pal[0] + '"/>'
+        + '<stop offset="1" stop-color="' + pal[1] + '"/>'
+        + '</radialGradient>'
+        + '<filter id="' + glow + '" x="-40%" y="-40%" width="180%" height="180%">'
+        + '<feGaussianBlur stdDeviation="2" result="b"/>'
+        + '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'
+        + '</filter>'
+        + '</defs>';
+      return defs + special(pal, gid, glow);
+    }
     var b = BADGE[bid];
     if (!b) return '';
     /* b[2]: إمّا 1 (عينا جمجمةٍ) أو نصُّ SVG إضافيٌّ يُركَّبُ فوقَ الشكلِ
@@ -651,6 +904,30 @@
       var tmp = document.createElement('div');
       tmp.innerHTML = badgeHTML(cos);
       var b = tmp.firstChild; if (b) el.appendChild(b);
+    }
+  }
+
+  /* لافتةُ الخلفيّةِ العريضةُ خلفَ الاسمِ والأفاتارِ في بطاقةِ الملفِّ (طلبُ جوجو:
+     الخلفيّةُ تظهرُ لافتةً فاخرةً في الأعلى + هالةً حولَ الأفاتارِ في الأماكنِ
+     الصغيرة). تدرّجُ BG نفسُه + بريقٌ مائلٌ عابرٌ + ذرّاتٌ عائمةٌ + تعتيمٌ حافظٌ
+     لوضوحِ النصّ. كلُّه CSS خفيفٌ يحترمُ prefers-reduced-motion. */
+  function bannerHTML(cos) {
+    if (!cos || !cos.background) return '';
+    var g = BG[cos.background];
+    if (!g) return '';
+    return '<span class="cos-banner cos-banner--' + esc(cos.background) + '" aria-hidden="true" style="background-image:' + g + '">'
+      + '<span class="cos-banner__motes"></span><span class="cos-banner__sheen"></span></span>';
+  }
+  /* رسمُ اللافتةِ على بطاقةٍ قائمةٍ (بطاقةُ الملفِّ/هويّةُ الرئيسيّة). */
+  function paintBanner(el, cos) {
+    if (!el) return;
+    var old = el.querySelector(':scope > .cos-banner'); if (old) old.remove();
+    el.classList.remove('cos-bannered');
+    if (cos && cos.background && BG[cos.background]) {
+      el.classList.add('cos-bannered');
+      var tmp = document.createElement('div');
+      tmp.innerHTML = bannerHTML(cos);
+      var b = tmp.firstChild; if (b) el.insertBefore(b, el.firstChild);
     }
   }
 
@@ -887,6 +1164,8 @@
     avatarLayers: avatarLayers,
     paint: paint,
     paintName: paintName,
+    bannerHTML: bannerHTML,
+    paintBanner: paintBanner,
     self: self,
     celebrate: celebrate,
     thumb: thumb,

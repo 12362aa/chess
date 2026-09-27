@@ -24,6 +24,27 @@ allprojects {
     }
 }
 
+// ── توافقٌ مع JDK 17 المتوفّرِ على هذا الجهاز ──
+// كاباسيتور 8 يستهدفُ Java 21، لكنّ الـJDK المتاحَ هنا هو 17؛
+// نخفضُ توافقَ الوحداتِ إلى 17 (شيفرةُ الإضافاتِ متوافقةٌ ولا تستعملُ صياغةَ 21).
+subprojects {
+    afterEvaluate { p ->
+        if (p.hasProperty('android')) {
+            p.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+        }
+        p.tasks.configureEach { t ->
+            if (t.class.name.contains('KotlinCompile') && t.hasProperty('kotlinOptions')) {
+                t.kotlinOptions.jvmTarget = '17'
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

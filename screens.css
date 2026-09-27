@@ -8118,8 +8118,10 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 /* الألسنة */
 .rw-tabs{ display:flex; gap:8px; margin:0 0 20px; justify-content:center; flex-wrap:wrap; }
 .rw-tab{ border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05); color:rgba(255,255,255,.8);
-  padding:9px 20px; border-radius:999px; font-size:14px; font-weight:800; cursor:pointer; white-space:nowrap;
+  padding:9px 18px; border-radius:999px; font-size:14px; font-weight:800; cursor:pointer; white-space:nowrap;
+  display:inline-flex; align-items:center; gap:7px;
   transition:background .18s ease, color .18s ease, border-color .18s ease; }
+.rw-tab__ic{ width:17px; height:17px; flex:0 0 auto; }
 .rw-tab.is-on{ color:var(--ink); background:linear-gradient(180deg,var(--acc2),var(--acc));
   border-color:transparent; box-shadow:0 3px 14px rgba(245,196,81,.45); }
 
@@ -8378,6 +8380,40 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @media (prefers-reduced-motion:reduce){
   .cos-bg{ animation:none; }
   .cos-frame svg *{ animation:none !important; }
+}
+
+/* ══ لافتةُ الخلفيّةِ العريضةُ في بطاقةِ الملفِّ + هويّةِ الرئيسيّة (بلاغُ جوجو ٢:
+   الخلفيّةُ تُصبحُ لافتةً فاخرةً خلفَ الاسمِ والأفاتار، مع بقاءِ الهالةِ حولَ
+   الأفاتارِ في الأماكنِ الصغيرة). كلُّه CSS خفيف. ══ */
+.cos-banner{ position:absolute; inset:0; border-radius:inherit; z-index:0; overflow:hidden;
+  background-size:220% 220%; background-position:0% 50%;
+  animation:cosBgShift 12s ease-in-out infinite; pointer-events:none; }
+.cos-banner::after{ content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,rgba(6,8,16,.55),rgba(6,8,16,.18) 55%,rgba(6,8,16,.42)); }
+.cos-banner__sheen{ position:absolute; top:-40%; bottom:-40%; width:26%; left:-32%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.34),transparent);
+  transform:skewX(-16deg); animation:cosBannerSheen 6.5s ease-in-out infinite; }
+.cos-banner__motes{ position:absolute; inset:0; opacity:.22;
+  background-image:radial-gradient(rgba(255,255,255,.6) 1px,transparent 1.7px);
+  background-size:26px 26px; animation:cosMotes 16s linear infinite; }
+@keyframes cosBannerSheen{ 0%{ left:-32%; } 55%{ left:120%; } 100%{ left:120%; } }
+@keyframes cosMotes{ 0%{ background-position:0 0; } 100%{ background-position:64px -84px; } }
+/* المضيفُ يقلبُ إلى «بطاقةٍ» عندما تُجهَّزُ خلفيّة: زوايا مقصوصةٌ + محتوًى فوقَ اللافتة */
+.home-id.cos-bannered{ position:relative; overflow:hidden;
+  min-width:min(340px,78vw); padding:var(--space-3) var(--space-4);
+  border-color:rgba(255,255,255,.16); box-shadow:0 6px 22px rgba(0,0,0,.35); }
+.home-id.cos-bannered > *:not(.cos-banner){ position:relative; z-index:1; }
+.home-id.cos-bannered .home-id__hi{ color:rgba(255,255,255,.82); }
+.home-id.cos-bannered .home-id__name{ color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.55); }
+.home-id.cos-bannered .home-id__chev{ color:rgba(255,255,255,.72); }
+.settings-profile-card.cos-bannered{ position:relative; overflow:hidden;
+  padding:18px 16px; border-radius:var(--radius-lg,18px);
+  box-shadow:0 6px 22px rgba(0,0,0,.35); }
+.settings-profile-card.cos-bannered > *:not(.cos-banner){ position:relative; z-index:1; }
+.settings-profile-card.cos-bannered .settings-overline{ color:rgba(255,255,255,.82); }
+.settings-profile-card.cos-bannered .settings-headline{ color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.55); }
+@media (prefers-reduced-motion:reduce){
+  .cos-banner,.cos-banner__sheen,.cos-banner__motes{ animation:none; }
 }
 /* الميدالية فوق الطوق؛ صناديق أفاتار الصدارة تسمح للطوق بتجاوز حدّها */
 .lb-pod__av.cos-host,.lb-row__av.cos-host{ overflow:visible; }

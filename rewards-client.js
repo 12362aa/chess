@@ -40,6 +40,18 @@
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[id] || p.medal) + '</svg>';
   }
 
+  /* أيقوناتُ ألسنةِ شاشةِ الجوائز (مهامّ/إنجازات/مخزون) — SVG مرسومٌ يعبّرُ عن
+     كلِّ اسمٍ مع الإبقاءِ على الأسماءِ الثلاثةِ (طلبُ جوجو). نفسُ نسقِ الرسمِ
+     في achIcon/misIcon (currentColor، بلا إيموجي). */
+  function tabIcon(k) {
+    var p = {
+      missions:     '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4 V2.6 H15 V4"/><path d="M8.6 10 L10.4 11.8 L14 8.4 M8.6 15.5 H15.4"/>',
+      achievements: '<circle cx="12" cy="9" r="5.4"/><path d="M8 13.4 L6 21 L12 18 L18 21 L16 13.4"/><path d="M12 6.4 L12.9 8.2 L14.9 8.5 L13.4 9.9 L13.8 11.9 L12 11 L10.2 11.9 L10.6 9.9 L9.1 8.5 L11.1 8.2 Z" fill="currentColor" stroke="none"/>',
+      inventory:    '<path d="M4 8 L12 4 L20 8 V17 L12 21 L4 17 Z"/><path d="M4 8 L12 12 L20 8 M12 12 V21"/><path d="M8 6 L16 10" opacity="0.6"/>',
+    };
+    return '<svg class="rw-tab__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + (p[k] || p.missions) + '</svg>';
+  }
+
   /* أيقونةُ المهمّةِ حسبَ مقياسِها (metric يأتي في لقطةِ الخادم) — كلُّ مهمّةٍ
      صار لها رمزٌ مرسومٌ بدلًا من الصفِّ النصّيِّ العاري (بلاغُ جوجو ٥). */
   function misIcon(metric) {
@@ -241,7 +253,7 @@
       set('rw-sub', L('أكمِلِ المهامَّ، افتحِ الإنجازات، وجهِّزْ زينتَك.', 'Complete missions, unlock achievements, and equip your cosmetics.'));
       var tl = { missions: L('المهام', 'Missions'), achievements: L('الإنجازات', 'Achievements'), inventory: L('المخزون', 'Inventory') };
       var tabs = document.querySelectorAll('#rw-tabs .rw-tab');
-      for (var i = 0; i < tabs.length; i++) { var k = tabs[i].getAttribute('data-tab'); tabs[i].textContent = tl[k] || k; }
+      for (var i = 0; i < tabs.length; i++) { var k = tabs[i].getAttribute('data-tab'); tabs[i].innerHTML = tabIcon(k) + '<span class="rw-tab__lb">' + (tl[k] || k) + '</span>'; }
     },
 
     _renderBar: function () {
