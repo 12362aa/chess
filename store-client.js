@@ -383,15 +383,24 @@
       this._startCountdown(data.serverNow, data.endsAt);
     },
 
-    /* رقاقاتُ تصفيةٍ حسبَ النوعِ (الكلّ/إطارات/خلفيّات/…) — ثنائيّةُ اللغة. */
+    /* أزرارُ التصنيفِ حسبَ النوع (الكلّ/إطارات/خلفيّات/…) — ثنائيّةُ اللغة،
+       ولكلِّ زرٍّ **أيقونةٌ ملوّنةٌ مرسومة** لا اسمٌ خامٌّ فقط (بلاغُ جوجو ٤:
+       «لما تعمل التصنيفاتِ دي تعملْ لكلِّ حاجةٍ أيقونةً ملوّنةً ما تعملهاش
+       مجرّدَ اسمٍ خامٍّ بس»). نفسُ أيقوناتِ المخزونِ فيتّحدُ البصرُ بينهما. */
     _renderFilters: function (data) {
       var wrap = document.getElementById('store-filters'); if (!wrap) return;
       var present = {}; data.items.forEach(function (it) { present[it.type] = 1; });
       var self = this;
-      var chips = ['<button class="store-chip' + (self._filter ? '' : ' is-on') + '" data-filter="">' + esc(L('الكلّ', 'All')) + '</button>'];
+      var ic = function (t) { try { return (window.amkhCos && amkhCos.catIcon) ? amkhCos.catIcon(t) : ''; } catch (e) { return ''; } };
+      var chip = function (val, on, label, type) {
+        return '<button class="store-chip' + (on ? ' is-on' : '') + '" data-filter="' + val + '">'
+          + '<span class="store-chip__ic" aria-hidden="true">' + ic(type) + '</span>'
+          + '<span class="store-chip__tx">' + esc(label) + '</span></button>';
+      };
+      var chips = [chip('', !self._filter, L('الكلّ', 'All'), 'all')];
       TYPE_ORDER.forEach(function (t) {
         if (!present[t]) return;
-        chips.push('<button class="store-chip' + (self._filter === t ? ' is-on' : '') + '" data-filter="' + t + '">' + esc(L(TYPE[t].ar, TYPE[t].en)) + '</button>');
+        chips.push(chip(t, self._filter === t, L(TYPE[t].ar, TYPE[t].en), t));
       });
       wrap.innerHTML = chips.join('');
       wrap.querySelectorAll('[data-filter]').forEach(function (b) {

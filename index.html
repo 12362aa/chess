@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260927-b65">
+<link rel="stylesheet" href="screens.css?v=20260928-b66">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3206,7 +3206,30 @@ html.amkh-preboot #amkh-preboot{
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.levels()">
         <span class="home-hero__head">
           <span class="home-hero__icon" aria-hidden="true">
-            <i class="ico ico--levels" aria-hidden="true"></i>
+            <!-- مراحلُ نور (توحيدُ الأسلوب): درجاتٌ حجريّةٌ صاعدةٌ إلى نجمةٍ
+                 ذهبيّةٍ متوّجةٍ بهالة — رمزُ الرحلةِ عبرَ الاثنتي عشرةَ مرحلة.
+                 مرسومةٌ ملوّنةٌ بنفسِ لغةِ الألغاز/المتجرِ/الجوائز، ومستقلّةٌ
+                 عن أقنعةِ الثيماتِ فتظهرُ كما هي في كلِّ السمات. -->
+            <svg class="home-ic home-ic--levels" viewBox="0 0 24 24" aria-hidden="true">
+              <defs>
+                <linearGradient id="hlvS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#3b0764"/></linearGradient>
+                <linearGradient id="hlvM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#4c1d95"/></linearGradient>
+                <linearGradient id="hlvT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#67e8f9"/><stop offset="1" stop-color="#0e7490"/></linearGradient>
+                <linearGradient id="hlvG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6cf"/><stop offset=".5" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
+                <radialGradient id="hlvH" cx="50%" cy="50%" r="50%"><stop offset=".25" stop-color="#ffd24a" stop-opacity=".6"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+              </defs>
+              <!-- درجاتٌ متلاصقةٌ (لا أعمدةٌ منفصلةٌ توحي برسمٍ بيانيّ):
+                   كتلةُ سلّمٍ واحدةٌ تصعدُ من البنفسجيِّ الداكنِ إلى السماويّ -->
+              <rect x="2.3" y="17.3" width="6.55" height="4.3" rx=".5" fill="url(#hlvS)" stroke="#2a0a52" stroke-width=".85"/>
+              <rect x="8.8" y="13.9" width="6.55" height="7.7" rx=".5" fill="url(#hlvM)" stroke="#2e1065" stroke-width=".85"/>
+              <rect x="15.3" y="10.5" width="6.4" height="11.1" rx=".5" fill="url(#hlvT)" stroke="#0c4a6e" stroke-width=".85"/>
+              <path d="M3 17.95 H8.2" stroke="#e2d4ff" stroke-width=".95" opacity=".55" stroke-linecap="round"/>
+              <path d="M9.5 14.55 H14.7" stroke="#e8dcff" stroke-width=".95" opacity=".6" stroke-linecap="round"/>
+              <path d="M16 11.15 H21" stroke="#d6f5ff" stroke-width=".95" opacity=".7" stroke-linecap="round"/>
+              <circle class="hic-halo" cx="18.55" cy="5.6" r="5.4" fill="url(#hlvH)"/>
+              <path class="hic-star" d="M18.55 1.9 l1.32 2.68 2.96.43 -2.14 2.09 .5 2.95 -2.64-1.39 -2.64 1.39 .5-2.95 -2.14-2.09 2.96-.43 Z"
+                fill="url(#hlvG)" stroke="#7a4e08" stroke-width=".7" stroke-linejoin="round"/>
+            </svg>
           </span>
           <span class="home-hero__heading">
             <span class="home-hero__eyebrow">رحلتك</span>
@@ -3225,7 +3248,32 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile" type="button" data-mode="engine"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); ENGINE_PICKER.open()">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--engine" aria-hidden="true"></i>
+          <!-- ضدّ المحرّك: رقاقةُ معالجٍ بأرجلٍ ذهبيّةٍ ونواةٍ متوهّجةٍ ينبضُ
+               داخلَها حصانُ شطرنجٍ ذهبيّ — «العقلُ الحاسوبيُّ يلعب». -->
+          <svg class="home-ic home-ic--engine" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="hegC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#586b85"/><stop offset=".55" stop-color="#2b3747"/><stop offset="1" stop-color="#151d28"/></linearGradient>
+              <!-- gradientUnits=userSpaceOnUse: أرجلُ الرقاقةِ خطوطٌ بُعدُها
+                   الأفقيُّ أو العموديُّ صفرٌ، وتدرّجُ objectBoundingBox ينهارُ
+                   عليها فتختفي تمامًا. الإحداثيّاتُ المطلقةُ تُبقيها ظاهرة. -->
+              <linearGradient id="hegP" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#c9950f"/></linearGradient>
+              <linearGradient id="hegK" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6cf"/><stop offset=".55" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
+              <radialGradient id="hegG" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#67e8f9" stop-opacity=".9"/><stop offset=".6" stop-color="#22d3ee" stop-opacity=".35"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+            </defs>
+            <g stroke="url(#hegP)" stroke-width="1.5" stroke-linecap="round">
+              <path d="M9 2.7 V5"/><path d="M12 2.7 V5"/><path d="M15 2.7 V5"/>
+              <path d="M9 19 V21.3"/><path d="M12 19 V21.3"/><path d="M15 19 V21.3"/>
+              <path d="M2.7 9 H5"/><path d="M2.7 12 H5"/><path d="M2.7 15 H5"/>
+              <path d="M19 9 H21.3"/><path d="M19 12 H21.3"/><path d="M19 15 H21.3"/>
+            </g>
+            <rect x="4.5" y="4.5" width="15" height="15" rx="2.6" fill="url(#hegC)" stroke="#0d141d" stroke-width="1"/>
+            <rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.8" fill="#0c141f" stroke="#3c4d68" stroke-width=".8"/>
+            <circle class="hic-core" cx="12" cy="12" r="5.2" fill="url(#hegG)"/>
+            <path d="M10.5 16.5 V14 C10.5 12.35 11.2 11.35 12.35 10.75 L11.15 11.1 L10.35 9.95 L12.25 8.2 L12.1 7.2 L13.15 7.85 C14.85 8.35 15.7 9.75 15.7 11.9 V16.5 Z"
+              fill="url(#hegK)" stroke="#6b4406" stroke-width=".7" stroke-linejoin="round"/>
+            <circle cx="12.75" cy="9.85" r=".42" fill="#3b2704"/>
+            <path d="M6.9 6.9 H10.2" stroke="#8fd7ff" stroke-width=".7" opacity=".45" stroke-linecap="round"/>
+          </svg>
         </span>
         <span class="home-tile__title">ضد المحرك</span>
         <span class="home-tile__desc">قوة Stockfish باختيارك</span>
@@ -3234,7 +3282,27 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile" type="button" data-mode="local"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); G.startLocalGame()">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--local" aria-hidden="true"></i>
+          <!-- لاعبان: شخصانِ متجاوران (سماويٌّ وذهبيّ) فوقَ شريطِ رقعةٍ صغيرٍ
+               — «على نفسِ الشاشةِ بالتناوب». ساكنةٌ عمدًا (لا تحتاجُ حركة). -->
+          <svg class="home-ic home-ic--local" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="hlcA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a5f3fc"/><stop offset="1" stop-color="#0e7490"/></linearGradient>
+              <linearGradient id="hlcB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#c9950f"/></linearGradient>
+              <clipPath id="hlcC"><rect x="2.6" y="18.3" width="18.8" height="3.3" rx=".8"/></clipPath>
+            </defs>
+            <circle cx="8" cy="7.3" r="3.15" fill="url(#hlcA)" stroke="#075985" stroke-width=".9"/>
+            <path d="M2.7 17.2 C2.7 13.85 5.1 12 8 12 C10.9 12 13.3 13.85 13.3 17.2 Z" fill="url(#hlcA)" stroke="#075985" stroke-width=".9" stroke-linejoin="round"/>
+            <ellipse cx="6.7" cy="6.2" rx="1.15" ry=".75" fill="#fff" opacity=".4" transform="rotate(-22 6.7 6.2)"/>
+            <circle cx="16.7" cy="8.5" r="2.75" fill="url(#hlcB)" stroke="#7a4e08" stroke-width=".9"/>
+            <path d="M11.9 17.2 C11.9 14.35 14 12.75 16.7 12.75 C19.4 12.75 21.5 14.35 21.5 17.2 Z" fill="url(#hlcB)" stroke="#7a4e08" stroke-width=".9" stroke-linejoin="round"/>
+            <ellipse cx="15.6" cy="7.5" rx="1" ry=".65" fill="#fff" opacity=".45" transform="rotate(-22 15.6 7.5)"/>
+            <rect x="2.6" y="18.3" width="18.8" height="3.3" rx=".8" fill="#eef2f8" stroke="#141b25" stroke-width=".85"/>
+            <g fill="#1b2533" clip-path="url(#hlcC)">
+              <rect x="5.73" y="18.3" width="3.13" height="3.3"/>
+              <rect x="12" y="18.3" width="3.13" height="3.3"/>
+              <rect x="18.27" y="18.3" width="3.13" height="3.3"/>
+            </g>
+          </svg>
         </span>
         <span class="home-tile__title">لاعبَان</span>
         <span class="home-tile__desc">على نفس الشاشة بالتناوب</span>
@@ -3243,7 +3311,41 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile" type="button" data-mode="online"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.online()">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--online" aria-hidden="true"></i>
+          <!-- أونلاين: كرةٌ أرضيّةٌ تدورُ فعلًا — القارّاتُ مرسومةٌ مرّتَين
+               متتاليتَينِ داخلَ قناعٍ دائريٍّ وتُزاحُ بعرضِ نسخةٍ كاملةٍ فتُعطي
+               دورانًا لا نهائيًّا بلا قطعٍ، مع حلقةِ إشارةٍ تنبض. -->
+          <svg class="home-ic home-ic--online" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="holO" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset=".5" stop-color="#2563eb"/><stop offset="1" stop-color="#0b2a6b"/></linearGradient>
+              <linearGradient id="holL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a7f3a0"/><stop offset="1" stop-color="#15803d"/></linearGradient>
+              <clipPath id="holC"><circle cx="12" cy="12" r="8.5"/></clipPath>
+            </defs>
+            <circle class="hic-ping" cx="12" cy="12" r="9.3" fill="none" stroke="#7dd3fc" stroke-width="1.1"/>
+            <circle cx="12" cy="12" r="8.5" fill="url(#holO)"/>
+            <g clip-path="url(#holC)">
+              <g class="hic-globe" fill="url(#holL)" stroke="#14532d" stroke-width=".35">
+                <g>
+                  <path d="M1.4 7.6 q2.5-1.9 4.9-.5 1.9 1.1 1 2.9 -1 1.9 -3.2 1.5 -2.3-.4 -2.7-1.9 Z"/>
+                  <path d="M6.2 14 q2.2-1.1 3.6.4 1.2 1.3 .1 2.8 -1.2 1.6 -3 1 -1.9-.6 -.7-4.2 Z"/>
+                  <path d="M11.2 5 q2.8-1.3 4.4.7 1.3 1.6 -.3 2.8 -2 1.5 -4.1.4 -1.7-.9 0-3.9 Z"/>
+                  <path d="M14.6 12.4 q2.6-.7 3.6 1.1 .8 1.5 -.8 2.6 -2 1.3 -3.6 0 -1.3-1.1 .8-3.7 Z"/>
+                </g>
+                <g transform="translate(17)">
+                  <path d="M1.4 7.6 q2.5-1.9 4.9-.5 1.9 1.1 1 2.9 -1 1.9 -3.2 1.5 -2.3-.4 -2.7-1.9 Z"/>
+                  <path d="M6.2 14 q2.2-1.1 3.6.4 1.2 1.3 .1 2.8 -1.2 1.6 -3 1 -1.9-.6 -.7-4.2 Z"/>
+                  <path d="M11.2 5 q2.8-1.3 4.4.7 1.3 1.6 -.3 2.8 -2 1.5 -4.1.4 -1.7-.9 0-3.9 Z"/>
+                  <path d="M14.6 12.4 q2.6-.7 3.6 1.1 .8 1.5 -.8 2.6 -2 1.3 -3.6 0 -1.3-1.1 .8-3.7 Z"/>
+                </g>
+              </g>
+              <g fill="none" stroke="#e0f2fe" stroke-width=".6" opacity=".5">
+                <ellipse cx="12" cy="12" rx="8.5" ry="3.5"/>
+                <ellipse cx="12" cy="12" rx="3.6" ry="8.5"/>
+                <path d="M3.5 12 H20.5"/>
+              </g>
+              <ellipse cx="8.6" cy="7.4" rx="3.6" ry="2.2" fill="#ffffff" opacity=".22" transform="rotate(-26 8.6 7.4)"/>
+            </g>
+            <circle cx="12" cy="12" r="8.5" fill="none" stroke="#bae6fd" stroke-width="1" opacity=".85"/>
+          </svg>
         </span>
         <span class="home-tile__title">أونلاين<span class="home-tile__live" aria-hidden="true"></span></span>
         <span class="home-tile__desc">مع صديق في أي مكان</span>
@@ -3252,7 +3354,23 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile" type="button" data-mode="bluetooth"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.bluetooth()">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--bluetooth" aria-hidden="true"></i>
+          <!-- بلوتوث: قرصٌ أزرقُ بحافّةٍ لامعةٍ ورمزِ البلوتوثِ الأبيضِ الحقيقيّ،
+               وقوسانِ جانبيّانِ يتلاحقانِ نبضًا = «جهازٌ قريبٌ يُلتَمَس». -->
+          <svg class="home-ic home-ic--bt" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="hbtD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset=".55" stop-color="#1d4ed8"/><stop offset="1" stop-color="#0b2a6b"/></linearGradient>
+              <linearGradient id="hbtM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c7dcff"/></linearGradient>
+            </defs>
+            <g fill="none" stroke="#7dd3fc" stroke-width="1.35" stroke-linecap="round">
+              <path class="hic-wv hic-wv--a" d="M4.3 8.5 A6.6 6.6 0 0 0 4.3 15.5"/>
+              <path class="hic-wv hic-wv--b" d="M19.7 8.5 A6.6 6.6 0 0 1 19.7 15.5"/>
+            </g>
+            <circle cx="12" cy="12" r="7.5" fill="url(#hbtD)" stroke="#081d4b" stroke-width=".9"/>
+            <circle cx="12" cy="12" r="6.3" fill="none" stroke="#93c5fd" stroke-width=".7" opacity=".5"/>
+            <path d="M6.5 9 L17.5 15 L12 19 V5 L17.5 9 L6.5 15" fill="none" stroke="url(#hbtM)" stroke-width="2.3"
+              stroke-linecap="round" stroke-linejoin="round" transform="translate(12 12) scale(.6) translate(-12 -12)"/>
+            <ellipse cx="9.4" cy="8.2" rx="2.6" ry="1.6" fill="#fff" opacity=".2" transform="rotate(-26 9.4 8.2)"/>
+          </svg>
         </span>
         <span class="home-tile__title">بلوتوث</span>
         <span class="home-tile__desc">جهاز قريب بدون إنترنت</span>
@@ -3261,7 +3379,26 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile" type="button" data-mode="puzzles"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.puzzles()">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--puzzle" aria-hidden="true"></i>
+          <!-- الألغاز (بلاغ جوجو ٣ + تحسينُ الحركة): قطعتا أحجيةٍ متشابكتان —
+               بنفسجيّةٌ→سماويّةٌ كبيرةٌ، والذهبيّةُ الصغيرةُ تنزلقُ فتستقرُّ في
+               مكانِها ثمّ تلمعُ = «لغزٌ يُحَلّ». -->
+          <svg class="home-ic home-ic--puzzles" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="hpzA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+              <linearGradient id="hpzB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#eda80f"/></linearGradient>
+              <radialGradient id="hpzS" cx="50%" cy="50%" r="50%"><stop offset=".2" stop-color="#fff6cf" stop-opacity=".85"/><stop offset="1" stop-color="#fff6cf" stop-opacity="0"/></radialGradient>
+            </defs>
+            <g transform="translate(-1.4 3.2) scale(0.8)">
+              <path d="M3 4 H9.6 A2.4 2.4 0 0 1 14.4 4 H21 V10.6 A2.4 2.4 0 0 1 21 15.4 V22 H3 V15.4 A2.4 2.4 0 0 0 3 10.6 Z" fill="url(#hpzA)" stroke="#2e1065" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M5.4 19.6 V12.4 A2 2 0 0 0 5.4 8.6 V6.4 H9.2" fill="none" stroke="#f4f0ff" stroke-width="1.25" stroke-linecap="round" opacity=".42"/>
+            </g>
+            <g class="hic-fit">
+              <circle class="hic-snap" cx="18.2" cy="3.8" r="4.6" fill="url(#hpzS)"/>
+              <g transform="translate(14.2 -0.6) scale(0.4)">
+                <path d="M3 4 H9.6 A2.4 2.4 0 0 1 14.4 4 H21 V10.6 A2.4 2.4 0 0 1 21 15.4 V22 H3 V15.4 A2.4 2.4 0 0 0 3 10.6 Z" fill="url(#hpzB)" stroke="#7a4e08" stroke-width="2.6" stroke-linejoin="round"/>
+              </g>
+            </g>
+          </svg>
         </span>
         <span class="home-tile__title">الألغاز</span>
         <span class="home-tile__desc">درّب بصرك على التكتيك</span>
@@ -3272,7 +3409,29 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile home-tile--store" type="button" data-mode="store"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.store()">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--store" aria-hidden="true"></i>
+          <!-- المتجر: واجهةُ دُكّانٍ — مظلّةٌ حمراءُ مُقوَّسةٌ ونوافذُ سماويّةٌ
+               وبابٌ ذهبيّ، ولمعةٌ تمرُّ على الواجهةِ كلَّ حينٍ (بلاغ جوجو ٣). -->
+          <svg class="home-ic home-ic--store" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="hstA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8080"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="#9f1239"/></linearGradient>
+              <linearGradient id="hstF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b5a70"/><stop offset="1" stop-color="#232c3a"/></linearGradient>
+              <linearGradient id="hstD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#eda80f"/></linearGradient>
+              <clipPath id="hstC"><rect x="4" y="8.4" width="16" height="12.2" rx="1.4"/></clipPath>
+            </defs>
+            <rect x="4" y="8.4" width="16" height="12.2" rx="1.4" fill="url(#hstF)" stroke="#161d27" stroke-width=".9"/>
+            <rect x="5.3" y="13.2" width="3.2" height="3.6" rx=".6" fill="#67e8f9" stroke="#0e7490" stroke-width=".7"/>
+            <rect x="15.5" y="13.2" width="3.2" height="3.6" rx=".6" fill="#67e8f9" stroke="#0e7490" stroke-width=".7"/>
+            <rect x="9.4" y="13.2" width="5.2" height="7.4" rx=".7" fill="url(#hstD)" stroke="#7a4e08" stroke-width=".8"/>
+            <circle cx="13.3" cy="16.9" r=".75" fill="#5b3a04"/>
+            <g clip-path="url(#hstC)">
+              <rect class="hic-gleam" x="-2" y="7" width="3.4" height="15" fill="#ffffff" opacity=".4" transform="skewX(-18)"/>
+            </g>
+            <g class="hic-awn">
+              <path d="M2.6 8.8 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 L21.4 4.6 H2.6 Z" fill="url(#hstA)" stroke="#7f1027" stroke-width=".8" stroke-linejoin="round"/>
+              <path d="M2.6 5.6 H21.4" stroke="#fff1f1" stroke-width=".9" opacity=".7"/>
+            </g>
+            <rect x="2.9" y="20.3" width="18.2" height="1.3" rx=".65" fill="#1a212c"/>
+          </svg>
         </span>
         <span class="home-tile__title">المتجر</span>
         <span class="home-tile__desc">إطاراتٌ وشاراتٌ ومؤثّرات</span>
@@ -3283,7 +3442,44 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile home-tile--rewards" type="button" data-mode="rewards"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.REWARDS)REWARDS.open();">
         <span class="home-tile__icon" aria-hidden="true">
-          <i class="ico ico--rewards" aria-hidden="true"></i>
+          <!-- الجوائزُ والمخزون (بلاغ جوجو ٣ + الحركةُ التي طلبَها): صندوقُ كنزٍ
+               خشبيٌّ بأطواقٍ ذهبيّةٍ وقفل — ينفتحُ غطاؤه على مفصلِه الأيسرِ ٣٢°
+               فينكشفُ فمٌ مظلم، ويقفزُ الكنزُ في الرُّبعِ الأيمنِ العُلويِّ الذي
+               يُخليه الغطاءُ بدورانِه، ثمّ يُغلَق — دورةً لا نهائيّة.
+               الصندوقُ مُزاحٌ إلى أسفلَ والغطاءُ أضيقُ من الجسمِ عمدًا: بهذا
+               يتّسعُ الدورانُ داخلَ الـ24 ويبقى للانفجارِ فضاءٌ لا يزاحمُه. -->
+          <svg class="home-ic home-ic--rewards" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="hrwW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1571a"/><stop offset="1" stop-color="#5a2d06"/></linearGradient>
+              <linearGradient id="hrwL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c06f22"/><stop offset="1" stop-color="#7a3f0b"/></linearGradient>
+              <linearGradient id="hrwG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6cf"/><stop offset=".5" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
+              <radialGradient id="hrwR" cx="50%" cy="50%" r="50%"><stop offset=".15" stop-color="#ffe9a8" stop-opacity=".85"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+            </defs>
+            <!-- فمُ الصندوق: يُغطّيه الغطاءُ مغلقًا، ويبينُ هلالًا مظلمًا مفتوحًا -->
+            <ellipse cx="12" cy="13.7" rx="6.8" ry="2.3" fill="#2a1403"/>
+            <g class="hic-lid">
+              <path d="M4.8 14.1 C4.8 9.8 8 8 12 8 C16 8 19.2 9.8 19.2 14.1 Z" fill="url(#hrwL)" stroke="#4a2405" stroke-width=".9" stroke-linejoin="round"/>
+              <path d="M5.3 11.5 C7.2 9.9 9.4 9.1 12 9.1 C14.6 9.1 16.8 9.9 18.7 11.5" fill="none" stroke="url(#hrwG)" stroke-width="1.35"/>
+              <circle cx="12" cy="10.6" r=".9" fill="url(#hrwG)" stroke="#7a4e08" stroke-width=".5"/>
+            </g>
+            <!-- إحداثيّاتُ الكنزِ محسوبةٌ على موضعِه بعدَ الصعودِ (‎-4.2‎) لا موضعِ
+                 سكونِه: فعندَ القمّةِ يقعُ كلُّه خارجَ حرفِ الغطاءِ المائلِ
+                 (المستقيمُ من 4.8,14.1 إلى 17.0,6.5) وداخلَ الـ24 بلا قصّ.
+                 وهو مرسومٌ قبلَ جسمِ الصندوقِ فيبدو صاعدًا من داخلِه فعلًا. -->
+            <g class="hic-loot">
+              <circle cx="18" cy="12.8" r="5.4" fill="url(#hrwR)"/>
+              <path d="M19.8 7.5 l1.3 1.3 -1.3 1.3 -1.3-1.3 Z" fill="#a7f3ff" stroke="#0e7490" stroke-width=".5" stroke-linejoin="round"/>
+              <circle cx="18.6" cy="12.6" r="1.85" fill="url(#hrwG)" stroke="#7a4e08" stroke-width=".62"/>
+              <circle cx="15.2" cy="14.8" r="1.4" fill="url(#hrwG)" stroke="#7a4e08" stroke-width=".58"/>
+            </g>
+            <rect x="3.9" y="13.9" width="16.2" height="7.5" rx="1.4" fill="url(#hrwW)" stroke="#4a2405" stroke-width=".9"/>
+            <rect x="10.2" y="13.9" width="3.6" height="7.5" fill="#c69326" opacity=".5"/>
+            <rect x="3.4" y="13.7" width="17.2" height="1.8" rx=".9" fill="url(#hrwG)" stroke="#7a4e08" stroke-width=".6"/>
+            <rect x="9.9" y="16" width="4.2" height="3.6" rx=".88" fill="url(#hrwG)" stroke="#7a4e08" stroke-width=".7"/>
+            <circle cx="12" cy="17.8" r=".82" fill="#5b3a04"/>
+            <circle cx="5.8" cy="20.9" r="1.7" fill="url(#hrwG)" stroke="#7a4e08" stroke-width=".66"/>
+            <circle cx="8.4" cy="21.7" r="1.25" fill="url(#hrwG)" stroke="#7a4e08" stroke-width=".58"/>
+          </svg>
         </span>
         <span class="home-rw__text">
           <span class="home-tile__title">الجوائز</span>
@@ -3304,7 +3500,35 @@ html.amkh-preboot #amkh-preboot{
     <section class="home-daily" id="home-daily" aria-labelledby="home-daily-title">
       <div class="home-daily__head">
         <span class="home-daily__icon" aria-hidden="true">
-          <svg class="home-daily__gem" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="dcG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="dcT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0f7ff"/><stop offset="1" stop-color="#7dd3fc"/></linearGradient></defs><path d="M12 2 L20.5 8 L12 22 L3.5 8 Z" fill="url(#dcG)" stroke="#1e3a8a" stroke-width=".7" stroke-linejoin="round"/><path d="M12 2 L20.5 8 L16 8 Z" fill="#a5f3fc" opacity=".85"/><path d="M12 2 L3.5 8 L8 8 Z" fill="#67e8f9" opacity=".7"/><path d="M8 8 L16 8 L12 2 Z" fill="url(#dcT)" opacity=".55"/><path d="M3.5 8 H20.5 M8 8 L12 22 M16 8 L12 22 M12 2 V8" fill="none" stroke="#eaf4ff" stroke-width=".7" opacity=".8"/><path d="M18.6 3.4 l.7 1.7 1.7 .7 -1.7 .7 -.7 1.7 -.7-1.7 -1.7-.7 1.7-.7 Z" fill="#fff6cf"/></svg>
+          <!-- أيقونةُ التحدّيات (بلاغ جوجو ٢): الماسةُ ذهبتْ — لا علاقةَ للألماسِ
+               بالتحدّيات. الآن هدفٌ (بُلْزآي) أحمرُ/أبيضُ وسهمٌ فولاذيٌّ بريشٍ
+               أخضرَ يضربُ المركزَ الذهبيّ: رمزٌ عالميٌّ للتحدّي. متحرّكةٌ فعلًا:
+               هالةٌ سماويّةٌ متقطّعةٌ تدور، والسهمُ يضربُ، وموجةُ اصطدامٍ ذهبيّةٌ
+               تتّسعُ وتخبو. بلا أيِّ مربّعٍ أصفرَ ولا إيموجي — SVG مرسومٌ خالص. -->
+          <svg class="home-daily__chal" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="dchR" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9c9c"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="#8f1414"/></linearGradient>
+              <linearGradient id="dchS" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c8797"/><stop offset=".5" stop-color="#e8eef6"/><stop offset="1" stop-color="#5b6675"/></linearGradient>
+              <radialGradient id="dchB" cx="38%" cy="32%" r="72%"><stop offset="0" stop-color="#fff6cf"/><stop offset="1" stop-color="#eda80f"/></radialGradient>
+            </defs>
+            <circle cx="12" cy="12" r="10.7" fill="none" stroke="#22d3ee" stroke-width="1.15" stroke-dasharray="2.6 3.6" stroke-linecap="round" opacity=".9">
+              <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="9s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="12" cy="12" r="8.5" fill="#fdfdff" stroke="url(#dchR)" stroke-width="2.4"/>
+            <circle cx="12" cy="12" r="5.3" fill="none" stroke="url(#dchR)" stroke-width="2.2"/>
+            <circle cx="12" cy="12" r="2.3" fill="url(#dchB)" stroke="#8a5f08" stroke-width=".55"/>
+            <circle cx="12" cy="12" r="2.3" fill="none" stroke="#fde047" stroke-width="1.3" opacity="0">
+              <animate attributeName="r" values="2.3;9.6" dur="2.6s" begin="0.2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".95;0" dur="2.6s" begin="0.2s" repeatCount="indefinite"/>
+            </circle>
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="-2.6 2.6;0 0;0 0;-2.6 2.6" keyTimes="0;0.16;0.84;1" dur="2.6s" repeatCount="indefinite"/>
+              <path d="M2.6 21.4 L11.2 12.8" stroke="url(#dchS)" stroke-width="1.7" stroke-linecap="round" fill="none"/>
+              <path d="M2.6 21.4 L5.6 20.4 L4.6 23.4 Z" fill="#16a34a"/>
+              <path d="M4.4 19.6 L7.2 18.8 L6.2 21.6 Z" fill="#4ade80"/>
+              <path d="M12.8 11.2 L11.66 14.46 L9.54 12.34 Z" fill="#f4f8ff" stroke="#46525f" stroke-width=".45" stroke-linejoin="round"/>
+            </g>
+          </svg>
         </span>
         <span class="home-daily__heading">
           <span class="home-sec__eyebrow">تحديات اليوم</span>
@@ -4333,7 +4557,8 @@ const SFX=(()=>{
     dive:   './dive.mp3',           // صوتُ دوّامةِ الماء لبوّابةِ المحرّك (ملفٌّ حقيقيّ من جوجو)
     storeOpen: './store_open.mp3',  // بوّابةُ المتجر — Magic sparkle whoosh (Mixkit، royalty-free)
     storeBuy:  './store_buy.mp3',   // تأكيدُ الشراء — Magical coin win (Mixkit، royalty-free)
-    rewardsOpen: './rewards_open.mp3' // بوّابةُ الجوائز/المخزون — Magic sweep game trophy (Mixkit، royalty-free)
+    rewardsOpen: './rewards_open.mp3', // بوّابةُ الجوائز/المخزون — Magic sweep game trophy (Mixkit، royalty-free)
+    levelUp: './levelup.mp3'        // نافذةُ الترقّي — Game experience level increased (Mixkit SFX Free License)
   };
   let ctx=null;
   const buffers={};
@@ -4880,6 +5105,33 @@ const SFX=(()=>{
         }
       }catch(e){}
       tones([{f:659.25,t0:0,dur:0.14,type:'sine',vol:0.09},{f:987.77,t0:0.10,dur:0.18,type:'sine',vol:0.09},{f:1318.51,t0:0.22,dur:0.22,type:'triangle',vol:0.08},{f:1760,t0:0.36,dur:0.30,type:'triangle',vol:0.06}]);
+    },
+    /* نافذةُ الترقّي (بلاغُ جوجو ٧: «لم يكن لها صوتٌ خاصّ… ابحثْ في الويبِ
+       واحضرْ مؤثّرًا صوتيًّا — خطوةٌ إجباريّة»).
+       الملفّ: levelup.mp3 = Mixkit «Game experience level increased» (SFX #2062)
+       تحتَ Mixkit Sound Effects Free License: مسموحٌ في المشاريعِ التجاريّةِ
+       وفي الألعابِ بلا نسبةٍ إلزاميّة، والممنوعُ فقط إعادةُ توزيعِ الملفِّ ذاتِه.
+       نضخّمُه قليلًا ليعلوَ على مؤثّراتِ الشاشةِ، وضمانةٌ مُصنَّعةٌ (فانفارٌ صاعدٌ
+       ثلاثيّ) لو لم يُحمَّل بعد. */
+    levelUp(){
+      try{
+        if(!Cfg.data.sound)return;
+        const c=getCtx(); if(c.state==='suspended')c.resume();
+        const buf=_extBuffers.levelUp;
+        if(buf){
+          const src=c.createBufferSource(), g=c.createGain();
+          src.buffer=buf;
+          const now=c.currentTime, v=Math.min(1.0,(Cfg.data.vol/100)*1.9);
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(v, now+0.06);
+          g.gain.setValueAtTime(v, now+2.2);
+          g.gain.exponentialRampToValueAtTime(0.0001, now+3.0);
+          src.connect(g); g.connect(c.destination);
+          src.start(now); src.stop(now+3.1);
+          return;
+        }
+      }catch(e){}
+      tones([{f:523.25,t0:0,dur:0.16,type:'triangle',vol:0.09},{f:659.25,t0:0.12,dur:0.16,type:'triangle',vol:0.09},{f:783.99,t0:0.24,dur:0.20,type:'triangle',vol:0.09},{f:1046.5,t0:0.38,dur:0.42,type:'sine',vol:0.10},{f:1568,t0:0.56,dur:0.42,type:'sine',vol:0.06}]);
     },
     chat()   {
       if(!Cfg.data.sound)return;
@@ -7867,7 +8119,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 65;
+const APP_VERSION_CODE = 66;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -14241,19 +14493,22 @@ const G={
       if(isCheckmate){
         const w=E.opp(S.turn);
         const nm=w==='w'?pbName('nm-w'):pbName('nm-b');
-        /* مؤثّرُ الكشِ مات (بلاغ جوجو #7): يُطلَقُ لحظةَ المات لو أنا مَن
-           سدّدَه — لا على شاشةِ النهاية. أنا الأبيضُ دائمًا ضدّ نور/المحرّك،
-           وفي المباراةِ الحيّةِ لوني S.myCol. وضعُ لاعبَيْن غيرُ مرتبطٍ بحسابٍ
-           فلا مؤثّرَ فيه. */
-        const _iWon=(()=>{
-          const twoPlayer=(S.mode==='local')||(S.myCol==='both');
-          if(twoPlayer)return null;
-          const won=isRemoteMatchMode()?(w===S.myCol):(w==='w');
-          if(won){try{window.amkhCos&&amkhCos.mateFx();}catch(e){}}
-          return won;
-        })();
+        /* مؤثّرُ الكشِ مات (بلاغُ جوجو ١: «مش بيشتغل في أيٍّ من أوضاعِ اللعبةِ
+           ولا وضعَ بيشتغل فيه»). الإصلاح: المؤثّرُ زينةُ **جهازي**، فيعملُ في
+           كلِّ وضعٍ ينتهي بماتٍ على هذا الجهاز — نور والمحرّكُ والأونلاين
+           و**وضعُ لاعبَيْن** (كانَ مستثنًى تمامًا فلا مؤثّرَ فيه أصلًا). في
+           وضعِ لاعبَيْن كِلا الجانبَين أنا، فالماتُ ماتي مهما كانَ لونُ الفائز.
+           ويبقى احتسابُ المهامِّ (_iWon) مستثنًى في وضعِ لاعبَيْن كما كان:
+           لا نخلطُ تقدّمَ الحساباتِ بمباراةٍ على جهازٍ واحد. */
+        const _twoPlayer=(S.mode==='local')||(S.myCol==='both');
+        const _fxMine=_twoPlayer?true:(isRemoteMatchMode()?(w===S.myCol):(w==='w'));
+        let _fxWait=0;
+        if(_fxMine){try{_fxWait=(window.amkhCos&&amkhCos.mateFx&&amkhCos.mateFx())||0;}catch(e){_fxWait=0;}}
+        const _iWon=_twoPlayer?null:(isRemoteMatchMode()?(w===S.myCol):(w==='w'));
         // للمهامّ: نتيجةُ المباراةِ المحليّة (فوزٌ لو أنا الفائزُ بالكش-مات)
         if(_iWon!==null)_rep(_iWon?'win':'loss','checkmate');
+        /* نُمهِلُ ذروةَ المؤثّرِ قبلَ انزلاقِ شاشةِ النهايةِ كي يُرى فعلًا،
+           وبقيّتُه تُكمِلُ فوقَها (طبقةُ المؤثّراتِ أعلى منها أصلًا). */
         setTimeout(()=>{
           if(w==='w'&&S.levelId>=0){
             const stars=LVL.calcStars(S.moveCount,S.levelId);
@@ -14268,7 +14523,7 @@ const G={
               detail:'النقلة الأخيرة أنهت كل خانات الهروب القانونية حول الملك.',
             });
           }
-        },350);
+        },_fxWait?1100:350);
       }else{
         _rep('draw',isThreefold?'threefold':(fiftyMove?'fifty-move':'stalemate'));
         setTimeout(()=>{
@@ -16542,18 +16797,18 @@ window.addEventListener('beforeunload',()=>{
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
-  <script src="friends-client.js?v=20260926-b55"></script>
+  <script src="friends-client.js?v=20260928-b66"></script>
   <script src="chat-client.js?v=20260927-b58"></script>
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260927-b65"></script>
+  <script src="economy-client.js?v=20260928-b66"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260927-b65"></script>
+  <script src="store-client.js?v=20260928-b66"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20260927-b65"></script>
+  <script src="rewards-client.js?v=20260928-b66"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

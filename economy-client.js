@@ -1098,7 +1098,9 @@
       case 'fx_lightning': _flash(layer, 'linear-gradient(180deg,rgba(180,220,255,.5),rgba(120,160,255,.1))'); _burst(layer, [[50, 20, 0]], 14, ['#dff0ff', '#8ab6ff']); break;
       case 'fx_flames': _rise(layer, 26, 'cosfx-flame', null); break;
       case 'fx_supernova': _burst(layer, [[50, 44, 0]], 40, ['#ffffff', '#ffd24a', '#ff8a3a', '#5ad1ff']); _flash(layer, 'radial-gradient(circle at 50% 44%,rgba(255,240,200,.6),transparent 55%)'); break;
-      case 'fx_ink': _burst(layer, [[50, 45, 0]], 16, ['#0a0a12', '#20203a']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(8,8,18,.55),transparent 60%)'); break;
+      /* حبرٌ **مضيء**: نواةٌ بيضاءُ وأطرافٌ نيليّةٌ لامعةٌ + حلقةُ صدمةٍ فاتحة.
+         (كانَ أسودَ على واجهةٍ سوداءَ فلا يُرى — بلاغُ جوجو ١.) */
+      case 'fx_ink': _burst(layer, [[50, 45, 0]], 22, ['#ffffff', '#9ec2ff', '#5a63d8', '#2a2a5e']); _shock(layer, ['#ffffff', '#9ec2ff', '#5a63d8']); _flash(layer, 'radial-gradient(circle at 50% 48%,rgba(255,255,255,.34),rgba(120,140,255,.3) 22%,rgba(14,12,40,.5) 46%,transparent 64%)'); break;
       case 'fx_glitch': _glitch(layer); break;
       case 'fx_frostbreak': _crack(layer, '#bfefff'); _flash(layer, 'radial-gradient(circle at 50% 45%,rgba(180,240,255,.4),transparent 55%)'); break;
       /* ═══ Mythic — احتفالاتٌ ومؤثّراتٌ مِلءَ الشاشةِ الأفخم ═══ */
@@ -1107,7 +1109,9 @@
       case 'cel_phoenix': _creature(layer, _phoenixSVG(), { rise: true, dur: 2.7, glow: 'rgba(255,138,58,.9)' }); _rise(layer, 28, 'cosfx-flame', function () { return ['#ff8a3a', '#ffd27a', '#ff3d00'][Math.floor(Math.random() * 3)]; }); _flash(layer, 'radial-gradient(circle at 50% 72%,rgba(255,138,58,.5),transparent 66%)'); _burst(layer, [[50, 52, 1.1]], 22, ['#ffd27a', '#ff5a1e', '#ffffff']); break;
       case 'cel_goldstorm': _fall(layer, 60, 'cosfx-coin', null, false); _fall(layer, 30, 'cosfx-goldrain', null, false); _flash(layer, 'radial-gradient(circle at 50% 28%,rgba(255,210,74,.42),transparent 62%)'); break;
       case 'fx_dragonfire': _flash(layer, 'radial-gradient(circle at 50% 60%,rgba(255,60,0,.62),rgba(122,21,0,.26),transparent 70%)'); _creature(layer, _dragonSVG(), { dur: 2.4, glow: 'rgba(255,60,0,.92)' }); _rise(layer, 26, 'cosfx-flame', function (i) { return i % 2 ? '#ff3d00' : '#ff8a1e'; }); _crack(layer, '#ff7a2f'); break;
-      case 'fx_blackhole': _vortex(layer, '#c48bff'); _implode(layer, 34, ['#b06bff', '#e0c8ff', '#7a4fd0']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(10,6,24,.72),rgba(122,60,180,.22),transparent 60%)'); break;
+      /* ثقبٌ أسودُ **يُرى**: قرصُ تنامٍ بنفسجيٌّ ساطعٌ وحلقاتُ صدمةٍ وأشعّةٌ حولَ
+         نواةٍ داكنةٍ صغيرةٍ — لا عتمةٌ تغطّي الشاشةَ (بلاغُ جوجو ١). */
+      case 'fx_blackhole': _vortex(layer, '#d8a8ff'); _implode(layer, 40, ['#ffffff', '#e0c8ff', '#b06bff', '#7a4fd0']); _shock(layer, ['#ffffff', '#d8a8ff', '#8f5cff']); _beams(layer, ['#c48bff', '#ffffff', '#8f5cff']); _flash(layer, 'radial-gradient(circle at 50% 50%,rgba(20,6,44,.66) 0,rgba(196,139,255,.5) 26%,rgba(255,255,255,.3) 34%,rgba(122,60,180,.18) 48%,transparent 66%)'); break;
       case 'fx_thunderstrike': _flash(layer, 'linear-gradient(180deg,rgba(220,235,255,.72),rgba(120,140,255,.18))'); _burst(layer, [[50, 18, 0], [50, 18, 0.35], [50, 18, 0.7]], 16, ['#ffffff', '#8fd4ff', '#ffe14a']); _shock(layer, ['#ffffff', '#8fd4ff']); break;
       case 'fx_prismburst': _burst(layer, [[50, 46, 0]], 40, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a', '#ffffff']); _beams(layer, ['#5affc0', '#8fd4ff', '#ff6ad5', '#ffe14a']); _shock(layer, ['#8fd4ff', '#ff6ad5', '#5affc0']); _flash(layer, 'radial-gradient(circle at 50% 46%,rgba(255,255,255,.55),transparent 56%)'); break;
 
@@ -1124,26 +1128,80 @@
       case 'fx_leafstorm': _fall(layer, 46, 'cosfx-leaf', function (i) { return ['#6fcf5a', '#3f8a3a', '#bfe89a'][i % 3]; }, true); _shock(layer, ['#6fcf5a', '#bfe89a']); _flash(layer, 'radial-gradient(circle at 50% 54%,rgba(111,207,90,.26),transparent 62%)'); break;
       case 'fx_venom': _rise(layer, 26, 'cosfx-bubble', function () { return 'radial-gradient(circle at 34% 28%,rgba(224,255,176,.95),rgba(159,255,47,.3) 58%,rgba(159,255,47,0) 72%)'; }); _crack(layer, '#9fff2f'); _flash(layer, 'radial-gradient(circle at 50% 62%,rgba(159,255,47,.32),rgba(37,82,8,.22),transparent 66%)'); break;
       case 'fx_quake': _crack(layer, '#e8c37a'); _shock(layer, ['#e8c37a', '#8a6020']); _fall(layer, 30, 'cosfx-sand', null, true); _flash(layer, 'linear-gradient(180deg,rgba(138,96,32,.28),rgba(232,195,122,.16),transparent 70%)'); break;
-      case 'fx_eclipse': _vortex(layer, '#ffb02f'); _implode(layer, 26, ['#ffb02f', '#fff0b0', '#c9a84c']); _flash(layer, 'radial-gradient(circle at 50% 46%,rgba(10,10,18,.7),rgba(255,176,47,.24),transparent 60%)'); break;
+      /* كسوفٌ: هالةٌ ذهبيّةٌ ساطعةٌ (إكليلٌ) حولَ قرصٍ داكنٍ صغيرٍ + أشعّةٌ
+         وحلقاتٌ — الذهبُ هو البطلُ لا السواد (بلاغُ جوجو ١). */
+      case 'fx_eclipse': _vortex(layer, '#ffd98a'); _implode(layer, 32, ['#ffffff', '#fff0b0', '#ffb02f', '#c9a84c']); _beams(layer, ['#ffd24a', '#fff0b0', '#ffb02f']); _shock(layer, ['#ffffff', '#fff0b0', '#ffb02f']); _flash(layer, 'radial-gradient(circle at 50% 46%,rgba(12,10,20,.6) 0,rgba(255,216,120,.58) 24%,rgba(255,255,255,.34) 32%,rgba(255,176,47,.16) 48%,transparent 66%)'); break;
       case 'fx_solarflare': _beams(layer, ['#ffb02f', '#fff0b0', '#ffd24a']); _burst(layer, [[50, 40, 0], [50, 40, 0.4]], 26, ['#ffffff', '#ffd24a', '#ffb02f']); _shock(layer, ['#fff0b0', '#ffb02f']); _flash(layer, 'radial-gradient(circle at 50% 40%,rgba(255,240,180,.62),rgba(160,58,0,.2),transparent 62%)'); break;
       default: return false;
     }
     return true;
   }
-  var _fxBusy = false;
-  /* مُشغِّلٌ عامٌّ لطبقةِ المؤثّراتِ مِلءَ الشاشة. dur = عمرُ الطبقةِ بالمللي. */
+  /* ══ لونُ هويّةِ كلِّ مؤثّرٍ ══
+     يُستعملُ في «الوضعِ الهادئ» (تقليلُ الحركة) لرسمِ وميضِ لونٍ ثابتٍ مكانَ
+     الجُسيمات: لا حركةَ لكن المؤثّرَ **يُرى** (قبلًا كانَ يُلغى تمامًا). */
+  var _FXTINT = {
+    cel_confetti: '#ff4d6d', cel_petals: '#ff8fb8', cel_coins: '#ffd24a', cel_stars: '#ffd24a',
+    cel_balloons: '#5ad1ff', cel_fireworks: '#ff6ad5', cel_lasers: '#00eaff', cel_meteor: '#8fd4ff',
+    cel_dragon: '#ff5a1e', cel_galaxy: '#b48bff', cel_phoenix: '#ff8a3a', cel_goldstorm: '#ffd24a',
+    cel_ribbons: '#ff4d6d', cel_bubbles: '#5ad1ff', cel_leaves: '#6fcf5a', cel_sparks: '#ffd24a',
+    cel_aurora: '#5affc0', cel_crowns: '#ffd24a', cel_sunburst: '#ffb02f',
+    fx_goldrain: '#ffd24a', fx_seasonal_snow: '#dff2ff', fx_shatter: '#eaf2ff', fx_lightning: '#8ab6ff',
+    fx_flames: '#ff8a1e', fx_supernova: '#ffd24a', fx_ink: '#9ec2ff', fx_glitch: '#00eaff',
+    fx_frostbreak: '#bfefff', fx_dragonfire: '#ff3d00', fx_blackhole: '#c48bff',
+    fx_thunderstrike: '#8fd4ff', fx_prismburst: '#8fd4ff', fx_sandstorm: '#e8c37a',
+    fx_ripple: '#4ad6ff', fx_leafstorm: '#6fcf5a', fx_venom: '#9fff2f', fx_quake: '#e8c37a',
+    fx_eclipse: '#ffb02f', fx_solarflare: '#ffd24a'
+  };
+  /* الوضعُ الهادئ: وميضُ لونٍ + حلقتان ساكنتان (تغيّرُ شفافيّةٍ فقط، بلا حركة). */
+  function _playLite(layer, ids) {
+    var tint = null;
+    for (var i = 0; i < ids.length; i++) { if (ids[i] && _FXTINT[ids[i]]) { tint = _FXTINT[ids[i]]; break; } }
+    if (!tint) return false;
+    layer.classList.add('cos-fx-ov--lite');
+    layer.appendChild(_mk('cosfx-lite__wash', { background: 'radial-gradient(circle at 50% 46%,' + tint + '55,transparent 62%)' }));
+    layer.appendChild(_mk('cosfx-lite__ring', { borderColor: tint, color: tint }));
+    return true;
+  }
+  var _fxBusy = false, _fxQueue = [], _pendingLv = null;
+  /* مُشغِّلٌ عامٌّ لطبقةِ المؤثّراتِ مِلءَ الشاشة. dur = عمرُ الطبقةِ بالمللي.
+     • تقليلُ الحركة: لا نُلغي المؤثّرَ بل نعرضُه هادئًا (بلاغُ جوجو ١: «ولا وضع
+       بيشتغل فيه» — الإلغاءُ التامُّ كانَ أحدَ الأسباب).
+     • ازدحامٌ: نُصَفُّ الطلبَ بدلَ إسقاطِه، فاحتفالُ الفوزِ يأتي بعدَ مؤثّرِ المات. */
   function _playFx(ids, dur) {
     try {
-      if (_fxBusy) return;
       if (!ids || !ids.length) return;
-      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (_fxBusy) {
+        if (_fxQueue.length < 2) _fxQueue.push({ ids: ids, dur: dur });
+        return;
+      }
+      var lite = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
       _fxBusy = true;
       var ov = document.createElement('div'); ov.className = 'cos-fx-ov';
       document.body.appendChild(ov);
-      var any = false; ids.forEach(function (id) { if (id && _playOne(ov, id)) any = true; });
-      if (!any) { ov.remove(); _fxBusy = false; return; }
-      setTimeout(function () { try { ov.remove(); } catch (e) {} _fxBusy = false; }, dur || 4200);
+      var any = false;
+      if (lite) { any = _playLite(ov, ids); }
+      else { ids.forEach(function (id) { if (id && _playOne(ov, id)) any = true; }); }
+      if (!any) { ov.remove(); _fxBusy = false; _drainFx(); return; }
+      setTimeout(function () {
+        try { ov.remove(); } catch (e) {}
+        _fxBusy = false; _drainFx();
+      }, lite ? 1600 : (dur || 4200));
     } catch (e) { _fxBusy = false; }
+  }
+  /* تصريفُ الطابور. نافذةُ الترقّي لها الأولويّةُ المطلقةُ على أيِّ مؤثّرٍ
+     مصفوف: لحظةُ الترقّي أهمُّ من رشّةِ احتفالٍ، ولا يجوزُ أن تُبتلَعَ لأنّ
+     مؤثّرَ الماتِ كانَ شغّالًا (بلاغُ جوجو ٧: «النافذةُ سيّئةٌ» — وأسوأُ منها
+     ألّا تظهرَ أصلًا). */
+  function _drainFx() {
+    if (_fxBusy) return;
+    if (_pendingLv) {
+      var p = _pendingLv; _pendingLv = null;
+      setTimeout(function () { levelUp(p[0], p[1], p[2]); }, 160);
+      return;
+    }
+    if (!_fxQueue.length) return;
+    var n = _fxQueue.shift();
+    setTimeout(function () { _playFx(n.ids, n.dur); }, 120);
   }
   /* احتفالُ الفوزِ (شاشةُ النهاية): مؤثّرُ الاحتفالِ المُجهَّزُ فقط. */
   function celebrate(cos) {
@@ -1153,11 +1211,15 @@
   }
   /* مؤثّرُ الكشِ ماتِ (لحظةَ إنهاءِ المباراةِ بكشِ مات): مؤثّرُ المات المُجهَّزُ
      فقط — يُطلَقُ فورَ المات لا على شاشةِ النهاية (بلاغ جوجو: التأثيرُ لم يعمل).
-     عمرٌ أقصرُ (2.6ث) كي ينتهيَ قبلَ احتفالِ الفوزِ فلا يتصادما على القفل. */
+     يُعيدُ عمرَ المؤثّرِ بالمللي (أو 0 إن لا مؤثّرَ) كي يُؤخّرَ نداءُ اللعبةِ
+     فتحَ شاشةِ النهايةِ فلا تحجبَ المؤثّرَ قبلَ أن يُرى (بلاغ جوجو ١). */
   function mateFx(cos) {
     cos = cos || self();
-    if (!cos || !cos.mate_fx) return;
-    _playFx([cos.mate_fx], 2600);
+    if (!cos || !cos.mate_fx) return 0;
+    var lite = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var dur = lite ? 1600 : 3000;
+    _playFx([cos.mate_fx], dur);
+    return dur;
   }
 
   /* ══ المعاينةُ الموحّدةُ للمتجرِ/المخزونِ (thumb) ══
@@ -1182,20 +1244,31 @@
   }
 
   /* ══ قرصُ العملةِ الموحّد (AK) ══
-     نفسُ عملةِ الرئيسيّةِ بالضبط: طوقٌ داكنٌ + قرصٌ متدرّجٌ + حلقةٌ داخليّةٌ + AK.
-     معرّفُ التدرّجِ فريدٌ لكلِّ نسخةٍ (يظهرُ عشراتٍ في المتجرِ/الجوائزِ معًا)،
-     وبلا SMIL حفاظًا على الأداءِ عندَ تعدّدِ النسخ. يوحّدُ شكلَ العملةِ في كلِّ مكان. */
+     مطابقٌ حرفيًّا لعملةِ الشاشةِ الرئيسيّة (بلاغُ جوجو ٥: «العملةُ في المتجرِ
+     والمخزونِ والجوائزِ والمهامِّ مش بنفسِ الشكلِ الأنيميشن اللامعِ اللي في
+     الرئيسيّة»): طوقٌ داكنٌ + قرصٌ متدرّجٌ + حلقةٌ داخليّةٌ + نقشُ AK + **لمعةٌ
+     تعبرُ القرصَ** داخلَ قناعٍ دائريّ. معرّفا التدرّجِ والقناعِ فريدان لكلِّ
+     نسخةٍ (تظهرُ عشراتٌ معًا فلا تتصادمُ المعرّفات). النبضةُ من CSS على
+     .amkh-coin-svg وتهدأُ مع تقليلِ الحركة. */
   function coin(px) {
-    var u = ++_uid, g = 'ac' + u;
+    var u = ++_uid, g = 'ac' + u, cp = 'acc' + u;
     var sz = px ? (' style="width:' + px + 'px;height:' + px + 'px"') : '';
+    /* نسخٌ تُنشَأُ بعدَ مسحةِ SMIL (بطاقاتُ المتجر/المخزونِ/المهامّ) فتُولَدُ
+       بلا <animate> أصلًا عندَ تقليلِ الحركة — لا لمعةً تفلتُ من القاعدة. */
+    var still = false;
+    try { still = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
     return '<svg class="amkh-coin-svg" viewBox="0 0 40 40"' + sz + ' aria-hidden="true">'
       + '<defs><radialGradient id="' + g + '" cx="38%" cy="30%" r="75%">'
       + '<stop offset="0" stop-color="#fff6cf"/><stop offset=".48" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/>'
-      + '</radialGradient></defs>'
+      + '</radialGradient>'
+      + '<clipPath id="' + cp + '"><circle cx="20" cy="20" r="17"/></clipPath></defs>'
       + '<circle cx="20" cy="20" r="18.5" fill="#7f5307"/>'
       + '<circle cx="20" cy="20" r="17" fill="url(#' + g + ')"/>'
       + '<circle cx="20" cy="20" r="14" fill="none" stroke="#fff2c0" stroke-width="1" opacity=".55"/>'
       + '<text x="20" y="20.5" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="13" letter-spacing="-.6" fill="#7a4e08">AK</text>'
+      + (still ? '' : '<g clip-path="url(#' + cp + ')">'
+        + '<rect x="-16" y="-8" width="8" height="56" fill="#fffdf2" opacity=".5" transform="rotate(20 20 20)">'
+        + '<animate attributeName="x" values="-16;46" dur="2.8s" repeatCount="indefinite"/></rect></g>')
       + '</svg>';
   }
 
@@ -1243,43 +1316,118 @@
           + '<circle cx="12" cy="12" r="3.2" fill="#0b0616"/>'
           + '<path d="M13 4 L11 11 L15 11 L10 20 L12 13 L8 13 Z" fill="#fde047" stroke="#b45309" stroke-width=".5" stroke-linejoin="round"/>';
         break;
+      /* «الكلّ» — أربعُ مربّعاتٍ بأربعةِ ألوانِ الفئاتِ (زرُّ التصنيفِ الأوّل) */
+      case 'all':
+        s += '<rect x="3.2" y="3.2" width="7.6" height="7.6" rx="2" fill="#f5c451" stroke="#8a5f08" stroke-width=".8"/>'
+          + '<rect x="13.2" y="3.2" width="7.6" height="7.6" rx="2" fill="#6366f1" stroke="#312e81" stroke-width=".8"/>'
+          + '<rect x="3.2" y="13.2" width="7.6" height="7.6" rx="2" fill="#3b82f6" stroke="#1e3a8a" stroke-width=".8"/>'
+          + '<rect x="13.2" y="13.2" width="7.6" height="7.6" rx="2" fill="#f97316" stroke="#9a3412" stroke-width=".8"/>'
+          + '<circle cx="7" cy="7" r="1.5" fill="#fff6cf" opacity=".85"/><circle cx="17" cy="17" r="1.5" fill="#ffe0bd" opacity=".8"/>';
+        break;
       default:
         s += '<circle cx="12" cy="12" r="8" fill="#64748b"/>';
     }
     return s + '</svg>';
   }
 
-  /* ══ احتفالُ الترقّي ══
-     يُستدعى من rewards-client عندَ ارتفاعِ المستوى (نصّان مترجمان يأتيان جاهزَين
-     فتبقى هذه الوحدةُ خاليةً من اللغة). ملءُ الشاشةِ بذوقِ جوجو، محترمٌ لتقليلِ الحركة. */
+  /* ══ احتفالُ الترقّي — إعادةُ صناعةٍ كاملة (بلاغُ جوجو ٧) ══
+     كانَ «سيّئًا جدًّا» وبلا صوت. الآن: خلفيّةٌ معتمةٌ تُبرِزُ البطاقةَ، مروحةُ
+     أشعّةٍ دوّارةٌ، إكليلُ غارٍ مرسومٌ حولَ وسامٍ مُذهَّبٍ بحلقةِ أسنانٍ ونواةٍ
+     داكنةٍ ورقمِ المستوى، ثمّ شريطُ خبرةٍ يمتلئُ، ولمعةٌ تعبرُ البطاقة — ومعَها
+     **مؤثّرٌ صوتيٌّ حقيقيٌّ** (levelup.mp3، رخصةُ Mixkit المجانيّةِ للمؤثّرات).
+     النصّان يأتيان مترجمَين من rewards-client فتبقى الوحدةُ خاليةً من اللغة. */
   function levelUp(level, title, sub) {
     try {
-      if (_fxBusy) return;
+      if (_fxBusy) { _pendingLv = [level, title, sub]; return; }
       var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
       _fxBusy = true;
+      try { if (window.SFX && typeof SFX.levelUp === 'function') SFX.levelUp(); } catch (e) {}
       var ov = document.createElement('div'); ov.className = 'cos-fx-ov cos-fx-ov--keep';
       document.body.appendChild(ov);
+      ov.appendChild(_mk('cos-lvbd', {}));
       if (!reduce) {
-        _flash(ov, 'radial-gradient(circle at 50% 46%,rgba(255,210,74,.5),transparent 60%)');
-        _burst(ov, [[50, 46, 0], [32, 40, 0.25], [68, 42, 0.5]], 22, ['#ffd24a', '#fff2b0', '#ffae3a', '#ffffff']);
-        _fall(ov, 26, 'cosfx-star', function (i) { return i % 2 ? '#fff2b0' : '#ffd24a'; }, true);
+        _flash(ov, 'radial-gradient(circle at 50% 44%,rgba(255,210,74,.46),rgba(255,138,26,.14),transparent 62%)');
+        _burst(ov, [[50, 44, 0], [30, 38, 0.28], [70, 40, 0.54]], 20, ['#ffd24a', '#fff2b0', '#ffae3a', '#ffffff']);
+        _fall(ov, 24, 'cosfx-star', function (i) { return i % 2 ? '#fff2b0' : '#ffd24a'; }, true);
+        _rise(ov, 14, 'cosfx-goldrain', null);
       }
-      var lg = 'lug' + (++_uid);
+      var u = ++_uid, gR = 'lvr' + u, gI = 'lvi' + u, gL = 'lvl' + u, gH = 'lvh' + u;
+      /* حلقةُ أسنانٍ دقيقةٍ داخلَ الطوقِ الذهبيّ */
+      var ticks = '';
+      for (var t = 0; t < 24; t++) {
+        ticks += '<rect x="69.1" y="27" width="1.8" height="' + (t % 2 ? 4 : 6.5) + '" rx=".9" fill="#ffe7a8" opacity="'
+          + (t % 2 ? '.3' : '.62') + '" transform="rotate(' + (t * 15) + ' 70 70)"/>';
+      }
+      /* مروحةُ أشعّةٍ (١٢ مثلّثًا) تدورُ ببطءٍ خلفَ الوسام */
+      var rays = '';
+      for (var r = 0; r < 12; r++) {
+        rays += '<path d="M70 70 L63 4 L77 4 Z" fill="#ffd24a" opacity="' + (r % 2 ? '.12' : '.2') + '" transform="rotate(' + (r * 30) + ' 70 70)"/>';
+      }
+      /* إكليلُ غارٍ: ستُّ ورقاتٍ يمينًا وستٌّ يسارًا حولَ الوسام */
+      var leaf = function (a) {
+        return '<g transform="rotate(' + a + ' 70 70)"><ellipse cx="70" cy="12" rx="4.4" ry="9.2" fill="url(#' + gL
+          + ')" transform="rotate(-20 70 12)"/><path d="M70 21 C70 17 70 14 70 11" stroke="#8a6a12" stroke-width="1" fill="none" opacity=".7"/></g>';
+      };
+      var wreath = '';
+      for (var k = 0; k < 6; k++) { wreath += leaf(196 + k * 12) + leaf(164 - k * 12); }
+
       var card = document.createElement('div');
       card.className = 'cos-levelup' + (reduce ? ' cos-levelup--still' : '');
       card.innerHTML =
-        '<span class="cos-levelup__ring"><svg viewBox="0 0 120 120">'
-        + '<defs><linearGradient id="' + lg + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="1" stop-color="#e8a41e"/></linearGradient></defs>'
-        + '<circle cx="60" cy="60" r="52" fill="none" stroke="#7a5207" stroke-width="9"/>'
-        + '<circle cx="60" cy="60" r="52" fill="none" stroke="url(#' + lg + ')" stroke-width="6"/>'
-        + '<text x="60" y="63" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="46" fill="#ffe08a">' + (Number(level) || 1) + '</text>'
+        '<span class="cos-levelup__art"><svg viewBox="0 0 140 140" aria-hidden="true">'
+        + '<defs>'
+        + '<linearGradient id="' + gR + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6d0"/><stop offset=".45" stop-color="#f0bb3c"/><stop offset="1" stop-color="#a5720c"/></linearGradient>'
+        + '<radialGradient id="' + gI + '" cx="50%" cy="34%" r="72%"><stop offset="0" stop-color="#3a2a55"/><stop offset="1" stop-color="#140b26"/></radialGradient>'
+        + '<linearGradient id="' + gL + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#c08f18"/></linearGradient>'
+        + '<radialGradient id="' + gH + '" cx="50%" cy="50%" r="50%"><stop offset=".55" stop-color="#ffd24a" stop-opacity=".45"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>'
+        + '</defs>'
+        + '<g class="cos-lv__rays">' + rays + '</g>'
+        + '<circle cx="70" cy="70" r="62" fill="url(#' + gH + ')"/>'
+        + wreath
+        + '<circle cx="70" cy="70" r="48" fill="none" stroke="#6d4705" stroke-width="10"/>'
+        + '<circle cx="70" cy="70" r="48" fill="none" stroke="url(#' + gR + ')" stroke-width="5.5"/>'
+        + '<circle cx="70" cy="70" r="43" fill="none" stroke="#2a1b0a" stroke-width="2" opacity=".65"/>'
+        + '<circle cx="70" cy="70" r="36" fill="url(#' + gI + ')"/>'
+        + ticks
+        + '<text x="70" y="57" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="12" letter-spacing="3" fill="#e0b85a">LV</text>'
+        + '<text x="70" y="82" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="36" fill="#ffe8a0">' + (Number(level) || 1) + '</text>'
+        + '<path d="M70 96 l2.4 5 5.6 .8 -4 4 1 5.6 -5-2.7 -5 2.7 1-5.6 -4-4 5.6-.8 Z" fill="#ffd24a" opacity=".9"/>'
         + '</svg></span>'
         + '<span class="cos-levelup__ttl">' + (title || '') + '</span>'
-        + '<span class="cos-levelup__sub">' + (sub || '') + '</span>';
+        + '<span class="cos-levelup__bar"><i></i></span>'
+        + '<span class="cos-levelup__sub">' + (sub || '') + '</span>'
+        + '<span class="cos-levelup__sheen"></span>';
       ov.appendChild(card);
-      setTimeout(function () { try { ov.remove(); } catch (e) {} _fxBusy = false; }, reduce ? 2200 : 3600);
+      setTimeout(function () { try { ov.remove(); } catch (e) {} _fxBusy = false; _drainFx(); }, reduce ? 2400 : 4000);
     } catch (e) { _fxBusy = false; }
   }
+
+  /* ══ إسكاتُ SMIL عندَ تقليلِ الحركة ══
+     الأيقوناتُ الجديدةُ في الرئيسيّةِ تتحرّكُ بـCSS فتُوقفُها قاعدةُ
+     prefers-reduced-motion. أمّا ما بقيَ من <animate> (أيقونةُ التحدّياتِ ولمعةُ
+     العملةِ الثابتة) فلا يستجيبُ لـCSS إطلاقًا — يُوقَفُ برمجيًّا فقط. نقصرُ
+     المسحَ على الشاشةِ الرئيسيّةِ لتبقى رخيصةً، ونعيدُها إن رفعَ المستخدمُ
+     الإعدادَ من دونِ إعادةِ تحميل. */
+  function _smilSweep() {
+    try {
+      var mq = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)');
+      var on = !!(mq && mq.matches);
+      var nodes = document.querySelectorAll('#home-econ svg, .home-daily__chal, .amkh-coin-svg');
+      Array.prototype.forEach.call(nodes, function (s) {
+        try { if (on) s.pauseAnimations(); else s.unpauseAnimations(); } catch (e) {}
+      });
+    } catch (e) {}
+  }
+  try {
+    var _mqRM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)');
+    if (_mqRM) {
+      var _onRM = function () { _smilSweep(); setTimeout(_smilSweep, 600); };
+      if (_mqRM.addEventListener) _mqRM.addEventListener('change', _onRM);
+      else if (_mqRM.addListener) _mqRM.addListener(_onRM);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(_smilSweep, 120); });
+    else setTimeout(_smilSweep, 120);
+  } catch (e) {}
 
   window.amkhCos = {
     frameHTML: frameHTML,
@@ -1297,6 +1445,7 @@
     coin: coin,
     catIcon: catIcon,
     levelUp: levelUp,
+    smilSweep: _smilSweep,
     FRAME: FRAME, BADGE: BADGE, BG: BG,
   };
 })();

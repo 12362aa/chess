@@ -253,25 +253,27 @@
   flex-wrap: wrap;
 }
 .home-econ[hidden]{ display: none; }
+/* بلاغُ جوجو ٦: «المربّعُ/المستطيلُ الأصفرُ خلفَ العملةِ مخلّي شكلَها مش كويس —
+   شيلْه وخلّي العملةَ تظهرَ خامًا وجنبَها الرقم». فأزلنا الإطارَ والخلفيّةَ
+   والحشوةَ تمامًا: قرصٌ عارٍ + رقمُه، والزرُّ يبقى قابلًا للنقرِ بمساحةٍ كافية. */
 .home-econ__coins{
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 4px 12px 4px 5px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(240,185,60,.45);
-  background: linear-gradient(135deg, rgba(255,214,102,.16), rgba(214,158,46,.10));
   cursor: pointer;
   font-family: var(--font-family-base);
-  transition: transform var(--duration-fast) var(--easing-standard),
-              box-shadow var(--duration-fast) var(--easing-standard);
+  transition: transform var(--duration-fast) var(--easing-standard);
 }
-.home-econ__coins:hover{ transform: translateY(-1px); box-shadow: 0 4px 14px rgba(214,158,46,.28); }
+.home-econ__coins:hover{ transform: translateY(-1px); }
 .home-econ__coins:active{ transform: scale(.97); }
 /* عملة Am-Kh: قرصٌ ذهبيٌّ مرسومٌ بـSVG (نقش AK + لمعةٌ تعبر) — لا مربّعَ أصفر */
 .home-econ__coin-ic.amkh-coin{
-  width: 24px; height: 24px; flex-shrink: 0;
-  filter: drop-shadow(0 1px 3px rgba(160,110,20,.5));
+  width: 26px; height: 26px; flex-shrink: 0;
+  filter: drop-shadow(0 1px 4px rgba(160,110,20,.55));
   animation: amkhCoinPulse 3.4s ease-in-out infinite;
 }
 .home-econ__coin-ic.amkh-coin svg{ width: 100%; height: 100%; display: block; }
@@ -281,6 +283,7 @@
   font-weight: var(--font-weight-bold);
   color: #f2c65a;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(0,0,0,.45);
 }
 /* المستوى: زرٌّ يفتحُ الجوائزَ (حيثُ المهامُّ) فيَعرفُ اللاعبُ كيف يرتقي */
 .home-econ__level{
@@ -471,6 +474,9 @@
   flex-shrink: 0;
 }.home-hero__icon svg,
 .home-hero__icon .ico{ width: 26px; height: 26px; }
+/* الأيقونةُ المرسومةُ الملوّنةُ (SVG داخليّ) تحتاجُ مقاسًا أكبرَ قليلًا من
+   القناعِ أحاديِّ اللون، مع ظلٍّ يفصلُها عن خلفيّةِ البطاقة. */
+.home-hero__icon svg.home-ic{ width: 31px; height: 31px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
 .home-hero__heading{
   display: flex;
   flex-direction: column;
@@ -578,6 +584,12 @@
   flex-shrink: 0;
 }.home-tile__icon svg,
 .home-tile__icon .ico{ width: 22px; height: 22px; }
+/* الأيقوناتُ الملوّنةُ المرسومةُ (الألغاز/المتجر/الجوائز — بلاغُ جوجو ٣) تحتاجُ
+   مساحةً أوسعَ من القناعِ أُحاديِّ اللونِ كي تُقرأَ تفاصيلُها، ولها ظلٌّ خفيف. */
+.home-tile__icon svg.home-ic{
+  width: 28px; height: 28px;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.42));
+}
 .home-tile:hover .home-tile__icon{
   background: var(--color-primary-subtle);
   border-color: var(--color-primary-border);
@@ -648,15 +660,135 @@
   border-color: var(--color-primary-border);
 }
 .home-tile--rewards .home-tile__icon{
-  width: 44px; height: 44px;
+  width: 46px; height: 46px;
   background: var(--color-primary-subtle);
   border-color: var(--color-primary-border);
   color: var(--color-primary-text);
 }
+.home-tile--rewards .home-tile__icon svg.home-ic{ width: 32px; height: 32px; }
 .home-tile--rewards .home-tile__title{ margin-top: 0; }
 .home-rw__text{ display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .home-rw__chev{ width: 20px; height: 20px; color: var(--color-text-disabled); flex-shrink: 0; }
 [dir="rtl"] .home-rw__chev{ transform: scaleX(-1); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   حياةُ أيقوناتِ الشاشةِ الرئيسيّةِ المرسومة (طلبُ جوجو)
+   ──────────────────────────────────────────────────────────────────────
+   كلُّ الحركةِ هنا بـCSS على مجموعاتِ SVG — لا SMIL — لسببَين:
+     ١) يمكنُ إيقافُها كلَّها بسطرٍ واحدٍ عندَ prefers-reduced-motion
+        (موفّرُ البطّاريّةِ على أندرويد يُفعّلُه)، وSMIL لا يُوقَفُ بـCSS.
+     ٢) تُنفَّذُ على خيطِ المُركِّبِ فلا تُثقِلُ الشاشةَ الرئيسيّة.
+   والأيقوناتُ نفسُها مرسومةٌ بتدرّجاتِها داخلَ SVG (لا أقنعةُ currentColor)
+   فتظهرُ بنفسِ الشكلِ في كلِّ السماتِ — الزجاجيّةِ وغيرِها — بلا استثناء.
+   transform-box:fill-box يجعلُ transform-origin نسبيًّا لصندوقِ العنصرِ
+   نفسِه فينبضُ حولَ مركزِه لا حولَ ركنِ الـviewBox.
+══════════════════════════════════════════════════════════════════════ */
+.home-ic [class^="hic-"]{ will-change: transform, opacity; }
+
+/* مراحلُ نور: النجمةُ تتلألأُ والهالةُ تتنفّس */
+.home-ic--levels .hic-star{
+  transform-box: fill-box; transform-origin: 50% 58%;
+  animation: hicStar 3.6s ease-in-out infinite;
+}
+.home-ic--levels .hic-halo{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicHalo 3.6s ease-in-out infinite;
+}
+@keyframes hicStar{ 0%,100%{ transform: scale(1) rotate(0deg); } 46%{ transform: scale(1.14) rotate(9deg); } }
+@keyframes hicHalo{ 0%,100%{ opacity:.55; transform: scale(.9); } 46%{ opacity:1; transform: scale(1.12); } }
+
+/* المحرّك: نواةُ الرقاقةِ تتوهّجُ نبضًا كأنّها «تفكّر» */
+.home-ic--engine .hic-core{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicCore 2.1s ease-in-out infinite;
+}
+@keyframes hicCore{ 0%,100%{ opacity:.45; transform: scale(.82); } 50%{ opacity:1; transform: scale(1.06); } }
+
+/* أونلاين: الكرةُ تدورُ دورةً لا نهائيّةً بلا قطع — الإزاحةُ بعرضِ نسخةٍ
+   كاملةٍ من القارّات (١٧ وحدةً) فتعودُ النسخةُ الثانيةُ مكانَ الأولى تمامًا */
+.home-ic--online .hic-globe{
+  transform-box: view-box;
+  animation: hicGlobe 9s linear infinite;
+}
+@keyframes hicGlobe{ from{ transform: translateX(0); } to{ transform: translateX(-17px); } }
+.home-ic--online .hic-ping{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicPing 2.6s ease-out infinite;
+}
+@keyframes hicPing{ 0%{ opacity:.75; transform: scale(.92); } 70%,100%{ opacity:0; transform: scale(1.22); } }
+
+/* بلوتوث: قوسانِ يتلاحقانِ = التماسُ جهازٍ قريب */
+.home-ic--bt .hic-wv{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicWave 1.9s ease-in-out infinite;
+}
+.home-ic--bt .hic-wv--b{ animation-delay: .32s; }
+@keyframes hicWave{ 0%,100%{ opacity:.25; transform: scale(.86); } 50%{ opacity:1; transform: scale(1.06); } }
+
+/* الألغاز: القطعةُ الذهبيّةُ تنزلقُ فتستقرُّ في مكانِها ثمّ تلمعُ = لغزٌ يُحَلّ */
+.home-ic--puzzles .hic-fit{
+  transform-box: view-box;
+  animation: hicFit 4.4s cubic-bezier(.34,1.56,.64,1) infinite;
+}
+@keyframes hicFit{
+  0%,8%{ transform: translate(3.6px,-3px); opacity:.35; }
+  34%,78%{ transform: none; opacity:1; }
+  94%,100%{ transform: translate(3.6px,-3px); opacity:.35; }
+}
+.home-ic--puzzles .hic-snap{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicSnap 4.4s ease-out infinite;
+}
+@keyframes hicSnap{ 0%,30%{ opacity:0; transform: scale(.4); } 40%{ opacity:.9; transform: scale(1); } 60%,100%{ opacity:0; transform: scale(1.5); } }
+
+/* المتجر: لمعةٌ تمرُّ على الواجهةِ والمظلّةُ ترفرفُ رفرفةً خفيفة */
+.home-ic--store .hic-gleam{
+  transform-box: view-box;
+  animation: hicGleam 5.2s ease-in-out infinite;
+}
+@keyframes hicGleam{ 0%,58%{ transform: skewX(-18deg) translateX(0); } 88%,100%{ transform: skewX(-18deg) translateX(26px); } }
+.home-ic--store .hic-awn{
+  transform-box: fill-box; transform-origin: 50% 0;
+  animation: hicAwn 4.6s ease-in-out infinite;
+}
+@keyframes hicAwn{ 0%,100%{ transform: scaleY(1); } 50%{ transform: scaleY(1.06); } }
+
+/* الجوائز/المخزون: الصندوقُ ينفتحُ فيقفزُ الكنزُ ثمّ يُغلَق (اقتراحُ جوجو).
+   المفصلُ في الحافّةِ السفليّةِ اليسرى للغطاء (4.8,14.1) والدورانُ ٣٢° — بهذا
+   ينزاحُ الغطاءُ إلى أعلى اليسارِ ويُخلي الرُّبعَ الأيمنَ العُلويَّ، فيقفزُ فيه
+   الكنزُ بعيدًا عن الغطاءِ فلا يبدو ملتصقًا به ولا محشورًا تحتَه. والكنزُ
+   مرسومٌ قبلَ جسمِ الصندوقِ فيبدو صاعدًا من داخلِه، وله ظلٌّ يفصلُه بصريًّا.
+   (scaleY السالبُ كان يدفنُ الغطاءَ خلفَ الجسمِ فيختفي تمامًا.) */
+.home-ic--rewards .hic-lid{
+  transform-box: view-box; transform-origin: 4.8px 14.1px;
+  animation: hicLid 4.8s ease-in-out infinite;
+}
+@keyframes hicLid{
+  0%,14%{ transform: rotate(0deg) translateY(0); }
+  32%,70%{ transform: rotate(-32deg) translateY(-.4px); }
+  88%,100%{ transform: rotate(0deg) translateY(0); }
+}
+.home-ic--rewards .hic-loot{ filter: drop-shadow(0 .5px 1.1px rgba(20,8,0,.7)); }
+.home-ic--rewards .hic-loot{
+  transform-box: view-box;
+  animation: hicLoot 4.8s cubic-bezier(.2,.9,.3,1) infinite;
+}
+@keyframes hicLoot{
+  0%,18%{ transform: translateY(5px) scale(.45); opacity:0; }
+  40%{ transform: translateY(-3.2px) scale(1); opacity:1; }
+  66%{ transform: translateY(-4.2px) scale(1); opacity:1; }
+  82%,100%{ transform: translateY(4px) scale(.5); opacity:0; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .home-ic [class^="hic-"]{ animation: none !important; }
+  /* الحالةُ الساكنةُ تبقى مفهومةً: الغطاءُ مغلقٌ والكنزُ مخفيٌّ والقطعةُ
+     في مكانِها والهالاتُ الثانويّةُ تُطفَأُ بلا تشويه. */
+  .home-ic--rewards .hic-loot,
+  .home-ic--online .hic-ping,
+  .home-ic--puzzles .hic-snap,
+  .home-ic--store .hic-gleam{ display: none; }
+}
 
 .home-foot{
   margin-top: auto;
@@ -736,23 +868,31 @@
   align-items: center;
   gap: var(--space-3);
 }
+/* بلاغُ جوجو ٢: «عليها مربّعٌ أصفرُ جايف مش ماشي معاها» — أزلنا المربّعَ
+   (الخلفيّةَ والإطارَ) فالأيقونةُ الملوّنةُ تسبحُ حرّةً وتكبر. الحالةُ «مكتملة»
+   صارتْ هالةً خضراءَ لا مربّعًا. */
 .home-daily__icon{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--radius-md);
-  background: var(--color-primary-subtle);
-  border: 1px solid var(--color-primary-border);
+  background: none;
+  border: 0;
   color: var(--color-primary-text);
   flex-shrink: 0;
 }.home-daily__icon svg,
 .home-daily__icon .ico{ width: 20px; height: 20px; }
+.home-daily__icon svg.home-daily__chal{
+  width: 40px; height: 40px;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,.45));
+}
 .home-daily[data-done="1"] .home-daily__icon{
-  background: var(--color-success-subtle);
-  border-color: var(--color-success);
+  background: none;
+  border: 0;
   color: var(--color-success);
+  filter: drop-shadow(0 0 7px rgba(34,197,94,.55));
 }
 .home-daily__heading{
   display: flex;
@@ -1160,9 +1300,13 @@
   .home-hero__title{ font-size: 26px; }
   .home-hero__icon{ width: 52px; height: 52px; }.home-hero__icon svg,
 .home-hero__icon .ico{ width: 28px; height: 28px; }
+  .home-hero__icon svg.home-ic{ width: 34px; height: 34px; }
   .home-tile{ min-height: 152px; padding: var(--space-4); }
   .home-tile__icon{ width: 44px; height: 44px; }.home-tile__icon svg,
 .home-tile__icon .ico{ width: 24px; height: 24px; }
+  .home-tile__icon svg.home-ic{ width: 32px; height: 32px; }
+  .home-tile--rewards .home-tile__icon{ width: 50px; height: 50px; }
+  .home-tile--rewards .home-tile__icon svg.home-ic{ width: 36px; height: 36px; }
   .home-id{ max-width: 340px; }
   /* الفوتر بيمشي مع الكتلة المتمركزة بدل ما يتسمّر تحت */
   .home-foot{ margin-top: var(--space-2); }
@@ -1182,6 +1326,14 @@
     padding: var(--space-6);
   }
   .home-tile{ min-height: 168px; }
+  /* الكمبيوتر/التابلت العرضيّ: البطاقاتُ أطولُ فالأيقونةُ المرسومةُ تتّسعُ
+     معها حتّى لا تبدوَ تائهةً في مساحةٍ فارغة. */
+  .home-hero__icon{ width: 56px; height: 56px; }
+  .home-hero__icon svg.home-ic{ width: 37px; height: 37px; }
+  .home-tile__icon{ width: 48px; height: 48px; }
+  .home-tile__icon svg.home-ic{ width: 35px; height: 35px; }
+  .home-tile--rewards .home-tile__icon{ width: 54px; height: 54px; }
+  .home-tile--rewards .home-tile__icon svg.home-ic{ width: 39px; height: 39px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1194,10 +1346,16 @@
   .home-hero__title{ font-size: 19px; }
   .home-hero__icon{ width: 38px; height: 38px; }.home-hero__icon svg,
 .home-hero__icon .ico{ width: 21px; height: 21px; }
+  .home-hero__icon svg.home-ic{ width: 25px; height: 25px; }
   .home-hero__cta{ padding: var(--space-2) var(--space-3); }
   .home-tile{ min-height: 112px; padding: var(--space-2) var(--space-3); }
   .home-tile__icon{ width: 32px; height: 32px; }.home-tile__icon svg,
 .home-tile__icon .ico{ width: 18px; height: 18px; }
+  .home-tile__icon svg.home-ic{ width: 24px; height: 24px; }
+  /* بطاقةُ الجوائزِ لها مقاسٌ أكبرُ في الأساسِ فلا يرثُ الضغطَ تلقائيًّا —
+     تُضغَطُ صراحةً وإلّا بدت أيقونتُها عملاقةً بجانبِ أخواتِها. */
+  .home-tile--rewards .home-tile__icon{ width: 36px; height: 36px; }
+  .home-tile--rewards .home-tile__icon svg.home-ic{ width: 27px; height: 27px; }
   .home-id{ padding: var(--space-1) var(--space-2); }
   .home-id__av{ width: 38px; height: 38px; }
   .home-foot{ display: none; }
@@ -7914,14 +8072,17 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:12px 16px; }
 .store-balance{ display:flex; align-items:center; gap:8px; font-size:20px; font-weight:800; color:var(--gold2); }
 /* قرصُ العملةِ الموحّد: الحاوياتُ تُحجَّمُ فقط، والشكلُ يأتي من SVG المشتركِ
-   (amkhCos.coin) المطابقِ لعملةِ الرئيسيّةِ تمامًا. الخلفيّةُ المتدرّجةُ تبقى
-   احتياطًا لو غابت الوحدةُ فلا يظهرُ قرصٌ فارغ. لا نصَّ AK زائفٌ (SVG يحملُه). */
+   (amkhCos.coin) المطابقِ لعملةِ الرئيسيّةِ تمامًا — بنفسِ اللمعانِ المتحرّكِ
+   (بلاغُ جوجو ٥). الخلفيّةُ المتدرّجةُ تبقى احتياطًا لو غابت الوحدةُ فلا يظهرُ
+   قرصٌ فارغ. لا نصَّ AK زائفٌ (SVG يحملُه). المقاساتُ رُفعت قليلًا كي يُقرأَ
+   اللمعانُ ونقشُ AK ولا يبدوَ القرصُ نقطةً باهتة. */
 .store-balance__coin,.store-buy__coin,.rw-reward__coin{ position:relative; border-radius:50%; flex:0 0 auto; overflow:hidden;
-  width:18px; height:18px;
+  width:24px; height:24px;
   background:radial-gradient(circle at 38% 30%,#fff6cf,#f5c451 48%,#b9800f);
-  box-shadow:0 0 8px rgba(245,196,81,.5); }
+  box-shadow:0 0 9px rgba(245,196,81,.5); }
 .amkh-coin-svg{ width:100%; height:100%; display:block; }
-.store-buy__coin{ width:14px; height:14px; }
+.store-buy__coin{ width:17px; height:17px; box-shadow:0 0 7px rgba(245,196,81,.45); }
+.rw-reward__coin{ width:18px; height:18px; box-shadow:0 0 7px rgba(245,196,81,.45); }
 .store-timer{ text-align:center; display:flex; flex-direction:column; gap:2px; }
 .store-timer__lbl{ font-size:10px; letter-spacing:.14em; color:rgba(255,255,255,.55); }
 .store-timer__val{ font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:#fff; }
@@ -7990,13 +8151,25 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   border-color:transparent; box-shadow:0 3px 12px rgba(90,160,245,.45); }
 .store-card.is-owned{ opacity:.92; }
 
-/* ══ إعادة صناعة المتجر: رقاقاتُ التصفية + بطاقاتٌ قابلةٌ للنقر + بطاقةُ تفاصيل ══ */
-.store-filters{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; justify-content:center; }
-.store-chip{ border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05); color:rgba(255,255,255,.8);
-  padding:7px 15px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
-  transition:background .18s ease, color .18s ease, border-color .18s ease; }
+/* ══ إعادة صناعة المتجر: أزرارُ التصنيف + بطاقاتٌ قابلةٌ للنقر + بطاقةُ تفاصيل ══ */
+.store-filters{ display:flex; flex-wrap:nowrap; gap:8px; margin:0 0 18px; padding:2px 2px 8px;
+  justify-content:flex-start; overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity; }
+.store-filters::-webkit-scrollbar{ display:none; }
+@media (min-width:640px){ .store-filters{ flex-wrap:wrap; justify-content:center; overflow:visible; } }
+/* زرُّ التصنيف: أيقونةٌ ملوّنةٌ + اسمٌ (بلاغُ جوجو ٤: لا اسمَ خامًّا) */
+.store-chip{ display:inline-flex; align-items:center; gap:7px; scroll-snap-align:center;
+  border:1px solid rgba(255,255,255,.16); background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  color:rgba(255,255,255,.86);
+  padding:7px 14px 7px 9px; border-radius:999px; font-size:13px; font-weight:800; cursor:pointer; white-space:nowrap;
+  transition:background .18s ease, color .18s ease, border-color .18s ease, transform .14s ease, box-shadow .2s ease; }
+.store-chip:active{ transform:scale(.95); }
+@media (hover:hover){ .store-chip:hover{ border-color:rgba(245,196,81,.5); background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.05)); } }
+.store-chip__ic{ display:inline-flex; width:20px; height:20px; flex:none; }
+.store-chip__ic svg{ width:100%; height:100%; display:block; filter:drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
 .store-chip.is-on{ color:#2a1a05; background:linear-gradient(180deg,var(--gold2),var(--gold));
-  border-color:transparent; box-shadow:0 3px 12px rgba(245,196,81,.35); }
+  border-color:transparent; box-shadow:0 3px 14px rgba(245,196,81,.42); }
+.store-chip.is-on .store-chip__ic svg{ filter:drop-shadow(0 1px 2px rgba(80,50,0,.45)); }
 
 .store-card{ cursor:pointer; transition:transform .16s ease, box-shadow .2s ease;
   /* أداء: تخطّي رسمِ البطاقاتِ خارجَ الرؤيةِ (يوقفُ SMIL/الرسومَ المتحرّكةَ فيها تلقائيًّا) */
@@ -8109,6 +8282,40 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-detail__soon{ font-size:13px; font-weight:700; line-height:1.6; color:#ffd0a0;
   background:rgba(255,160,80,.10); border:1px solid rgba(255,160,80,.32); border-radius:14px; padding:10px 16px; max-width:34ch; }
 
+/* ══ حياةُ المتجر (بلاغُ جوجو ٥: «واجهةٌ ثقيلةٌ وبسيطةٌ جدًّا بلا أنيميشن») ══
+   نفسُ لغةِ الحركةِ في الجوائزِ بالحرفِ كي تبدوَ الشاشتان عائلةً واحدة:
+   دخولٌ متدرّجٌ للبطاقات، لمعةٌ تمرُّ على ترويسةِ القسمِ وعلى زرِّ الشراء،
+   وأيقونةُ القسمِ تتنفّس. كلُّها transform/opacity فقط، والبطاقاتُ خارجَ
+   الرؤيةِ لا تُرسَمُ أصلًا (content-visibility) فلا تُحرَّك ولا تُثقِل. */
+@keyframes stRise{ from{ opacity:0; transform:translateY(14px) scale(.98); } to{ opacity:1; transform:none; } }
+.store-card{ animation:stRise .42s cubic-bezier(.22,1,.36,1) both; }
+.store-card:nth-child(2){ animation-delay:.05s; }
+.store-card:nth-child(3){ animation-delay:.10s; }
+.store-card:nth-child(4){ animation-delay:.15s; }
+.store-card:nth-child(n+5){ animation-delay:.2s; }
+/* الميثكُ/الأسطوريُّ يحتفظُ بلمعتِه عبرَ ::after، فالدخولُ هنا على العنصرِ نفسِه */
+
+.store-sec__hd{ overflow:hidden; }
+.store-sec__hd::after{ content:''; position:absolute; top:0; bottom:0; inset-inline-start:0; width:34%; z-index:0;
+  pointer-events:none; background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);
+  transform:skewX(-16deg) translateX(-280%); animation:stHdSheen 6.4s ease-in-out infinite; }
+@keyframes stHdSheen{ 0%,74%,100%{ transform:skewX(-16deg) translateX(-280%); } 90%{ transform:skewX(-16deg) translateX(380%); } }
+.store-sec__ic,.rw-sec__ic{ animation:stIcBreathe 4.2s ease-in-out infinite; }
+@keyframes stIcBreathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.09); } }
+
+/* لمعةٌ تمرُّ على زرِّ الشراءِ المتاحِ فقط — المقفولُ لا يُغري */
+.store-buy{ position:relative; overflow:hidden; }
+.store-buy:not(.is-locked)::after{ content:''; position:absolute; top:0; bottom:0; width:40%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent);
+  transform:skewX(-18deg) translateX(-300%); animation:stBuySheen 3.4s ease-in-out infinite; pointer-events:none; }
+@keyframes stBuySheen{ 0%,66%,100%{ transform:skewX(-18deg) translateX(-300%); } 86%{ transform:skewX(-18deg) translateX(320%); } }
+
+@media (prefers-reduced-motion:reduce){
+  .store-card{ animation:none; }
+  .store-sec__hd::after,.store-buy:not(.is-locked)::after{ animation:none; display:none; }
+  .store-sec__ic,.rw-sec__ic{ animation:none; }
+}
+
 /* ══ الجوائزُ والتقدّم (المرحلة ٤): شاشةٌ غامرةٌ بثلاثةِ ألسنة ══
    تعيدُ استعمالَ هيكلِ المتجر (store-ov/scroll/wrap/close/head/bar/balance)
    و — من البناءِ ٦٢ — لوحتَه اللونيّةَ نفسَها بالحرف: أرجوانٌ عميقٌ للخلفيّةِ
@@ -8195,8 +8402,8 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   background-repeat:no-repeat; background-position:50% 50%; background-size:100% 100%; opacity:.9; }
 
 /* عملةُ المكافأة = قرصُ AK الذهبيُّ نفسُه (توحيدُ شكلِ العملة في الجوائز/المتجر) */
-.rw-reward{ display:inline-flex; align-items:center; gap:5px; font-weight:800; font-size:13px; color:var(--gold2); }
-.rw-reward__coin{ width:15px; height:15px; }
+.rw-reward{ display:inline-flex; align-items:center; gap:6px; font-weight:800; font-size:13px; color:var(--gold2); }
+.rw-reward__coin{ width:18px; height:18px; }
 
 /* المهامّ */
 .rw-list{ display:flex; flex-direction:column; gap:10px; }
@@ -8273,6 +8480,33 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .rw-ach.is-un .rw-ach__status{ color:#1a1206; border:none;
   background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 72%,#fff),var(--tc));
   box-shadow:0 2px 9px color-mix(in srgb,var(--tc) 45%,transparent); }
+
+/* ══ أزرارُ تصنيفِ المخزون (بلاغُ جوجو ٤) ══
+   صفٌّ أفقيٌّ ينزلقُ على الشاشاتِ الضيّقةِ ويلتفُّ على الواسعة، لكلِّ زرٍّ
+   أيقونةٌ ملوّنةٌ مرسومةٌ وعددُ ما يملكُه منه — لا اسمَ خامًّا. */
+.rw-chips{ display:flex; flex-wrap:nowrap; gap:8px; margin:0 0 16px; padding:2px 2px 8px;
+  overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity; }
+.rw-chips::-webkit-scrollbar{ display:none; }
+@media (min-width:640px){ .rw-chips{ flex-wrap:wrap; justify-content:center; overflow:visible; } }
+.rw-chip{ display:inline-flex; align-items:center; gap:7px; scroll-snap-align:center; white-space:nowrap;
+  padding:7px 12px 7px 9px; border-radius:999px; font-size:13px; font-weight:800; cursor:pointer;
+  color:rgba(255,255,255,.86); border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  transition:background .18s ease, color .18s ease, border-color .18s ease, transform .14s ease, box-shadow .2s ease; }
+.rw-chip:active{ transform:scale(.95); }
+@media (hover:hover){ .rw-chip:hover{ border-color:rgba(245,196,81,.5);
+  background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.05)); } }
+.rw-chip__ic{ display:inline-flex; width:20px; height:20px; flex:none; }
+.rw-chip__ic svg{ width:100%; height:100%; display:block; filter:drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+.rw-chip__n{ font-size:11px; font-weight:900; font-variant-numeric:tabular-nums; line-height:1;
+  min-width:18px; padding:3px 5px; border-radius:999px; text-align:center;
+  color:rgba(255,255,255,.72); background:rgba(0,0,0,.34); }
+.rw-chip.is-on{ color:#2a1a05; border-color:transparent;
+  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  box-shadow:0 3px 14px rgba(245,196,81,.42); }
+.rw-chip.is-on .rw-chip__ic svg{ filter:drop-shadow(0 1px 2px rgba(80,50,0,.45)); }
+.rw-chip.is-on .rw-chip__n{ color:#fff2c0; background:rgba(60,36,0,.42); }
 
 /* ══ المخزون ══
    كلُّ بطاقةٍ صارت بندرةِ عنصرِها: لونُ الندرةِ (--rc) وصفيحتُها المرسومةُ
@@ -8434,6 +8668,22 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .settings-profile-card.cos-bannered > *:not(.cos-banner){ position:relative; z-index:1; }
 .settings-profile-card.cos-bannered .settings-overline{ color:rgba(255,255,255,.82); }
 .settings-profile-card.cos-bannered .settings-headline{ color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.55); }
+/* ══ سطرُ الصديق/الطلب/نتيجةِ البحثِ يحملُ خلفيّةَ صاحبِه (بلاغُ جوجو ٨) ══
+   «الخلفيّةُ اللي بتتشغّل من المتجرِ وتُطبَّقُ من المخزونِ مش بتظهرُ عندَ الطرفِ
+   الآخر… المفروض تظهرَ لما يبحثَ عنّي، وفي طلبِ الصداقة، وفي قائمةِ الأصدقاء».
+   نرسمُها لافتةً **تحتَ** المحتوى: كلُّ أبناءِ السطرِ (الأفاتارُ والاسمُ والشارةُ
+   والتقييمُ والحالةُ وأزرارُ القبولِ والرفض) يبقونَ فوقَها بلا أيِّ تغييرٍ في
+   سلوكِهم، ونرفعُ تباينَ النصِّ فقط ليُقرأَ على أيِّ خلفيّة. */
+.fr-row.cos-bannered{ position:relative; overflow:hidden;
+  border-color:rgba(255,255,255,.16); box-shadow:0 4px 16px rgba(0,0,0,.34); }
+.fr-row.cos-bannered > *:not(.cos-banner){ position:relative; z-index:1; }
+.fr-row.cos-bannered .fr-row__name{ color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.6); }
+.fr-row.cos-bannered .fr-row__status{ text-shadow:0 1px 3px rgba(0,0,0,.6); }
+/* لا نمسُّ لونَ «متصل»/«في مباراة» — نُفتِحُ لونَ الحالةِ المحيّدةِ فقط */
+.fr-row.cos-bannered .fr-row__status:not(.is-online):not(.is-ingame){ color:rgba(255,255,255,.85); }
+.fr-row.cos-bannered .fr-row__rating{ color:rgba(255,255,255,.92); text-shadow:0 1px 3px rgba(0,0,0,.55); }
+.fr-row.cos-bannered .cos-banner::after{
+  background:linear-gradient(90deg,rgba(6,8,16,.62),rgba(6,8,16,.3) 58%,rgba(6,8,16,.5)); }
 @media (prefers-reduced-motion:reduce){
   .cos-banner,.cos-banner__sheen,.cos-banner__motes{ animation:none; }
 }
@@ -8571,27 +8821,74 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   60%{ transform:translate(0,-2vh) scale(1.02) rotate(0deg); opacity:1; }
   84%{ opacity:1; }
   100%{ transform:translate(0,-14vh) scale(1.1) rotate(0deg); opacity:0; } }
-@media (prefers-reduced-motion:reduce){ .cos-fx-ov{ display:none; } }
+/* بلاغُ جوجو ١: كانَ هذا السطرُ يُلغي طبقةَ المؤثّراتِ كلَّها عندَ تشغيلِ
+   «تقليلِ الحركة» (موفّرُ الطاقةِ يفعّلُها على أندرويد!) فيبدو المؤثّرُ
+   «مش شغّال في أيِّ وضع». الآن: الجُسيماتُ المتحرّكةُ تُخفى، والمؤثّرُ يُعرَضُ
+   في وضعٍ **هادئٍ مرئيٍّ** (وميضُ لونِ هويّتِه وحلقتان) بتغيّرِ شفافيّةٍ فقط. */
+@media (prefers-reduced-motion:reduce){
+  .cos-fx-ov > *{ display:none; }
+  .cos-fx-ov--lite > .cosfx-lite__wash,
+  .cos-fx-ov--lite > .cosfx-lite__ring{ display:block; }
+}
+.cosfx-lite__wash{ position:absolute; inset:0; opacity:0; animation:cosLiteFade 1.6s ease-out both; }
+.cosfx-lite__ring{ position:absolute; left:50%; top:46%; width:52vmin; height:52vmin; margin:-26vmin 0 0 -26vmin;
+  border-radius:50%; border:3px solid currentColor; opacity:0; animation:cosLiteFade 1.6s ease-out both; }
+.cosfx-lite__ring::after{ content:''; position:absolute; inset:14%; border-radius:50%; border:2px solid currentColor; opacity:.55; }
+@keyframes cosLiteFade{ 0%{ opacity:0; } 22%{ opacity:.95; } 68%{ opacity:.85; } 100%{ opacity:0; } }
 
-/* ══ احتفالُ الترقّي (بطاقةٌ مركزيّةٌ فوقَ طبقةِ المؤثّرات) ══ */
+/* ══ نافذةُ الترقّي — إعادةُ صناعةٍ كاملة (بلاغُ جوجو ٧: «سيّئةٌ جدًّا جدًّا») ══
+   عتمةٌ خلفيّةٌ تُبرِزُ البطاقةَ، لوحُ زجاجٍ مُذهَّبٌ بهالةٍ، وسامُ غارٍ دوّارُ
+   الأشعّةِ، عنوانٌ مُذهَّب، شريطُ خبرةٍ يمتلئُ، ولمعةٌ تعبرُ اللوح. ومعَها
+   مؤثّرٌ صوتيٌّ حقيقيٌّ (levelup.mp3) يُطلَقُ من economy-client. */
 .cos-fx-ov--keep{ display:flex; align-items:center; justify-content:center; }
-.cos-levelup{ display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
-  padding:26px 34px; border-radius:26px; pointer-events:none;
-  background:radial-gradient(120% 90% at 50% 0%,rgba(60,42,10,.92),rgba(14,9,4,.92));
-  border:1px solid rgba(245,196,81,.5); box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(245,196,81,.35);
-  animation:cosLvIn .55s cubic-bezier(.2,.9,.25,1.3) both; }
-.cos-levelup__ring{ width:118px; height:118px; display:block; filter:drop-shadow(0 0 16px rgba(245,196,81,.6));
-  animation:cosLvSpin 6s linear infinite; }
-.cos-levelup__ring svg{ width:100%; height:100%; display:block; }
-.cos-levelup__ttl{ font-size:26px; font-weight:900; letter-spacing:.02em;
-  background:linear-gradient(90deg,#ffe08a,#f5c451,#c98b2f); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.cos-levelup__sub{ font-size:15px; font-weight:700; color:rgba(255,255,255,.82); }
-@keyframes cosLvIn{ from{ opacity:0; transform:translateY(24px) scale(.82); } to{ opacity:1; transform:none; } }
+.cos-lvbd{ position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 44%,rgba(8,4,16,.5),rgba(4,2,8,.82));
+  animation:cosLvBd .5s ease-out both; }
+@keyframes cosLvBd{ from{ opacity:0; } to{ opacity:1; } }
+.cos-levelup{ position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+  padding:24px 30px 22px; border-radius:28px; pointer-events:none; overflow:hidden;
+  width:min(84vw,340px);
+  background:
+    radial-gradient(130% 80% at 50% 0%,rgba(255,210,74,.2),transparent 58%),
+    linear-gradient(180deg,rgba(52,37,12,.96),rgba(16,10,5,.96));
+  border:1px solid rgba(245,196,81,.55);
+  box-shadow:0 24px 70px rgba(0,0,0,.66),0 0 46px rgba(245,196,81,.32),inset 0 1px 0 rgba(255,240,190,.22);
+  animation:cosLvIn .6s cubic-bezier(.2,.9,.25,1.3) both; }
+.cos-levelup__art{ width:150px; height:150px; display:block; filter:drop-shadow(0 0 18px rgba(245,196,81,.55));
+  animation:cosLvPop .8s cubic-bezier(.2,.9,.25,1.4) both .1s; }
+.cos-levelup__art svg{ width:100%; height:100%; display:block; }
+.cos-lv__rays{ transform-origin:70px 70px; animation:cosLvSpin 14s linear infinite; }
+.cos-levelup__ttl{ font-size:27px; font-weight:900; letter-spacing:.02em; line-height:1.2;
+  background:linear-gradient(90deg,#ffe08a,#fff6cf,#f5c451,#c98b2f); -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 2px 10px rgba(0,0,0,.4); }
+.cos-levelup__bar{ display:block; width:74%; height:7px; border-radius:99px; overflow:hidden;
+  background:rgba(255,255,255,.12); border:1px solid rgba(245,196,81,.32); }
+.cos-levelup__bar > i{ display:block; height:100%; width:0; border-radius:99px;
+  background:linear-gradient(90deg,#c98b2f,#f5c451,#fff6cf);
+  box-shadow:0 0 12px rgba(245,196,81,.75);
+  animation:cosLvBar 1.1s cubic-bezier(.3,.9,.3,1) both .34s; }
+.cos-levelup__sub{ font-size:15px; font-weight:700; color:rgba(255,255,255,.86); }
+.cos-levelup__sheen{ position:absolute; top:0; bottom:0; width:38%; left:-45%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);
+  animation:cosLvSheen 2.4s ease-in-out .5s 2 both; }
+@keyframes cosLvIn{ from{ opacity:0; transform:translateY(26px) scale(.8); } to{ opacity:1; transform:none; } }
+@keyframes cosLvPop{ 0%{ opacity:0; transform:scale(.4) rotate(-14deg); } 62%{ opacity:1; transform:scale(1.1) rotate(4deg); } 100%{ opacity:1; transform:none; } }
 @keyframes cosLvSpin{ to{ transform:rotate(360deg); } }
-.cos-levelup--still,.cos-levelup--still .cos-levelup__ring{ animation:none; }
+@keyframes cosLvBar{ from{ width:0; } to{ width:100%; } }
+@keyframes cosLvSheen{ from{ left:-45%; } to{ left:118%; } }
+.cos-levelup--still,
+.cos-levelup--still .cos-levelup__art,
+.cos-levelup--still .cos-lv__rays,
+.cos-levelup--still .cos-levelup__sheen{ animation:none; }
+.cos-levelup--still .cos-levelup__bar > i{ animation:none; width:100%; }
+.cos-levelup--still .cos-levelup__sheen{ display:none; }
 @media (prefers-reduced-motion:reduce){
   .cos-fx-ov.cos-fx-ov--keep{ display:flex; }
-  .cos-levelup,.cos-levelup__ring{ animation:none; }
+  .cos-fx-ov--keep > .cos-lvbd,
+  .cos-fx-ov--keep > .cos-levelup{ display:flex; }
+  .cos-lvbd{ display:block; animation:none; }
+  .cos-levelup,.cos-levelup__art,.cos-lv__rays{ animation:none; }
+  .cos-levelup__bar > i{ animation:none; width:100%; }
+  .cos-levelup__sheen{ display:none; }
 }
 
 

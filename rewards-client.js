@@ -185,7 +185,7 @@
   };
 
   var REWARDS = {
-    _cat: null, _tab: 'missions', _open: false, _bound: false,
+    _cat: null, _tab: 'missions', _open: false, _bound: false, _invFilter: null,
 
     /* ══ فتحٌ/إغلاق ══ */
     open: function () {
@@ -242,6 +242,14 @@
       if (body) body.addEventListener('click', function (ev) {
         var claim = ev.target.closest ? ev.target.closest('[data-claim]') : null;
         var equip = ev.target.closest ? ev.target.closest('[data-equip]') : null;
+        /* أزرارُ تصنيفِ المخزون (بلاغُ جوجو ٤): تُصفّي العرضَ فورًا بلا تمرير */
+        var inv = ev.target.closest ? ev.target.closest('[data-invfilter]') : null;
+        if (inv) {
+          try { if (window.SFX) SFX.btn(); } catch (e) {}
+          self._invFilter = inv.getAttribute('data-invfilter') || null;
+          self._render();
+          return;
+        }
         if (claim) { self._claim(claim.getAttribute('data-claim')); return; }
         if (equip) { self._equip(equip.getAttribute('data-equip'), equip.getAttribute('data-type')); return; }
       });
@@ -390,12 +398,34 @@
       var R = (window.STORE && STORE.RARITY) || {};
       var byType = {}; owned.forEach(function (id) { var m = meta[id]; if (!m) return; (byType[m.type] = byType[m.type] || []).push(m); });
       var RANK = { mythic: 6, legendary: 5, seasonal: 4, epic: 3, rare: 2, common: 1 };
-      var html = '';
-      order.forEach(function (tp) {
+      var ic = function (t) { try { return (window.amkhCos && amkhCos.catIcon) ? amkhCos.catIcon(t) : ''; } catch (e) { return ''; } };
+      /* ══ أزرارُ التصنيفِ (بلاغُ جوجو ٤) ══
+         «في المخزونِ اعملْ أزرارًا تخلّيني لما أضغطَ على كلِّ زرٍّ أقدرَ أوصلَ
+         لمقتنياتي» — بدلَ التمريرِ الطويلِ عبرَ كلِّ الأقسام. لكلِّ زرٍّ أيقونةٌ
+         ملوّنةٌ مرسومةٌ (نفسُ أيقوناتِ أزرارِ المتجرِ) وعددُ ما تملكُه منه. */
+      var present = order.filter(function (tp) { return byType[tp] && byType[tp].length; });
+      if (this._invFilter && present.indexOf(this._invFilter) < 0) this._invFilter = null;
+      var f = this._invFilter || null;
+      var chips = '<div class="rw-chips" id="rw-inv-chips">'
+        + '<button class="rw-chip' + (f ? '' : ' is-on') + '" type="button" data-invfilter="">'
+        + '<span class="rw-chip__ic" aria-hidden="true">' + ic('all') + '</span>'
+        + '<span class="rw-chip__tx">' + esc(L('الكلّ', 'All')) + '</span>'
+        + '<span class="rw-chip__n">' + owned.length + '</span></button>';
+      present.forEach(function (tp) {
+        var tn = T[tp] ? L(T[tp].ar, T[tp].en) : tp;
+        chips += '<button class="rw-chip' + (f === tp ? ' is-on' : '') + '" type="button" data-invfilter="' + esc(tp) + '">'
+          + '<span class="rw-chip__ic" aria-hidden="true">' + ic(tp) + '</span>'
+          + '<span class="rw-chip__tx">' + esc(tn) + '</span>'
+          + '<span class="rw-chip__n">' + byType[tp].length + '</span></button>';
+      });
+      chips += '</div>';
+      var html = chips;
+      var shown = f ? [f] : order;
+      shown.forEach(function (tp) {
         var list = byType[tp]; if (!list || !list.length) return;
         list = list.slice().sort(function (a, b) { return (RANK[b.rarity] || 0) - (RANK[a.rarity] || 0); });
         var tn = T[tp] ? L(T[tp].ar, T[tp].en) : tp;
-        var cic = (window.amkhCos && amkhCos.catIcon) ? amkhCos.catIcon(tp) : '';
+        var cic = ic(tp);
         html += '<div class="rw-sec"><div class="rw-sec__hd"><span class="rw-sec__ic" aria-hidden="true">' + cic + '</span><span class="rw-sec__ttl">' + esc(tn) + '</span>'
           + '<span class="rw-sec__sub">' + list.length + '</span></div><div class="rw-inv-grid">';
         list.forEach(function (m) {

@@ -705,6 +705,13 @@ const amkhFriends = {
     const acts = document.createElement('div');
     acts.className = 'fr-row__acts';
     row.appendChild(acts);
+    /* خلفيّةُ الطرفِ الآخرِ المُجهَّزةُ من متجرِه تُرسَمُ تحتَ السطرِ نفسِه
+       (بلاغُ جوجو ٨): في نتيجةِ البحثِ، وفي طلبِ الصداقة، وفي قائمةِ الأصدقاء —
+       لأنَّ هذا السطرَ واحدٌ مشتركٌ للثلاثة. تُضافُ **بعدَ** بناءِ كلِّ الأبناء
+       فتُدسُّ لافتةً أوّلَ عنصرٍ (z أدنى) ولا تُغيّرُ أزرارَ القبولِ/الرفضِ ولا
+       الشارةَ ولا الاسمَ ولا التقييمَ ولا الحالة. الخادمُ يُرسِلُ
+       cosmetics.background أصلًا في الثلاثةِ (friends.js::cosOf). */
+    try { if (window.amkhCos) window.amkhCos.paintBanner(row, user && user.cosmetics); } catch (e) {}
     return { row, acts, status: st };
   },
 
