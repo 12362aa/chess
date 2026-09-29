@@ -130,9 +130,12 @@
   min-width: 0;
 }
 .appbar__brand-mark{
-  font-size: 20px;
-  line-height: 1;
-  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
 }
 .appbar__brand-name{
   font-family: var(--font-family-display);
@@ -141,6 +144,95 @@
   letter-spacing: var(--letter-spacing-wide);
   color: var(--color-text-primary);
   white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   أيقوناتُ الشريطِ الأعلى — إعادةُ صناعةٍ ملوّنةٌ (طلبُ جوجو ٤)
+   ──────────────────────────────────────────────────────────────────────
+   كانت هذه الخمسُ وحدَها باقيةً على الأسلوبِ القديمِ (محارفُ نصّيّةٌ أو
+   خطوطٌ رماديّةٌ بـcurrentColor) بينما كلُّ أيقوناتِ الرئيسيّةِ صارت مرسومةً
+   ملوّنة. الآن: الحسابُ والأصدقاءُ والصدارةُ والإعداداتُ وبيدقُ الشعارِ
+   كلُّها SVG مضمّنٌ بتدرّجاتٍ صريحةِ الألوانِ داخلَه — فلا تتبعُ سمةً ولا
+   متغيّرًا، وتظهرُ واحدةً في السماتِ الخمسِ كلِّها بلا استثناء.
+   الحركةُ مقصودةٌ بالقليل: الكأسُ (اقتراحُ جوجو) والبيدقُ فقط، والترسُ
+   عندَ اللمسِ لا دائمًا — لأنّ الشريطَ الأعلى ثابتٌ في كلِّ الشاشاتِ فلو
+   تحرّكَ كلُّه لصارَ إزعاجًا لا زينة. والحسابُ ساكنٌ عمدًا لأنّ فوقَه
+   نقطةَ الحالةِ وشارةَ الرسائلِ المتحرّكتَين. كلُّها CSS لا SMIL فتتوقّفُ
+   جميعًا بقاعدةِ تقليلِ الحركةِ في آخرِ القسم.
+   ══════════════════════════════════════════════════════════════════════ */
+.appbar-ic{
+  width: 22px;
+  height: 22px;
+  display: block;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.38));
+}
+
+/* الكأس: يطفو طفوًا خفيفًا، ولمعةٌ تعبرُ جسمَه محصورةً بقناعِه فلا تفيض،
+   وشرارتانِ تتناوبانِ بعدَ اللمعة — «صدارةٌ حيّة». الدورةُ ٤٫٨ث،
+   والتأخيراتُ نسبٌ منها: 0.5ث ≈ ١٠٪ و2.7ث ≈ ٥٦٪. */
+.appbar-ic--trophy .abi-trophy{
+  transform-box: view-box;
+  animation: abiTrophy 4.8s ease-in-out infinite;
+}
+@keyframes abiTrophy{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-.6px); } }
+.appbar-ic--trophy .abi-shine{
+  transform-box: view-box;
+  animation: abiTrophyShine 4.8s ease-in-out infinite;
+}
+/* الميلُ مكتوبٌ في كلِّ إطارٍ عمدًا: خاصّيّةُ transform في CSS تُلغي سمةَ
+   transform في العلامة، فلو أغفلناه لاستقامَ الشعاعُ فجأةً عندَ بدءِ الحركة. */
+@keyframes abiTrophyShine{
+  0%,30%{ opacity: 0; transform: skewX(-18deg) translateX(0); }
+  36%{ opacity: .85; }
+  58%{ opacity: .85; }
+  64%,100%{ opacity: 0; transform: skewX(-18deg) translateX(34px); }
+}
+.appbar-ic--trophy .abi-spk{
+  transform-box: fill-box; transform-origin: center;
+  animation: abiSpk 4.8s ease-out infinite;
+}
+.appbar-ic--trophy .abi-spk--a{ animation-delay: .5s; }
+.appbar-ic--trophy .abi-spk--b{ animation-delay: 2.7s; }
+@keyframes abiSpk{ 0%{ opacity: 0; transform: scale(.3); } 7%{ opacity: .95; transform: scale(1.1); } 20%,100%{ opacity: 0; transform: scale(.4); } }
+
+/* بيدقُ الشعار: نَفَسٌ بطيءٌ حولَ قاعدتِه (transform-origin بوحداتِ الـviewBox
+   لأنّ transform-box:view-box) فيبدو واقفًا على الأرضِ لا طائرًا، ولمعةٌ
+   ذهبيّةٌ تمرُّ عليه محصورةً بقناعِ أجزائِه. */
+.appbar-ic--pawn .abi-pawn{
+  transform-box: view-box; transform-origin: 12px 21.4px;
+  animation: abiPawn 5.4s ease-in-out infinite;
+}
+@keyframes abiPawn{ 0%,100%{ transform: translateY(0) scale(1); } 50%{ transform: translateY(-.45px) scale(1.035); } }
+.appbar-ic--pawn .abi-shine{
+  transform-box: view-box;
+  animation: abiPawnShine 5.4s ease-in-out infinite;
+}
+@keyframes abiPawnShine{
+  0%,34%{ opacity: 0; transform: skewX(-18deg) translateX(0); }
+  40%{ opacity: .8; }
+  62%{ opacity: .8; }
+  70%,100%{ opacity: 0; transform: skewX(-18deg) translateX(34px); }
+}
+
+/* الترسُ: يدورُ عندَ اللمسِ أو المرورِ فقط — الإعداداتُ زرٌّ تُضغَطُ نادرًا،
+   فدورانُه الدائمُ ضجيجٌ بصريٌّ. محورُه مركزُ الأسنانِ (12,12) وقلبُه
+   خارجَ المجموعةِ الدائرةِ في العلامةِ فيبقى ثابتًا — كالترسِ الحقيقيّ. */
+.appbar__icon-btn:hover .abi-gear,
+.appbar__icon-btn:active .abi-gear,
+.appbar__icon-btn:focus-visible .abi-gear{
+  transform-box: fill-box; transform-origin: center;
+  animation: abiGear 5.5s linear infinite;
+}
+@keyframes abiGear{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce){
+  .appbar-ic [class^="abi-"]{ animation: none !important; }
+  /* الشعاعانِ وحدَهما يحتاجانِ إخفاءً صريحًا: بقيّةُ العابرِ (الشرارتان)
+     مخفيٌّ أصلًا بـopacity=0 في العلامة، أمّا الشعاعُ فيقفُ خارجَ القناعِ
+     فلا يُرى — والإخفاءُ ضمانٌ لا زيادة. */
+  .appbar-ic--trophy .abi-shine,
+  .appbar-ic--pawn .abi-shine{ display: none; }
 }
 
 /* مؤشر جهوزية Stockfish — مدمج وهادي، بدل الكبسولة القديمة */
@@ -465,18 +557,30 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
-  background: var(--color-primary-subtle);
-  border: 1px solid var(--color-primary-border);
+  /* صندوقٌ واحدٌ لكلِّ أيقوناتِ الرئيسيّةِ (بلاغُ جوجو ١): كان هذا الصندوقُ
+     — وصندوقُ الجوائزِ — بلونِ primary-subtle وحدٍّ primary-border ومقاسٍ
+     أكبرَ فيبدوانِ مختلفَينِ عن المربّعاتِ الباقيةِ في كلِّ السمات. صارا
+     نسخةً طبقَ الأصلِ من .home-tile__icon: نفسُ الرمزَينِ (surface +
+     border-subtle) ونفسُ المقاسِ في كلِّ نقاطِ الانكسار — فالتوحيدُ يسري
+     تلقائيًّا على السماتِ الأربعِ لأنّه من الرموزِ لا من قيمٍ صريحة. */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
   color: var(--color-primary-text);
   flex-shrink: 0;
-}.home-hero__icon svg,
-.home-hero__icon .ico{ width: 26px; height: 26px; }
+}
+/* ونفسُ سلوكِ التحويمِ كباقي المربّعاتِ حتّى لا يشذَّ على الكمبيوتر. */
+.home-hero:hover .home-hero__icon{
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-border);
+}
+.home-hero__icon svg,
+.home-hero__icon .ico{ width: 22px; height: 22px; }
 /* الأيقونةُ المرسومةُ الملوّنةُ (SVG داخليّ) تحتاجُ مقاسًا أكبرَ قليلًا من
    القناعِ أحاديِّ اللون، مع ظلٍّ يفصلُها عن خلفيّةِ البطاقة. */
-.home-hero__icon svg.home-ic{ width: 31px; height: 31px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+.home-hero__icon svg.home-ic{ width: 28px; height: 28px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.42)); }
 .home-hero__heading{
   display: flex;
   flex-direction: column;
@@ -659,13 +763,9 @@
     var(--color-bg-elevated);
   border-color: var(--color-primary-border);
 }
-.home-tile--rewards .home-tile__icon{
-  width: 46px; height: 46px;
-  background: var(--color-primary-subtle);
-  border-color: var(--color-primary-border);
-  color: var(--color-primary-text);
-}
-.home-tile--rewards .home-tile__icon svg.home-ic{ width: 32px; height: 32px; }
+/* صندوقُ الجوائزِ لا يشذُّ: لا لونًا ولا حدًّا ولا مقاسًا (بلاغُ جوجو ١).
+   كان أكبرَ (٤٦) وبلونِ primary-subtle فبدا مربّعًا آخرَ في كلِّ سمة؛
+   الآن يرثُ .home-tile__icon كاملًا فلا فرقَ بينَه وبين جيرانِه. */
 .home-tile--rewards .home-tile__title{ margin-top: 0; }
 .home-rw__text{ display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .home-rw__chev{ width: 20px; height: 20px; color: var(--color-text-disabled); flex-shrink: 0; }
@@ -685,24 +785,110 @@
 ══════════════════════════════════════════════════════════════════════ */
 .home-ic [class^="hic-"]{ will-change: transform, opacity; }
 
-/* مراحلُ نور: النجمةُ تتلألأُ والهالةُ تتنفّس */
+/* مراحلُ نور (عودةُ الأصليّةِ مُحسَّنةً — بلاغُ جوجو): الحركةُ تحكي المعنى
+   حرفيًّا — كُرةُ نورٍ تصعدُ السُّلَّمَ درجةً درجةً، وكلُّ درجةٍ تُضيءُ لحظةَ
+   الوصولِ إليها (مرحلةٌ اكتُمِلَت)، وحينَ تبلغُ القمّةَ تذوبُ في النجمةِ
+   فتنفجرُ النجمةُ ضوءًا وتَطيرُ شرارتان. الدورةُ ٥٫٦ث، وكلُّ التأخيراتِ
+   محسوبةٌ كنسبةٍ منها: ٣٢٪ = 1.79ث للدرجةِ الثانية، ٥٨٪ = 3.25ث للثالثة،
+   ٧٦٪ = 4.25ث للشرارة — فيصلُ الوميضُ في اللحظةِ التي تلمسُ فيها الكرةُ
+   الدرجةَ بالضبط. الإزاحاتُ بوحداتِ الـviewBox لأنّ transform-box:view-box.
+   الحالةُ الساكنةُ (تقليلُ الحركة) مفهومةٌ: الكرةُ على الدرجةِ الأولى. */
+.home-ic--levels .hic-orb{
+  transform-box: view-box; transform-origin: 5.4px 16.3px;
+  animation: hicOrb 5.6s cubic-bezier(.34,.9,.5,1) infinite;
+}
+@keyframes hicOrb{
+  0%  { transform: translate(0,0) scale(1); opacity: 0; }
+  4%  { transform: translate(0,0) scale(1); opacity: 1; }
+  20% { transform: translate(0,0) scale(1); opacity: 1; }
+  26% { transform: translate(3.2px,-5.4px) scale(1.06); opacity: 1; }
+  32% { transform: translate(6.4px,-3.4px) scale(1); opacity: 1; }
+  46% { transform: translate(6.4px,-3.4px) scale(1); opacity: 1; }
+  52% { transform: translate(9.6px,-8.8px) scale(1.06); opacity: 1; }
+  58% { transform: translate(12.8px,-6.8px) scale(1); opacity: 1; }
+  70% { transform: translate(12.8px,-6.8px) scale(1); opacity: 1; }
+  80% { transform: translate(12.8px,-11.4px) scale(.35); opacity: 0; }
+  100%{ transform: translate(0,0) scale(1); opacity: 0; }
+}
+.home-ic--levels .hic-tr{ animation: hicTread 5.6s ease-out infinite; }
+.home-ic--levels .hic-tr--b{ animation-delay: 1.79s; }
+.home-ic--levels .hic-tr--c{ animation-delay: 3.25s; }
+@keyframes hicTread{ 0%{ opacity: 0; } 4%{ opacity: .85; } 17%,100%{ opacity: 0; } }
 .home-ic--levels .hic-star{
-  transform-box: fill-box; transform-origin: 50% 58%;
-  animation: hicStar 3.6s ease-in-out infinite;
+  transform-box: fill-box; transform-origin: 50% 55%;
+  animation: hicStar 5.6s ease-in-out infinite;
+}
+@keyframes hicStar{
+  0%,66%{ transform: scale(1) rotate(0deg); }
+  76%{ transform: scale(1.34) rotate(11deg); }
+  88%,100%{ transform: scale(1) rotate(0deg); }
 }
 .home-ic--levels .hic-halo{
   transform-box: fill-box; transform-origin: center;
-  animation: hicHalo 3.6s ease-in-out infinite;
+  animation: hicHalo 5.6s ease-in-out infinite;
 }
-@keyframes hicStar{ 0%,100%{ transform: scale(1) rotate(0deg); } 46%{ transform: scale(1.14) rotate(9deg); } }
-@keyframes hicHalo{ 0%,100%{ opacity:.55; transform: scale(.9); } 46%{ opacity:1; transform: scale(1.12); } }
+@keyframes hicHalo{
+  0%,64%{ opacity: .42; transform: scale(.8); }
+  77%{ opacity: 1; transform: scale(1.24); }
+  92%,100%{ opacity: .42; transform: scale(.8); }
+}
+.home-ic--levels .hic-spk{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicSpk 5.6s ease-out infinite;
+}
+.home-ic--levels .hic-spk--a{ animation-delay: 4.25s; }
+.home-ic--levels .hic-spk--b{ animation-delay: 4.65s; }
+@keyframes hicSpk{ 0%{ opacity: 0; transform: scale(.3); } 6%{ opacity: .95; transform: scale(1.15); } 18%,100%{ opacity: 0; transform: scale(.4); } }
 
-/* المحرّك: نواةُ الرقاقةِ تتوهّجُ نبضًا كأنّها «تفكّر» */
+/* ضدّ المحرّك (عودةُ الرقاقةِ مُحسَّنةً — بلاغُ جوجو): القديمةُ كان فيها
+   توهّجُ نواةٍ وحدَه. الآن أربعُ حركاتٍ متناسقةٍ تقولُ «معالجٌ يحسب»:
+     • تيّارٌ يدورُ حولَ الرقاقة: كلُّ جهةٍ من الأرجلِ تُضيءُ ربعَ دورةٍ بعدَ
+       التي قبلَها (4.4ث ÷ 4 = 1.1ث تأخيرًا لكلِّ جهة).
+     • أربعُ نبضاتٍ تجري في مساراتِ الأركانِ نحوَ الفارس؛ طولُ المسارِ ٨
+       ونمطُ الشُّرَطِ ٨ والإزاحةُ ٨ — فلا وثبةَ عندَ إغلاقِ الدورة.
+     • النواةُ والفارسُ يتنفّسانِ بنفسِ الإيقاعِ (2.6ث) فيبدو النبضُ صادرًا
+       من داخلِه لا مفروضًا عليه، وعينُه تَنبِضُ معهما.
+     • شعاعُ مسحٍ يجتازُ النواةَ محصورًا بقناعِها فلا يفيضُ على الجسم. */
+.home-ic--engine .hic-aura{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicAura 3.6s ease-in-out infinite;
+}
+@keyframes hicAura{ 0%,100%{ opacity: .5; transform: scale(.86); } 50%{ opacity: 1; transform: scale(1.04); } }
+.home-ic--engine .hic-pin{ animation: hicPin 4.4s ease-in-out infinite; }
+.home-ic--engine .hic-pin--r{ animation-delay: 1.1s; }
+.home-ic--engine .hic-pin--b{ animation-delay: 2.2s; }
+.home-ic--engine .hic-pin--l{ animation-delay: 3.3s; }
+@keyframes hicPin{ 0%{ opacity: 0; } 7%{ opacity: .95; } 21%,100%{ opacity: 0; } }
+.home-ic--engine .hic-trace{ animation: hicTrace 2.2s linear infinite; }
+.home-ic--engine .hic-trace--b{ animation-delay: .55s; }
+.home-ic--engine .hic-trace--c{ animation-delay: 1.1s; }
+.home-ic--engine .hic-trace--d{ animation-delay: 1.65s; }
+@keyframes hicTrace{ from{ stroke-dashoffset: 0; } to{ stroke-dashoffset: -8px; } }
 .home-ic--engine .hic-core{
   transform-box: fill-box; transform-origin: center;
-  animation: hicCore 2.1s ease-in-out infinite;
+  animation: hicCore 2.6s ease-in-out infinite;
 }
-@keyframes hicCore{ 0%,100%{ opacity:.45; transform: scale(.82); } 50%{ opacity:1; transform: scale(1.06); } }
+@keyframes hicCore{ 0%,100%{ opacity: .55; transform: scale(.82); } 50%{ opacity: 1; transform: scale(1.05); } }
+.home-ic--engine .hic-knight{
+  transform-box: fill-box; transform-origin: 50% 100%;
+  animation: hicKnight 2.6s ease-in-out infinite;
+}
+@keyframes hicKnight{ 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.045); } }
+.home-ic--engine .hic-eye{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicEye 2.6s ease-in-out infinite;
+}
+@keyframes hicEye{ 0%,40%{ opacity: 1; transform: scale(1); } 50%{ opacity: .3; transform: scale(.55); } 60%,100%{ opacity: 1; transform: scale(1); } }
+.home-ic--engine .hic-scan{
+  transform-box: view-box;
+  animation: hicScan 3.6s ease-in-out infinite;
+}
+@keyframes hicScan{
+  0%{ opacity: 0; transform: translateY(0); }
+  12%{ opacity: .45; }
+  70%{ opacity: .45; }
+  88%,100%{ opacity: 0; transform: translateY(13.2px); }
+}
 
 /* أونلاين: الكرةُ تدورُ دورةً لا نهائيّةً بلا قطع — الإزاحةُ بعرضِ نسخةٍ
    كاملةٍ من القارّات (١٧ وحدةً) فتعودُ النسخةُ الثانيةُ مكانَ الأولى تمامًا */
@@ -725,33 +911,79 @@
 .home-ic--bt .hic-wv--b{ animation-delay: .32s; }
 @keyframes hicWave{ 0%,100%{ opacity:.25; transform: scale(.86); } 50%{ opacity:1; transform: scale(1.06); } }
 
-/* الألغاز: القطعةُ الذهبيّةُ تنزلقُ فتستقرُّ في مكانِها ثمّ تلمعُ = لغزٌ يُحَلّ */
-.home-ic--puzzles .hic-fit{
-  transform-box: view-box;
-  animation: hicFit 4.4s cubic-bezier(.34,1.56,.64,1) infinite;
+/* الألغاز (أُحجيّةٌ ٢×٢ تُشتبَك — بلاغُ جوجو ٣): القطعةُ الرابعةُ تأتي مائلةً
+   صغيرةً فتَنطبقُ على مَحجرِها حرفًا بحرفٍ (نفسُ المسار)، فيختفي الحدُّ
+   المتقطّعُ وينفجرُ وميضٌ وحلقةُ صدمة، ثمّ تُضاءُ الدروزُ الداخليّةُ فيُقرأُ
+   «القِطَعُ اشتبكَت = اللغزُ حُلّ» — وهي اللحظةُ التي كانت غائبةً في السابق.
+   الإزاحةُ محسوبةٌ لا مُقدَّرة: محيطُ القطعةِ ‎10.2×8.6‎ ومركزُها ‎(17.1,7.7)‎؛
+   بدورانِ ‎12°‎ يصيرُ عرضُها ‎11.77‎ ومقياسُ ‎.78‎ يردُّه إلى ‎9.18‎، فنصفُه ‎4.59‎
+   وبإزاحةِ ‎+1.6‎ يبلغُ أقصى حرفٍ ‎23.29‎ — داخلَ الـ24 فلا تُقَصُّ القطعة. */
+.home-ic--puzzles .hic-pc{
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: hicPc 5s cubic-bezier(.34,1.4,.5,1) infinite;
 }
-@keyframes hicFit{
-  0%,8%{ transform: translate(3.6px,-3px); opacity:.35; }
-  34%,78%{ transform: none; opacity:1; }
-  94%,100%{ transform: translate(3.6px,-3px); opacity:.35; }
+@keyframes hicPc{
+  0%,8%{ transform: translate(1.6px,-1.8px) rotate(12deg) scale(.78); opacity: 0; }
+  18%{ transform: translate(1.6px,-1.8px) rotate(12deg) scale(.78); opacity: 1; }
+  38%,74%{ transform: none; opacity: 1; }
+  88%,100%{ transform: translate(1.6px,-1.8px) rotate(12deg) scale(.78); opacity: 0; }
 }
-.home-ic--puzzles .hic-snap{
+.home-ic--puzzles .hic-sock{
+  animation: hicSock 5s ease-in-out infinite, hicSockDash 1.8s linear infinite;
+}
+@keyframes hicSock{ 0%,32%{ opacity: 1; } 42%,76%{ opacity: 0; } 90%,100%{ opacity: 1; } }
+@keyframes hicSockDash{ from{ stroke-dashoffset: 0; } to{ stroke-dashoffset: -3.1px; } }
+.home-ic--puzzles .hic-flash{
   transform-box: fill-box; transform-origin: center;
-  animation: hicSnap 4.4s ease-out infinite;
+  animation: hicFlash 5s ease-out infinite;
 }
-@keyframes hicSnap{ 0%,30%{ opacity:0; transform: scale(.4); } 40%{ opacity:.9; transform: scale(1); } 60%,100%{ opacity:0; transform: scale(1.5); } }
+@keyframes hicFlash{ 0%,34%{ opacity: 0; transform: scale(.5); } 42%{ opacity: 1; transform: scale(1); } 60%,100%{ opacity: 0; transform: scale(1.35); } }
+.home-ic--puzzles .hic-ring{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicRing 5s ease-out infinite;
+}
+@keyframes hicRing{ 0%,36%{ opacity: 0; transform: scale(.42); } 45%{ opacity: .95; transform: scale(.82); } 68%,100%{ opacity: 0; transform: scale(1.75); } }
+/* وميضُ الدروزِ بعدَ الاستقرارِ مباشرةً: هو ما يقولُ «حُلّ» لا مجرّدَ «دخلَت» */
+.home-ic--puzzles .hic-lock{ animation: hicLock 5s ease-out infinite; }
+@keyframes hicLock{ 0%,40%{ opacity: 0; } 50%{ opacity: .95; } 72%,100%{ opacity: 0; } }
+.home-ic--puzzles .hic-seam{ animation: hicSeam 5s ease-in-out infinite; }
+@keyframes hicSeam{ 0%,40%{ opacity: .85; } 52%{ opacity: .45; } 76%,100%{ opacity: .85; } }
 
-/* المتجر: لمعةٌ تمرُّ على الواجهةِ والمظلّةُ ترفرفُ رفرفةً خفيفة */
+/* المتجرُ (إعادةُ صناعةِ الحركة — بلاغُ جوجو ٤): «متجرٌ يفتحُ» لا لمعةً عابرة.
+   مصراعا البابِ يُفتحانِ كلٌّ على مفصلِه: الأيسرُ حولَ ‎x=9.4‎ والأيمنُ حولَ
+   ‎x=14.6‎ بـscaleX حتّى ‎.14‎ — وهي حيلةُ الفتحِ المنظوريِّ في بُعدَين: يبقى
+   المصراعُ ملتصقًا بحرفِه ويضمرُ عرضُه فيُقرأُ فتحًا. ثمّ يظهرُ ضوءُ الداخلِ
+   الدافئُ في المدخلِ، والمعروضانِ في النافذتَينِ ينبضانِ بالتناوب، والمظلّةُ
+   ترفرف، واللمعةُ تعبرُ الواجهةَ في آخرِ الدورةِ بعدَ إغلاقِ الباب. */
+.home-ic--store .hic-door{
+  transform-box: view-box;
+  animation: hicDoor 5.6s cubic-bezier(.45,.05,.3,1) infinite;
+}
+.home-ic--store .hic-door--l{ transform-origin: 9.4px 16.9px; }
+.home-ic--store .hic-door--r{ transform-origin: 14.6px 16.9px; }
+@keyframes hicDoor{
+  0%,14%{ transform: scaleX(1); }
+  32%,64%{ transform: scaleX(.14); }
+  80%,100%{ transform: scaleX(1); }
+}
+.home-ic--store .hic-inner{ animation: hicInner 5.6s ease-in-out infinite; }
+@keyframes hicInner{ 0%,16%{ opacity:0; } 34%,62%{ opacity:.95; } 78%,100%{ opacity:0; } }
+.home-ic--store .hic-disp{
+  transform-box: fill-box; transform-origin: center;
+  animation: hicDisp 2.8s ease-in-out infinite;
+}
+.home-ic--store .hic-disp--b{ animation-delay: 1.4s; }
+@keyframes hicDisp{ 0%,100%{ opacity:.35; transform: scale(.7); } 45%{ opacity:1; transform: scale(1.1); } }
 .home-ic--store .hic-gleam{
   transform-box: view-box;
-  animation: hicGleam 5.2s ease-in-out infinite;
+  animation: hicGleam 5.6s ease-in-out infinite;
 }
-@keyframes hicGleam{ 0%,58%{ transform: skewX(-18deg) translateX(0); } 88%,100%{ transform: skewX(-18deg) translateX(26px); } }
+@keyframes hicGleam{ 0%,78%{ transform: skewX(-18deg) translateX(0); } 98%,100%{ transform: skewX(-18deg) translateX(27px); } }
 .home-ic--store .hic-awn{
   transform-box: fill-box; transform-origin: 50% 0;
   animation: hicAwn 4.6s ease-in-out infinite;
 }
-@keyframes hicAwn{ 0%,100%{ transform: scaleY(1); } 50%{ transform: scaleY(1.06); } }
+@keyframes hicAwn{ 0%,100%{ transform: scaleY(1) skewX(0deg); } 50%{ transform: scaleY(1.07) skewX(1.4deg); } }
 
 /* الجوائز/المخزون: الصندوقُ ينفتحُ فيقفزُ الكنزُ ثمّ يُغلَق (اقتراحُ جوجو).
    المفصلُ في الحافّةِ السفليّةِ اليسرى للغطاء (4.8,14.1) والدورانُ ٣٢° — بهذا
@@ -782,11 +1014,14 @@
 
 @media (prefers-reduced-motion: reduce){
   .home-ic [class^="hic-"]{ animation: none !important; }
-  /* الحالةُ الساكنةُ تبقى مفهومةً: الغطاءُ مغلقٌ والكنزُ مخفيٌّ والقطعةُ
-     في مكانِها والهالاتُ الثانويّةُ تُطفَأُ بلا تشويه. */
+  /* الحالةُ الساكنةُ تبقى مفهومةً بلا تشويه: الغطاءُ مغلقٌ والكنزُ مخفيّ،
+     وقطعةُ اللغزِ مستقرّةٌ في محجرِها (فالمشهدُ «أُحجيّةٌ محلولة»)، وكُرةُ نورٍ
+     على الدرجةِ الأولى (فالمشهدُ «مراحلُ تُصعَد»)، ومصراعا المتجرِ مغلقانِ،
+     والعناصرُ العابرةُ (وميضٌ وحلقةٌ وضوءُ الداخلِ وشعاعُ المسحِ ووميضُ
+     الدرجاتِ والشراراتُ ونبضُ الأرجلِ ووميضُ الدروز) مخفيّةٌ أصلًا بـ
+     opacity=0 في العلامةِ نفسِها فلا يظهرُ منها شيءٌ ثابتًا في مكانِه. */
   .home-ic--rewards .hic-loot,
   .home-ic--online .hic-ping,
-  .home-ic--puzzles .hic-snap,
   .home-ic--store .hic-gleam{ display: none; }
 }
 
@@ -1298,15 +1533,13 @@
   }
   .home-hero{ padding: var(--space-5); }
   .home-hero__title{ font-size: 26px; }
-  .home-hero__icon{ width: 52px; height: 52px; }.home-hero__icon svg,
-.home-hero__icon .ico{ width: 28px; height: 28px; }
-  .home-hero__icon svg.home-ic{ width: 34px; height: 34px; }
+  .home-hero__icon{ width: 44px; height: 44px; }.home-hero__icon svg,
+.home-hero__icon .ico{ width: 24px; height: 24px; }
+  .home-hero__icon svg.home-ic{ width: 32px; height: 32px; }
   .home-tile{ min-height: 152px; padding: var(--space-4); }
   .home-tile__icon{ width: 44px; height: 44px; }.home-tile__icon svg,
 .home-tile__icon .ico{ width: 24px; height: 24px; }
   .home-tile__icon svg.home-ic{ width: 32px; height: 32px; }
-  .home-tile--rewards .home-tile__icon{ width: 50px; height: 50px; }
-  .home-tile--rewards .home-tile__icon svg.home-ic{ width: 36px; height: 36px; }
   .home-id{ max-width: 340px; }
   /* الفوتر بيمشي مع الكتلة المتمركزة بدل ما يتسمّر تحت */
   .home-foot{ margin-top: var(--space-2); }
@@ -1328,12 +1561,10 @@
   .home-tile{ min-height: 168px; }
   /* الكمبيوتر/التابلت العرضيّ: البطاقاتُ أطولُ فالأيقونةُ المرسومةُ تتّسعُ
      معها حتّى لا تبدوَ تائهةً في مساحةٍ فارغة. */
-  .home-hero__icon{ width: 56px; height: 56px; }
-  .home-hero__icon svg.home-ic{ width: 37px; height: 37px; }
+  .home-hero__icon{ width: 48px; height: 48px; }
+  .home-hero__icon svg.home-ic{ width: 35px; height: 35px; }
   .home-tile__icon{ width: 48px; height: 48px; }
   .home-tile__icon svg.home-ic{ width: 35px; height: 35px; }
-  .home-tile--rewards .home-tile__icon{ width: 54px; height: 54px; }
-  .home-tile--rewards .home-tile__icon svg.home-ic{ width: 39px; height: 39px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1344,18 +1575,14 @@
   .home-grid{ gap: var(--space-2); }
   .home-hero{ padding: var(--space-3); gap: var(--space-2); }
   .home-hero__title{ font-size: 19px; }
-  .home-hero__icon{ width: 38px; height: 38px; }.home-hero__icon svg,
-.home-hero__icon .ico{ width: 21px; height: 21px; }
-  .home-hero__icon svg.home-ic{ width: 25px; height: 25px; }
+  .home-hero__icon{ width: 32px; height: 32px; }.home-hero__icon svg,
+.home-hero__icon .ico{ width: 18px; height: 18px; }
+  .home-hero__icon svg.home-ic{ width: 24px; height: 24px; }
   .home-hero__cta{ padding: var(--space-2) var(--space-3); }
   .home-tile{ min-height: 112px; padding: var(--space-2) var(--space-3); }
   .home-tile__icon{ width: 32px; height: 32px; }.home-tile__icon svg,
 .home-tile__icon .ico{ width: 18px; height: 18px; }
   .home-tile__icon svg.home-ic{ width: 24px; height: 24px; }
-  /* بطاقةُ الجوائزِ لها مقاسٌ أكبرُ في الأساسِ فلا يرثُ الضغطَ تلقائيًّا —
-     تُضغَطُ صراحةً وإلّا بدت أيقونتُها عملاقةً بجانبِ أخواتِها. */
-  .home-tile--rewards .home-tile__icon{ width: 36px; height: 36px; }
-  .home-tile--rewards .home-tile__icon svg.home-ic{ width: 27px; height: 27px; }
   .home-id{ padding: var(--space-1) var(--space-2); }
   .home-id__av{ width: 38px; height: 38px; }
   .home-foot{ display: none; }

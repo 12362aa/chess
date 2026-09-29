@@ -12,6 +12,24 @@
 
   var LS_KEY = 'amkh_economy_cache';
 
+  /* ── وسمُ صاحبِ اللقطةِ المخبّأة (بلاغُ جوجو «أهمُّ خطأ») ──
+     السيناريو: حسابٌ فيه إطارٌ وخلفيّةٌ، خروجٌ منه، ثمّ دخولٌ بحسابٍ لا
+     يملكُهما — فيظلّانِ ظاهرَينِ في الشاشةِ الرئيسيّةِ شكلًا لا حقيقة.
+     السببُ الجذريّ: اللقطةُ كانت تُخبَّأُ في localStorage بلا صاحبٍ، و
+     init() تستعيدُها لأيِّ حسابٍ يفتحُ التطبيقَ بعدَها، فيرجعُ
+     state.equipped الخاصُّ بالحسابِ السابق. القاعدةُ الصارمة: التجميلُ
+     يخصُّ الحسابَ لا الجهاز — فاللقطةُ تُوسَمُ بصاحبِها، ولا تُستعادُ
+     إلّا له بعينِه، وتُمسَحُ كليًّا عندَ الخروج. */
+  function ownerUid() {
+    try {
+      if (window.amkhAuth && window.amkhAuth.user && window.amkhAuth.user.id != null)
+        return String(window.amkhAuth.user.id);
+      var raw = localStorage.getItem('amkh_user');
+      if (raw) { var u = JSON.parse(raw); if (u && u.id != null) return String(u.id); }
+    } catch (e) {}
+    return '';
+  }
+
   var amkhEconomy = {
     state: null,       // آخر لقطة من الخادم
     _inflight: false,
@@ -28,7 +46,8 @@
     /* اطلب اللقطة الحالية من الخادم. صامت لو لا يوجد توكن (زائر). */
     refresh: function () {
       var tok = this._token();
-      if (!tok) { this._renderHidden(); return Promise.resolve(null); }
+      /* بلا توكِن = زائرٌ أو خارجٌ للتوّ: لا رصيدَ ولا تجميلَ ظاهرٌ إطلاقًا. */
+      if (!tok) { if (this.state) this.clear(); else this._renderHidden(); return Promise.resolve(null); }
       if (this._inflight) return Promise.resolve(this.state);
       this._inflight = true;
       var self = this;
@@ -43,8 +62,21 @@
     apply: function (snap) {
       if (!snap || typeof snap !== 'object') return;
       this.state = snap;
-      try { localStorage.setItem(LS_KEY, JSON.stringify(snap)); } catch (e) {}
+      /* تُخزَّنُ موسومةً بصاحبِها — لا لقطةَ بلا صاحبٍ بعدَ اليوم. */
+      try { localStorage.setItem(LS_KEY, JSON.stringify({ uid: ownerUid(), snap: snap })); } catch (e) {}
       this._render();
+      try { window.dispatchEvent(new Event('amkh:cosmetics')); } catch (e) {}
+    },
+
+    /* مسحُ كلِّ أثرِ الحسابِ من طبقةِ الاقتصادِ والتجميل: يُنادى من
+       amkhAuth.logout() ومن تبديلِ الحساباتِ على نفسِ الجهاز. بعدَه
+       amkhCos.self() تُرجِعُ null فتُزيلُ paint/paintName/paintBanner
+       الإطارَ والشارةَ واللافتةَ فورًا من الرئيسيّةِ وكلِّ مكان. */
+    clear: function () {
+      this.state = null;
+      this._inflight = false;
+      try { localStorage.removeItem(LS_KEY); } catch (e) {}
+      this._renderHidden();
       try { window.dispatchEvent(new Event('amkh:cosmetics')); } catch (e) {}
     },
 
@@ -124,11 +156,23 @@
     },
 
     init: function () {
-      // اعرض النسخة المخبّأة فورًا (تجربة أسرع) ثم حدّث من الخادم
+      /* اعرض النسخة المخبّأة فورًا (تجربة أسرع) ثم حدّث من الخادم — لكن
+         لصاحبِها وحدَه. أيُّ لقطةٍ لحسابٍ آخرَ (أو بالصيغةِ القديمةِ بلا
+         وسمِ صاحبٍ) تُمسَحُ ولا تُعرَضُ إطلاقًا، فلا يرثُ حسابٌ إطارَ
+         حسابٍ آخرَ ولا خلفيّتَه ولا رصيدَه (بلاغُ جوجو «أهمُّ خطأ»). */
       try {
-        var cached = localStorage.getItem(LS_KEY);
-        if (cached) { this.state = JSON.parse(cached); this._render(); }
-      } catch (e) {}
+        var raw = localStorage.getItem(LS_KEY);
+        if (raw) {
+          var box = JSON.parse(raw);
+          var me = ownerUid();
+          if (box && box.snap && box.uid && me && String(box.uid) === me) {
+            this.state = box.snap; this._render();
+          } else {
+            localStorage.removeItem(LS_KEY);
+            this._renderHidden();
+          }
+        }
+      } catch (e) { try { localStorage.removeItem(LS_KEY); } catch (e2) {} }
       var self = this;
       // أول تحديث بعد أن يجهز التوكن
       var tries = 0;

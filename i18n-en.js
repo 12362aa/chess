@@ -1725,6 +1725,94 @@
     'يُعاد تشغيل التطبيق ليطبَّق التغيير': 'The app restarts to apply the change',
   });
 
+  /* ═══════════ رسائل الخطأ الآتية من الخادم ═══════════
+     بلاغ جوجو: نافذة «Not sent» كان عنوانها وزرّها إنجليزيّين ومتنها
+     عربيًّا («أنتم أصدقاء بالفعل»). السبب أنّ المتن لا يُكتب في الواجهة
+     بل يصل نصًّا جاهزًا في حقل error من الخادم، فلا مفتاح له في القاموس
+     فيمرّ كما هو. الإصلاح صنفيّ لا سطريّ: كلّ نصّ error عربيّ في ملفّات
+     الخادم (auth.js وfriends.js وchat.js وparties.js وspectate.js
+     وnour وserver.js) له هنا مفتاح. أيّ رسالة خطأ جديدة تُضاف للخادم
+     يجب أن يُضاف مفتاحها هنا في اللحظة نفسها. */
+  window.I18N.add({
+    /* الدخول والتسجيل واستعادة كلمة المرور (auth.js) */
+    'تعذّر الاتصال بالخادم. تأكّد من اتصال الإنترنت.': 'Could not reach the server. Check your internet connection.',
+    'البريد وكلمة المرور مطلوبان': 'Email and password are required',
+    'البريد والرمز مطلوبان': 'Email and code are required',
+    'البريد والرمز وكلمة المرور مطلوبة': 'Email, code and password are required',
+    'كلمة المرور يجب أن تكون 8 أحرف على الأقل': 'Password must be at least 8 characters',
+    'خدمة البريد غير مهيّأة على الخادم حاليًا. جرّب لاحقًا.': 'Email service is not set up on the server right now. Try again later.',
+    'SMTP غير مهيّأ': 'Email service is not set up',
+    'طلبت رموزًا كثيرة لهذا البريد. جرّب بعد ساعة.': 'Too many codes requested for this email. Try again in an hour.',
+    'طلبت رموزًا كثيرة. جرّب بعد ساعة.': 'Too many codes requested. Try again in an hour.',
+    'محاولات كثيرة من هذا الاتصال. جرّب بعد قليل.': 'Too many attempts from this connection. Try again shortly.',
+    'تعذّر إرسال البريد الآن. تأكّد من صحة بريدك وأعِد المحاولة.': 'Could not send the email. Check your address and try again.',
+    'تعذّر إرسال البريد الآن. جرّب مرة أخرى.': 'Could not send the email right now. Try again.',
+    'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.': 'The code has expired. Request a new one.',
+    'تجاوزت عدد المحاولات. اطلب رمزًا جديدًا.': 'Too many attempts. Request a new code.',
+    'الرمز غير صحيح أو انتهت صلاحيته': 'The code is wrong or has expired',
+    'هذا البريد مسجَّل بالفعل — سجّل الدخول': 'This email is already registered — sign in instead',
+    'هذا الحساب مسجَّل بجوجل — استخدم زرّ «الدخول بجوجل»': 'This account was created with Google — use the “Sign in with Google” button',
+    'يجب أن يكون الاسم من 3 إلى 16 حرفًا إنجليزيًا أو رقمًا أو _': 'The username must be 3 to 16 English letters, digits or _',
+    'الاسم محجوز، جرّب اسمًا آخر': 'That name is taken, try another one',
+    'الاسم قصير جدًا': 'The name is too short',
+    'صيغة الصورة غير مدعومة': 'Unsupported image format',
+    'الصورة كبيرة جدًا': 'The image is too large',
+    'كود دولة غير صالح': 'Invalid country code',
+    'رابط غير صالح': 'Invalid link',
+    'قيمة غير صالحة': 'Invalid value',
+    'خطأ في الخادم': 'Server error',
+
+    /* الأصدقاء والدعوات (friends.js) */
+    'مستخدم غير صحيح': 'Invalid user',
+    'لا يمكنك إضافة نفسك': 'You cannot add yourself',
+    'اللاعب غير موجود': 'Player not found',
+    'لاعب غير موجود': 'Player not found',
+    'لاعب غير صالح': 'Invalid player',
+    'لا يمكن إرسال الطلب': 'The request could not be sent',
+    'أنتم أصدقاء بالفعل': 'You are already friends',
+    'الطلب مُرسَل بالفعل': 'The request has already been sent',
+    'طلب غير صحيح': 'Invalid request',
+    'إجراء غير معروف': 'Unknown action',
+    'الطلب غير موجود أو تم الردّ عليه': 'The request no longer exists or has already been answered',
+    'صديق غير صحيح': 'Invalid friend',
+    'صديق غير صالح': 'Invalid friend',
+    'لا يمكنك دعوة نفسك': 'You cannot invite yourself',
+    'لا يمكنك دعوة غير أصدقائك': 'You can only invite your friends',
+    'هناك دعوة مُرسَلة بالفعل': 'An invite has already been sent',
+    'دعوة غير صحيحة': 'Invalid invite',
+    'انتهت الدعوة أو أنها غير موجودة': 'The invite has expired or no longer exists',
+    'الدعوة غير موجودة': 'The invite does not exist',
+    'الدعوة منتهية أو غير موجودة': 'The invite has expired or does not exist',
+    'ليس في قائمة أصدقائك': 'Not in your friends list',
+
+    /* المحادثات (chat.js) */
+    'رسالة غير صالحة': 'Invalid message',
+    'محادثة غير صالحة': 'Invalid conversation',
+    'يمكنك تثبيت 5 محادثات كحدٍّ أقصى': 'You can pin up to 5 chats',
+    'غير موجودة': 'Not found',
+
+    /* الحفلات (parties.js) */
+    'اسم الحفلة مطلوب': 'A party name is required',
+    'الحفلة غير موجودة': 'Party not found',
+    'المالك بس يقدر يغيّر الصورة': 'Only the owner can change the picture',
+    'صورة غير صالحة': 'Invalid image',
+    'المشرفون بس': 'Admins only',
+    'لا يمكن إزالة مالك الحفلة': 'The party owner cannot be removed',
+    'لست عضوًا': 'You are not a member',
+    'مالك الحفلة سوبر أدمن دايماً': 'The party owner is always a super admin',
+
+    /* المشاهدة (spectate) */
+    'لا يمكنك مشاهدة نفسك': 'You cannot spectate yourself',
+    'يمكنك مشاهدة أصدقائك فقط': 'You can only spectate your friends',
+    'صديقك ليس في مباراة الآن': 'Your friend is not in a game right now',
+    'لا يمكن مشاهدة هذه المباراة': 'This game cannot be spectated',
+    'أنت أحد لاعبي هذه المباراة': 'You are one of the players in this game',
+
+    /* نور والاتّصال */
+    'كل موديلات الذكاء الاصطناعي فشلت': 'All AI models failed',
+    'جارٍ استعادة الاتصال…': 'Reconnecting…',
+  });
+
   /* ═══════════ أنماط: نصوص جزؤها المتغيّر ليس رقمًا ═══════════
      القاموس يختزل الأرقام وحدها؛ أمّا ما يحمل رمزًا أو اسمًا أو كلمةً
      في وسطه فلا مفتاح ثابت له، فيُلتقط بنمط. الاستبدال قد يكون دالّة
@@ -1735,4 +1823,21 @@
   P(/^المرحلة\s+([0-9٠-٩]+)\s*[—–-]\s*(.+)$/, function (m, n, nm) { return 'Level ' + n + ' — ' + t(nm); });
   P(/^المرحلة\s+([0-9٠-٩]+)\s*:\s*(.+)$/, function (m, n, nm) { return 'Level ' + n + ': ' + t(nm); });
   P(/^تحديث التقييم\s*[—–-]\s*(.+)$/, function (m, w) { return 'Rating update — ' + t(w); });
+
+  /* معدودٌ عربيٌّ مصرَّف («محاولة واحدة»، «محاولتان»، «٣ محاولات») يصل من
+     الخادم داخل رسالة خطأ، فلا رقم صريح فيه أحيانًا ليختزله القاموس.
+     نقرأ العدد من صيغته ونُعيد بناءه إنجليزيًّا. */
+  function countEn(s, one, many) {
+    var d = /([0-9]+)/.exec(String(s).replace(/[٠-٩]/g, function (c) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); }));
+    if (d) return d[1] + ' ' + (d[1] === '1' ? one : many);
+    if (/واحدة|واحد/.test(s)) return '1 ' + one;
+    if (/تان|تين/.test(s)) return '2 ' + many;
+    return s;
+  }
+  P(/^الرمز غير صحيح\s*[—–-]\s*باقي لك\s+(.+)$/, function (m, rest) {
+    return 'The code is wrong — ' + countEn(rest, 'attempt', 'attempts') + ' left';
+  });
+  P(/^انتظر\s+(.+?)\s+قبل طلب رمز جديد$/, function (m, rest) {
+    return 'Wait ' + countEn(rest, 'second', 'seconds') + ' before requesting a new code';
+  });
 })();

@@ -729,6 +729,12 @@ const amkhAuth = {
     } catch (e) {}
     /* امسح كاش المحادثات المحلي (#133) عشان ميتشافش لحساب تاني على نفس الجهاز. */
     try { if (window.amkhChat && typeof window.amkhChat._clearCache === 'function') window.amkhChat._clearCache(); } catch (e) {}
+    /* والطبقةُ التجميليّةُ معها بالحرف (بلاغُ جوجو «أهمُّ خطأ»): الإطارُ
+       والخلفيّةُ والشارةُ ولونُ الاسمِ كانوا يفضلون ظاهرين بعدَ الخروجِ
+       ودخولِ حسابٍ لا يملكُهم — شكلٌ بلا ملكيّةٍ حقيقيّة. المسحُ هنا
+       يصفّرُ اللقطةَ والكاشَ ويُطلِقُ amkh:cosmetics فتُعادُ رسمُ
+       الرئيسيّةِ بلا أيِّ تجميلٍ في نفسِ اللحظة. */
+    try { if (window.amkhEconomy && typeof window.amkhEconomy.clear === 'function') window.amkhEconomy.clear(); } catch (e) {}
   },
 
   /* ── ربط بيانات الجهاز بالحساب (#18) ──
@@ -743,6 +749,9 @@ const amkhAuth = {
   _wipeLocalUserData() {
     try { if (window.Cfg && typeof window.Cfg.wipeLocalForAccountSwitch === 'function') window.Cfg.wipeLocalForAccountSwitch(); } catch (e) {}
     try { if (window.LVL && typeof window.LVL.clearLocal === 'function') window.LVL.clearLocal(); } catch (e) {}
+    /* والاقتصاد/التجميل: لقطةُ الحسابِ السابقِ (رصيد + مملوك + مُجهَّز)
+       لا تُورَّثُ للحسابِ الجديدِ ولو لحظةً واحدةً قبلَ ردِّ الخادم. */
+    try { if (window.amkhEconomy && typeof window.amkhEconomy.clear === 'function') window.amkhEconomy.clear(); } catch (e) {}
     /* لقطة تقدّم نور المعروضة في «درب نور» تُبنى من التخزين عند كلّ فتحٍ
        (NLV.build) والكاش اتصفّر للتوّ، فالفتح التالي يقرأ تقدّم الحساب
        الجديد فقط — لا يظهر تقدّم الحساب السابق. */
@@ -1420,7 +1429,21 @@ const amkhAuth = {
        مالهاش لازمة. تحوّط: كل زر فيها بيقفلها بنفسه، لكن ده بيضمن إنها
        ماتفضلش معلّقة لو الدخول جا من مكان تالت. */
     if (this.user) { try { if (window.amkhWelcome) window.amkhWelcome.close(); } catch (e) {} }
-    const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    /* أيقونةُ الحساب (طلبُ جوجو ٤): كانت خطًّا رماديًّا بـcurrentColor بلا
+       لون. صارت شخصًا مرسومًا سماويًّا بتدرّجاتٍ داخلَه وحدٍّ داكنٍ ولمعةٍ —
+       بنفسِ لغةِ أيقوناتِ الرئيسيّة. ساكنةٌ عن قصد: نقطةُ الحالةِ الخضراءُ
+       وشارةُ الرسائلِ تجلسانِ فوقَها، فأيُّ حركةٍ هنا تزاحمُهما.
+       مختلفةٌ عن أيقونةِ الأصدقاءِ شكلًا: هذه شخصٌ بلا فقاعة. */
+    const ICON = '<svg class="appbar-ic appbar-ic--account" viewBox="0 0 24 24" aria-hidden="true">'
+      + '<defs>'
+      + '<linearGradient id="abaH" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8f6ff"/><stop offset=".45" stop-color="#5fd3ee"/><stop offset="1" stop-color="#0e7490"/></linearGradient>'
+      + '<linearGradient id="abaB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fdcf2"/><stop offset=".5" stop-color="#2a9dc0"/><stop offset="1" stop-color="#0b556b"/></linearGradient>'
+      + '</defs>'
+      + '<path d="M3.9 20.6 C3.9 16.1 7.5 13.7 12 13.7 C16.5 13.7 20.1 16.1 20.1 20.6 Z" fill="url(#abaB)" stroke="#06313f" stroke-width="1.2" stroke-linejoin="round"/>'
+      + '<circle cx="12" cy="7.5" r="4.1" fill="url(#abaH)" stroke="#06313f" stroke-width="1.2"/>'
+      + '<ellipse cx="10.3" cy="6" rx="1.35" ry=".9" fill="#ffffff" opacity=".42" transform="rotate(-22 10.3 6)"/>'
+      + '<path d="M6.3 19.4 C6.6 16.9 8.7 15.5 11 15.2" fill="none" stroke="#d8f6ff" stroke-width=".85" opacity=".4" stroke-linecap="round"/>'
+      + '</svg>';
     const trail = document.querySelector('.appbar__trail');
     let btn = document.getElementById('amkh-auth-btn');
     if (!btn) {

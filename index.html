@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20260926-b57"></script>
+<script src="i18n-en.js?v=20260929-b67"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -3037,7 +3037,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260928-b66">
+<link rel="stylesheet" href="screens.css?v=20260929-b67">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -3110,7 +3110,31 @@ html.amkh-preboot #amkh-preboot{
     <!-- سياق الشاشة الرئيسية: شعار مصغّر + وصول سريع -->
     <div class="appbar__lead" id="appbar-home-lead">
       <span class="appbar__brand">
-        <span class="appbar__brand-mark">♟</span>
+        <!-- بيدقُ الشعار (طلبُ جوجو ٤): كان محرفًا نصّيًّا ♟ بلونٍ واحدٍ من
+             السمة. صار بيدقًا مرسومًا ذهبيًّا كاملًا — رأسٌ كرويٌّ بلمعةٍ
+             وطَوقٌ وجسمٌ مقوَّسٌ وقاعدةٌ — يتنفّسُ نبضةً هادئةً وتعبرُه لمعةٌ
+             مائلةٌ كلَّ دورة. مستقلٌّ عن السماتِ لأنّ تدرّجاتَه داخلَه. -->
+        <span class="appbar__brand-mark" aria-hidden="true">
+          <svg class="appbar-ic appbar-ic--pawn" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="abpG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".42" stop-color="#f7cf68"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
+              <radialGradient id="abpH" cx="34%" cy="28%" r="62%"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+              <clipPath id="abpClip">
+                <path d="M12 2.4 A3.35 3.35 0 0 1 12 9.1 A3.35 3.35 0 0 1 12 2.4 Z M8.5 10.1 H15.5 L14.7 11.7 H9.3 Z M9.3 11.7 H14.7 C14.7 14.8 15.7 16.9 17.1 18.3 H6.9 C8.3 16.9 9.3 14.8 9.3 11.7 Z M5.4 18.3 H18.6 V21.4 H5.4 Z"/>
+              </clipPath>
+            </defs>
+            <g class="abi-pawn">
+              <circle cx="12" cy="5.75" r="3.35" fill="url(#abpG)" stroke="#6b4406" stroke-width=".85"/>
+              <path d="M8.5 10.1 H15.5 L14.7 11.7 H9.3 Z" fill="url(#abpG)" stroke="#6b4406" stroke-width=".85" stroke-linejoin="round"/>
+              <path d="M9.3 11.7 H14.7 C14.7 14.8 15.7 16.9 17.1 18.3 H6.9 C8.3 16.9 9.3 14.8 9.3 11.7 Z" fill="url(#abpG)" stroke="#6b4406" stroke-width=".85" stroke-linejoin="round"/>
+              <rect x="5.4" y="18.3" width="13.2" height="3.1" rx="1.2" fill="url(#abpG)" stroke="#6b4406" stroke-width=".85"/>
+              <circle cx="10.7" cy="4.6" r="1.5" fill="url(#abpH)"/>
+              <g clip-path="url(#abpClip)">
+                <rect class="abi-shine" x="-9" y="0" width="5.2" height="24" fill="#fffdf2" opacity="0" transform="skewX(-18)"/>
+              </g>
+            </g>
+          </svg>
+        </span>
         <span class="appbar__brand-name">Am-Kh</span>
       </span>
     </div>
@@ -3134,16 +3158,87 @@ html.amkh-preboot #amkh-preboot{
       <button class="appbar__icon-btn amkh-friends-btn" id="appbar-friends"
         aria-label="الأصدقاء والدردشة" style="display:none"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); if(window.amkhFriends)window.amkhFriends.showFriendsModal()">
-        <i class="ico ico--friends" aria-hidden="true"></i>
+        <!-- الأصدقاء (طلبُ جوجو ٤): فقاعةُ حوارٍ فيها شخصٌ ذهبيّ. الشرطُ
+             الصريحُ «إيّاكَ أن تُشبِهَ أيقونةَ لاعبان» مُلتزَمٌ هندسيًّا: تلك
+             شخصانِ متجاورانِ فوقَ شريطِ رقعةٍ بلا فقاعة، وهذه ظِلُّها الخارجيُّ
+             فقاعةٌ بذَيلٍ — صامتةٌ عن أيِّ التباس. والفقاعةُ هي المعنى نفسُه:
+             الزرُّ يفتحُ الأصدقاءَ والدردشةَ والحفلات. -->
+        <svg class="appbar-ic appbar-ic--friends" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <linearGradient id="abfB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+            <linearGradient id="abfP" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".5" stop-color="#f5c451"/><stop offset="1" stop-color="#c9950f"/></linearGradient>
+          </defs>
+          <path d="M4.2 3.6 H19.8 A2.6 2.6 0 0 1 22.4 6.2 V14.9 A2.6 2.6 0 0 1 19.8 17.5 H10.4 L5.9 21.1 V17.5 H4.2 A2.6 2.6 0 0 1 1.6 14.9 V6.2 A2.6 2.6 0 0 1 4.2 3.6 Z"
+            fill="url(#abfB)" stroke="#2e1065" stroke-width="1.35" stroke-linejoin="round"/>
+          <circle cx="12" cy="8.5" r="2.5" fill="url(#abfP)" stroke="#6b4406" stroke-width=".8"/>
+          <path d="M7.5 15.4 C7.5 12.7 9.5 11.4 12 11.4 C14.5 11.4 16.5 12.7 16.5 15.4 Z"
+            fill="url(#abfP)" stroke="#6b4406" stroke-width=".8" stroke-linejoin="round"/>
+          <path d="M4.3 6.4 C4.3 5.6 5 5.2 5.9 5.2 H9.4" fill="none" stroke="#f4f0ff" stroke-width=".95" opacity=".45" stroke-linecap="round"/>
+        </svg>
       </button>
       <!-- لوحة الصدارة: مكان ثابت بارز في الشريط العلوي (مش مدفونة في اللعبة).
            تظهر على الشاشة الرئيسية فقط عن طريق AppBar.sync. -->
       <button class="appbar__icon-btn" id="appbar-leaderboard" aria-label="لوحة الصدارة"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Leaderboard.open()">
-        <i class="ico ico--trophy" aria-hidden="true"></i>
+        <!-- لوحةُ الصدارة (طلبُ جوجو ٤): كأسٌ ذهبيّةٌ بمقبضَينِ وقاعدةٍ ونجمةٍ.
+             هي الوحيدةُ المتحرّكةُ في الشريطِ — باقتراحِ جوجو نفسِه — فلا
+             يزدحمُ أعلى الشاشةِ بالحركة: لمعةٌ تعبرُ الكأسَ (محصورةٌ بقناعِها)
+             وشرارتانِ تتناوبانِ ونبضةُ ارتفاعٍ رقيقة. -->
+        <svg class="appbar-ic appbar-ic--trophy" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <linearGradient id="abtG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".4" stop-color="#f7cf68"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
+            <linearGradient id="abtD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5c451"/><stop offset="1" stop-color="#8a5c05"/></linearGradient>
+            <clipPath id="abtClip">
+              <path d="M7.4 2.8 H16.6 V8.5 C16.6 11.7 14.5 13.7 12 13.7 C9.5 13.7 7.4 11.7 7.4 8.5 Z"/>
+            </clipPath>
+          </defs>
+          <g class="abi-trophy">
+            <path d="M7.5 4.4 H5.1 C3.4 4.4 3.4 9.4 8 10.2" fill="none" stroke="url(#abtD)" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M16.5 4.4 H18.9 C20.6 4.4 20.6 9.4 16 10.2" fill="none" stroke="url(#abtD)" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7.4 2.8 H16.6 V8.5 C16.6 11.7 14.5 13.7 12 13.7 C9.5 13.7 7.4 11.7 7.4 8.5 Z"
+              fill="url(#abtG)" stroke="#6b4406" stroke-width="1.05" stroke-linejoin="round"/>
+            <path d="M12 5.2 L12.78 7.08 L14.8 7.24 L13.26 8.57 L13.73 10.55 L12 9.5 L10.27 10.55 L10.74 8.57 L9.2 7.24 L11.22 7.08 Z"
+              fill="#fffdf2" opacity=".72"/>
+            <g clip-path="url(#abtClip)">
+              <rect class="abi-shine" x="-8" y="0" width="4.6" height="24" fill="#fffdf2" opacity="0" transform="skewX(-18)"/>
+            </g>
+            <rect x="10.85" y="13.7" width="2.3" height="3.1" fill="url(#abtD)" stroke="#6b4406" stroke-width=".85"/>
+            <path d="M8.3 16.8 H15.7 L16.9 19.2 H7.1 Z" fill="url(#abtG)" stroke="#6b4406" stroke-width=".95" stroke-linejoin="round"/>
+            <rect x="6.1" y="19.2" width="11.8" height="2.4" rx=".9" fill="url(#abtG)" stroke="#6b4406" stroke-width=".95"/>
+          </g>
+          <path class="abi-spk abi-spk--a" d="M4.1 12.4 l.72.92 -.72.92 -.72-.92 Z" fill="#fff6cf" opacity="0"/>
+          <path class="abi-spk abi-spk--b" d="M19.9 13.1 l.66.86 -.66.86 -.66-.86 Z" fill="#fff6cf" opacity="0"/>
+        </svg>
       </button>
       <button class="appbar__icon-btn" id="appbar-settings" aria-label="الإعدادات"
-        onclick="if(typeof SFX!=='undefined')SFX.btn();Nav.settings()">⚙</button>
+        onclick="if(typeof SFX!=='undefined')SFX.btn();Nav.settings()">
+        <!-- الإعدادات (طلبُ جوجو ٤): كان محرفًا نصّيًّا ⚙. صار ترسًا فولاذيًّا
+             مرسومًا بمسارٍ صريحٍ لا بحيلةِ حدٍّ متقطّع: جُرِّبَت الحيلةُ أوّلًا
+             فخرجَ الشكلُ كعدسةِ كاميرا (حلقاتٌ متراكزةٌ وأسنانٌ كشفراتِ
+             حجاب). المسارُ الصريحُ يعطي ثمانِ أسنانٍ حقيقيّةٍ محسوبةٍ: نصفُ
+             قطرِ الرأسِ 10.2 ونصفُ قطرِ الجذرِ 7.35 (ارتفاعُ سِنٍّ 2.85)،
+             وكلُّ سِنٍّ ٢٢° يليها جذرٌ ٢٣° — فالفجواتُ ظاهرةٌ عميقةٌ ويُقرأُ
+             ترسًا من أوّلِ نظرة. التجويفُ والمِحورُ خارجَ المجموعةِ الدائرةِ
+             فيثبتانِ حينَ يدور. لا يتحرّكُ إلّا عندَ اللمسِ/المرورِ فيبقى
+             الشريطُ ساكنًا كما أرادَ جوجو. -->
+        <svg class="appbar-ic appbar-ic--gear" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <linearGradient id="abgS" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6eef8"/><stop offset=".45" stop-color="#8fa6c0"/><stop offset="1" stop-color="#455770"/></linearGradient>
+            <linearGradient id="abgB" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#9fb6d0"/><stop offset=".5" stop-color="#4a5c76"/><stop offset="1" stop-color="#1e2837"/></linearGradient>
+            <radialGradient id="abgH" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#eafeff"/><stop offset=".55" stop-color="#67e8f9"/><stop offset="1" stop-color="#0e7490"/></radialGradient>
+          </defs>
+          <g class="abi-gear">
+            <path d="M10.6 4.79 L10.05 1.99 A10.2 10.2 0 0 1 13.95 1.99 L13.4 4.79 A7.35 7.35 0 0 1 16.11 5.91 L17.7 3.54 A10.2 10.2 0 0 1 20.46 6.3 L18.09 7.89 A7.35 7.35 0 0 1 19.21 10.6 L22.01 10.05 A10.2 10.2 0 0 1 22.01 13.95 L19.21 13.4 A7.35 7.35 0 0 1 18.09 16.11 L20.46 17.7 A10.2 10.2 0 0 1 17.7 20.46 L16.11 18.09 A7.35 7.35 0 0 1 13.4 19.21 L13.95 22.01 A10.2 10.2 0 0 1 10.05 22.01 L10.6 19.21 A7.35 7.35 0 0 1 7.89 18.09 L6.3 20.46 A10.2 10.2 0 0 1 3.54 17.7 L5.91 16.11 A7.35 7.35 0 0 1 4.79 13.4 L1.99 13.95 A10.2 10.2 0 0 1 1.99 10.05 L4.79 10.6 A7.35 7.35 0 0 1 5.91 7.89 L3.54 6.3 A10.2 10.2 0 0 1 6.3 3.54 L7.89 5.91 A7.35 7.35 0 0 1 10.6 4.79 Z"
+              fill="url(#abgS)" stroke="#141c28" stroke-width="1" stroke-linejoin="round"/>
+            <path d="M5.5 9.1 A7.1 7.1 0 0 1 10.3 5.1" fill="none" stroke="#f4fbff" stroke-width=".85" opacity=".42" stroke-linecap="round"/>
+            <path d="M18.4 15.1 A7.1 7.1 0 0 1 13.8 18.9" fill="none" stroke="#0a111b" stroke-width=".85" opacity=".4" stroke-linecap="round"/>
+          </g>
+          <!-- التجويفُ والمِحور: خارجَ المجموعةِ الدائرةِ فيثبتانِ كالمحورِ
+               الحقيقيِّ بينما يدورُ الترسُ حولَهما -->
+          <circle cx="12" cy="12" r="4" fill="url(#abgB)" stroke="#141c28" stroke-width="1"/>
+          <circle cx="12" cy="12" r="2.5" fill="url(#abgH)" stroke="#0b3f52" stroke-width=".8"/>
+        </svg>
+      </button>
     </div>
   </div>
 </div>
@@ -3206,29 +3301,46 @@ html.amkh-preboot #amkh-preboot{
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.levels()">
         <span class="home-hero__head">
           <span class="home-hero__icon" aria-hidden="true">
-            <!-- مراحلُ نور (توحيدُ الأسلوب): درجاتٌ حجريّةٌ صاعدةٌ إلى نجمةٍ
-                 ذهبيّةٍ متوّجةٍ بهالة — رمزُ الرحلةِ عبرَ الاثنتي عشرةَ مرحلة.
-                 مرسومةٌ ملوّنةٌ بنفسِ لغةِ الألغاز/المتجرِ/الجوائز، ومستقلّةٌ
-                 عن أقنعةِ الثيماتِ فتظهرُ كما هي في كلِّ السمات. -->
+            <!-- مراحلُ نور — عودةُ الأيقونةِ الأصليّةِ مُحسَّنةً (بلاغُ جوجو:
+                 «كنتُ طلبتُ تحسينَ القديمةِ لا صناعةَ غريبةٍ مكانَها»). الجبلُ
+                 رحلَ ورجعَ السُّلَّمُ الصاعدُ إلى النجمة — لكنّه لم يعُد ثلاثةَ
+                 أعمدةٍ منفصلةٍ تُقرأُ رسمًا بيانيًّا:
+                   • سلّمٌ واحدٌ متّصلٌ بمسارٍ واحدٍ (صامتٌ عن أيِّ قراءةٍ بيانيّة).
+                   • لكلِّ درجةٍ سطحُ وطءٍ فاتحٌ (tread) فيُرى مُجسَّمًا لا مسطَّحًا.
+                   • كُرةُ نورٍ ذهبيّةٌ تصعدُ الدرجاتِ وثبةً وثبةً، وكلُّ درجةٍ
+                     تُضيءُ لحظةَ الوصولِ إليها = مرحلةٌ اكتُمِلَت.
+                   • النجمةُ في القمّةِ تنفجرُ ضوءًا حين تبلغُها الكرة. -->
             <svg class="home-ic home-ic--levels" viewBox="0 0 24 24" aria-hidden="true">
               <defs>
-                <linearGradient id="hlvS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#3b0764"/></linearGradient>
-                <linearGradient id="hlvM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#4c1d95"/></linearGradient>
-                <linearGradient id="hlvT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#67e8f9"/><stop offset="1" stop-color="#0e7490"/></linearGradient>
+                <linearGradient id="hlvM" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#4c1d95"/><stop offset=".42" stop-color="#7c5cff"/><stop offset=".78" stop-color="#8b5cf6"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+                <linearGradient id="hlvT" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ddd0ff"/><stop offset=".55" stop-color="#c4b5fd"/><stop offset="1" stop-color="#a5f3fc"/></linearGradient>
                 <linearGradient id="hlvG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6cf"/><stop offset=".5" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
-                <radialGradient id="hlvH" cx="50%" cy="50%" r="50%"><stop offset=".25" stop-color="#ffd24a" stop-opacity=".6"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+                <radialGradient id="hlvH" cx="50%" cy="50%" r="50%"><stop offset=".2" stop-color="#ffd24a" stop-opacity=".62"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+                <radialGradient id="hlvO" cx="50%" cy="50%" r="50%"><stop offset=".2" stop-color="#fffdf5"/><stop offset=".55" stop-color="#f5c451"/><stop offset="1" stop-color="#f5c451" stop-opacity="0"/></radialGradient>
               </defs>
-              <!-- درجاتٌ متلاصقةٌ (لا أعمدةٌ منفصلةٌ توحي برسمٍ بيانيّ):
-                   كتلةُ سلّمٍ واحدةٌ تصعدُ من البنفسجيِّ الداكنِ إلى السماويّ -->
-              <rect x="2.3" y="17.3" width="6.55" height="4.3" rx=".5" fill="url(#hlvS)" stroke="#2a0a52" stroke-width=".85"/>
-              <rect x="8.8" y="13.9" width="6.55" height="7.7" rx=".5" fill="url(#hlvM)" stroke="#2e1065" stroke-width=".85"/>
-              <rect x="15.3" y="10.5" width="6.4" height="11.1" rx=".5" fill="url(#hlvT)" stroke="#0c4a6e" stroke-width=".85"/>
-              <path d="M3 17.95 H8.2" stroke="#e2d4ff" stroke-width=".95" opacity=".55" stroke-linecap="round"/>
-              <path d="M9.5 14.55 H14.7" stroke="#e8dcff" stroke-width=".95" opacity=".6" stroke-linecap="round"/>
-              <path d="M16 11.15 H21" stroke="#d6f5ff" stroke-width=".95" opacity=".7" stroke-linecap="round"/>
-              <circle class="hic-halo" cx="18.55" cy="5.6" r="5.4" fill="url(#hlvH)"/>
-              <path class="hic-star" d="M18.55 1.9 l1.32 2.68 2.96.43 -2.14 2.09 .5 2.95 -2.64-1.39 -2.64 1.39 .5-2.95 -2.14-2.09 2.96-.43 Z"
-                fill="url(#hlvG)" stroke="#7a4e08" stroke-width=".7" stroke-linejoin="round"/>
+              <circle class="hic-halo" cx="18.2" cy="4.9" r="5.5" fill="url(#hlvH)"/>
+              <!-- السُّلَّمُ: مسارٌ واحدٌ متّصلٌ — درجةٌ تلي درجةً بلا فواصل -->
+              <path d="M2.2 21.5 V17.4 H8.6 V14.0 H15.0 V10.6 H21.4 V21.5 Z"
+                fill="url(#hlvM)" stroke="#280b52" stroke-width=".95" stroke-linejoin="round"/>
+              <!-- أسطحُ الوطءِ الفاتحةُ: هي التي تُعطي السُّلَّمَ تجسيمَه -->
+              <path d="M2.2 17.4 H8.6 V18.55 H2.2 Z" fill="url(#hlvT)" opacity=".85"/>
+              <path d="M8.6 14.0 H15.0 V15.15 H8.6 Z" fill="url(#hlvT)" opacity=".85"/>
+              <path d="M15.0 10.6 H21.4 V11.75 H15.0 Z" fill="url(#hlvT)" opacity=".85"/>
+              <!-- وميضُ «مرحلةٌ اكتُمِلَت»: يُضيءُ سطحَ الدرجةِ لحظةَ وصولِ الكرة -->
+              <path class="hic-tr hic-tr--a" d="M2.2 17.4 H8.6 V18.55 H2.2 Z" fill="#fff6cf" opacity="0"/>
+              <path class="hic-tr hic-tr--b" d="M8.6 14.0 H15.0 V15.15 H8.6 Z" fill="#fff6cf" opacity="0"/>
+              <path class="hic-tr hic-tr--c" d="M15.0 10.6 H21.4 V11.75 H15.0 Z" fill="#fff6cf" opacity="0"/>
+              <!-- حدودُ القوائمِ: تفصلُ الدرجةَ عن التي تليها في كلِّ السمات -->
+              <path d="M8.6 14.0 V18.55 M15.0 10.6 V15.15" stroke="#280b52" stroke-width=".8" stroke-linecap="round" opacity=".55"/>
+              <!-- كرةُ النورِ الصاعدة: هي «تقدّمُك» عبرَ المراحل -->
+              <g class="hic-orb">
+                <circle cx="5.4" cy="16.3" r="2.5" fill="url(#hlvO)" opacity=".85"/>
+                <circle cx="5.4" cy="16.3" r="1.15" fill="#fffdf5" stroke="#b9800f" stroke-width=".42"/>
+              </g>
+              <path class="hic-star" d="M18.2 1.5 L19.06 3.57 L21.29 3.75 L19.59 5.21 L20.11 7.39 L18.2 6.22 L16.29 7.39 L16.81 5.21 L15.11 3.75 L17.34 3.57 Z"
+                fill="url(#hlvG)" stroke="#7a4e08" stroke-width=".68" stroke-linejoin="round"/>
+              <path class="hic-spk hic-spk--a" d="M13.5 4.4 l.8 1 -.8 1 -.8-1 Z" fill="#fff6cf" opacity="0"/>
+              <path class="hic-spk hic-spk--b" d="M22.1 6.6 l.7.9 -.7.9 -.7-.9 Z" fill="#a7f3ff" opacity="0"/>
             </svg>
           </span>
           <span class="home-hero__heading">
@@ -3248,31 +3360,88 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile" type="button" data-mode="engine"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); ENGINE_PICKER.open()">
         <span class="home-tile__icon" aria-hidden="true">
-          <!-- ضدّ المحرّك: رقاقةُ معالجٍ بأرجلٍ ذهبيّةٍ ونواةٍ متوهّجةٍ ينبضُ
-               داخلَها حصانُ شطرنجٍ ذهبيّ — «العقلُ الحاسوبيُّ يلعب». -->
+          <!-- ضدّ المحرّك — عودةُ الرقاقةِ الأصليّةِ مُحسَّنةً (بلاغُ جوجو:
+               «الحصانُ وحدَه ما لوش علاقةٌ بالمحرّك؛ اعملْ أيقونةَ محرّكٍ زيَّ
+               القديمةِ لكنْ أحلى وبأنيميشنٍ أحسن»). فرجعَت رقاقةُ المعالجِ
+               بأرجلِها الذهبيّةِ وفارسِها الذهبيِّ في النواة، وزادَ عليها:
+                 • حافّةٌ مشطوفةٌ ولمعةٌ علويّةٌ تُعطي الرقاقةَ سُمكًا معدنيًّا.
+                 • شبكةُ سيليكونٍ باهتةٌ داخلَ النواةِ + أربعةُ مساراتٍ رُكنيّةٍ
+                   تجري فيها نبضاتُ طاقةٍ نحوَ الفارسِ = «الحسابُ يجري».
+                 • الأرجلُ تُضيءُ جهةً بعدَ جهةٍ دورانًا (تيّارٌ يدور).
+                 • شعاعُ مسحٍ يجتازُ النواةَ محصورًا بقناعِها فلا يفيض.
+                 • الفارسُ على قاعدةٍ ذهبيّةٍ يتنفّسُ مع نبضِ النواةِ وعينُه تَنبِض.
+               كلُّ الحركةِ بـCSS (تُوقَفُ عندَ تفضيلِ تقليلِ الحركة)، والعناصرُ
+               العابرةُ opacity=0 في العلامةِ فلا تظهرُ ثابتةً في السكون. -->
           <svg class="home-ic home-ic--engine" viewBox="0 0 24 24" aria-hidden="true">
             <defs>
-              <linearGradient id="hegC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#586b85"/><stop offset=".55" stop-color="#2b3747"/><stop offset="1" stop-color="#151d28"/></linearGradient>
+              <linearGradient id="hegC" x1=".08" y1="0" x2=".92" y2="1"><stop offset="0" stop-color="#8ea6c2"/><stop offset=".34" stop-color="#41536b"/><stop offset=".72" stop-color="#222e3d"/><stop offset="1" stop-color="#0e151e"/></linearGradient>
+              <linearGradient id="hegD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#152740"/><stop offset="1" stop-color="#060c15"/></linearGradient>
               <!-- gradientUnits=userSpaceOnUse: أرجلُ الرقاقةِ خطوطٌ بُعدُها
                    الأفقيُّ أو العموديُّ صفرٌ، وتدرّجُ objectBoundingBox ينهارُ
                    عليها فتختفي تمامًا. الإحداثيّاتُ المطلقةُ تُبقيها ظاهرة. -->
-              <linearGradient id="hegP" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#c9950f"/></linearGradient>
-              <linearGradient id="hegK" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6cf"/><stop offset=".55" stop-color="#f5c451"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
-              <radialGradient id="hegG" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#67e8f9" stop-opacity=".9"/><stop offset=".6" stop-color="#22d3ee" stop-opacity=".35"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+              <linearGradient id="hegP" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#fff2c4"/><stop offset=".5" stop-color="#eeb93a"/><stop offset="1" stop-color="#b8850a"/></linearGradient>
+              <linearGradient id="hegK" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".45" stop-color="#f7cf68"/><stop offset="1" stop-color="#b9800f"/></linearGradient>
+              <radialGradient id="hegG" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#8ef4ff" stop-opacity=".95"/><stop offset=".55" stop-color="#22d3ee" stop-opacity=".4"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+              <radialGradient id="hegA" cx="50%" cy="50%" r="50%"><stop offset=".4" stop-color="#22d3ee" stop-opacity=".28"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+              <!-- قناعُ النواة: الشبكةُ والمساراتُ وشعاعُ المسحِ كلُّها داخلَه -->
+              <clipPath id="hegDie"><rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.8"/></clipPath>
             </defs>
-            <g stroke="url(#hegP)" stroke-width="1.5" stroke-linecap="round">
-              <path d="M9 2.7 V5"/><path d="M12 2.7 V5"/><path d="M15 2.7 V5"/>
-              <path d="M9 19 V21.3"/><path d="M12 19 V21.3"/><path d="M15 19 V21.3"/>
-              <path d="M2.7 9 H5"/><path d="M2.7 12 H5"/><path d="M2.7 15 H5"/>
-              <path d="M19 9 H21.3"/><path d="M19 12 H21.3"/><path d="M19 15 H21.3"/>
+            <circle class="hic-aura" cx="12" cy="12" r="11" fill="url(#hegA)"/>
+            <!-- الأرجلُ الذهبيّةُ: اثنتا عشرةَ رِجلًا، ثلاثٌ لكلِّ جهة -->
+            <g stroke="url(#hegP)" stroke-width="1.55" stroke-linecap="round">
+              <path d="M9 2.6 V5"/><path d="M12 2.6 V5"/><path d="M15 2.6 V5"/>
+              <path d="M19 9 H21.4"/><path d="M19 12 H21.4"/><path d="M19 15 H21.4"/>
+              <path d="M9 19 V21.4"/><path d="M12 19 V21.4"/><path d="M15 19 V21.4"/>
+              <path d="M2.6 9 H5"/><path d="M2.6 12 H5"/><path d="M2.6 15 H5"/>
             </g>
-            <rect x="4.5" y="4.5" width="15" height="15" rx="2.6" fill="url(#hegC)" stroke="#0d141d" stroke-width="1"/>
-            <rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.8" fill="#0c141f" stroke="#3c4d68" stroke-width=".8"/>
-            <circle class="hic-core" cx="12" cy="12" r="5.2" fill="url(#hegG)"/>
-            <path d="M10.5 16.5 V14 C10.5 12.35 11.2 11.35 12.35 10.75 L11.15 11.1 L10.35 9.95 L12.25 8.2 L12.1 7.2 L13.15 7.85 C14.85 8.35 15.7 9.75 15.7 11.9 V16.5 Z"
-              fill="url(#hegK)" stroke="#6b4406" stroke-width=".7" stroke-linejoin="round"/>
-            <circle cx="12.75" cy="9.85" r=".42" fill="#3b2704"/>
-            <path d="M6.9 6.9 H10.2" stroke="#8fd7ff" stroke-width=".7" opacity=".45" stroke-linecap="round"/>
+            <!-- نسخةٌ ساطعةٌ فوقَها تُضاءُ جهةً بعدَ جهةٍ = تيّارٌ يدورُ حولَ الرقاقة -->
+            <g stroke="#fffbe8" stroke-width="1.55" stroke-linecap="round">
+              <g class="hic-pin hic-pin--t" opacity="0"><path d="M9 2.6 V5"/><path d="M12 2.6 V5"/><path d="M15 2.6 V5"/></g>
+              <g class="hic-pin hic-pin--r" opacity="0"><path d="M19 9 H21.4"/><path d="M19 12 H21.4"/><path d="M19 15 H21.4"/></g>
+              <g class="hic-pin hic-pin--b" opacity="0"><path d="M9 19 V21.4"/><path d="M12 19 V21.4"/><path d="M15 19 V21.4"/></g>
+              <g class="hic-pin hic-pin--l" opacity="0"><path d="M2.6 9 H5"/><path d="M2.6 12 H5"/><path d="M2.6 15 H5"/></g>
+            </g>
+            <!-- جسمُ الرقاقةِ + حافّةٌ مشطوفةٌ + لمعةٌ علويّة -->
+            <rect x="4.5" y="4.5" width="15" height="15" rx="2.7" fill="url(#hegC)" stroke="#070c13" stroke-width="1"/>
+            <path d="M6.2 5.4 H17.8" stroke="#cfe0f2" stroke-width=".7" opacity=".35" stroke-linecap="round"/>
+            <path d="M5.5 17.9 H18.5" stroke="#02060b" stroke-width=".7" opacity=".5" stroke-linecap="round"/>
+            <!-- علامةُ الرِّجلِ الأولى: تفصيلةُ رقاقةٍ حقيقيّةٍ صغيرةٌ لكنّها تُقنِع -->
+            <circle cx="5.95" cy="5.95" r=".5" fill="#9fb6d0" opacity=".6"/>
+            <!-- النواة (السيليكون) -->
+            <rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.8" fill="url(#hegD)" stroke="#40577a" stroke-width=".8"/>
+            <g clip-path="url(#hegDie)">
+              <path d="M6.4 9.6 H17.6 M6.4 14.4 H17.6 M9.6 6.4 V17.6 M14.4 6.4 V17.6" stroke="#1c3252" stroke-width=".5" opacity=".85"/>
+              <!-- أربعةُ مساراتٍ من أركانِ النواةِ إلى مركزِها: خطٌّ باهتٌ ثابتٌ
+                   وفوقَه نبضةٌ ساطعةٌ واحدةٌ تجري نحوَ الفارس. طولُ كلِّ مسارٍ
+                   1.6+3.2+3.2 = 8 بالضبط، ونمطُ الشُّرَطِ 1.6+6.4 = 8، والإزاحةُ
+                   8 — فالنبضةُ تُنهي المسارَ وتبدأُ من رأسِه بلا وثبة. -->
+              <g fill="none" stroke="#2a6285" stroke-width=".75" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+                <path d="M6.4 11.2 H8 V8 H11.2"/><path d="M17.6 11.2 H16 V8 H12.8"/>
+                <path d="M6.4 12.8 H8 V16 H11.2"/><path d="M17.6 12.8 H16 V16 H12.8"/>
+              </g>
+              <g fill="none" stroke="url(#hegG)" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="1.6 6.4">
+                <path class="hic-trace hic-trace--a" d="M6.4 11.2 H8 V8 H11.2"/>
+                <path class="hic-trace hic-trace--b" d="M17.6 11.2 H16 V8 H12.8"/>
+                <path class="hic-trace hic-trace--c" d="M6.4 12.8 H8 V16 H11.2"/>
+                <path class="hic-trace hic-trace--d" d="M17.6 12.8 H16 V16 H12.8"/>
+              </g>
+              <g fill="#a7f3ff" opacity=".9">
+                <circle cx="8" cy="8" r=".5"/><circle cx="16" cy="8" r=".5"/>
+                <circle cx="8" cy="16" r=".5"/><circle cx="16" cy="16" r=".5"/>
+              </g>
+              <!-- شعاعُ المسحِ: مخفيٌّ في السكونِ فلا يظهرُ شريطًا ثابتًا -->
+              <rect class="hic-scan" x="5.6" y="4.6" width="12.8" height="2.2" fill="#bffcff" opacity="0"/>
+            </g>
+            <!-- توهّجُ «التفكير» خلفَ الفارس -->
+            <circle class="hic-core" cx="12" cy="12" r="5.8" fill="url(#hegG)"/>
+            <!-- الفارسُ الذهبيُّ على قاعدتِه: هو الذي يجعلُها «محرّكَ شطرنج» -->
+            <g class="hic-knight">
+              <path d="M10.5 16.4 V14 C10.5 12.35 11.2 11.35 12.35 10.75 L11.15 11.1 L10.35 9.95 L12.25 8.2 L12.1 7.2 L13.15 7.85 C14.85 8.35 15.7 9.75 15.7 11.9 V16.4 Z"
+                fill="url(#hegK)" stroke="#6b4406" stroke-width=".72" stroke-linejoin="round"/>
+              <path d="M13.5 8.5 C14.85 9.15 15.25 10.45 15.25 11.95 V16.0" fill="none" stroke="#fffaf0" stroke-width=".55" opacity=".55" stroke-linecap="round"/>
+              <circle class="hic-eye" cx="12.72" cy="9.8" r=".46" fill="#3b2704"/>
+              <rect x="9.7" y="16.4" width="6.7" height="1.0" rx=".35" fill="url(#hegK)" stroke="#6b4406" stroke-width=".55"/>
+            </g>
           </svg>
         </span>
         <span class="home-tile__title">ضد المحرك</span>
@@ -3379,25 +3548,51 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile" type="button" data-mode="puzzles"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.puzzles()">
         <span class="home-tile__icon" aria-hidden="true">
-          <!-- الألغاز (بلاغ جوجو ٣ + تحسينُ الحركة): قطعتا أحجيةٍ متشابكتان —
-               بنفسجيّةٌ→سماويّةٌ كبيرةٌ، والذهبيّةُ الصغيرةُ تنزلقُ فتستقرُّ في
-               مكانِها ثمّ تلمعُ = «لغزٌ يُحَلّ». -->
+          <!-- الألغاز — أُحجيّةٌ حقيقيّةٌ تُحَلّ (بلاغُ جوجو: «مجرّدُ مربّعٍ
+               بيخُشّ فيه شيءٌ من فوق، مش أُحجيّةٌ بتتحلّ»). السابقُ كان لوحًا
+               واحدًا بمَحجَر؛ الآن أُحجيّةٌ ٢×٢ من أربعِ قطعٍ متشابكةٍ فعلًا:
+                 • ثلاثُ قطعٍ في مكانِها، والدروزُ بينها مرسومةٌ بألسنتِها
+                   ومَحاجرِها — فيُقرأُ المشهدُ «أُحجيّة» من أوّلِ نظرة.
+                 • الرابعةُ (العلويّةُ اليمنى) ناقصةٌ، ومكانُها غَوْرٌ داكنٌ
+                   بحدٍّ متقطّعٍ يزحف.
+                 • القطعةُ الذهبيّةُ تأتي مائلةً فتَستقرُّ في مَحجرِها بالضبط
+                   (نفسُ المسارِ بالحرفِ، فلا فجوةَ ولا تراكب)، فينفجرُ وميضٌ
+                   وحلقةُ صدمةٍ ويختفي الحدُّ المتقطّع.
+                 • ثمّ تُضاءُ الدروزُ فتُقرأُ «القِطَعُ اشتبكَت = اللغزُ حُلّ».
+               هندسةُ التشابك: اللسانُ نصفُ دائرةٍ نصفُ قطرِها 1.6 على منتصفِ
+               كلِّ نصفِ حرفٍ؛ مسارُ القطعةِ الناقصةِ ومسارُ الغَوْرِ واحدٌ حرفًا
+               بحرفٍ، ومسارُ اللوحِ مُكمِّلُه تمامًا (لسانٌ يقابلُ مَحجرًا). -->
           <svg class="home-ic home-ic--puzzles" viewBox="0 0 24 24" aria-hidden="true">
             <defs>
-              <linearGradient id="hpzA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
-              <linearGradient id="hpzB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#eda80f"/></linearGradient>
-              <radialGradient id="hpzS" cx="50%" cy="50%" r="50%"><stop offset=".2" stop-color="#fff6cf" stop-opacity=".85"/><stop offset="1" stop-color="#fff6cf" stop-opacity="0"/></radialGradient>
+              <linearGradient id="hpzA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset=".48" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+              <linearGradient id="hpzB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".5" stop-color="#f5c451"/><stop offset="1" stop-color="#e09a08"/></linearGradient>
+              <radialGradient id="hpzS" cx="50%" cy="50%" r="50%"><stop offset=".12" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".5" stop-color="#ffe9a8" stop-opacity=".5"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient>
             </defs>
-            <g transform="translate(-1.4 3.2) scale(0.8)">
-              <path d="M3 4 H9.6 A2.4 2.4 0 0 1 14.4 4 H21 V10.6 A2.4 2.4 0 0 1 21 15.4 V22 H3 V15.4 A2.4 2.4 0 0 0 3 10.6 Z" fill="url(#hpzA)" stroke="#2e1065" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M5.4 19.6 V12.4 A2 2 0 0 0 5.4 8.6 V6.4 H9.2" fill="none" stroke="#f4f0ff" stroke-width="1.25" stroke-linecap="round" opacity=".42"/>
+            <!-- اللوحُ = القِطَعُ الثلاثُ الموضوعةُ ككتلةٍ واحدةٍ: لسانٌ يبرزُ
+                 يمينًا في حرفِ القطعةِ العلويّةِ اليسرى، ولسانٌ يبرزُ أعلى في
+                 حرفِ القطعةِ السفليّةِ اليمنى — وهما ما تُمسِكُ بهما الناقصة. -->
+            <path d="M3.4 3.4 H12 V6.1 A1.6 1.6 0 0 1 12 9.3 V12 H14.7 A1.6 1.6 0 0 0 17.9 12 H20.6 V20.6 H3.4 Z"
+              fill="url(#hpzA)" stroke="#2e1065" stroke-width="1.3" stroke-linejoin="round"/>
+            <!-- الدرزانِ الداخليّانِ: بهما تُرى ثلاثَ قطعٍ لا كتلةً واحدة -->
+            <g class="hic-seam" fill="none" stroke="#2e1065" stroke-width="1.05" stroke-linecap="round" opacity=".85">
+              <path d="M3.4 12 H6.1 A1.6 1.6 0 0 1 9.3 12 H12"/>
+              <path d="M12 12 V14.7 A1.6 1.6 0 0 0 12 17.9 V20.6"/>
             </g>
-            <g class="hic-fit">
-              <circle class="hic-snap" cx="18.2" cy="3.8" r="4.6" fill="url(#hpzS)"/>
-              <g transform="translate(14.2 -0.6) scale(0.4)">
-                <path d="M3 4 H9.6 A2.4 2.4 0 0 1 14.4 4 H21 V10.6 A2.4 2.4 0 0 1 21 15.4 V22 H3 V15.4 A2.4 2.4 0 0 0 3 10.6 Z" fill="url(#hpzB)" stroke="#7a4e08" stroke-width="2.6" stroke-linejoin="round"/>
-              </g>
+            <!-- وميضُ الدروزِ لحظةَ الاشتباك: «القِطَعُ اتّصلَت» -->
+            <g class="hic-lock" fill="none" stroke="#fff6cf" stroke-width="1.15" stroke-linecap="round" opacity="0">
+              <path d="M3.4 12 H6.1 A1.6 1.6 0 0 1 9.3 12 H12"/>
+              <path d="M12 12 V14.7 A1.6 1.6 0 0 0 12 17.9 V20.6"/>
             </g>
+            <path d="M5.7 18.4 V14.2 M5.7 9.8 V5.7 H9.6" fill="none" stroke="#f4f0ff" stroke-width="1.05" stroke-linecap="round" opacity=".3"/>
+            <!-- الغَوْرُ: مكانُ القطعةِ الناقصةِ — حدٌّ متقطّعٌ يزحفُ فوقَ عتمة -->
+            <path class="hic-sock" d="M12 3.4 H20.6 V12 H17.9 A1.6 1.6 0 0 1 14.7 12 H12 V9.3 A1.6 1.6 0 0 1 12 6.1 Z"
+              fill="#2e1065" fill-opacity=".26" stroke="#c4b5fd" stroke-width=".9"
+              stroke-dasharray="1.7 1.4" stroke-linejoin="round"/>
+            <!-- القطعةُ الناقصة: نفسُ مسارِ الغَوْرِ حرفًا بحرفٍ فتدخلُه تمامًا -->
+            <path class="hic-pc" d="M12 3.4 H20.6 V12 H17.9 A1.6 1.6 0 0 1 14.7 12 H12 V9.3 A1.6 1.6 0 0 1 12 6.1 Z"
+              fill="url(#hpzB)" stroke="#7a4e08" stroke-width="1.1" stroke-linejoin="round"/>
+            <circle class="hic-flash" cx="16.6" cy="7.5" r="6.6" fill="url(#hpzS)" opacity="0"/>
+            <circle class="hic-ring" cx="16.6" cy="7.5" r="4.6" fill="none" stroke="#fff6cf" stroke-width="1.2" opacity="0"/>
           </svg>
         </span>
         <span class="home-tile__title">الألغاز</span>
@@ -3409,22 +3604,40 @@ html.amkh-preboot #amkh-preboot{
       <button class="home-tile home-tile--store" type="button" data-mode="store"
         onclick="if(typeof SFX!=='undefined')SFX.btn(); Nav.store()">
         <span class="home-tile__icon" aria-hidden="true">
-          <!-- المتجر: واجهةُ دُكّانٍ — مظلّةٌ حمراءُ مُقوَّسةٌ ونوافذُ سماويّةٌ
-               وبابٌ ذهبيّ، ولمعةٌ تمرُّ على الواجهةِ كلَّ حينٍ (بلاغ جوجو ٣). -->
+          <!-- المتجر — إعادةُ صناعةِ الحركة (بلاغُ جوجو ٤: «مجرّدُ لمعةٍ خفيفةٍ
+               وما فيش أنيميشنُ متجرٍ حقيقيّ»). الآن المتجرُ يفتحُ فعلًا:
+               مصراعا البابِ الذهبيّانِ يُفتحانِ على مفصلَيهما (scaleX حولَ
+               حرفِ كلٍّ منهما) فينكشفُ ضوءُ الداخلِ الدافئ، والمعروضانِ في
+               النافذتَينِ ينبضانِ بالتناوبِ (سلعةٌ تلمعُ ثمّ الأخرى)، والمظلّةُ
+               ترفرفُ، واللمعةُ تعبرُ الواجهةَ في نهايةِ الدورة. -->
           <svg class="home-ic home-ic--store" viewBox="0 0 24 24" aria-hidden="true">
             <defs>
               <linearGradient id="hstA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8080"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="#9f1239"/></linearGradient>
               <linearGradient id="hstF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b5a70"/><stop offset="1" stop-color="#232c3a"/></linearGradient>
               <linearGradient id="hstD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#eda80f"/></linearGradient>
+              <radialGradient id="hstL" cx="50%" cy="80%" r="72%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#ffc86a" stop-opacity=".6"/><stop offset="1" stop-color="#ff9f1a" stop-opacity="0"/></radialGradient>
               <clipPath id="hstC"><rect x="4" y="8.4" width="16" height="12.2" rx="1.4"/></clipPath>
             </defs>
             <rect x="4" y="8.4" width="16" height="12.2" rx="1.4" fill="url(#hstF)" stroke="#161d27" stroke-width=".9"/>
+            <!-- النافذتانِ ومعروضاهما -->
             <rect x="5.3" y="13.2" width="3.2" height="3.6" rx=".6" fill="#67e8f9" stroke="#0e7490" stroke-width=".7"/>
             <rect x="15.5" y="13.2" width="3.2" height="3.6" rx=".6" fill="#67e8f9" stroke="#0e7490" stroke-width=".7"/>
-            <rect x="9.4" y="13.2" width="5.2" height="7.4" rx=".7" fill="url(#hstD)" stroke="#7a4e08" stroke-width=".8"/>
-            <circle cx="13.3" cy="16.9" r=".75" fill="#5b3a04"/>
+            <path class="hic-disp hic-disp--a" d="M6.9 13.9 l.62 1.15 1.0 .0 -.81 .78 .3 1.1 -1.11-.64 -1.11 .64 .3-1.1 -.81-.78 1.0 .0 Z" fill="#fff6cf"/>
+            <path class="hic-disp hic-disp--b" d="M17.1 13.85 l1.05 1.15 -1.05 1.75 -1.05-1.75 Z" fill="#ffd24a"/>
+            <!-- عمقُ المدخلِ ثمّ ضوءُ الداخلِ (مخفيٌّ في السكونِ فالبابُ مغلق) -->
+            <rect x="9.4" y="13.2" width="5.2" height="7.4" rx=".7" fill="#1c1205" stroke="#7a4e08" stroke-width=".6"/>
+            <rect class="hic-inner" x="9.6" y="13.4" width="4.8" height="7" rx=".6" fill="url(#hstL)" opacity="0"/>
+            <!-- مصراعانِ ينفتحانِ: مفصلُ الأيسرِ على حرفِه الأيسرِ والعكس -->
+            <g class="hic-door hic-door--l">
+              <rect x="9.4" y="13.2" width="2.6" height="7.4" rx=".55" fill="url(#hstD)" stroke="#7a4e08" stroke-width=".75"/>
+              <circle cx="11.35" cy="17.1" r=".4" fill="#5b3a04"/>
+            </g>
+            <g class="hic-door hic-door--r">
+              <rect x="12" y="13.2" width="2.6" height="7.4" rx=".55" fill="url(#hstD)" stroke="#7a4e08" stroke-width=".75"/>
+              <circle cx="12.65" cy="17.1" r=".4" fill="#5b3a04"/>
+            </g>
             <g clip-path="url(#hstC)">
-              <rect class="hic-gleam" x="-2" y="7" width="3.4" height="15" fill="#ffffff" opacity=".4" transform="skewX(-18)"/>
+              <rect class="hic-gleam" x="-3.4" y="7" width="4.2" height="15" fill="#ffffff" opacity=".42" transform="skewX(-18)"/>
             </g>
             <g class="hic-awn">
               <path d="M2.6 8.8 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 q1.88 2.6 3.76 0 L21.4 4.6 H2.6 Z" fill="url(#hstA)" stroke="#7f1027" stroke-width=".8" stroke-linejoin="round"/>
@@ -8119,7 +8332,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 66;
+const APP_VERSION_CODE = 67;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -16793,7 +17006,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260927-b64"></script>
+  <script src="auth-client.js?v=20260929-b67"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
@@ -16802,7 +17015,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260928-b66"></script>
+  <script src="economy-client.js?v=20260929-b67"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
   <script src="store-client.js?v=20260928-b66"></script>
