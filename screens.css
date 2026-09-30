@@ -196,23 +196,52 @@
 .appbar-ic--trophy .abi-spk--b{ animation-delay: 2.7s; }
 @keyframes abiSpk{ 0%{ opacity: 0; transform: scale(.3); } 7%{ opacity: .95; transform: scale(1.1); } 20%,100%{ opacity: 0; transform: scale(.4); } }
 
-/* بيدقُ الشعار: نَفَسٌ بطيءٌ حولَ قاعدتِه (transform-origin بوحداتِ الـviewBox
-   لأنّ transform-box:view-box) فيبدو واقفًا على الأرضِ لا طائرًا، ولمعةٌ
-   ذهبيّةٌ تمرُّ عليه محصورةً بقناعِ أجزائِه. */
+/* بيدقُ الشعار — نقلةُ بيدقٍ حقيقيّةٌ (بلاغُ جوجو ٦):
+   النَفَسُ القديمُ كان ٠٫٤٥px فلم يُلاحَظ. الدورةُ الآن ٤٫٦ث: سكونٌ
+   طويلٌ ثمّ انضغاطُ تحضيرٍ (squash) ثمّ قفزةٌ بميلٍ للأمامِ فذروةٌ
+   فهبوطٌ بانضغاطٍ فارتدادةٌ صغيرةٌ فاستقرار — وهي قواعدُ squash & stretch
+   نفسُها التي تجعلُ الحركةَ مقروءةً لا لطخةً. نقطةُ الأصلِ قاعدةُ البيدقِ
+   (12,21.4) بوحداتِ الـviewBox لأنّ transform-box:view-box، فالانضغاطُ
+   يضغطُ الرأسَ نحوَ الأرضِ لا يشطرُ القطعةَ من وسطِها.
+   الارتفاعُ ٣٫٢px: الرأسُ يبدأُ عندَ y=2.4 فالذروةُ عندَ -0.8 — ولذلك
+   overflow:visible على الأيقونةِ حتّى لا يُقصَّ تاجُ القفزة. */
+.appbar-ic--pawn{ overflow: visible; }
 .appbar-ic--pawn .abi-pawn{
   transform-box: view-box; transform-origin: 12px 21.4px;
-  animation: abiPawn 5.4s ease-in-out infinite;
+  animation: abiPawn 4.6s cubic-bezier(.34,.9,.5,1) infinite;
 }
-@keyframes abiPawn{ 0%,100%{ transform: translateY(0) scale(1); } 50%{ transform: translateY(-.45px) scale(1.035); } }
+@keyframes abiPawn{
+  0%,22%   { transform: translateY(0)      scaleX(1)    scaleY(1);    }
+  28%      { transform: translateY(0)      scaleX(1.07) scaleY(.9);   }  /* تحضير */
+  36%      { transform: translateY(-2.4px) scaleX(.95)  scaleY(1.09) rotate(-5deg); }
+  44%      { transform: translateY(-3.2px) scaleX(1)    scaleY(1)    rotate(0deg);  }  /* ذروة */
+  52%      { transform: translateY(-1.6px) scaleX(.97)  scaleY(1.05) rotate(4deg);  }
+  59%      { transform: translateY(0)      scaleX(1.1)  scaleY(.86);  }  /* هبوط */
+  66%      { transform: translateY(-.7px)  scaleX(.98)  scaleY(1.04); }  /* ارتدادة */
+  73%,100% { transform: translateY(0)      scaleX(1)    scaleY(1);    }
+}
+/* حلقةُ الصدمة: تنطلقُ مع لحظةِ الهبوطِ (٥٩٪) وتتوسّعُ وتخبو على الأرض.
+   شفّافةٌ في العلامةِ فلا تظهرُ متجمّدةً عندَ تقليلِ الحركة. */
+.appbar-ic--pawn .abi-thud{
+  transform-box: view-box; transform-origin: 12px 21.5px;
+  animation: abiThud 4.6s ease-out infinite;
+}
+@keyframes abiThud{
+  0%,57%   { opacity: 0;   transform: scale(.34); }
+  61%      { opacity: .72; transform: scale(.62); }
+  76%,100% { opacity: 0;   transform: scale(1.18); }
+}
+/* اللمعةُ تعبرُ الجسمَ في الذروةِ لا في السكون، فتبدو ضوءًا لَمَسَ القطعةَ
+   وهي في الهواء. الميلُ مكتوبٌ في كلِّ إطارٍ للسببِ الموضَّحِ عندَ الكأس. */
 .appbar-ic--pawn .abi-shine{
   transform-box: view-box;
-  animation: abiPawnShine 5.4s ease-in-out infinite;
+  animation: abiPawnShine 4.6s ease-in-out infinite;
 }
 @keyframes abiPawnShine{
-  0%,34%{ opacity: 0; transform: skewX(-18deg) translateX(0); }
-  40%{ opacity: .8; }
-  62%{ opacity: .8; }
-  70%,100%{ opacity: 0; transform: skewX(-18deg) translateX(34px); }
+  0%,32%{ opacity: 0; transform: skewX(-18deg) translateX(0); }
+  38%{ opacity: .85; }
+  56%{ opacity: .85; }
+  64%,100%{ opacity: 0; transform: skewX(-18deg) translateX(34px); }
 }
 
 /* الترسُ: يدورُ عندَ اللمسِ أو المرورِ فقط — الإعداداتُ زرٌّ تُضغَطُ نادرًا،
@@ -4634,6 +4663,56 @@ body[data-ui-theme="glass"]{
 #s-settings .settings-section::before{
   background: linear-gradient(90deg, transparent, var(--color-primary-border), transparent);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ثيم Am-Kh — تصحيح سطح الإعدادات (بلاغ جوجو ٤ب)
+   ──────────────────────────────────────────────────────────────────────
+   قاعدة «Theme Identity Rebuild» المضمّنة في index.html بتفرض على
+   .settings-hero و.settings-section خلفيّةً بنّيّةً بـ!important
+   (‎linear-gradient(145deg,rgba(16,10,5,.94),rgba(25,18,11,.92))‎) مع
+   توهّجٍ ذهبيٍّ فوقها — وده مالوش علاقة بسطح الثيم نفسه: سطح Am-Kh
+   أزرقُ غامقٌ، وهو اللي جوجو أشار إليه في بطاقة الحساب وقال إنّه
+   «الوحيد الصح». القواعد دي بترجّع الخلفيّات لتوكنات السطح فتتساوى
+   كلّ أقسام الإعدادات مع بطاقة الحساب، ويبقى الذهبي على النصوص
+   والحدود واللمسات فقط — مش على الخلفيّات.
+   التحديد هنا أعلى (id + class مع سمة الثيم) فيفوز على الـ!important
+   المضمّن بلا حاجة لتعديل الـ inline style. */
+body[data-ui-theme="amkh"] #s-settings .settings-hero{
+  background:
+    linear-gradient(150deg, var(--color-surface-raised), var(--color-surface)) !important;
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.28) !important;
+}
+body[data-ui-theme="amkh"] #s-settings .settings-hero::after{ content: none !important; }
+body[data-ui-theme="amkh"] #s-settings .settings-section{
+  background: var(--color-surface) !important;
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.22) !important;
+}
+/* مربّع أيقونة القسم: الأيقونة بقت مرسومةً ملوّنةً بتدرّجاتها، فالتوهّج
+   الذهبي وراءها بقى ضجيجًا. سطحٌ مرتفعٌ محايدٌ بحدٍّ خفيفٍ أنضف. */
+body[data-ui-theme="amkh"] #s-settings .section-icon{
+  background: var(--color-surface-raised) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   أيقونات الإعدادات المرسومة الملوّنة (بلاغ جوجو ٤أ)
+   ──────────────────────────────────────────────────────────────────────
+   التبويبات الخمسة ورؤوس الأقسام الخمسة كانت لسه على النظام القديم:
+   خطٌّ أحاديُّ اللونِ بـ‎stroke="currentColor"‎ — بسيطةٌ وباهتةٌ جنب
+   أيقونات الشاشة الرئيسية المرسومة. صارت ستّة أشكالٍ ملوّنةٍ بتدرّجاتٍ
+   حرفيّةٍ داخلَها (قرصُ سمةٍ · رقعةٌ خشبيّةٌ · قطرةُ ألوانٍ · علمُ لعبٍ ·
+   مكبّرُ صوتٍ · أفاتارُ حسابٍ) موزّعةً على عشرة مواضع بمعرّفاتِ تدرّجٍ
+   فريدةٍ لكلِّ موضعٍ — لأنّ تكرارَ ‎id‎ في نفس الصفحة بيخلّي كلّ
+   مراجع ‎url(#id)‎ تشدّ من أوّل نسخةٍ فتتلوّن الأيقونات غلط.
+   التدرّجات داخلها فهي مستقلّةٌ عن السماتِ الخمس بالبناء، ولا تتحرّك
+   إطلاقًا: الإعداداتُ شاشةُ قراءةٍ، والحركةُ فيها ضجيجٌ لا قيمةَ له. */
+.s-ico--clr{
+  filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.34));
+}
+#s-settings .tab-icon .s-ico--clr{ width: 20px; height: 20px; }
+#s-settings .section-icon .s-ico--clr{ width: 19px; height: 19px; }
 /* زرّ «جميع القطع»: يبقى مصمتًا بالأساسي (نداء واضح) لكن باللون الحيّ
    للثيم لا بالذهب الثابت. */
 #s-settings .settings-action-btn{
@@ -8876,9 +8955,25 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .cos-banner__sheen{ position:absolute; top:-40%; bottom:-40%; width:26%; left:-32%;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.34),transparent);
   transform:skewX(-16deg); animation:cosBannerSheen 6.5s ease-in-out infinite; }
-.cos-banner__motes{ position:absolute; inset:0; opacity:.22;
+.cos-banner__motes{ position:absolute; inset:0; opacity:.12;
   background-image:radial-gradient(rgba(255,255,255,.6) 1px,transparent 1.7px);
   background-size:26px 26px; animation:cosMotes 16s linear infinite; }
+/* ══ المشهدُ المرسومُ للخلفيّة (البناءُ ٦٨ — بلاغُ جوجو ٨) ══
+   الخلفيّةُ كانت تدرّجًا نصّيًّا وحدَه فوقَه ذرّاتٌ وبريقٌ عامّان، فكلُّ
+   الخلفيّاتِ تقرأُ متشابهةً وبلا تأثيرٍ حقيقيّ. الآن SVG مرسومٌ لكلِّ
+   خلفيّةٍ (economy-client.BG_SCENE) هو الطبقةُ الأساسيّة، والتدرّجُ تحتَه
+   أساسٌ لونيٌّ فقط. الذرّاتُ خُفِّفت من .22 إلى .12 لأنّ المشهدَ صار هو
+   التأثيرَ — وتركُها بقوّتِها السابقةِ يُوسِّخُه.
+   المشهدُ أوّلُ ابنٍ فيبقى تحتَ الذرّاتِ والبريقِ وتحتَ ::after المعتِّمِ
+   الذي يحفظُ وضوحَ النصِّ فوقَ اللافتة. */
+.cos-banner__art,
+.cos-bg__art{
+  position:absolute; inset:0; width:100%; height:100%;
+  display:block; border-radius:inherit; pointer-events:none;
+}
+.store-card__art .st-svg--scene,
+.store-detail__art .st-svg--scene,
+.rw-inv__art .st-svg--scene{ border-radius:inherit; }
 @keyframes cosBannerSheen{ 0%{ left:-32%; } 55%{ left:120%; } 100%{ left:120%; } }
 @keyframes cosMotes{ 0%{ background-position:0 0; } 100%{ background-position:64px -84px; } }
 /* المضيفُ يقلبُ إلى «بطاقةٍ» عندما تُجهَّزُ خلفيّة: زوايا مقصوصةٌ + محتوًى فوقَ اللافتة */

@@ -853,6 +853,877 @@
     bg_eclipse:     'radial-gradient(circle at 50% 42%,#0a0a12,#2a1a3a,#ffb02f,#0a0612)',
   };
 
+  /* ══════════════════════════════════════════════════════════════════════
+     BG_SCENE — مشاهدُ الخلفيّاتِ المرسومةُ (بلاغُ جوجو ٨: «أكبرُ مشكلة»)
+     ──────────────────────────────────────────────────────────────────────
+     الحالةُ قبلَ هذا: الخلفيّةُ كانت **سلسلةَ تدرّجٍ نصّيّةً** وحدَها في BG
+     فوقَها طبقتانِ عامّتانِ (motes/sheen) — فلا شكلَ ولا مشهدَ ولا تأثير.
+     ولأنّ التمييزَ كلَّه كان في لوحةِ الألوانِ فقط، تشابهَتْ مجموعاتٌ
+     كاملةٌ تشابهًا يُقرأُ تكرارًا: وكرُ التنّينِ ≈ الجحيمُ (نفسُ الأحمرِ
+     البرتقاليِّ)، والسديمُ ≈ المجرّةُ ≈ الكونُ ≈ الفراغُ (نفسُ البنفسجيِّ
+     والأزرقِ الغامق) — وهو ما رصدَه جوجو بالحرف. وأسوأُ منه: الاسمُ لم
+     يكنْ يصفُ شيئًا، فـ«خلفيّةُ العاصفة» بلا برقٍ ولا مطرٍ و«خلفيّةُ
+     الكون» بلا مجرّةٍ ولا كوكب.
+     وفوقَ ذلك كان للخلفيّةِ **مُصيّرانِ منفصلان**: مشهدٌ بسيطٌ في
+     store-client للمعاينةِ، وتدرّجٌ للحيِّ — فما يُشترى غيرُ ما يُطبَّق،
+     وأربعَ عشرةَ خلفيّةً بلا مشهدٍ أصلًا تسقطُ للمولّدِ العامّ.
+     الحلُّ هو نفسُ الحلِّ الذي أنهى تناقضَ الصقيعِ في الإطارات: مصدرُ
+     حقيقةٍ **واحدٌ** هنا يرسمُ مشهدًا حقيقيًّا لكلِّ خلفيّةٍ من الأربعِ
+     والعشرين، يقرأُ منه المتجرُ والمخزونُ واللافتةُ الحيّةُ معًا.
+     قواعدُ التصميمِ الملتزَمة:
+     • **الاسمُ هو المشهد**: العاصفةُ فيها صاعقةٌ متفرّعةٌ ومطرٌ، والكونُ
+       مجرّةٌ حلزونيّةٌ مواجهةٌ وكوكبٌ بحلقةٍ، ووكرُ التنّينِ رأسُ تنّينٍ
+       بعينَينِ وكنوزٌ، والفراغُ ثقبٌ أسودُ بقرصِ تراكمٍ… إلخ.
+     • **لا تشابهَ بنيويًّا**: المجرّةُ قرصٌ جانبيٌّ (edge-on) والكونُ
+       حلزونٌ مواجهٌ (face-on) والسديمُ أعمدةُ غازٍ والفراغُ ثقبٌ أسود —
+       أربعةُ أشكالٍ مختلفةٍ لا أربعُ لوحاتٍ لونيّةٍ لشكلٍ واحد. ومثلُها
+       الجحيمُ (أعمدةُ لهبٍ صاعدةٌ من شقوقِ أرضٍ) ضدَّ وكرِ التنّينِ
+       (كهفٌ مغلقٌ وكائنٌ وكنوز) ضدَّ البركانِ (مخروطٌ وثورةٌ ودخان).
+     • **viewBox موحّدٌ 200×100 بـslice**: اللافتةُ عريضةٌ فتقصُّ أعلى
+       وأسفلَ، والمعاينةُ مربّعةٌ فتقصُّ الجانبَين — فكلُّ عنصرِ هويّةٍ
+       يُوضَعُ داخلَ المنطقةِ الآمنةِ المشتركةِ x∈[50,150] y∈[25,75]،
+       والزخرفةُ وحدَها تمتدُّ خارجَها.
+     • **تقليلُ الحركة**: المشهدُ يُولَدُ بلا أيِّ <animate> أصلًا عندَ
+       تفعيلِ الإعداد (المساعدُ _an يرجعُ فراغًا) — لا حركةَ تفلتُ، ولا
+       عنصرَ يتجمّدُ في منتصفِ مسارِه.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  function _bgStill() {
+    try { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+    catch (e) { return false; }
+  }
+  /* حركةُ سمةٍ — ترجعُ فراغًا عندَ تقليلِ الحركةِ فلا يُولَدُ العنصرُ إطلاقًا */
+  function _an(attr, values, dur, extra) {
+    if (_bgStill()) return '';
+    return '<animate attributeName="' + attr + '" values="' + values + '" dur="' + dur
+      + 's" repeatCount="indefinite"' + (extra || '') + '/>';
+  }
+  function _rot(cx, cy, dur, rev) {
+    if (_bgStill()) return '';
+    return '<animateTransform attributeName="transform" type="rotate" from="' + (rev ? 360 : 0) + ' ' + cx + ' ' + cy
+      + '" to="' + (rev ? 0 : 360) + ' ' + cx + ' ' + cy + '" dur="' + dur + 's" repeatCount="indefinite"/>';
+  }
+  function _mv(values, dur, extra) {
+    if (_bgStill()) return '';
+    return '<animateTransform attributeName="transform" type="translate" values="' + values
+      + '" dur="' + dur + 's" repeatCount="indefinite"' + (extra || '') + '/>';
+  }
+  /* حقلُ نجومٍ ثابتٌ بوميضٍ متفاوتٍ — [x,y,r] وبعضُها يخفقُ */
+  function _stars(pts, col) {
+    var out = '<g fill="' + (col || '#ffffff') + '">';
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i], tw = (i % 3 === 0);
+      out += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + p[2] + '"'
+        + (tw ? '>' + _an('opacity', '.25;1;.25', 2 + (i % 4) * .6) + '</circle>' : ' opacity=".85"/>');
+    }
+    return out + '</g>';
+  }
+
+  var BG_SCENE = {
+
+    /* ١ الشفق — أشرطةُ ضوءٍ متموّجةٌ في سماءٍ قطبيّةٍ فوقَ أفقٍ ثلجيّ */
+    bg_aurora: function (u) {
+      var w1 = 'M-6 56 Q34 24 70 46 Q108 68 142 34 Q174 6 206 28 L206 76 Q172 54 142 74 Q108 96 70 76 Q34 58 -6 82 Z';
+      var w2 = 'M-6 46 Q34 40 70 32 Q108 24 142 48 Q174 68 206 42 L206 88 Q172 68 142 60 Q108 52 70 84 Q34 94 -6 70 Z';
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#02030c"/><stop offset=".55" stop-color="#06182c"/><stop offset="1" stop-color="#0c3243"/></linearGradient>'
+        + '<linearGradient id="' + u + 'a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5affc0" stop-opacity="0"/><stop offset=".45" stop-color="#3ff0a8" stop-opacity=".9"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></linearGradient>'
+        + '<linearGradient id="' + u + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd4ff" stop-opacity="0"/><stop offset=".5" stop-color="#4fd0ff" stop-opacity=".72"/><stop offset="1" stop-color="#b06bff" stop-opacity="0"/></linearGradient>'
+        + '<filter id="' + u + 'g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.4"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + _stars([[18,14,.9],[44,9,1.2],[72,20,.8],[104,11,1.1],[131,17,.9],[158,8,1.2],[182,22,.8],[90,30,.7],[148,31,.9]])
+        + '<g filter="url(#' + u + 'g)">'
+        + '<path fill="url(#' + u + 'a)" d="' + w1 + '">' + _an('d', w1 + ';' + w2 + ';' + w1, 9) + '</path>'
+        + '<path fill="url(#' + u + 'b)" opacity=".7" d="' + w2 + '">' + _an('d', w2 + ';' + w1 + ';' + w2, 12) + '</path>'
+        + '</g>'
+        + '<path fill="#081c2b" d="M-6 82 L34 72 L70 80 L112 68 L152 78 L206 70 V106 H-6 Z"/>'
+        + '<path fill="#e8f6ff" opacity=".92" d="M-6 87 L34 77 L70 85 L112 73 L152 83 L206 75 V106 H-6 Z"/>'
+        + '<path fill="#9fd8f0" opacity=".3" d="M-6 93 L60 89 L120 95 L206 89 V106 H-6 Z"/>';
+    },
+
+    /* ٢ السديم — أعمدةُ غازٍ كثيفةٌ ونجومٌ وليدةٌ في قلبِها (لا حلزونَ ولا ثقب) */
+    bg_nebula: function (u) {
+      return '<defs>'
+        + '<radialGradient id="' + u + 'k" cx=".5" cy=".5" r=".78"><stop offset="0" stop-color="#2a0f4a"/><stop offset=".6" stop-color="#120730"/><stop offset="1" stop-color="#04020f"/></radialGradient>'
+        + '<radialGradient id="' + u + 'c" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff9ed8" stop-opacity=".95"/><stop offset=".5" stop-color="#b44ad0" stop-opacity=".5"/><stop offset="1" stop-color="#b44ad0" stop-opacity="0"/></radialGradient>'
+        + '<radialGradient id="' + u + 'd" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#7fe8ff" stop-opacity=".8"/><stop offset="1" stop-color="#2a6ad0" stop-opacity="0"/></radialGradient>'
+        + '<filter id="' + u + 'g" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur stdDeviation="5"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + '<g filter="url(#' + u + 'g)">'
+        + '<ellipse cx="76" cy="44" rx="46" ry="30" fill="url(#' + u + 'c)"/>'
+        + '<ellipse cx="136" cy="62" rx="38" ry="26" fill="url(#' + u + 'd)"/>'
+        + '</g>'
+        /* أعمدةُ الخلقِ — الشكلُ الذي يُعرَفُ به السديمُ دونَ غيرِه.
+           قُصِّرَتْ ورُفِعَتْ إلى y∈[36,76]: في النسخةِ الأولى كانت تنزلُ
+           إلى y=100 فلم يظهرْ منها في اللافتةِ إلّا أطرافٌ مبتورة. */
+        + '<g fill="#3d1358" opacity=".92">'
+        + '<path d="M84 76 C80 62 90 54 86 40 C96 43 100 34 106 38 C104 50 110 62 106 76 Z"/>'
+        + '<path d="M112 76 C110 65 118 58 116 48 C124 51 126 45 130 50 C128 60 132 69 130 76 Z"/>'
+        + '<path d="M64 76 C62 66 68 60 66 52 C72 54 74 50 77 54 C76 62 79 69 78 76 Z"/>'
+        + '<path d="M146 76 C144 67 150 61 148 53 C154 55 156 51 159 55 C158 63 161 70 160 76 Z"/>'
+        + '</g>'
+        + '<g fill="#5b2280" opacity=".55">'
+        + '<path d="M86 76 C84 61 92 53 89 42 C95 45 98 38 102 42 C100 52 105 64 102 76 Z"/>'
+        + '</g>'
+        + _stars([[24,20,1],[52,12,.8],[112,18,1.1],[168,26,.9],[188,52,.8],[36,66,.9],[158,82,1],[16,44,.7],[128,30,1.2]])
+        /* نجومٌ وليدةٌ لامعةٌ عندَ قممِ الأعمدة */
+        + '<g fill="#fff6ff">'
+        + '<circle cx="106" cy="37" r="2.1">' + _an('r', '1.4;2.6;1.4', 2.6) + '</circle>'
+        + '<circle cx="130" cy="49" r="1.6">' + _an('r', '1;2;1', 3.2) + '</circle>'
+        + '<circle cx="77" cy="53" r="1.4">' + _an('r', '.9;1.8;.9', 2.2) + '</circle>'
+        + '<circle cx="159" cy="54" r="1.3">' + _an('r', '.8;1.7;.8', 2.9) + '</circle>'
+        + '</g>';
+    },
+
+    /* ٣ الغروب — قرصُ شمسٍ يغيبُ عندَ أفقِ بحرٍ بانعكاسٍ عموديٍّ وسُحُبٍ أفقيّة */
+    bg_sunset: function (u) {
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b1152"/><stop offset=".34" stop-color="#b8386a"/><stop offset=".6" stop-color="#ff7e4a"/><stop offset=".68" stop-color="#ffc46a"/><stop offset="1" stop-color="#5a1d46"/></linearGradient>'
+        + '<radialGradient id="' + u + 's" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fffbe8"/><stop offset=".6" stop-color="#ffd166"/><stop offset="1" stop-color="#ff8a3a"/></radialGradient>'
+        + '<linearGradient id="' + u + 'w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb35c"/><stop offset="1" stop-color="#4a1236"/></linearGradient>'
+        + '<clipPath id="' + u + 'c"><rect y="68" width="200" height="32"/></clipPath>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + '<circle cx="100" cy="62" r="20" fill="url(#' + u + 's)">' + _an('cy', '64;58;64', 8) + '</circle>'
+        /* سُحُبٌ أفقيّةٌ رقيقةٌ تعبرُ قرصَ الشمس */
+        + '<g fill="#5a1d46" opacity=".55">'
+        + '<rect x="58" y="50" width="86" height="3.4" rx="1.7">' + _mv('-8 0;10 0;-8 0', 14) + '</rect>'
+        + '<rect x="72" y="59" width="70" height="2.8" rx="1.4">' + _mv('8 0;-10 0;8 0', 17) + '</rect>'
+        + '<rect x="48" y="40" width="54" height="2.4" rx="1.2" opacity=".7"/>'
+        + '</g>'
+        + '<rect y="68" width="200" height="32" fill="url(#' + u + 'w)"/>'
+        /* الانعكاسُ العموديُّ على الماء — علامةُ الغروبِ البحريّ */
+        + '<g clip-path="url(#' + u + 'c)" fill="#ffd9a0">'
+        + '<rect x="96" y="68" width="8" height="32" opacity=".5"/>'
+        + '<g opacity=".72">'
+        + '<rect x="86" y="72" width="28" height="1.6" rx=".8">' + _an('x', '86;90;86', 3.4) + '</rect>'
+        + '<rect x="80" y="78" width="40" height="1.6" rx=".8">' + _an('x', '82;76;82', 4.2) + '</rect>'
+        + '<rect x="74" y="85" width="52" height="1.8" rx=".9">' + _an('x', '72;78;72', 5) + '</rect>'
+        + '<rect x="68" y="93" width="64" height="1.8" rx=".9">' + _an('x', '70;64;70', 5.8) + '</rect>'
+        + '</g></g>'
+        + '<rect y="67" width="200" height="1.6" fill="#ffe7bd" opacity=".8"/>';
+    },
+
+    /* ٤ الغابة — جذوعٌ وصنوبرٌ طبقاتٌ وأشعّةُ شمسٍ مائلةٌ تتخلّلُها */
+    bg_forest: function (u) {
+      var tree = function (x, y, w, h, f) {
+        return '<path fill="' + f + '" d="M' + x + ' ' + y + ' L' + (x - w) + ' ' + (y + h) + ' H' + (x + w) + ' Z"/>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe8d0"/><stop offset=".4" stop-color="#5aa87a"/><stop offset="1" stop-color="#0d3a22"/></linearGradient>'
+        + '<linearGradient id="' + u + 'r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffbe0" stop-opacity=".5"/><stop offset="1" stop-color="#fffbe0" stop-opacity="0"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* الطبقةُ البعيدةُ باهتةٌ ثمّ الوسطى ثمّ القريبةُ داكنةٌ — عمقُ غابةٍ */
+        + '<g opacity=".45">' + tree(26,42,12,44,'#2f6b4a') + tree(60,36,13,50,'#2f6b4a') + tree(96,40,12,46,'#2f6b4a') + tree(134,34,14,52,'#2f6b4a') + tree(172,42,12,44,'#2f6b4a') + '</g>'
+        + '<g>' + tree(14,52,14,40,'#1d5235') + tree(48,46,16,46,'#1d5235') + tree(86,50,15,42,'#1d5235') + tree(122,44,17,48,'#1d5235') + tree(160,48,15,44,'#1d5235') + tree(192,52,14,40,'#1d5235') + '</g>'
+        /* جذعانِ قريبانِ يُثبّتانِ المقدّمة */
+        + '<g fill="#3b2412">'
+        + '<rect x="66" y="58" width="7" height="42" rx="1.4"/>'
+        + '<rect x="138" y="54" width="8" height="46" rx="1.6"/>'
+        + '</g>'
+        + '<g>' + tree(69.5,30,20,34,'#123f27') + tree(142,24,22,38,'#123f27') + '</g>'
+        /* أشعّةٌ مائلةٌ — تأثيرُ ضوءٍ حقيقيٌّ لا مجرّدُ تدرّج */
+        + '<g fill="url(#' + u + 'r)">'
+        + '<path d="M40 -8 L58 -8 L18 108 L0 108 Z">' + _an('opacity', '.45;.9;.45', 7) + '</path>'
+        + '<path d="M104 -8 L116 -8 L82 108 L70 108 Z">' + _an('opacity', '.8;.35;.8', 9) + '</path>'
+        + '<path d="M178 -8 L192 -8 L156 108 L142 108 Z">' + _an('opacity', '.4;.8;.4', 8) + '</path>'
+        + '</g>'
+        + '<path fill="#0b2e1b" d="M-4 90 Q50 82 100 90 Q150 98 204 88 V106 H-4 Z"/>';
+    },
+
+    /* ٥ ملكيّة — تاجٌ ذهبيٌّ وسطَ ستائرَ أرجوانيّةٍ ونقشٍ دمشقيٍّ متناظر */
+    bg_royal: function (u) {
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b1a72"/><stop offset=".5" stop-color="#26104c"/><stop offset="1" stop-color="#150827"/></linearGradient>'
+        + '<linearGradient id="' + u + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".45" stop-color="#f5c451"/><stop offset="1" stop-color="#a9741f"/></linearGradient>'
+        + '<linearGradient id="' + u + 'v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a2fb0"/><stop offset="1" stop-color="#2a0f52"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* ستائرُ الجانبَينِ بطيّاتٍ */
+        + '<g fill="url(#' + u + 'v)">'
+        + '<path d="M-4 -4 H54 Q40 34 46 66 Q30 58 14 70 Q6 36 -4 -4 Z"/>'
+        + '<path d="M204 -4 H146 Q160 34 154 66 Q170 58 186 70 Q194 36 204 -4 Z"/>'
+        + '</g>'
+        + '<g fill="none" stroke="#c9a84c" stroke-width="1.1" opacity=".38">'
+        + '<path d="M18 16 Q28 26 18 36 Q8 26 18 16 Z M182 16 Q192 26 182 36 Q172 26 182 16 Z"/>'
+        + '<path d="M34 54 Q42 62 34 70 Q26 62 34 54 Z M166 54 Q174 62 166 70 Q158 62 166 54 Z"/>'
+        + '</g>'
+        /* التاجُ في قلبِ المنطقةِ الآمنة */
+        + '<path fill="url(#' + u + 'g)" stroke="#6b4406" stroke-width="1.2" d="M74 62 L69 30 L86 43 L100 22 L114 43 L131 30 L126 62 Z"/>'
+        + '<rect x="72" y="62" width="56" height="9" rx="2.6" fill="url(#' + u + 'g)" stroke="#6b4406" stroke-width="1.2"/>'
+        + '<g fill="#ff5da2"><circle cx="86" cy="52" r="2.6"/><circle cx="100" cy="46" r="3.2"/><circle cx="114" cy="52" r="2.6"/></g>'
+        + '<g fill="#fffdf2">'
+        + '<circle cx="100" cy="46" r="1.2">' + _an('opacity', '.2;1;.2', 2.4) + '</circle>'
+        + '<circle cx="69" cy="30" r="1.6">' + _an('opacity', '1;.3;1', 3) + '</circle>'
+        + '<circle cx="131" cy="30" r="1.6">' + _an('opacity', '.3;1;.3', 3.4) + '</circle>'
+        + '</g>'
+        + '<rect x="72" y="74" width="56" height="2" rx="1" fill="#c9a84c" opacity=".5"/>';
+    },
+
+    /* ٦ الأعماق — أعمدةُ ضوءٍ غاطسةٌ وفقاعاتٌ صاعدةٌ وقاعٌ مظلمٌ (لا شِعابَ ولا سطح).
+       ملاحظةُ التخطيط: نافذةُ اللافتةِ تُظهِرُ y∈[32,68] فقط، فالقاعُ والفقاعاتُ
+       والنباتاتُ رُفِعَتْ كلُّها إلى الشريطِ المركزيِّ — في النسخةِ الأولى كانت
+       عندَ y≈78-100 فخرجَتِ اللافتةُ فارغةً تمامًا. */
+    bg_ocean_deep: function (u) {
+      var bub = function (x, y, r, d) {
+        /* opacity الابتدائيّةُ مرئيّةٌ عن قصد: عندَ تقليلِ الحركةِ لا يُولَدُ
+           <animate> أصلًا، فتبقى فقاعاتٌ ساكنةٌ في الماءِ — منظرٌ سليمٌ
+           بدلَ عناصرَ مختفيةٍ تمامًا. */
+        return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" opacity=".6">'
+          + _an('cy', y + ';22', d) + _an('opacity', '0;.85;0', d) + '</circle>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a7ab0"/><stop offset=".34" stop-color="#044a74"/><stop offset=".66" stop-color="#01253c"/><stop offset="1" stop-color="#000d18"/></linearGradient>'
+        + '<linearGradient id="' + u + 'r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfeaff" stop-opacity=".58"/><stop offset="1" stop-color="#bfeaff" stop-opacity="0"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* أعمدةُ الضوءِ الغاطسةُ — تتّسعُ نزولًا كما في الماءِ فعلًا */
+        + '<g fill="url(#' + u + 'r)">'
+        + '<path d="M56 -6 L68 -6 L84 64 L40 64 Z">' + _an('opacity', '.5;1;.5', 6) + '</path>'
+        + '<path d="M112 -6 L120 -6 L134 60 L98 60 Z">' + _an('opacity', '1;.45;1', 7.5) + '</path>'
+        + '<path d="M164 -6 L174 -6 L188 56 L152 56 Z">' + _an('opacity', '.6;.95;.6', 9) + '</path>'
+        + '</g>'
+        + '<g fill="#bfeaff">' + bub(74, 58, 2.4, 6) + bub(104, 62, 1.6, 7.4) + bub(128, 60, 2, 5.4) + bub(52, 64, 1.4, 8) + bub(150, 66, 1.8, 6.6) + '</g>'
+        /* قاعٌ صخريٌّ مظلمٌ + نباتاتٌ تتمايل — مرفوعةٌ إلى داخلِ النافذة */
+        + '<path fill="#001420" d="M-4 70 Q30 58 62 66 Q96 74 128 62 Q164 52 204 64 V104 H-4 Z"/>'
+        + '<g fill="none" stroke="#04617a" stroke-width="2.6" stroke-linecap="round" opacity=".85">'
+        + '<path d="M68 72 Q64 58 70 46">' + _an('d', 'M68 72 Q64 58 70 46;M68 72 Q74 58 66 48;M68 72 Q64 58 70 46', 5) + '</path>'
+        + '<path d="M138 68 Q144 54 136 42">' + _an('d', 'M138 68 Q144 54 136 42;M138 68 Q132 54 142 44;M138 68 Q144 54 136 42', 6.2) + '</path>'
+        + '<path d="M100 74 Q96 62 102 52">' + _an('d', 'M100 74 Q96 62 102 52;M100 74 Q105 62 97 54;M100 74 Q96 62 102 52', 5.6) + '</path>'
+        + '</g>'
+        /* أسماكٌ ظلّيّةٌ بعيدةٌ تُعطي عُمقًا وحياةً في قلبِ النافذة */
+        + '<g fill="#0a3a52" opacity=".85">'
+        + '<path d="M36 44 Q44 39 53 44 Q44 49 36 44 Z M36 44 L30 40 L30 48 Z"/>'
+        + '<path d="M156 50 Q164 45 173 50 Q164 55 156 50 Z M156 50 L150 46 L150 54 Z"/>'
+        + '</g>';
+    },
+
+    /* ٧ البركان — مخروطٌ واحدٌ وفوّهةٌ تثورُ وقذائفُ جمرٍ ودخانٌ (الشكلُ مخروطٌ
+       مفتوحٌ للسماء — يميّزُه عن كهفِ التنّينِ وعن شقوقِ الجحيم) */
+    bg_volcano: function (u) {
+      var ember = function (x, y, r, d, dx) {
+        return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" opacity=".85">'
+          + _mv('0 0;' + dx + ' -' + (y + 14), d) + _an('opacity', '1;0', d) + '</circle>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b0710"/><stop offset=".45" stop-color="#43100c"/><stop offset="1" stop-color="#7a1c06"/></linearGradient>'
+        + '<linearGradient id="' + u + 'l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".35" stop-color="#ff9b21"/><stop offset="1" stop-color="#d42a06"/></linearGradient>'
+        + '<filter id="' + u + 'g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* سُحُبُ دخانٍ كثيفةٌ فوقَ الفوّهة */
+        + '<g fill="#2a1512" opacity=".8">'
+        + '<ellipse cx="100" cy="16" rx="34" ry="12">' + _an('rx', '30;40;30', 11) + '</ellipse>'
+        + '<ellipse cx="74" cy="10" rx="22" ry="9" opacity=".7"/>'
+        + '<ellipse cx="130" cy="9" rx="26" ry="8" opacity=".6"/>'
+        + '</g>'
+        + '<ellipse cx="100" cy="34" rx="30" ry="16" fill="#ff7a1e" opacity=".22" filter="url(#' + u + 'g)"/>'
+        /* المخروطُ — قمّةٌ مفتوحةٌ في المنتصفِ تمامًا */
+        + '<path fill="#24100c" d="M-4 100 L58 44 L84 32 L116 32 L142 44 L204 100 Z"/>'
+        + '<path fill="#150807" d="M116 32 L142 44 L204 100 H128 Z" opacity=".6"/>'
+        /* الحممُ تفيضُ من الفوّهةِ وتسيلُ مجريَين */
+        + '<path fill="url(#' + u + 'l)" d="M84 32 H116 L120 40 Q108 46 96 40 Z">' + _an('opacity', '.85;1;.85', 1.8) + '</path>'
+        + '<path fill="url(#' + u + 'l)" d="M96 40 Q92 60 82 74 Q76 86 70 100 H86 Q90 84 96 70 Q102 56 104 42 Z">' + _an('opacity', '.75;1;.75', 2.6) + '</path>'
+        + '<path fill="url(#' + u + 'l)" opacity=".8" d="M110 42 Q116 58 126 70 Q134 82 138 100 H126 Q120 84 112 70 Q106 56 104 44 Z"/>'
+        + '<g fill="#ffd98a">' + ember(96, 30, 1.8, 2.6, -14) + ember(104, 28, 1.4, 3.2, 12) + ember(100, 32, 1.2, 2.1, 2) + ember(90, 34, 1.1, 3.6, -22) + ember(112, 33, 1.3, 2.9, 20) + '</g>';
+    },
+
+    /* ٨ المجرّة — قرصٌ **جانبيٌّ** (edge-on) بانتفاخٍ مركزيٍّ وحارةِ غبارٍ قاتمةٍ
+       تشقُّه طولًا. مائلٌ لا أفقيٌّ. يختلفُ بنيويًّا عن حلزونِ «الكون» المواجه. */
+    bg_galaxy: function (u) {
+      return '<defs>'
+        + '<radialGradient id="' + u + 'k" cx=".5" cy=".5" r=".8"><stop offset="0" stop-color="#171043"/><stop offset=".6" stop-color="#090522"/><stop offset="1" stop-color="#03010c"/></radialGradient>'
+        + '<linearGradient id="' + u + 'd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4a6bff" stop-opacity="0"/><stop offset=".22" stop-color="#8fa8ff" stop-opacity=".7"/><stop offset=".5" stop-color="#fff6e0" stop-opacity=".95"/><stop offset=".78" stop-color="#c58fff" stop-opacity=".7"/><stop offset="1" stop-color="#6a3fd6" stop-opacity="0"/></linearGradient>'
+        + '<radialGradient id="' + u + 'c" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fffdf0"/><stop offset=".45" stop-color="#ffd98a" stop-opacity=".85"/><stop offset="1" stop-color="#ffb04a" stop-opacity="0"/></radialGradient>'
+        + '<filter id="' + u + 'g" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + _stars([[16,18,1],[42,74,.9],[68,12,.8],[158,22,1.1],[184,70,.9],[126,86,.8],[30,52,.7],[176,44,1],[92,8,.9],[110,92,.8]])
+        + '<g transform="rotate(-14 100 50)">'
+        /* القرصُ: بيضاويٌّ شديدُ التفلطحِ = مَنظرٌ جانبيّ */
+        + '<ellipse cx="100" cy="50" rx="92" ry="11" fill="url(#' + u + 'd)" filter="url(#' + u + 'g)"/>'
+        + '<ellipse cx="100" cy="50" rx="86" ry="5.2" fill="url(#' + u + 'd)"/>'
+        /* حارةُ الغبارِ القاتمةُ تشقُّ القرصَ — العلامةُ المميِّزةُ للمَنظرِ الجانبيّ */
+        + '<ellipse cx="100" cy="51.4" rx="80" ry="1.5" fill="#160b2e" opacity=".85"/>'
+        /* الانتفاخُ المركزيُّ */
+        + '<ellipse cx="100" cy="50" rx="22" ry="13" fill="url(#' + u + 'c)"/>'
+        + '<circle cx="100" cy="50" r="5.4" fill="#fffef6">' + _an('r', '4.6;6.2;4.6', 4) + '</circle>'
+        + '</g>';
+    },
+
+    /* ٩ الشيفرة — أعمدةُ رموزٍ خضراءَ متساقطةٌ على أسودَ، ورأسُ كلِّ عمودٍ أشدُّ
+       بياضًا (نمطُ «المطرِ الرقميّ» المعروف) */
+    bg_matrix: function (u) {
+      var glyphs = '01101001110100101101';
+      var col = '';
+      var xs = [10, 24, 38, 52, 66, 80, 94, 108, 122, 136, 150, 164, 178, 192];
+      for (var i = 0; i < xs.length; i++) {
+        var dur = 2.4 + ((i * 7) % 11) * .32;
+        var start = -((i * 13) % 40) - 10;
+        var txt = '';
+        for (var r = 0; r < 7; r++) {
+          txt += '<text x="0" y="' + (r * 13) + '" opacity="' + (0.24 + r * 0.1).toFixed(2) + '">'
+            + glyphs.charAt((i * 3 + r) % glyphs.length) + '</text>';
+        }
+        txt += '<text x="0" y="' + (7 * 13) + '" fill="#d9ffe8">' + glyphs.charAt((i * 5) % glyphs.length) + '</text>';
+        col += '<g transform="translate(' + xs[i] + ' ' + start + ')">'
+          + _mv('0 ' + start + ';0 ' + (start + 190), dur)
+          + txt + '</g>';
+      }
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000c04"/><stop offset=".5" stop-color="#001a08"/><stop offset="1" stop-color="#000802"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + '<g font-family="monospace" font-size="11" font-weight="700" fill="#22e06a">' + col + '</g>'
+        + '<rect width="200" height="100" fill="none" stroke="#22e06a" stroke-opacity=".16" stroke-width="2"/>';
+    },
+
+    /* ١٠ الكرز — فرعُ ساكورا حقيقيٌّ بأزهارٍ خمسيّةِ البتلاتِ وبتلاتٌ متساقطةٌ
+       تدورُ وهي تهبط */
+    bg_cherry: function (u) {
+      var blossom = function (x, y, s) {
+        var p = '';
+        for (var k = 0; k < 5; k++) {
+          p += '<ellipse cx="0" cy="-3.4" rx="2.1" ry="3.4" transform="rotate(' + (k * 72) + ')"/>';
+        }
+        return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')" fill="#ffc2dd">' + p
+          + '<circle r="1.25" fill="#fff6bd"/></g>';
+      };
+      var petal = function (x, d, dx, rot) {
+        return '<g>' + _mv(x + ' -10;' + (x + dx) + ' 110', d)
+          + '<g>' + (_bgStill() ? '' : '<animateTransform attributeName="transform" type="rotate" from="0" to="' + rot + '" dur="' + d + 's" repeatCount="indefinite"/>')
+          + '<ellipse rx="2.6" ry="4" fill="#ffd6e8" opacity=".95"/></g></g>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1030"/><stop offset=".45" stop-color="#7a2a58"/><stop offset="1" stop-color="#d8608f"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + '<circle cx="164" cy="40" r="13" fill="#fff4dc" opacity=".55"/>'
+        /* الفرعُ يدخلُ من اليسارِ ويتشعّبُ — هويّةُ «الكرز».
+           أُنزِلَ إلى قلبِ النافذةِ (y≈32-64): في النسخةِ الأولى كان عندَ
+           y≈6-20 فوقَ نافذةِ اللافتةِ فظهرَتْ ورديّةً شبهَ فارغة. */
+        + '<g fill="none" stroke="#3a1f18" stroke-linecap="round">'
+        + '<path d="M-6 30 Q34 40 62 34 Q92 28 124 42" stroke-width="4.2"/>'
+        + '<path d="M62 34 Q70 48 66 62" stroke-width="2.6"/>'
+        + '<path d="M100 36 Q108 50 122 56" stroke-width="2.4"/>'
+        + '<path d="M28 37 Q34 50 30 60" stroke-width="2.2"/>'
+        + '<path d="M140 44 Q150 52 148 64" stroke-width="2.2"/>'
+        + '</g>'
+        + blossom(58, 32, 1.15) + blossom(76, 36, .95) + blossom(30, 34, 1) + blossom(66, 63, 1.05)
+        + blossom(104, 38, 1.1) + blossom(123, 56, 1) + blossom(140, 44, .9) + blossom(12, 32, .85)
+        + blossom(148, 65, .95) + blossom(90, 33, .85)
+        + '<g>' + petal(46, 5.2, 16, 220) + petal(88, 6.4, -14, -190) + petal(132, 4.6, 10, 260) + petal(168, 7, -18, 180) + petal(108, 5.8, 22, -240) + '</g>';
+    },
+
+    /* ١١ وكرُ التنّين — كهفٌ مغلقٌ ورأسُ تنّينٍ بقرنَينِ وعينَينِ متوهّجتَينِ
+       وكومةُ كنوزٍ ذهبيّةٍ وبِركةُ حممٍ أسفل. كائنٌ + كهفٌ + كنزٌ: لا يشبهُ
+       الجحيمَ (شقوقُ أرضٍ مفتوحةٌ بلا كائن) ولا البركانَ (مخروطٌ ودخان). */
+    bg_dragon_lair: function (u) {
+      return '<defs>'
+        + '<radialGradient id="' + u + 'k" cx=".5" cy=".86" r=".9"><stop offset="0" stop-color="#8a2a06"/><stop offset=".42" stop-color="#3a0d05"/><stop offset="1" stop-color="#100303"/></radialGradient>'
+        + '<linearGradient id="' + u + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#b9800f"/></linearGradient>'
+        + '<linearGradient id="' + u + 's" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a7f33"/><stop offset=".5" stop-color="#2f4a1c"/><stop offset="1" stop-color="#14240a"/></linearGradient>'
+        + '<filter id="' + u + 'e" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.4"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* قوسُ الكهفِ — صخورٌ مدلّاةٌ تُغلِقُ المشهدَ من أعلى */
+        + '<path fill="#170504" d="M-4 -4 H204 V22 Q186 20 178 32 Q170 18 156 26 Q146 12 132 24 Q120 10 108 22 Q96 8 84 22 Q72 10 60 24 Q48 12 36 26 Q26 16 16 30 Q8 20 -4 24 Z"/>'
+        /* رأسُ التنّينِ في المنطقةِ الآمنةِ تمامًا.
+           النسخةُ الأولى كانت تُقرأُ رأسَ ثورٍ لا تنّينًا — قرنانِ قصيرانِ
+           عريضانِ وخطمٌ دائريٌّ وبلا أسنانٍ ولا أشواك. الآن: خطمٌ طويلٌ
+           مدبّبٌ بفتحتَي أنفٍ وأسنانٌ بارزةٌ من الفكّ، وقرنانِ طويلانِ
+           نحيفانِ منحنيانِ للخلف، وصفُّ أشواكٍ على القمّةِ وزعنفتانِ
+           مسنّنتان، ولونٌ زيتونيٌّ زاحفٌ يتباينُ مع حُمرةِ الكهف. */
+        + '<g>'
+        /* زعنفتانِ مسنّنتانِ جانبيّتان */
+        + '<path fill="#22380f" d="M70 44 Q52 38 44 24 Q58 28 66 34 Q62 26 60 18 Q70 28 74 40 Z"/>'
+        + '<path fill="#22380f" d="M130 44 Q148 38 156 24 Q142 28 134 34 Q138 26 140 18 Q130 28 126 40 Z"/>'
+        /* قرنانِ طويلانِ نحيفانِ منحنيانِ للخلف */
+        + '<path fill="#cbb078" d="M78 36 Q65 22 67 3 Q78 18 86 32 Z"/>'
+        + '<path fill="#cbb078" d="M122 36 Q135 22 133 3 Q122 18 114 32 Z"/>'
+        /* صفُّ أشواكٍ على قمّةِ الرأس */
+        + '<g fill="#3f6b2e"><path d="M91 28 L94 17 L97 28 Z"/><path d="M99 26 L103 13 L107 26 Z"/><path d="M107 29 L111 19 L114 29 Z"/></g>'
+        /* الجمجمة */
+        + '<path fill="url(#' + u + 's)" d="M100 30 Q126 32 134 50 Q138 63 128 71 Q114 78 100 78 Q86 78 72 71 Q62 63 66 50 Q74 32 100 30 Z"/>'
+        /* حراشفُ الجبهة */
+        + '<g fill="#0a1405" opacity=".22"><ellipse cx="88" cy="41" rx="5" ry="2.8"/><ellipse cx="112" cy="41" rx="5" ry="2.8"/><ellipse cx="100" cy="36" rx="5.6" ry="2.8"/></g>'
+        /* خطمٌ طويلٌ مدبّبٌ + فتحتا أنفٍ + أسنانٌ بارزة */
+        + '<path fill="url(#' + u + 's)" d="M88 64 Q100 60 112 64 Q114 78 100 86 Q86 78 88 64 Z"/>'
+        + '<g fill="#f4ecd8"><path d="M92 79 L94 86 L96.4 79 Z"/><path d="M98.6 81 L100.6 89 L103 81 Z"/><path d="M105 79 L107 86 L109.4 79 Z"/></g>'
+        + '<g fill="#0d1a04"><ellipse cx="95" cy="68" rx="1.6" ry="1.1"/><ellipse cx="105" cy="68" rx="1.6" ry="1.1"/></g>'
+        /* عينانِ متوهّجتانِ بهالةٍ — أقوى ما في المشهدِ تعبيرًا */
+        + '<g fill="#ff8a1e" filter="url(#' + u + 'e)"><ellipse cx="86" cy="51" rx="7" ry="5"/><ellipse cx="114" cy="51" rx="7" ry="5"/></g>'
+        + '<g fill="#ffe14a"><ellipse cx="86" cy="51" rx="4.2" ry="3">' + _an('ry', '3;.7;3', 5.4) + '</ellipse>'
+        + '<ellipse cx="114" cy="51" rx="4.2" ry="3">' + _an('ry', '3;.7;3', 5.4) + '</ellipse></g>'
+        + '<g fill="#2a0a02"><ellipse cx="86" cy="51" rx="1.2" ry="2.6"/><ellipse cx="114" cy="51" rx="1.2" ry="2.6"/></g>'
+        + '</g>'
+        /* كومةُ الكنوزِ — عملاتٌ وكؤوسٌ أسفلَ الرأس */
+        + '<path fill="#5a3c0a" d="M-4 100 Q28 82 62 88 Q100 96 138 86 Q172 78 204 92 V104 H-4 Z"/>'
+        + '<g fill="url(#' + u + 'g)" stroke="#7a5307" stroke-width=".7">'
+        + '<circle cx="34" cy="90" r="4"/><circle cx="46" cy="94" r="3.4"/><circle cx="24" cy="95" r="3"/>'
+        + '<circle cx="160" cy="88" r="4.2"/><circle cx="172" cy="93" r="3.2"/><circle cx="150" cy="94" r="3"/>'
+        + '<circle cx="100" cy="94" r="3.6"/><circle cx="112" cy="97" r="2.8"/><circle cx="88" cy="97" r="2.8"/>'
+        + '</g>'
+        + '<g fill="#ffd98a" opacity=".9">'
+        + '<circle cx="34" cy="90" r="1.1">' + _an('opacity', '.2;1;.2', 3) + '</circle>'
+        + '<circle cx="160" cy="88" r="1.1">' + _an('opacity', '1;.2;1', 3.6) + '</circle>'
+        + '</g>';
+    },
+
+    /* ١٢ الكون — مجرّةٌ حلزونيّةٌ **مواجهةٌ** (face-on) بذراعَينِ تدورانِ، ومعَها
+       كوكبٌ بحلقةٍ ونجومٌ بعيدة. البنيةُ حلزونٌ دوّارٌ — لا قرصٌ جانبيٌّ
+       (المجرّة) ولا أعمدةُ غازٍ (السديم) ولا ثقبٌ أسودُ (الفراغ). */
+    bg_cosmos: function (u) {
+      return '<defs>'
+        + '<radialGradient id="' + u + 'k" cx=".42" cy=".44" r=".85"><stop offset="0" stop-color="#231152"/><stop offset=".55" stop-color="#0c0630"/><stop offset="1" stop-color="#03010e"/></radialGradient>'
+        + '<radialGradient id="' + u + 'c" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fffdf4"/><stop offset=".4" stop-color="#ffe6a8" stop-opacity=".9"/><stop offset="1" stop-color="#ff9ed8" stop-opacity="0"/></radialGradient>'
+        + '<linearGradient id="' + u + 'p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd4ff"/><stop offset=".55" stop-color="#3a6ad0"/><stop offset="1" stop-color="#14265e"/></linearGradient>'
+        + '<filter id="' + u + 'g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + _stars([[14,16,1],[36,80,.9],[62,8,.8],[170,14,1.1],[188,62,.9],[136,92,.8],[24,48,.7],[196,34,1],[80,94,.9]])
+        /* الحلزونُ المواجهُ: ذراعانِ لولبيّتانِ تلتفّانِ حولَ نواةٍ مضيئة */
+        + '<g transform="translate(96 50)">' + _rot(0, 0, 44)
+        + '<g fill="none" stroke-linecap="round" filter="url(#' + u + 'g)">'
+        + '<path stroke="#a88fff" stroke-width="5.2" opacity=".72" d="M0 0 C16 -6 30 2 34 16 C38 32 26 44 8 44 C-14 44 -30 28 -30 8"/>'
+        + '<path stroke="#7fd8ff" stroke-width="5.2" opacity=".72" d="M0 0 C-16 6 -30 -2 -34 -16 C-38 -32 -26 -44 -8 -44 C14 -44 30 -28 30 -8"/>'
+        + '</g>'
+        + '<g fill="#e8dcff" opacity=".85"><circle cx="30" cy="14" r="1.2"/><circle cx="-30" cy="-14" r="1.2"/><circle cx="12" cy="36" r="1"/><circle cx="-12" cy="-36" r="1"/></g>'
+        + '</g>'
+        + '<ellipse cx="96" cy="50" rx="15" ry="15" fill="url(#' + u + 'c)"/>'
+        + '<circle cx="96" cy="50" r="4" fill="#fffef8">' + _an('r', '3.4;4.8;3.4', 4.4) + '</circle>'
+        /* كوكبٌ بحلقةٍ مائلةٍ — العنصرُ الذي يقولُ «كون» لا «مجرّة» وحدَها */
+        + '<g transform="translate(166 76)">'
+        + '<ellipse rx="17" ry="4.6" fill="none" stroke="#cbb08a" stroke-width="2.2" opacity=".75" transform="rotate(-22)"/>'
+        + '<circle r="9.4" fill="url(#' + u + 'p)"/>'
+        + '<path d="M-9.4 0 A9.4 9.4 0 0 0 9.4 0 Z" fill="#0b1633" opacity=".42"/>'
+        + '<ellipse rx="17" ry="4.6" fill="none" stroke="#e8d3ad" stroke-width="1.1" opacity=".85" transform="rotate(-22)" stroke-dasharray="20 60"/>'
+        + '</g>';
+    },
+
+    /* ١٣ الجحيم — أرضٌ متشقّقةٌ **مفتوحةٌ للأعلى** تصعدُ منها أعمدةُ لهبٍ
+       وجمراتٌ. لا كهفَ ولا كائنَ (وكرُ التنّين) ولا مخروطَ ودخانَ (البركان):
+       الهويّةُ هنا شقوقٌ ونيرانٌ عموديّةٌ تملأُ العرضَ. */
+    bg_inferno: function (u) {
+      var flame = function (x, h, w, d, o) {
+        var a = 'M' + x + ' 100 Q' + (x - w) + ' ' + (100 - h * .55) + ' ' + x + ' ' + (100 - h) + ' Q' + (x + w) + ' ' + (100 - h * .55) + ' ' + x + ' 100 Z';
+        var b = 'M' + x + ' 100 Q' + (x - w * .6) + ' ' + (100 - h * .6) + ' ' + (x + 2) + ' ' + (100 - h * 1.22) + ' Q' + (x + w * 1.1) + ' ' + (100 - h * .5) + ' ' + x + ' 100 Z';
+        return '<path opacity="' + o + '" d="' + a + '">' + _an('d', a + ';' + b + ';' + a, d) + '</path>';
+      };
+      var spark = function (x, r, d, dx) {
+        return '<circle cx="' + x + '" cy="88" r="' + r + '" opacity=".9">'
+          + _mv('0 0;' + dx + ' -96', d) + _an('opacity', '1;0', d) + '</circle>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#180303"/><stop offset=".5" stop-color="#4a0c04"/><stop offset="1" stop-color="#160202"/></linearGradient>'
+        + '<linearGradient id="' + u + 'f" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ffe98a"/><stop offset=".3" stop-color="#ff9b21"/><stop offset=".72" stop-color="#e82f06"/><stop offset="1" stop-color="#e82f06" stop-opacity="0"/></linearGradient>'
+        + '<linearGradient id="' + u + 'c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd24a"/><stop offset="1" stop-color="#8a1500"/></linearGradient>'
+        + '<filter id="' + u + 'g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.4"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* الأرضُ المتشقّقةُ: بلاطاتٌ سوداءُ بينها شقوقٌ متوهّجة */
+        + '<g fill="#0d0202">'
+        + '<path d="M-4 62 H204 V104 H-4 Z"/>'
+        + '</g>'
+        + '<g stroke="url(#' + u + 'c)" stroke-linecap="round" fill="none" filter="url(#' + u + 'g)" opacity=".9">'
+        + '<path stroke-width="3.4" d="M-4 74 L26 70 L52 78 L86 72 L120 80 L154 73 L204 79"/>'
+        + '<path stroke-width="2.6" d="M14 104 L22 86 L16 74"/>'
+        + '<path stroke-width="2.6" d="M68 104 L74 88 L66 76"/>'
+        + '<path stroke-width="2.6" d="M124 104 L118 88 L128 78"/>'
+        + '<path stroke-width="2.6" d="M178 104 L184 86 L176 76"/>'
+        + '</g>'
+        /* أعمدةُ اللهبِ الصاعدةُ من الشقوق */
+        + '<g fill="url(#' + u + 'f)">'
+        + flame(24, 52, 13, 2.2, '.9') + flame(58, 38, 10, 2.8, '.8') + flame(100, 64, 16, 2.4, '.95')
+        + flame(142, 42, 12, 3.1, '.82') + flame(178, 50, 13, 2.6, '.88')
+        + '</g>'
+        + '<g fill="#ffe08a">' + spark(30, 1.6, 3.2, -10) + spark(96, 1.4, 2.6, 8) + spark(104, 1.2, 3.6, -6) + spark(150, 1.5, 2.9, 12) + spark(184, 1.3, 3.4, -14) + '</g>';
+    },
+
+    /* ١٤ الفراغ — ثقبٌ أسودُ: كرةٌ سوداءُ مصمتةٌ، حلقةُ فوتونٍ رقيقةٌ حولَها،
+       وقرصُ تراكمٍ مائلٌ يدورُ. البنيةُ «مركزٌ أسودُ يبتلعُ الضوءَ» — عكسُ
+       نواةِ «الكون» المضيئةِ تمامًا فلا يلتبسانِ أبدًا. */
+    bg_void: function (u) {
+      return '<defs>'
+        + '<radialGradient id="' + u + 'k" cx=".5" cy=".5" r=".85"><stop offset="0" stop-color="#1a0b38"/><stop offset=".45" stop-color="#0a0420"/><stop offset="1" stop-color="#020008"/></radialGradient>'
+        + '<linearGradient id="' + u + 'd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b06bff" stop-opacity="0"/><stop offset=".2" stop-color="#d8a0ff" stop-opacity=".9"/><stop offset=".5" stop-color="#fff4ff"/><stop offset=".8" stop-color="#8fd4ff" stop-opacity=".9"/><stop offset="1" stop-color="#4a6bff" stop-opacity="0"/></linearGradient>'
+        + '<filter id="' + u + 'g" x="-50%" y="-120%" width="200%" height="340%"><feGaussianBlur stdDeviation="2.8"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + _stars([[16,14,.9],[40,84,.8],[176,18,1],[192,74,.9],[28,54,.7],[184,44,.8],[62,92,.8]])
+        /* قرصُ التراكمِ: بيضاويٌّ مائلٌ يدورُ حولَ الكرة، نصفُه الخلفيُّ يعبرُ فوقها */
+        + '<g transform="translate(100 50)">'
+        + '<g transform="rotate(-18)">'
+        + '<ellipse rx="66" ry="14" fill="none" stroke="url(#' + u + 'd)" stroke-width="9" filter="url(#' + u + 'g)" opacity=".65"/>'
+        + '<ellipse rx="66" ry="14" fill="none" stroke="url(#' + u + 'd)" stroke-width="3.2"/>'
+        + '<ellipse rx="66" ry="14" fill="none" stroke="#ffffff" stroke-width="1.4" opacity=".85" stroke-dasharray="18 96">'
+        + (_bgStill() ? '' : '<animate attributeName="stroke-dashoffset" from="114" to="0" dur="4.4s" repeatCount="indefinite"/>')
+        + '</ellipse>'
+        + '</g>'
+        /* حلقةُ الفوتونِ ثمّ أفقُ الحدثِ الأسودُ المصمت */
+        + '<circle r="23" fill="none" stroke="#ffe9c4" stroke-width="1.8" opacity=".9">' + _an('opacity', '.65;1;.65', 5) + '</circle>'
+        + '<circle r="21.4" fill="#000000"/>'
+        + '<circle r="21.4" fill="none" stroke="#000000" stroke-width="6" opacity=".9"/>'
+        + '</g>';
+    },
+
+    /* ١٥ العاصفة — سُحُبٌ داكنةٌ كثيفةٌ، **صاعقةٌ متفرّعةٌ** تضربُ بوميضٍ يُضيءُ
+       السماءَ كلَّها، ومطرٌ مائلٌ متّصل. بلاغُ جوجو: «فين العاصفة في الموضوع؟» */
+    bg_thunderstorm: function (u) {
+      var bolt = 'M104 16 L92 44 L103 44 L88 78 L112 42 L101 42 L114 16 Z';
+      var bolt2 = 'M96 44 L84 62 L92 61 L82 82 L100 58 L91 58 Z';
+      var rain = '';
+      for (var i = 0; i < 30; i++) {
+        var rx = (i * 17 + (i % 5) * 6) % 210 - 6;
+        /* البدايةُ موزَّعةٌ عبرَ الارتفاعِ لا من فوقِ الكادرِ كلِّه: مع تقليلِ
+           الحركةِ لا يُولَدُ <animate> فتبقى القَطراتُ حيثُ رُسِمَتْ — ولو
+           بدأَتْ كلُّها عندَ y=-10 لخرجَتِ اللافتةُ بلا مطرٍ إطلاقًا. */
+        var ry = -8 + ((i * 13) % 62);
+        var rd = 0.62 + ((i * 3) % 5) * .1;
+        rain += '<line x1="' + rx + '" y1="' + ry + '" x2="' + (rx - 7) + '" y2="' + (ry + 14) + '" >'
+          + _mv('0 0;-30 60', rd) + '</line>';
+      }
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a1020"/><stop offset=".5" stop-color="#1c2740"/><stop offset="1" stop-color="#070b15"/></linearGradient>'
+        + '<filter id="' + u + 'g" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.6"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* وميضُ العاصفةِ: يُضيءُ الكادرَ كلَّه لحظاتٍ ثمّ يخبو */
+        + '<rect width="200" height="100" fill="#cfe4ff" opacity="0">'
+        + _an('opacity', '0;0;.34;0;.2;0;0;0', 5.2) + '</rect>'
+        /* سُحُبٌ داكنةٌ متراكبةٌ في الأعلى */
+        + '<g fill="#111a2c">'
+        + '<ellipse cx="46" cy="16" rx="52" ry="18"/><ellipse cx="116" cy="10" rx="58" ry="17"/>'
+        + '<ellipse cx="178" cy="18" rx="44" ry="15"/><ellipse cx="82" cy="24" rx="40" ry="13"/>'
+        + '</g>'
+        + '<g fill="#1e2b44" opacity=".85">'
+        + '<ellipse cx="60" cy="10" rx="34" ry="11"/><ellipse cx="140" cy="16" rx="36" ry="11"/>'
+        + '</g>'
+        /* الصاعقةُ المتفرّعةُ — العنصرُ الذي كان غائبًا تمامًا */
+        + '<g fill="#eaf4ff" filter="url(#' + u + 'g)" opacity=".85"><path d="' + bolt + '"/></g>'
+        + '<g fill="#ffffff"><path d="' + bolt + '">' + _an('opacity', '.15;1;.2;.85;.15;.15', 5.2) + '</path></g>'
+        + '<g fill="#dceaff"><path d="' + bolt2 + '">' + _an('opacity', '0;.9;0;.5;0;0', 5.2) + '</path></g>'
+        + '<g stroke="#9fc4e8" stroke-width="1.2" stroke-linecap="round" opacity=".55">' + rain + '</g>';
+    },
+
+    /* ١٦ المنشور — منشورٌ ثلاثيٌّ زجاجيٌّ يدخلُه شعاعٌ أبيضُ ويخرجُ مشقوقًا
+       طيفًا كاملًا (سبعةُ أشعّةٍ متباينة) */
+    bg_prism: function (u) {
+      var cols = ['#ff3b3b', '#ff9b21', '#ffe14a', '#5affc0', '#4fd0ff', '#6a5cff', '#c07aff'];
+      var rays = '';
+      for (var i = 0; i < cols.length; i++) {
+        var y2 = 34 + i * 7.2;
+        rays += '<path d="M110 50 L206 ' + y2.toFixed(1) + ' L206 ' + (y2 + 6.4).toFixed(1) + ' Z" fill="' + cols[i] + '" opacity=".72">'
+          + _an('opacity', '.45;.92;.45', 3.4 + i * .28) + '</path>';
+      }
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a0a18"/><stop offset=".5" stop-color="#141430"/><stop offset="1" stop-color="#07070f"/></linearGradient>'
+        + '<linearGradient id="' + u + 'p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".42"/><stop offset=".5" stop-color="#bfe8ff" stop-opacity=".22"/><stop offset="1" stop-color="#ffffff" stop-opacity=".5"/></linearGradient>'
+        + '<filter id="' + u + 'g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.4"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* الشعاعُ الأبيضُ الداخلُ من اليسار */
+        + '<path d="M-6 47 L92 47 L92 53 L-6 53 Z" fill="#ffffff" opacity=".9" filter="url(#' + u + 'g)"/>'
+        + '<path d="M-6 48.6 L92 48.6 L92 51.4 L-6 51.4 Z" fill="#ffffff"/>'
+        /* الطيفُ الخارجُ متفرّقًا */
+        + '<g>' + rays + '</g>'
+        /* المنشورُ نفسُه: مثلّثٌ زجاجيٌّ بحدٍّ لامعٍ وانعكاسٍ داخليّ */
+        + '<path d="M100 22 L126 68 L74 68 Z" fill="url(#' + u + 'p)" stroke="#dff2ff" stroke-width="1.6" stroke-linejoin="round"/>'
+        + '<path d="M100 30 L118 64 L100 64 Z" fill="#ffffff" opacity=".16"/>'
+        + '<path d="M100 22 L126 68" stroke="#ffffff" stroke-width="1.1" opacity=".7"/>';
+    },
+
+    /* ١٧ فولاذيّة — صفائحُ معدنيّةٌ مبرشمةٌ بحزوزٍ قُطريّةٍ وانعكاسٌ يعبرُها */
+    bg_steel: function (u) {
+      var rivets = '';
+      for (var r = 0; r < 4; r++) {
+        for (var c = 0; c < 9; c++) {
+          rivets += '<circle cx="' + (14 + c * 22) + '" cy="' + (14 + r * 24) + '" r="2.4"/>';
+        }
+      }
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4b5a70"/><stop offset=".3" stop-color="#2a3242"/><stop offset=".62" stop-color="#5a6a80"/><stop offset="1" stop-color="#1a2028"/></linearGradient>'
+        + '<linearGradient id="' + u + 'r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8f2ff"/><stop offset=".5" stop-color="#8fa0b4"/><stop offset="1" stop-color="#3a4656"/></linearGradient>'
+        + '<clipPath id="' + u + 'c"><rect width="200" height="100"/></clipPath>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* حزوزٌ قُطريّةٌ (لوحُ مانعُ انزلاقٍ) */
+        + '<g stroke="#69798f" stroke-width="2.2" opacity=".32">'
+        + '<path d="M-20 20 L40 -40 M-20 60 L80 -40 M20 100 L120 0 M60 100 L160 0 M100 100 L200 0 M140 100 L220 20 M180 100 L240 60"/>'
+        + '</g>'
+        /* خطوطُ فصلِ الصفائح */
+        + '<g stroke="#121820" stroke-width="2.4" opacity=".8"><path d="M0 50 H200 M66 0 V100 M134 0 V100"/></g>'
+        + '<g stroke="#8fa0b4" stroke-width=".9" opacity=".45"><path d="M0 51.6 H200 M67.6 0 V100 M135.6 0 V100"/></g>'
+        + '<g fill="url(#' + u + 'r)" stroke="#161d26" stroke-width=".7">' + rivets + '</g>'
+        /* انعكاسٌ فولاذيٌّ يعبرُ اللوحَ — تأثيرُ معدنٍ حقيقيٍّ لا تدرّجٌ ساكن */
+        + '<g clip-path="url(#' + u + 'c)">'
+        + '<rect x="-70" y="-30" width="34" height="170" fill="#ffffff" opacity=".16" transform="skewX(-22)">'
+        + _an('x', '-70;240', 6.5) + '</rect>'
+        + '</g>';
+    },
+
+    /* ١٨ المرج — تلالٌ خضراءُ متتابعةٌ وزهورٌ وشمسٌ وسماءٌ صافيةٌ بسحابتَين */
+    bg_meadow: function (u) {
+      var flower = function (x, y, c) {
+        var p = '';
+        for (var k = 0; k < 5; k++) p += '<circle cx="0" cy="-2.6" r="1.5" transform="rotate(' + (k * 72) + ')"/>';
+        return '<g transform="translate(' + x + ' ' + y + ')" fill="' + c + '">' + p
+          + '<circle r="1.1" fill="#fff0a8"/></g>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5ab4f0"/><stop offset=".55" stop-color="#b8e4ff"/><stop offset="1" stop-color="#e8f6d8"/></linearGradient>'
+        + '<linearGradient id="' + u + 'h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ec85a"/><stop offset="1" stop-color="#2f7a34"/></linearGradient>'
+        + '<linearGradient id="' + u + 'j" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8dd72"/><stop offset="1" stop-color="#4f9a3e"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + '<circle cx="168" cy="20" r="12" fill="#fff6c4"/>'
+        + '<circle cx="168" cy="20" r="18" fill="#fff6c4" opacity=".28">' + _an('r', '16;21;16', 6) + '</circle>'
+        + '<g fill="#ffffff" opacity=".9">'
+        + '<g>' + _mv('0 0;26 0;0 0', 22) + '<ellipse cx="44" cy="20" rx="15" ry="6.4"/><ellipse cx="54" cy="17" rx="11" ry="5.4"/><ellipse cx="34" cy="18" rx="9" ry="4.6"/></g>'
+        + '<g opacity=".8">' + _mv('0 0;-20 0;0 0', 28) + '<ellipse cx="110" cy="13" rx="12" ry="5"/><ellipse cx="118" cy="11" rx="8" ry="4"/></g>'
+        + '</g>'
+        /* تلالٌ بثلاثِ طبقاتٍ = عمقُ مرجٍ مفتوح */
+        + '<path fill="#9bd47a" opacity=".85" d="M-4 62 Q40 44 92 58 Q144 72 204 52 V104 H-4 Z"/>'
+        + '<path fill="url(#' + u + 'j)" d="M-4 74 Q46 58 100 72 Q152 86 204 66 V104 H-4 Z"/>'
+        + '<path fill="url(#' + u + 'h)" d="M-4 86 Q52 76 104 86 Q156 96 204 82 V104 H-4 Z"/>'
+        /* أعشابٌ تتمايلُ في المقدّمة */
+        + '<g stroke="#2a6b2c" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".9">'
+        + '<path d="M30 100 Q28 92 33 86">' + _an('d', 'M30 100 Q28 92 33 86;M30 100 Q34 92 28 87;M30 100 Q28 92 33 86', 4.4) + '</path>'
+        + '<path d="M128 100 Q132 92 126 85">' + _an('d', 'M128 100 Q132 92 126 85;M128 100 Q124 92 131 86;M128 100 Q132 92 126 85', 5.2) + '</path>'
+        + '<path d="M176 100 Q174 93 180 88">' + _an('d', 'M176 100 Q174 93 180 88;M176 100 Q180 93 173 89;M176 100 Q174 93 180 88', 4.8) + '</path>'
+        + '</g>'
+        + flower(62, 88, '#ff8fb0') + flower(98, 94, '#fff0a8') + flower(146, 90, '#c78fff') + flower(22, 93, '#ffb36a') + flower(184, 95, '#ff8fb0');
+    },
+
+    /* ١٩ الصحراء — كثبانٌ رمليّةٌ متتابعةٌ بحرفٍ مُضاءٍ وشمسٌ حارّةٌ ونخلةٌ
+       وقافلةٌ بعيدةٌ على الأفق */
+    bg_desert: function (u) {
+      var frond = function (a) {
+        return '<path d="M0 0 Q' + (14 * Math.cos(a)) .toFixed(1) + ' ' + (14 * Math.sin(a) - 4).toFixed(1)
+          + ' ' + (26 * Math.cos(a)).toFixed(1) + ' ' + (26 * Math.sin(a)).toFixed(1) + '" />';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7a94a"/><stop offset=".34" stop-color="#ffd48a"/><stop offset=".52" stop-color="#ffe9b8"/><stop offset="1" stop-color="#8a5a1e"/></linearGradient>'
+        + '<linearGradient id="' + u + 'a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9b8"/><stop offset="1" stop-color="#d89a44"/></linearGradient>'
+        + '<linearGradient id="' + u + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b264"/><stop offset="1" stop-color="#9a6526"/></linearGradient>'
+        + '<linearGradient id="' + u + 'c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c4822e"/><stop offset="1" stop-color="#5e3a10"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + '<circle cx="132" cy="30" r="13" fill="#fffbe0" opacity=".95"/>'
+        + '<circle cx="132" cy="30" r="21" fill="#fff0b8" opacity=".3">' + _an('r', '19;24;19', 7) + '</circle>'
+        /* قافلةٌ بعيدةٌ صغيرةٌ على الأفق — تمنحُ المشهدَ مقياسًا */
+        + '<g fill="#8a5a1e" opacity=".55">'
+        + '<path d="M40 52 q2-3 4 0 l1 4 h-6 z"/><path d="M48 52.6 q1.6-2.6 3.4 0 l.9 3.4 h-5.2 z"/>'
+        + '</g>'
+        /* ثلاثُ طبقاتِ كثبانٍ، كلُّ حرفٍ بخطٍّ مُضاءٍ يفصلُه عمّا وراءه */
+        + '<path fill="url(#' + u + 'a)" d="M-4 54 Q34 40 74 52 Q118 64 160 48 Q184 40 204 46 V104 H-4 Z"/>'
+        + '<path fill="url(#' + u + 'b)" d="M-4 68 Q40 54 86 66 Q132 78 204 62 V104 H-4 Z"/>'
+        + '<path fill="url(#' + u + 'c)" d="M-4 84 Q52 72 108 84 Q156 94 204 80 V104 H-4 Z"/>'
+        + '<g stroke="#fff3cc" stroke-width="1" fill="none" opacity=".5">'
+        + '<path d="M-4 68 Q40 54 86 66 Q132 78 204 62"/><path d="M-4 84 Q52 72 108 84 Q156 94 204 80"/>'
+        + '</g>'
+        /* نخلةٌ في المنطقةِ الآمنة */
+        + '<g>'
+        + '<path d="M96 96 Q92 78 95 58" fill="none" stroke="#5e3a10" stroke-width="3.6" stroke-linecap="round"/>'
+        + '<g transform="translate(95 57)" fill="none" stroke="#2f7a34" stroke-width="2.6" stroke-linecap="round">'
+        + frond(-2.9) + frond(-2.2) + frond(-1.5) + frond(-0.8) + frond(-0.15) + frond(3.05)
+        + '</g>'
+        + '<g fill="#8a4a10"><circle cx="97" cy="60" r="1.6"/><circle cx="92" cy="61" r="1.4"/></g>'
+        + '</g>';
+    },
+
+    /* ٢٠ المطر — مطرٌ هادئٌ متّصلٌ وبِرَكٌ على أرضٍ عاكسةٍ تتوسّعُ فيها دوائرُ
+       القَطر. سماءٌ رماديّةٌ فاتحةٌ بلا برقٍ ولا وميضٍ — فلا تُشبهُ العاصفةَ.
+       تخطيطًا: خطُّ الأرضِ والبِرَكُ رُفِعَتْ إلى y≈56 (كانت ٧٢-٩٢ فخرجَتِ
+       اللافتةُ فارغةً)، وكلُّ قَطرةٍ تبدأُ من موضعٍ موزَّعٍ عبرَ الارتفاعِ
+       لا من فوقِ الكادرِ — فتُرى ساكنةً أيضًا عندَ تقليلِ الحركة. */
+    bg_rain: function (u) {
+      var drops = '';
+      for (var i = 0; i < 34; i++) {
+        var rx = (i * 19 + (i % 7) * 5) % 214 - 8;
+        var ry = -10 + ((i * 11) % 60);
+        var rd = 0.8 + ((i * 3) % 6) * .09;
+        drops += '<line x1="' + rx + '" y1="' + ry + '" x2="' + (rx - 4) + '" y2="' + (ry + 12) + '">'
+          + _mv('0 0;-22 64', rd) + '</line>';
+      }
+      var ripple = function (x, y, d) {
+        return '<ellipse cx="' + x + '" cy="' + y + '" rx="3" ry="1" opacity=".75">'
+          + _an('rx', '1.5;11', d) + _an('ry', '.5;3.4', d) + _an('opacity', '.85;0', d) + '</ellipse>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d7f96"/><stop offset=".4" stop-color="#4a5a70"/><stop offset=".58" stop-color="#2b3a50"/><stop offset="1" stop-color="#101820"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* سُحُبٌ رماديّةٌ فاتحةٌ منخفضةُ التباينِ داخلَ النافذة */
+        + '<g fill="#7d8ea6" opacity=".62">'
+        + '<ellipse cx="40" cy="20" rx="42" ry="11"/><ellipse cx="118" cy="16" rx="48" ry="10"/><ellipse cx="184" cy="21" rx="36" ry="9"/>'
+        + '</g>'
+        /* أرضٌ مبلّلةٌ عاكسةٌ + بِرَكٌ في قلبِ النافذة */
+        + '<rect y="56" width="200" height="44" fill="#1a2430"/>'
+        + '<rect y="55" width="200" height="1.6" fill="#8fa8c0" opacity=".5"/>'
+        + '<g fill="#38536e" opacity=".9">'
+        + '<ellipse cx="54" cy="64" rx="28" ry="4.6"/><ellipse cx="126" cy="70" rx="34" ry="5"/><ellipse cx="184" cy="61" rx="20" ry="3.8"/>'
+        + '</g>'
+        /* انعكاسٌ باهتٌ على الماءِ يُعطي إحساسَ البلل */
+        + '<g fill="#8fa8c0" opacity=".14">'
+        + '<rect x="30" y="56" width="48" height="16"/><rect x="100" y="56" width="52" height="20"/>'
+        + '</g>'
+        + '<g fill="none" stroke="#bfd8ef" stroke-width="1.1">'
+        + ripple(54, 64, 2.4) + ripple(126, 70, 3) + ripple(184, 61, 2.1) + ripple(96, 66, 2.7) + ripple(28, 62, 3.3)
+        + '</g>'
+        + '<g stroke="#cfe0f2" stroke-width="1.1" stroke-linecap="round" opacity=".62">' + drops + '</g>';
+    },
+
+    /* ٢١ المعبد — صفُّ أعمدةٍ حجريّةٍ مخدّدةٍ بقوسٍ مركزيٍّ ومشعلانِ يرتجفان،
+       وأشعّةٌ تنزلُ من فتحةٍ عُلويّة */
+    bg_temple: function (u) {
+      var col = function (x, w) {
+        return '<g>'
+          + '<rect x="' + (x - w / 2 - 2.4) + '" y="30" width="' + (w + 4.8) + '" height="5" rx="1.2" fill="#b9a077"/>'
+          + '<rect x="' + (x - w / 2) + '" y="35" width="' + w + '" height="52" fill="url(#' + u + 'p)"/>'
+          + '<g stroke="#7d6a4a" stroke-width=".8" opacity=".6"><path d="M' + (x - w / 4) + ' 36 V86 M' + (x + w / 4) + ' 36 V86"/></g>'
+          + '<rect x="' + (x - w / 2 - 3) + '" y="87" width="' + (w + 6) + '" height="6" rx="1.4" fill="#a68d64"/>'
+          + '</g>';
+      };
+      var torch = function (x) {
+        return '<g transform="translate(' + x + ' 52)">'
+          + '<rect x="-1.6" y="0" width="3.2" height="16" rx="1.2" fill="#4a3318"/>'
+          + '<path d="M0 -14 Q-6 -5 0 2 Q6 -5 0 -14 Z" fill="#ff9b21">' + _an('d', 'M0 -14 Q-6 -5 0 2 Q6 -5 0 -14 Z;M0 -18 Q-5 -6 1 2 Q7 -6 0 -18 Z;M0 -14 Q-6 -5 0 2 Q6 -5 0 -14 Z', 1.6) + '</path>'
+          + '<path d="M0 -7 Q-3 -2 0 1 Q3 -2 0 -7 Z" fill="#fff0a8">' + _an('opacity', '1;.6;1', 1.2) + '</path>'
+          + '</g>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1028"/><stop offset=".55" stop-color="#2e1f42"/><stop offset="1" stop-color="#120b1c"/></linearGradient>'
+        + '<linearGradient id="' + u + 'p" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6d5c40"/><stop offset=".38" stop-color="#d4bc90"/><stop offset="1" stop-color="#5a4a30"/></linearGradient>'
+        + '<linearGradient id="' + u + 'r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9b8" stop-opacity=".45"/><stop offset="1" stop-color="#ffe9b8" stop-opacity="0"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* أشعّةٌ نازلةٌ من فتحةِ السقف */
+        + '<g fill="url(#' + u + 'r)">'
+        + '<path d="M88 -4 L112 -4 L128 100 L72 100 Z">' + _an('opacity', '.6;1;.6', 8) + '</path>'
+        + '</g>'
+        /* سقفٌ وقوسٌ مركزيّ */
+        + '<rect x="-4" y="20" width="208" height="10" fill="#9c8358"/>'
+        + '<rect x="-4" y="14" width="208" height="6" fill="#c0a877"/>'
+        + '<path d="M78 92 V60 A22 22 0 0 1 122 60 V92 Z" fill="#150d20"/>'
+        + '<path d="M78 92 V60 A22 22 0 0 1 122 60 V92" fill="none" stroke="#b9a077" stroke-width="3.4"/>'
+        + col(22, 15) + col(52, 13) + col(148, 13) + col(178, 15)
+        + torch(40) + torch(160)
+        + '<rect y="93" width="200" height="7" fill="#3a2d1e"/>'
+        + '<g stroke="#5a4a30" stroke-width=".8" opacity=".7"><path d="M24 93 V100 M68 93 V100 M112 93 V100 M156 93 V100"/></g>';
+    },
+
+    /* ٢٢ الطلاسم — دائرةٌ سِحريّةٌ ثلاثيّةُ الحلقاتِ تدورُ حلقاتُها في اتّجاهَينِ
+       متعاكسَينِ، برموزٍ ونجمةٍ خمسيّةٍ مرسومةٍ بخطٍّ متوهّج */
+    bg_arcane: function (u) {
+      var glyphRing = function (r, n, dur, rev) {
+        var g = '';
+        for (var i = 0; i < n; i++) {
+          var a = (i / n) * Math.PI * 2;
+          var x = (r * Math.cos(a)).toFixed(1), y = (r * Math.sin(a)).toFixed(1);
+          g += '<path d="M' + x + ' ' + y + ' l3.4 0 M' + x + ' ' + y + ' l-1.7 3" stroke-width="1.5"/>';
+        }
+        return '<g stroke="#e0b8ff" fill="none" stroke-linecap="round" opacity=".9">' + _rot(0, 0, dur, rev) + g + '</g>';
+      };
+      var star = '';
+      for (var i = 0; i < 5; i++) {
+        var a1 = (i / 5) * Math.PI * 2 - Math.PI / 2;
+        var a2 = (((i + 2) % 5) / 5) * Math.PI * 2 - Math.PI / 2;
+        star += (i === 0 ? 'M' : 'L') + (26 * Math.cos(a1)).toFixed(1) + ' ' + (26 * Math.sin(a1)).toFixed(1)
+          + ' L' + (26 * Math.cos(a2)).toFixed(1) + ' ' + (26 * Math.sin(a2)).toFixed(1);
+      }
+      return '<defs>'
+        + '<radialGradient id="' + u + 'k" cx=".5" cy=".5" r=".8"><stop offset="0" stop-color="#3c1470"/><stop offset=".6" stop-color="#1a0836"/><stop offset="1" stop-color="#0a0318"/></radialGradient>'
+        + '<filter id="' + u + 'g" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + _stars([[18,20,.8],[176,24,.9],[34,80,.8],[186,76,.7],[8,52,.7]], '#d8b8ff')
+        + '<g transform="translate(100 50)">'
+        + '<g filter="url(#' + u + 'g)" opacity=".62">'
+        + '<circle r="38" fill="none" stroke="#c07aff" stroke-width="3"/>'
+        + '<path d="' + star + ' Z" fill="none" stroke="#c07aff" stroke-width="3"/>'
+        + '</g>'
+        + '<circle r="38" fill="none" stroke="#e8ccff" stroke-width="1.3" opacity=".85">' + _rot(0, 0, 30) + '</circle>'
+        + '<circle r="30" fill="none" stroke="#b06bff" stroke-width="1" opacity=".6" stroke-dasharray="6 5">' + _rot(0, 0, 18, true) + '</circle>'
+        + '<path d="' + star + ' Z" fill="none" stroke="#f4e4ff" stroke-width="1.5" stroke-linejoin="round">' + _an('opacity', '.6;1;.6', 4.4) + '</path>'
+        + glyphRing(44, 12, 26) + glyphRing(23, 8, 14, true)
+        + '<circle r="5" fill="#f4e4ff">' + _an('r', '4;6.4;4', 3.4) + '</circle>'
+        + '</g>';
+    },
+
+    /* ٢٣ الشِّعاب — ماءٌ ضحلٌ **مضيءٌ** بمرجانٍ متفرّعٍ ملوّنٍ وأسماكٍ تسبحُ
+       وتموّجاتِ ضوءٍ على القاع. مضيئةٌ وملوّنةٌ — عكسُ «الأعماق» المظلمةِ تمامًا. */
+    bg_reef: function (u) {
+      var fish = function (x, y, s, c, d, dir) {
+        return '<g>' + _mv(dir > 0 ? '-40 0;220 0' : '220 0;-40 0', d)
+          + '<g transform="translate(' + x + ' ' + y + ') scale(' + (dir > 0 ? s : -s) + ' ' + s + ')" fill="' + c + '">'
+          + '<path d="M0 0 Q7 -5 15 0 Q7 5 0 0 Z"/><path d="M0 0 L-5 -4 L-5 4 Z"/>'
+          + '<circle cx="11" cy="-1.2" r=".8" fill="#0b1a2a"/></g></g>';
+      };
+      var coral = function (x, y, c) {
+        return '<g transform="translate(' + x + ' ' + y + ')" fill="none" stroke="' + c + '" stroke-width="3.2" stroke-linecap="round">'
+          + '<path d="M0 0 V-14"/><path d="M0 -7 Q-6 -12 -8 -20"/><path d="M0 -9 Q6 -14 9 -22"/><path d="M0 -13 Q-3 -20 -2 -26"/></g>';
+      };
+      return '<defs>'
+        + '<linearGradient id="' + u + 'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fe8e0"/><stop offset=".38" stop-color="#1fa8c8"/><stop offset="1" stop-color="#0a5a80"/></linearGradient>'
+        + '<linearGradient id="' + u + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe0a8"/><stop offset="1" stop-color="#c99a5a"/></linearGradient>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        /* ضوءُ السطحِ فوقَ الماء */
+        + '<g fill="#e8fffb" opacity=".35">'
+        + '<ellipse cx="60" cy="4" rx="44" ry="6"/><ellipse cx="150" cy="6" rx="38" ry="5"/>'
+        + '</g>'
+        /* تموّجاتُ ضوءٍ تزحفُ على القاعِ — بصمةُ الماءِ الضحل */
+        + '<g fill="none" stroke="#c8fff4" stroke-width="1.4" opacity=".45">'
+        + '<path d="M-10 40 Q20 34 50 40 Q80 46 110 40 Q140 34 210 40">' + _mv('0 0;24 0;0 0', 7) + '</path>'
+        + '<path d="M-10 54 Q24 48 58 54 Q92 60 126 54 Q160 48 210 54">' + _mv('0 0;-20 0;0 0', 9) + '</path>'
+        + '</g>'
+        /* القاعُ الرمليُّ ثمّ المرجانُ متفرّعًا ملوّنًا */
+        + '<path fill="url(#' + u + 'b)" d="M-4 84 Q40 74 84 82 Q130 90 204 78 V104 H-4 Z"/>'
+        + coral(30, 86, '#ff7a9e') + coral(76, 84, '#ffb84a') + coral(118, 88, '#a86bff') + coral(166, 82, '#5affc0')
+        + '<g fill="#ff9ec4" opacity=".9">'
+        + '<circle cx="96" cy="78" r="3.4"/><circle cx="102" cy="82" r="2.6"/><circle cx="90" cy="82" r="2.4"/>'
+        + '</g>'
+        + fish(0, 46, 1.25, '#ffd24a', 12, 1) + fish(0, 62, 1, '#ff6a9e', 15, -1)
+        + fish(0, 34, .85, '#5affc0', 18, 1) + fish(0, 70, .9, '#8fd4ff', 21, -1);
+    },
+
+    /* ٢٤ الخسوف — قرصٌ أسودُ يحجبُ الشمسَ وهالةُ كورونا حولَه بخيوطٍ شعاعيّةٍ
+       وحلقةُ ماسٍ لحظيّةٍ على الحافّة */
+    bg_eclipse: function (u) {
+      var rays = '';
+      for (var i = 0; i < 28; i++) {
+        var a = (i / 28) * 360;
+        var len = 34 + ((i * 7) % 5) * 5;
+        rays += '<path d="M0 -25 V-' + len + '" transform="rotate(' + a.toFixed(1) + ')" stroke-width="' + (i % 3 === 0 ? 2 : 1.1) + '"/>';
+      }
+      return '<defs>'
+        + '<radialGradient id="' + u + 'k" cx=".5" cy=".46" r=".78"><stop offset="0" stop-color="#3a2a1a"/><stop offset=".42" stop-color="#170f1e"/><stop offset="1" stop-color="#05040a"/></radialGradient>'
+        + '<radialGradient id="' + u + 'c" cx=".5" cy=".5" r=".5"><stop offset=".52" stop-color="#ffd98a" stop-opacity="0"/><stop offset=".62" stop-color="#ffe9b8" stop-opacity=".9"/><stop offset=".78" stop-color="#ff9b45" stop-opacity=".42"/><stop offset="1" stop-color="#ff7a2f" stop-opacity="0"/></radialGradient>'
+        + '<filter id="' + u + 'g" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.2"/></filter>'
+        + '</defs>'
+        + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
+        + _stars([[20,16,.9],[44,78,.8],[168,20,1],[188,68,.8],[30,50,.7],[180,44,.9],[72,88,.8],[136,92,.7]])
+        + '<g transform="translate(100 46)">'
+        /* الكورونا: خيوطٌ شعاعيّةٌ تنبضُ خفيفًا */
+        + '<g stroke="#ffd9a0" fill="none" stroke-linecap="round" opacity=".55" filter="url(#' + u + 'g)">'
+        + '<g>' + _an('opacity', '.4;.8;.4', 6) + rays + '</g>'
+        + '</g>'
+        + '<circle r="46" fill="url(#' + u + 'c)"/>'
+        /* القرصُ الأسودُ المصمتُ يحجبُ الشمسَ */
+        + '<circle r="24" fill="#05040a"/>'
+        + '<circle r="24.8" fill="none" stroke="#ffeec4" stroke-width="1.5" opacity=".95"/>'
+        /* حلقةُ الماسِ: بريقٌ يظهرُ لحظةً على الحافّةِ ثمّ يدورُ */
+        + '<g>' + _rot(0, 0, 18)
+        + '<circle cx="0" cy="-24.8" r="3.4" fill="#fffdf2">' + _an('r', '2;4.4;2', 3) + '</circle>'
+        + '</g>'
+        + '</g>';
+    },
+  };
+
   function esc(s) { return String(s == null ? '' : s).replace(/[^a-zA-Z0-9_-]/g, ''); }
 
   /* عدّادٌ يضمنُ تفرّدَ مُعرِّفاتِ التدرّجِ عبرَ كلِّ نُسخةٍ (متجرٌ + أفاتاراتٌ حيّةٌ
@@ -927,11 +1798,49 @@
     return '<span class="cos-badge cos-badge--' + id + '" aria-hidden="true"><svg viewBox="0 0 100 100">' + inner + '</svg></span>';
   }
 
+  /* ══ المشهدُ المرسومُ للخلفيّةِ — المُصيّرُ الواحد ══
+     يقرأُ منه ثلاثةُ مواضعَ: اللافتةُ الحيّةُ (bannerHTML) والهالةُ حولَ
+     صناديقَ صغيرةٍ (bgHTML) ومعاينةُ المتجرِ/المخزونِ (thumb) — فما يراه
+     اللاعبُ قبلَ الشراءِ هو نفسُه ما يُطبَّقُ بالحرف.
+     معرّفاتُ التدرّجاتِ والمرشّحاتِ تُولَدُ فريدةً لكلِّ نسخةٍ لأنّ عشراتَ
+     البطاقاتِ تُعرَضُ في الصفحةِ معًا، وتكرارُ id يجعلُ كلَّ مراجعِ
+     url(#id) تشدُّ من أوّلِ نسخةٍ فتتلوّنُ المشاهدُ كلُّها غلط.
+     preserveAspectRatio="xMidYMid slice" يُغطّي الصندوقَ دونَ تشويهٍ:
+     يقصُّ الفائضَ بدلَ أن يمطَّ الأشكال. */
+  function bgSceneInner(bid) {
+    var fn = BG_SCENE[bid];
+    if (typeof fn !== 'function') return '';
+    try { return fn('bs' + esc(bid) + '_' + (++_uid)); } catch (e) { return ''; }
+  }
+  /* نافذةُ العرضِ تتبعُ نسبةَ الصندوق، والرسمُ واحدٌ لا يتغيّر:
+     • 'thumb' (بطاقةُ المتجرِ/المخزونِ، مربّعةٌ تقريبًا) → المشهدُ كاملًا
+       ‎0 0 200 100‎؛ مع slice تُقصُّ الجوانبُ فتظهرُ منطقةُ الهويّةِ الوسطى.
+     • 'banner' (لافتةُ البطاقةِ، نسبتُها ≈٥٫٥:١) → نافذةٌ أعرضُ
+       ‎0 30 200 40‎ (٥:١). بالنافذةِ الكاملةِ ‎200×100‎ كان المرئيُّ
+       ‎200/5.5 ≈ 36‎ وحدةً من مئةٍ — أي إخفاءُ ٦٤٪ من المشهدِ وقطعُ
+       الصاعقةِ ورأسِ التنّينِ في منتصفِهما. بنافذةِ الأربعينَ يصيرُ
+       المرئيُّ ٣٦ من ٤٠ = ٩٠٪ منها، **بلا أيِّ تشويهٍ** لأنّ slice
+       يُحافظُ على النسبةِ (وpreserveAspectRatio="none" كان سيمطُّ
+       الأشكالَ ضِعفًا فتصيرُ الدوائرُ بيضاويّةً). */
+  function bgSceneSVG(bid, cls, mode) {
+    var inner = bgSceneInner(bid);
+    if (!inner) return '';
+    var vb = (mode === 'banner') ? '0 30 200 40' : '0 0 200 100';
+    return '<svg class="' + (cls || 'cos-scene') + '" viewBox="' + vb + '"'
+      + ' preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + inner + '</svg>';
+  }
+
   function bgHTML(cos) {
     if (!cos || !cos.background) return '';
     var g = BG[cos.background];
     if (!g) return '';
-    return '<span class="cos-bg cos-bg--' + esc(cos.background) + '" style="background-image:' + g + '"></span>';
+    /* التدرّجُ يبقى أساسًا لونيًّا تحتَ المشهدِ — يظهرُ وحدَه فقط لو تعذّرَ
+       المشهدُ (خلفيّةٌ جديدةٌ من الخادمِ لا يعرفُها هذا البناء) فلا يُترَكُ
+       الصندوقُ فارغًا. */
+    return '<span class="cos-bg cos-bg--' + esc(cos.background) + '" style="background-image:' + g + '">'
+    /* الهالةُ حولَ صناديقَ صغيرةٍ قريبةٌ من المربّعِ لا عريضةٌ كاللافتة،
+       فتأخذُ المشهدَ كاملًا لا نافذةَ اللافتةِ العريضة. */
+      + bgSceneSVG(cos.background, 'cos-bg__art') + '</span>';
   }
 
   /* أجزاء تُدسّ داخل صندوق أفاتار: الإطارُ فقط (طوقٌ حولَ الصورة).
@@ -971,13 +1880,19 @@
 
   /* لافتةُ الخلفيّةِ العريضةُ خلفَ الاسمِ والأفاتارِ في بطاقةِ الملفِّ (طلبُ جوجو:
      الخلفيّةُ تظهرُ لافتةً فاخرةً في الأعلى + هالةً حولَ الأفاتارِ في الأماكنِ
-     الصغيرة). تدرّجُ BG نفسُه + بريقٌ مائلٌ عابرٌ + ذرّاتٌ عائمةٌ + تعتيمٌ حافظٌ
-     لوضوحِ النصّ. كلُّه CSS خفيفٌ يحترمُ prefers-reduced-motion. */
+     الصغيرة).
+     البناءُ ٦٨: **المشهدُ المرسومُ** هو الطبقةُ الأساسيّةُ الآن، والتدرّجُ صارَ
+     أساسًا لونيًّا تحتَه وحدَه (بلاغُ جوجو ٨: «كلُّ الخلفيّاتِ مجرّدُ بكسلاتٍ
+     بلا تأثيراتٍ حقيقيّة»). الذرّاتُ والبريقُ العامّانِ بقيا طبقةً أخيرةً
+     رقيقةً فوقَ المشهدِ، وتعتيمُ النصِّ في CSS كما هو. */
   function bannerHTML(cos) {
     if (!cos || !cos.background) return '';
     var g = BG[cos.background];
-    if (!g) return '';
-    return '<span class="cos-banner cos-banner--' + esc(cos.background) + '" aria-hidden="true" style="background-image:' + g + '">'
+    var scene = bgSceneSVG(cos.background, 'cos-banner__art', 'banner');
+    if (!g && !scene) return '';
+    return '<span class="cos-banner cos-banner--' + esc(cos.background) + '" aria-hidden="true"'
+      + (g ? ' style="background-image:' + g + '"' : '') + '>'
+      + scene
       + '<span class="cos-banner__motes"></span><span class="cos-banner__sheen"></span></span>';
   }
   /* رسمُ اللافتةِ على بطاقةٍ قائمةٍ (بطاقةُ الملفِّ/هويّةُ الرئيسيّة). */
@@ -985,7 +1900,7 @@
     if (!el) return;
     var old = el.querySelector(':scope > .cos-banner'); if (old) old.remove();
     el.classList.remove('cos-bannered');
-    if (cos && cos.background && BG[cos.background]) {
+    if (cos && cos.background && (BG[cos.background] || BG_SCENE[cos.background])) {
       el.classList.add('cos-bannered');
       var tmp = document.createElement('div');
       tmp.innerHTML = bannerHTML(cos);
@@ -1282,8 +2197,16 @@
       /* تكبيرٌ طفيفٌ حولَ المركزِ ليملأَ البطاقةَ مع هامشٍ آمن */
       return '<svg viewBox="0 0 100 100" class="st-svg"><g transform="translate(50 50) scale(0.94) translate(-50 -50)">' + inner + '</g></svg>';
     }
-    /* الخلفياتُ والاحتفالاتُ ومؤثّراتُ المات: مشاهدُها الغنيّةُ تُرسَمُ في
-       store-client (لا تناقضَ لأنّ الحيَّ خلفيّةٌ متدرّجةٌ/جُسيماتٌ DOM). */
+    /* الخلفيّاتُ (البناءُ ٦٨): صارَتْ تُرسَمُ من نفسِ BG_SCENE الذي يرسمُ
+       اللافتةَ الحيّةَ — فالمعاينةُ في المتجرِ والمخزونِ مطابقةٌ بالبكسلِ
+       لِما سيُطبَّقُ على البطاقة. قبلَ ذلك كان للخلفيّةِ مُصيّرانِ منفصلان
+       (مشهدٌ بسيطٌ في store-client وتدرّجٌ للحيّ) فيتباعدان، وهي نفسُ علّةِ
+       تناقضِ الصقيعِ التي انتهَتْ في الإطارات. */
+    if (it.type === 'background') {
+      return bgSceneSVG(it.id, 'st-svg st-svg--scene');
+    }
+    /* الاحتفالاتُ ومؤثّراتُ المات: مشاهدُها الغنيّةُ تُرسَمُ في store-client
+       (لا تناقضَ لأنّ الحيَّ جُسيماتُ DOM كاملةُ الشاشةِ لا صورةٌ ثابتة). */
     return '';
   }
 
@@ -1477,6 +2400,7 @@
     frameHTML: frameHTML,
     badgeHTML: badgeHTML,
     bgHTML: bgHTML,
+    bgSceneSVG: bgSceneSVG,
     avatarLayers: avatarLayers,
     paint: paint,
     paintName: paintName,
@@ -1490,6 +2414,6 @@
     catIcon: catIcon,
     levelUp: levelUp,
     smilSweep: _smilSweep,
-    FRAME: FRAME, BADGE: BADGE, BG: BG,
+    FRAME: FRAME, BADGE: BADGE, BG: BG, BG_SCENE: BG_SCENE,
   };
 })();

@@ -1561,6 +1561,7 @@
     'الجهاز الآخر لا يستجيب': 'The other device is not responding',
     'الجهاز الآخر لا يستجيب. تأكّد من أن اللعبة ما زالت مفتوحة عنده وأنه قريب منك.': 'The other device is not responding. Make sure the game is still open there and that it is close to you.',
     'انقطع الاتصال بالجهاز الآخر': 'The connection to the other device was lost',
+    'لم يتم الاتصال بعد — جارٍ إعادة المحاولة…': 'Not connected yet — retrying…',
     'لم يتم الاتصال بالجهاز الآخر. تأكّد من أن الجهازين قريبان أحدهما من الآخر ثم أعِد المحاولة.': 'The other device was not reached. Make sure the two devices are close to each other, then try again.',
     'تعذّر الاتصال بهذا الجهاز. تأكّد من أنه لا يزال على الشاشة نفسها وقريبًا منك، ثم أعِد المحاولة.': 'Could not connect to this device. Make sure it is still on the same screen and close to you, then try again.',
     'تعذّر البحث عن أجهزة. تأكّد من تشغيل البلوتوث والواي فاي وخدمة الموقع، ثم أعِد المحاولة.': 'Could not search for devices. Make sure Bluetooth, Wi-Fi and location are on, then try again.',
