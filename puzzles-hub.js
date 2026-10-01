@@ -1204,7 +1204,10 @@ const PZH = (() => {
     tile('racer', false, () => go('racer'));
     tile('streak', false, () => go('streak'));
     tile('easy', false, () => go('easy'));
-    tile('hard', false, () => go('hard'));
+    /* «تحدٍّ» صفٌّ كاملٌ لا نصفَ صفٍّ (بلاغُ جوجو ٢): البطاقاتُ الضيّقةُ
+       خمسٌ — عددٌ فرديٌّ لا ينقسمُ على عمودَين — فكانت آخرُها تقعُ وحدَها
+       ويبقى نصفُ الصفِّ فراغًا ميتًا بجانبِها. */
+    tile('hard', true, () => go('hard'));
     tile('theme', true, () => { try { PZU.openThemes(); } catch (e) {} });
     tile('battle', true, openBattle);
     host.appendChild(ms);

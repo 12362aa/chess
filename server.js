@@ -545,15 +545,15 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'comeback': {
       const d = s.daysAway || 1;
       return {
-        title: { ar: `${nm}.. غِبتَ ${_nDays(d)}`, en: `${en}.. you have been away ${_eDays(d)}` },
+        title: { ar: `👋 ${nm}.. غِبتَ ${_nDays(d)}`, en: `👋 ${en}.. you have been away ${_eDays(d)}` },
         body: pick2([
-          `${nm}، غِبتَ ${_nDays(d)} — وتقييمك ${s.rating} ما زال ينتظر عودتك ♟`,
-          `${_nDays(d)} بلا شطرنج يا ${nm}؟ سجلّك: ${s.wins} فوز، ولن يزداد من تلقاء نفسه 😉`,
-          `عودتك تُحدث فرقًا يا ${nm}: آخر ظهور لك منذ ${_nDays(d)}، والرقعة تخلو منك`,
+          `${nm}، غِبتَ ${_nDays(d)} وتقييمك ${s.rating} ما زال ينتظر عودتك ♟️`,
+          `${_nDays(d)} بلا شطرنج يا ${nm}؟ 🤔 سجلّك ${s.wins} فوز، ولن يزداد من تلقاء نفسه`,
+          `عودتك تُحدث فرقًا يا ${nm} ✨ آخر ظهور لك منذ ${_nDays(d)}، والرقعة تخلو منك`,
         ], [
-          `${en}, you have been away ${_eDays(d)} — and your ${s.rating} rating is still waiting for you ♟`,
-          `${_eDays(d)} without chess, ${en}? Your record: ${s.wins} wins, and it will not grow on its own 😉`,
-          `Your return makes a difference, ${en}: last seen ${_eDays(d)} ago, and the board is empty without you`,
+          `${en}, you have been away ${_eDays(d)} and your ${s.rating} rating is still waiting for you ♟️`,
+          `${_eDays(d)} without chess, ${en}? 🤔 Your record is ${s.wins} wins, and it will not grow on its own`,
+          `Your return makes a difference, ${en} ✨ last seen ${_eDays(d)} ago, and the board is empty without you`,
         ]),
         data: { kind: 'adaptive', cat, days: String(d) }, tag: 'amkh-comeback',
       };
@@ -561,13 +561,13 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'friends': {
       const f = s.friendsOnline;
       return {
-        title: { ar: `${_nFriends(f)} على الشبكة`, en: `${_eFriends(f)} online` },
+        title: { ar: `👥 ${_nFriends(f)} على الشبكة`, en: `👥 ${_eFriends(f)} online` },
         body: pick2([
-          `${nm}، عدد أصدقائك المتصلين الآن ${f} — تحدَّ أحدهم في مباراة ♟`,
-          `أصدقاؤك على الشبكة الآن (${f}) يا ${nm} — مباراة سريعة قبل أن ينصرفوا؟`,
+          `${nm}، عدد أصدقائك المتصلين الآن ${f} 🟢 تحدَّ أحدهم في مباراة ♟️`,
+          `أصدقاؤك على الشبكة الآن (${f}) يا ${nm} ⚡ مباراة سريعة قبل أن ينصرفوا؟`,
         ], [
-          `${en}, ${f} of your friends are online right now — challenge one of them to a game ♟`,
-          `Your friends are online now (${f}), ${en} — a quick game before they leave?`,
+          `${en}, ${f} of your friends are online right now 🟢 challenge one of them to a game ♟️`,
+          `Your friends are online now (${f}), ${en} ⚡ a quick game before they leave?`,
         ]),
         data: { kind: 'adaptive', cat, friends: String(f) }, tag: 'amkh-friends',
       };
@@ -575,13 +575,13 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'invite': {
       const p = s.invites;
       return {
-        title: { ar: `لديك ${_nInvites(p)} للعب`, en: `You have ${_eInvites(p)} to play` },
+        title: { ar: `⚔️ لديك ${_nInvites(p)} للعب`, en: `⚔️ You have ${_eInvites(p)} to play` },
         body: pick2([
-          `${nm}، لديك ${_nInvites(p)} للعب — افتح التطبيق واقبل التحدّي ♟`,
-          `تحدٍّ جاهز لك يا ${nm} — عدد الدعوات ${p}، وخصمك ينتظر بدء المباراة`,
+          `${nm}، لديك ${_nInvites(p)} للعب 🔔 افتح التطبيق واقبل التحدّي ♟️`,
+          `تحدٍّ جاهز لك يا ${nm} ⚔️ عدد الدعوات ${p}، وخصمك ينتظر بدء المباراة`,
         ], [
-          `${en}, you have ${_eInvites(p)} to play — open the app and accept the challenge ♟`,
-          `A challenge is ready for you, ${en} — ${p} invites, and your opponent is waiting to start`,
+          `${en}, you have ${_eInvites(p)} to play 🔔 open the app and accept the challenge ♟️`,
+          `A challenge is ready for you, ${en} ⚔️ ${p} invites, and your opponent is waiting to start`,
         ]),
         data: { kind: 'adaptive', cat, invites: String(p) }, tag: 'amkh-invite',
       };
@@ -589,13 +589,13 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'unread': {
       const c = s.unread;
       return {
-        title: { ar: `${_nMsgs(c)} بانتظارك`, en: `${_eMsgs(c)} waiting for you` },
+        title: { ar: `💬 ${_nMsgs(c)} بانتظارك`, en: `💬 ${_eMsgs(c)} waiting for you` },
         body: pick2([
-          `${nm}، لديك ${c} من الرسائل غير المقروءة — ردّ وابدأ مباراة ♟`,
-          `رسائل جديدة تنتظرك يا ${nm} (${c}) — أصدقاؤك يحدّثونك، تفضّل بالردّ`,
+          `${nm}، لديك ${c} من الرسائل غير المقروءة 💬 ردّ وابدأ مباراة ♟️`,
+          `رسائل جديدة تنتظرك يا ${nm} (${c}) 📩 أصدقاؤك يحدّثونك، تفضّل بالردّ`,
         ], [
-          `${en}, you have ${c} unread messages — reply and start a game ♟`,
-          `New messages are waiting for you, ${en} (${c}) — your friends are writing to you, do reply`,
+          `${en}, you have ${c} unread messages 💬 reply and start a game ♟️`,
+          `New messages are waiting for you, ${en} (${c}) 📩 your friends are writing to you, do reply`,
         ]),
         data: { kind: 'adaptive', cat, unread: String(c) }, tag: 'amkh-unread',
       };
@@ -604,27 +604,27 @@ function _renderNotif(cat, s, slotIndex, day) {
       const next = (Math.floor(s.rating / 100) + 1) * 100;
       const gap = next - s.rating;
       const vAr = [
-        `${nm}، تقييمك ${s.rating} — تفصلك ${_nPoints(gap)} فقط عن ${next}. مباراة مصنّفة واحدة تكفي ♟`,
-        `سجلّك: ${s.wins} فوز · ${s.losses} خسارة يا ${nm} — زِد رصيد انتصاراتك اليوم`,
+        `${nm}، تقييمك ${s.rating} 📈 تفصلك ${_nPoints(gap)} فقط عن ${next}، ومباراة مصنّفة واحدة تكفي ♟️`,
+        `سجلّك ${s.wins} فوز 🏆 و${s.losses} خسارة يا ${nm}، زِد رصيد انتصاراتك اليوم`,
       ];
       const vEn = [
-        `${en}, your rating is ${s.rating} — only ${_ePoints(gap)} away from ${next}. One rated game is enough ♟`,
-        `Your record: ${s.wins} wins · ${s.losses} losses, ${en} — add to your wins today`,
+        `${en}, your rating is ${s.rating} 📈 only ${_ePoints(gap)} away from ${next}, and one rated game is enough ♟️`,
+        `Your record is ${s.wins} wins 🏆 and ${s.losses} losses, ${en}. Add to your wins today`,
       ];
       if (s.peak > s.rating) {
-        vAr.push(`أعلى تقييم بلغته ${s.peak} يا ${nm}، وتقييمك الآن ${s.rating} — استعِده اليوم`);
-        vEn.push(`Your peak rating was ${s.peak}, ${en}, and you are now at ${s.rating} — take it back today`);
+        vAr.push(`أعلى تقييم بلغته ${s.peak} يا ${nm} ⛰️ وتقييمك الآن ${s.rating}، استعِده اليوم`);
+        vEn.push(`Your peak rating was ${s.peak}, ${en} ⛰️ and you are now at ${s.rating}. Take it back today`);
       }
       if (s.lastResult === 'win') {
-        vAr.push(`آخر مباراة انتهت بفوزك يا ${nm} (تقييمك الآن ${s.rating}) — واصل، مباراة أخرى؟`);
-        vEn.push(`Your last game ended in a win, ${en} (your rating is now ${s.rating}) — keep going, another game?`);
+        vAr.push(`آخر مباراة انتهت بفوزك يا ${nm} 🎯 تقييمك الآن ${s.rating}، واصل بمباراة أخرى`);
+        vEn.push(`Your last game ended in a win, ${en} 🎯 your rating is now ${s.rating}. Keep going with another game`);
       }
       if (s.lastResult === 'loss') {
-        vAr.push(`${nm}، خسرت مباراتك الأخيرة — استردّ اعتبارك، وتقييمك ${s.rating} ينتظر التعويض`);
-        vEn.push(`${en}, you lost your last game — win it back; your ${s.rating} rating is waiting to recover`);
+        vAr.push(`${nm}، خسرت مباراتك الأخيرة 💪 استردّ اعتبارك، وتقييمك ${s.rating} ينتظر التعويض`);
+        vEn.push(`${en}, you lost your last game 💪 win it back; your ${s.rating} rating is waiting to recover`);
       }
       return {
-        title: { ar: `تقييمك ${s.rating} ♟`, en: `Your rating is ${s.rating} ♟` },
+        title: { ar: `📈 تقييمك ${s.rating}`, en: `📈 Your rating is ${s.rating}` },
         body: pick2(vAr, vEn),
         data: { kind: 'adaptive', cat, rating: String(s.rating) }, tag: 'amkh-rating',
       };
@@ -634,35 +634,46 @@ function _renderNotif(cat, s, slotIndex, day) {
       /* سلسلةٌ حيّة لم يُختَم يومُها بعد: التذكير هنا «لا تكسر ما بنيتَ».
          نستعمل صيغة الأيام العربية الموجودة أصلًا (_nDays/_eDays). */
       return {
-        title: { ar: `سلسلتك ${_nDays(k)} يا ${nm} ♟`, en: `Your streak is ${_eDays(k)}, ${en} ♟` },
+        title: { ar: `🔥 سلسلتك ${_nDays(k)} يا ${nm}`, en: `🔥 Your streak is ${_eDays(k)}, ${en}` },
         body: pick2([
-          `${nm}، سلسلة ألغازك بلغت ${_nDays(k)} متتالية — لغزُ اليوم وحده يُبقيها حيّة`,
-          `لا تكسر ما بنيتَ يا ${nm}: ${_nDays(k)} من الحلّ المتتابع، وحلُّ لغز اليوم يُكمل السلسلة`,
-          `${_nDays(k)} متتالية في الألغاز يا ${nm} — دقائقُ اليوم تحفظ سلسلتك من الانقطاع`,
+          `${nm}، سلسلة ألغازك بلغت ${_nDays(k)} متتالية 🔥 ولغزُ اليوم وحده يُبقيها حيّة`,
+          `لا تكسر ما بنيتَ يا ${nm} ⛓️ ${_nDays(k)} من الحلّ المتتابع، وحلُّ لغز اليوم يُكمل السلسلة`,
+          `${_nDays(k)} متتالية في الألغاز يا ${nm} 🧩 دقائقُ اليوم تحفظ سلسلتك من الانقطاع`,
         ], [
-          `${en}, your puzzle streak has reached ${_eDays(k)} in a row — today’s puzzle alone keeps it alive`,
-          `Do not break what you built, ${en}: ${_eDays(k)} of solving in a row, and today’s puzzle continues the streak`,
-          `${_eDays(k)} in a row on puzzles, ${en} — a few minutes today saves your streak from breaking`,
+          `${en}, your puzzle streak has reached ${_eDays(k)} in a row 🔥 and today’s puzzle alone keeps it alive`,
+          `Do not break what you built, ${en} ⛓️ ${_eDays(k)} of solving in a row, and today’s puzzle continues the streak`,
+          `${_eDays(k)} in a row on puzzles, ${en} 🧩 a few minutes today saves your streak from breaking`,
         ]),
         data: { kind: 'puzzle', cat, streak: String(k) }, tag: 'amkh-puzzle-streak',
       };
     }
     case 'puzzle_daily': {
       const hasR = s.pzHasData && s.pzGames > 0;
+      /* بلاغُ جوجو: «إشعاراتُ الألغازِ ثابتةٌ شويه». الصيغُ هنا تتكيّفُ مع
+         حالةِ اللاعبِ فعلًا: تقييمُ ألغازِه، وعددُ ما حلَّه، وسلسلتُه
+         المنقطعةُ — فلا يصلُه نفسُ السطرِ مرّتَين. */
       const vAr = [
-        `${nm}، لغزُ اليوم بانتظارك — تكتيكٌ واحد يصقل بصرك قبل مباراةٍ مصنّفة ♟`,
-        `تدريبٌ سريع يا ${nm}: حُلَّ لغز اليوم، خمسةُ قلوبٍ وفكرةٌ واحدة تستحقّ الاكتشاف`,
+        `${nm}، لغزُ اليوم بانتظارك 🧩 تكتيكٌ واحد يصقل بصرك قبل مباراةٍ مصنّفة ♟️`,
+        `تدريبٌ سريع يا ${nm} ⚡ حُلَّ لغز اليوم، خمسةُ قلوبٍ وفكرةٌ واحدة تستحقّ الاكتشاف`,
       ];
       const vEn = [
-        `${en}, today’s puzzle is waiting for you — one tactic sharpens your eye before a rated game ♟`,
-        `Quick practice, ${en}: solve today’s puzzle — five hearts and one idea worth discovering`,
+        `${en}, today’s puzzle is waiting for you 🧩 one tactic sharpens your eye before a rated game ♟️`,
+        `Quick practice, ${en} ⚡ solve today’s puzzle: five hearts and one idea worth discovering`,
       ];
       if (hasR) {
-        vAr.push(`تقييمُ ألغازك ${s.pzRating} يا ${nm} — لغزُ اليوم يرفعه، وخطأٌ واحد يخصمه، فأتقِن`);
-        vEn.push(`Your puzzle rating is ${s.pzRating}, ${en} — today’s puzzle raises it, one mistake lowers it, so be precise`);
+        vAr.push(`تقييمُ ألغازك ${s.pzRating} يا ${nm} 🎯 لغزُ اليوم يرفعه وخطأٌ واحد يخصمه، فأتقِن`);
+        vEn.push(`Your puzzle rating is ${s.pzRating}, ${en} 🎯 today’s puzzle raises it and one mistake lowers it, so be precise`);
+      }
+      if (s.pzGames >= 10) {
+        vAr.push(`حلَلتَ ${s.pzGames} لغزًا حتّى الآن يا ${nm} 🧠 لغزُ اليوم يضيفُ واحدًا إلى رصيدك`);
+        vEn.push(`You have solved ${s.pzGames} puzzles so far, ${en} 🧠 today’s puzzle adds one more to your tally`);
+      }
+      if (s.pzStreak === 0 && s.pzGames > 0) {
+        vAr.push(`سلسلتك انقطعت يا ${nm} 🔁 لغزٌ واحد اليوم يبدأُ سلسلةً جديدةً من الصفر`);
+        vEn.push(`Your streak broke, ${en} 🔁 one puzzle today starts a fresh streak from zero`);
       }
       return {
-        title: { ar: `لغزُ اليوم يا ${nm} ♟`, en: `Today’s puzzle, ${en} ♟` },
+        title: { ar: `🧩 لغزُ اليوم يا ${nm}`, en: `🧩 Today’s puzzle, ${en}` },
         body: pick2(vAr, vEn),
         data: { kind: 'puzzle', cat, rating: hasR ? String(s.pzRating) : '' }, tag: 'amkh-puzzle-daily',
       };
@@ -670,26 +681,26 @@ function _renderNotif(cat, s, slotIndex, day) {
     case 'nour': {
       if (s.nourStars === 0) {
         return {
-          title: { ar: `نور ينتظر ${nm} ♟`, en: `Nour is waiting for ${en} ♟` },
+          title: { ar: `🎓 نور ينتظر ${nm}`, en: `🎓 Nour is waiting for ${en}` },
           body: pick2([
-            `${nm}، لم تبدأ رحلتك مع نور بعد — المرحلة الأولى وثلاث نجوم تنتظرك`,
-            `نور مستعدّ لتعليمك يا ${nm} — ابدأ المرحلة الأولى، وكل نجمة تقرّبك من الاحتراف`,
+            `${nm}، لم تبدأ رحلتك مع نور بعد 🌟 المرحلة الأولى وثلاث نجوم تنتظرك`,
+            `نور مستعدّ لتعليمك يا ${nm} 🎓 ابدأ المرحلة الأولى، وكل نجمة تقرّبك من الاحتراف`,
           ], [
-            `${en}, you have not started your journey with Nour yet — level one and three stars are waiting for you`,
-            `Nour is ready to teach you, ${en} — start level one; every star brings you closer to mastery`,
+            `${en}, you have not started your journey with Nour yet 🌟 level one and three stars are waiting for you`,
+            `Nour is ready to teach you, ${en} 🎓 start level one; every star brings you closer to mastery`,
           ]),
           data: { kind: 'adaptive', cat, stage: '1' }, tag: 'amkh-nour',
         };
       }
       const n = s.nourNext;
       return {
-        title: { ar: `${nm}.. المرحلة ${n} مع نور`, en: `${en}.. level ${n} with Nour` },
+        title: { ar: `⭐ ${nm}.. المرحلة ${n} مع نور`, en: `⭐ ${en}.. level ${n} with Nour` },
         body: pick2([
-          `${nm}، جمعت ${_nStars(s.nourStars)} مع نور — والمرحلة ${n} تنتظر إكمالك`,
-          `أنجزت ${_nStages(s.nourStages)} يا ${nm}؛ والمرحلة ${n} أصعب قليلًا، هل تجرّبها؟`,
+          `${nm}، جمعت ${_nStars(s.nourStars)} مع نور ⭐ والمرحلة ${n} تنتظر إكمالك`,
+          `أنجزت ${_nStages(s.nourStages)} يا ${nm} 🏅 والمرحلة ${n} أصعب قليلًا، هل تجرّبها؟`,
         ], [
-          `${en}, you have collected ${_eStars(s.nourStars)} with Nour — and level ${n} is waiting for you to finish it`,
-          `You have completed ${_eStages(s.nourStages)}, ${en}; level ${n} is a little harder — care to try it?`,
+          `${en}, you have collected ${_eStars(s.nourStars)} with Nour ⭐ and level ${n} is waiting for you to finish it`,
+          `You have completed ${_eStages(s.nourStages)}, ${en} 🏅 level ${n} is a little harder. Care to try it?`,
         ]),
         data: { kind: 'adaptive', cat, stage: String(n), stars: String(s.nourStars) }, tag: 'amkh-nour',
       };
@@ -698,19 +709,19 @@ function _renderNotif(cat, s, slotIndex, day) {
     default: {
       const lvl = _sfLevel(s.rating);
       const vAr = [
-        `${nm}، تقييمك ${s.rating} — جرّب StockFish بالمستوى ${lvl} اليوم، تحدٍّ في مستواك ♟`,
-        `تدريب سريع يا ${nm}: StockFish بالمستوى ${lvl} يصقل حساباتك قبل مباراة مصنّفة`,
+        `${nm}، تقييمك ${s.rating} 🤖 جرّب StockFish بالمستوى ${lvl} اليوم، تحدٍّ في مستواك ♟️`,
+        `تدريب سريع يا ${nm} ⚡ StockFish بالمستوى ${lvl} يصقل حساباتك قبل مباراة مصنّفة`,
       ];
       const vEn = [
-        `${en}, your rating is ${s.rating} — try StockFish at level ${lvl} today, a challenge at your level ♟`,
-        `Quick practice, ${en}: StockFish at level ${lvl} sharpens your calculation before a rated game`,
+        `${en}, your rating is ${s.rating} 🤖 try StockFish at level ${lvl} today, a challenge at your level ♟️`,
+        `Quick practice, ${en} ⚡ StockFish at level ${lvl} sharpens your calculation before a rated game`,
       ];
       if (s.ratingGames === 0) {
-        vAr.push(`${nm}، جرّب اللعب ضد StockFish — ابدأ بالمستوى ${lvl} واكتشف مستواك`);
-        vEn.push(`${en}, try playing against StockFish — start at level ${lvl} and discover your level`);
+        vAr.push(`${nm}، جرّب اللعب ضد StockFish 🎯 ابدأ بالمستوى ${lvl} واكتشف مستواك`);
+        vEn.push(`${en}, try playing against StockFish 🎯 start at level ${lvl} and discover your level`);
       }
       return {
-        title: { ar: `تحدّي StockFish ${lvl}`, en: `StockFish challenge ${lvl}` },
+        title: { ar: `🤖 تحدّي StockFish ${lvl}`, en: `🤖 StockFish challenge ${lvl}` },
         body: pick2(vAr, vEn),
         data: { kind: 'adaptive', cat: 'stockfish', level: String(lvl) }, tag: 'amkh-stockfish',
       };
@@ -731,24 +742,83 @@ function _communitySnapshot() {
   };
 }
 
+/* ══ إشعارُ دورانِ المتجر — ذكيٌّ يقرأُ الدورةَ الفعليّة (بلاغُ جوجو ١) ══
+   كان نصًّا ثابتًا واحدًا «عناصرُ جديدةٌ وصلتِ المتجرَ الآن» لا يذكرُ ما
+   وصلَ فعلًا ولا ندرتَه ولا عددَه — فيُقرأُ ميتًا كأنّه قالبٌ مُفرَّغ.
+   الآن يفحصُ عناصرَ النافذةِ الحاليّةِ من economy ويبني جملتَه من واقعِها:
+   أندرُ ما فيها واسمُه وعددُ العناصرِ وأنواعُها، والإيموجي يتبعُ أندرَ
+   ندرةٍ موجودةٍ فعلًا لا رمزًا عامًّا. مصطلحاتُ الندرةِ هي نفسُها
+   المعروضةُ في store-client.RARITY فلا يختلفُ الإشعارُ عن المتجرِ نفسِه. */
+const _NOTIF_RANK = { mythic: 6, legendary: 5, seasonal: 4, epic: 3, rare: 2, common: 1 };
+const _NOTIF_RAR = {
+  mythic:    { ar: 'أسطوريٌّ نادر', en: 'Mythic',    emo: '🐉' },
+  legendary: { ar: 'أسطوريّ',       en: 'Legendary', emo: '🌟' },
+  seasonal:  { ar: 'موسميّ',        en: 'Seasonal',  emo: '🎉' },
+  epic:      { ar: 'ملحميّ',        en: 'Epic',      emo: '🔮' },
+  rare:      { ar: 'نادر',          en: 'Rare',      emo: '💎' },
+  common:    { ar: 'شائع',          en: 'Common',    emo: '🪙' },
+};
+const _NOTIF_TYP = {
+  frame:       { ar: 'إطارات',   en: 'frames' },
+  background:  { ar: 'خلفيّات',  en: 'backgrounds' },
+  badge:       { ar: 'شارات',    en: 'badges' },
+  celebration: { ar: 'احتفالات', en: 'celebrations' },
+  mate_fx:     { ar: 'مؤثّرات',  en: 'mate effects' },
+};
+function _renderStoreRotation(nowMs) {
+  let items = [], epoch = 0;
+  try {
+    epoch = economy.storeEpoch(nowMs);
+    items = economy.storeItemsForEpoch(epoch) || [];
+  } catch (e) { return null; }
+  if (!items.length) return null;
+  let top = items[0];
+  for (const it of items) if ((_NOTIF_RANK[it.rarity] || 0) > (_NOTIF_RANK[top.rarity] || 0)) top = it;
+  const tr = _NOTIF_RAR[top.rarity] || _NOTIF_RAR.common;
+  const n = items.length;
+  const hi = items.filter(i => (_NOTIF_RANK[i.rarity] || 0) >= 5).length;
+  const types = [...new Set(items.map(i => i.type))].map(t => _NOTIF_TYP[t]).filter(Boolean);
+  const tAr = types.map(t => t.ar).slice(0, 3).join(' و');
+  const tEn = types.map(t => t.en).slice(0, 3).join(', ');
+  const vAr = [], vEn = [];
+  if (hi > 0) {
+    vAr.push(`${tr.emo} وصلَ «${top.ar}» بندرةِ ${tr.ar} إلى متجرِ هذه الدورة، ومعه ${n - 1} عنصرًا آخر. النافذةُ أربعُ ساعاتٍ فقط ⏳`);
+    vEn.push(`${tr.emo} “${top.en}” just landed in this rotation at ${tr.en} rarity, with ${n - 1} more items alongside it. The window is only four hours ⏳`);
+    vAr.push(`🛒 متجرُ الدورةِ فيه ${hi === 1 ? 'عنصرٌ واحدٌ' : `${hi} عناصرَ`} بندرةٍ عالية، أبرزُها «${top.ar}» ${tr.emo}`);
+    vEn.push(`🛒 This rotation holds ${hi === 1 ? 'one high-rarity item' : `${hi} high-rarity items`}, led by “${top.en}” ${tr.emo}`);
+  } else {
+    vAr.push(`🛒 ${n} عنصرًا جديدًا في متجرِ هذه الدورة، منها ${tAr}. أبرزُها «${top.ar}» ${tr.emo}`);
+    vEn.push(`🛒 ${n} fresh items in this rotation, including ${tEn}. Pick of the bunch: “${top.en}” ${tr.emo}`);
+  }
+  vAr.push(`✨ المتجرُ دارَ الآن: ${n} عنصرًا متاحًا للشراءِ في هذه النافذةِ وحدَها، وأندرُها «${top.ar}» بندرةِ ${tr.ar} ${tr.emo}`);
+  vEn.push(`✨ The store just rotated: ${n} items buyable in this window only, and the rarest of them is “${top.en}” at ${tr.en} rarity ${tr.emo}`);
+  const i = _hash('store:' + epoch) % vAr.length;
+  return {
+    title: { ar: `${tr.emo} المتجرُ دارَ`, en: `${tr.emo} The store rotated` },
+    body: { ar: vAr[i], en: vEn[i] },
+    data: { kind: 'store-rotation', top: String(top.id), rarity: String(top.rarity), count: String(n) },
+    tag: 'amkh-store',
+  };
+}
+
 function _renderCommunity(c, day, slot) {
   const variants = [];
   if (c.online >= NOTIF.communityMinOnline)
-    variants.push({ title: { ar: `${_nPlayers(c.online)} على الشبكة`,
-                             en: `${_ePlayers(c.online)} online` },
-                    body: { ar: `يوجد ${_nPlayers(c.online)} على الشبكة الآن — ادخل والعب مباراة سريعة ♟`,
-                            en: `There are ${_ePlayers(c.online)} online right now — come in and play a quick game ♟` } });
+    variants.push({ title: { ar: `🟢 ${_nPlayers(c.online)} على الشبكة`,
+                             en: `🟢 ${_ePlayers(c.online)} online` },
+                    body: { ar: `يوجد ${_nPlayers(c.online)} على الشبكة الآن 🟢 ادخل والعب مباراة سريعة ♟️`,
+                            en: `There are ${_ePlayers(c.online)} online right now 🟢 come in and play a quick game ♟️` } });
   if (c.inGame >= 2)
-    variants.push({ title: { ar: `${_nPlayers(c.inGame)} في مباراة`,
-                             en: `${_ePlayers(c.inGame)} in a game` },
-                    body: { ar: `عدد اللاعبين في مباريات الآن ${c.inGame} — حان دورك لدخول الحلبة ♟`,
-                            en: `${c.inGame} players are in games right now — it is your turn to step in ♟` } });
+    variants.push({ title: { ar: `⚔️ ${_nPlayers(c.inGame)} في مباراة`,
+                             en: `⚔️ ${_ePlayers(c.inGame)} in a game` },
+                    body: { ar: `عدد اللاعبين في مباريات الآن ${c.inGame} ⚔️ حان دورك لدخول الحلبة ♟️`,
+                            en: `${c.inGame} players are in games right now ⚔️ it is your turn to step in ♟️` } });
   if (c.topName && c.topRating) {
     const tn = (c.topName === 'صديقي') ? 'A player' : c.topName;
-    variants.push({ title: { ar: `أعلى تقييم: ${c.topRating}`,
-                             en: `Top rating: ${c.topRating}` },
-                    body: { ar: `${c.topName} يتصدّر بتقييم ${c.topRating} — هل تستطيع الوصول إليه؟ ابدأ الآن`,
-                            en: `${tn} leads with a rating of ${c.topRating} — can you catch up? Start now` } });
+    variants.push({ title: { ar: `👑 أعلى تقييم ${c.topRating}`,
+                             en: `👑 Top rating ${c.topRating}` },
+                    body: { ar: `${c.topName} يتصدّر بتقييم ${c.topRating} 👑 هل تستطيع الوصول إليه؟ ابدأ الآن`,
+                            en: `${tn} leads with a rating of ${c.topRating} 👑 can you catch up? Start now` } });
   }
   if (!variants.length) return null;
   const v = variants[_hash('community:' + day + ':' + slot) % variants.length];
@@ -777,15 +847,9 @@ async function _notifTick() {
       _storeEpochNotified = curEpoch;
       const allToks = all.map(t => t && t.token).filter(Boolean);
       if (allToks.length) {
-        sendPushToTokens(allToks, {
-          title: { ar: 'المتجرُ تغيّر', en: 'The store refreshed' },
-          body: {
-            ar: 'عناصرُ جديدةٌ وصلتِ المتجرَ الآن — اكتشفْها قبلَ أن يدورَ بعدَ ٤ ساعات.',
-            en: 'Fresh items just landed in the store — grab them before the next 4-hour rotation.',
-          },
-          data: { kind: 'store-rotation' },
-          tag: 'amkh-store',
-        }).catch(() => {});
+        /* نصُّ الإشعارِ يُبنى من عناصرِ الدورةِ الفعليّةِ لا من قالبٍ ثابت */
+        const sp = _renderStoreRotation(nowMs);
+        if (sp) sendPushToTokens(allToks, sp).catch(() => {});
       }
     }
   } catch (e) {}
@@ -1210,10 +1274,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 68;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b68/chess-amkh-4.2-b68.apk';
-const NOTES_AR = 'الخلفيّاتُ الأربعُ والعشرونَ أُعيدَ صنعُها كلُّها مشاهدَ مرسومةً — كانَتْ تدرّجاتِ ألوانٍ بلا شكلٍ ولا تأثير، وكانَتْ مجموعاتٌ منها نسخًا من بعضِها. الآنَ لكلِّ خلفيّةٍ مشهدُها الذي يصفُه اسمُها: العاصفةُ صاعقةٌ متفرّعةٌ تضربُ ومطرٌ مائلٌ وسُحُبٌ تُضيءُ، والكونُ مجرّةٌ حلزونيّةٌ تدورُ حولَ نواةٍ وكوكبٌ بحلقة، والمجرّةُ قرصٌ جانبيٌّ تشقُّه حارةُ غبار، والفراغُ ثقبٌ أسودُ بقرصِ تراكمٍ وحلقةِ فوتون، ووكرُ التنّينِ رأسُ تنّينٍ بعينَينِ تَرمِشانِ فوقَ كنوزٍ في كهف، والجحيمُ أعمدةُ لهبٍ تصعدُ من شقوقِ أرضٍ، والمنشورُ يشقُّ شعاعًا أبيضَ إلى طيفٍ كامل، والمعبدُ أعمدةٌ ومشاعلُ ترتجفُ، والخسوفُ قرصٌ يحجبُ الشمسَ بهالةِ كورونا. والمتجرُ والمخزونُ واللافتةُ صارَتْ ترسمُ من مصدرٍ واحدٍ فما تشتريه هو ما يُطبَّقُ بالحرف. ومعَها: الإطارُ والخلفيّةُ يرجعانِ فورًا بعدَ خروجٍ ودخولٍ لنفسِ الحساب، ووسمُ «دورك» ما عادَ يتضخّمُ فيركبَ على صورةِ اللاعب، وأسماءُ مراحلِ نورٍ في سجلِّ المبارياتِ تُترجَمُ فلا تظهرُ عربيّةً في الواجهةِ الإنجليزيّة، وأيقوناتُ الإعداداتِ العشرُ صارَتْ ملوّنةً مرسومةً وسطحُ ثيمِ Am-Kh فيها صُحِّحَ إلى أزرقِه الغامقِ بدلَ البنّيِّ الذهبيّ، وأيقونةُ الأصدقاءِ أُعيدَ رسمُها صديقَينِ بفقاعةِ دردشةٍ بدلَ ما كانَ يُقرأُ بريدًا، وبيدقُ الشعارِ صارَ ينقلُ نقلةً كاملةً بقفزةٍ وارتدادةٍ وحلقةِ صدمة، وفي البلوتوثِ ما عادَتْ نافذةُ فشلِ الانضمامِ تظهرُ ثمّ تبدأُ المباراة. كلُّ الحركةِ تسكنُ عندَ تفعيلِ «تقليلِ الحركة». — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'All twenty-four backgrounds have been rebuilt as drawn scenes — they were flat colour gradients with no shape and no effect, and whole groups of them were near-copies of one another. Every background now has the scene its name promises: the storm is a forked bolt striking through slanting rain under flashing clouds, the cosmos a spiral galaxy turning around a bright core beside a ringed planet, the galaxy an edge-on disc split by a dust lane, the void a black hole with an accretion disc and photon ring, the dragon lair a dragon’s head with blinking eyes above treasure in a cave, the inferno columns of flame rising from cracks in the ground, the prism a white beam split into a full spectrum, the temple pillars with flickering torches, the eclipse a disc covering the sun inside its corona. The store, the inventory and the live banner now draw from a single source, so what you buy is exactly what gets applied. Also: your frame and background come back instantly after signing out and back into the same account; the “your turn” label no longer grows and overlaps the player photo; Nour level names in the recent-games list are translated instead of showing Arabic in the English UI; the ten settings icons are now drawn in colour and the Am-Kh theme surface there is corrected to its deep blue instead of brown-gold; the friends icon is redrawn as two friends with a chat bubble instead of reading as mail; the wordmark pawn now plays a full move with a hop, a bounce and a ground ring; and in Bluetooth the join-failed dialog no longer appears right before the match actually starts. All motion stops when “reduce motion” is on. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 69;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b69/chess-amkh-4.2-b69.apk';
+const NOTES_AR = 'مراجعةُ المباراةِ أُعيدَ تصميمُها على طرازِ المواقعِ الكبرى: نور المدرّبُ صارَ أعلى الشاشة، والرقعةُ أكبرَ، وفوقَها الآن رسمٌ توضيحيٌّ حيٌّ — سهمٌ بلونِ تصنيفِ حركتِك وسهمٌ أخضرُ لأفضلِ حركةٍ كان يمكنُ لعبُها، وشارةُ التصنيفِ على مربّعِ الوصول. وصندوقُ تعليقِ نورٍ ثابتُ الارتفاعِ يُمرَّرُ داخليًّا فلا يهزُّ الرقعةَ مهما طالَ كلامُه. وأُعيدَ صنعُ خلفيّتَي «وكرِ التنّين» (رأسُ تنّينٍ جانبيٌّ يزفرُ نارًا فوقَ كنوز) و«الكون» (مجرّةٌ حلزونيّةٌ لامعةٌ وسُحُبُ سديمٍ وكوكبٌ بحلقةٍ وشهاب) بعدَ أن كانتا باهتتَين. وصارَتْ إشعاراتُ التطبيقِ كلُّها حيّةً بإيموجي: إشعارُ دورانِ المتجرِ يذكرُ أندرَ عنصرٍ وصلَ واسمَه وعددَ العناصر، وإشعاراتُ الألغازِ والمستوياتِ والتقييمِ تتكيّفُ مع حالتِك، وزِيلَتِ الشُّرَطُ الجافّةُ من كلِّ النصوص. وكُبِّرَ زرُّ «تحدٍّ» في شاشةِ الألغازِ ليملأَ صفَّه. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'Game Review has been redesigned in the style of the big sites: Nour the coach is now at the top, the board is larger, and over it there is a live annotation — an arrow in your move’s classification colour, a green arrow for the best move you could have played, and the classification badge on the destination square. Nour’s comment box is fixed-height and scrolls internally, so it never shakes the board however long his text. The “Dragon Lair” background (a side-profile dragon head breathing fire over a hoard) and the “Cosmos” background (a bright spiral galaxy, nebula clouds, a ringed planet and a shooting star) have both been rebuilt after being flat. All app notifications are now alive with emoji: the store-rotation notice names the rarest item that landed, its name and the item count; puzzle, level and rating notices adapt to your state; and the dry dashes are gone from every text. The “Challenge” tile on the puzzles screen was enlarged to fill its row. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -2397,10 +2461,10 @@ function sendCallPushToUser(fromId, toId, group, callId, callType) {
   const name = resolveOnlineName(sender);
   const isVideo = callType === 'video';
   const body = isVideo
-    ? (group ? { ar: 'يدعوك لمكالمة فيديو في حفلة…', en: 'is inviting you to a video call in a party…' }
-             : { ar: 'مكالمة فيديو واردة…', en: 'Incoming video call…' })
-    : (group ? { ar: 'يدعوك لمكالمة صوتية في حفلة…', en: 'is inviting you to a voice call in a party…' }
-             : { ar: 'مكالمة صوتية واردة…', en: 'Incoming voice call…' });
+    ? (group ? { ar: '📹 يدعوك لمكالمة فيديو في حفلة…', en: '📹 is inviting you to a video call in a party…' }
+             : { ar: '📹 مكالمة فيديو واردة…', en: '📹 Incoming video call…' })
+    : (group ? { ar: '📞 يدعوك لمكالمة صوتية في حفلة…', en: '📞 is inviting you to a voice call in a party…' }
+             : { ar: '📞 مكالمة صوتية واردة…', en: '📞 Incoming voice call…' });
   /* توكيع رفض قصير العمر: يثبت هوية المكالمة عشان زر «رفض» في الإشعار
      يقدر يرحّل call:reject للداعي حتى والتطبيق مقفول (#159). */
   let rejectToken = '';
@@ -4264,25 +4328,25 @@ wss.on('connection', (ws, req) => {
               ? (l === 'en' ? 'Host' : 'المضيف')
               : (l === 'en' ? 'Guest' : 'الضيف'));
 
-            let title = { ar: 'شطرنج Am-Kh', en: 'Am-Kh Chess' };
-            let body = { ar: 'حدث جديد في المباراة', en: 'Something new in the game' };
+            let title = { ar: '♟️ شطرنج Am-Kh', en: '♟️ Am-Kh Chess' };
+            let body = { ar: 'حدث جديد في المباراة ✨', en: 'Something new in the game ✨' };
             let tag = 'chess-online';
 
             if (msg.type === 'move') {
-              title = { ar: 'دورك الآن', en: 'It is your turn' };
-              body = { ar: `${nmOf('ar')} أدّى نقلته. افتح المباراة وردّ عليه`,
-                       en: `${nmOf('en')} has played. Open the game and reply` };
+              title = { ar: '♟️ دورك الآن', en: '♟️ It is your turn' };
+              body = { ar: `${nmOf('ar')} أدّى نقلته 👀 افتح المباراة وردّ عليه`,
+                       en: `${nmOf('en')} has played 👀 open the game and reply` };
               tag = 'your-turn';
             } else if (msg.type === 'chat') {
               const txt = (msg.text || '').toString().slice(0, 70);
-              title = { ar: 'رسالة جديدة', en: 'New message' };
+              title = { ar: '💬 رسالة جديدة', en: '💬 New message' };
               body = { ar: `${nmOf('ar')}: ${txt || 'رسالة'}`,
                        en: `${nmOf('en')}: ${txt || 'Message'}` };
               tag = 'chat';
             } else if (msg.type === 'voice') {
-              title = { ar: 'رسالة صوتية', en: 'Voice message' };
-              body = { ar: `${nmOf('ar')} أرسل إليك رسالة صوتية — افتح المحادثة للاستماع`,
-                       en: `${nmOf('en')} sent you a voice message — open the chat to listen` };
+              title = { ar: '🎤 رسالة صوتية', en: '🎤 Voice message' };
+              body = { ar: `${nmOf('ar')} أرسل إليك رسالة صوتية 🎧 افتح المحادثة للاستماع`,
+                       en: `${nmOf('en')} sent you a voice message 🎧 open the chat to listen` };
               tag = 'voice';
             }
 

@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20260930-b68"></script>
+<script src="i18n-en.js?v=20261001-b69"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -2142,8 +2142,8 @@ body[data-ui-theme="glass"] .mc-tag{
 /* scroll area */
 .rv-main{display:flex;flex-direction:column;align-items:center;width:100%;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;gap:8px;padding:0 10px calc(14px + env(safe-area-inset-bottom,0px));}
 /* board */
-:root{--rv-sz:min(52vw,280px,42dvh);--rv-sq:calc(var(--rv-sz)/8);}
-@media(max-width:440px){:root{--rv-sz:min(64vw,250px,38dvh);}}
+:root{--rv-sz:min(74vw,340px,46dvh);--rv-sq:calc(var(--rv-sz)/8);}
+@media(max-width:440px){:root{--rv-sz:min(82vw,320px,44dvh);}}
 @media(max-height:680px){
   .rv-main{gap:6px;}
   .rv-title{font-size:16px;}
@@ -2152,11 +2152,15 @@ body[data-ui-theme="glass"] .mc-tag{
   .rv-loading{padding:18px 14px;}
 }
 .rv-board-row{display:flex;align-items:center;gap:7px;flex-shrink:0;}
-.rv-board-wrap{border-radius:3px;box-shadow:0 0 0 3px var(--bg3),0 0 0 6px rgba(201,168,76,.2),0 14px 36px rgba(0,0,0,.6);line-height:0;}
+.rv-board-wrap{position:relative;border-radius:3px;box-shadow:0 0 0 3px var(--bg3),0 0 0 6px rgba(201,168,76,.2),0 14px 36px rgba(0,0,0,.6);line-height:0;}
 #rv-board{display:grid;grid-template-columns:repeat(8,var(--rv-sq));grid-template-rows:repeat(8,var(--rv-sq));direction:ltr;width:var(--rv-sz);height:var(--rv-sz);}
 #rv-board .sq{width:var(--rv-sq);height:var(--rv-sq);position:relative;display:flex;align-items:center;justify-content:center;font-size:calc(var(--rv-sq)*.72);}
 #rv-board .sq.rv-from{box-shadow:inset 0 0 0 3px rgba(255,200,0,.75)!important;}
 #rv-board .sq.rv-to{background:rgba(255,200,0,.32)!important;}
+/* طبقةُ الرسمِ التوضيحيِّ: أسهمٌ فوقَ القطع (البناء ٦٩) */
+.rv-ovl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));}
+.rv-sqbadge{position:absolute;transform:translate(-62%,-38%);pointer-events:none;z-index:4;line-height:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));}
+.rv-sqbadge svg{display:block;}
 
 /* Transparency for evaluation board image boards */
 #rv-board[style*="background-image"] .sq.L,
@@ -2173,12 +2177,16 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-card-info{flex:1;min-width:0;}
 .rv-card-notation{font-family:monospace;font-size:15px;font-weight:700;color:var(--text);overflow-wrap:anywhere;}
 .rv-card-num{font-size:11px;color:var(--text3);margin-bottom:2px;}
-/* coach */
-.rv-coach{flex-shrink:0;width:100%;max-width:400px;box-sizing:border-box;background:var(--bg2);border:1px solid rgba(45,212,191,.16);border-radius:12px;padding:10px 14px;min-height:54px;}
+/* coach — ثابتُ الارتفاعِ فوقَ الرقعة (بلاغُ جوجو ٤): «نور عمره ما يخلي
+   الرقعة تتهزا وتنزل لو كتب كلامًا كبيرًا». النصُّ يُمرَّرُ داخليًّا بدلَ أن
+   يُمدّدَ الصندوقَ فيدفعَ الرقعةَ لأسفل. المدرّبُ أعلى الشاشةِ كالموقعِ
+   المنافس. */
+.rv-coach{flex-shrink:0;width:100%;max-width:400px;box-sizing:border-box;background:var(--bg2);border:1px solid rgba(45,212,191,.16);border-radius:12px;padding:10px 14px;height:96px;display:flex;flex-direction:column;overflow:hidden;}
+@media(max-height:680px){.rv-coach{height:84px;}}
+.rv-coach-txt{font-size:12px;color:var(--text);line-height:1.6;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding-inline-end:4px;}
 .rv-coach-lbl{font-size:10px;color:var(--teal2);letter-spacing:1.5px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
 .rv-coach-name{color:var(--gold2);font-weight:900;}
 .nour-icon{width:18px;height:18px;flex-shrink:0;}
-.rv-coach-txt{font-size:12px;color:var(--text);line-height:1.65;}
 .rv-coach-dots{display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;}
 .rv-dot{width:5px;height:5px;border-radius:50%;background:rgba(45,212,191,.55);animation:dbt .7s ease-in-out infinite;}
 .rv-dot:nth-child(2){animation-delay:.15s;}.rv-dot:nth-child(3){animation-delay:.3s;}
@@ -3046,7 +3054,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20260930-b68">
+<link rel="stylesheet" href="screens.css?v=20261001-b69">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -8403,7 +8411,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 68;
+const APP_VERSION_CODE = 69;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -12241,6 +12249,11 @@ const REV=(()=>{
         move:actualMoveStr||'—',color,rating,score,
         evalAfter:actualVal,bestVal,bestMv:bestMvStr,
         from:actualFrom,to:actualTo,
+        /* إحداثيّاتُ الحركةِ المثلى + هل لعبها اللاعب: يحتاجُها الرسمُ
+           التوضيحيُّ على الرقعة (سهمُ أفضلِ حركةٍ، البناء ٦٩). */
+        bestFrom:(bestMv&&bestMv.from)?[bestMv.from[0],bestMv.from[1]]:null,
+        bestTo:(bestMv&&bestMv.to)?[bestMv.to[0],bestMv.to[1]]:null,
+        playedBest,
         moveNum:Math.floor(i/2)+1,
         isCapture,isCastle,isPromo,isCheck,isCheckmate
       });
@@ -12352,6 +12365,65 @@ const REV=(()=>{
         el.appendChild(sq);
       }
     }
+    _drawOverlay(el);
+  }
+
+  /* ══ الرسمُ التوضيحيُّ على الرقعة (البناءُ ٦٩ — بلاغُ جوجو ٤) ══
+     الموقعُ المنافسُ يرسمُ أسهمًا وتصنيفاتٍ فوقَ القطعِ مباشرةً؛ كنّا
+     نكتفي بتظليلِ المربّعَين. الآن طبقةُ SVG فوقَ الرقعةِ (viewBox 8×8
+     بإحداثيّاتِ المربّعات) ترسمُ:
+     • سهمَ الحركةِ الملعوبةِ بلونِ تصنيفِها (من MOVE_MARKS).
+     • سهمَ الحركةِ المثلى أخضرَ متقطّعًا إن اختلفَتْ عمّا لُعِب.
+     • شارةَ التصنيفِ (نفسُ أيقونةِ البطاقة) على مربّعِ الوصول.
+     كلُّه pointer-events:none فلا يُعيقُ شيئًا، ويُعادُ بناؤه كلَّ نقلة. */
+  function _sqCenter(sq){ return [sq[1] + 0.5, sq[0] + 0.5]; }
+  function _arrowPath(from, to, u){
+    const [x1, y1] = _sqCenter(from), [x2, y2] = _sqCenter(to);
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    const head = 0.42, shrink = 0.5;             // بوحداتِ المربّع
+    const ex = x2 - ux * shrink, ey = y2 - uy * shrink;   // طرفُ الخطّ قبلَ الرأس
+    const bx = x1 + ux * 0.34, by = y1 + uy * 0.34;       // بدايةٌ خارجَ مركزِ القطعة
+    const px = -uy, py = ux;                      // عموديّ
+    const h1x = ex - ux * head + px * head * .7, h1y = ey - uy * head + py * head * .7;
+    const h2x = ex - ux * head - px * head * .7, h2y = ey - uy * head - py * head * .7;
+    return { line: `M${bx} ${by} L${ex} ${ey}`,
+             head: `M${x2 - ux * shrink * .3} ${y2 - uy * shrink * .3} L${h1x} ${h1y} L${h2x} ${h2y} Z` };
+  }
+  function _drawOverlay(boardEl){
+    const wrap = boardEl.parentElement; if (!wrap) return;
+    let ov = wrap.querySelector('.rv-ovl');
+    if (ov) ov.remove();
+    const mv = _data && _data.moves[_idx]; if (!mv) return;
+    const key = MOVE_MARKS[mv.rating] ? mv.rating : 'good';
+    const col = (MOVE_MARKS[key] || {}).color || '#95b776';
+    const showBest = !mv.playedBest && mv.bestFrom && mv.bestTo;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    ov = document.createElementNS(svgNS, 'svg');
+    ov.setAttribute('class', 'rv-ovl');
+    ov.setAttribute('viewBox', '0 0 8 8');
+    ov.setAttribute('preserveAspectRatio', 'none');
+    const mk = (tag, attrs) => { const e = document.createElementNS(svgNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+    /* سهمُ الحركةِ المثلى أوّلًا (تحتَ الملعوبة) */
+    if (showBest) {
+      const a = _arrowPath(mv.bestFrom, mv.bestTo);
+      ov.appendChild(mk('path', { d: a.line, stroke: '#3bb34a', 'stroke-width': .19, fill: 'none', 'stroke-linecap': 'round', 'stroke-dasharray': '.42 .3', opacity: .9 }));
+      ov.appendChild(mk('path', { d: a.head, fill: '#3bb34a', opacity: .9 }));
+    }
+    /* سهمُ الحركةِ الملعوبةِ بلونِ تصنيفِها */
+    const p = _arrowPath(mv.from, mv.to);
+    ov.appendChild(mk('path', { d: p.line, stroke: col, 'stroke-width': .22, fill: 'none', 'stroke-linecap': 'round' }));
+    ov.appendChild(mk('path', { d: p.head, fill: col }));
+    wrap.appendChild(ov);
+    /* شارةُ التصنيفِ على مربّعِ الوصولِ (عنصرٌ منفصلٌ فوقَ الـSVG) */
+    let badge = wrap.querySelector('.rv-sqbadge');
+    if (badge) badge.remove();
+    badge = document.createElement('div');
+    badge.className = 'rv-sqbadge';
+    badge.innerHTML = moveMarkIcon(key, 20);
+    badge.style.left = ((mv.to[1] + 1) / 8 * 100) + '%';
+    badge.style.top = (mv.to[0] / 8 * 100) + '%';
+    wrap.appendChild(badge);
   }
 
   function _updateEvalBar(val){
@@ -12617,6 +12689,11 @@ Explain very briefly why it earned this classification and what could have been 
           <div class="rv-sum-sub">${s.bBlunders} فادح · ${s.bMistakes} خطأ</div>
         </div>
       </div>
+      <div class="rv-coach" id="rv-coach">
+        ${nourLbl('')}
+        <div class="rv-coach-txt" id="rv-coach-txt">اختر حركة لتحليلها</div>
+      </div>
+      <div class="rv-card" id="rv-card"></div>
       <div class="rv-board-row">
         <div class="rv-ebar" id="rv-ebar">
           <div class="rv-ebar-b" id="rv-ebar-b" style="flex:50"></div>
@@ -12625,11 +12702,6 @@ Explain very briefly why it earned this classification and what could have been 
         <div class="rv-board-wrap">
           <div id="rv-board"></div>
         </div>
-      </div>
-      <div class="rv-card" id="rv-card"></div>
-      <div class="rv-coach" id="rv-coach">
-        ${nourLbl('')}
-        <div class="rv-coach-txt" id="rv-coach-txt">اختر حركة لتحليلها</div>
       </div>
       <div class="rv-nav">
         <button class="rv-nbtn" id="rv-first" onclick="REV.goTo(0)" title="أول حركة">⏮</button>
@@ -17077,7 +17149,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20260930-b68"></script>
+  <script src="auth-client.js?v=20261001-b69"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
@@ -17086,10 +17158,10 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20260916-b37"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20260930-b68"></script>
+  <script src="economy-client.js?v=20261001-b69"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20260930-b68"></script>
+  <script src="store-client.js?v=20261001-b69"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
   <script src="rewards-client.js?v=20260928-b66"></script>
@@ -17105,7 +17177,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
   <script src="puzzles-ui.js?v=20260926-b51"></script>
-  <script src="puzzles-hub.js?v=20260922-b42"></script>
+  <script src="puzzles-hub.js?v=20261001-b69"></script>
   <script src="levels-ui.js?v=20260921-b41"></script>
   <script src="mic-client.js?v=20260922-b41"></script>
 <script>

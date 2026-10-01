@@ -1222,54 +1222,74 @@
        وكومةُ كنوزٍ ذهبيّةٍ وبِركةُ حممٍ أسفل. كائنٌ + كهفٌ + كنزٌ: لا يشبهُ
        الجحيمَ (شقوقُ أرضٍ مفتوحةٌ بلا كائن) ولا البركانَ (مخروطٌ ودخان). */
     bg_dragon_lair: function (u) {
+      /* بلاغُ جوجو ٣: الوجهُ الأماميُّ كان يُقرأُ ضفدعًا لا تنّينًا، وبلا
+         تأثير. أُعيدَ بناؤه رأسًا جانبيًّا (بروفايل) يزفرُ نارًا — وهو
+         الصورةُ الذهنيّةُ التي لا تُخطئُها عينٌ للتنّين: خطمٌ طويلٌ مدبّبٌ،
+         فكٌّ مفتوحٌ بأنيابٍ، قرونٌ مكتسحةٌ للخلف، عينٌ شرِسةٌ بحدقةٍ شقّيّة،
+         وزفيرُ نارٍ مخروطيٌّ باضطرابٍ وتوهّجٍ يملأُ يمينَ اللافتة، فوقَ
+         كنوزٍ في كهفٍ أحمر. */
       return '<defs>'
-        + '<radialGradient id="' + u + 'k" cx=".5" cy=".86" r=".9"><stop offset="0" stop-color="#8a2a06"/><stop offset=".42" stop-color="#3a0d05"/><stop offset="1" stop-color="#100303"/></radialGradient>'
+        + '<radialGradient id="' + u + 'k" cx=".32" cy=".5" r=".95"><stop offset="0" stop-color="#7a2205"/><stop offset=".44" stop-color="#3a0d05"/><stop offset="1" stop-color="#0e0303"/></radialGradient>'
         + '<linearGradient id="' + u + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#b9800f"/></linearGradient>'
-        + '<linearGradient id="' + u + 's" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a7f33"/><stop offset=".5" stop-color="#2f4a1c"/><stop offset="1" stop-color="#14240a"/></linearGradient>'
-        + '<filter id="' + u + 'e" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.4"/></filter>'
+        + '<linearGradient id="' + u + 's" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f7a2e"/><stop offset=".5" stop-color="#2a4418"/><stop offset="1" stop-color="#11200a"/></linearGradient>'
+        + '<linearGradient id="' + u + 'f" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3a8"/><stop offset=".4" stop-color="#ff9b21"/><stop offset=".8" stop-color="#e8300a" stop-opacity=".85"/><stop offset="1" stop-color="#e8300a" stop-opacity="0"/></linearGradient>'
+        + '<filter id="' + u + 'e" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.2"/></filter>'
+        + '<filter id="' + u + 'fb" x="-20%" y="-60%" width="150%" height="220%"><feGaussianBlur stdDeviation="3.2"/></filter>'
         + '</defs>'
         + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
-        /* قوسُ الكهفِ — صخورٌ مدلّاةٌ تُغلِقُ المشهدَ من أعلى */
-        + '<path fill="#170504" d="M-4 -4 H204 V22 Q186 20 178 32 Q170 18 156 26 Q146 12 132 24 Q120 10 108 22 Q96 8 84 22 Q72 10 60 24 Q48 12 36 26 Q26 16 16 30 Q8 20 -4 24 Z"/>'
-        /* رأسُ التنّينِ في المنطقةِ الآمنةِ تمامًا.
-           النسخةُ الأولى كانت تُقرأُ رأسَ ثورٍ لا تنّينًا — قرنانِ قصيرانِ
-           عريضانِ وخطمٌ دائريٌّ وبلا أسنانٍ ولا أشواك. الآن: خطمٌ طويلٌ
-           مدبّبٌ بفتحتَي أنفٍ وأسنانٌ بارزةٌ من الفكّ، وقرنانِ طويلانِ
-           نحيفانِ منحنيانِ للخلف، وصفُّ أشواكٍ على القمّةِ وزعنفتانِ
-           مسنّنتان، ولونٌ زيتونيٌّ زاحفٌ يتباينُ مع حُمرةِ الكهف. */
+        /* قوسُ الكهفِ — صخورٌ مدلّاةٌ من أعلى */
+        + '<path fill="#180504" d="M-4 -4 H204 V16 Q188 18 180 28 Q172 16 158 24 Q148 12 134 22 Q120 10 106 22 Q92 10 78 22 Q64 12 50 24 Q38 14 26 26 Q14 18 -4 22 Z"/>'
+        /* ══ زفيرُ النار — مخروطٌ من الفمِ نحوَ اليمين ══ */
+        + '<g filter="url(#' + u + 'fb)">'
+        + '<path fill="url(#' + u + 'f)" d="M108 54 Q150 40 196 32 Q176 54 196 76 Q150 70 108 58 Z">'
+        + _an('d', 'M108 54 Q150 40 196 32 Q176 54 196 76 Q150 70 108 58 Z;'
+          + 'M108 54 Q150 46 196 30 Q172 54 196 80 Q150 64 108 58 Z;'
+          + 'M108 54 Q150 40 196 32 Q176 54 196 76 Q150 70 108 58 Z', 1.8) + '</path>'
+        + '</g>'
+        + '<path fill="#fff3c4" opacity=".9" d="M110 55 Q142 48 176 44 Q160 56 176 68 Q142 64 110 57 Z">'
+        + _an('opacity', '.7;1;.7', 1.3) + '</path>'
+        /* جمراتٌ متطايرةٌ مع النار */
+        + '<g fill="#ffd98a">'
+        + '<circle cx="150" cy="48" r="1.6">' + _mv('0 0;46 -8', 2.2) + _an('opacity', '1;0', 2.2) + '</circle>'
+        + '<circle cx="150" cy="60" r="1.3">' + _mv('0 0;46 10', 2.8) + _an('opacity', '1;0', 2.8) + '</circle>'
+        + '<circle cx="140" cy="54" r="1.1">' + _mv('0 0;52 2', 2.5) + _an('opacity', '1;0', 2.5) + '</circle>'
+        + '</g>'
+        /* ══ رأسُ التنّينِ الجانبيّ ══ */
         + '<g>'
-        /* زعنفتانِ مسنّنتانِ جانبيّتان */
-        + '<path fill="#22380f" d="M70 44 Q52 38 44 24 Q58 28 66 34 Q62 26 60 18 Q70 28 74 40 Z"/>'
-        + '<path fill="#22380f" d="M130 44 Q148 38 156 24 Q142 28 134 34 Q138 26 140 18 Q130 28 126 40 Z"/>'
-        /* قرنانِ طويلانِ نحيفانِ منحنيانِ للخلف */
-        + '<path fill="#cbb078" d="M78 36 Q65 22 67 3 Q78 18 86 32 Z"/>'
-        + '<path fill="#cbb078" d="M122 36 Q135 22 133 3 Q122 18 114 32 Z"/>'
-        /* صفُّ أشواكٍ على قمّةِ الرأس */
-        + '<g fill="#3f6b2e"><path d="M91 28 L94 17 L97 28 Z"/><path d="M99 26 L103 13 L107 26 Z"/><path d="M107 29 L111 19 L114 29 Z"/></g>'
-        /* الجمجمة */
-        + '<path fill="url(#' + u + 's)" d="M100 30 Q126 32 134 50 Q138 63 128 71 Q114 78 100 78 Q86 78 72 71 Q62 63 66 50 Q74 32 100 30 Z"/>'
-        /* حراشفُ الجبهة */
-        + '<g fill="#0a1405" opacity=".22"><ellipse cx="88" cy="41" rx="5" ry="2.8"/><ellipse cx="112" cy="41" rx="5" ry="2.8"/><ellipse cx="100" cy="36" rx="5.6" ry="2.8"/></g>'
-        /* خطمٌ طويلٌ مدبّبٌ + فتحتا أنفٍ + أسنانٌ بارزة */
-        + '<path fill="url(#' + u + 's)" d="M88 64 Q100 60 112 64 Q114 78 100 86 Q86 78 88 64 Z"/>'
-        + '<g fill="#f4ecd8"><path d="M92 79 L94 86 L96.4 79 Z"/><path d="M98.6 81 L100.6 89 L103 81 Z"/><path d="M105 79 L107 86 L109.4 79 Z"/></g>'
-        + '<g fill="#0d1a04"><ellipse cx="95" cy="68" rx="1.6" ry="1.1"/><ellipse cx="105" cy="68" rx="1.6" ry="1.1"/></g>'
-        /* عينانِ متوهّجتانِ بهالةٍ — أقوى ما في المشهدِ تعبيرًا */
-        + '<g fill="#ff8a1e" filter="url(#' + u + 'e)"><ellipse cx="86" cy="51" rx="7" ry="5"/><ellipse cx="114" cy="51" rx="7" ry="5"/></g>'
-        + '<g fill="#ffe14a"><ellipse cx="86" cy="51" rx="4.2" ry="3">' + _an('ry', '3;.7;3', 5.4) + '</ellipse>'
-        + '<ellipse cx="114" cy="51" rx="4.2" ry="3">' + _an('ry', '3;.7;3', 5.4) + '</ellipse></g>'
-        + '<g fill="#2a0a02"><ellipse cx="86" cy="51" rx="1.2" ry="2.6"/><ellipse cx="114" cy="51" rx="1.2" ry="2.6"/></g>'
+        /* قرونٌ مكتسحةٌ للخلف (نحو اليسار) */
+        + '<path fill="#d8c08a" d="M52 30 Q34 22 22 8 Q40 16 56 26 Z"/>'
+        + '<path fill="#c0a870" d="M58 28 Q44 16 38 2 Q54 14 64 26 Z"/>'
+        /* أشواكُ الرقبةِ على القفا */
+        + '<g fill="#355c22"><path d="M44 44 L30 40 L42 50 Z"/><path d="M46 52 L31 52 L44 58 Z"/><path d="M50 60 L37 64 L52 64 Z"/></g>'
+        /* الجمجمةُ والخطمُ الطويلُ المدبّبُ نحوَ اليمين (فكٌّ علويّ) */
+        + '<path fill="url(#' + u + 's)" stroke="#0d1a04" stroke-width="1" stroke-linejoin="round" d="M46 40 Q52 30 66 31 Q82 33 96 42 Q108 47 116 52 L104 55 Q92 53 82 54 Q64 55 52 58 Q44 52 46 40 Z"/>'
+        /* فكٌّ سفليٌّ مفتوحٌ (الفمُ يزفرُ) */
+        + '<path fill="url(#' + u + 's)" stroke="#0d1a04" stroke-width="1" stroke-linejoin="round" d="M60 60 Q78 64 100 62 L112 59 Q104 68 90 70 Q74 71 62 67 Q57 63 60 60 Z"/>'
+        /* أنيابٌ بارزةٌ من الفكَّين */
+        + '<g fill="#f6efdc">'
+        + '<path d="M104 55 L106 62 L109 55 Z"/><path d="M96 55 L97.6 61 L100 55 Z"/>'
+        + '<path d="M100 62 L101.6 56 L104 62 Z"/><path d="M90 63 L91.4 58 L94 63 Z"/>'
         + '</g>'
-        /* كومةُ الكنوزِ — عملاتٌ وكؤوسٌ أسفلَ الرأس */
-        + '<path fill="#5a3c0a" d="M-4 100 Q28 82 62 88 Q100 96 138 86 Q172 78 204 92 V104 H-4 Z"/>'
+        /* حراشفُ الخطم */
+        + '<g fill="#0a1405" opacity=".2"><ellipse cx="74" cy="44" rx="5" ry="2.6"/><ellipse cx="88" cy="47" rx="4.4" ry="2.3"/><ellipse cx="62" cy="46" rx="4.6" ry="2.4"/></g>'
+        /* فتحةُ أنفٍ عندَ طرفِ الخطم */
+        + '<ellipse cx="109" cy="50.5" rx="1.5" ry="1" fill="#0d1a04"/>'
+        /* العينُ الشرِسةُ بحدقةٍ شقّيّةٍ متوهّجةٍ + حاجبٌ ناتئ */
+        + '<path fill="#1a2e0d" d="M56 40 Q64 36 72 40 Q64 41 56 40 Z"/>'
+        + '<g fill="#ff8a1e" filter="url(#' + u + 'e)"><ellipse cx="64" cy="44" rx="6.5" ry="4.6"/></g>'
+        + '<ellipse cx="64" cy="44" rx="4" ry="3.1" fill="#ffe14a"/>'
+        + '<ellipse cx="64" cy="44" rx="1.3" ry="2.9" fill="#2a0a02">' + _an('ry', '2.9;1.2;2.9', 5) + '</ellipse>'
+        + '</g>'
+        /* كومةُ الكنوزِ أسفل */
+        + '<path fill="#5a3c0a" d="M-4 100 Q28 84 62 90 Q100 97 138 88 Q172 80 204 92 V104 H-4 Z"/>'
         + '<g fill="url(#' + u + 'g)" stroke="#7a5307" stroke-width=".7">'
-        + '<circle cx="34" cy="90" r="4"/><circle cx="46" cy="94" r="3.4"/><circle cx="24" cy="95" r="3"/>'
-        + '<circle cx="160" cy="88" r="4.2"/><circle cx="172" cy="93" r="3.2"/><circle cx="150" cy="94" r="3"/>'
-        + '<circle cx="100" cy="94" r="3.6"/><circle cx="112" cy="97" r="2.8"/><circle cx="88" cy="97" r="2.8"/>'
+        + '<circle cx="30" cy="92" r="4"/><circle cx="42" cy="96" r="3.4"/><circle cx="20" cy="96" r="3"/>'
+        + '<circle cx="120" cy="92" r="4"/><circle cx="134" cy="96" r="3.2"/><circle cx="150" cy="93" r="3.6"/>'
+        + '<circle cx="168" cy="95" r="3"/><circle cx="100" cy="95" r="3"/><circle cx="182" cy="92" r="3.4"/>'
         + '</g>'
-        + '<g fill="#ffd98a" opacity=".9">'
-        + '<circle cx="34" cy="90" r="1.1">' + _an('opacity', '.2;1;.2', 3) + '</circle>'
-        + '<circle cx="160" cy="88" r="1.1">' + _an('opacity', '1;.2;1', 3.6) + '</circle>'
+        + '<g fill="#ffd98a">'
+        + '<circle cx="30" cy="92" r="1.1">' + _an('opacity', '.2;1;.2', 3) + '</circle>'
+        + '<circle cx="150" cy="93" r="1.1">' + _an('opacity', '1;.2;1', 3.6) + '</circle>'
         + '</g>';
     },
 
@@ -1277,30 +1297,55 @@
        كوكبٌ بحلقةٍ ونجومٌ بعيدة. البنيةُ حلزونٌ دوّارٌ — لا قرصٌ جانبيٌّ
        (المجرّة) ولا أعمدةُ غازٍ (السديم) ولا ثقبٌ أسودُ (الفراغ). */
     bg_cosmos: function (u) {
+      /* بلاغُ جوجو ٣: «فين الكون؟» — النسخةُ الأولى كانت نواةً باهتةً
+         وذراعَين خفيفَين ونجومًا قليلةً، وفي قصِّ اللافتةِ لم يبقَ إلّا
+         النواة. الآن: حقلُ نجومٍ كثيفٌ + سُحُبُ سديمٍ ملوّنةٌ (بنفسجيّ/
+         ورديّ/أزرق) تملأُ العرضَ + مجرّةٌ حلزونيّةٌ لامعةٌ بذراعَينِ
+         واضحتَينِ تدورُ + كوكبٌ بحلقةٍ + شهابٌ يعبرُ — كونٌ مكتظٌّ حيٌّ. */
       return '<defs>'
-        + '<radialGradient id="' + u + 'k" cx=".42" cy=".44" r=".85"><stop offset="0" stop-color="#231152"/><stop offset=".55" stop-color="#0c0630"/><stop offset="1" stop-color="#03010e"/></radialGradient>'
-        + '<radialGradient id="' + u + 'c" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fffdf4"/><stop offset=".4" stop-color="#ffe6a8" stop-opacity=".9"/><stop offset="1" stop-color="#ff9ed8" stop-opacity="0"/></radialGradient>'
+        + '<radialGradient id="' + u + 'k" cx=".42" cy=".5" r=".9"><stop offset="0" stop-color="#2a1560"/><stop offset=".5" stop-color="#0e0738"/><stop offset="1" stop-color="#030110"/></radialGradient>'
+        + '<radialGradient id="' + u + 'n1" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#c56bff" stop-opacity=".8"/><stop offset="1" stop-color="#c56bff" stop-opacity="0"/></radialGradient>'
+        + '<radialGradient id="' + u + 'n2" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#4fb8ff" stop-opacity=".72"/><stop offset="1" stop-color="#4fb8ff" stop-opacity="0"/></radialGradient>'
+        + '<radialGradient id="' + u + 'n3" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff6ab0" stop-opacity=".6"/><stop offset="1" stop-color="#ff6ab0" stop-opacity="0"/></radialGradient>'
+        + '<radialGradient id="' + u + 'c" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fffdf4"/><stop offset=".38" stop-color="#ffe6a8" stop-opacity=".95"/><stop offset="1" stop-color="#ff9ed8" stop-opacity="0"/></radialGradient>'
         + '<linearGradient id="' + u + 'p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd4ff"/><stop offset=".55" stop-color="#3a6ad0"/><stop offset="1" stop-color="#14265e"/></linearGradient>'
-        + '<filter id="' + u + 'g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2"/></filter>'
+        + '<filter id="' + u + 'g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>'
+        + '<filter id="' + u + 'gb" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>'
         + '</defs>'
         + '<rect width="200" height="100" fill="url(#' + u + 'k)"/>'
-        + _stars([[14,16,1],[36,80,.9],[62,8,.8],[170,14,1.1],[188,62,.9],[136,92,.8],[24,48,.7],[196,34,1],[80,94,.9]])
-        /* الحلزونُ المواجهُ: ذراعانِ لولبيّتانِ تلتفّانِ حولَ نواةٍ مضيئة */
-        + '<g transform="translate(96 50)">' + _rot(0, 0, 44)
+        /* سُحُبُ السديمِ الملوّنةُ — تملأُ العرضَ وتُعطي الإحساسَ بالعمق */
+        + '<g filter="url(#' + u + 'gb)">'
+        + '<ellipse cx="40" cy="42" rx="46" ry="30" fill="url(#' + u + 'n1)"/>'
+        + '<ellipse cx="150" cy="58" rx="52" ry="32" fill="url(#' + u + 'n2)"/>'
+        + '<ellipse cx="100" cy="38" rx="40" ry="24" fill="url(#' + u + 'n3)"/>'
+        + '</g>'
+        /* حقلُ نجومٍ كثيفٌ */
+        + _stars([[10,14,1],[26,30,.8],[18,54,.9],[34,74,1.1],[48,20,.7],[58,46,1],[70,12,.9],
+          [8,40,.8],[44,62,.8],[62,78,1],[80,30,.7],[122,16,1],[134,40,.8],[150,24,1.1],
+          [168,12,.9],[182,30,.8],[192,52,1],[176,70,.9],[160,84,.8],[138,74,1],[116,88,.9],
+          [196,40,.7],[88,70,.8],[108,58,.7],[128,62,.9]])
+        /* المجرّةُ الحلزونيّةُ اللامعةُ — ذراعانِ واضحتانِ تدورانِ حولَ نواة */
+        + '<g transform="translate(72 50)">' + _rot(0, 0, 50)
         + '<g fill="none" stroke-linecap="round" filter="url(#' + u + 'g)">'
-        + '<path stroke="#a88fff" stroke-width="5.2" opacity=".72" d="M0 0 C16 -6 30 2 34 16 C38 32 26 44 8 44 C-14 44 -30 28 -30 8"/>'
-        + '<path stroke="#7fd8ff" stroke-width="5.2" opacity=".72" d="M0 0 C-16 6 -30 -2 -34 -16 C-38 -32 -26 -44 -8 -44 C14 -44 30 -28 30 -8"/>'
+        + '<path stroke="#c9a8ff" stroke-width="4.6" opacity=".9" d="M0 0 C14 -5 26 2 29 14 C33 28 22 38 7 38 C-12 38 -26 24 -26 7"/>'
+        + '<path stroke="#8fd8ff" stroke-width="4.6" opacity=".9" d="M0 0 C-14 5 -26 -2 -29 -14 C-33 -28 -22 -38 -7 -38 C12 -38 26 -24 26 -7"/>'
+        + '<path stroke="#ff9ed8" stroke-width="2.4" opacity=".7" d="M0 0 C10 -4 19 1 22 11 C25 22 16 30 4 30"/>'
         + '</g>'
-        + '<g fill="#e8dcff" opacity=".85"><circle cx="30" cy="14" r="1.2"/><circle cx="-30" cy="-14" r="1.2"/><circle cx="12" cy="36" r="1"/><circle cx="-12" cy="-36" r="1"/></g>'
+        + '<g fill="#f0e6ff"><circle cx="26" cy="12" r="1.3"/><circle cx="-26" cy="-12" r="1.3"/><circle cx="10" cy="30" r="1"/><circle cx="-10" cy="-30" r="1"/><circle cx="22" cy="22" r=".9"/></g>'
         + '</g>'
-        + '<ellipse cx="96" cy="50" rx="15" ry="15" fill="url(#' + u + 'c)"/>'
-        + '<circle cx="96" cy="50" r="4" fill="#fffef8">' + _an('r', '3.4;4.8;3.4', 4.4) + '</circle>'
-        /* كوكبٌ بحلقةٍ مائلةٍ — العنصرُ الذي يقولُ «كون» لا «مجرّة» وحدَها */
-        + '<g transform="translate(166 76)">'
-        + '<ellipse rx="17" ry="4.6" fill="none" stroke="#cbb08a" stroke-width="2.2" opacity=".75" transform="rotate(-22)"/>'
-        + '<circle r="9.4" fill="url(#' + u + 'p)"/>'
-        + '<path d="M-9.4 0 A9.4 9.4 0 0 0 9.4 0 Z" fill="#0b1633" opacity=".42"/>'
-        + '<ellipse rx="17" ry="4.6" fill="none" stroke="#e8d3ad" stroke-width="1.1" opacity=".85" transform="rotate(-22)" stroke-dasharray="20 60"/>'
+        + '<ellipse cx="72" cy="50" rx="17" ry="16" fill="url(#' + u + 'c)"/>'
+        + '<circle cx="72" cy="50" r="4.4" fill="#fffef8">' + _an('r', '3.6;5.2;3.6', 4.4) + '</circle>'
+        /* كوكبٌ بحلقةٍ في المنطقةِ الآمنةِ (y≈50) */
+        + '<g transform="translate(162 52)">'
+        + '<ellipse rx="18" ry="5" fill="none" stroke="#cbb08a" stroke-width="2.2" opacity=".8" transform="rotate(-20)"/>'
+        + '<circle r="10" fill="url(#' + u + 'p)"/>'
+        + '<path d="M-10 0 A10 10 0 0 0 10 0 Z" fill="#0b1633" opacity=".42"/>'
+        + '<ellipse rx="18" ry="5" fill="none" stroke="#e8d3ad" stroke-width="1.2" opacity=".9" transform="rotate(-20)" stroke-dasharray="22 64"/>'
+        + '</g>'
+        /* شهابٌ يعبرُ أعلى اليمينِ نحوَ أسفلِ اليسار */
+        + '<g stroke="#fffdf2" stroke-linecap="round">'
+        + '<line x1="150" y1="18" x2="128" y2="34" stroke-width="1.6" opacity=".9">'
+        + _mv('0 0;-150 110', 4.5) + _an('opacity', '0;.95;0', 4.5) + '</line>'
         + '</g>';
     },
 
