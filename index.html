@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20261002-b70"></script>
+<script src="i18n-en.js?v=20261002-b71"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -1912,17 +1912,14 @@ body[data-ui-theme="glass"] .mc-tag{
 /* ══════════ PROMO ══════════ */
 #promo-ov{display:none;position:fixed;inset:0;background:var(--color-overlay);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);z-index:900;align-items:center;justify-content:center;}
 #promo-ov.open{display:flex;}
-/* ══ مُنتقي الترقيةِ على الرقعة (بلاغُ جوجو ٧) ══
-   طبقةٌ بمقاسِ الرقعةِ تمامًا؛ كلُّ خليّةٍ ١٢٫٥٪ = مربّعٌ واحد، فتقعُ
-   القطعُ في عمودِ الترقيةِ بالضبط مهما تغيّرَ حجمُ الرقعة. المعتِمُ على
-   الطبقةِ نفسِها لا على الشاشةِ كلِّها، فالرقعةُ تبقى هي المشهد. */
-.promo-onboard{position:absolute;inset:0;z-index:60;background:rgba(6,10,20,.62);
-  backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);border-radius:inherit;
-  animation:promoFade .14s ease both;}
-@keyframes promoFade{from{opacity:0}to{opacity:1}}
+/* ══ مُنتقي الترقيةِ على الرقعة (بلاغُ جوجو ٧، تحسينُ ٢) ══
+   بلا تعتيمٍ للرقعة (جوجو: «ليه الرقعة بتعتم؟»). المنتقي عمودٌ عائمٌ من
+   أربعِ خلايا فوقَ عمودِ الترقيةِ فقط؛ بقيّةُ الرقعةِ تبقى ظاهرةً كما هي.
+   كلُّ خليّةٍ ١٢٫٥٪ = مربّعٌ واحد، فتقعُ القطعُ في العمودِ الصحيحِ بالضبط. */
+.promo-onboard{position:absolute;inset:0;z-index:60;pointer-events:auto;background:transparent;border-radius:inherit;}
 .promo-cell{position:absolute;width:12.5%;height:12.5%;padding:0;margin:0;border:none;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
-  background:#f2f4f8;box-shadow:inset 0 0 0 1px rgba(10,16,28,.18);
+  background:#f2f4f8;box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 0 0 1px rgba(10,16,28,.18);
   transition:background .14s ease,transform .14s cubic-bezier(.34,1.56,.64,1);
   animation:promoCell .2s cubic-bezier(.34,1.56,.64,1) both;}
 @keyframes promoCell{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
@@ -1933,7 +1930,7 @@ body[data-ui-theme="glass"] .mc-tag{
 .promo-cell:hover .piece,.promo-cell:focus-visible .piece{transform:scale(1.1);}
 .promo-cell:active{transform:scale(.94);}
 @media (prefers-reduced-motion: reduce){
-  .promo-onboard,.promo-cell{animation:none;}
+  .promo-cell{animation:none;}
   .promo-cell,.promo-cell .piece{transition:none;}
 }
 .pbox{background:var(--bg2);border:1px solid rgba(201,168,76,.24);border-radius:18px;padding:22px;text-align:center;box-shadow:0 0 60px rgba(201,168,76,.12);animation:pop .2s cubic-bezier(.34,1.56,.64,1);}
@@ -3112,7 +3109,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20261002-b70">
+<link rel="stylesheet" href="screens.css?v=20261002-b71">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -4582,8 +4579,24 @@ html.amkh-preboot #amkh-preboot{
 <!-- GAME OVER -->
 <div id="go-ov">
   <div class="gobox" id="go-box">
-    <!-- مرحلةُ «تعليقِ نور» حُذِفَتْ (بلاغُ جوجو ٢): الشاشةُ تفتحُ
-         على النتيجةِ مباشرةً في كلِّ أوضاعِ اللعب. -->
+    <!-- مرحلةُ «تعليقِ نور» (بلاغُ جوجو ٢): تبقى في الـDOM حفاظًا على
+         مراجعِ عناصرِها، لكنّها لا تُفعَّلُ أبدًا — _openQuickReview يذهبُ
+         إلى مرحلةِ النتيجةِ مباشرةً فلا يراها اللاعب. مخفيّةٌ بـhidden
+         أيضًا حتّى لا تومضَ لحظةَ الفتح. -->
+    <div class="go-stage" id="go-stage-comment" hidden>
+      <div class="go-kicker-row">
+        <span class="go-score-pill" id="go-score-pill">1-0</span>
+        <span class="go-kicker" id="go-comment-kicker">تعليق نور</span>
+      </div>
+      <div class="go-stage-sub" id="go-result-line">انتهت المباراة</div>
+      <div class="go-nour comment">
+        <img src="./nour.png" alt="Nour" class="go-nour-avatar" />
+        <div class="go-nour-body">
+          <div class="go-nour-h">نور — يراجع ما حدث</div>
+          <div class="go-nour-t" id="go-nour-t"></div>
+        </div>
+      </div>
+    </div>
 <div class="go-stage active" id="go-stage-review">
       <div class="go-kicker-row">
         <span class="go-score-pill" id="go-score-pill-review">1-0</span>
@@ -8457,7 +8470,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 70;
+const APP_VERSION_CODE = 71;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -15092,7 +15105,8 @@ const G={
     ov.oncontextmenu=()=>false;
     wrap.appendChild(ov);
     amkhGrabModalFreeze();
-    try{SFX.modalOpen('success');}catch(e){}
+    /* بلا صوتٍ عندَ الظهور (بلاغُ جوجو ٢): فتحُ المنتقي ليس حدثًا صوتيًّا؛
+       الصوتُ يأتي عندَ اختيارِ القطعةِ (SFX.btn) ومعَ الحركةِ بعدَها. */
   },
   /* احتياطيٌّ لو تعذّرَ إيجادُ الرقعةِ (لا يُفترَضُ أن يحدث) */
   _showPromoFallback(cl){

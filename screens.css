@@ -8410,6 +8410,39 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-sec__ic .cat-ic{ width:26px; height:26px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
 .store-sec__ttl{ font-size:15px; font-weight:900; color:#fff; letter-spacing:.02em; }
 .store-sec__sub{ font-size:11.5px; font-weight:700; color:rgba(255,255,255,.5); font-variant-numeric:tabular-nums; }
+
+/* ══ طرازُ «المتجرِ من الداخل» (بلاغُ جوجو ٣) ══
+   المتجرُ كان شبكةَ تصنيفاتٍ بلا هُويّةِ متجر. هنا — بالـCSS فقط، بلا مساسٍ
+   بالمنطقِ ولا الألوانِ ولا الأيقوناتِ الملوّنة — نُضيفُ عناصرَ تجعلُه
+   يُقرأُ متجرًا: مظلّةٌ مخطّطةٌ (awning) أعلى الواجهة، لافتةُ محلٍّ معلّقة،
+   وكلُّ قسمٍ يقفُ على رفٍّ خشبيٍّ له حافّةٌ وظلّ. */
+.store-wrap::before{ content:''; position:absolute; top:0; left:-16px; right:-16px; height:30px;
+  background:repeating-linear-gradient(90deg,var(--purple) 0 26px,var(--gold) 26px 52px);
+  opacity:.9; border-radius:0 0 4px 4px;
+  -webkit-mask:radial-gradient(13px 15px at 13px 0,transparent 0 13px,#000 13px) repeat-x 0 100%/26px 15px;
+  mask:radial-gradient(13px 15px at 13px 0,transparent 0 13px,#000 13px) repeat-x 0 100%/26px 15px;
+  pointer-events:none; z-index:4; }
+.store-head{ position:relative; margin-top:14px; padding:30px 10px 10px; }
+.store-head::before{ content:''; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+  width:3px; height:16px; background:rgba(255,255,255,.3); border-radius:2px; }
+.store-head{ border:1px solid rgba(255,255,255,.1); border-radius:18px;
+  background:
+    radial-gradient(120% 90% at 50% 0,rgba(124,92,255,.2),transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+  box-shadow:0 10px 30px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06); }
+.store-title::after{ content:''; display:block; width:62px; height:3px; margin:8px auto 0;
+  border-radius:3px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+/* الرفُّ تحتَ كلِّ قسم */
+.store-sec__grid{ position:relative; }
+.store-sec__grid::after{ content:''; position:absolute; left:-6px; right:-6px; bottom:-14px; height:8px;
+  border-radius:3px;
+  background:linear-gradient(180deg,#5a4326,#3a2a16);
+  box-shadow:0 7px 14px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,220,160,.18);
+  pointer-events:none; }
+@media (prefers-reduced-motion: no-preference){
+  .store-wrap::before{ animation:storeAwning 6s ease-in-out infinite; }
+}
+@keyframes storeAwning{ 0%,100%{ opacity:.78; } 50%{ opacity:.95; } }
 .rw-sec__ic{ display:inline-flex; width:22px; height:22px; flex:0 0 auto; }
 .rw-sec__ic .cat-ic{ width:22px; height:22px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
 .cat-ic{ display:block; }
