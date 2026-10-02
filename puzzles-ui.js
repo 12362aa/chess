@@ -953,7 +953,7 @@ const PZU = (() => {
       if (ov && body) {
         body.textContent = '';
         ov.dataset.sfx = record ? 'pzRecord' : 'pzOver';
-        body.appendChild(el('div', 'ds-dialog__icon', record ? '★' : '◈'));
+        body.appendChild(el('div', 'ds-dialog__icon', record ? '★' : '•'));
         body.appendChild(el('h2', 'ds-dialog__title',
           record ? L('رقم قياسي جديد', 'New personal best') : L('انتهت الجولة', 'Round over')));
         body.appendChild(el('p', 'pzo__score', String(m.score)));
@@ -1213,9 +1213,9 @@ const PZU = (() => {
   }
   function toast(msg, title, icon) {
     try {
-      if (window.amkhUI && typeof amkhUI.notify === 'function') { amkhUI.notify(msg, title || L('الألغاز', 'Puzzles'), icon || '◈'); return; }
+      if (window.amkhUI && typeof amkhUI.notify === 'function') { amkhUI.notify(msg, title || L('الألغاز', 'Puzzles'), icon || '•'); return; }
     } catch (e) {}
-    try { if (window.Modal && Modal.show) Modal.show(msg, title || L('الألغاز', 'Puzzles'), icon || '◈'); } catch (e) {}
+    try { if (window.Modal && Modal.show) Modal.show(msg, title || L('الألغاز', 'Puzzles'), icon || '•'); } catch (e) {}
   }
 
   /* يبدأها اللاعب من قائمة الأصدقاء: يدعو صديقًا لمواجهة */
@@ -1228,7 +1228,7 @@ const PZU = (() => {
       return;
     }
     toast(L('أُرسلت دعوة المواجهة. بانتظار ردّ صديقك…', 'Battle invite sent. Waiting for your friend…'),
-          L('مواجهة ألغاز', 'Puzzle battle'), '◈');
+          L('مواجهة ألغاز', 'Puzzle battle'), '•');
   }
 
   /* المعالج المركزيّ لكل رسائل puzzle:battle-* — يُنادى من auth-client */
@@ -1303,7 +1303,7 @@ const PZU = (() => {
     }
     body.textContent = '';
     ov.dataset.sfx = 'invite';
-    body.appendChild(el('div', 'ds-dialog__icon', '◈'));
+    body.appendChild(el('div', 'ds-dialog__icon', '•'));
     body.appendChild(el('h2', 'ds-dialog__title', L('مواجهة ألغاز', 'Puzzle battle')));
     const nm = from.display_name || from.username || L('صديقك', 'your friend');
     body.appendChild(el('p', 'ds-dialog__message',
@@ -1395,7 +1395,7 @@ const PZU = (() => {
     const won = d.outcome === 'win', draw = d.outcome === 'draw';
     const byForfeit = d.by === 'forfeit';
     ov.dataset.sfx = won ? 'pzRecord' : 'pzOver';
-    body.appendChild(el('div', 'ds-dialog__icon', won ? '★' : draw ? '◈' : '◇'));
+    body.appendChild(el('div', 'ds-dialog__icon', won ? '★' : draw ? '•' : '◇'));
     body.appendChild(el('h2', 'ds-dialog__title',
       won ? L('فزتَ بالمواجهة', 'You won the battle')
           : draw ? L('تعادل', 'A draw') : L('خسرتَ المواجهة', 'You lost the battle')));

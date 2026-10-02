@@ -59,12 +59,12 @@
        تنويه جوّه نافذة المكالمة نفسها، وبرّاها بنرجع للنافذة العامة. */
     _notify(msg, title, icon) {
       if (this._dom && this._dom.overlay.classList.contains('on')) { this._toast(msg, icon); return; }
-      try { window.amkhUI && window.amkhUI.notify(msg, title || 'المكالمة', icon || '◈'); } catch (e) {}
+      try { window.amkhUI && window.amkhUI.notify(msg, title || 'المكالمة', icon || '•'); } catch (e) {}
     },
     /* شريط تنويه أعلى نافذة المكالمة — بيختفي لوحده، وبصوته الخاص */
     _toast(msg, icon) {
       const dom = this._dom; if (!dom || !dom.note) return;
-      dom.noteIc.textContent = icon || '◈';
+      dom.noteIc.textContent = icon || '•';
       dom.noteTx.textContent = String(msg == null ? '' : msg);
       dom.note.classList.add('on');
       try { SFX.callNote(); } catch (e) {}
@@ -255,7 +255,7 @@
         this._mic = null;
       }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        this._notify(wantVideo ? 'جهازك لا يدعم مكالمات الفيديو' : 'جهازك لا يدعم المكالمات الصوتية', 'غير متاح', '◈');
+        this._notify(wantVideo ? 'جهازك لا يدعم مكالمات الفيديو' : 'جهازك لا يدعم المكالمات الصوتية', 'غير متاح', '•');
         throw new Error('no-getusermedia');
       }
       const audio = {
@@ -367,9 +367,9 @@
     async startCall(peerId, name, avatar, opts) {
       peerId = Number(peerId);
       const video = !!(opts && opts.video);
-      if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '◈'); return; }
-      if (this._call) { this._notify('هناك مكالمة جارية بالفعل', 'المكالمة', '◈'); return; }
-      if (!this._socket()) { this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '◈'); return; }
+      if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '•'); return; }
+      if (this._call) { this._notify('هناك مكالمة جارية بالفعل', 'المكالمة', '•'); return; }
+      if (!this._socket()) { this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '•'); return; }
       const callId = 'c' + this.me() + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
       this._call = {
         id: callId, group: null, isCaller: true, status: 'outgoing', video, camOff: false,
@@ -378,7 +378,7 @@
       };
       if (video) this._facing = 'user';
       try { await this._getMic(); }
-      catch (e) { this._call = null; this._notify(video ? 'تعذّر تشغيل الكاميرا أو الميكروفون — فعّل الأذونات' : 'تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '◈'); return; }
+      catch (e) { this._call = null; this._notify(video ? 'تعذّر تشغيل الكاميرا أو الميكروفون — فعّل الأذونات' : 'تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '•'); return; }
       this._send({ type: 'call:invite', to: peerId, callId, group: null, members: [this.me(), peerId], callType: video ? 'video' : 'audio' });
       this._showActive();
       this._startRing('out');
@@ -392,11 +392,11 @@
     async startGroupCall(groupId, name, memberIds, opts) {
       groupId = Number(groupId);
       const video = !!(opts && opts.video);
-      if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '◈'); return; }
-      if (this._call) { this._notify('هناك مكالمة جارية بالفعل', 'المكالمة', '◈'); return; }
-      if (!this._socket()) { this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '◈'); return; }
+      if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '•'); return; }
+      if (this._call) { this._notify('هناك مكالمة جارية بالفعل', 'المكالمة', '•'); return; }
+      if (!this._socket()) { this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '•'); return; }
       const others = (memberIds || []).map(Number).filter(id => id && id !== this.me());
-      if (!others.length) { this._notify('لا يوجد أعضاء آخرون في الحفلة', 'المكالمة', '◈'); return; }
+      if (!others.length) { this._notify('لا يوجد أعضاء آخرون في الحفلة', 'المكالمة', '•'); return; }
       const callId = 'g' + groupId + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
       const members = [this.me(), ...others];
       this._call = {
@@ -406,7 +406,7 @@
       };
       if (video) this._facing = 'user';
       try { await this._getMic(); }
-      catch (e) { this._call = null; this._notify(video ? 'تعذّر تشغيل الكاميرا أو الميكروفون — فعّل الأذونات' : 'تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '◈'); return; }
+      catch (e) { this._call = null; this._notify(video ? 'تعذّر تشغيل الكاميرا أو الميكروفون — فعّل الأذونات' : 'تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', video ? 'الكاميرا' : 'الميكروفون', '•'); return; }
       others.forEach(id => this._send({ type: 'call:invite', to: id, callId, group: groupId, members, callType: video ? 'video' : 'audio' }));
       this._showActive();
       this._startRing('out');
@@ -421,7 +421,7 @@
       const call = this._call; if (!call || call.status !== 'incoming') return;
       try { SFX.btn(); } catch (e) {}
       try { await this._getMic(); }
-      catch (e) { this.reject(); this._notify('تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', 'الميكروفون', '◈'); return; }
+      catch (e) { this.reject(); this._notify('تعذّر تشغيل الميكروفون — فعّل إذن الميكروفون', 'الميكروفون', '•'); return; }
       call.status = 'connecting';
       this._stopRing();
       this._clearRingTimeout();
@@ -482,14 +482,14 @@
       try { SFX.btn(); } catch (e) {}
       let res = null;
       try { res = await AR.setSpeaker({ on: want }); } catch (e) { res = null; }
-      if (!res) { this._notify('تعذّر تحويل مسار الصوت', 'المكالمة', '◈'); this._updateControls(); return; }
+      if (!res) { this._notify('تعذّر تحويل مسار الصوت', 'المكالمة', '•'); this._updateControls(); return; }
       this._applyRouteState(res);
       if (res.success === false) {
         /* جهاز بلا سماعة أذن → الزر مالوش معنى، بنخفيه بدل ما نكدب */
         if (res.reason === 'no-earpiece' || res.hasEarpiece === false) {
-          this._notify('هذا الجهاز يشغّل صوت المكالمة من مكبّر الصوت فقط', 'المكالمة', '◈');
+          this._notify('هذا الجهاز يشغّل صوت المكالمة من مكبّر الصوت فقط', 'المكالمة', '•');
         } else {
-          this._notify('تعذّر تحويل مسار الصوت', 'المكالمة', '◈');
+          this._notify('تعذّر تحويل مسار الصوت', 'المكالمة', '•');
         }
       }
       this._updateControls();
@@ -509,7 +509,7 @@
           const c = this._call; if (c !== call) return;
           if (!got) {
             call.camOff = true;
-            this._notify('تعذّر تشغيل الكاميرا — فعّل إذن الكاميرا', 'الكاميرا', '◈');
+            this._notify('تعذّر تشغيل الكاميرا — فعّل إذن الكاميرا', 'الكاميرا', '•');
             this._updateControls();
             return;
           }
@@ -593,11 +593,11 @@
       const call = this._call;
       if (!call || call.video || call.group || call.status !== 'active') return;
       if (call._upWait) return;
-      if (!this._canVideo()) { this._notify('جهازك لا يدعم مكالمات الفيديو', 'غير متاح', '◈'); return; }
+      if (!this._canVideo()) { this._notify('جهازك لا يدعم مكالمات الفيديو', 'غير متاح', '•'); return; }
       const peerId = this._soloPeerId(); if (!peerId) return;
       try { SFX.btn(); } catch (e) {}
       if (!this._send({ type: 'call:upgrade', to: peerId, callId: call.id, group: null })) {
-        this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '◈');
+        this._notify('لا يوجد اتصال بالخادم حاليًا', 'غير متصل', '•');
         return;
       }
       call._upWait = true;
@@ -609,7 +609,7 @@
         if (!c || !c._upWait) return;
         c._upWait = false;
         this._updateControls();
-        this._notify('لم يصل رد على طلب الفيديو', 'المكالمة', '◈');
+        this._notify('لم يصل رد على طلب الفيديو', 'المكالمة', '•');
       }, 30000);
     },
 
@@ -749,7 +749,7 @@
         /* بلا كاميرا: بنكمّل مستقبلين صورة الطرف التاني بس */
         call.camOff = true;
         if (this._dom && this._dom.localVideo) this._dom.localVideo.classList.add('off');
-        this._notify('تعذّر تشغيل الكاميرا — سترى صورة الطرف الآخر فقط', 'الكاميرا', '◈');
+        this._notify('تعذّر تشغيل الكاميرا — سترى صورة الطرف الآخر فقط', 'الكاميرا', '•');
       }
       this._updateControls();
       const policy = opts.offer || 'always';
@@ -835,13 +835,13 @@
         case 'call:reject': {
           if (!call || call.id !== d.callId) return;
           if (call.group) { /* عضو رفض — كمّل مع الباقيين ومتعيدش نداءه */ (call._declined || (call._declined = new Set())).add(from); this._removeMember(from); }
-          else { this._end('rejected'); this._notify('رفض المكالمة', 'المكالمة', '◈'); }
+          else { this._end('rejected'); this._notify('رفض المكالمة', 'المكالمة', '•'); }
           break;
         }
         case 'call:busy': {
           if (!call || call.id !== d.callId) return;
           if (call.group) { (call._declined || (call._declined = new Set())).add(from); this._removeMember(from); }
-          else { this._end('busy'); this._notify('الطرف الآخر مشغول', 'المكالمة', '◈'); }
+          else { this._end('busy'); this._notify('الطرف الآخر مشغول', 'المكالمة', '•'); }
           break;
         }
         case 'call:cancel': {
@@ -850,7 +850,7 @@
           this._end('cancelled');
           if (wasRinging) {
             const who = call.title || 'صديق';
-            this._notify(call.group ? ('مكالمة حفلة فائتة — ' + who) : ('مكالمة فائتة من ' + who), 'مكالمة فائتة', '◈');
+            this._notify(call.group ? ('مكالمة حفلة فائتة — ' + who) : ('مكالمة فائتة من ' + who), 'مكالمة فائتة', '•');
             /* التسجيل في الشات بيتم مركزيًا في _end('cancelled') */
           }
           break;
@@ -901,7 +901,7 @@
           if (this._upTimer) { clearTimeout(this._upTimer); this._upTimer = null; }
           this._updateControls();
           /* الشريط جوّه النافذة — النافذة العامة كانت بتتفتح ورا المكالمة */
-          this._notify((call.title ? call.title + ' ' : '') + 'رفض التحويل إلى فيديو — المكالمة مستمرّة صوتيًا', 'المكالمة', '◈');
+          this._notify((call.title ? call.title + ' ' : '') + 'رفض التحويل إلى فيديو — المكالمة مستمرّة صوتيًا', 'المكالمة', '•');
           break;
         }
         case 'call:offer': {
@@ -920,7 +920,7 @@
           break;
         }
         case 'call:error': {
-          if (call && (!d.callId || d.callId === call.id) && call.status === 'outgoing') { this._end('error'); this._notify('تعذّر إجراء المكالمة', 'المكالمة', '◈'); }
+          if (call && (!d.callId || d.callId === call.id) && call.status === 'outgoing') { this._end('error'); this._notify('تعذّر إجراء المكالمة', 'المكالمة', '•'); }
           break;
         }
       }
@@ -1005,7 +1005,7 @@
     },
 
     /* ── مؤقّت الرنين ── */
-    _armRingTimeout() { this._clearRingTimeout(); this._ringTimer = setTimeout(() => { const c = this._call; if (!c) return; if (c.isCaller) this.hangup(); else this.reject(); this._notify('انتهت مهلة الرنين', 'المكالمة', '◈'); }, RING_TIMEOUT); },
+    _armRingTimeout() { this._clearRingTimeout(); this._ringTimer = setTimeout(() => { const c = this._call; if (!c) return; if (c.isCaller) this.hangup(); else this.reject(); this._notify('انتهت مهلة الرنين', 'المكالمة', '•'); }, RING_TIMEOUT); },
     _clearRingTimeout() { if (this._ringTimer) { clearTimeout(this._ringTimer); this._ringTimer = null; } },
 
     /* إعادة إرسال الدعوة كل 3ث للأعضاء اللي لسه ماردّوش، طول ما إحنا بننادي.
@@ -1305,7 +1305,7 @@
       ov.id = 'amkhc-overlay';
       ov.innerHTML = `<div class="amkhc-card">
         <div class="amkhc-deco" aria-hidden="true"><i></i><i></i><i></i><i></i><em class="l">&#9820;</em><em class="r">&#9822;</em><s>&#9822;</s><b>&#9820;&#9822;&#9821;&#9819;&#9818;&#9821;&#9822;&#9820;</b><u></u></div>
-        <div id="amkhc-avatar">◈</div>
+        <div id="amkhc-avatar">•</div>
         <div id="amkhc-title">صديق</div>
         <div id="amkhc-status"></div>
         <div id="amkhc-grid" class="amkhc-grid"></div>
@@ -1318,7 +1318,7 @@
         <div id="amkhc-vhead"><div id="amkhc-vtitle"></div><div id="amkhc-vsub"></div></div>
         <div id="amkhc-vbar"></div>
       </div>
-      <div id="amkhc-note" role="status" aria-live="polite"><span class="ic">◈</span><span class="tx"></span></div>
+      <div id="amkhc-note" role="status" aria-live="polite"><span class="ic">•</span><span class="tx"></span></div>
       <div id="amkhc-ask"><div class="box">
         <i class="amkhc-askdeco" aria-hidden="true"><b>&#9820;&#9822;&#9821;&#9819;&#9818;&#9821;&#9822;&#9820;</b><u></u></i>
         <div class="g">${this._icon('video')}</div>
@@ -1359,7 +1359,7 @@
       const call = this._call; if (!call) return;
       const dom = this._ensureDom();
       if (call.avatar) dom.avatar.innerHTML = `<img src="${call.avatar}" alt="">`;
-      else dom.avatar.textContent = (call.title || '◈').trim().charAt(0) || '◈';
+      else dom.avatar.textContent = (call.title || '•').trim().charAt(0) || '•';
       dom.title.textContent = call.title || 'صديق';
       if (dom.vtitle) dom.vtitle.textContent = call.title || 'صديق';
     },
@@ -1373,7 +1373,7 @@
       const av = document.createElement('div');
       av.className = 'av';
       if (avatar) av.innerHTML = `<img src="${this._esc(avatar)}" alt="">`;
-      else av.textContent = (name || '◈').trim().charAt(0) || '◈';
+      else av.textContent = (name || '•').trim().charAt(0) || '•';
       const mz = document.createElement('span');
       mz.className = 'mz';
       mz.innerHTML = this._icon('micOff');

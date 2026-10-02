@@ -190,7 +190,7 @@
 
     function notify(msg) {
       try {
-        if (window.amkhUI && amkhUI.notify) amkhUI.notify(msg, L('المايك', 'Mic'), '◈');
+        if (window.amkhUI && amkhUI.notify) amkhUI.notify(msg, L('المايك', 'Mic'), '•');
       } catch (e) { }
     }
 

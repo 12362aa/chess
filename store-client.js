@@ -569,7 +569,7 @@
         : reason === 'owned' ? L('تملكُ هذا العنصرَ بالفعل.', 'You already own this item.')
         : reason === 'not_in_window' ? L('انتهى عرضُ هذا العنصرِ في هذه النافذة.', 'This item is no longer offered.')
         : L('تعذّرت عمليّةُ الشراء.', 'Purchase failed.');
-      try { if (window.Modal && Modal.show) Modal.show(msg, L('المتجر', 'Store'), '◈', null); } catch (e) {}
+      try { if (window.Modal && Modal.show) Modal.show(msg, L('المتجر', 'Store'), '•', null); } catch (e) {}
     }
   };
 

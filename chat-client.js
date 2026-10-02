@@ -329,7 +329,7 @@ const amkhChat = {
     const now = Date.now();
     if (this._qNoteAt && now - this._qNoteAt < 6000) return;
     this._qNoteAt = now;
-    try { window.amkhUI.notify('لا يوجد اتصال — ستُرسل تلقائيًا أول ما يعود', 'مؤجَّلة', '◈'); } catch (e) {}
+    try { window.amkhUI.notify('لا يوجد اتصال — ستُرسل تلقائيًا أول ما يعود', 'مؤجَّلة', '•'); } catch (e) {}
   },
 
   /* توقيت SQLite (‏datetime('now')) بيرجع UTC ساذج "YYYY-MM-DD HH:MM:SS" بلا Z،
@@ -476,7 +476,7 @@ const amkhChat = {
     try {
       window.amkhUI.notify(
         item.audio ? 'المرفق كبير على التأجيل — أعد المحاولة بعد عودة الاتصال' : 'الرسائل المؤجَّلة ممتلئة — انتظر عودة الاتصال',
-        'لم تُؤجَّل', '◈');
+        'لم تُؤجَّل', '•');
     } catch (e) {}
     return 'dropped';
   },
@@ -524,7 +524,7 @@ const amkhChat = {
     if (typeof target === 'number') target = { kind: 'friend', id: target };
     if (this._recording || this._recStarting) return;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      window.amkhUI.notify('جهازك لا يدعم التسجيل الصوتي', 'غير متاح', '◈'); return;
+      window.amkhUI.notify('جهازك لا يدعم التسجيل الصوتي', 'غير متاح', '•'); return;
     }
     this._recStarting = true;
     try {
@@ -549,7 +549,7 @@ const amkhChat = {
         if (el) el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
       }, 250);
     } catch (e) {
-      window.amkhUI.notify('لازم تسمح بالوصول للميكروفون', 'الميكروفون', '◈');
+      window.amkhUI.notify('لازم تسمح بالوصول للميكروفون', 'الميكروفون', '•');
     } finally { this._recStarting = false; }
   },
 
@@ -568,7 +568,7 @@ const amkhChat = {
       this._sendRecordingState(ctx, false);
       this._showRecBar(false);
       if (!doSend) { this._recChunks = []; return; }
-      if (durationSec < 1) { window.amkhUI.notify('التسجيل قصير جداً', 'تنبيه', '◈'); this._recChunks = []; return; }
+      if (durationSec < 1) { window.amkhUI.notify('التسجيل قصير جداً', 'تنبيه', '•'); this._recChunks = []; return; }
       const blob = new Blob(this._recChunks, { type: mime });
       this._recChunks = [];
       const reader = new FileReader();
@@ -623,7 +623,7 @@ const amkhChat = {
     try {
       const isImage = /^image\//i.test(file.type);
       const isVideo = /^video\//i.test(file.type);
-      if (!isImage && !isVideo) { U.notify('نوع ملف غير مدعوم', 'تنبيه', '◈'); return; }
+      if (!isImage && !isVideo) { U.notify('نوع ملف غير مدعوم', 'تنبيه', '•'); return; }
       let b64, mime, kind;
       if (isImage) {
         const r = await this._compressImage(file);
@@ -631,14 +631,14 @@ const amkhChat = {
       } else {
         b64 = await this._fileToBase64(file); mime = file.type || 'video/mp4'; kind = 'video';
       }
-      if (!b64) { U.notify('تعذّر تجهيز الملف', 'تنبيه', '◈'); return; }
+      if (!b64) { U.notify('تعذّر تجهيز الملف', 'تنبيه', '•'); return; }
       if (b64.length > this._MEDIA_MAX_B64) {
-        U.notify(isVideo ? 'الفيديو كبير جداً — اختر مقطع أصغر' : 'الصورة كبيرة جداً', 'تنبيه', '◈');
+        U.notify(isVideo ? 'الفيديو كبير جداً — اختر مقطع أصغر' : 'الصورة كبيرة جداً', 'تنبيه', '•');
         return;
       }
       if (ctx.kind === 'group') this.sendGroupMedia(ctx.id, b64, mime, kind);
       else this.sendMedia(ctx.id, b64, mime, kind);
-    } catch (e) { U.notify('تعذّر إرسال الملف', 'تنبيه', '◈'); }
+    } catch (e) { U.notify('تعذّر إرسال الملف', 'تنبيه', '•'); }
   },
 
   _fileToBase64(file) {
@@ -797,7 +797,7 @@ const amkhChat = {
           d.reason === 'not-friend' ? 'يجب أن يكون صديقًا لك أولًا'
           : d.reason === 'privacy' ? 'إعدادات الخصوصية لديه لا تسمح بمراسلته'
           : d.reason === 'too-big' ? 'التسجيل الصوتي كبير جدًا'
-          : 'تعذّر إرسال الرسالة', 'لم يتم', '◈');
+          : 'تعذّر إرسال الرسالة', 'لم يتم', '•');
         return true;
       case 'group:message': return this._onGroupMessage(d);
       case 'group:sent': return this._onGroupSent(d);
@@ -816,11 +816,11 @@ const amkhChat = {
           const gid = d.group_id;
           if (gid != null && this._gmeta[gid]) this._gmeta[gid].send_policy = 'admins';
           if (gid != null) this._applyChatLock(gid);
-          window.amkhUI.notify('قفل المشرفون الشات — الإرسال متاح للمشرفين فقط', 'الشات مقفول', '◈');
+          window.amkhUI.notify('قفل المشرفون الشات — الإرسال متاح للمشرفين فقط', 'الشات مقفول', '•');
         } else {
           window.amkhUI.notify(d.reason === 'not-member' ? 'لست عضوًا في الحفلة'
             : d.reason === 'admins-only' ? 'حذف رسائل الآخرين للمشرفين فقط'
-            : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '◈');
+            : (d.reason === 'too-big' ? 'التسجيلة كبيرة جداً' : 'تعذّر إرسال الرسالة'), 'لم يتم', '•');
         }
         return true;
       default: return false;
@@ -1207,7 +1207,7 @@ const amkhChat = {
   /* ── فتح محادثة مع صديق ── */
   async openChat(friend) {
     if (!window.amkhAuth || !window.amkhAuth.token) {
-      window.amkhUI.notify('سجّل دخولك أولًا لمراسلة أصدقائك', 'محتاج حساب', '◈');
+      window.amkhUI.notify('سجّل دخولك أولًا لمراسلة أصدقائك', 'محتاج حساب', '•');
       if (window.amkhAuth) window.amkhAuth.showLoginModal();
       return;
     }
@@ -1964,7 +1964,7 @@ const amkhChat = {
   _deleteMsg(scope, m, mode) {
     const ws = this._socket();
     if (!ws || ws.readyState !== 1) {
-      window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈');
+      window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '•');
       return;
     }
     try { if (window.SFX) window.SFX.modalOpen('msgGone'); } catch (e) {}
@@ -2259,7 +2259,7 @@ const amkhChat = {
     }
     if (U) {
       if (ok) U.notify('تم نسخ الرسالة', 'نُسخت', '◉');
-      else U.notify('تعذّر النسخ على هذا الجهاز', 'لم يتم', '◈');
+      else U.notify('تعذّر النسخ على هذا الجهاز', 'لم يتم', '•');
     }
   },
 
@@ -2366,7 +2366,7 @@ const amkhChat = {
     if (!res || res.error) {
       m.reactions = before;
       this._repaintReactions(scope, m);
-      if (U) U.notify(res ? 'تعذّر إرسال التفاعل' : 'لا يوجد اتصال بالخادم حاليًا.', 'لم يتم', '◈');
+      if (U) U.notify(res ? 'تعذّر إرسال التفاعل' : 'لا يوجد اتصال بالخادم حاليًا.', 'لم يتم', '•');
       return;
     }
     m.reactions = Array.isArray(res.reactions) ? res.reactions : [];
@@ -2421,7 +2421,7 @@ const amkhChat = {
   },
   async _saveMedia(m) {
     const U = window.amkhUI;
-    if (!m || !m.audio) { if (U) U.notify('لا يوجد ملف للحفظ', 'لم يتم', '◈'); return; }
+    if (!m || !m.audio) { if (U) U.notify('لا يوجد ملف للحفظ', 'لم يتم', '•'); return; }
     const kind = m.kind === 'video' ? 'video' : m.kind === 'voice' ? 'voice' : 'image';
     const mime = m.mime || (kind === 'video' ? 'video/mp4' : kind === 'voice' ? 'audio/mp4' : 'image/jpeg');
     const stamp = (() => {
@@ -2438,7 +2438,7 @@ const amkhChat = {
         await plugin.save({ data: m.audio, mime, name });
         if (U) U.notify(tt`تم حفظ ${T(label)} في معرض الجهاز`, 'حُفظ', '◉');
       } catch (e) {
-        if (U) U.notify(tt`تعذّر حفظ ${T(label)} على هذا الجهاز`, 'لم يتم', '◈');
+        if (U) U.notify(tt`تعذّر حفظ ${T(label)} على هذا الجهاز`, 'لم يتم', '•');
       }
       return;
     }
@@ -2456,7 +2456,7 @@ const amkhChat = {
       setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
       if (U) U.notify(tt`تم تنزيل ${T(label)}`, 'حُفظ', '◉');
     } catch (e) {
-      if (U) U.notify(tt`تعذّر حفظ ${T(label)} على هذا الجهاز`, 'لم يتم', '◈');
+      if (U) U.notify(tt`تعذّر حفظ ${T(label)} على هذا الجهاز`, 'لم يتم', '•');
     }
   },
 
@@ -2469,7 +2469,7 @@ const amkhChat = {
      days (#7): ٣/٧/٣٠ = تثبيت مؤقّت ينتهي وحده، و٠ = دائم. */
   _pinMsg(scope, m, pin, days) {
     const ws = this._socket();
-    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '◈'); return; }
+    if (!ws) { window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا.', 'غير متصل', '•'); return; }
     try { if (window.SFX) window.SFX.modalOpen('pin'); } catch (e) {}
     const d = Number(days) || 0;
     if (scope === 'group') {
@@ -2577,7 +2577,7 @@ const amkhChat = {
     const data = scope === 'group'
       ? await this._gget(`/${this._openGroup}/message-info?id=${m.id}`)
       : await this._get(`/message-info?id=${m.id}`);
-    if (!data || data.error) { U.notify('تعذّر جلب معلومات الرسالة', 'تنبيه', '◈'); return; }
+    if (!data || data.error) { U.notify('تعذّر جلب معلومات الرسالة', 'تنبيه', '•'); return; }
     const fmt = (iso) => iso ? this._time(iso) : '—';
     const avaHtml = (u) => u.avatar_url
       ? `<img src="${u.avatar_url}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
@@ -2742,11 +2742,11 @@ const amkhChat = {
     if (this._vWrap === wrap && (this._vSource || this._vPending)) { this._stopVoicePlay(); return; }
     this._stopVoicePlay();
     const info = wrap._voice || {};
-    if (!info.audio) { window.amkhUI.notify('التسجيل غير متاح', 'تنبيه', '◈'); return; }
+    if (!info.audio) { window.amkhUI.notify('التسجيل غير متاح', 'تنبيه', '•'); return; }
     const ctx = this._ensureAudioCtx();
-    if (!ctx) { window.amkhUI.notify('جهازك لا يدعم تشغيل الصوت', 'تنبيه', '◈'); return; }
+    if (!ctx) { window.amkhUI.notify('جهازك لا يدعم تشغيل الصوت', 'تنبيه', '•'); return; }
     let buf;
-    try { buf = this._base64ToArrayBuffer(info.audio); } catch (e) { window.amkhUI.notify('تعذّر قراءة التسجيل', 'تنبيه', '◈'); return; }
+    try { buf = this._base64ToArrayBuffer(info.audio); } catch (e) { window.amkhUI.notify('تعذّر قراءة التسجيل', 'تنبيه', '•'); return; }
     // توكن يميّز محاولة التشغيل دي؛ أي إيقاف/تبديل بيزوّده فيلغي أي فكّ ترميز جارٍ.
     const tok = ++this._vTok;
     this._vPending = true; this._vWrap = wrap; this._vBtn = btn; this._vBar = bar;
@@ -2755,7 +2755,7 @@ const amkhChat = {
     const fail = () => {
       if (tok !== this._vTok) return;   // اتلغت المحاولة دي خلاص
       this._stopVoicePlay();
-      window.amkhUI.notify('لا يمكن تشغيل هذا الملف الصوتي', 'تنبيه', '◈');
+      window.amkhUI.notify('لا يمكن تشغيل هذا الملف الصوتي', 'تنبيه', '•');
     };
     const onDecoded = (audioBuf) => {
       // decodeAudioData ممكن ينادي الكولباك ويرجّع Promise مع بعض → لازم يتنفّذ
@@ -2846,7 +2846,7 @@ const amkhChat = {
   /* ── صندوق الوارد: كل المحادثات اللي فيها رسايل ── */
   async showInbox() {
     if (!window.amkhAuth || !window.amkhAuth.token) {
-      window.amkhUI.notify('سجّل دخولك أولًا لعرض رسائلك', 'محتاج حساب', '◈');
+      window.amkhUI.notify('سجّل دخولك أولًا لعرض رسائلك', 'محتاج حساب', '•');
       if (window.amkhAuth) window.amkhAuth.showLoginModal();
       return;
     }
@@ -3039,7 +3039,7 @@ const amkhChat = {
       U.sfx();
       const name = (overlay.querySelector('#grp-name').value || '').trim();
       const members = [...overlay.querySelectorAll('.grp-pick__cb:checked')].map(cb => Number(cb.value));
-      if (!name) { U.notify('اكتب اسم للحفلة', 'تنبيه', '◈'); return; }
+      if (!name) { U.notify('اكتب اسم للحفلة', 'تنبيه', '•'); return; }
       createBtn.disabled = true;
       const r = await this._gpost('/', { name, members });
       createBtn.disabled = false;
@@ -3047,7 +3047,7 @@ const amkhChat = {
         this._gmeta[r.id] = { name: r.name, members_count: r.members_count, owner_id: r.owner_id };
         try { overlay.querySelector('[data-close]').click(); } catch (e) {}
         this.openGroup({ id: r.id, name: r.name, members_count: r.members_count, owner_id: r.owner_id });
-      } else U.notify((r && r.error) || 'تعذّر إنشاء الحفلة', 'تنبيه', '◈');
+      } else U.notify((r && r.error) || 'تعذّر إنشاء الحفلة', 'تنبيه', '•');
     };
   },
 
@@ -3226,7 +3226,7 @@ const amkhChat = {
     const U = window.amkhUI;
     const res = await this._post('/pin-chat', { kind: kind === 'grp' ? 'grp' : 'dm', target_id: id });
     if (!res || res.error) {
-      if (U) U.notify((res && res.error) || 'لا يوجد اتصال بالخادم حاليًا.', 'لم يتم', '◈');
+      if (U) U.notify((res && res.error) || 'لا يوجد اتصال بالخادم حاليًا.', 'لم يتم', '•');
       return;
     }
     const store = kind === 'grp' ? this._pins.grp : this._pins.dm;
@@ -3570,7 +3570,7 @@ const amkhChat = {
   /* ── فتح جروب ── */
   async openGroup(group) {
     if (!window.amkhAuth || !window.amkhAuth.token) {
-      window.amkhUI.notify('سجّل دخولك الأول', 'محتاج حساب', '◈');
+      window.amkhUI.notify('سجّل دخولك الأول', 'محتاج حساب', '•');
       if (window.amkhAuth) window.amkhAuth.showLoginModal();
       return;
     }
@@ -3868,7 +3868,7 @@ const amkhChat = {
   async _showGroupMembers(gid) {
     const data = await this._gget(`/${gid}/members`);
     const U = window.amkhUI;
-    if (!data || !Array.isArray(data.members)) { U.notify('تعذّر جلب الأعضاء', 'تنبيه', '◈'); return; }
+    if (!data || !Array.isArray(data.members)) { U.notify('تعذّر جلب الأعضاء', 'تنبيه', '•'); return; }
     const meId = this._me();
     const myRole = data.my_role || 'member';
     const amAdmin = myRole === 'owner' || myRole === 'admin';
@@ -3926,7 +3926,7 @@ const amkhChat = {
           if (!f) return;
           const dataUrl = await this._fileToDataUrl(f).catch(() => null);
           const small = dataUrl ? await this._downscaleImage(dataUrl, 128) : null;
-          if (!small) { U.notify('تعذّر تجهيز الصورة', 'تنبيه', '◈'); return; }
+          if (!small) { U.notify('تعذّر تجهيز الصورة', 'تنبيه', '•'); return; }
           const r = await this._gpost(`/${gid}/avatar`, { avatar_url: small });
           if (r && !r.error) {
             const url = r.avatar_url || small;
@@ -3934,7 +3934,7 @@ const amkhChat = {
             this._paintGroupAvatar(overlay.querySelector('#grp-info-av'), { avatar_url: url });
             /* حدّث رأس شاشة الحفلة والصندوق لو مفتوحين */
             if (this._openGroup === gid && this._sheet) this._paintGroupAvatar(this._sheet.querySelector('#ch-grp-av'), { avatar_url: url });
-          } else U.notify((r && r.error) || 'تعذّر تغيير الصورة', 'تنبيه', '◈');
+          } else U.notify((r && r.error) || 'تعذّر تغيير الصورة', 'تنبيه', '•');
         };
       }
     }
@@ -3983,7 +3983,7 @@ const amkhChat = {
         try { overlay.querySelector('[data-close]').click(); } catch (e) {}
         if (this._openGroup === gid && this._sheet) { try { this._sheet.querySelector('[data-close]').click(); } catch (e) {} }
         this.showInbox();
-      } else U.notify((r && r.error) || 'تعذّرت المغادرة', 'تنبيه', '◈');
+      } else U.notify((r && r.error) || 'تعذّرت المغادرة', 'تنبيه', '•');
     };
   },
 
@@ -4023,7 +4023,7 @@ const amkhChat = {
     if (btn) btn.onclick = async () => {
       U.sfx();
       const members = [...overlay.querySelectorAll('.grp-pick__cb:checked')].map(cb => Number(cb.value));
-      if (!members.length) { U.notify('اختر عضو واحد على الأقل', 'تنبيه', '◈'); return; }
+      if (!members.length) { U.notify('اختر عضو واحد على الأقل', 'تنبيه', '•'); return; }
       btn.disabled = true;
       const r = await this._gpost(`/${gid}/members`, { members });
       btn.disabled = false;
@@ -4031,7 +4031,7 @@ const amkhChat = {
         if (this._gmeta[gid]) this._gmeta[gid].members_count = r.members;
         try { overlay._dismiss(); } catch (e) {}
         this._showGroupMembers(gid);
-      } else U.notify((r && r.error) || 'تعذّرت الإضافة', 'تنبيه', '◈');
+      } else U.notify((r && r.error) || 'تعذّرت الإضافة', 'تنبيه', '•');
     };
   },
 
@@ -4059,14 +4059,14 @@ const amkhChat = {
         const r = await this._gpost(`/${gid}/admins`, { user_id: mem.id, make: !isAdminMem });
         try { overlay._dismiss(); } catch (e) {}
         if (r && !r.error) this._showGroupMembers(gid);
-        else U.notify((r && r.error) || 'تعذّر التغيير', 'تنبيه', '◈');
+        else U.notify((r && r.error) || 'تعذّر التغيير', 'تنبيه', '•');
       } else if (act === 'remove') {
         try { overlay._dismiss(); } catch (e) {}
         const ok = await U.confirm('إزالة عضو', tt`إزالة ${name} من الحفلة؟`, 'إزالة', 'إلغاء');
         if (!ok) return;
         const r = await this._gdel(`/${gid}/members/${mem.id}`);
         if (r && !r.error) this._showGroupMembers(gid);
-        else U.notify((r && r.error) || 'تعذّرت الإزالة', 'تنبيه', '◈');
+        else U.notify((r && r.error) || 'تعذّرت الإزالة', 'تنبيه', '•');
       }
     });
   },
@@ -4090,7 +4090,7 @@ const amkhChat = {
       if (pol === current) return;
       const r = await this._gpost(`/${gid}/settings`, { send_policy: pol });
       if (r && !r.error) this._showGroupMembers(gid);
-      else U.notify((r && r.error) || 'تعذّر الحفظ', 'تنبيه', '◈');
+      else U.notify((r && r.error) || 'تعذّر الحفظ', 'تنبيه', '•');
     });
   },
 
@@ -4136,7 +4136,7 @@ const amkhChat = {
           const r = await this._gpost(`/${gid}/invite`, { enabled: true, reset: !!token });
           try { overlay._dismiss(); } catch (e) {}
           if (r && !r.error) render(r.token);
-          else U.notify((r && r.error) || 'تعذّر التوليد', 'تنبيه', '◈');
+          else U.notify((r && r.error) || 'تعذّر التوليد', 'تنبيه', '•');
         }
       });
     };
@@ -4157,7 +4157,7 @@ const amkhChat = {
       /* محاولات سريعة قليلة تحسبًا إن الحساب لسه بيتحمّل عند الإقلاع. */
       if (t < 8) { setTimeout(() => this.joinByInvite(token, t + 1), 500); return; }
       /* بعد كده نبطّل اللف الصامت ونطلب الدخول بوضوح — التوكِن محفوظ. */
-      if (U) U.notify('سجّل الدخول أولًا للانضمام إلى الحفلة، وسنكمل تلقائيًا', 'دعوة حفلة', '◈');
+      if (U) U.notify('سجّل الدخول أولًا للانضمام إلى الحفلة، وسنكمل تلقائيًا', 'دعوة حفلة', '•');
       return;
     }
     /* لازم رابط السيرفر يكون متاح قبل النداء — على الموقع (GitHub Pages)
@@ -4177,7 +4177,7 @@ const amkhChat = {
       /* فشل حقيقي (رابط منتهي/شبكة): نمسح التوكِن المعلّق عشان ما نلفّش عليه
          عند كل تسجيل دخول. */
       try { sessionStorage.removeItem('amkh_pending_invite'); } catch (e) {}
-      if (U) U.notify((r && r.error) || 'الرابط منتهي أو غير صالح', 'دعوة حفلة', '◈');
+      if (U) U.notify((r && r.error) || 'الرابط منتهي أو غير صالح', 'دعوة حفلة', '•');
     }
   },
   /* يُستدعى بعد تسجيل الدخول (من setToken) عشان يكمّل انضمام حفلة معلّق. */

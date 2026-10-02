@@ -298,7 +298,7 @@
     'مباريات': 'games',
     'مراحل نور': 'Nour levels',
     '← العودة للقائمة': '← Back to menu',
-    '◈ مراجعة المباراة': '◈ Game review',
+    '• مراجعة المباراة': '• Game review',
     '12 مرحلة من المبتدئ إلى الأسطورة': '12 levels from beginner to legend',
     'ابدأ الرحلة': 'Start the journey',
     'أخضر': 'Green',
@@ -336,7 +336,7 @@
     '◆ إغلاق': '◆ Close',
     '◇ جميع القطع': '◇ All pieces',
     'جميع القطع': 'All pieces',
-    '◈ اختيار صورة': '◈ Choose image',
+    '• اختيار صورة': '• Choose image',
     'اختيار صورة': 'Choose image',
     '♟ شطرنج — Am-Kh': '♟ Chess — Am-Kh',
     'ابحث عن خصم': 'Find an opponent',
@@ -1081,8 +1081,8 @@
     '◆ تعذر الاتصال بالخادم': '◆ Could not connect to the server',
     '◆ تعذر الاتصال بالخادم (انتهت المهلة) — اعد المحاولة': '◆ Could not connect to the server (timed out) — try again',
     '◆ خطأ في الاتصال — تحقق من الإنترنت': '◆ Connection error — check your internet',
-    '◈ المساعد نشط': '◈ Assistant active',
-    '◈ نشط': '◈ Active',
+    '• المساعد نشط': '• Assistant active',
+    '• نشط': '• Active',
     '◌ جارٍ الاتصال بالخادم...': '◌ Connecting to the server...',
     '◌ جارٍ تحميل بيانات الخادم...': '◌ Loading server data...',
     '⚠ {0} في الكش!': '⚠ {0} is in check!',
@@ -1097,7 +1097,7 @@
     '◆◆ متوسط': '◆◆ Intermediate',
     '◆◆◆ متقدم': '◆◆◆ Advanced',
     '◆◆◆◆ نخبة': '◆◆◆◆ Elite',
-    '◈ العب الآن': '◈ Play now',
+    '• العب الآن': '• Play now',
     '◉ تم النسخ!': '◉ Copied!',
     '◉ متفرّج واحد': '◉ One spectator',
     '◉ مكتملة': '◉ Completed',
@@ -1113,7 +1113,7 @@
     /* «Assistant: calculating...» أطول من «Assistant: on» بـ٤٨px،
        وفي وضع الأونلاين/البلوتوث يعرض شريط الأدوات ثلاثة أزرار فنصيب
        الزرّ ثلث العرض — فكان النصّ يلفّ سطرين، يطول الزرّ ١٠px، وترتفع
-       الرقعة ٧px ثم تنزل عند انتهاء الحساب. الرمز ◈ والنقطة النابضة
+       الرقعة ٧px ثم تنزل عند انتهاء الحساب. الرمز • والنقطة النابضة
        على الزرّ تقولان إنه المساعد، فلا حاجة لإعادة اسمه في كلّ حال. */
     'المساعد: يحسب...': 'Calculating…',
     'النقاط: إيقاف': 'Points: off',

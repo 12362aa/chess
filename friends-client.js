@@ -126,7 +126,7 @@ const amkhFriends = {
       await this.loadFriends();
       if (this._sheet) this._render();
     } else {
-      window.amkhUI.notify(r.error || 'تعذّر إرسال الطلب', 'لم يتم', '◈');
+      window.amkhUI.notify(r.error || 'تعذّر إرسال الطلب', 'لم يتم', '•');
     }
     return r.ok;
   },
@@ -137,7 +137,7 @@ const amkhFriends = {
       await Promise.all([this.loadRequests(), this.loadFriends()]);
       if (this._sheet) this._render();
     } else {
-      window.amkhUI.notify(r.error || 'تعذّر الرد على الطلب', 'لم يتم', '◈');
+      window.amkhUI.notify(r.error || 'تعذّر الرد على الطلب', 'لم يتم', '•');
     }
     return r.ok;
   },
@@ -150,7 +150,7 @@ const amkhFriends = {
       await fetch(`${window.getApiBase()}/friends/${userId}`, { method: 'DELETE', headers });
       await this.loadFriends();
       if (this._sheet) this._render();
-    } catch (e) { window.amkhUI.notify('تعذّر الحذف', 'لم يتم', '◈'); }
+    } catch (e) { window.amkhUI.notify('تعذّر الحذف', 'لم يتم', '•'); }
   },
 
   async blockUser(userId, name) {
@@ -161,7 +161,7 @@ const amkhFriends = {
       await Promise.all([this.loadFriends(), this.loadRequests()]);
       if (this._sheet) this._render();
       window.amkhUI.notify('تم الحظر', 'تم', '◉');
-    } else window.amkhUI.notify(r.error || 'تعذّر الحظر', 'لم يتم', '◈');
+    } else window.amkhUI.notify(r.error || 'تعذّر الحظر', 'لم يتم', '•');
   },
 
   /* أي سوكت مفتوح ينفع للأصدقاء: سوكت الأونلاين لو المستخدم فاتح مباراة،
@@ -207,7 +207,7 @@ const amkhFriends = {
   async inviteFriend(friendId, name, color, rated, tc) {
     const ws = await this._socketReady(4000);
     if (!ws) {
-      window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.', 'غير متصل', '◈');
+      window.amkhUI.notify('لا يوجد اتصال بالخادم حاليًا. تأكّد من اتصال الإنترنت ثم أعِد المحاولة.', 'غير متصل', '•');
       return false;
     }
     /* الداعي بيختار لونه زي الأونلاين العادي: أبيض/أسود/عشوائي. السيرفر
@@ -253,12 +253,12 @@ const amkhFriends = {
         return true;
       case 'friend:invite-sent':
         if (d.delivered === false) {
-          window.amkhUI.notify('صديقك غير متصل حاليًا — سيجد الدعوة بمجرّد فتحه التطبيق', 'الدعوة مسجّلة', '◈');
+          window.amkhUI.notify('صديقك غير متصل حاليًا — سيجد الدعوة بمجرّد فتحه التطبيق', 'الدعوة مسجّلة', '•');
         }
         return true;
       case 'friend:invite-declined': {
         const n = this._outgoingInvite && this._outgoingInvite.name;
-        window.amkhUI.notify(n ? tt`${n} رفض الدعوة` : 'تم رفض الدعوة', 'مرفوضة', '◈');
+        window.amkhUI.notify(n ? tt`${n} رفض الدعوة` : 'تم رفض الدعوة', 'مرفوضة', '•');
         /* #8 — إرجاع زر «العب» في الحال بدل انتظار المؤقّت */
         this._clearInviteWaiting(d.by || (this._outgoingInvite && this._outgoingInvite.friend_id));
         this._outgoingInvite = null;
@@ -278,7 +278,7 @@ const amkhFriends = {
            الصداقة. نعرّف السوكت فورًا ونقول له يعيد المحاولة بعد لحظة. */
         if (d.reason === 'auth') {
           try { if (window.amkhAuth && window.amkhAuth.revive) window.amkhAuth.revive('invite-auth'); } catch (e) {}
-          window.amkhUI.notify('جارٍ استعادة الاتصال — أعِد إرسال الدعوة بعد لحظة', 'لم تُرسل', '◈');
+          window.amkhUI.notify('جارٍ استعادة الاتصال — أعِد إرسال الدعوة بعد لحظة', 'لم تُرسل', '•');
           this._clearInviteWaiting(this._outgoingInvite && this._outgoingInvite.friend_id);
           this._outgoingInvite = null;
           return true;
@@ -290,7 +290,7 @@ const amkhFriends = {
           'expired': 'انتهت صلاحية الدعوة',
           'host-offline': 'اللاعب أغلق التطبيق',
         };
-        window.amkhUI.notify(map[d.reason] || 'تعذّر إتمام الدعوة', 'لم يتم', '◈');
+        window.amkhUI.notify(map[d.reason] || 'تعذّر إتمام الدعوة', 'لم يتم', '•');
         this._clearInviteWaiting(this._outgoingInvite && this._outgoingInvite.friend_id);
         this._outgoingInvite = null;
         return true;
@@ -351,7 +351,7 @@ const amkhFriends = {
       this._socketReady(4000).then((ws) => {
         if (ws) ws.send(JSON.stringify({ type: 'friend:invite-respond', invite_id: invite.id, action }));
         else if (action === 'accept') {
-          try { window.amkhUI.notify('انقطع الاتصال قبل إرسال القبول — اطلب من صديقك أن يعيد إرسال الدعوة.', 'لم يتم', '◈'); } catch (e) {}
+          try { window.amkhUI.notify('انقطع الاتصال قبل إرسال القبول — اطلب من صديقك أن يعيد إرسال الدعوة.', 'لم يتم', '•'); } catch (e) {}
         }
       });
       this._invites = this._invites.filter(i => i.id !== invite.id);
@@ -393,7 +393,7 @@ const amkhFriends = {
         if (r && r.ok) U.notify(tt`انضممت لحفلة «${pname}»`, 'تم', '◉');
         /* السيرفر بيبعت group:created لكل الأعضاء بعد القبول، وamkhChat
            بيحدّث صندوق الحفلات لوحده — مش محتاجين نعمل reload هنا. */
-        else U.notify((r && r.error) || 'تعذّر الانضمام', 'لم يتم', '◈');
+        else U.notify((r && r.error) || 'تعذّر الانضمام', 'لم يتم', '•');
       }
     };
     overlay.querySelector('[data-accept]').onclick = () => { U.sfx(); done('accept'); };
@@ -520,7 +520,7 @@ const amkhFriends = {
   async showFriendsModal() {
     const U = window.amkhUI;
     if (!window.amkhAuth || !window.amkhAuth.token) {
-      U.notify('سجّل دخولك أولًا لإضافة أصدقاء واللعب معهم', 'يلزمك حساب', '◈');
+      U.notify('سجّل دخولك أولًا لإضافة أصدقاء واللعب معهم', 'يلزمك حساب', '•');
       if (window.amkhAuth) window.amkhAuth.showLoginModal();
       return;
     }

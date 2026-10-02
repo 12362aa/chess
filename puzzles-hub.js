@@ -1272,14 +1272,14 @@ const PZH = (() => {
           amkhUI.notify(
             L('اختر صديقًا متّصلًا، ثم «مواجهة ألغاز» من قائمته.',
               'Pick an online friend, then choose “Puzzle battle” from their menu.'),
-            L('مواجهة ألغاز', 'Puzzle battle'), '◈');
+            L('مواجهة ألغاز', 'Puzzle battle'), '•');
         } catch (e) {}
         return;
       }
     } catch (e) {}
     try {
       amkhUI.notify(L('سجّل الدخول لتتحدّى أصدقاءك.', 'Sign in to challenge your friends.'),
-        L('مواجهة ألغاز', 'Puzzle battle'), '◈');
+        L('مواجهة ألغاز', 'Puzzle battle'), '•');
     } catch (e) {}
   }
 

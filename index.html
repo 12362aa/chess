@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20261001-b69"></script>
+<script src="i18n-en.js?v=20261002-b70"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -601,15 +601,25 @@ body[data-ui-theme="amkh"] .lp-card,
 body[data-ui-theme="amkh"] .mc,
 body[data-ui-theme="amkh"] .oc,
 body[data-ui-theme="amkh"] .gobox,
-body[data-ui-theme="amkh"] .rv-loadcard,
-body[data-ui-theme="amkh"] .rv-card,
-body[data-ui-theme="amkh"] .rv-coach{
+body[data-ui-theme="amkh"] .gobox{
   background:
     radial-gradient(circle at top right,rgba(201,168,76,.16),transparent 32%),
     radial-gradient(circle at bottom left,rgba(45,212,191,.08),transparent 26%),
     linear-gradient(145deg,rgba(16,10,5,.94),rgba(25,18,11,.92)) !important;
   border-color:rgba(201,168,76,.18) !important;
   box-shadow:0 22px 52px rgba(0,0,0,.34),0 0 0 1px rgba(255,214,153,.04),inset 0 1px 0 rgba(255,234,192,.05);
+}
+/* مراجعةُ المباراةِ في ثيم أمخ (بلاغُ جوجو ١): كانت بطاقاتُها تأخذُ
+   التدرّجَ البنّيَّ الذهبيَّ أعلاه بـ!important فتظهرُ ذهبيّةً لا زرقاء.
+   سطحُ أمخ الحقيقيُّ أزرقُ غامقٌ (‎--bg2:#10101e‎)، فنُرجِعُ بطاقاتِ
+   المراجعةِ إليه — نفسُ أزرقِ قسمِ الحساب الذي قالَ جوجو إنّه الصحيح. */
+body[data-ui-theme="amkh"] .rv-loadcard,
+body[data-ui-theme="amkh"] .rv-card,
+body[data-ui-theme="amkh"] .rv-coach,
+body[data-ui-theme="amkh"] .rv-sumbar{
+  background:linear-gradient(160deg,var(--bg3),var(--bg2)) !important;
+  border-color:rgba(120,150,210,.18) !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.3) !important;
 }
 body[data-ui-theme="amkh"] .mc::before{
   opacity:1;
@@ -1902,6 +1912,30 @@ body[data-ui-theme="glass"] .mc-tag{
 /* ══════════ PROMO ══════════ */
 #promo-ov{display:none;position:fixed;inset:0;background:var(--color-overlay);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);z-index:900;align-items:center;justify-content:center;}
 #promo-ov.open{display:flex;}
+/* ══ مُنتقي الترقيةِ على الرقعة (بلاغُ جوجو ٧) ══
+   طبقةٌ بمقاسِ الرقعةِ تمامًا؛ كلُّ خليّةٍ ١٢٫٥٪ = مربّعٌ واحد، فتقعُ
+   القطعُ في عمودِ الترقيةِ بالضبط مهما تغيّرَ حجمُ الرقعة. المعتِمُ على
+   الطبقةِ نفسِها لا على الشاشةِ كلِّها، فالرقعةُ تبقى هي المشهد. */
+.promo-onboard{position:absolute;inset:0;z-index:60;background:rgba(6,10,20,.62);
+  backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);border-radius:inherit;
+  animation:promoFade .14s ease both;}
+@keyframes promoFade{from{opacity:0}to{opacity:1}}
+.promo-cell{position:absolute;width:12.5%;height:12.5%;padding:0;margin:0;border:none;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  background:#f2f4f8;box-shadow:inset 0 0 0 1px rgba(10,16,28,.18);
+  transition:background .14s ease,transform .14s cubic-bezier(.34,1.56,.64,1);
+  animation:promoCell .2s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes promoCell{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
+.promo-cell:first-child{border-start-start-radius:6px;border-start-end-radius:6px;}
+.promo-cell:last-child{border-end-start-radius:6px;border-end-end-radius:6px;}
+.promo-cell .piece{width:86%;height:86%;pointer-events:none;transition:transform .14s ease;}
+.promo-cell:hover,.promo-cell:focus-visible{background:#ffffff;outline:none;}
+.promo-cell:hover .piece,.promo-cell:focus-visible .piece{transform:scale(1.1);}
+.promo-cell:active{transform:scale(.94);}
+@media (prefers-reduced-motion: reduce){
+  .promo-onboard,.promo-cell{animation:none;}
+  .promo-cell,.promo-cell .piece{transition:none;}
+}
 .pbox{background:var(--bg2);border:1px solid rgba(201,168,76,.24);border-radius:18px;padding:22px;text-align:center;box-shadow:0 0 60px rgba(201,168,76,.12);animation:pop .2s cubic-bezier(.34,1.56,.64,1);}
 @keyframes pop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
 .pbox h3{font-family:'Amiri',serif;font-size:18px;color:var(--gold2);margin-bottom:13px;}
@@ -2099,6 +2133,13 @@ body[data-ui-theme="glass"] .mc-tag{
 }
 .go-bts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;position:relative;z-index:1;}
 .bgp,.bgs{width:100%;min-height:42px;padding:0 12px;border-radius:14px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+/* أيقونةُ زرِّ مراجعةِ المباراة — مرسومةٌ ملوّنةٌ بدلَ محرفِ النجمةِ
+   «◈» الذي رفضَه جوجو (بلاغ ٦). رسمُ تحليلٍ: شاشةٌ زرقاءُ فيها أعمدةٌ
+   ذهبيّةٌ وخطُّ تقييمٍ صاعد. */
+.bgp-ic{display:inline-flex;width:18px;height:18px;flex-shrink:0;}
+.bgp-ic svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.34));}
+/* نقطةُ حالةِ المساعد: شكلٌ محايدٌ صغيرٌ لا محرفَ زخرفة */
+.tbb2-ic{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.75;flex-shrink:0;}
 .bgp{border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a14;position:relative;overflow:hidden;}
 .bgp.review{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#081615;}
 .bgp::before{
@@ -2141,9 +2182,10 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-close:hover{background:var(--bg4);color:var(--text);}
 /* scroll area */
 .rv-main{display:flex;flex-direction:column;align-items:center;width:100%;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;gap:8px;padding:0 10px calc(14px + env(safe-area-inset-bottom,0px));}
-/* board */
-:root{--rv-sz:min(74vw,340px,46dvh);--rv-sq:calc(var(--rv-sz)/8);}
-@media(max-width:440px){:root{--rv-sz:min(82vw,320px,44dvh);}}
+/* board — كبيرةٌ كرقعةِ اللعبِ (بلاغُ جوجو ١): كانت ‎74vw/340‎؛ المنافسُ
+   يملأُ العرضَ تقريبًا. شريطُ التقييمِ رفيعٌ (8px) فلا يسرقُ عرضًا. */
+:root{--rv-sz:min(90vw,440px,52dvh);--rv-sq:calc(var(--rv-sz)/8);}
+@media(max-width:440px){:root{--rv-sz:min(92vw,400px,48dvh);}}
 @media(max-height:680px){
   .rv-main{gap:6px;}
   .rv-title{font-size:16px;}
@@ -2322,6 +2364,22 @@ body[data-ui-theme="glass"] .mc-tag{
 .rv-loaddot:nth-child(2){animation-delay:.15s;}
 .rv-loaddot:nth-child(3){animation-delay:.3s;}
 .rv-loadtip{margin-top:12px;font-size:11px;color:var(--text3);position:relative;z-index:1;}
+
+/* ══ شاشةُ التحليلِ الخفيفةُ (البناء ٧٠ — بلاغُ جوجو ٤) ══
+   بلا رقعةٍ متحرّكةٍ ولا لوحةِ محرّكٍ مفصّلة. شاراتُ التصنيفِ تتوهّجُ
+   تِباعًا + شريطُ تقدّمٍ + ثلاثُ إحصاءات. كلُّ الألوانِ من التوكنات. */
+.rv-ld-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:14px 0 4px;position:relative;z-index:1;}
+.rv-ld-badge{display:inline-flex;opacity:.3;transform:scale(.85);animation:rvLdBadge 2.2s ease-in-out infinite;}
+.rv-ld-badge svg{display:block;}
+@keyframes rvLdBadge{0%,70%,100%{opacity:.32;transform:scale(.85);}18%{opacity:1;transform:scale(1.12);}36%{opacity:.7;transform:scale(1);}}
+.rv-ld-track{width:100%;max-width:300px;height:7px;margin:14px auto 0;border-radius:4px;background:var(--bg3,rgba(255,255,255,.07));overflow:hidden;position:relative;z-index:1;}
+.rv-ld-fill{height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--teal),var(--teal2,var(--color-primary)));transition:width .3s ease;box-shadow:0 0 10px rgba(45,212,191,.4);}
+.rv-ld-stats{display:flex;justify-content:center;gap:18px;margin-top:14px;position:relative;z-index:1;}
+.rv-ld-stat{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.rv-ld-k{font-size:10px;color:var(--text3);}
+.rv-ld-v{font-size:15px;font-weight:800;color:var(--teal2);font-family:monospace;}
+.rv-ld-phase{margin-top:12px;font-size:11px;color:var(--text3);position:relative;z-index:1;}
+@media (prefers-reduced-motion: reduce){.rv-ld-badge{animation:none;opacity:.7;}}
 
 /* Enhanced chess animation during analysis */
 .rv-chess-animation{
@@ -3054,7 +3112,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20261001-b69">
+<link rel="stylesheet" href="screens.css?v=20261002-b70">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -4429,7 +4487,7 @@ html.amkh-preboot #amkh-preboot{
         </div>
       </div>
       <div class="pb-caps" id="cap-b"></div>
-      <button class="pb-ast-btn" id="ast-btn-b" onclick="G.toggleAstFor('b')" style="display:none">◈</button>
+      <button class="pb-ast-btn" id="ast-btn-b" onclick="G.toggleAstFor('b')" style="display:none">●</button>
       <div class="pb-timer" id="tmr-b">—</div>
       <button class="pb-undo" id="pb-undo-b" onclick="G.undo()" style="display:none">↩</button>
     </div>
@@ -4450,7 +4508,7 @@ html.amkh-preboot #amkh-preboot{
         </div>
       </div>
       <div class="pb-caps" id="cap-w"></div>
-      <button class="pb-ast-btn" id="ast-btn-w" onclick="G.toggleAstFor('w')" style="display:none">◈</button>
+      <button class="pb-ast-btn" id="ast-btn-w" onclick="G.toggleAstFor('w')" style="display:none">●</button>
       <div class="pb-timer" id="tmr-w">—</div>
       <button class="pb-undo" id="pb-undo-w" onclick="G.undo()" style="display:none">↩</button>
     </div>
@@ -4458,7 +4516,7 @@ html.amkh-preboot #amkh-preboot{
   </div>
   <div class="gtbar">
     <button class="tbb2" id="btn-ast" onclick="G.toggleAst()">
-      <span>◈</span><span id="ast-lbl">المساعد: إيقاف</span>
+      <span class="tbb2-ic" aria-hidden="true"></span><span id="ast-lbl">المساعد: إيقاف</span>
       <span class="tbb2-dot" id="ast-dot" style="display:none"></span>
     </button>
     <button class="tbb2" id="btn-undo" onclick="G.undo()" style="display:none">
@@ -4524,21 +4582,9 @@ html.amkh-preboot #amkh-preboot{
 <!-- GAME OVER -->
 <div id="go-ov">
   <div class="gobox" id="go-box">
-    <div class="go-stage active" id="go-stage-comment">
-      <div class="go-kicker-row">
-        <span class="go-score-pill" id="go-score-pill">1-0</span>
-        <span class="go-kicker" id="go-comment-kicker">تعليق نور</span>
-      </div>
-      <div class="go-stage-sub" id="go-result-line">انتهت المباراة</div>
-      <div class="go-nour comment">
-        <img src="./nour.png" alt="Nour" class="go-nour-avatar" />
-        <div class="go-nour-body">
-          <div class="go-nour-h">نور — يراجع ما حدث</div>
-          <div class="go-nour-t" id="go-nour-t"></div>
-        </div>
-      </div>
-    </div>
-<div class="go-stage" id="go-stage-review">
+    <!-- مرحلةُ «تعليقِ نور» حُذِفَتْ (بلاغُ جوجو ٢): الشاشةُ تفتحُ
+         على النتيجةِ مباشرةً في كلِّ أوضاعِ اللعب. -->
+<div class="go-stage active" id="go-stage-review">
       <div class="go-kicker-row">
         <span class="go-score-pill" id="go-score-pill-review">1-0</span>
         <span class="go-kicker" id="go-review-kicker">مراجعة سريعة</span>
@@ -4578,7 +4624,7 @@ html.amkh-preboot #amkh-preboot{
         <button class="bgp" onclick="G.restart()">↺ مرة أخرى</button>
         <button id="go-next" class="bgp" style="display:none" onclick="G.nextLevel()">التالي ←</button>
         <button id="go-bonus" class="bgp" style="display:none" onclick="G.startLevelBonus()">لغز مكافأة</button>
-        <button id="go-review" class="bgp review" onclick="G.openReview()">◈ مراجعة المباراة</button>
+        <button id="go-review" class="bgp review" onclick="G.openReview()"><span class="bgp-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><defs><linearGradient id="gri1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd8ff"/><stop offset=".5" stop-color="#3f9ad8"/><stop offset="1" stop-color="#17568a"/></linearGradient><linearGradient id="gri2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d6"/><stop offset="1" stop-color="#dda322"/></linearGradient></defs><rect x="2.4" y="3.4" width="19.2" height="17.2" rx="3" fill="url(#gri1)"/><rect x="2.4" y="3.4" width="19.2" height="17.2" rx="3" fill="none" stroke="#0d3a5c" stroke-width="1.2"/><rect x="5.6" y="12.4" width="2.9" height="5.4" rx="1" fill="url(#gri2)"/><rect x="10.5" y="9.2" width="2.9" height="8.6" rx="1" fill="url(#gri2)"/><rect x="15.4" y="6" width="2.9" height="11.8" rx="1" fill="url(#gri2)"/><path d="M5.6 10.6 L10.2 7.4 L14.4 9 L19 5.2" fill="none" stroke="#eafcff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".92"/><circle cx="19" cy="5.2" r="1.7" fill="#eafcff"/></svg></span> مراجعة المباراة</button>
         <button class="bgs" onclick="G.goMenu()">القائمة</button>
       </div>
     </div>
@@ -4731,7 +4777,7 @@ html.amkh-preboot #amkh-preboot{
 <!-- CUSTOM ALERT/MODAL -->
 <div id="custom-modal" class="ds-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="ds-dialog">
-    <div id="modal-icon" class="ds-dialog__icon">◈</div>
+    <div id="modal-icon" class="ds-dialog__icon">•</div>
     <h2 id="modal-title" class="ds-dialog__title">تنبيه</h2>
     <p id="modal-message" class="ds-dialog__message"></p>
     <div id="modal-buttons" class="ds-dialog__actions">
@@ -4755,7 +4801,7 @@ html.amkh-preboot #amkh-preboot{
 <!-- CUSTOM INPUT MODAL (for forgot password) -->
 <div id="input-modal" class="ds-overlay" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
   <div class="ds-dialog">
-    <div id="input-modal-icon" class="ds-dialog__icon">◈</div>
+    <div id="input-modal-icon" class="ds-dialog__icon">•</div>
     <h2 id="input-modal-title" class="ds-dialog__title">إعادة تعيين كلمة المرور</h2>
     <p id="input-modal-message" class="ds-dialog__message">أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين</p>
     <input id="input-modal-field" type="email" class="ds-input" placeholder="البريد الإلكتروني"
@@ -4770,8 +4816,8 @@ html.amkh-preboot #amkh-preboot{
 <!-- REVIEW OVERLAY -->
 <div id="review-ov">
   <div class="rv-topbar">
-    <div class="rv-title">◈ مراجعة المباراة</div>
-    <button class="rv-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.close()">◆ إغلاق</button>
+    <div class="rv-title">مراجعة المباراة</div>
+    <button class="rv-close" onclick="if(typeof SFX !== 'undefined') SFX.btn(); REV.close()">إغلاق</button>
   </div>
   <div class="rv-main" id="rv-main">
     <div class="rv-loading">
@@ -6453,8 +6499,8 @@ const SettingsAccount = {
             body: JSON.stringify({ [key]: nv }),
           });
           if(res.ok){ if(onSaved) onSaved(nv); }
-          else U.notify('تعذّر الحفظ', 'لم يتم', '◈');
-        }catch(e){ U.notify('تعذّر الاتصال بالخادم — تحقّق من الإنترنت', 'لم يتم', '◈'); }
+          else U.notify('تعذّر الحفظ', 'لم يتم', '✕');
+        }catch(e){ U.notify('تعذّر الاتصال بالخادم — تحقّق من الإنترنت', 'لم يتم', '✕'); }
       };
     });
   },
@@ -6538,9 +6584,9 @@ const SettingsAccount = {
         if(onSaved) onSaved(saved);
         U.close(overlay);
       } else {
-        U.notify('تعذّر الحفظ', 'لم يتم', '◈');
+        U.notify('تعذّر الحفظ', 'لم يتم', '✕');
       }
-    }catch(e){ U.notify('تأكد من الإنترنت', 'لم يتم', '◈'); }
+    }catch(e){ U.notify('تأكد من الإنترنت', 'لم يتم', '✕'); }
   },
 
 
@@ -6615,8 +6661,8 @@ const SettingsAccount = {
         try{ localStorage.setItem('amkh_user', JSON.stringify(window.amkhAuth.user)); }catch(e){}
         valEl.textContent = '@' + data.username;
         U.notify('تم تغيير الاسم', 'تم', '◉');
-      } else U.notify(data.error || 'تعذّر تغيير الاسم', 'لم يتم', '◈');
-    }catch(e){ U.notify('تعذّر الاتصال بالخادم — تحقّق من الإنترنت', 'لم يتم', '◈'); }
+      } else U.notify(data.error || 'تعذّر تغيير الاسم', 'لم يتم', '✕');
+    }catch(e){ U.notify('تعذّر الاتصال بالخادم — تحقّق من الإنترنت', 'لم يتم', '✕'); }
   },
 
   /* حوار إدخال بسيط بيرجّع النص أو null */
@@ -7119,14 +7165,14 @@ const Cfg={
       this.data.playerImage=e.target.result;
       this._persist();
       this._updateAvatar(this.data.playerName);
-      Modal.show('تم تحميل الصورة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','◈');
+      Modal.show('تم تحميل الصورة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','✓');
     };
     reader.readAsDataURL(file);
   },
   applyProfileImage(){
     if(!this.data.playerImage) return Modal.show('لم تختر صورة بعد','تنبيه','✕');
     this._updateProfileImage();
-    Modal.show('تم تطبيق صورة الملف الشخصي','تم','◈');
+    Modal.show('تم تطبيق صورة الملف الشخصي','تم','✓');
     if(S.mode==='online'){
       OL.sendPimg(this.data.playerImage);
     }
@@ -7143,7 +7189,7 @@ const Cfg={
       av.textContent='';
     }else{
       av.style.backgroundImage='';
-      av.textContent=name?name[0].toUpperCase():'◈';
+      av.textContent=name?name[0].toUpperCase():'•';
     }
   },
   _updateProfileImage(){
@@ -7323,14 +7369,14 @@ const Cfg={
     reader.onload=(e)=>{
       this.data.customBoardImage=e.target.result;
       this._persist();
-      Modal.show('تم تحميل صورة الرقعة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','◈');
+      Modal.show('تم تحميل صورة الرقعة، اضغط "تطبيق الصورة" لحفظها.','تم التحميل','✓');
     };
     reader.readAsDataURL(file);
   },
   applyCustomBoardImage(){
     if(!this.data.customBoardImage) return Modal.show('لم تختر صورة بعد','تنبيه','✕');
     if(this.data.boardTheme==='custom')this.theme('custom');
-    Modal.show('تم تطبيق صورة الرقعة','تم','◈');
+    Modal.show('تم تطبيق صورة الرقعة','تم','✓');
   }
 };
 
@@ -8177,7 +8223,7 @@ const DSOverlay={
        كله. النوافذ كلها بتحمل ‎.ds-overlay‎ (mount + الـHTML الثابت)،
        ونوافذ اللعب بتفتح بكلاس ‎.open‎، فنحصر عليهم وحدهم. */
     const anyOpen = document.querySelector('.ds-overlay.is-open')
-      || document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open');
+      || document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open,.promo-onboard');
     if(anyOpen){
       document.body.classList.add('amkh-modal-open');
       document.body.style.overflow='hidden';
@@ -8281,7 +8327,7 @@ function amkhReleaseModalFreeze(){
      أو لعب) القفل يفضل، غير كده يتشال. نفس منطق DSOverlay عشان مايتعارضوش. */
   try{ if(window.DSOverlay&&DSOverlay._syncBodyLock){ DSOverlay._syncBodyLock(); return; } }catch(e){}
   if(document.querySelector('.ds-overlay.is-open'))return;
-  if(document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open'))return;
+  if(document.querySelector('#engine-ov.open,#promo-ov.open,#review-ov.open,#go-ov.open,.promo-onboard'))return;
   document.body.style.removeProperty('overflow');
   document.body.classList.remove('amkh-modal-open');
 }
@@ -8411,7 +8457,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 69;
+const APP_VERSION_CODE = 70;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -10340,19 +10386,19 @@ const SF=(()=>{
       const testCas={w:{K:true,Q:true},b:{K:true,Q:true}};
       const move=await bestMove(testBoard,'w',testCas,null,4,10);
       if(move&&move.length>=4){
-        el.textContent='SF ◈';
+        el.textContent='SF ●';
         el.style.background='var(--color-success-subtle)';
         el.style.color='var(--color-success)';
         el.style.borderColor='var(--color-success)';
       }else{
-        el.textContent='Local ◈';
+        el.textContent='Local ●';
         el.style.background='var(--color-primary-subtle)';
         el.style.color='var(--color-primary-text)';
         el.style.borderColor='var(--color-primary-border)';
       }
     }catch(e){
       console.error('Stockfish check failed:',e);
-      el.textContent='Local ◈';
+      el.textContent='Local ●';
       el.style.background='var(--color-primary-subtle)';
       el.style.color='var(--color-primary-text)';
       el.style.borderColor='var(--color-primary-border)';
@@ -11611,6 +11657,41 @@ function findKingSquare(board,color){
   return null;
 }
 
+/* رقعةٌ مصغّرةٌ ساكنةٌ لوضعٍ نهائيٍّ واحد (البناء ٧٠ — بلاغُ جوجو ٣/٨:
+   تخفيفُ شاشةِ النهاية). نفسُ بنيةِ createMiniBoardReplay وأنماطِها
+   بالضبط، لكن بلا مؤقّتٍ ولا حلقةِ إعادةٍ — رسمةٌ واحدةٌ تنتهي. أخفُّ
+   بمراحلَ من المُصيّرِ المتحرّكِ الذي كان يدورُ خلفَ شاشةِ النهاية. */
+function renderStaticMiniBoard(container,{board,orientation='w',tone='draw',from=null,to=null}={}){
+  if(!container||!Array.isArray(board))return;
+  const pieceUrls=getPieceUrls(normalizePieceTheme(Cfg.data.pieceStyle||Cfg.data.pieces||'neo'));
+  container.className='analysis-mini-board gameover';
+  container.dataset.tone=tone;
+  applyBoardVisual(container,{themeName:Cfg.data.boardTheme,mini:true});
+  container.innerHTML='';
+  const grid=document.createElement('div');grid.className='analysis-mini-grid';
+  const layer=document.createElement('div');layer.className='analysis-mini-piece-layer';
+  container.appendChild(grid);container.appendChild(layer);
+  const vp=(r,c)=>({left:`${(orientation==='b'?(7-c):c)*12.5}%`,top:`${(orientation==='b'?(7-r):r)*12.5}%`});
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const sq=document.createElement('div');
+    sq.className=`analysis-mini-sq ${(r+c)%2===0?'light':'dark'}`;
+    const p=vp(r,c);sq.style.left=p.left;sq.style.top=p.top;
+    if(from&&from[0]===r&&from[1]===c)sq.classList.add('from');
+    if(to&&to[0]===r&&to[1]===c)sq.classList.add('to');
+    grid.appendChild(sq);
+  }
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const piece=board[r]&&board[r][c];if(!piece)continue;
+    const color=(piece[0]||'w').toLowerCase()==='b'?'b':'w';
+    const type=(piece[1]||'P').toUpperCase();const key=color+type;
+    const el=document.createElement('div');
+    el.className=`analysis-mini-piece ${key}`;
+    if(pieceUrls[key])el.style.backgroundImage=`url("${pieceUrls[key]}")`;
+    const p=vp(r,c);el.style.left=p.left;el.style.top=p.top;
+    layer.appendChild(el);
+  }
+}
+
 function buildReplayFrames(snaps){
   if(!Array.isArray(snaps)||!snaps.length)return[];
   let bd=INIT_BD.map(r=>[...r]);
@@ -12368,27 +12449,29 @@ const REV=(()=>{
     _drawOverlay(el);
   }
 
-  /* ══ الرسمُ التوضيحيُّ على الرقعة (البناءُ ٦٩ — بلاغُ جوجو ٤) ══
-     الموقعُ المنافسُ يرسمُ أسهمًا وتصنيفاتٍ فوقَ القطعِ مباشرةً؛ كنّا
-     نكتفي بتظليلِ المربّعَين. الآن طبقةُ SVG فوقَ الرقعةِ (viewBox 8×8
-     بإحداثيّاتِ المربّعات) ترسمُ:
-     • سهمَ الحركةِ الملعوبةِ بلونِ تصنيفِها (من MOVE_MARKS).
-     • سهمَ الحركةِ المثلى أخضرَ متقطّعًا إن اختلفَتْ عمّا لُعِب.
-     • شارةَ التصنيفِ (نفسُ أيقونةِ البطاقة) على مربّعِ الوصول.
-     كلُّه pointer-events:none فلا يُعيقُ شيئًا، ويُعادُ بناؤه كلَّ نقلة. */
+  /* ══ الرسمُ التوضيحيُّ على الرقعة (البناءُ ٧٠ — بلاغُ جوجو ١/٤) ══
+     الأسهمُ كانت متقطّعةً ورفيعةً «غريبةً» كما قالَ جوجو. الآن أسهمٌ
+     مصمتةٌ ممتلئةٌ (مضلّعٌ واحدٌ: ساقٌ + رأسٌ مثلّثٌ عريض) تمامًا كالموقعِ
+     المنافس: سهمُ الحركةِ الملعوبةِ بلونِ تصنيفِها، وسهمُ أفضلِ حركةٍ
+     أخضرُ مصمتٌ (لا متقطّع) تحتَه إن اختلفا، وشارةُ التصنيفِ على مربّعِ
+     الوصول. طبقةُ SVG بإحداثيّاتِ المربّعاتِ، pointer-events:none. */
   function _sqCenter(sq){ return [sq[1] + 0.5, sq[0] + 0.5]; }
-  function _arrowPath(from, to, u){
+  function _arrowPoly(from, to){
     const [x1, y1] = _sqCenter(from), [x2, y2] = _sqCenter(to);
     const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len, uy = dy / len;
-    const head = 0.42, shrink = 0.5;             // بوحداتِ المربّع
-    const ex = x2 - ux * shrink, ey = y2 - uy * shrink;   // طرفُ الخطّ قبلَ الرأس
-    const bx = x1 + ux * 0.34, by = y1 + uy * 0.34;       // بدايةٌ خارجَ مركزِ القطعة
-    const px = -uy, py = ux;                      // عموديّ
-    const h1x = ex - ux * head + px * head * .7, h1y = ey - uy * head + py * head * .7;
-    const h2x = ex - ux * head - px * head * .7, h2y = ey - uy * head - py * head * .7;
-    return { line: `M${bx} ${by} L${ex} ${ey}`,
-             head: `M${x2 - ux * shrink * .3} ${y2 - uy * shrink * .3} L${h1x} ${h1y} L${h2x} ${h2y} Z` };
+    const ux = dx / len, uy = dy / len, px = -uy, py = ux;
+    const w = 0.13, hw = 0.30, hl = 0.46, gap = 0.08, back = 0.16;
+    const bx = x1 + ux * back, by = y1 + uy * back;        // بدايةُ الساق
+    const tx = x2 - ux * gap, ty = y2 - uy * gap;          // رأسُ السهم
+    const nx = tx - ux * hl, ny = ty - uy * hl;            // عنقُ الرأس
+    const P = (x, y) => `${x.toFixed(3)} ${y.toFixed(3)}`;
+    return 'M' + P(bx + px * w, by + py * w)
+      + ' L' + P(nx + px * w, ny + py * w)
+      + ' L' + P(nx + px * hw, ny + py * hw)
+      + ' L' + P(tx, ty)
+      + ' L' + P(nx - px * hw, ny - py * hw)
+      + ' L' + P(nx - px * w, ny - py * w)
+      + ' L' + P(bx - px * w, by - py * w) + ' Z';
   }
   function _drawOverlay(boardEl){
     const wrap = boardEl.parentElement; if (!wrap) return;
@@ -12404,23 +12487,19 @@ const REV=(()=>{
     ov.setAttribute('viewBox', '0 0 8 8');
     ov.setAttribute('preserveAspectRatio', 'none');
     const mk = (tag, attrs) => { const e = document.createElementNS(svgNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
-    /* سهمُ الحركةِ المثلى أوّلًا (تحتَ الملعوبة) */
+    /* سهمُ أفضلِ حركةٍ (أخضرُ مصمتٌ) تحتَ الملعوبة */
     if (showBest) {
-      const a = _arrowPath(mv.bestFrom, mv.bestTo);
-      ov.appendChild(mk('path', { d: a.line, stroke: '#3bb34a', 'stroke-width': .19, fill: 'none', 'stroke-linecap': 'round', 'stroke-dasharray': '.42 .3', opacity: .9 }));
-      ov.appendChild(mk('path', { d: a.head, fill: '#3bb34a', opacity: .9 }));
+      ov.appendChild(mk('path', { d: _arrowPoly(mv.bestFrom, mv.bestTo), fill: '#3bb34a', opacity: .82 }));
     }
     /* سهمُ الحركةِ الملعوبةِ بلونِ تصنيفِها */
-    const p = _arrowPath(mv.from, mv.to);
-    ov.appendChild(mk('path', { d: p.line, stroke: col, 'stroke-width': .22, fill: 'none', 'stroke-linecap': 'round' }));
-    ov.appendChild(mk('path', { d: p.head, fill: col }));
+    ov.appendChild(mk('path', { d: _arrowPoly(mv.from, mv.to), fill: col, opacity: .95 }));
     wrap.appendChild(ov);
-    /* شارةُ التصنيفِ على مربّعِ الوصولِ (عنصرٌ منفصلٌ فوقَ الـSVG) */
+    /* شارةُ التصنيفِ على مربّعِ الوصول */
     let badge = wrap.querySelector('.rv-sqbadge');
     if (badge) badge.remove();
     badge = document.createElement('div');
     badge.className = 'rv-sqbadge';
-    badge.innerHTML = moveMarkIcon(key, 20);
+    badge.innerHTML = moveMarkIcon(key, 22);
     badge.style.left = ((mv.to[1] + 1) / 8 * 100) + '%';
     badge.style.top = (mv.to[0] / 8 * 100) + '%';
     wrap.appendChild(badge);
@@ -12724,93 +12803,38 @@ Explain very briefly why it earned this classification and what could have been 
       amkhGrabModalFreeze();
       try{SFX.modalOpen('account');}catch(e){}
       
-      // Enhanced loading screen with chess animation
+      // شاشةُ تحليلٍ خفيفةٌ (بلاغُ جوجو ٤): كانت تُعيدُ تشغيلَ المباراةِ على
+      // رقعةٍ مصغّرةٍ (مُصيّرٌ متواصلٌ ثقيلٌ) وبنافذةٍ ذهبيّةٍ لا تتبعُ الثيم.
+      // الآن: بلا رقعةٍ إطلاقًا — شريطُ تقدّمٍ + شاراتُ التصنيفِ العشرُ
+      // تتوهّجُ تِباعًا (نفسُ أيقوناتِ البطاقةِ، لا نجمةٌ عامّة)، وكلُّ
+      // الألوانِ من توكناتِ الثيمِ فتتبعُ الأزرقَ في أمخ. أخفُّ بمراحل.
+      const _loadBadges=MOVE_MARK_ORDER.map((k,i)=>
+        `<span class="rv-ld-badge" style="animation-delay:${i*0.14}s">${moveMarkIcon(k,26)}</span>`).join('');
       document.getElementById('rv-main').innerHTML=`
         <div class="rv-loading">
           <div class="rv-loadcard">
-            <div class="rv-loadtitle">مراجعة المباراة</div>
-            <div class="rv-loadsub">نور يراجع النقلات ويحسب أفضل البدائل باستخدام Stockfish…</div>
-            <div class="rv-loadrow">
-              <div class="rv-spinner"></div>
-              <div class="rv-loaddots">
-                <span class="rv-loaddot"></span>
-                <span class="rv-loaddot"></span>
-                <span class="rv-loaddot"></span>
-              </div>
+            <div class="rv-loadtitle">${T('تحليل المباراة')}</div>
+            <div class="rv-loadsub">${T('نور يراجع النقلات ويحسب أفضل البدائل باستخدام Stockfish…')}</div>
+            <div class="rv-ld-badges" aria-hidden="true">${_loadBadges}</div>
+            <div class="rv-ld-track"><div class="rv-ld-fill" id="rv-ld-fill"></div></div>
+            <div class="rv-ld-stats">
+              <div class="rv-ld-stat"><span class="rv-ld-k">${T('التقدم')}</span><strong class="rv-ld-v" id="rv-stat-progress">0%</strong></div>
+              <div class="rv-ld-stat"><span class="rv-ld-k">${T('النقلات')}</span><strong class="rv-ld-v" id="rv-stat-moves">0 / 0</strong></div>
+              <div class="rv-ld-stat"><span class="rv-ld-k">${T('العمق')}</span><strong class="rv-ld-v" id="rv-engine-depth">--</strong></div>
             </div>
-            <div class="rv-chess-animation">
-              <div class="rv-mini-board" id="rv-mini-board"></div>
-            </div>
-            <div class="rv-analysis-stats">
-              <div class="rv-stat-item">
-                <div class="rv-stat-label">التقدم</div>
-                <div class="rv-stat-value" id="rv-stat-progress">0%</div>
-              </div>
-              <div class="rv-stat-item">
-                <div class="rv-stat-label">النقلات</div>
-                <div class="rv-stat-value" id="rv-stat-moves">0 / 0</div>
-              </div>
-              <div class="rv-stat-item">
-                <div class="rv-stat-label">العمق</div>
-                <div class="rv-stat-value" id="rv-engine-depth">--</div>
-              </div>
-            </div>
-            <div class="rv-engine-panel">
-              <div class="rv-engine-line">
-                <span>المرحلة</span>
-                <strong id="rv-engine-phase">تهيئة Stockfish</strong>
-              </div>
-              <div class="rv-engine-grid">
-                <div class="rv-engine-cell">
-                  <span>التقييم</span>
-                  <strong id="rv-engine-score">--</strong>
-                </div>
-                <div class="rv-engine-cell">
-                  <span>السرعة</span>
-                  <strong id="rv-engine-speed">--</strong>
-                </div>
-                <div class="rv-engine-cell">
-                  <span>العقد</span>
-                  <strong id="rv-engine-nodes">--</strong>
-                </div>
-                <div class="rv-engine-cell">
-                  <span>الوقت</span>
-                  <strong id="rv-engine-time">--</strong>
-                </div>
-                <div class="rv-engine-cell full">
-                  <span>PV</span>
-                  <strong id="rv-engine-pv">--</strong>
-                </div>
-              </div>
-            </div>
-            <div class="rv-loadtip">نصيحة: حتى النقلات الهادئة قد تكون الأفضل إذا حسّنت وضع قطعك.</div>
+            <div class="rv-ld-phase" id="rv-engine-phase">${T('تهيئة Stockfish')}</div>
           </div>
         </div>`;
-      const frames=buildReplayFrames(S.snapshots||[]);
-      const orientation=(isRemoteMatchMode()&&(S.myCol||'w')==='b')?'b':'w';
-      const miniBoard=document.getElementById('rv-mini-board');
-      if(miniBoard){
-        setMiniAnimator('review',createMiniBoardReplay(miniBoard,{
-          slot:'review',
-          variant:'review',
-          tone:'draw',
-          frames,
-          orientation,
-          sound:true
-        }));
-      }
-      
+      /* عناصرُ المحرّكِ المفصّلةُ (السرعة/العقد/الوقت/PV) حُذِفَتْ من الشاشةِ
+         — تفاصيلُ تقنيّةٌ لا تهمُّ اللاعبَ وتُثقِلُ التحديثَ كلَّ onEngineInfo.
+         نُبقي مراجعَها فارغةً حتّى لا ينكسرَ ما يكتبُ إليها. */
       requestAnimationFrame(async ()=>{
         try{
           const progressEl=document.getElementById('rv-stat-progress');
           const movesEl=document.getElementById('rv-stat-moves');
           const depthEl=document.getElementById('rv-engine-depth');
           const phaseEl=document.getElementById('rv-engine-phase');
-          const scoreEl=document.getElementById('rv-engine-score');
-          const speedEl=document.getElementById('rv-engine-speed');
-          const nodesEl=document.getElementById('rv-engine-nodes');
-          const timeEl=document.getElementById('rv-engine-time');
-          const pvEl=document.getElementById('rv-engine-pv');
+          const fillEl=document.getElementById('rv-ld-fill');
           const hasCached=!!(_data&&_analysisKey===_currentAnalysisKey());
           const startedAt=performance.now();
           _data=await ensureAnalysis({
@@ -12819,6 +12843,7 @@ Explain very briefly why it earned this classification and what could have been 
               const safeProcessed=Math.min(processed||0,safeTotal);
               const progress=Math.round((safeProcessed/safeTotal)*100);
               if(progressEl)progressEl.textContent=progress+'%';
+              if(fillEl)fillEl.style.width=progress+'%';
               if(movesEl)movesEl.textContent=`${safeProcessed} / ${safeTotal}`;
             },
             onEngineInfo:({phase,processed,total,info})=>{
@@ -12828,11 +12853,6 @@ Explain very briefly why it earned this classification and what could have been 
               }
               if(!info)return;
               if(depthEl&&Number.isFinite(info.depth))depthEl.textContent=`${info.depth}${Number.isFinite(info.selDepth)?`/${info.selDepth}`:''}`;
-              if(scoreEl)scoreEl.textContent=_formatEngineScore(info);
-              if(speedEl)speedEl.textContent=Number.isFinite(info.nps)?`${Math.round(info.nps/1000)}k n/s`:'--';
-              if(nodesEl)nodesEl.textContent=Number.isFinite(info.nodes)?info.nodes.toLocaleString('en-US'):'--';
-              if(timeEl)timeEl.textContent=Number.isFinite(info.timeMs)?`${info.timeMs} ms`:'--';
-              if(pvEl&&info.pv)pvEl.textContent=_formatEnginePv(info.pv);
             }
           });
           const minDelay=hasCached?850:0;
@@ -13254,15 +13274,15 @@ const R={
     if(isRemoteMatchMode()){
       const myEl=S.myCol==='b'?bEl:wEl;
       const opEl=S.myCol==='b'?wEl:bEl;
-      if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
+      if(S.assistOn){myEl.className='pb-ast on';myEl.textContent=S.astBusy?'◌ يحسب...':'● المساعد نشط';}
       if(S.oppUsingAssist){opEl.className='pb-ast spy';opEl.textContent='◆ الخصم يستخدم المساعد';}
     }else if(isSingleEngineMode()){
-      if(S.assistOn){wEl.className='pb-ast on';wEl.textContent=S.astBusy?'◌ يحسب...':'◈ المساعد نشط';}
+      if(S.assistOn){wEl.className='pb-ast on';wEl.textContent=S.astBusy?'◌ يحسب...':'● المساعد نشط';}
     }else if(S.mode==='local'){
       if(wBtn){wBtn.style.display='flex';wBtn.classList.toggle('on',S.assistW);}
       if(bBtn){bBtn.style.display='flex';bBtn.classList.toggle('on',S.assistB);}
-      if(S.assistW){wEl.className='pb-ast on';wEl.textContent=S.turn==='w'&&S.astBusy?'◌ يحسب...':'◈ نشط';}
-      if(S.assistB){bEl.className='pb-ast on';bEl.textContent=S.turn==='b'&&S.astBusy?'◌ يحسب...':'◈ نشط';}
+      if(S.assistW){wEl.className='pb-ast on';wEl.textContent=S.turn==='w'&&S.astBusy?'◌ يحسب...':'● نشط';}
+      if(S.assistB){bEl.className='pb-ast on';bEl.textContent=S.turn==='b'&&S.astBusy?'◌ يحسب...':'● نشط';}
     }
   },
   toolbar(){
@@ -13759,10 +13779,7 @@ const G={
     stopMiniAnimator('gameover');
     document.getElementById('go-ov').classList.remove('open');
     amkhReleaseModalFreeze();
-    document.getElementById('go-stage-comment').classList.add('active');
-    document.getElementById('go-stage-review').classList.remove('active');
-    const commentEl=document.getElementById('go-nour-t');
-    if(commentEl)commentEl.classList.remove('typing');
+    document.getElementById('go-stage-review')?.classList.add('active');
   },
   _scoreForWinner(winner){
     if(winner==='w')return '1-0';
@@ -14314,9 +14331,9 @@ const G={
     step();
   },
   _setQuickStage(stage){
-    document.getElementById('go-stage-comment').classList.toggle('active',stage==='comment');
-    document.getElementById('go-stage-review').classList.toggle('active',stage==='review');
-    document.getElementById('go-box')?.classList.toggle('comment-mode',stage==='comment');
+    /* ما بقيَتْ إلّا مرحلةُ النتيجةِ بعدَ حذفِ تعليقِ نور (بلاغ ٢) */
+    document.getElementById('go-stage-review')?.classList.add('active');
+    document.getElementById('go-box')?.classList.remove('comment-mode');
   },
   _primeQuickReview(result){
     const score=result.score||this._scoreForWinner(result.winner);
@@ -14369,30 +14386,29 @@ const G={
     const phaseEl=document.getElementById('go-engine-phase');
     if(reviewNote)reviewNote.textContent=result.detail||comment;
     this._primeQuickReview(result);
-    this._setQuickStage('comment');
+    /* بلاغُ جوجو ٢: «أزِلْ تعليقَ نورٍ من كلِّ أوضاعِ اللعبِ فورَ انتهاءِ
+       المباراة». المرحلةُ الأولى (تعليقُ نور + الكتابةُ حرفًا حرفًا +
+       مؤقّتُ الانتقالِ ٧٠٠ms) حُذِفَتْ كلُّها، والشاشةُ تفتحُ على النتيجةِ
+       مباشرةً — وهذا وحدَه يوفّرُ ثانيتَينِ من الانتظارِ وحلقةَ مؤقّتاتٍ
+       كاملةً عندَ كلِّ نهايةِ مباراة (بلاغ ٣: التخفيف). */
+    this._setQuickStage('review');
     document.getElementById('go-ov').classList.add('open');
     amkhGrabModalFreeze();
     try{const _t=(S.endState&&S.endState.tone);SFX.modalOpen(_t==='loss'?'error':_t==='draw'?'default':'success');}catch(e){}
     /* احتفالُ الفوزِ المُجهَّز (المرحلة ٤): يُشغَّلُ مِلءَ الشاشةِ عند الفوزِ فقط،
        يقرأ المُجهَّزَ (celebration + mate_fx) من amkhEconomy ويُزيلُ نفسَه. */
     try{ if(S.endState&&S.endState.tone==='win'&&window.amkhCos&&amkhCos.celebrate){ amkhCos.celebrate(); } }catch(e){}
-    this._typeQuickText(document.getElementById('go-nour-t'),comment,token,()=>{
-      if(token!==S._resultToken||!S.endState)return;
-      S._goStageTimer=setTimeout(()=>{
-        if(token!==S._resultToken||!S.endState)return;
-        this._setQuickStage('review');
-        const miniBoard=document.getElementById('go-mini-board');
-        const frames=buildReplayFrames(S.snapshots||[]);
+    /* بلاغُ جوجو ٣ (التخفيف): رقعةُ النهايةِ كانت تُعيدُ تشغيلَ المباراةِ
+       كلِّها بمؤقّتٍ متواصلٍ خلفَ الشاشة. استُبدِلَتْ برسمةٍ ساكنةٍ واحدةٍ
+       للوضعِ الأخيرِ — نفسُ الشكلِ الذي يحبُّه جوجو، أخفُّ بمراحل. */
+    try{
+      const miniBoard=document.getElementById('go-mini-board');
+      if(miniBoard){
         const orientation=(isRemoteMatchMode()&&(S.myCol||'w')==='b')?'b':'w';
-        setMiniAnimator('gameover',createMiniBoardReplay(miniBoard,{
-          slot:'gameover',
-          variant:'gameover',
-          tone:result.tone||'draw',
-          frames,
-          orientation
-        }));
-      },700);
-    });
+        renderStaticMiniBoard(miniBoard,{board:S.bd,orientation,tone:result.tone||'draw',
+          from:S.lastMove&&S.lastMove.from,to:S.lastMove&&S.lastMove.to});
+      }
+    }catch(e){}
     if(S.hist.length>=4){
       REV.ensureAnalysis({
         onProgress:({processed,total})=>{
@@ -14448,15 +14464,9 @@ const G={
     try{SFX.modalOpen('default');}catch(e){}
     const miniBoard=document.getElementById('go-mini-board');
     if(miniBoard){
-      const frames=buildReplayFrames(S.snapshots||[]);
       const orientation=(isRemoteMatchMode()&&(S.myCol||'w')==='b')?'b':'w';
-      setMiniAnimator('gameover',createMiniBoardReplay(miniBoard,{
-        slot:'gameover',
-        variant:'gameover',
-        tone:S.endState.tone||'draw',
-        frames,
-        orientation
-      }));
+      renderStaticMiniBoard(miniBoard,{board:S.bd,orientation,tone:S.endState.tone||'draw',
+        from:S.lastMove&&S.lastMove.from,to:S.lastMove&&S.lastMove.to});
     }
     const reviewNote=document.getElementById('go-review-note');
     const progressEl=document.getElementById('go-stat-progress');
@@ -15030,18 +15040,72 @@ const G={
       else if(window.PZU)PZU.openHub();
     }catch(e){}
   },
+  /* ══ ترقيةُ البيدقِ على الرقعةِ مباشرةً — لا نافذة (بلاغُ جوجو ٧) ══
+     كانت نافذةً منفصلةً تُغطّي الشاشةَ وتقطعُ الإحساسَ باللعب. الآن —
+     كما في المواقعِ الكبرى — تظهرُ القطعُ الأربعُ مرصوصةً **عموديًّا في
+     عمودِ الترقيةِ نفسِه فوقَ الرقعة**: الوزيرُ عندَ مربّعِ الوصولِ ثمّ
+     الرخُّ فالفيلُ فالحصانُ نزولًا (أو صعودًا إن كانت الترقيةُ في الأسفل)،
+     وطبقةٌ معتمةٌ خفيفةٌ على بقيّةِ الرقعةِ تُبرِزُها. النقرُ خارجَها
+     يُلغي. القطعُ من طقمِ اللاعبِ المختارِ في الإعداداتِ بالضبط (نفسُ
+     أصنافِ ‎.piece‎) فتُطابِقُ ما يراه في مباراتِه. */
   showPromo(cl){
+    const S_=S.pending; if(!S_) return;
+    const wrap=document.getElementById('bwrap');
+    const board=document.getElementById('board');
+    if(!wrap||!board){ this._showPromoFallback(cl); return; }
+    const old=wrap.querySelector('.promo-onboard'); if(old)old.remove();
+    const [tr,tc]=S_.to;
+    /* نفسُ قلبِ الرقعةِ المستعملِ في الرسم، وإلّا ظهرَ العمودُ في الجهةِ الخطأ */
+    const flip=(isRemoteMatchMode() && S.myCol==='b');
+    const vc=flip?7-tc:tc;              // عمودُ العرضِ
+    const vr=flip?7-tr:tr;              // صفُّ العرضِ لمربّعِ الوصول
+    const downward=(vr<4);              // الترقيةُ في الأعلى ⇒ تنزلُ القائمةُ
+    const tps=['Q','R','B','N'];
+    const NAMES={Q:LP('وزير','Queen'),R:LP('رخ','Rook'),B:LP('فيل','Bishop'),N:LP('حصان','Knight')};
+    const ov=document.createElement('div');
+    ov.className='promo-onboard';
+    tps.forEach((tp,i)=>{
+      const row=downward?(vr+i):(vr-i);
+      if(row<0||row>7)return;
+      const cell=document.createElement('button');
+      cell.type='button';
+      cell.className='promo-cell';
+      cell.style.left=(vc*12.5)+'%';
+      cell.style.top=(row*12.5)+'%';
+      cell.setAttribute('aria-label',NAMES[tp]);
+      cell.title=NAMES[tp];
+      cell.style.animationDelay=(i*45)+'ms';
+      const pc=document.createElement('div');
+      pc.className='piece '+cl+tp;      // طقمُ اللاعبِ نفسُه
+      cell.appendChild(pc);
+      cell.onclick=e=>{
+        e.stopPropagation();
+        SFX.btn();
+        ov.remove(); amkhReleaseModalFreeze();
+        const{fr,to}=S.pending||{}; S.pending=null;
+        if(fr&&to)this.finish(fr,to,tp);
+      };
+      ov.appendChild(cell);
+    });
+    /* النقرُ على المعتِمِ يُلغي الترقيةَ ويُرجِعُ البيدقَ مكانَه */
+    ov.onclick=()=>{ ov.remove(); amkhReleaseModalFreeze(); S.pending=null; try{UI.board();}catch(e){} };
+    ov.oncontextmenu=()=>false;
+    wrap.appendChild(ov);
+    amkhGrabModalFreeze();
+    try{SFX.modalOpen('success');}catch(e){}
+  },
+  /* احتياطيٌّ لو تعذّرَ إيجادُ الرقعةِ (لا يُفترَضُ أن يحدث) */
+  _showPromoFallback(cl){
     const tps=['Q','R','B','N'],ov=document.getElementById('promo-ov'),row=document.getElementById('prow');
+    if(!ov||!row)return;
     row.innerHTML='';
     tps.forEach(tp=>{
       const b=document.createElement('div');b.className='pp '+cl+tp;
-      b.title={Q:'وزير',R:'رخ',B:'فيل',N:'حصان'}[tp];
       b.onclick=()=>{SFX.btn();ov.classList.remove('open');amkhReleaseModalFreeze();
         const{fr,to}=S.pending;S.pending=null;this.finish(fr,to,tp);};
       row.appendChild(b);});
     ov.classList.add('open');
     amkhGrabModalFreeze();
-    try{SFX.modalOpen('success');}catch(e){}
   },
   restart(){
     SFX.btn();this._hideQuickReview();this._cancelEngineThink();
@@ -15271,7 +15335,7 @@ const Nav={
       if(window.Modal&&Modal.show){
         Modal.show(
           'قريبًا ستفتح المتجر على عناصر وأطقمٍ للقطع والرقعة، وأكثر — تحديثٌ كبير قادم.',
-          'المتجر في الطريق','◈',null);
+          'المتجر في الطريق','•',null);
       }
     }catch(e){}
   },
@@ -16167,11 +16231,11 @@ const OL=(()=>{
       SFX.btn();
       const FR=window.amkhFriends;
       if(!this._tok()){
-        try{ (window.amkhUI||window.U).notify('سجّل الدخول أولًا حتى تظهر قائمة أصدقائك وتستطيع دعوتهم.','لعب مع صديق','◈'); }catch(e){}
+        try{ (window.amkhUI||window.U).notify('سجّل الدخول أولًا حتى تظهر قائمة أصدقائك وتستطيع دعوتهم.','لعب مع صديق','•'); }catch(e){}
         return;
       }
       if(!FR||!FR.showFriendsModal){
-        try{ (window.amkhUI||window.U).notify('قائمة الأصدقاء غير متاحة الآن. أعِد المحاولة بعد لحظة.','لم يتم','◈'); }catch(e){}
+        try{ (window.amkhUI||window.U).notify('قائمة الأصدقاء غير متاحة الآن. أعِد المحاولة بعد لحظة.','لم يتم','•'); }catch(e){}
         return;
       }
       FR._prefill={ color:this.pc||'w', rated:!!this.rt, tcKey:this.tcKey||'none' };
@@ -16670,7 +16734,7 @@ function saveSettingsUsername(){
   // Update player names in active game if any
   updatePlayerNamesInGame();
   if(typeof SFX!=='undefined')SFX.btn();
-  if(typeof Modal!=='undefined')Modal.show('تم حفظ الاسم بنجاح','تم','◈');
+  if(typeof Modal!=='undefined')Modal.show('تم حفظ الاسم بنجاح','تم','✓');
 }
 
 function updatePlayerNamesInGame(){
@@ -16712,7 +16776,7 @@ function handleSettingsProfileImage(input){
          مايشوفوهاش من الأصل لأن القائمة بتقرأها من الحساب. */
       try{ Cfg._syncAvatarToServer(imageData); }catch(e){}
       if(typeof SFX!=='undefined')SFX.btn();
-      if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','◈');
+      if(typeof Modal!=='undefined')Modal.show('تم تحديث الصورة الشخصية','تم','✓');
     };
     reader.readAsDataURL(input.files[0]);
   }
@@ -17149,19 +17213,19 @@ window.addEventListener('beforeunload',()=>{
   <script src="ble-bundle.js"></script>
   <!-- حزمة الدخول بجوجل: بتعرّف window.amkhGoogleAuth -->
   <script src="gauth-bundle.js"></script>
-  <script src="auth-client.js?v=20261001-b69"></script>
+  <script src="auth-client.js?v=20261002-b70"></script>
   <!-- شاشة الترحيب (أول تشغيل): لازم تتحمّل قبل amkhAuth.init() اللي
        بتناديها، وinit مؤجّلة بـ1000ms فالترتيب هنا كفاية -->
   <script src="welcome-client.js?v=20260924-b49"></script>
-  <script src="friends-client.js?v=20260928-b66"></script>
-  <script src="chat-client.js?v=20260927-b58"></script>
-  <script src="call-client.js?v=20260916-b37"></script>
+  <script src="friends-client.js?v=20261002-b70"></script>
+  <script src="chat-client.js?v=20261002-b70"></script>
+  <script src="call-client.js?v=20261002-b70"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20261001-b69"></script>
+  <script src="economy-client.js?v=20261002-b70"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20261001-b69"></script>
+  <script src="store-client.js?v=20261002-b70"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
   <script src="rewards-client.js?v=20260928-b66"></script>
@@ -17176,10 +17240,10 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-client.js?v=20260919-b38"></script>
   <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
-  <script src="puzzles-ui.js?v=20260926-b51"></script>
-  <script src="puzzles-hub.js?v=20261001-b69"></script>
+  <script src="puzzles-ui.js?v=20261002-b70"></script>
+  <script src="puzzles-hub.js?v=20261002-b70"></script>
   <script src="levels-ui.js?v=20260921-b41"></script>
-  <script src="mic-client.js?v=20260922-b41"></script>
+  <script src="mic-client.js?v=20261002-b70"></script>
 <script>
 const BLEManager = {
   isHost: false,
