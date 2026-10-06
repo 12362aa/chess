@@ -266,9 +266,54 @@
         tabs[i].classList.toggle('is-on', tabs[i].getAttribute('data-tab') === this._tab);
       }
       var body = document.getElementById('rw-body'); if (!body) return;
-      if (this._tab === 'achievements') body.innerHTML = this._achievementsHTML();
-      else if (this._tab === 'inventory') body.innerHTML = this._inventoryHTML();
-      else body.innerHTML = this._missionsHTML();
+      if (this._tab === 'achievements') { body.innerHTML = this._achievementsHTML(); }
+      else if (this._tab === 'inventory') { body.innerHTML = this._inventoryHTML(); this._mountInvArt(); }
+      else { body.innerHTML = this._missionsHTML(); }
+      if (this._tab !== 'inventory' && this._invObs) { try { this._invObs.disconnect(); } catch (e) {} this._invObs = null; }
+    },
+
+    /* تركيبُ رسومِ المخزونِ على الطلب + التجهيزُ الموضعيُّ — نفسُ علاجِ
+       المتجر: مُراقِبُ تقاطعٍ يرسمُ ما يُرى فقط، وتجهيزٌ يحدّثُ بطاقةً دونَ
+       إعادةِ بناءِ التبويبِ كلِّه (أداءُ البند ١). */
+    _mountInvArt: function () {
+      var body = document.getElementById('rw-body'); if (!body) return;
+      if (this._invObs) { try { this._invObs.disconnect(); } catch (e) {} this._invObs = null; }
+      var meta = this._itemMeta || {};
+      var hosts = body.querySelectorAll('[data-invart]');
+      if (!hosts.length) return;
+      var reduce = false; try { reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+      var paint = function (h) {
+        if (h.getAttribute('data-on') === '1') return;
+        var m = meta[h.getAttribute('data-invart')]; if (!m) return;
+        var svg = (window.STORE && STORE.art) ? STORE.art(m) : '';
+        if (reduce) svg = svg.replace(/<animate[A-Za-z]*[^>]*\/>/g, '');
+        h.innerHTML = svg; h.setAttribute('data-on', '1');
+      };
+      var wipe = function (h) { if (h.getAttribute('data-on') !== '1') return; h.innerHTML = ''; h.removeAttribute('data-on'); };
+      if (!window.IntersectionObserver) { for (var i = 0; i < hosts.length; i++) paint(hosts[i]); return; }
+      var ov = document.getElementById('rewards-ov');
+      var root = (ov && ov.querySelector('.store-scroll')) || null;
+      this._invObs = new IntersectionObserver(function (ents) {
+        for (var k = 0; k < ents.length; k++) { if (ents[k].isIntersecting) paint(ents[k].target); else wipe(ents[k].target); }
+      }, { root: root, rootMargin: '200px 0px', threshold: 0 });
+      for (var j = 0; j < hosts.length; j++) this._invObs.observe(hosts[j]);
+    },
+
+    /* تحديثٌ موضعيٌّ لحالةِ التجهيزِ في المخزونِ دونَ لمسِ الرسوم. */
+    _syncInv: function () {
+      var body = document.getElementById('rw-body'); if (!body) return;
+      var s = state() || {}, eq = s.equipped || {};
+      body.querySelectorAll('.rw-inv').forEach(function (card) {
+        var btn = card.querySelector('[data-equip]'); if (!btn) return;
+        var host = card.querySelector('[data-invart]'); if (!host) return;
+        var id = host.getAttribute('data-invart');
+        var type = btn.getAttribute('data-type');
+        var isEq = eq[type] === id;
+        card.classList.toggle('is-eq', isEq);
+        btn.classList.toggle('is-on', isEq);
+        btn.setAttribute('data-equip', isEq ? '' : id);
+        btn.textContent = isEq ? L('مُجهَّز — إلغاء', 'Equipped — remove') : L('تجهيز', 'Equip');
+      });
     },
 
     _renderHead: function () {
@@ -429,14 +474,15 @@
         html += '<div class="rw-sec"><div class="rw-sec__hd"><span class="rw-sec__ic" aria-hidden="true">' + cic + '</span><span class="rw-sec__ttl">' + esc(tn) + '</span>'
           + '<span class="rw-sec__sub">' + list.length + '</span></div><div class="rw-inv-grid">';
         list.forEach(function (m) {
-          var art = (window.STORE && STORE.art) ? STORE.art(m) : '';
           var isEq = eq[tp] === m.id;
           var rar = m.rarity || 'common';
           var rn = R[rar] ? L(R[rar].ar, R[rar].en) : rar;
+          /* مضيفُ الرسمِ يُولَدُ فارغًا ويُركَّبُ عند دخولِه الرؤيةَ (أداءُ
+             البند ١) — تمامًا كالمتجر، فلا تعملُ ٦٨ حركةَ SMIL دفعةً واحدة. */
           html += '<div class="rw-inv rw-inv--' + esc(rar) + (isEq ? ' is-eq' : '') + '">'
             + '<i class="rw-plate" aria-hidden="true"></i>'
             + '<span class="rw-inv__rar">' + esc(rn) + '</span>'
-            + '<div class="rw-inv__art">' + art + '</div>'
+            + '<div class="rw-inv__art" data-invart="' + esc(m.id) + '"></div>'
             + '<div class="rw-inv__name">' + esc(L(m.ar, m.en)) + '</div>'
             + '<button class="rw-equip' + (isEq ? ' is-on' : '') + '" type="button" data-equip="' + (isEq ? '' : esc(m.id)) + '" data-type="' + esc(tp) + '">'
             + esc(isEq ? L('مُجهَّز — إلغاء', 'Equipped — remove') : L('تجهيز', 'Equip')) + '</button>'
@@ -456,7 +502,7 @@
         .catch(function () { if (done) done(null); });
     },
     _claim: function (id) { try { if (window.SFX) SFX.btn(); } catch (e) {} var self = this; this._post('/economy/claim-mission', { missionId: id }, function () { self._render(); }); },
-    _equip: function (itemId, type) { try { if (window.SFX) SFX.btn(); } catch (e) {} var self = this; this._post('/economy/equip', { itemId: itemId || '', type: type || '' }, function () { self._render(); }); }
+    _equip: function (itemId, type) { try { if (window.SFX) SFX.btn(); } catch (e) {} var self = this; this._post('/economy/equip', { itemId: itemId || '', type: type || '' }, function () { if (self._tab === 'inventory') self._syncInv(); else self._render(); }); }
   };
 
   window.REWARDS = REWARDS;
@@ -475,6 +521,15 @@
       _lvlSeen = lvl;
     } catch (e) {}
   }
-  try { window.addEventListener('amkh:cosmetics', function () { _watchLevel(); if (REWARDS._open) REWARDS._render(); }); } catch (e) {}
+  try { window.addEventListener('amkh:cosmetics', function () {
+    _watchLevel();
+    if (!REWARDS._open) return;
+    /* الرصيدُ/المستوى يُحدَّثان دائمًا (رخيص)، أمّا جسمُ التبويبِ: المخزونُ
+       تحديثٌ موضعيٌّ لحالةِ التجهيزِ فقط (لا إعادةَ رسمٍ ثقيلة)، وغيرُه
+       إعادةُ بناءٍ كاملةٌ لأنّ محتواه قد يتغيّر (أداءُ البند ١). */
+    try { REWARDS._renderBar(); } catch (e) {}
+    if (REWARDS._tab === 'inventory') { try { REWARDS._syncInv(); } catch (e) {} }
+    else REWARDS._render();
+  }); } catch (e) {}
   try { window.addEventListener('amkh:lang', function () { if (REWARDS._open) REWARDS._render(); }); } catch (e) {}
 })();

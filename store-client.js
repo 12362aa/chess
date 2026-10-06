@@ -354,12 +354,7 @@
       grid.querySelectorAll('.store-card').forEach(function (c) {
         c.onclick = function (e) { if (e.target.closest('[data-buy],[data-equip]')) return; STORE.openDetail(c.getAttribute('data-id')); };
       });
-      grid.querySelectorAll('[data-buy]').forEach(function (b) {
-        b.onclick = function (e) { e.stopPropagation(); try { if (window.SFX) SFX.btn(); } catch (er) {} STORE.buy(b.getAttribute('data-buy')); };
-      });
-      grid.querySelectorAll('[data-equip]').forEach(function (b) {
-        b.onclick = function (e) { e.stopPropagation(); STORE.equip(b.getAttribute('data-equip'), b.getAttribute('data-type')); };
-      });
+      this._wireFoot(grid);
       this._mountArt(grid);
       this._startCountdown(data.serverNow, data.endsAt);
     },
@@ -389,24 +384,29 @@
       });
     },
 
+    /* زرُّ الإجراءِ (شراء/تجهيز/قريبًا) — مفصولٌ ليُعادَ بناؤُه وحدَه عند
+       الشراءِ أو التجهيزِ دونَ لمسِ الرسمِ المركَّبِ (أداءُ البند ١). */
+    _foot: function (it, have, inWin) {
+      if (have) {
+        var eq = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.equipped) || {};
+        var isEq = eq[it.type] === it.id;
+        return '<button class="store-equip' + (isEq ? ' is-on' : '') + '" data-equip="' + esc(it.id) + '" data-type="' + esc(it.type) + '">'
+          + esc(isEq ? L('مُجهَّز', 'Equipped') : L('تجهيز', 'Equip')) + '</button>';
+      }
+      if (inWin) {
+        var canAfford = (window.amkhEconomy ? amkhEconomy.coins() : 0) >= it.price;
+        return '<button class="store-buy' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true">' + coinIc() + '</span>' + it.price + '</button>';
+      }
+      /* خارجَ نافذةِ العرضِ: يُرى دائمًا لكن لا يُشترى إلا في دورتِه. */
+      return '<span class="store-soon"><span class="store-soon__lock" aria-hidden="true">' + LOCK_SVG + '</span>' + esc(L('يظهر في دورتِه', 'Unlocks in rotation')) + '</span>';
+    },
+
     _card: function (it, owned) {
       var r = RARITY[it.rarity] || RARITY.common;
       var name = L(it.ar, it.en);
       var have = owned || it.owned;
       var inWin = it.inWindow !== false;                 /* الخادمُ الجديدُ يبعثُ كلَّ الكتالوجِ مع inWindow */
-      var canAfford = (window.amkhEconomy ? amkhEconomy.coins() : 0) >= it.price;
-      var action;
-      if (have) {
-        var eq = (window.amkhEconomy && amkhEconomy.state && amkhEconomy.state.equipped) || {};
-        var isEq = eq[it.type] === it.id;
-        action = '<button class="store-equip' + (isEq ? ' is-on' : '') + '" data-equip="' + esc(it.id) + '" data-type="' + esc(it.type) + '">'
-          + esc(isEq ? L('مُجهَّز', 'Equipped') : L('تجهيز', 'Equip')) + '</button>';
-      } else if (inWin) {
-        action = '<button class="store-buy' + (canAfford ? '' : ' is-locked') + '" data-buy="' + esc(it.id) + '"><span class="store-buy__coin" aria-hidden="true">' + coinIc() + '</span>' + it.price + '</button>';
-      } else {
-        /* خارجَ نافذةِ العرضِ: يُرى دائمًا لكن لا يُشترى إلا في دورتِه. */
-        action = '<span class="store-soon"><span class="store-soon__lock" aria-hidden="true">' + LOCK_SVG + '</span>' + esc(L('يظهر في دورتِه', 'Unlocks in rotation')) + '</span>';
-      }
+      var action = this._foot(it, have, inWin);
       var stateCls = have ? ' is-owned' : (inWin ? ' in-window' : ' is-window-locked');
       /* صفٌّ علويٌّ من خانتين: وسمُ الندرةِ بدايةً و«i» نهايةً. «متاحٌ الآن»
          حُذِفَ كليًّا (بلاغُ جوجو) — الإتاحةُ تُقرأُ من توهّجِ البطاقةِ ومن زرِّ
@@ -455,6 +455,51 @@
         for (var k = 0; k < ents.length; k++) { if (ents[k].isIntersecting) paint(ents[k].target); else wipe(ents[k].target); }
       }, { root: (ov && ov.querySelector('.store-scroll')) || null, rootMargin: '200px 0px', threshold: 0 });
       for (var j = 0; j < hosts.length; j++) this._obs.observe(hosts[j]);
+    },
+
+    /* تحديثٌ موضعيٌّ خفيفٌ بعد الشراءِ/التجهيزِ — بدلَ إعادةِ بناءِ الشبكةِ
+       كلِّها (التي كانت تُعيدُ رسمَ كلِّ البطاقاتِ وتُنشئُ المُراقِبَ من جديدٍ
+       فيتلعثمُ المتجرُ لحظةَ الشراء). نكتفي بتحديثِ تذييلِ كلِّ بطاقةٍ وحالتِها
+       (مملوك/مُجهَّز/السعرُ ميسور) دونَ لمسِ مضيفِ الرسمِ المركَّبِ إطلاقًا،
+       فيبقى الـSVG الظاهرُ كما هو ولا يُعادُ تشغيلُه (بلاغُ جوجو ١ — الأداء). */
+    /* هل نافذةُ الكتالوجِ الجديدةُ تطابقُ المعروضةَ الآن (نفسُ المعرّفاتِ
+       بنفسِ الترتيب)؟ إن نعم يكفي تحديثٌ موضعيٌّ. */
+    _sameWindow: function (store) {
+      if (!store || !store.items || !this._cur || !this._cur.items) return false;
+      var a = this._cur.items, b = store.items;
+      if (a.length !== b.length) return false;
+      for (var i = 0; i < a.length; i++) if (a[i].id !== b[i].id) return false;
+      return true;
+    },
+
+    _sync: function () {
+      var ov = document.getElementById('store-ov'); if (!ov) return;
+      var grid = ov.querySelector('#store-grid') || document.getElementById('store-grid'); if (!grid) return;
+      var eco = window.amkhEconomy;
+      var owned = (eco && eco.state && eco.state.owned) || [];
+      var self = this;
+      grid.querySelectorAll('.store-card').forEach(function (card) {
+        var id = card.getAttribute('data-id');
+        var it = self._byId && self._byId[id]; if (!it) return;
+        var have = owned.indexOf(id) >= 0 || it.owned;
+        var inWin = it.inWindow !== false;
+        card.classList.toggle('is-owned', have);
+        card.classList.toggle('in-window', !have && inWin);
+        card.classList.toggle('is-window-locked', !have && !inWin);
+        var foot = card.querySelector('.store-card__foot');
+        if (foot) { foot.innerHTML = self._foot(it, have, inWin); }
+      });
+      this._wireFoot(grid);
+    },
+
+    /* يربطُ أزرارَ الشراءِ/التجهيزِ (تُعادُ بعدَ _sync أو عندَ البناءِ الكامل). */
+    _wireFoot: function (grid) {
+      grid.querySelectorAll('[data-buy]').forEach(function (b) {
+        b.onclick = function (e) { e.stopPropagation(); try { if (window.SFX) SFX.btn(); } catch (er) {} STORE.buy(b.getAttribute('data-buy')); };
+      });
+      grid.querySelectorAll('[data-equip]').forEach(function (b) {
+        b.onclick = function (e) { e.stopPropagation(); STORE.equip(b.getAttribute('data-equip'), b.getAttribute('data-type')); };
+      });
     },
 
     /* بطاقةُ تفاصيلِ العنصرِ: معاينةٌ كبيرةٌ + النوعُ والندرةُ والوصفُ والسعرُ
@@ -536,10 +581,14 @@
           if (res.coins != null && window.amkhEconomy) amkhEconomy.apply(res);   /* يحدّث الرصيد/الملكيّة والشريط في الرئيسيّة */
           if (res.ok) {
             try { if (window.SFX && SFX.storeBuy) SFX.storeBuy(); } catch (e) {}
-            if (res.store) { self._cur = res.store; self._render(res.store); }
+            /* تحديثٌ موضعيٌّ إن بقيَتْ نافذةُ الكتالوجِ كما هي (الحالةُ المعتادةُ:
+               الشراءُ لا يُدوِّرُ النافذة) — فلا تلعثمَ. وإلا بناءٌ كامل. */
+            if (res.store && self._sameWindow(res.store)) { self._cur = res.store; self._sync(); }
+            else if (res.store) { self._cur = res.store; self._render(res.store); }
           } else {
             self._toast(res.reason);
-            if (res.store) { self._cur = res.store; self._render(res.store); }
+            if (res.store && self._sameWindow(res.store)) { self._cur = res.store; self._sync(); }
+            else if (res.store) { self._cur = res.store; self._render(res.store); }
           }
         }).catch(function () {});
     },
@@ -559,7 +608,7 @@
           if (!res) return;
           try { if (window.SFX) SFX.btn(); } catch (e) {}
           if (window.amkhEconomy) amkhEconomy.apply(res);
-          if (self._cur) self._render(self._cur);
+          if (self._cur) self._sync();   /* التجهيزُ لا يغيّرُ قائمةَ العناصرِ — تحديثٌ موضعيٌّ فقط */
           try { window.dispatchEvent(new Event('amkh:cosmetics')); } catch (e) {}
         }).catch(function () {});
     },

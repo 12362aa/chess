@@ -2253,8 +2253,9 @@
    (المنطق بيعتمد على الـ id مش على الموضع). */
 #go-ov .go-bts > .bgp.review{ order: 1; }
 #go-ov .go-bts > #go-next     { order: 2; }
-#go-ov .go-bts > .bgp:not(.review):not(#go-next){ order: 3; }
-#go-ov .go-bts > .bgs         { order: 4; }
+#go-ov .go-bts > #go-bonus    { order: 3; }
+#go-ov .go-bts > .bgp:not(.review):not(#go-next):not(#go-bonus){ order: 4; }
+#go-ov .go-bts > .bgs         { order: 5; }
 
 /* ── الشاشات القصيرة: تخلّي البطاقة تدخل من غير سكرول ──
    على 360×740 كان محتوى مرحلة المراجعة 765px جوه بطاقة 679px، يعني
@@ -2276,10 +2277,14 @@
   }
   /* زر المراجعة على عرض العمودين — أهم إجراء فالمساحة تليق بيه */
   #go-ov .go-bts > .bgp.review{ grid-column: 1 / -1; }
-  /* «التالي» بيظهر في مراحل نور بس. لما يظهر بيبقى العدد فردي فبناخده
-     على عرض كامل كمان، عشان مايفضلش صف فيه زر واحد نص العرض. وهو
-     display:none في باقي الأوضاع فالقاعدة مالهاش أثر هناك. */
-  #go-ov .go-bts > #go-next{ grid-column: 1 / -1; }
+  /* «التالي» و«لغز مكافأة» بيظهروا في مراحل نور بس. كلٌّ منهما بياخد
+     عرض العمودين لئلّا يترك زرًّا وحيدًا في صفّه — وهو ما كان يحدث:
+     زرّ «لغز مكافأة» كان يزاحم «مرة أخرى» فيتبقّى «القائمة» وحده بمساحةٍ
+     فارغة بجانبه (بلاغُ البند ٦). بإعطائه عرضًا كاملًا يتزاوج «مرة أخرى»
+     مع «القائمة» ولا تبقى فجوة. وهما display:none في باقي الأوضاع
+     فالقاعدة بلا أثرٍ هناك. */
+  #go-ov .go-bts > #go-next,
+  #go-ov .go-bts > #go-bonus{ grid-column: 1 / -1; }
 }
 
 /* أقصر من كده (360×640 وشبهها) الصندوق نفسه بيبقى 587px، فالإحصائيات
@@ -8958,6 +8963,12 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @keyframes cosBgShift{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 /* الإطار يحيط بالأفاتار ويتجاوز حدّه قليلًا فيبدو كطوق مضيء */
 .cos-frame{ position:absolute; inset:-13%; z-index:3; border-radius:50%; }
+/* داخلَ شريطِ اللاعبِ في المباراة (بلاغُ جوجو ٣): شريطُ ‎.pbar‎ عليه
+   ‎overflow:hidden‎ (لحوافِّه المستديرةِ ولمعةِ الدور)، فطوقٌ يتجاوزُ
+   الأفاتارَ ١٣٪ كان يُقَصُّ من أعلى — فتظهرُ بعضُ الإطاراتِ ناقصةً أو لا
+   تظهرُ. هنا نُبقي الطوقَ ضمنَ حدِّ الأفاتارِ تمامًا (inset قريبٌ من صفر)
+   فلا يَقَعُ تحتَ القصِّ أبدًا، ويبقى حلقةً حولَ الصورةِ واضحة. */
+.pbar .cos-frame{ inset:-2%; }
 .cos-frame svg{ width:100%; height:100%; display:block; overflow:visible;
   filter:drop-shadow(0 0 4px rgba(255,255,255,.28)); }
 .cos-frame--frame_gold svg,.cos-frame--frame_royal svg{ filter:drop-shadow(0 0 5px rgba(247,215,116,.6)); }
