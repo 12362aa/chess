@@ -297,6 +297,23 @@
         for (var k = 0; k < ents.length; k++) { if (ents[k].isIntersecting) paint(ents[k].target); else wipe(ents[k].target); }
       }, { root: root, rootMargin: '200px 0px', threshold: 0 });
       for (var j = 0; j < hosts.length; j++) this._invObs.observe(hosts[j]);
+      this._wireInvScrollPause(body, root);
+    },
+
+    /* إيقافُ حركةِ SMIL أثناءَ التمريرِ في المخزونِ — نفسُ علاجِ المتجرِ
+       (بلاغُ جوجو ٣): تجميدٌ لحظةَ التمريرِ، استئنافٌ عندَ السكون، بلا أيِّ
+       تغييرٍ في الشكلِ الساكن. */
+    _wireInvScrollPause: function (body, root) {
+      var sc = root || (function () { var ov = document.getElementById('rewards-ov'); return ov && ov.querySelector('.store-scroll'); })();
+      if (!sc) return;
+      if (this._invScrollH && this._invScSc) { try { this._invScSc.removeEventListener('scroll', this._invScrollH); } catch (e) {} }
+      var paused = false, idle = 0;
+      var svgs = function () { return body.querySelectorAll('.rw-inv__art svg, [data-invart] svg'); };
+      var pause = function () { if (paused) return; paused = true; sc.classList.add('is-scrolling'); var l = svgs(); for (var i = 0; i < l.length; i++) { try { l[i].pauseAnimations(); } catch (e) {} } };
+      var resume = function () { if (!paused) return; paused = false; sc.classList.remove('is-scrolling'); var l = svgs(); for (var i = 0; i < l.length; i++) { try { l[i].unpauseAnimations(); } catch (e) {} } };
+      this._invScrollH = function () { pause(); clearTimeout(idle); idle = setTimeout(resume, 140); };
+      this._invScSc = sc;
+      sc.addEventListener('scroll', this._invScrollH, { passive: true });
     },
 
     /* تحديثٌ موضعيٌّ لحالةِ التجهيزِ في المخزونِ دونَ لمسِ الرسوم. */

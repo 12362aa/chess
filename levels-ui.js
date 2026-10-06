@@ -289,8 +289,45 @@
       chips.appendChild(chip(L('النجوم', 'Stars'), stars + ' / ' + (total * 3)));
       chips.appendChild(chip(L('الطَّور', 'Stage'), (tierOf(cur) + 1) + ' / ' + TIERS.length));
       hx.appendChild(chips);
+
+      /* البند ٢: زرّ «تفعيل محادثة» نور — عند الإطفاء تختفي محادثة نور
+         ويُشال زرّ «حدّث نور» من شاشة المباراة؛ وعند التشغيل تعود طبيعيّة.
+         الحالة محفوظة في Cfg.data.nourChat فتثبت عبر الجلسات. */
+      hx.appendChild(chatToggleEl());
       hero.appendChild(hx);
       return hero;
+    }
+
+    function chatToggleEl() {
+      const on = !(window.Cfg && Cfg.data && Cfg.data.nourChat === false);
+      const row = el('div', 'nlv__chat' + (on ? ' is-on' : ''));
+      const txt = el('div', 'nlv__chatTx');
+      txt.appendChild(el('b', 'nlv__chatT', L('تفعيل محادثة', 'Enable chat')));
+      txt.appendChild(el('span', 'nlv__chatS',
+        L('حديثُ نور أثناء المرحلة', "Nour's chat during a level")));
+      row.appendChild(txt);
+
+      const sw = el('button', 'nlv__sw');
+      sw.type = 'button';
+      sw.setAttribute('role', 'switch');
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      sw.setAttribute('aria-label', L('تفعيل محادثة نور', "Enable Nour's chat"));
+      sw.innerHTML = '<span class="nlv__swk"></span>';
+      sw.onclick = () => {
+        const next = sw.getAttribute('aria-checked') !== 'true';
+        sw.setAttribute('aria-checked', next ? 'true' : 'false');
+        row.classList.toggle('is-on', next);
+        try { if (window.Cfg) { Cfg.data.nourChat = next; Cfg.saveData(); } } catch (e) { }
+        /* لو كنّا داخل مباراة نور فعلًا، طبّق فورًا على زرّ «حدّث نور». */
+        try {
+          if (window.S && S.mode === 'bot' && S.levelId >= 0 && window.CHAT) {
+            if (next) CHAT.show(); else CHAT.hide();
+          }
+        } catch (e) { }
+        sfx('btn');
+      };
+      row.appendChild(sw);
+      return row;
     }
 
     function chip(k, v) {
@@ -497,7 +534,7 @@
       if (scr && scr.classList.contains('active')) build();
     }
 
-    return { build, celebrate, afterSave, relang, ROMAN, TIERS, tierOf, crest };
+    return { build, celebrate, afterSave, relang, ROMAN, TIERS, tierOf, crest, _test_heroEl: heroEl };
   })();
 
   window.NLV = NLV;

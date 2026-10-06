@@ -286,6 +286,7 @@
       if (this._timer) { clearInterval(this._timer); this._timer = 0; }
       /* فَكُّ المراقبِ وإفراغُ الرسوم: لا SVG يعملُ والمتجرُ مغلق. */
       if (this._obs) { try { this._obs.disconnect(); } catch (e) {} this._obs = null; }
+      if (this._scrollH && this._scSc) { try { this._scSc.removeEventListener('scroll', this._scrollH); } catch (e) {} this._scrollH = null; this._scSc = null; }
       try {
         var g = document.getElementById('store-grid');
         if (g) g.querySelectorAll('[data-on="1"]').forEach(function (h) { h.innerHTML = ''; h.removeAttribute('data-on'); });
@@ -455,6 +456,39 @@
         for (var k = 0; k < ents.length; k++) { if (ents[k].isIntersecting) paint(ents[k].target); else wipe(ents[k].target); }
       }, { root: (ov && ov.querySelector('.store-scroll')) || null, rootMargin: '200px 0px', threshold: 0 });
       for (var j = 0; j < hosts.length; j++) this._obs.observe(hosts[j]);
+      this._wireScrollPause(grid);
+    },
+
+    /* ══ إيقافُ الحركةِ أثناءَ التمريرِ فقط (علاجُ التهدّجِ — بلاغُ جوجو ٣) ══
+       قياسُ CDP أثبتَ أنّ حركاتِ SMIL داخلَ الـSVG هي أثقلُ مصدرٍ للتلعثمِ
+       أثناءَ التمريرِ (رفعُها وحدَها زادَ الـFPS ٣٦٪ وخفضَ أطولَ إطارٍ للنصف).
+       الحلُّ لا يغيّرُ أيَّ شكلٍ: نُجمّدُ الحركاتِ بـpauseAnimations لحظةَ
+       التمريرِ النشطِ (اللاعبُ لا يرى الحركةَ وهو يمرّرُ أصلًا) ونستأنفُها
+       فورَ سكونِ التمريرِ — فالمظهرُ في السكونِ مطابقٌ تمامًا. */
+    _wireScrollPause: function (grid) {
+      var ov = document.getElementById('store-ov');
+      var sc = (ov && ov.querySelector('.store-scroll')); if (!sc) return;
+      var self = this;
+      if (this._scrollH && this._scSc) { try { this._scSc.removeEventListener('scroll', this._scrollH); } catch (e) {} }
+      var paused = false, idle = 0;
+      var svgs = function () { return grid.querySelectorAll('.store-card__art svg'); };
+      var pause = function () {
+        if (paused) return; paused = true;
+        sc.classList.add('is-scrolling');   /* يجمّدُ حركةَ CSS (float/لمعان) بلا قفزةٍ بصريّة */
+        var l = svgs(); for (var i = 0; i < l.length; i++) { try { l[i].pauseAnimations(); } catch (e) {} }
+      };
+      var resume = function () {
+        if (!paused) return; paused = false;
+        sc.classList.remove('is-scrolling');
+        var l = svgs(); for (var i = 0; i < l.length; i++) { try { l[i].unpauseAnimations(); } catch (e) {} }
+      };
+      this._scrollH = function () {
+        pause();
+        clearTimeout(idle);
+        idle = setTimeout(resume, 140);   /* سكونٌ قصيرٌ ثمّ تعودُ الحركةُ */
+      };
+      this._scSc = sc;
+      sc.addEventListener('scroll', this._scrollH, { passive: true });
     },
 
     /* تحديثٌ موضعيٌّ خفيفٌ بعد الشراءِ/التجهيزِ — بدلَ إعادةِ بناءِ الشبكةِ

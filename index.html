@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20261006-b72"></script>
+<script src="i18n-en.js?v=20261007-b73"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -1040,6 +1040,16 @@ body[data-ui-theme="glass"] .mc-tag{
 .nlv__chip{display:inline-flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:5px 10px;}
 .nlv__chipK{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);}
 .nlv__chipV{font-size:13px;font-weight:800;color:var(--text);}
+
+/* البند ٢ — زرّ تفعيل محادثة نور داخل البطاقة */
+.nlv__chat{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;}
+.nlv__chatTx{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.nlv__chatT{font-size:12.5px;font-weight:800;color:var(--text);}
+.nlv__chatS{font-size:10px;color:var(--text3);}
+.nlv__sw{flex:none;width:44px;height:25px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);padding:0;cursor:pointer;position:relative;transition:background .18s ease,border-color .18s ease;}
+.nlv__swk{position:absolute;top:50%;inset-inline-start:3px;transform:translateY(-50%);width:19px;height:19px;border-radius:50%;background:#cdd3dd;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:inset-inline-start .18s ease,background .18s ease;}
+.nlv__chat.is-on .nlv__sw{background:linear-gradient(120deg,#c9a84c,#e8c25f);border-color:rgba(201,168,76,.5);}
+.nlv__chat.is-on .nlv__swk{inset-inline-start:22px;background:#1a1206;}
 
 /* ── الطريق ── */
 .nlv__road{display:flex;flex-direction:column;gap:9px;}
@@ -2203,8 +2213,12 @@ body[data-ui-theme="glass"] .mc-tag{
 #rv-board .sq.rv-from{box-shadow:inset 0 0 0 3px rgba(255,200,0,.75)!important;}
 #rv-board .sq.rv-to{background:rgba(255,200,0,.32)!important;}
 /* طبقةُ الرسمِ التوضيحيِّ: أسهمٌ فوقَ القطع (البناء ٦٩) */
-.rv-ovl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));}
-.rv-sqbadge{position:absolute;transform:translate(-62%,-38%);pointer-events:none;z-index:4;line-height:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));}
+/* ترتيبُ الطبقاتِ على رقعةِ المراجعةِ (بلاغُ جوجو: «الأسهمُ داخلةٌ في القطع»):
+   خلفيّاتُ المربّعاتِ (z تلقائيّ) ← الأسهمُ (2) ← القطعُ (.piece = 4)
+   ← شارةُ التصنيفِ (6). فالسهمُ يمرُّ **تحتَ** القطعةِ كما عندَ المنافسِ
+   تمامًا، ولا يعلوها أبدًا مهما تغيّرَ ترتيبُ الـDOM. */
+.rv-ovl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45));}
+.rv-sqbadge{position:absolute;transform:translate(-62%,-38%);pointer-events:none;z-index:6;line-height:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));}
 .rv-sqbadge svg{display:block;}
 
 /* Transparency for evaluation board image boards */
@@ -3135,7 +3149,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20261006-b72">
+<link rel="stylesheet" href="screens.css?v=20261007-b73">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -6945,6 +6959,7 @@ const Cfg={
     score:true,
     confirm:true,
     matchMsg:true,            /* #9: تنبيه رسائل الأصدقاء أثناء المباراة */
+    nourChat:true,            /* البند ٢: تفعيل محادثة نور في «درب نور» (زرّ البطاقة) */
     playerName:null,
     playerImage:null,
     engineLevel:4,
@@ -8560,7 +8575,7 @@ window.Modal = Modal;
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
 const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 72;
+const APP_VERSION_CODE = 73;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -12564,7 +12579,7 @@ const REV=(()=>{
         el.appendChild(sq);
       }
     }
-    _drawOverlay(el);
+    _drawOverlay(el, bd);
   }
 
   /* ══ الرسمُ التوضيحيُّ على الرقعة (البناءُ ٧٢ — بلاغُ جوجو ٢) ══
@@ -12577,32 +12592,43 @@ const REV=(()=>{
      تمامًا، ويبدأُ من المركزِ لا من حافّةٍ داخليّة (كان ذلك سببَ «يدخلُ
      في القطعة»). */
   function _sqCenter(sq){ return [sq[1] + 0.5, sq[0] + 0.5]; }
-  function _arrowPoly(from, to){
+  /* هندسةُ السهمِ (إعادةُ صناعةٍ — بلاغُ جوجو: «الأسهمُ داخلةٌ في القطع»).
+     بحثٌ في مُصيّرِ المنافسِ المفتوح (lichess/chessground src/svg.ts) كشفَ
+     ثلاثَ عللٍ عندنا، لا واحدةً:
+
+     ١) **التقصير**: chessground يحسبُ `arrowMargin(shorten)` فيوقفُ السهمَ
+        قبلَ مركزِ الوصولِ بـ‎20/64‎ **إذا كان المربّعُ مشغولًا بقطعة**، وبـ‎10/64‎
+        إن كان خاليًا. نحنُ كنّا نستعملُ هامشًا ثابتًا ‎0.06‎ دائمًا، فيصلُ الرأسُ
+        إلى منتصفِ القطعةِ فيبدو داخلًا فيها — وهذا عينُ ما رآه جوجو أعلى السهم.
+     ٢) **نهايةُ الساق**: chessground يستعملُ `stroke-linecap:round` فتبدو
+        البدايةُ دائريّةً ناعمةً تخرجُ من تحتِ القطعةِ؛ ونحنُ كنّا نقطعُها
+        مسطّحةً من مركزِ القطعةِ فتبدو ناشزةً — وهذا «داخلةٌ في البيدقِ أسفلَ».
+     ٣) **النِّسَب**: رأسُنا كان ‎0.66‎ عرضًا (ثُلثَي المربّعِ!) على ساقٍ ‎0.17‎
+        فيبدو كدبّوسٍ برأسٍ ضخمٍ يبتلعُ القطعة. نسبةُ المنافسِ أسمكُ ساقًا
+        وأصغرُ رأسًا فيُقرأُ السهمُ كسهمٍ لا كبقعة.
+
+     فنُطابِقُ الثلاثةَ: ساقٌ ‎0.24‎ بطرفٍ دائريٍّ، ورأسٌ ‎0.52‎×‎0.38‎، وتقصيرٌ
+     يحترمُ إشغالَ مربّعِ الوصول. ومعها تُرسَمُ الطبقةُ **تحتَ** القطعِ. */
+  const _ARW = { sw: 0.24, hw: 0.26, hl: 0.38, gapBusy: 0.30, gapFree: 0.10 };
+  function _arrowParts(from, to, occupied){
     const [x1, y1] = _sqCenter(from), [x2, y2] = _sqCenter(to);
     const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
     const ux = dx / len, uy = dy / len, px = -uy, py = ux;
-    /* نِسَبُ chessground: عرضُ الساقِ 10/64≈.156 (نصفُه .078)، رأسٌ عرضُه
-       ‎4×‎ ونصفُه ‎2×‎ عرضِ الساق، وطرفُ السهمِ يقفُ قبلَ المركزِ بهامشٍ
-       صغيرٍ فلا يغطّي القطعةَ كلَّها. */
-    const w = 0.085, hw = 0.33, hl = 0.52, gap = 0.06;
-    const bx = x1, by = y1;                                 // يبدأُ من مركزِ الأصلِ بالضبط
-    const tx = x2 - ux * gap, ty = y2 - uy * gap;           // رأسُ السهم
-    const nx = tx - ux * hl, ny = ty - uy * hl;             // عنقُ الرأس
-    /* موحةٌ قصيرةٌ جدًّا (مربّعٌ واحد) قد يبتلعُها الرأسُ: نضمنُ ألّا يتجاوزَ
-       العنقُ بدايةَ الساق. */
-    const minShaft = 0.02;
-    const bnx = (Math.hypot(nx - bx, ny - by) < minShaft) ? bx + ux * minShaft : nx;
-    const bny = (Math.hypot(nx - bx, ny - by) < minShaft) ? by + uy * minShaft : ny;
-    const P = (x, y) => `${x.toFixed(3)} ${y.toFixed(3)}`;
-    return 'M' + P(bx + px * w, by + py * w)
-      + ' L' + P(bnx + px * w, bny + py * w)
-      + ' L' + P(bnx + px * hw, bny + py * hw)
-      + ' L' + P(tx, ty)
-      + ' L' + P(bnx - px * hw, bny - py * hw)
-      + ' L' + P(bnx - px * w, bny - py * w)
-      + ' Z';
+    const gap = occupied ? _ARW.gapBusy : _ARW.gapFree;
+    const tx = x2 - ux * gap, ty = y2 - uy * gap;            // طرفُ الرأس
+    let bx = tx - ux * _ARW.hl, by = ty - uy * _ARW.hl;      // قاعدةُ الرأس
+    /* ساقٌ ظاهرةٌ دائمًا: لو ابتلعَ الرأسُ الساقَ (نقلةٌ قصيرةٌ جدًّا) نُزِحْ
+       القاعدةَ للأمامِ قليلًا بدلَ أن تختفيَ الساقُ أو تنقلبَ. */
+    const minShaft = 0.08;
+    if (Math.hypot(bx - x1, by - y1) < minShaft) { bx = x1 + ux * minShaft; by = y1 + uy * minShaft; }
+    const F = n => n.toFixed(3);
+    return {
+      /* الساقُ تتجاوزُ القاعدةَ ‎0.03‎ فلا يظهرُ خطُّ وصلٍ بين الساقِ والرأس */
+      line: { x1: F(x1), y1: F(y1), x2: F(bx + ux * 0.03), y2: F(by + uy * 0.03) },
+      head: `${F(tx)},${F(ty)} ${F(bx + px * _ARW.hw)},${F(by + py * _ARW.hw)} ${F(bx - px * _ARW.hw)},${F(by - py * _ARW.hw)}`
+    };
   }
-  function _drawOverlay(boardEl){
+  function _drawOverlay(boardEl, bd){
     const wrap = boardEl.parentElement; if (!wrap) return;
     let ov = wrap.querySelector('.rv-ovl');
     if (ov) ov.remove();
@@ -12616,12 +12642,23 @@ const REV=(()=>{
     ov.setAttribute('viewBox', '0 0 8 8');
     ov.setAttribute('preserveAspectRatio', 'none');
     const mk = (tag, attrs) => { const e = document.createElementNS(svgNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
-    /* سهمُ أفضلِ حركةٍ (أخضرُ، شفافيّةُ chessground .9) تحتَ الملعوبة */
-    if (showBest) {
-      ov.appendChild(mk('path', { d: _arrowPoly(mv.bestFrom, mv.bestTo), fill: '#15a34a', opacity: .85, 'stroke-linejoin': 'round' }));
-    }
+    /* هل مربّعُ الوصولِ مشغولٌ في الوضعِ المعروضِ؟ عليه يتوقّفُ التقصيرُ
+       (chessground يفعلُ الشيءَ نفسَه) فلا يدخلُ الرأسُ في القطعة. */
+    const busy = sq => !!(bd && bd[sq[0]] && bd[sq[0]][sq[1]]);
+    /* السهمُ = ساقٌ بطرفٍ دائريٍّ + رأسٌ مثلّثٌ، داخلَ مجموعةٍ واحدةٍ تحملُ
+       الشفافيّةَ فلا يتضاعفُ المزجُ عندَ موضعِ الوصلِ بينهما. */
+    const addArrow = (fr, to, color, op) => {
+      const a = _arrowParts(fr, to, busy(to));
+      const g = mk('g', { opacity: op });
+      g.appendChild(mk('line', { x1: a.line.x1, y1: a.line.y1, x2: a.line.x2, y2: a.line.y2,
+        stroke: color, 'stroke-width': _ARW.sw, 'stroke-linecap': 'round' }));
+      g.appendChild(mk('polygon', { points: a.head, fill: color }));
+      ov.appendChild(g);
+    };
+    /* سهمُ أفضلِ حركةٍ (أخضرُ) تحتَ الملعوبة */
+    if (showBest) addArrow(mv.bestFrom, mv.bestTo, '#15a34a', .85);
     /* سهمُ الحركةِ الملعوبةِ بلونِ تصنيفِها */
-    ov.appendChild(mk('path', { d: _arrowPoly(mv.from, mv.to), fill: col, opacity: .92, 'stroke-linejoin': 'round' }));
+    addArrow(mv.from, mv.to, col, .92);
     wrap.appendChild(ov);
     /* شارةُ التصنيفِ على مربّعِ الوصول */
     let badge = wrap.querySelector('.rv-sqbadge');
@@ -14790,7 +14827,8 @@ const G={
     GameIdentity.setTitle(tt`المرحلة ${id+1}: ${T(lv.name)}`);
     fixBars('w');
     Nav.game();await R.all();updatePlayerImages();
-    CHAT.show();
+    /* البند ٢: محادثة نور تظهر فقط إذا كانت مُفعّلة من بطاقة «درب نور». */
+    if(Cfg.data.nourChat!==false) CHAT.show();
   },
   async startEngineGame(level){
     const preset=getEnginePreset(level??Cfg.data.engineLevel??4);
@@ -17356,13 +17394,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20261002-b70"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20261006-b72"></script>
+  <script src="economy-client.js?v=20261007-b73"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20261006-b72"></script>
+  <script src="store-client.js?v=20261007-b73"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20261006-b72"></script>
+  <script src="rewards-client.js?v=20261007-b73"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت
@@ -17376,7 +17414,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-coach.js?v=20260919-b38"></script>
   <script src="puzzles-ui.js?v=20261002-b70"></script>
   <script src="puzzles-hub.js?v=20261002-b70"></script>
-  <script src="levels-ui.js?v=20260921-b41"></script>
+  <script src="levels-ui.js?v=20261007-b73"></script>
   <script src="mic-client.js?v=20261002-b70"></script>
 <script>
 const BLEManager = {

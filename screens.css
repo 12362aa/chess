@@ -8370,6 +8370,12 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @media (prefers-reduced-motion: reduce){ .rw-wash.play{ animation:storeWashHold .8s linear forwards; } .rw-wash__cv{ display:none; } }
 
 .store-scroll{ position:absolute; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:1; }
+/* البند ٣ (الأداء): أثناءَ التمريرِ النشطِ نُجمّدُ حركاتِ CSS للبطاقات في
+   مكانِها (بلا قفزةٍ بصريّة) — قياسُ CDP أثبتَ أنّ هذا مع إيقافِ SMIL يرفعُ
+   الـFPS نحوَ ٢٥٪ ويخفضُ أطولَ إطارٍ من ٢٣٣ms إلى ٨٣ms. تعودُ فورَ السكون. */
+.store-scroll.is-scrolling .store-card__art,
+.store-scroll.is-scrolling .store-card--legendary::after,
+.store-scroll.is-scrolling .rw-inv__art{ animation-play-state:paused !important; }
 .store-wrap{ max-width:640px; margin:0 auto; padding:22px 16px 40px; position:relative; }
 .store-close{ position:absolute; top:14px; inset-inline-end:14px; width:40px; height:40px; border-radius:50%;
   border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; font-size:18px; cursor:pointer; z-index:5; }
@@ -8421,11 +8427,35 @@ html.kb-open #amkh-chat-modal .ds-sheet{
    بالمنطقِ ولا الألوانِ ولا الأيقوناتِ الملوّنة — نُضيفُ عناصرَ تجعلُه
    يُقرأُ متجرًا: مظلّةٌ مخطّطةٌ (awning) أعلى الواجهة، لافتةُ محلٍّ معلّقة،
    وكلُّ قسمٍ يقفُ على رفٍّ خشبيٍّ له حافّةٌ وظلّ. */
-.store-wrap::before{ content:''; position:absolute; top:0; left:-16px; right:-16px; height:30px;
-  background:repeating-linear-gradient(90deg,var(--purple) 0 26px,var(--gold) 26px 52px);
-  opacity:.9; border-radius:0 0 4px 4px;
-  -webkit-mask:radial-gradient(13px 15px at 13px 0,transparent 0 13px,#000 13px) repeat-x 0 100%/26px 15px;
-  mask:radial-gradient(13px 15px at 13px 0,transparent 0 13px,#000 13px) repeat-x 0 100%/26px 15px;
+/* ── المظلّةُ (بلاغُ جوجو ٤: «علاماتُ الشمسيّاتِ سيّئةٌ جدًّا») ──
+   العلّةُ: القناعُ السابقُ كان `radial-gradient(... at 13px 0, transparent 0 13px, #000 13px)`
+   فوقَ الحافّةِ السفلى — فيقتطعُ أقواسًا **داخلَ** الشريطِ فيتبقّى بينَها
+   أسنانٌ مثلّثةٌ حادّةٌ تشبهُ المنشارَ لا مظلّةَ محلّ. والمظلّةُ الحقيقيّةُ
+   عكسُ ذلك: قوائمُ نصفُ دائريّةٍ **بارزةٌ لأسفلَ** (محدّبة).
+   فنعكسُ القناعَ: مستطيلٌ للجسمِ + صفُّ أنصافِ دوائرَ محدّبةٍ أسفلَه
+   (المركزُ على حدِّ الشريطِ العلويِّ فيملأُ القرصُ لأسفل). ونُضيفُ ما يجعلُها
+   قماشًا لا لونًا مسطّحًا: عرضُ القائمةِ = عرضُ الشريطِ (كمظلّاتِ المحلّاتِ)،
+   خطُّ طيٍّ غامقٌ عندَ كلِّ وصلةٍ، تظليلٌ متدرّجٌ لأسفلَ، لمعةٌ أعلى،
+   وظلٌّ يتبعُ حدَّ القوائمِ نفسِه (drop-shadow بعدَ القناع). */
+.store-wrap::before{ content:''; position:absolute; top:0; left:-16px; right:-16px; height:34px;
+  background:
+    /* لمعةُ القماشِ أعلى الحافّة */
+    linear-gradient(180deg,rgba(255,255,255,.26) 0 2px,transparent 2px),
+    /* تظليلٌ يزدادُ لأسفلَ فتبدو منحنيةً لا مسطّحة */
+    linear-gradient(180deg,transparent 46%,rgba(0,0,0,.3)),
+    /* القوائمُ: كلُّ قائمةٍ بلونٍ واحدٍ، وبينَهما خطُّ طيٍّ غامق */
+    repeating-linear-gradient(90deg,
+      var(--purple) 0 21px,
+      color-mix(in srgb,var(--purple) 58%,#000) 21px 22px,
+      var(--gold) 22px 43px,
+      color-mix(in srgb,var(--gold) 58%,#000) 43px 44px);
+  -webkit-mask:
+    linear-gradient(#000,#000) top left/100% calc(100% - 11px) no-repeat,
+    radial-gradient(11px 11px at 11px 0,#000 0 10.3px,transparent 10.7px) repeat-x bottom left/22px 11px;
+  mask:
+    linear-gradient(#000,#000) top left/100% calc(100% - 11px) no-repeat,
+    radial-gradient(11px 11px at 11px 0,#000 0 10.3px,transparent 10.7px) repeat-x bottom left/22px 11px;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.45));
   pointer-events:none; z-index:4; }
 .store-head{ position:relative; margin-top:14px; padding:30px 10px 10px; }
 .store-head::before{ content:''; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
@@ -8447,7 +8477,7 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 @media (prefers-reduced-motion: no-preference){
   .store-wrap::before{ animation:storeAwning 6s ease-in-out infinite; }
 }
-@keyframes storeAwning{ 0%,100%{ opacity:.78; } 50%{ opacity:.95; } }
+@keyframes storeAwning{ 0%,100%{ opacity:.9; } 50%{ opacity:1; } }
 .rw-sec__ic{ display:inline-flex; width:22px; height:22px; flex:0 0 auto; }
 .rw-sec__ic .cat-ic{ width:22px; height:22px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
 .cat-ic{ display:block; }

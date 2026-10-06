@@ -1274,10 +1274,10 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
 const LATEST_VERSION = '4.2';
-const LATEST_CODE = 72;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b72/chess-amkh-4.2-b72.apk';
-const NOTES_AR = 'تحسينُ أداءٍ شاملٌ: المتجرُ والمخزونُ صارا أسرعَ بكثيرٍ عندَ التمريرِ والشراءِ والتجهيزِ — بلا حذفِ أيِّ ميزةٍ أو حركة. وأسهمُ المراجعةِ أُعيدَ رسمُها بنِسَبِ المنافسِ الكبيرِ فصارت نظيفةً لا تبتلعُ القطع. وأُصلِحَ ظهورُ كلِّ الإطاراتِ التجميليّةِ داخلَ المباراةِ (التنّينُ وغيرُه كانت مقصوصة). ونافذةُ التحليلِ قبلَ المراجعةِ صارت في منتصفِ الشاشةِ وشاراتُ التصنيفِ تتحرّكُ بموجةٍ أرقى. وشاشةُ النتيجةِ عادت حيّةً (القطعةُ الأخيرةُ تنبضُ وجسيماتٌ طافيةٌ بلونِ النتيجة). وفي أوضاعِ نورٍ لم تعُدْ هناك مساحةٌ فارغةٌ جوارَ زرِّ لغزِ المكافأة. وزرُّ المساعدِ والنقاطِ والتراجعِ صارت لهم أيقوناتٌ ملوّنةٌ موحّدةٌ في كلِّ الأوضاع. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'Across-the-board performance: the store and inventory are far smoother when scrolling, buying and equipping — with no feature or animation removed. Review arrows were redrawn to the big competitor\'s proportions, so they are clean and no longer cover the pieces. All cosmetic frames now show correctly in-game (the dragon and others were being clipped). The pre-review analysis panel is now centred, and the classification badges animate with a nicer wave. The result screen is alive again (the last piece pulses with floating result-coloured sparks). In Nour modes there is no longer an empty gap beside the bonus-puzzle button. The assistant, points and undo buttons now have unified coloured icons across every mode. — in Arabic and English across phone, tablet and browser.';
+const LATEST_CODE = 73;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b73/chess-amkh-4.2-b73.apk';
+const NOTES_AR = 'زرٌّ جديدٌ في بطاقةِ «دربِ نور»: «تفعيلُ محادثة» — تُشغّلُ أو تُطفئُ حديثَ نورِ أثناءَ المرحلةِ كما تحبّ، وعندَ إطفائِه يختفي زرُّ «حدّث نور» من شاشةِ اللعبِ تمامًا. وأداءُ المتجرِ والمخزونِ صارَ أنعمَ أثناءَ التمريرِ على الأجهزةِ الأضعفِ (لا تلعثمَ) — بلا حذفِ أيِّ شكلٍ أو حركةٍ، فكلُّ شيءٍ كما هو في السكون. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
+const NOTES_EN = 'A new button on the “Nour\'s Path” card: “Enable chat” — turn Nour\'s in-level chat on or off as you like; when it is off, the “Talk to Nour” button disappears entirely from the game screen. Store and inventory scrolling is now much smoother on weaker devices (no stutter) — with no shape or animation removed, so everything looks exactly the same at rest. — in Arabic and English across phone, tablet and browser.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
