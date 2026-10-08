@@ -92,11 +92,35 @@
           }
         },
         {
+          "client_id": "467677566583-hg9gs643n4jmrn3qcqtgrp85201qtcm3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chessgame",
+            "certificate_hash": "75e682f52ae7e4e4bd8b6d181c338b8eb81a334a"
+          }
+        },
+        {
           "client_id": "467677566583-i6c6q09ce19pdkog7rb8v31kflu2rj7o.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.amkh.chessgame",
             "certificate_hash": "0b33f747933af3c6c32bbd694a35e4b14a0d708a"
+          }
+        },
+        {
+          "client_id": "467677566583-mqfff9ru3tatj7cq7aeo3lvne6ihi7dd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chessgame",
+            "certificate_hash": "f4c905420ef468b2f5c622ad212c32794b2448db"
+          }
+        },
+        {
+          "client_id": "467677566583-pa2s5e79dvvntjqj86snh9rm7lq4r52l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.amkh.chessgame",
+            "certificate_hash": "e1b91c97bfb5a3e7e388837b495e4d0c172c290a"
           }
         },
         {
