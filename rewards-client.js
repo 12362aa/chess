@@ -36,6 +36,13 @@
       brain: '<path d="M12 5.5 A3 3 0 0 0 6 6.1 A2.6 2.6 0 0 0 4.3 11 A2.8 2.8 0 0 0 5.6 15.4 A2.7 2.7 0 0 0 10 18.6 A2.4 2.4 0 0 0 12 19.6 Z"/><path d="M12 5.5 A3 3 0 0 1 18 6.1 A2.6 2.6 0 0 1 19.7 11 A2.8 2.8 0 0 1 18.4 15.4 A2.7 2.7 0 0 1 14 18.6 A2.4 2.4 0 0 1 12 19.6"/>',
       gem: '<path d="M8 4 H16 L20 9 L12 20 L4 9 Z"/><path d="M4 9 H20 M9.6 9 L12 20 M14.4 9 L12 20 M8 4 L9.6 9 M16 4 L14.4 9"/>',
       dragon: '<path d="M4 15 C4 11 7 8 11 8 H14 L17 5 L18 9 L21 10 L18 12 V15 C18 18 15 20 11 20 H7 Z"/><circle cx="14.2" cy="11" r=".95" fill="currentColor" stroke="none"/><path d="M8.5 20 L7.5 22 M13 20 L12 22"/>',
+      /* ── رموزٌ جديدةٌ لإنجازاتِ درب نور والمحرّكِ والمثابرة (بند جوجو ٣) ── */
+      path: '<path d="M6 20 C11 17 8 12 12 10.5 C16 9 13.5 5 18 4.2"/><circle cx="18" cy="4.2" r="1.5"/><circle cx="6" cy="20" r="1.2" fill="currentColor" stroke="none"/>',
+      mountain: '<path d="M3 19 L9 8 L12.5 13.5 L15.5 9 L21 19 Z"/><path d="M7.4 11.6 L9 8 L10.7 11.6"/>',
+      star3: '<path d="M12 4 L13.7 8.2 L18 8.5 L14.7 11.3 L15.8 15.6 L12 13.2 L8.2 15.6 L9.3 11.3 L6 8.5 L10.3 8.2 Z"/><path d="M4.6 17.5 L5.4 19.2 L7.2 19.4 L5.8 20.6 L6.3 22.4"/><path d="M19.4 17.5 L18.6 19.2 L16.8 19.4 L18.2 20.6 L17.7 22.4"/>',
+      cpu: '<rect x="7" y="7" width="10" height="10" rx="1.6"/><rect x="10" y="10" width="4" height="4"/><path d="M9.5 4 V7 M14.5 4 V7 M9.5 17 V20 M14.5 17 V20 M4 9.5 H7 M4 14.5 H7 M17 9.5 H20 M17 14.5 H20"/>',
+      robot: '<rect x="5.5" y="8" width="13" height="10.5" rx="2.2"/><path d="M12 4.6 V8"/><circle cx="12" cy="3.4" r="1.1"/><circle cx="9.6" cy="12.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="14.4" cy="12.4" r="1.05" fill="currentColor" stroke="none"/><path d="M9.8 15.6 H14.2"/>',
+      target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
     };
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[id] || p.medal) + '</svg>';
   }
@@ -414,7 +421,10 @@
         { k: 'battle',  ar: 'المعارك',   en: 'Battle' },
         { k: 'mastery', ar: 'الإتقان',   en: 'Mastery' },
         { k: 'puzzle',  ar: 'الألغاز',   en: 'Puzzles' },
+        { k: 'nour',    ar: 'درب نور',   en: 'Nour’s Path' },
+        { k: 'engine',  ar: 'المحرّك',    en: 'Engine' },
         { k: 'collect', ar: 'المجموعة',  en: 'Collection' },
+        { k: 'dedication', ar: 'المثابرة', en: 'Dedication' },
         { k: 'special', ar: 'الخاصّة',   en: 'Special' }
       ];
       var TIER = {

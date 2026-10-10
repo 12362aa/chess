@@ -853,6 +853,12 @@ router.post('/progress', authenticateToken, (req, res) => {
     db.prepare("INSERT INTO nour_progress (user_id, stage_number, completed, stars, best_moves, completed_at) VALUES (?, ?, ?, ?, ?, datetime('now'))")
       .run(req.user.id, stage_number, completed ? 1 : 0, stars || 0, best);
   }
+  /* إكمالُ مرحلةِ درب نور يفتحُ إنجازاتِها فورًا (بند جوجو ٣): نُقيّمُ هنا
+     لأنّ هذا هو المسارُ الوحيدُ الذي يكتبُ nour_progress. require كسولٌ لتفادي
+     دورةِ الوحدات (economy يستوردُ auth). */
+  if (completed) {
+    try { require('./economy').evaluateAchievements(req.user.id); } catch (e) {}
+  }
   res.json({ success: true });
 });
 

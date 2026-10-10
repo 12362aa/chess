@@ -121,6 +121,32 @@ const ACHIEVEMENTS = [
     ar: 'أوّلُ أسطوريّ',       en: 'First Legendary',  descAr: 'امتلكْ عنصرًا أسطوريًّا واحدًا.',    descEn: 'Own one legendary item.' },
   { id: 'own_mythic',  coins: 400, xp: 500,  retro: true,  icon: 'dragon', tier: 'legend', cat: 'collect', test: s => s.mythic >= 1,
     ar: 'صائدُ الميثِك',       en: 'Mythic Hunter',    descAr: 'امتلكْ عنصرًا من أعلى ندرة (Mythic).', descEn: 'Own an item of the highest rarity (Mythic).' },
+  /* ── درب نور (وضعُ المراحل) — كان غائبًا تمامًا عنِ الإنجازات رغمَ كونِه
+     وضعًا رئيسيًّا. المصدرُ nour_progress الخادميُّ (مُزامَنٌ) فلا تلفيق. ── */
+  { id: 'nour_first',  coins: 40,  xp: 60,   retro: true,  icon: 'path',   tier: 'bronze', cat: 'nour', test: s => s.nourLevels >= 1,
+    ar: 'بدايةُ الدرب',        en: 'The Path Begins',  descAr: 'أكمِلْ أوّلَ مرحلةٍ في درب نور.',      descEn: 'Complete your first stage in Nour’s Path.' },
+  { id: 'nour_half',   coins: 150, xp: 220,  retro: true,  icon: 'path',   tier: 'silver', cat: 'nour', test: s => s.nourLevels >= 6,
+    ar: 'منتصفُ الدرب',        en: 'Halfway There',    descAr: 'أكمِلْ ستَّ مراحلَ في درب نور.',       descEn: 'Complete 6 stages in Nour’s Path.' },
+  { id: 'nour_all',    coins: 600, xp: 800,  retro: true,  icon: 'mountain',tier: 'gold',   cat: 'nour', test: s => s.nourLevels >= 12,
+    ar: 'خاتمُ الدرب',         en: 'Path Conqueror',   descAr: 'أكمِلْ مراحلَ درب نور الاثنتَي عشرةَ كلَّها.', descEn: 'Complete all 12 stages of Nour’s Path.' },
+  { id: 'nour_perfect',coins: 1200,xp: 1500, retro: true,  icon: 'star3',  tier: 'legend', cat: 'nour', test: s => s.nourPerfect >= 12,
+    ar: 'الدربُ الكامل',       en: 'Flawless Path',    descAr: 'انلْ ثلاثَ نجومٍ في كلِّ مراحلِ درب نور.', descEn: 'Earn 3 stars on every stage of Nour’s Path.' },
+  { id: 'nour_stars_20',coins: 180,xp: 240,  retro: true,  icon: 'star',   tier: 'silver', cat: 'nour', test: s => s.nourStars >= 20,
+    ar: 'عشرونَ نجمة',         en: '20 Stars',         descAr: 'اجمعْ عشرينَ نجمةً في درب نور.',       descEn: 'Collect 20 stars in Nour’s Path.' },
+  /* ── وضعُ المحرّك (Stockfish) — عدّادٌ خادميٌّ دائمٌ (users.engine_wins). ── */
+  { id: 'engine_1',    coins: 50,  xp: 70,   retro: false, icon: 'cpu',    tier: 'bronze', cat: 'engine', test: s => s.engineWins >= 1,
+    ar: 'أوّلُ غلبةٍ للآلة',   en: 'Machine Toppled',  descAr: 'اهزِمْ محرّكَ Stockfish أوّلَ مرّة.',  descEn: 'Beat the Stockfish engine for the first time.' },
+  { id: 'engine_10',   coins: 160, xp: 220,  retro: false, icon: 'cpu',    tier: 'silver', cat: 'engine', test: s => s.engineWins >= 10,
+    ar: 'عشرُ غلباتٍ للآلة',   en: '10 Engine Wins',   descAr: 'اهزِمِ المحرّكَ عشرَ مرّات.',          descEn: 'Beat the engine 10 times.' },
+  { id: 'engine_50',   coins: 500, xp: 700,  retro: false, icon: 'robot',  tier: 'gold',   cat: 'engine', test: s => s.engineWins >= 50,
+    ar: 'قاهرُ الآلة',         en: 'Engine Slayer',    descAr: 'اهزِمِ المحرّكَ خمسينَ مرّة.',         descEn: 'Beat the engine 50 times.' },
+  /* ── المثابرة: المهامُّ المكتملةُ مدى الحياة (missions.claimed). ── */
+  { id: 'missions_10', coins: 90,  xp: 130,  retro: true,  icon: 'target', tier: 'bronze', cat: 'dedication', test: s => s.missionsClaimed >= 10,
+    ar: 'عشرُ مهامّ',          en: '10 Missions',      descAr: 'أكمِلْ عشرَ مهامَّ واطلبْ مكافآتِها.', descEn: 'Complete and claim 10 missions.' },
+  { id: 'missions_50', coins: 300, xp: 420,  retro: true,  icon: 'target', tier: 'silver', cat: 'dedication', test: s => s.missionsClaimed >= 50,
+    ar: 'خمسونَ مهمّة',        en: '50 Missions',      descAr: 'أكمِلْ خمسينَ مهمّةً واطلبْ مكافآتِها.', descEn: 'Complete and claim 50 missions.' },
+  { id: 'missions_150',coins: 800, xp: 1100, retro: true,  icon: 'medal',  tier: 'legend', cat: 'dedication', test: s => s.missionsClaimed >= 150,
+    ar: 'مئةٌ وخمسونَ مهمّة',   en: '150 Missions',     descAr: 'أكمِلْ مئةً وخمسينَ مهمّةً واطلبْ مكافآتِها.', descEn: 'Complete and claim 150 missions.' },
   /* ── خاصّ ── */
   { id: 'beat_nour',   coins: 60,  xp: 80,   retro: false, icon: 'star',   tier: 'silver', cat: 'special', test: () => false,
     ar: 'هزيمةُ نور',          en: 'Beat Nour',        descAr: 'اهزِمْ نورَ في وضعِ اللعبِ ضدّه.',   descEn: 'Beat Nour in a match against him.' },
@@ -549,6 +575,13 @@ const qOwned    = db.prepare('SELECT item_id FROM user_cosmetics WHERE user_id =
 const qEquipped = db.prepare('SELECT equipped_frame, equipped_background, equipped_badge, equipped_celebration, equipped_mate_fx FROM users WHERE id = ?');
 const qStreak   = db.prepare('SELECT win_streak FROM users WHERE id = ?');
 const updStreak = db.prepare('UPDATE users SET win_streak = ? WHERE id = ?');
+/* عدّادُ انتصاراتِ المحرّكِ (إنجازاتُ «اهزِمِ المحرّك») + لقطةُ تقدّمِ درب نور
+   وعددِ المهامِّ المُطالَبةِ مدى الحياة — كلُّها مصادرُ خادميّةٌ للإنجازاتِ
+   الموسّعةِ (بند جوجو ٣) فلا يمكنُ تلفيقُها على الجهاز. */
+const incEngineWins = db.prepare('UPDATE users SET engine_wins = COALESCE(engine_wins,0) + 1 WHERE id = ?');
+const qEngineWins   = db.prepare('SELECT COALESCE(engine_wins,0) AS n FROM users WHERE id = ?');
+const qNourAgg      = db.prepare('SELECT COUNT(*) AS done, COALESCE(SUM(stars),0) AS stars, COALESCE(SUM(CASE WHEN stars >= 3 THEN 1 ELSE 0 END),0) AS perfect FROM nour_progress WHERE user_id = ? AND completed = 1');
+const qClaimedCount = db.prepare('SELECT COUNT(*) AS n FROM missions WHERE user_id = ? AND claimed = 1');
 
 function ensureWallet(userId) {
   insWallet.run(userId);
@@ -640,6 +673,19 @@ function statsSnapshot(userId) {
       else if (it.rarity === 'legendary') legendary++;
     }
   } catch (e) {}
+  /* مصادرُ خادميّةٌ للإنجازاتِ الموسّعةِ (بند جوجو ٣) — تغطّي درب نور ووضعَ
+     المحرّكِ والمثابرةَ على المهامّ، وهي أوضاعٌ لم تكنْ ممثَّلةً في الإنجازات. */
+  let engineWins = 0;
+  try { engineWins = Number((qEngineWins.get(userId) || {}).n) || 0; } catch (e) {}
+  let nourLevels = 0, nourStars = 0, nourPerfect = 0;
+  try {
+    const na = qNourAgg.get(userId) || {};
+    nourLevels = Number(na.done) || 0;
+    nourStars = Number(na.stars) || 0;
+    nourPerfect = Number(na.perfect) || 0;
+  } catch (e) {}
+  let missionsClaimed = 0;
+  try { missionsClaimed = Number((qClaimedCount.get(userId) || {}).n) || 0; } catch (e) {}
   return {
     rating: Math.round(Number(u.rating) || 1500),
     games: Number(u.rating_games) || ((Number(u.wins) || 0) + (Number(u.losses) || 0) + (Number(u.draws) || 0)),
@@ -649,6 +695,7 @@ function statsSnapshot(userId) {
     puzzles: Number(u.puzzle_solved) || 0,
     streak, owned, mythic, legendary,
     level: levelForXp(xp),
+    engineWins, nourLevels, nourStars, nourPerfect, missionsClaimed,
   };
 }
 
@@ -1070,7 +1117,11 @@ router.post('/local-result', authenticateToken, (req, res) => {
       if (outcome === 'win') {
         advanced += bumpMissions(userId, 'wins', 1);
         if (reason.indexOf('checkmate') !== -1) advanced += bumpMissions(userId, 'checkmate', 1);
-        if (mode === 'engine') advanced += bumpMissions(userId, 'engine', 1);
+        if (mode === 'engine') {
+          advanced += bumpMissions(userId, 'engine', 1);
+          /* عدّادٌ دائمٌ لإنجازاتِ «اهزِمِ المحرّك» (لا يُصفَّرُ كالمهامّ). */
+          try { incEngineWins.run(userId); } catch (e) {}
+        }
         if (mode === 'nour') {
           advanced += bumpMissions(userId, 'nour', 1);
           /* إنجازُ «هزيمةُ نور» كانَ غيرَ قابلٍ للنيلِ إطلاقًا: اختبارُه

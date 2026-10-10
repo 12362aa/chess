@@ -540,6 +540,10 @@ function migrate() {
      تُزاد بكل فوز وتُصفَّر بأوّل تعادل/خسارة. تعيّن progress بحدٍّ أقصى (لا
      تُراكَم) عشان المهمّة تعكس أطول سلسلة حاليّة لا مجموع الانتصارات. */
   if (addColumn('users', 'win_streak',           'INTEGER DEFAULT 0')) added.push('users.win_streak');
+  /* عدّادُ انتصاراتِ وضعِ المحرّكِ (Stockfish) — تتبّعٌ خادميٌّ بحتٌ لإنجازاتِ
+     «اهزِمِ المحرّك» (بند جوجو ٣). يُزاد في /economy/local-result عندَ الفوزِ
+     بوضعِ المحرّك. منفصلٌ عن users.wins (الأخيرةُ للمبارياتِ المصنَّفةِ أونلاين). */
+  if (addColumn('users', 'engine_wins',          'INTEGER DEFAULT 0')) added.push('users.engine_wins');
   db.exec(`
     CREATE TABLE IF NOT EXISTS wallet (
       user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
