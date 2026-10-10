@@ -635,6 +635,14 @@ function awardGame(userId, outcome, roomRef, reason) {
       streak = 0;
     }
     try { updStreak.run(streak, Number(userId)); } catch (e) {}
+    /* تحدّي نور الأسبوعيّ: المبارياتُ المصنَّفةُ أونلاين تحتسبُ لتحدّياتِ
+       «فُزْ N» و«سلسلةُ فوز» (لا engine/nour لأنّها أونلاين). */
+    try {
+      if (outcome === 'win') {
+        bumpWeekly(userId, 'win', { mode: 'online' });
+        bumpWeekly(userId, 'streak', { value: streak });
+      }
+    } catch (e) {}
   }
   try { evaluateAchievements(userId); } catch (e) {}
 }
@@ -725,6 +733,7 @@ function snapshot(userId) {
     owned: qOwned.all(userId).map(r => r.item_id),
     achievements: qAch.all(userId).map(r => r.ach_id),
     missions: missionsSnapshot(userId),
+    weeklyChallenge: weeklyChallengeSnapshot(userId),
     equipped: {
       frame: eq.equipped_frame || null,
       background: eq.equipped_background || null,
@@ -988,6 +997,165 @@ function claimMission(userId, missionId) {
   try { return tx(); } catch (e) { console.error('[economy] claimMission', e.message); return { ok: false, reason: 'error' }; }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   تحدي نور الأسبوعيّ (بند جوجو ٢)
+   ────────────────────────────────────────────────────────────────
+   كلَّ أسبوعِ ISO يقدّمُ نورٌ تحديًا واحدًا عالميًّا (نفسُه للجميع — حدثٌ
+   مجتمعيّ) مختارًا حتميًّا بالبذرة (أسبوعٌ فقط) من حوضِ قوالبَ متنوّعة. غايتُه
+   ألّا يكونَ درب نور مجرّدَ مراحلَ تنتهي: محتوًى جديدٌ كلَّ أسبوع. أنواعُ
+   التحدّياتِ كلُّها قابلةٌ للتحقّقِ من أحداثٍ موجودةٍ (لا وضعَ لعبٍ جديد):
+     wins      — فُزْ N مباراةً هذا الأسبوع (أيُّ وضع).
+     engine    — اهزِمِ المحرّكَ N مرّة.
+     puzzles   — حُلَّ N لغزًا (اختياريًّا بموضوعٍ محدّدٍ يقترحُه نور).
+     beat_nour — اهزِمْ نورَ N مرّة (اختياريًّا عندَ مستوًى أدنى).
+     swift     — اهزِمْ نورَ/المحرّكَ في ≤ M نقلة.
+     streak    — ابلغْ سلسلةَ فوزٍ طولُها N.
+   المكافأةُ عملةٌ + خبرةٌ تُطالَبُ مرّةً واحدةً لكلِّ أسبوع. النصوصُ ثنائيّةُ
+   اللغةِ تُرسَلُ من الخادمِ (لا تسريبَ i18n)، ولكلِّ تحدٍّ إيموجي للإشعارِ
+   الذكيِّ ورمزُ SVG للنافذة. */
+const WEEKLY_CHALLENGE_TEMPLATES = [
+  { key: 'wins7', type: 'wins', target: 7, coins: 400, xp: 520, icon: 'sword', emoji: '⚔️',
+    ar: t => `فُزْ بـ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} هذا الأسبوع`, en: t => `Win ${t} games this week`,
+    descAr: t => `يتحدّاكَ نورُ أن تحقّقَ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} فائزةً في أيِّ وضعٍ قبلَ نهايةِ الأسبوع.`,
+    descEn: t => `Nour challenges you to win ${t} games in any mode before the week ends.` },
+  { key: 'engine5', type: 'engine', target: 5, coins: 450, xp: 580, icon: 'cpu', emoji: '🤖',
+    ar: t => `اهزِمِ المحرّكَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`, en: t => `Beat the engine ${t} times`,
+    descAr: t => `أثبِتْ تفوّقَكَ على الآلة: اغلِبْ محرّكَ Stockfish ${_arNum(t)} ${_ar_p(t, _AR_TIME)} هذا الأسبوع.`,
+    descEn: t => `Prove your edge over the machine: defeat the Stockfish engine ${t} times this week.` },
+  { key: 'puzzles_mate2', type: 'puzzles', theme: 'mateIn2', target: 10, coins: 420, xp: 540, icon: 'bulb', emoji: '🧩',
+    ar: t => `حُلَّ ${_arNum(t)} ألغازِ كِش-ماتٍ في نقلتين`, en: t => `Solve ${t} mate-in-2 puzzles`,
+    descAr: t => `يقترحُ نورُ ألغازَ الكِش-ماتِ في نقلتين: حُلَّ ${_arNum(t)} منها لتشحذَ بصيرتَك.`,
+    descEn: t => `Nour recommends mate-in-2 puzzles: solve ${t} of them to sharpen your vision.` },
+  { key: 'puzzles_fork', type: 'puzzles', theme: 'fork', target: 12, coins: 420, xp: 540, icon: 'bulb', emoji: '🧩',
+    ar: t => `حُلَّ ${_arNum(t)} لغزَ شوكةٍ`, en: t => `Solve ${t} fork puzzles`,
+    descAr: t => `موضوعُ الأسبوعِ من نور: الشوكة. حُلَّ ${_arNum(t)} لغزًا من هذا النوع.`,
+    descEn: t => `Nour’s theme of the week: the fork. Solve ${t} puzzles of this kind.` },
+  { key: 'beat_nour3', type: 'beat_nour', target: 3, coins: 400, xp: 520, icon: 'path', emoji: '🌟',
+    ar: t => `اهزِمْ نورَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`, en: t => `Beat Nour ${t} times`,
+    descAr: t => `واجِهْ نورَ في درب نور واهزِمْه ${_arNum(t)} ${_ar_p(t, _AR_TIME)} هذا الأسبوع.`,
+    descEn: t => `Face Nour in Nour’s Path and defeat him ${t} times this week.` },
+  { key: 'beat_strong', type: 'beat_nour', target: 1, minLevel: 7, coins: 500, xp: 650, icon: 'mountain', emoji: '🏔️',
+    ar: () => `اهزِمْ نورَ القويَّ (القائدُ العظيمُ فأعلى)`, en: () => `Beat strong Nour (Great Leader+)`,
+    descAr: () => `تحدٍّ صعب: اهزِمْ نورَ عندَ مستوى «القائدِ العظيم» أو أصعبَ ولو مرّةً واحدةً هذا الأسبوع.`,
+    descEn: () => `A hard one: beat Nour at the “Great Leader” tier or above at least once this week.` },
+  { key: 'swift_nour', type: 'swift', maxMoves: 30, coins: 480, xp: 620, icon: 'flame', emoji: '⚡',
+    ar: () => `اهزِمْ نورَ في ٣٠ نقلةً أو أقلّ`, en: () => `Beat Nour in 30 moves or fewer`,
+    descAr: () => `السرعةُ تحدٍّ: احسِمْ مباراةً ضدَّ نورَ في ثلاثينَ نقلةً أو أقلَّ هذا الأسبوع.`,
+    descEn: () => `Speed is the test: finish a game against Nour in 30 moves or fewer this week.` },
+  { key: 'streak4', type: 'streak', target: 4, coins: 460, xp: 600, icon: 'flame', emoji: '🔥',
+    ar: t => `ابلغْ سلسلةَ ${_arNum(t)} انتصاراتٍ`, en: t => `Reach a ${t}-win streak`,
+    descAr: t => `افُزْ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} متتاليةً دونَ خسارةٍ هذا الأسبوع.`,
+    descEn: t => `Win ${t} games in a row without a loss this week.` },
+];
+const WC_BY_KEY = Object.create(null);
+for (const t of WEEKLY_CHALLENGE_TEMPLATES) WC_BY_KEY[t.key] = t;
+
+/* اختيارُ تحدّي الأسبوعِ حتميًّا من مفتاحِ الأسبوعِ وحدَه (عالميٌّ للجميع). */
+function weeklyChallengePick(weekKey) {
+  const rng = _mulberry32(_fnv1a('weekly-challenge:' + weekKey));
+  const idx = Math.floor(rng() * WEEKLY_CHALLENGE_TEMPLATES.length) % WEEKLY_CHALLENGE_TEMPLATES.length;
+  return WEEKLY_CHALLENGE_TEMPLATES[idx];
+}
+
+const qWeeklyRow   = db.prepare('SELECT challenge_id, progress, target, completed, claimed FROM weekly_challenge WHERE user_id = ? AND week_key = ?');
+const insWeeklyRow = db.prepare('INSERT OR IGNORE INTO weekly_challenge (user_id, week_key, challenge_id, progress, target) VALUES (?,?,?,0,?)');
+const updWeeklyProg= db.prepare("UPDATE weekly_challenge SET progress = MIN(target, progress + ?), completed = CASE WHEN MIN(target, progress + ?) >= target THEN 1 ELSE completed END, updated_at = datetime('now') WHERE user_id = ? AND week_key = ?");
+const setWeeklyMax = db.prepare("UPDATE weekly_challenge SET progress = MAX(progress, MIN(target, ?)), completed = CASE WHEN MAX(progress, MIN(target, ?)) >= target THEN 1 ELSE completed END, updated_at = datetime('now') WHERE user_id = ? AND week_key = ?");
+const setWeeklyDone= db.prepare("UPDATE weekly_challenge SET progress = target, completed = 1, updated_at = datetime('now') WHERE user_id = ? AND week_key = ?");
+const setWeeklyClaimed = db.prepare("UPDATE weekly_challenge SET claimed = 1, updated_at = datetime('now') WHERE user_id = ? AND week_key = ?");
+
+/* بذرُ صفِّ تحدّي اللاعبِ لهذا الأسبوعِ مرّةً واحدة (يُثبِّتُ challenge_id/target). */
+function ensureWeeklySeeded(userId) {
+  const wk = periodKey('weekly');
+  const row = qWeeklyRow.get(userId, wk);
+  if (row) return wk;
+  const tpl = weeklyChallengePick(wk);
+  try { insWeeklyRow.run(userId, wk, tpl.key, tpl.target || 1); } catch (e) { console.error('[economy] seed weekly', e.message); }
+  return wk;
+}
+
+/* بناءُ كائنِ التحدّي الكامل (نصٌّ ثنائيُّ اللغةِ + تقدّم + مكافأة). */
+function _weeklyView(tpl, row) {
+  const target = Number(row.target) || (tpl.target || 1);
+  const raw = Number(row.progress) || 0;
+  const t = target;
+  return {
+    id: tpl.key, type: tpl.type, icon: tpl.icon, emoji: tpl.emoji,
+    theme: tpl.theme || null, minLevel: tpl.minLevel || 0, maxMoves: tpl.maxMoves || 0,
+    target, progress: Math.min(target, raw),
+    completed: !!row.completed || raw >= target, claimed: !!row.claimed,
+    coins: tpl.coins, xp: tpl.xp,
+    ar: tpl.ar(t), en: tpl.en(t), descAr: tpl.descAr(t), descEn: tpl.descEn(t),
+  };
+}
+
+/* لقطةُ تحدّي الأسبوعِ الحاليِّ للّاعب. */
+function weeklyChallengeSnapshot(userId) {
+  userId = Number(userId);
+  if (!userId) return null;
+  const wk = ensureWeeklySeeded(userId);
+  const row = qWeeklyRow.get(userId, wk);
+  const tpl = row && WC_BY_KEY[row.challenge_id];
+  if (!row || !tpl) return null;
+  return Object.assign({ weekKey: wk }, _weeklyView(tpl, row));
+}
+
+/* رفعُ تقدّمِ تحدّي الأسبوعِ لو كانَ نوعُه يطابقُ الحدثَ الواردَ. meta يحملُ
+   سياقًا اختياريًّا: {mode, level, moves}. يُرجِعُ true لو تقدّمَ فعلًا. */
+function bumpWeekly(userId, kind, meta) {
+  userId = Number(userId);
+  if (!userId) return false;
+  meta = meta || {};
+  const wk = ensureWeeklySeeded(userId);
+  const row = qWeeklyRow.get(userId, wk);
+  const tpl = row && WC_BY_KEY[row.challenge_id];
+  if (!row || !tpl || row.completed) return false;
+  const before = Number(row.progress) || 0;
+  let applied = false;
+  try {
+    switch (tpl.type) {
+      case 'wins':
+        if (kind === 'win') { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
+        break;
+      case 'engine':
+        if (kind === 'win' && meta.mode === 'engine') { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
+        break;
+      case 'puzzles':
+        if (kind === 'puzzle' && (!tpl.theme || !meta.theme || meta.theme === tpl.theme)) { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
+        break;
+      case 'beat_nour':
+        if (kind === 'win' && meta.mode === 'nour' && (!tpl.minLevel || (Number(meta.level) || 0) >= tpl.minLevel)) { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
+        break;
+      case 'swift':
+        if (kind === 'win' && (meta.mode === 'nour' || meta.mode === 'engine') && Number(meta.moves) > 0 && Number(meta.moves) <= (tpl.maxMoves || 0)) { setWeeklyDone.run(userId, wk); applied = true; }
+        break;
+      case 'streak':
+        if (kind === 'streak' && Number(meta.value) > 0) { setWeeklyMax.run(Number(meta.value), Number(meta.value), userId, wk); applied = true; }
+        break;
+    }
+  } catch (e) { console.error('[economy] bumpWeekly', e.message); return false; }
+  if (!applied) return false;
+  const after = qWeeklyRow.get(userId, wk);
+  return !!after && (Number(after.progress) || 0) > before;
+}
+
+/* مطالبةُ مكافأةِ تحدّي الأسبوعِ (مرّةً واحدةً لكلِّ أسبوعٍ، بعدَ الإكمال). */
+function claimWeekly(userId) {
+  userId = Number(userId);
+  const wk = ensureWeeklySeeded(userId);
+  const tx = db.transaction(() => {
+    const row = qWeeklyRow.get(userId, wk);
+    const tpl = row && WC_BY_KEY[row.challenge_id];
+    if (!row || !tpl) return { ok: false, reason: 'none' };
+    if (!row.completed && (Number(row.progress) || 0) < (Number(row.target) || 1)) return { ok: false, reason: 'incomplete' };
+    if (row.claimed) return { ok: false, reason: 'claimed' };
+    setWeeklyClaimed.run(userId, wk);
+    grant(userId, tpl.coins, tpl.xp, 'weekly:' + tpl.key, 'weekly:' + wk);
+    return { ok: true, reason: 'ok' };
+  });
+  try { return tx(); } catch (e) { console.error('[economy] claimWeekly', e.message); return { ok: false, reason: 'error' }; }
+}
+
 /* كتالوج ثابت ثنائيّ اللغة للعميل (إنجازات + عناصر) — يُجلَب مرّةً.
    المهامّ لم تعد ثابتةً (مولّدة لكلّ لاعب) فمصدرُ عرضِها صار snapshot.missions؛
    نُبقي missions:[] للتوافق مع العملاء القدامى فقط. */
@@ -1035,6 +1203,19 @@ router.post('/claim-mission', authenticateToken, (req, res) => {
   }
 });
 
+/* مطالبةُ مكافأةِ تحدّي نور الأسبوعيِّ (بند جوجو ٢). */
+router.post('/claim-weekly', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  try {
+    ensureWallet(userId);
+    const r = claimWeekly(userId);
+    res.json({ ...r, ...snapshot(userId) });
+  } catch (e) {
+    console.error('[economy] /claim-weekly', e.message);
+    res.status(500).json({ error: 'economy_error' });
+  }
+});
+
 /* حلّ لغز: كسب موثّق مع سقفٍ يوميٍّ **للعملة** ومنع تكرار نفس اللغز في نفس
    اليوم. التحقّق أساسيّ؛ الحلُّ الفعليُّ يُتحقَّقُ على الجهاز، لكنّ الخادمَ
    يمنعُ التفريخ. بلوغُ السقفِ يُوقِفُ العملةَ فقط — مهمّةُ الألغازِ تتقدّمُ
@@ -1054,7 +1235,12 @@ router.post('/puzzle-solved', authenticateToken, (req, res) => {
     const fresh = capped
       ? grant(userId, 0, 0, 'puzzle_capped', ref)
       : grant(userId, AWARD.puzzle.coins, AWARD.puzzle.xp, 'puzzle', ref);
-    if (fresh) bumpMissions(userId, 'puzzles', 1);
+    if (fresh) {
+      bumpMissions(userId, 'puzzles', 1);
+      /* تحدّي نور الأسبوعيّ: لغزٌ محلولٌ — بموضوعِه لو أرسلَه العميل (تحدّي
+         الموضوعِ يطابقُ، وتحدّي العددِ العامِّ يقبلُ الكلّ). */
+      try { bumpWeekly(userId, 'puzzle', { theme: (req.body && req.body.theme) ? String(req.body.theme).slice(0, 40) : '' }); } catch (e) {}
+    }
     try { evaluateAchievements(userId); } catch (e) {}
     return res.json({
       awarded: fresh && !capped,
@@ -1103,6 +1289,10 @@ router.post('/local-result', authenticateToken, (req, res) => {
     const reason = String(b.reason || '').toLowerCase();
     const mode = b.mode === 'nour' ? 'nour' : b.mode === 'engine' ? 'engine' : '';
     if (!mode) return res.json({ awarded: false, reason: 'bad_mode', ...snapshot(userId) });
+    /* سياقٌ اختياريٌّ لتحدّي نور الأسبوعيِّ (بند جوجو ٢): مستوى نورِ ونقلاتُ
+       المباراة — يصلانِ من العميلِ ولا يؤثّرانِ في المهامِّ ولا التقييم. */
+    const level = Math.max(0, Math.round(Number(b.level) || 0));
+    const moves = Math.max(0, Math.round(Number(b.moves) || 0));
 
     const n = qLocalToday.get(userId).n;
     const capped = n >= LOCAL_MISSION_DAILY_CAP;
@@ -1146,6 +1336,14 @@ router.post('/local-result', authenticateToken, (req, res) => {
         streak = 0;
       }
       try { updStreak.run(streak, Number(userId)); } catch (e) {}
+      /* تحدّي نور الأسبوعيّ: يُرفَعُ خارجَ حسابِ «advanced» (الأخيرُ للمهامِّ
+         والقاطعِ فقط) فلا يُستهلَكُ القاطعُ بسببِه. */
+      try {
+        if (outcome === 'win') {
+          bumpWeekly(userId, 'win', { mode, level, moves });
+          bumpWeekly(userId, 'streak', { value: streak });
+        }
+      } catch (e) {}
       /* نَخصِمُ من القاطعِ بلاغًا منتِجًا فقط — ref فريدٌ يمنعُ التكرار. */
       if (advanced > 0) {
         const day = new Date().toISOString().slice(0, 10);
@@ -1220,6 +1418,11 @@ module.exports = {
   missionsSnapshot,
   claimMission,
   ensureSeeded,
+  weeklyChallengeSnapshot,
+  weeklyChallengePick,
+  bumpWeekly,
+  claimWeekly,
+  WEEKLY_CHALLENGE_TEMPLATES,
   periodKey,
   catalog,
   AWARD,

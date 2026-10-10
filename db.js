@@ -598,6 +598,26 @@ function migrate() {
     CREATE INDEX IF NOT EXISTS idx_missions_user ON missions(user_id, period_key);
   `);
 
+  /* ══ تحدي نور الأسبوعيّ (بند جوجو ٢) ══
+     تحدٍّ عالميٌّ واحدٌ لكلِّ أسبوعِ ISO (نفسُه للجميع — حدثٌ مجتمعيّ)، لكنَّ
+     التقدّمَ والمطالبةَ لكلِّ لاعبٍ على حدة. challenge_id/target يُثبَّتانِ في
+     الصفِّ عندَ أوّلِ لمسةٍ فلا يتغيّرُ التحدي لو عُدِّلتِ القوالبُ منتصفَ
+     الأسبوع (نفسُ نهجِ جدولِ missions). */
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS weekly_challenge (
+      user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      week_key     TEXT NOT NULL,                 -- 2026-W41
+      challenge_id TEXT NOT NULL,                 -- مفتاحُ القالبِ لهذا الأسبوع
+      progress     INTEGER NOT NULL DEFAULT 0,
+      target       INTEGER NOT NULL DEFAULT 1,
+      completed    INTEGER NOT NULL DEFAULT 0,
+      claimed      INTEGER NOT NULL DEFAULT 0,
+      updated_at   TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, week_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_weekly_user ON weekly_challenge(user_id, week_key);
+  `);
+
   /* فهارس على الأعمدة الجديدة — بعد ALTER عشان تكون موجودة */
   db.exec(`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username   ON users(username) WHERE username IS NOT NULL;
