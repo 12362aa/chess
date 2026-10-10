@@ -73,7 +73,7 @@ console.log('— تقدّم كلّ metric عبر أحداث فعليّة —');
    لأيِّ القوالب اختيرت لكلّ لاعب). */
 const seenMetrics = new Set();
 let checkedProgress = 0;
-for (let k = 0; k < 12; k++) {
+for (let k = 0; k < 40; k++) {
   const uu = newUser('ev' + k);
   econ.snapshot(uu); // بذر
   // أحداث: فوز بكش-مات ×3 (غرف مختلفة) + تعادل + هزيمة نور + لغزان
@@ -96,7 +96,12 @@ for (let k = 0; k < 12; k++) {
     if (m.metric === 'puzzles')   { ok(m.progress === Math.min(m.target, 2), 'puzzles تقدّم=min(target,2)'); checkedProgress++; }
   }
 }
-ok(seenMetrics.size === 7, 'كل الـ٧ metrics قابلة للاختيار والظهور: ' + [...seenMetrics].sort().join(','));
+/* عددُ المقاييسِ المتميّزةِ مشتقٌّ من القوالبِ نفسِها (لا رقمٌ مثبَّت) كي لا
+   ينكسرَ الاختبارُ كلّما أُضيفَ محورٌ جديدٌ (engine/spend في البناء ٧٤…). */
+const _tplMetrics = new Set();
+for (const p of ['daily', 'weekly']) for (const t of TPL[p]) _tplMetrics.add(t.metric);
+ok(seenMetrics.size === _tplMetrics.size,
+   'كلُّ مقاييسِ القوالبِ (' + _tplMetrics.size + ') قابلةٌ للاختيارِ والظهور: ' + [...seenMetrics].sort().join(','));
 ok(checkedProgress > 0, 'جرى التحقّق من تقدّم مهامّ فعليّة: ' + checkedProgress);
 
 console.log('— سلسلة الفوز تُصفَّر بالخسارة —');
@@ -161,12 +166,17 @@ let rb = econ.purchase(uBuy, inWin.id);
 ok(rb.ok === true, 'شراء عنصر داخل النافذة ينجح: ' + inWin.id);
 rb = econ.purchase(uBuy, outWin.id);
 ok(rb.ok === false && rb.reason === 'not_in_window', 'شراء عنصر خارج النافذة مرفوض: ' + outWin.id);
-// شراء Mythic لو صادف أن أحدها في النافذة يخصم ٣٠٠٠
+// شراء Mythic لو صادف أن أحدها في النافذة يخصم ٣٠٠٠ (نتحقّق من صفِّ الدفتر
+// لا من صافي المحفظة: الشراء صار يُقيّمُ إنجازَ own_mythic فيمنحُ ٤٠٠ عملة،
+// فصافي المحفظةِ = -٣٠٠٠+٤٠٠؛ لكنَّ خصمَ الشراءِ نفسَه يظلُّ ٣٠٠٠ بالضبط).
 const mythicInWin = st.items.find(i => i.inWindow && i.rarity === 'mythic' && !i.owned);
 if (mythicInWin) {
-  const before = econ.snapshot(uBuy).coins;
   const r2 = econ.purchase(uBuy, mythicInWin.id);
-  if (r2.ok) ok(econ.snapshot(uBuy).coins === before - 3000, 'شراء Mythic يخصم ٣٠٠٠');
+  if (r2.ok) {
+    const buyRow = db.prepare("SELECT delta FROM coin_ledger WHERE user_id=? AND ref=?").get(uBuy, 'buy:' + mythicInWin.id);
+    ok(buyRow && buyRow.delta === -3000, 'شراء Mythic يخصم ٣٠٠٠ (صفُّ الدفتر)');
+    ok(!!db.prepare('SELECT 1 FROM user_cosmetics WHERE user_id=? AND item_id=?').get(uBuy, mythicInWin.id), 'عنصرُ Mythic صارَ مملوكًا');
+  }
 }
 
 console.log('— عزل الدورة (period_key) —');

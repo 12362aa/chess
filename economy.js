@@ -142,6 +142,7 @@ const _AR_MATCH  = ['مباراة', 'مباراتين', 'مباريات', 'مب�
 const _AR_WIN    = ['فوزٍ', 'فوزين', 'انتصارات', 'فوزًا'];
 const _AR_PUZ    = ['لغزٍ', 'لغزين', 'ألغاز', 'لغزًا'];
 const _AR_TIME   = ['مرّة', 'مرّتين', 'مرّات', 'مرّة'];
+const _AR_ITEM   = ['عنصرًا', 'عنصرين', 'عناصر', 'عنصرًا'];
 function _s(n) { return n === 1 ? '' : 's'; }
 
 const MISSION_TEMPLATES = {
@@ -167,6 +168,12 @@ const MISSION_TEMPLATES = {
     { key: 'draws',     metric: 'draws',     base: 1, per: 0, cpt: 25, xpt: 30,
       ar: t => `تعادَلْ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`,       en: t => `Draw ${t} game${_s(t)}`,
       descAr: t => `أنهِ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} بالتعادل اليوم.`, descEn: t => `Draw ${t} game${_s(t)} today.` },
+    { key: 'engine',    metric: 'engine',    base: 2, per: 1, cpt: 16, xpt: 20,
+      ar: t => `اهزِمِ المحرّكَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`, en: t => `Beat the engine ${t} time${_s(t)}`,
+      descAr: t => `اغلِبْ محرّكَ Stockfish ${_arNum(t)} ${_ar_p(t, _AR_TIME)} اليوم.`, descEn: t => `Defeat the Stockfish engine ${t} time${_s(t)} today.` },
+    { key: 'spend',     metric: 'spend',     base: 1, per: 0, cpt: 20, xpt: 25,
+      ar: t => `اشترِ ${_arNum(t)} ${_ar_p(t, _AR_ITEM)} منَ المتجر`, en: t => `Buy ${t} store item${_s(t)}`,
+      descAr: t => `اشترِ ${_arNum(t)} ${_ar_p(t, _AR_ITEM)} تجميليًّا منَ المتجرِ اليوم.`, descEn: t => `Purchase ${t} cosmetic item${_s(t)} from the store today.` },
   ],
   weekly: [
     { key: 'games',     metric: 'games',     base: 20, per: 3, cpt: 8,  xpt: 10,
@@ -190,6 +197,12 @@ const MISSION_TEMPLATES = {
     { key: 'draws',     metric: 'draws',     base: 3, per: 0, cpt: 25, xpt: 30,
       ar: t => `تعادَلْ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`,       en: t => `Draw ${t} game${_s(t)}`,
       descAr: t => `أنهِ ${_arNum(t)} ${_ar_p(t, _AR_MATCH)} بالتعادل هذا الأسبوع.`, descEn: t => `Draw ${t} game${_s(t)} this week.` },
+    { key: 'engine',    metric: 'engine',    base: 10, per: 2, cpt: 12, xpt: 15,
+      ar: t => `اهزِمِ المحرّكَ ${_arNum(t)} ${_ar_p(t, _AR_TIME)}`, en: t => `Beat the engine ${t} time${_s(t)}`,
+      descAr: t => `اغلِبْ محرّكَ Stockfish ${_arNum(t)} ${_ar_p(t, _AR_TIME)} هذا الأسبوع.`, descEn: t => `Defeat the Stockfish engine ${t} time${_s(t)} this week.` },
+    { key: 'spend',     metric: 'spend',     base: 3, per: 1, cpt: 18, xpt: 22,
+      ar: t => `اشترِ ${_arNum(t)} ${_ar_p(t, _AR_ITEM)} منَ المتجر`, en: t => `Buy ${t} store item${_s(t)}`,
+      descAr: t => `اشترِ ${_arNum(t)} ${_ar_p(t, _AR_ITEM)} تجميليًّا منَ المتجرِ هذا الأسبوع.`, descEn: t => `Purchase ${t} cosmetic item${_s(t)} from the store this week.` },
   ],
 };
 /* فهرسٌ للقالب من mission_id (`${period}_${key}`) لإعادة اشتقاق النصّ/المكافأة. */
@@ -510,7 +523,17 @@ function purchase(userId, itemId) {
     insCosmetic.run(userId, itemId);
     return { ok: true, reason: 'ok' };
   });
-  try { return tx(); } catch (e) { console.error('[economy] purchase failed:', e.message); return { ok: false, reason: 'error' }; }
+  try {
+    const r = tx();
+    /* ربطُ المتجرِ بالمهامّ (بند جوجو ٤): كلُّ شراءٍ ناجحٍ يُقدّمُ مهمّةَ
+       «اشترِ عناصرَ». خارجَ المعاملةِ الأصليّةِ كي لا يُجهِضَ الشراءَ أيُّ
+       عطبٍ في المهامّ، ثمّ نُقيّمُ الإنجازاتِ المرتبطةَ بالاقتناء. */
+    if (r && r.ok) {
+      try { bumpMissions(userId, 'spend', 1); } catch (e) {}
+      try { evaluateAchievements(userId); } catch (e) {}
+    }
+    return r;
+  } catch (e) { console.error('[economy] purchase failed:', e.message); return { ok: false, reason: 'error' }; }
 }
 
 /* ══ عبارات SQL مُجهَّزة ══ */
@@ -759,6 +782,7 @@ function _targetFor(tpl, level) { return Math.max(1, tpl.base + tpl.per * Math.f
    أكثر في محورٍ ما رجّحنا مهامّه — مع إبقاء «العَبْ» حاضرًا دائمًا للجميع. */
 function _weights(stats) {
   const g = Number(stats.games) || 0, w = Number(stats.wins) || 0, d = Number(stats.draws) || 0, p = Number(stats.puzzles) || 0;
+  const owned = Number(stats.owned) || 0;
   const winRate = g ? w / g : 0.4;
   const drawRate = g ? d / g : 0.1;
   const puzRate = (p + g) ? p / (p + g) : 0.3;
@@ -770,6 +794,11 @@ function _weights(stats) {
     streak:    0.4 + winRate * 1.6,
     nour:      0.45,
     draws:     0.3 + drawRate * 2.5,
+    /* المحرّك: محورٌ أساسيٌّ لوضعِ اللعبِ منفردًا — حاضرٌ دائمًا بوزنٍ ثابت. */
+    engine:    0.7,
+    /* الإنفاق: نرجّحُه لمن يملكُ مقتنياتٍ (يتعاملُ مع المتجرِ فعلًا) ونُبقيه
+       خفيفًا للمبتدئِ كي لا تُفرَضَ عليه مهمّةُ شراءٍ وهو بلا رصيد. */
+    spend:     0.2 + Math.min(0.6, owned * 0.06),
   };
 }
 /* اختيارُ ٣ قوالبَ متمايزةٍ بترجيحٍ بلا إبدال، باستخدام rng حتميّ. */
@@ -1041,6 +1070,7 @@ router.post('/local-result', authenticateToken, (req, res) => {
       if (outcome === 'win') {
         advanced += bumpMissions(userId, 'wins', 1);
         if (reason.indexOf('checkmate') !== -1) advanced += bumpMissions(userId, 'checkmate', 1);
+        if (mode === 'engine') advanced += bumpMissions(userId, 'engine', 1);
         if (mode === 'nour') {
           advanced += bumpMissions(userId, 'nour', 1);
           /* إنجازُ «هزيمةُ نور» كانَ غيرَ قابلٍ للنيلِ إطلاقًا: اختبارُه
