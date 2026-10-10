@@ -3149,7 +3149,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=11-v1">
+<link rel="stylesheet" href="screens.css?v=12-v1">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -15536,6 +15536,11 @@ const Nav={
   game(){Nav.show('s-game');},
   back(){history.back();}
 };
+/* عرضُ Nav على window: ملفّاتٌ منفصلةٌ (rewards-client وغيرُها) تنقلُ بين
+   الشاشاتِ عبرَ window.Nav؛ وconst لا يُعلَّقُ على window تلقائيًّا، فكانَ زرُّ
+   «ابدأِ التحدّي» في تحدّي نورَ الأسبوعيِّ يُجهَضُ ويبقى اللاعبُ على الرئيسيّة
+   (بلاغُ جوجو ٢). نفسُ سببِ عرضِ window.Modal/window.DSOverlay. */
+window.Nav = Nav;
 
 function isRemoteMatchMode(mode=S.mode){
   return mode==='online'||mode==='bluetooth';
@@ -17422,7 +17427,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="store-client.js?v=10-v1"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=11-v1"></script>
+  <script src="rewards-client.js?v=12-v1"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت

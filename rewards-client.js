@@ -18,9 +18,25 @@
   /* قرصُ العملةِ الموحّدُ (نفسُ عملةِ الرئيسيّةِ) عبرَ المُصيّرِ المشترك. */
   function coinIc() { try { return (window.amkhCos && amkhCos.coin) ? amkhCos.coin() : ''; } catch (e) { return ''; } }
 
+  /* ══ ألوانُ الأيقوناتِ المميّزة (بلاغُ جوجو ٣: «أيقوناتٌ ملوّنةٌ لا متشابهة») ══
+     كلُّ رمزٍ لونُه الخاصُّ النابضُ — لا تدرّجٌ رماديٌّ واحدٌ لكلِّ الأيقونات.
+     يُطبَّقُ على الـsvg عبرَ style="color:…" فيَغلبُ لونَ الحاوية (currentColor)
+     فتصيرُ كلُّ أيقونةٍ متمايزةً بصريًّا في المهامِّ والإنجازاتِ معًا. */
+  var ICON_COLOR = {
+    /* مقاييسُ المهامّ */
+    games: '#5aa0ff', wins: '#ffd24d', puzzles: '#3dd7a4', checkmate: '#ff6b5a',
+    streak: '#ff8a3d', nour: '#b98aff', draws: '#8fb3c8', engine: '#36d1dc', spend: '#ff7ec8',
+    /* رموزُ الإنجازات */
+    sword: '#ff6b5a', board: '#5aa0ff', shield: '#4db8ff', flame: '#ff8a3d', crown: '#ffcf4d',
+    level: '#9d7bff', bulb: '#ffe14d', brain: '#ff7ec8', gem: '#36d1dc', trophy: '#ffcf4d',
+    dragon: '#ff5577', star: '#ffd24d', path: '#3dd7a4', mountain: '#8fd3ff', star3: '#ffd24d',
+    cpu: '#36d1dc', robot: '#7ab8ff', target: '#ff6b5a', medal: '#ffcf4d',
+  };
+  function _iconColor(id) { return ICON_COLOR[id] || '#cbb8ff'; }
+
   /* أيقوناتُ الإنجازاتِ: SVG صغيرةٌ مرسومةٌ (بلا إيموجي). الأسماءُ مطابقةٌ
      لحقلِ icon في ACHIEVEMENTS على الخادمِ — أيُّ نقصٍ كان يسقطُ للميداليّةِ
-     فتتشابهُ كلُّ الإنجازات (بلاغُ جوجو ٦). الآن لكلِّ فئةٍ رمزُها. */
+     فتتشابهُ كلُّ الإنجازات (بلاغُ جوجو ٦). الآن لكلِّ رمزٍ شكلُه ولونُه. */
   function achIcon(id) {
     var p = {
       medal: '<circle cx="12" cy="9" r="5.4"/><path d="M8 13.5 L6 21 L12 18 L18 21 L16 13.5"/>',
@@ -44,7 +60,7 @@
       robot: '<rect x="5.5" y="8" width="13" height="10.5" rx="2.2"/><path d="M12 4.6 V8"/><circle cx="12" cy="3.4" r="1.1"/><circle cx="9.6" cy="12.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="14.4" cy="12.4" r="1.05" fill="currentColor" stroke="none"/><path d="M9.8 15.6 H14.2"/>',
       target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
     };
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[id] || p.medal) + '</svg>';
+    return '<svg viewBox="0 0 24 24" style="color:' + _iconColor(id) + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[id] || p.medal) + '</svg>';
   }
 
   /* أيقوناتُ ألسنةِ شاشةِ الجوائز (مهامّ/إنجازات/مخزون) — SVG مرسومٌ يعبّرُ عن
@@ -88,7 +104,7 @@
       nour: '<rect x="5" y="7" width="14" height="11" rx="3.4"/><path d="M12 3.6 V7"/><circle cx="9.4" cy="12.3" r="1.05" fill="currentColor" stroke="none"/><circle cx="14.6" cy="12.3" r="1.05" fill="currentColor" stroke="none"/><path d="M9.8 15.3 H14.2"/>',
       draws: '<circle cx="12" cy="12" r="8.4"/><path d="M8 10.2 H16 M8 13.8 H16"/>',
     };
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[metric] || p.games) + '</svg>';
+    return '<svg viewBox="0 0 24 24" style="color:' + _iconColor(metric) + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[metric] || p.games) + '</svg>';
   }
 
   /* ══ RewardsWash: بوّابةُ "قاعةِ الشرف" — شروقٌ ذهبيٌّ كاملُ الشاشةِ بأشعّةٍ
@@ -239,6 +255,22 @@
     _bind: function () {
       if (this._bound) return; this._bound = true;
       var self = this, tabs = document.getElementById('rw-tabs');
+      /* أداءٌ (بند جوجو ٦): مُبدِّلُ is-scrolling على مُمرِّرِ الورقةِ لكلِّ
+         الألسنةِ (لا المخزونَ وحدَه) — يُفعِّلُ تبسيطَ الطلاءِ أثناءَ التمريرِ
+         في screens.css فيختفي اللاجُ والسوادُ في المهامِّ والإنجازاتِ أيضًا. */
+      try {
+        var ov = document.getElementById('rewards-ov');
+        var sc = ov && ov.querySelector('.store-scroll');
+        if (sc && !sc._amkhScrollPerf) {
+          sc._amkhScrollPerf = true;
+          var idle = 0;
+          sc.addEventListener('scroll', function () {
+            if (!sc.classList.contains('is-scrolling')) sc.classList.add('is-scrolling');
+            clearTimeout(idle);
+            idle = setTimeout(function () { sc.classList.remove('is-scrolling'); }, 140);
+          }, { passive: true });
+        }
+      } catch (e) {}
       if (tabs) tabs.addEventListener('click', function (ev) {
         var b = ev.target.closest ? ev.target.closest('.rw-tab') : null; if (!b) return;
         try { if (window.SFX) SFX.btn(); } catch (e) {}
@@ -579,13 +611,23 @@
        نوعِ التحدّي عبرَ Nav الموجود. */
     _startWeekly: function (type) {
       try { if (window.SFX) SFX.btn(); } catch (e) {}
-      try { this.close(); } catch (e) {}
-      try {
-        if (!window.Nav) return;
-        if (type === 'puzzles') Nav.puzzles();
-        else if (type === 'engine') { if (Nav.engine) Nav.engine(); else Nav.menu(); }
-        else Nav.levels();   /* beat_nour / swift / streak / wins → درب نور */
-      } catch (e) {}
+      /* Nav معرَّفٌ كـ const في index.html فلا يظهرُ على window تلقائيًّا؛
+         كان الحارسُ `if(!window.Nav)return` يُجهِضُ التوجيهَ فيبقى اللاعبُ على
+         الرئيسيّة (بلاغُ جوجو ٢). نأخذُه من window (أُصبِحَ معروضًا) أو من
+         النطاقِ العامِّ المشترَكِ بين السكربتات. ونوجّهُ أوّلًا ثمّ نُغلِقُ
+         النافذةَ بعدَ نبضةٍ كي يثبُتَ التنقّل. */
+      var N = (window.Nav) || (typeof Nav !== 'undefined' ? Nav : null);
+      var go = function () {
+        if (!N) return;
+        try {
+          if (type === 'puzzles') N.puzzles();
+          else if (type === 'engine') { if (N.engine) N.engine(); else if (N.local) N.local(); else N.menu(); }
+          else N.levels();   /* beat_nour / swift / streak / wins → درب نور */
+        } catch (e) {}
+      };
+      var self = this;
+      go();
+      setTimeout(function () { try { self.close(); } catch (e) {} }, 60);
     },
     _equip: function (itemId, type) { try { if (window.SFX) SFX.btn(); } catch (e) {} var self = this; this._post('/economy/equip', { itemId: itemId || '', type: type || '' }, function () { if (self._tab === 'inventory') self._syncInv(); else self._render(); }); }
   };

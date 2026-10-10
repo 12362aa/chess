@@ -844,6 +844,8 @@
 .home-ic--levels .hic-tr--c{ animation-delay: 3.25s; }
 @keyframes hicTread{ 0%{ opacity: 0; } 4%{ opacity: .85; } 17%,100%{ opacity: 0; } }
 .home-ic--levels .hic-star{
+  /* إزالةُ نجمةِ شارةِ «مراحل نور» من البطاقة (بلاغُ جوجو) */
+  display:none;
   transform-box: fill-box; transform-origin: 50% 55%;
   animation: hicStar 5.6s ease-in-out infinite;
 }
@@ -8376,6 +8378,22 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-scroll.is-scrolling .store-card__art,
 .store-scroll.is-scrolling .store-card--legendary::after,
 .store-scroll.is-scrolling .rw-inv__art{ animation-play-state:paused !important; }
+/* البند ٦ (الأداء، تشديدٌ بعد بلاغِ جوجو ٢): أثقلُ تكاليفِ الطلاءِ على
+   الأجهزةِ الضعيفةِ هي صفائحُ SVG المرسومةُ كخلفيّةٍ (--plate-*) والظلالُ
+   الكبيرةُ. نُسقِطُها أثناءَ التمريرِ النشطِ فقط عبرَ كلِّ البطاقاتِ (متجر +
+   جوائز + مخزون)، فيصيرُ التمريرُ خفيفًا ويختفي «السوادُ» الناتجُ عن تأخّرِ
+   الطلاءِ (content-visibility لم يَعُدْ يُجهِدُ المعالجَ فيلحقُ الرسمَ). تعودُ
+   كلُّها لحظةَ التوقّفِ — حينَ ينظرُ اللاعبُ فعلًا — فالشكلُ في السكونِ لا
+   يتغيّرُ إطلاقًا (شرطُ جوجو: لا تغييرَ في الشكل). */
+.store-scroll.is-scrolling .store-card__plate,
+.store-scroll.is-scrolling .rw-plate,
+.store-scroll.is-scrolling .rw-wc__plate{ background-image:none !important; }
+.store-scroll.is-scrolling .store-card,
+.store-scroll.is-scrolling .rw-ach,
+.store-scroll.is-scrolling .rw-mission,
+.store-scroll.is-scrolling .rw-wc,
+.store-scroll.is-scrolling .store-card__art,
+.store-scroll.is-scrolling .rw-inv{ box-shadow:none !important; }
 .store-wrap{ max-width:640px; margin:0 auto; padding:22px 16px 40px; position:relative; }
 .store-close{ position:absolute; top:14px; inset-inline-end:14px; width:40px; height:40px; border-radius:50%;
   border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; font-size:18px; cursor:pointer; z-index:5; }
