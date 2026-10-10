@@ -455,7 +455,10 @@
       var prog = Math.min(wc.target, Number(wc.progress) || 0);
       var pct = wc.target ? Math.round(prog / wc.target * 100) : 0;
       var done = !!wc.completed || prog >= wc.target, claimed = !!wc.claimed;
-      var emoji = wc.emoji || '🌟';
+      /* أيقونةٌ مرسومةٌ ملوّنةٌ حسبَ نوعِ التحدّي (لا إيموجي — ممنوعٌ في
+         الواجهة، بلاغُ جوجو). wc.icon من الخادمِ (sword/cpu/bulb/path/…) ونفسُ
+         رمّازِ الإنجازاتِ يرسمُها بلونِها المميّز. */
+      var icon = achIcon(wc.icon || 'star');
       var side = claimed
         ? '<span class="rw-claimed">' + esc(L('مُستلَمة', 'Claimed')) + '</span>'
         : done
@@ -468,7 +471,7 @@
         + '</div>'
         + '<div class="rw-wc' + (done ? ' is-done' : '') + (claimed ? ' is-claimed' : '') + '">'
         + '<i class="rw-wc__plate" aria-hidden="true"></i>'
-        + '<div class="rw-wc__emoji" aria-hidden="true">' + emoji + '</div>'
+        + '<div class="rw-wc__ic" aria-hidden="true">' + icon + '</div>'
         + '<div class="rw-wc__main">'
         + '<div class="rw-wc__name">' + esc(L(wc.ar, wc.en)) + '</div>'
         + '<div class="rw-wc__desc">' + esc(L(wc.descAr, wc.descEn)) + '</div>'
