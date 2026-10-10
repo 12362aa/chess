@@ -3149,7 +3149,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=10-v1">
+<link rel="stylesheet" href="screens.css?v=11-v1">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -8588,8 +8588,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '1.0';
-const APP_VERSION_CODE = 1;
+const APP_VERSION = '1.1';
+const APP_VERSION_CODE = 2;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -17416,13 +17416,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20261002-b70"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=10-v1"></script>
+  <script src="economy-client.js?v=11-v1"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
   <script src="store-client.js?v=10-v1"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=10-v1"></script>
+  <script src="rewards-client.js?v=11-v1"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت
@@ -17434,7 +17434,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-client.js?v=20260919-b38"></script>
   <script src="puzzles-store.js?v=20260920-b40"></script>
   <script src="puzzles-coach.js?v=20260919-b38"></script>
-  <script src="puzzles-ui.js?v=20261002-b70"></script>
+  <script src="puzzles-ui.js?v=20261010-b70"></script>
   <script src="puzzles-hub.js?v=20261002-b70"></script>
   <script src="levels-ui.js?v=10-v1"></script>
   <script src="mic-client.js?v=20261002-b70"></script>

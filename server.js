@@ -1319,8 +1319,8 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    بينما بقي APP_VERSION_CODE وLATEST_CODE عند 37، لأن إشعار التحديث
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
-const LATEST_VERSION = '1.0';
-const LATEST_CODE = 1;
+const LATEST_VERSION = '1.1';
+const LATEST_CODE = 2;
 const APK_URL = 'https://play.google.com/store/apps/details?id=com.amkh.chessgame';
 const NOTES_AR = 'شطرنج Am-Kh — الإصدارُ الأوّلُ الرسميُّ على Google Play. العبْ ضدَّ نور بمستوياتٍ متدرّجة، وضدَّ المحرّكِ القويّ، وأونلاين مع أصدقائِك، وبلوتوث جنبًا إلى جنب. محرّكُ تحليلٍ ومراجعةٌ بعدَ المباراة، وألغازٌ يوميّة، ومتجرُ زينةٍ كامل. بالعربيّةِ والإنجليزيّة.';
 const NOTES_EN = 'Am-Kh Chess — the first official release on Google Play. Play Nour\'s tiered levels, a strong engine, online with friends, and side-by-side Bluetooth. Post-game analysis and review, daily puzzles, and a full cosmetics store. In Arabic and English.';
