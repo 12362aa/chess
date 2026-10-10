@@ -8783,7 +8783,11 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .rw-list{ display:flex; flex-direction:column; gap:10px; }
 .rw-mission{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:14px;
   background:linear-gradient(135deg,rgba(124,92,255,.13),rgba(255,255,255,.04));
-  border:1px solid rgba(160,130,255,.2); }
+  border:1px solid rgba(160,130,255,.2);
+  /* أداءٌ (بند جوجو ٦): البطاقاتُ خارجَ الرؤيةِ لا تُرسَمُ — توفيرُ طلاءٍ في
+     قوائمَ طويلةٍ دونَ أيِّ تغييرٍ في الشكل. حجمٌ ضمنيٌّ قريبٌ من الواقعِ
+     يمنعُ قفزَ التخطيطِ والوميضَ عندَ التمرير. */
+  content-visibility:auto; contain-intrinsic-size:auto 74px; }
 .rw-mission.is-done{ border-color:color-mix(in srgb,var(--acc) 55%,transparent);
   background:color-mix(in srgb,var(--acc) 10%,rgba(124,92,255,.1)); }
 .rw-mission.is-claimed{ opacity:.6; }
@@ -8851,7 +8855,9 @@ html.kb-open #amkh-chat-modal .ds-sheet{
    والمكافأةُ تُعرَضُ عملةً **وXP** بعدَ أن كانتِ العملةَ وحدَها. */
 .rw-ach{ position:relative; display:flex; gap:12px; padding:14px; border-radius:16px; align-items:flex-start;
   --tc:#9fb0c0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
-  opacity:.66; filter:grayscale(.45); transition:opacity .2s ease, filter .2s ease, box-shadow .2s ease; }
+  opacity:.66; filter:grayscale(.45); transition:opacity .2s ease, filter .2s ease, box-shadow .2s ease;
+  /* أداءٌ (بند جوجو ٦): بطاقاتُ الإنجازاتِ خارجَ الرؤيةِ لا تُرسَمُ. لا تغييرَ شكليّ. */
+  content-visibility:auto; contain-intrinsic-size:auto 120px; }
 .rw-ach--bronze{ --tc:#d08b4a; }
 .rw-ach--silver{ --tc:#cfd8e3; }
 .rw-ach--gold{ --tc:#ffc65a; }
