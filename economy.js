@@ -1121,7 +1121,13 @@ function bumpWeekly(userId, kind, meta) {
         if (kind === 'win' && meta.mode === 'engine') { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
         break;
       case 'puzzles':
-        if (kind === 'puzzle' && (!tpl.theme || !meta.theme || meta.theme === tpl.theme)) { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
+        /* تحدّي الموضوع: يُحتسَبُ اللغزُ لو كانَ موضوعُ التحدّي ضمنَ مواضيعِ
+           اللغز (لغزٌ له عدّةُ مواضيع). تحدّي العددِ العامِّ (بلا theme) يقبلُ
+           الكلّ. لو لم يُرسِلِ العميلُ المواضيعَ نقبلُ (توافقٌ خلفيّ). */
+        if (kind === 'puzzle') {
+          var themes = Array.isArray(meta.themes) ? meta.themes : (meta.theme ? [meta.theme] : null);
+          if (!tpl.theme || !themes || themes.indexOf(tpl.theme) !== -1) { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
+        }
         break;
       case 'beat_nour':
         if (kind === 'win' && meta.mode === 'nour' && (!tpl.minLevel || (Number(meta.level) || 0) >= tpl.minLevel)) { updWeeklyProg.run(1, 1, userId, wk); applied = true; }
@@ -1237,9 +1243,14 @@ router.post('/puzzle-solved', authenticateToken, (req, res) => {
       : grant(userId, AWARD.puzzle.coins, AWARD.puzzle.xp, 'puzzle', ref);
     if (fresh) {
       bumpMissions(userId, 'puzzles', 1);
-      /* تحدّي نور الأسبوعيّ: لغزٌ محلولٌ — بموضوعِه لو أرسلَه العميل (تحدّي
-         الموضوعِ يطابقُ، وتحدّي العددِ العامِّ يقبلُ الكلّ). */
-      try { bumpWeekly(userId, 'puzzle', { theme: (req.body && req.body.theme) ? String(req.body.theme).slice(0, 40) : '' }); } catch (e) {}
+      /* تحدّي نور الأسبوعيّ: لغزٌ محلولٌ — بمواضيعِه لو أرسلَها العميل (تحدّي
+         الموضوعِ يطابقُ عضويّةً، وتحدّي العددِ العامِّ يقبلُ الكلّ). */
+      try {
+        var _th = req.body && req.body.themes;
+        var themes = Array.isArray(_th) ? _th.slice(0, 20).map(function (x) { return String(x).slice(0, 40); })
+          : (req.body && req.body.theme ? [String(req.body.theme).slice(0, 40)] : null);
+        bumpWeekly(userId, 'puzzle', { themes: themes });
+      } catch (e) {}
     }
     try { evaluateAchievements(userId); } catch (e) {}
     return res.json({

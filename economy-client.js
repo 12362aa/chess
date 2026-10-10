@@ -83,14 +83,19 @@
     coins: function () { return (this.state && this.state.coins) || 0; },
     level: function () { return (this.state && this.state.level) || 1; },
 
-    /* أبلغ الخادم بحلّ لغز — هو يطبّق السقف اليومي ويمنع التكرار. */
-    notifyPuzzleSolved: function (puzzleId) {
+    /* أبلغ الخادم بحلّ لغز — هو يطبّق السقف اليومي ويمنع التكرار. themes
+       اختياريّ: مصفوفةُ مواضيعِ اللغز (mateIn2/fork/…) لمطابقةِ تحدّي نورَ
+       الأسبوعيِّ (يقبلُ أيضًا سلسلةً واحدةً للتوافق). */
+    notifyPuzzleSolved: function (puzzleId, themes) {
       var tok = this._token(); if (!tok) return;
       var self = this;
+      var body = { puzzleId: puzzleId != null ? String(puzzleId) : undefined };
+      if (Array.isArray(themes)) body.themes = themes;
+      else if (themes) body.theme = String(themes);
       fetch(this._api() + '/economy/puzzle-solved', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ puzzleId: puzzleId != null ? String(puzzleId) : undefined })
+        body: JSON.stringify(body)
       }).then(function (r) { return r.ok ? r.json() : null; })
         .then(function (res) { if (res) self.apply(res); }).catch(function () {});
     },
@@ -109,15 +114,21 @@
 
     /* أبلغ الخادم بنتيجةِ مباراةٍ محليّة (نور/المحرّك) لتقديمِ المهامِّ فقط
        (بلاغ جوجو #9). mode:'nour'|'engine'، outcome:'win'|'draw'|'loss'،
-       reason مثل 'checkmate'. لا عملةَ مباراةٍ هنا — سقفٌ يوميٌّ خادميّ. */
-    notifyLocalResult: function (mode, outcome, reason) {
+       reason مثل 'checkmate'. extra اختياريّ {level,moves} لتحدّي نورَ
+       الأسبوعيِّ (مستوى نورِ ونقلاتُ المباراة). لا عملةَ مباراةٍ هنا. */
+    notifyLocalResult: function (mode, outcome, reason, extra) {
       var tok = this._token(); if (!tok) return;
       if (mode !== 'nour' && mode !== 'engine') return;
       var self = this;
+      var body = { mode: mode, outcome: outcome || 'loss', reason: reason || '' };
+      if (extra && typeof extra === 'object') {
+        if (extra.level != null) body.level = Number(extra.level) || 0;
+        if (extra.moves != null) body.moves = Number(extra.moves) || 0;
+      }
       fetch(this._api() + '/economy/local-result', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ mode: mode, outcome: outcome || 'loss', reason: reason || '' })
+        body: JSON.stringify(body)
       }).then(function (r) { return r.ok ? r.json() : null; })
         .then(function (res) { if (res) self.apply(res); }).catch(function () {});
     },

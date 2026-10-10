@@ -305,6 +305,12 @@ const _notif = new Map(); // key -> { day, fired:Set<slotIndex>, lastMs }
    حينَ يتقدّمُ الـepoch. يُحترَمُ سياجُ ساعاتِ الهدوءِ (نفسُ _notifTick). */
 let _storeEpochNotified = null;
 
+/* تحدّي نور الأسبوعيّ (بند جوجو ٢): بثُّ إشعارٍ ذكيٍّ واحدٍ لكلِّ أسبوعِ ISO
+   جديدٍ حينَ يتبدّلُ التحدّي. null = أوّلُ إقلاعٍ نُزامِنُ بلا إرسال (فإعادةُ
+   التشغيلِ لا تُعيدُ إشعارَ نفسِ الأسبوع)، ثمّ نُشعِرُ فقط حينَ يتغيّرُ مفتاحُ
+   الأسبوع. النصُّ ثنائيُّ اللغةِ (sendPushToTokens يجمّعُ حسبَ لغةِ التوكِن). */
+let _weekChallengeNotified = null;
+
 function _firstName(s) {
   const t = String(s || '').trim();
   if (!t) return 'صديقي';
@@ -801,6 +807,31 @@ function _renderStoreRotation(nowMs) {
   };
 }
 
+/* بناءُ إشعارِ تحدّي نور الأسبوعيِّ الذكيِّ (بند جوجو ٢): يختلفُ نصُّه حسبَ
+   تحدّي الأسبوعِ، ثنائيُّ اللغةِ معَ إيموجي خاصٍّ بالتحدّي. يُشتَقُّ من القالبِ
+   نفسِه الذي يراه العميلُ في النافذة فلا يختلفانِ. */
+function _renderWeeklyChallenge(weekKey) {
+  let tpl;
+  try { tpl = economy.weeklyChallengePick(weekKey); } catch (e) { return null; }
+  if (!tpl) return null;
+  const t = tpl.target || 1;
+  const emo = tpl.emoji || '🌟';
+  let shortAr, shortEn, descAr, descEn;
+  try {
+    shortAr = tpl.ar(t); shortEn = tpl.en(t);
+    descAr = tpl.descAr(t); descEn = tpl.descEn(t);
+  } catch (e) { return null; }
+  return {
+    title: { ar: `${emo} تحدّي نور الأسبوعيّ`, en: `${emo} Nour’s Weekly Challenge` },
+    body: {
+      ar: `${shortAr} — أكمِلْه واستلِمْ ${tpl.coins} عملةً و${tpl.xp} خبرة! ${descAr}`,
+      en: `${shortEn} — complete it to earn ${tpl.coins} coins and ${tpl.xp} XP! ${descEn}`,
+    },
+    data: { kind: 'weekly-challenge', id: String(tpl.key), type: String(tpl.type || '') },
+    tag: 'amkh-weekly',
+  };
+}
+
 function _renderCommunity(c, day, slot) {
   const variants = [];
   if (c.online >= NOTIF.communityMinOnline)
@@ -850,6 +881,21 @@ async function _notifTick() {
         /* نصُّ الإشعارِ يُبنى من عناصرِ الدورةِ الفعليّةِ لا من قالبٍ ثابت */
         const sp = _renderStoreRotation(nowMs);
         if (sp) sendPushToTokens(allToks, sp).catch(() => {});
+      }
+    }
+  } catch (e) {}
+
+  // ── تحدّي نور الأسبوعيّ (بند جوجو ٢): بثٌّ للجميعِ مرّةً لكلِّ أسبوعٍ جديد ──
+  try {
+    const curWeek = economy.periodKey('weekly', nowMs);
+    if (_weekChallengeNotified === null) {
+      _weekChallengeNotified = curWeek;               // أوّلُ إقلاعٍ: زامِنْ بلا إرسال
+    } else if (curWeek !== _weekChallengeNotified) {
+      _weekChallengeNotified = curWeek;
+      const allToks = all.map(t => t && t.token).filter(Boolean);
+      if (allToks.length) {
+        const wp = _renderWeeklyChallenge(curWeek);
+        if (wp) sendPushToTokens(allToks, wp).catch(() => {});
       }
     }
   } catch (e) {}
@@ -1273,11 +1319,11 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    بينما بقي APP_VERSION_CODE وLATEST_CODE عند 37، لأن إشعار التحديث
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
-const LATEST_VERSION = '4.2';
-const LATEST_CODE = 73;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v4.2-b73/chess-amkh-4.2-b73.apk';
-const NOTES_AR = 'زرٌّ جديدٌ في بطاقةِ «دربِ نور»: «تفعيلُ محادثة» — تُشغّلُ أو تُطفئُ حديثَ نورِ أثناءَ المرحلةِ كما تحبّ، وعندَ إطفائِه يختفي زرُّ «حدّث نور» من شاشةِ اللعبِ تمامًا. وأداءُ المتجرِ والمخزونِ صارَ أنعمَ أثناءَ التمريرِ على الأجهزةِ الأضعفِ (لا تلعثمَ) — بلا حذفِ أيِّ شكلٍ أو حركةٍ، فكلُّ شيءٍ كما هو في السكون. — بالعربيّةِ والإنجليزيّةِ على الجوّالِ واللوحيِّ والمتصفّح.';
-const NOTES_EN = 'A new button on the “Nour\'s Path” card: “Enable chat” — turn Nour\'s in-level chat on or off as you like; when it is off, the “Talk to Nour” button disappears entirely from the game screen. Store and inventory scrolling is now much smoother on weaker devices (no stutter) — with no shape or animation removed, so everything looks exactly the same at rest. — in Arabic and English across phone, tablet and browser.';
+const LATEST_VERSION = '1.0';
+const LATEST_CODE = 1;
+const APK_URL = 'https://play.google.com/store/apps/details?id=com.amkh.chessgame';
+const NOTES_AR = 'شطرنج Am-Kh — الإصدارُ الأوّلُ الرسميُّ على Google Play. العبْ ضدَّ نور بمستوياتٍ متدرّجة، وضدَّ المحرّكِ القويّ، وأونلاين مع أصدقائِك، وبلوتوث جنبًا إلى جنب. محرّكُ تحليلٍ ومراجعةٌ بعدَ المباراة، وألغازٌ يوميّة، ومتجرُ زينةٍ كامل. بالعربيّةِ والإنجليزيّة.';
+const NOTES_EN = 'Am-Kh Chess — the first official release on Google Play. Play Nour\'s tiered levels, a strong engine, online with friends, and side-by-side Bluetooth. Post-game analysis and review, daily puzzles, and a full cosmetics store. In Arabic and English.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,

@@ -259,6 +259,11 @@
         }
         if (claim) { self._claim(claim.getAttribute('data-claim')); return; }
         if (equip) { self._equip(equip.getAttribute('data-equip'), equip.getAttribute('data-type')); return; }
+        /* تحدّي نور الأسبوعيّ: استلامُ المكافأةِ أو بدءُ التحدّي (بند جوجو ٢) */
+        var cw = ev.target.closest ? ev.target.closest('[data-claim-weekly]') : null;
+        if (cw) { self._claimWeekly(); return; }
+        var ws = ev.target.closest ? ev.target.closest('[data-wc-start]') : null;
+        if (ws) { self._startWeekly(ws.getAttribute('data-wc-start')); return; }
       });
     },
 
@@ -372,12 +377,12 @@
       /* المصدرُ الآن لقطةُ الخادمِ مباشرةً: مهامٌّ مولّدةٌ لكلِّ لاعبٍ تحملُ
          ar/en/period/metric/target/coins/xp/progress/done/claimed. */
       var s = state() || {}, defs = s.missions || [];
-      if (!defs.length) return '<div class="rw-empty">' + esc(L('لا مهامَّ الآن.', 'No missions right now.')) + '</div>';
+      var html = this._weeklyHTML(s.weeklyChallenge);
+      if (!defs.length) return html + '<div class="rw-empty">' + esc(L('لا مهامَّ الآن.', 'No missions right now.')) + '</div>';
       var groups = [
         { p: 'daily',  t: L('مهامُّ اليوم', 'Today’s Missions'),  k: 'rw-grp--day',  sub: L('تتبدّلُ كلَّ يوم', 'Refreshes daily') },
         { p: 'weekly', t: L('مهامُّ الأسبوع', 'Weekly Missions'), k: 'rw-grp--week', sub: L('تتبدّلُ كلَّ أسبوع', 'Refreshes weekly') }
       ];
-      var html = '';
       groups.forEach(function (g) {
         var rows = defs.filter(function (d) { return d.period === g.p; });
         if (!rows.length) return;
@@ -407,6 +412,42 @@
         html += '</div></div>';
       });
       return html;
+    },
+
+    /* ══ بطاقةُ تحدّي نور الأسبوعيِّ (بند جوجو ٢) ══
+       تحدٍّ واحدٌ مميَّزٌ أعلى المهامّ: شارةُ نورٍ + إيموجي + عنوانٌ ووصفٌ
+       ثنائيَّا اللغةِ من الخادم + شريطُ تقدّمٍ + زرُّ «ابدأ» يوجّهُ للوضعِ
+       المناسبِ، وزرُّ «استلِمْ» عندَ الإكمال. */
+    _weeklyHTML: function (wc) {
+      if (!wc || !wc.id) return '';
+      var prog = Math.min(wc.target, Number(wc.progress) || 0);
+      var pct = wc.target ? Math.round(prog / wc.target * 100) : 0;
+      var done = !!wc.completed || prog >= wc.target, claimed = !!wc.claimed;
+      var emoji = wc.emoji || '🌟';
+      var side = claimed
+        ? '<span class="rw-claimed">' + esc(L('مُستلَمة', 'Claimed')) + '</span>'
+        : done
+          ? '<button class="rw-claim rw-claim--wc" type="button" data-claim-weekly="1">' + esc(L('استلِمِ المكافأة', 'Claim reward')) + '</button>'
+          : '<button class="rw-wc__go" type="button" data-wc-start="' + esc(wc.type || '') + '">' + esc(L('ابدأِ التحدّي', 'Start')) + '</button>';
+      return '<div class="rw-sec rw-sec--wc"><div class="rw-sec__hd">'
+        + '<span class="rw-sec__ttl">' + esc(L('تحدّي نور الأسبوعيّ', 'Nour’s Weekly Challenge')) + '</span>'
+        + '<span class="rw-sec__sub">' + esc(L('يتبدّلُ كلَّ أسبوع', 'New every week')) + '</span>'
+        + (done && !claimed ? '<span class="rw-sec__rdy">' + esc(L('جاهزٌ للاستلام', 'Ready')) + '</span>' : '')
+        + '</div>'
+        + '<div class="rw-wc' + (done ? ' is-done' : '') + (claimed ? ' is-claimed' : '') + '">'
+        + '<i class="rw-wc__plate" aria-hidden="true"></i>'
+        + '<div class="rw-wc__emoji" aria-hidden="true">' + emoji + '</div>'
+        + '<div class="rw-wc__main">'
+        + '<div class="rw-wc__name">' + esc(L(wc.ar, wc.en)) + '</div>'
+        + '<div class="rw-wc__desc">' + esc(L(wc.descAr, wc.descEn)) + '</div>'
+        + '<div class="rw-wc__bar"><span style="width:' + pct + '%"></span></div>'
+        + '<div class="rw-wc__foot">'
+        + '<span class="rw-wc__prog">' + prog + ' / ' + wc.target + '</span>'
+        + '<span class="rw-reward"><span class="rw-reward__coin" aria-hidden="true">' + coinIc() + '</span>' + fmt(wc.coins) + '</span>'
+        + (wc.xp ? '<span class="rw-xp-chip">+' + fmt(wc.xp) + ' XP</span>' : '')
+        + '</div></div>'
+        + '<div class="rw-wc__side">' + side + '</div>'
+        + '</div></div>';
     },
 
     /* ══ لسانُ الإنجازات ══
@@ -529,6 +570,23 @@
         .catch(function () { if (done) done(null); });
     },
     _claim: function (id) { try { if (window.SFX) SFX.btn(); } catch (e) {} var self = this; this._post('/economy/claim-mission', { missionId: id }, function () { self._render(); }); },
+    /* استلامُ مكافأةِ تحدّي الأسبوعِ — صوتُ احتفالٍ مميّزٌ لو توفّر (بند جوجو ٢). */
+    _claimWeekly: function () {
+      try { if (window.SFX) (SFX.weeklyClaim ? SFX.weeklyClaim() : (SFX.levelDone ? SFX.levelDone() : SFX.btn())); } catch (e) {}
+      var self = this; this._post('/economy/claim-weekly', {}, function () { self._render(); });
+    },
+    /* بدءُ تحدّي الأسبوعِ: نُغلِقُ شاشةَ الجوائزِ ونوجّهُ للوضعِ المناسبِ حسبَ
+       نوعِ التحدّي عبرَ Nav الموجود. */
+    _startWeekly: function (type) {
+      try { if (window.SFX) SFX.btn(); } catch (e) {}
+      try { this.close(); } catch (e) {}
+      try {
+        if (!window.Nav) return;
+        if (type === 'puzzles') Nav.puzzles();
+        else if (type === 'engine') { if (Nav.engine) Nav.engine(); else Nav.menu(); }
+        else Nav.levels();   /* beat_nour / swift / streak / wins → درب نور */
+      } catch (e) {}
+    },
     _equip: function (itemId, type) { try { if (window.SFX) SFX.btn(); } catch (e) {} var self = this; this._post('/economy/equip', { itemId: itemId || '', type: type || '' }, function () { if (self._tab === 'inventory') self._syncInv(); else self._render(); }); }
   };
 

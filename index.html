@@ -20,7 +20,7 @@
 <!-- طبقة اللغة: تُحمَّل أولًا (قبل أي CSS/JS) عشان تضبط <html lang/dir>
      قبل أول رسم، وتعرّف T()/I18N قبل ما أي كود يناديهم. -->
 <script src="i18n.js?v=20260916-b37"></script>
-<script src="i18n-en.js?v=20261007-b73"></script>
+<script src="i18n-en.js?v=10-v1"></script>
 <!-- Design System: tokens + مكونات UI أساسية. يُحمَّل قبل ستايلات الشاشات
      عشان الستايلات الحالية تفضل هي الأعلى أولوية عند أي تساوٍ في التخصيص. -->
 <link rel="stylesheet" href="design-system.css?v=20260916-b37">
@@ -3149,7 +3149,7 @@ body[data-ui-theme="glass"] .mc-tag{
 </style>
 <!-- ستايلات القشرة والشاشات المعاد بناؤها — بعد الستايلات القديمة
      عشان تقدر تبطّل اللي اتغيّر منها -->
-<link rel="stylesheet" href="screens.css?v=20261007-b73">
+<link rel="stylesheet" href="screens.css?v=10-v1">
 <!-- Critical containment: يبقى داخل HTML نفسه حتى لو جهاز قديم احتفظ
      بنسخة CSS سابقة أثناء تحديث الموقع. -->
 <style>
@@ -5340,6 +5340,20 @@ const SFX=(()=>{
     loss()      {play('error');},       // Defeat sound (local)
     resign()    {play('error');},      // Same as loss
     levelDone() {winSynth();},   // Level complete sound (synth)
+    /* تحدّي نور الأسبوعيّ (بند جوجو ٢): نغمةٌ احتفاليّةٌ مميّزةٌ عند استلامِ
+       مكافأةِ التحدّي — أربعُ درجاتٍ صاعدةٍ (ماجور) + بريقٌ عُلويٌّ، مختلفةٌ
+       عن صوتِ الفوزِ وعن بوّابةِ الجوائز، فيُحَسُّ أنّه إنجازُ الأسبوع. */
+    weeklyClaim(){
+      try{
+        tones([
+          {f:523.25,t0:0,   dur:0.12,type:'triangle',vol:0.09},
+          {f:659.25,t0:0.11,dur:0.12,type:'triangle',vol:0.09},
+          {f:783.99,t0:0.22,dur:0.14,type:'sine',    vol:0.09},
+          {f:1046.5,t0:0.35,dur:0.26,type:'sine',    vol:0.10},
+          {f:1567.98,t0:0.5,dur:0.34,type:'triangle',vol:0.06},
+        ]);
+      }catch(e){ try{winSynth();}catch(_){} }
+    },
     startgame() {playExt('startgame');}, // Online game start sound
     captureCheck(){play('check');},
     select() {uiClick();},
@@ -8574,8 +8588,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '4.2';
-const APP_VERSION_CODE = 73;
+const APP_VERSION = '1.0';
+const APP_VERSION_CODE = 1;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -11084,6 +11098,9 @@ Write Nour's reply now:`);
   },
   nourAutoMsg(type,moveRes,isCheck,isCheckmate,cap,moveCount){
     if(S.mode!=="bot"||S.levelId<0)return;
+    /* البند ٢: لو اللاعب أطفأ محادثة نور من بطاقة «درب نور»، نور لا يتحدّث
+       إطلاقًا — فلا رسالةَ ولا صوتَ تنبيهٍ أثناء المرحلة (بلاغ جوجو). */
+    if(window.Cfg&&Cfg.data&&Cfg.data.nourChat===false)return;
     if(!this._nourAutoTimes)this._nourAutoTimes=[];
     const now=Date.now();
     // Prevent spam: max 1 auto msg per 10 seconds
@@ -15010,9 +15027,14 @@ const G={
     if(!avail.length || insufficient || isThreefold || fiftyMove){
       S.over=true;
       /* بلاغُ نتيجةِ المباراةِ المحليّة للمهامّ (بلاغ جوجو #9): نور/المحرّك
-         فقط — الحيّةُ يحسبُها الخادم، ولاعبانِ غيرُ مرتبطٍ بحساب. */
+         فقط — الحيّةُ يحسبُها الخادم، ولاعبانِ غيرُ مرتبطٍ بحساب. نُرفِقُ
+         مستوى نورِ وعددَ النقلاتِ لتحدّي نورَ الأسبوعيِّ (بند جوجو ٢). */
       const _lm=isNourLevelMode()?'nour':(isStockfishMode()?'engine':null);
-      const _rep=(oc,rs)=>{ if(_lm){try{window.amkhEconomy&&amkhEconomy.notifyLocalResult(_lm,oc,rs||'');}catch(e){}} };
+      const _rep=(oc,rs)=>{ if(_lm){try{
+        const _extra={moves:(Number(S.moveCount)||0)};
+        if(_lm==='nour'&&S.levelId>=0)_extra.level=S.levelId;
+        window.amkhEconomy&&amkhEconomy.notifyLocalResult(_lm,oc,rs||'',_extra);
+      }catch(e){}} };
       if(insufficient){
         _rep('draw','insufficient');
         setTimeout(()=>{
@@ -17394,13 +17416,13 @@ window.addEventListener('beforeunload',()=>{
   <script src="call-client.js?v=20261002-b70"></script>
   <!-- اقتصاد Am-Kh Coins: يقرأ /api/economy/me عبر amkhAuth ويعرض شريط
        العملات/المستوى. مرآة قراءة فقط — الخادم مصدر الحقيقة. -->
-  <script src="economy-client.js?v=20261007-b73"></script>
+  <script src="economy-client.js?v=10-v1"></script>
   <!-- متجر Am-Kh الديناميكيّ (المرحلة ٢): بوّابةٌ غامرةٌ + واجهةٌ بندرات،
        الخادم مرجعُ العناصرِ والوقتِ والشراء. -->
-  <script src="store-client.js?v=20261007-b73"></script>
+  <script src="store-client.js?v=10-v1"></script>
   <!-- الجوائزُ والتقدّم (المرحلة ٤): مهامٌّ يوميّة/أسبوعيّة، إنجازات، مخزون
        مع تجهيز/إلغاء. كلُّ التقدّمِ خادميّ المصدر عبر amkhEconomy. -->
-  <script src="rewards-client.js?v=20261007-b73"></script>
+  <script src="rewards-client.js?v=10-v1"></script>
   <!-- ══ قسم الألغاز ══
        الترتيب مقصود: rating.js يعرّف window.RATING اللي يقرأه
        puzzles-rating عند التحميل، وباقي الطبقات تقرأ E وLP وPZ… وقت
@@ -17414,7 +17436,7 @@ window.addEventListener('beforeunload',()=>{
   <script src="puzzles-coach.js?v=20260919-b38"></script>
   <script src="puzzles-ui.js?v=20261002-b70"></script>
   <script src="puzzles-hub.js?v=20261002-b70"></script>
-  <script src="levels-ui.js?v=20261007-b73"></script>
+  <script src="levels-ui.js?v=10-v1"></script>
   <script src="mic-client.js?v=20261002-b70"></script>
 <script>
 const BLEManager = {

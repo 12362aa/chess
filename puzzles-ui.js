@@ -636,7 +636,8 @@ const PZU = (() => {
     if (solved && !M.gaveUp) {
       try {
         var _pid = M.puzzle && (M.puzzle.id != null ? M.puzzle.id : (M.puzzle.puzzleId != null ? M.puzzle.puzzleId : (M.puzzle.PuzzleId || null)));
-        if (window.amkhEconomy) window.amkhEconomy.notifyPuzzleSolved(_pid);
+        var _themes = (M.puzzle && Array.isArray(M.puzzle.themes)) ? M.puzzle.themes : null;
+        if (window.amkhEconomy) window.amkhEconomy.notifyPuzzleSolved(_pid, _themes);
       } catch (e) {}
     }
     if (M.mode === 'daily') {
