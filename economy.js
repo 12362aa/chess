@@ -22,8 +22,23 @@ const AWARD = {
   beat_nour: { coins: 15, xp: 20 },
 };
 const WELCOME_COINS = 200;            // منحة الإطلاق للحسابات الموجودة/الجديدة
-const PUZZLE_DAILY_CAP = 20;          // سقف ألغاز مكسِبة يوميًّا (مضادّ للتفريخ)
-const LOCAL_MISSION_DAILY_CAP = 25;   // سقف بلاغات المباريات المحليّة المحسوبة للمهام يوميًّا (مضادّ للتفريخ)
+/* ══ السقوفُ اليوميّةُ تَحُدُّ العملةَ وحدَها — لا تقدّمَ المهامّ (بلاغُ جوجو:
+   «المهامُّ وقفتْ تتحسب») ══
+   كان السقفُ يُنفَّذُ بـ return مبكّرٍ **قبلَ** أيِّ رفعٍ للمهامّ، فبلوغُه
+   يُجمِّدُ كلَّ المهامِّ صمتًا — حتى التي لا علاقةَ للسقفِ بها — ويَحرقُه
+   بلاغاتٌ لا تُقدِّمُ شيئًا (مباراةٌ بعدَ إتمامِ مهمّةِ «العَبْ»). وكان
+   سقفُ الألغازِ (٢٠) أقلَّ من هدفِ مهمّةِ الألغازِ الأسبوعيّةِ (٣٠+) فالمهمّةُ
+   مستحيلةٌ أصلًا.
+   الجذرُ: خَلْطُ «منعِ تفريخِ العملة» بـ«تقدّمِ المهامّ». والمهامُّ أصلًا
+   غيرُ قابلةٍ للتفريخ: progress = MIN(target, …) فالتقدّمُ يتوقّفُ عند الهدف،
+   والمكافأةُ تُطالَبُ مرّةً واحدةً لكلِّ دورة. لذا:
+   • العملةُ/الخبرةُ المباشرةُ تبقى مسقوفةً (تفريخٌ حقيقيٌّ ممكن).
+   • تقدّمُ المهامِّ لا يُحجَبُ أبدًا بسقفٍ.
+   • السقفُ لا يُستهلَكُ إلا ببلاغٍ «منتِج» (قدَّمَ مهمّةً فعلًا).
+   الصفوفُ المسقوفةُ تُسجَّلُ بسببٍ مختلفٍ (`*_capped`) فيبقى عدُّ السقفِ
+   دقيقًا مع حفظِ مانعِ التكرارِ (ref). */
+const PUZZLE_DAILY_CAP = 20;          // سقف ألغازٍ **مكسِبةٍ للعملة** يوميًّا
+const LOCAL_MISSION_DAILY_CAP = 150;  // قاطعُ دورةٍ لبلاغاتِ المبارياتِ المحليّةِ **المنتِجة** (لا يَحجُبُ مهمّةً)
 const MAX_LEVEL = 50;
 
 /* منحنى الخبرة: كلفة الانتقال من مستوى n إلى n+1 = 100 + (n-1)*25.
@@ -815,28 +830,38 @@ function _missionView(tpl, row) {
     ar: tpl.ar(target), en: tpl.en(target), descAr: tpl.descAr(target), descEn: tpl.descEn(target),
   };
 }
-/* تطبيقُ دالّةٍ على كلِّ مهمّةٍ مبذورةٍ تتبع هذا الـmetric في كلا الدورتين. */
+/* تطبيقُ دالّةٍ على كلِّ مهمّةٍ مبذورةٍ تتبع هذا الـmetric في كلا الدورتين.
+   يُرجِعُ عددَ الصفوفِ التي تغيّرَ تقدّمُها فعلًا (لا المطابِقةَ فقط) — يُستعمَلُ
+   لتمييزِ البلاغِ «المنتِج» من بلاغٍ لا يُقدِّمُ شيئًا (مهمّةٌ بلغتْ هدفَها). */
 function _applyMetric(userId, metric, fn) {
+  let advanced = 0;
   for (const period of ['daily', 'weekly']) {
     const pk = ensureSeeded(userId, period);
     for (const row of qMissionsForPeriod.all(userId, period, pk)) {
       const tpl = MISSION_TPL_BY_ID[row.mission_id];
-      if (tpl && tpl.metric === metric) fn(row.mission_id, pk);
+      if (!tpl || tpl.metric !== metric) continue;
+      const before = Number(row.progress) || 0;
+      const target = Number(row.target) || 0;
+      fn(row.mission_id, pk);
+      /* «منتِج» = كانَ تحتَ الهدفِ قبلَ الرفع (فالرفعُ أزاحَه فعلًا). */
+      if (before < target) advanced++;
     }
   }
+  return advanced;
 }
 
 /* رفعُ تقدّم كلِّ مهمّةٍ تتبع هذا الـmetric بمقدار amount (مقصوصٌ عند
-   الهدف، تراكميّ). يُستدعى من أحداثٍ موثّقة فقط (نهاية مباراة/حلّ لغز/نور). */
+   الهدف، تراكميّ). يُستدعى من أحداثٍ موثّقة فقط (نهاية مباراة/حلّ لغز/نور).
+   يُرجِعُ عددَ المهامِّ التي تقدّمتْ فعلًا. */
 function bumpMissions(userId, metric, amount) {
   userId = Number(userId);
   amount = Math.max(1, Math.round(Number(amount) || 1));
-  if (!userId) return;
+  if (!userId) return 0;
   try {
-    db.transaction(() => {
-      _applyMetric(userId, metric, (missionId, pk) => updMissionProg.run(amount, userId, missionId, pk));
-    })();
-  } catch (e) { console.error('[economy] bumpMissions', e.message); }
+    return db.transaction(() =>
+      _applyMetric(userId, metric, (missionId, pk) => updMissionProg.run(amount, userId, missionId, pk))
+    )();
+  } catch (e) { console.error('[economy] bumpMissions', e.message); return 0; }
 }
 
 /* تعيينُ تقدّمِ مهامِّ metric بقيمةٍ مطلقةٍ بحدٍّ أقصى (لا تراكم) — لمهمّة
@@ -844,12 +869,12 @@ function bumpMissions(userId, metric, amount) {
 function setMissionsMetric(userId, metric, value) {
   userId = Number(userId);
   value = Math.max(0, Math.round(Number(value) || 0));
-  if (!userId) return;
+  if (!userId) return 0;
   try {
-    db.transaction(() => {
-      _applyMetric(userId, metric, (missionId, pk) => setMissionMax.run(value, userId, missionId, pk));
-    })();
-  } catch (e) { console.error('[economy] setMissionsMetric', e.message); }
+    return db.transaction(() =>
+      _applyMetric(userId, metric, (missionId, pk) => setMissionMax.run(value, userId, missionId, pk))
+    )();
+  } catch (e) { console.error('[economy] setMissionsMetric', e.message); return 0; }
 }
 
 /* لقطةُ مهام الدورة الحاليّة (٣ يوميّة + ٣ أسبوعيّة مولّدة) مع التقدّم والمطالبة.
@@ -934,22 +959,33 @@ router.post('/claim-mission', authenticateToken, (req, res) => {
   }
 });
 
-/* حلّ لغز: كسب موثّق مع سقف يومي ومنع تكرار نفس اللغز في نفس اليوم.
-   التحقّق أساسيّ (السقف + التكرار)؛ الحلّ الفعلي يُتحقّق على الجهاز، لكن
-   الخادم يمنع التفريخ. */
+/* حلّ لغز: كسب موثّق مع سقفٍ يوميٍّ **للعملة** ومنع تكرار نفس اللغز في نفس
+   اليوم. التحقّق أساسيّ؛ الحلُّ الفعليُّ يُتحقَّقُ على الجهاز، لكنّ الخادمَ
+   يمنعُ التفريخ. بلوغُ السقفِ يُوقِفُ العملةَ فقط — مهمّةُ الألغازِ تتقدّمُ
+   دائمًا (كانَ السقفُ ٢٠ أقلَّ من هدفِ المهمّةِ الأسبوعيّةِ ٣٠+ فتستحيل). */
 router.post('/puzzle-solved', authenticateToken, (req, res) => {
   const userId = req.user.id;
   const pid = (req.body && (req.body.puzzleId != null)) ? String(req.body.puzzleId).slice(0, 40) : '';
   try {
     ensureWallet(userId);
     const today = qPuzzleToday.get(userId).n;
-    if (today >= PUZZLE_DAILY_CAP) return res.json({ awarded: false, reason: 'daily_cap', ...snapshot(userId) });
+    const capped = today >= PUZZLE_DAILY_CAP;
     const day = new Date().toISOString().slice(0, 10);
     const ref = pid ? `pz:${pid}:${day}` : `pz:anon:${day}:${today}`;
-    const ok = grant(userId, AWARD.puzzle.coins, AWARD.puzzle.xp, 'puzzle', ref);
-    if (ok) bumpMissions(userId, 'puzzles', 1);
+    /* صفٌّ واحدٌ لكلِّ حلٍّ جديد: بالعملةِ إنْ لم نبلغِ السقف، وصفريُّ العملةِ
+       بسببٍ مختلفٍ إنْ بلغناه (فلا يَنمو عدُّ السقفِ لكنْ يبقى مانعُ التكرار).
+       قيمةُ grant الراجعةُ هي «هل كانَ هذا حلًّا جديدًا؟». */
+    const fresh = capped
+      ? grant(userId, 0, 0, 'puzzle_capped', ref)
+      : grant(userId, AWARD.puzzle.coins, AWARD.puzzle.xp, 'puzzle', ref);
+    if (fresh) bumpMissions(userId, 'puzzles', 1);
     try { evaluateAchievements(userId); } catch (e) {}
-    return res.json({ awarded: ok, reason: ok ? 'ok' : 'dup', ...snapshot(userId) });
+    return res.json({
+      awarded: fresh && !capped,
+      capped,
+      reason: !fresh ? 'dup' : (capped ? 'coin_cap' : 'ok'),
+      ...snapshot(userId),
+    });
   } catch (e) {
     console.error('[economy] /puzzle-solved', e.message);
     res.status(500).json({ error: 'economy_error' });
@@ -977,8 +1013,11 @@ router.post('/beat-nour', authenticateToken, (req, res) => {
 
 /* نتيجةُ مباراةٍ محليّة (ضدّ نور أو المحرّك Stockfish) — تُقدّمُ المهامَّ فقط
    (بلاغ جوجو #9: كش-مات نور لا يُحسَب). لا تُمنَحُ عملةُ المباراةِ هنا منعًا
-   للتفريخ؛ المهامُّ نفسُها محدودةُ الهدفِ لكلِّ دورةٍ فالسقفُ طبيعيّ، ويُضافُ
-   سقفٌ يوميٌّ لعددِ البلاغاتِ المحسوبة. لا مساسَ بتقييمِ Glicko. */
+   للتفريخ. لا مساسَ بتقييمِ Glicko.
+   إصلاحُ «المهامُّ وقفتْ تتحسب»: السقفُ لم يَعُدْ يَحجُبُ رفعَ المهامّ. المهامُّ
+   مقصوصةٌ عند أهدافِها فلا تُفرَّخُ أصلًا؛ والقاطعُ يُستهلَكُ ببلاغٍ «منتِجٍ»
+   فقط (قدَّمَ مهمّةً فعلًا) فلا تَحرقُه مبارياتٌ لا تُقدِّمُ شيئًا، ويبقى
+   بعيدَ المنالِ للّاعبِ الشريفِ مع بقائِه قاطعًا للإساءةِ الآليّة. */
 router.post('/local-result', authenticateToken, (req, res) => {
   const userId = req.user.id;
   try {
@@ -988,29 +1027,58 @@ router.post('/local-result', authenticateToken, (req, res) => {
     const reason = String(b.reason || '').toLowerCase();
     const mode = b.mode === 'nour' ? 'nour' : b.mode === 'engine' ? 'engine' : '';
     if (!mode) return res.json({ awarded: false, reason: 'bad_mode', ...snapshot(userId) });
+
     const n = qLocalToday.get(userId).n;
-    if (n >= LOCAL_MISSION_DAILY_CAP) return res.json({ awarded: false, reason: 'daily_cap', ...snapshot(userId) });
-    const day = new Date().toISOString().slice(0, 10);
-    // صفٌّ صفريُّ العملة لعدِّ البلاغِ (سقفٌ يوميّ) — ref فريدٌ يمنع التكرار
-    grant(userId, 0, 0, 'local', `local:${day}:${n}`);
-    bumpMissions(userId, 'games', 1);
-    let streak = 0;
-    try { const r = qStreak.get(userId); streak = r ? (Number(r.win_streak) || 0) : 0; } catch (e) {}
-    if (outcome === 'win') {
-      bumpMissions(userId, 'wins', 1);
-      if (reason.indexOf('checkmate') !== -1) bumpMissions(userId, 'checkmate', 1);
-      if (mode === 'nour') bumpMissions(userId, 'nour', 1);
-      streak = streak + 1;
-      setMissionsMetric(userId, 'streak', streak);
-    } else if (outcome === 'draw') {
-      bumpMissions(userId, 'draws', 1);
-      streak = 0;
-    } else {
-      streak = 0;
+    const capped = n >= LOCAL_MISSION_DAILY_CAP;
+
+    /* ترتيبُ الرفعِ أوّلًا ثمّ العدّ: نحتاجُ أن نعرفَ هل قدَّمَ هذا البلاغُ
+       مهمّةً قبلَ أن نَخصِمَ من القاطع. */
+    let advanced = 0;
+    if (!capped) {
+      advanced += bumpMissions(userId, 'games', 1);
+      let streak = 0;
+      try { const r = qStreak.get(userId); streak = r ? (Number(r.win_streak) || 0) : 0; } catch (e) {}
+      if (outcome === 'win') {
+        advanced += bumpMissions(userId, 'wins', 1);
+        if (reason.indexOf('checkmate') !== -1) advanced += bumpMissions(userId, 'checkmate', 1);
+        if (mode === 'nour') {
+          advanced += bumpMissions(userId, 'nour', 1);
+          /* إنجازُ «هزيمةُ نور» كانَ غيرَ قابلٍ للنيلِ إطلاقًا: اختبارُه
+             `() => false` فلا يُقيّمُه evaluateAchievements، ومَنحُه الوحيدُ
+             كانَ في /beat-nour وهي نقطةٌ **لا يستدعيها العميلُ من أيِّ مكان**.
+             نَمنحُه هنا حيثُ الفوزُ على نورٍ موثّقٌ فعلًا (مرّةً واحدةً مدى
+             الحياةِ — ref ثابتٌ يمنعُ التكرار). */
+          try {
+            const have = new Set(qAch.all(userId).map(r => r.ach_id));
+            if (!have.has('beat_nour')) {
+              insAch.run(userId, 'beat_nour');
+              grant(userId, AWARD.beat_nour.coins, AWARD.beat_nour.xp, 'ach:beat_nour', 'ach:beat_nour');
+            }
+          } catch (e) { console.error('[economy] beat_nour grant', e.message); }
+        }
+        streak = streak + 1;
+        advanced += setMissionsMetric(userId, 'streak', streak);
+      } else if (outcome === 'draw') {
+        advanced += bumpMissions(userId, 'draws', 1);
+        streak = 0;
+      } else {
+        streak = 0;
+      }
+      try { updStreak.run(streak, Number(userId)); } catch (e) {}
+      /* نَخصِمُ من القاطعِ بلاغًا منتِجًا فقط — ref فريدٌ يمنعُ التكرار. */
+      if (advanced > 0) {
+        const day = new Date().toISOString().slice(0, 10);
+        grant(userId, 0, 0, 'local', `local:${day}:${n}`);
+      }
     }
-    try { updStreak.run(streak, Number(userId)); } catch (e) {}
     try { evaluateAchievements(userId); } catch (e) {}
-    return res.json({ awarded: true, ...snapshot(userId) });
+    return res.json({
+      awarded: !capped,
+      capped,
+      advanced,
+      reason: capped ? 'rate_limited' : 'ok',
+      ...snapshot(userId),
+    });
   } catch (e) {
     console.error('[economy] /local-result', e.message);
     res.status(500).json({ error: 'economy_error' });
