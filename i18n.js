@@ -161,7 +161,13 @@
     if (!v || !AR.test(v)) return;
     if (skipEl(node.parentElement)) return;
     var out = translate(v);
-    if (out !== v) node.nodeValue = out;
+    if (out !== v) {
+      /* نحفظُ الأصلَ العربيَّ قبلَ الاستبدالِ ليكونَ الكنسُ قابلًا للعكس
+         (بلاغُ جوجو ٤: اختيارُ العربيّةِ بعدَ الإنجليزيّةِ كان يترُكُ النصَّ
+         إنجليزيًّا لأنّ الكنسَ كان أحاديَّ الاتجاه). */
+      if (!_origText.has(node)) _origText.set(node, v);
+      node.nodeValue = out;
+    }
   }
 
   function doAttrs(el) {
@@ -172,16 +178,49 @@
       var v = el.getAttribute(a);
       if (!v || !AR.test(v)) continue;
       var out = translate(v);
-      if (out !== v) el.setAttribute(a, out);
+      if (out !== v) { _rememberAttr(el, a, v); el.setAttribute(a, out); }
     }
     /* input[type=button|submit] قيمته نصّ ظاهر */
     if (el.tagName === 'INPUT') {
       var ty = (el.getAttribute('type') || '').toLowerCase();
       if ((ty === 'button' || ty === 'submit' || ty === 'reset') && el.value && AR.test(el.value)) {
         var o = translate(el.value);
-        if (o !== el.value) el.value = o;
+        if (o !== el.value) { _rememberAttr(el, '\u0000value', el.value); el.value = o; }
       }
     }
+  }
+
+  /* ── مخازنُ النصِّ الأصليِّ لعكسِ الكنس (en→ar) ── */
+  var _origText = (typeof WeakMap !== 'undefined') ? new WeakMap() : null;
+  var _origAttr = (typeof WeakMap !== 'undefined') ? new WeakMap() : null;
+  function _rememberAttr(el, a, v) {
+    if (!_origAttr) return;
+    var m = _origAttr.get(el);
+    if (!m) { m = {}; _origAttr.set(el, m); }
+    if (!(a in m)) m[a] = v;
+  }
+  function _restoreNode(n) {
+    if (n.nodeType === 3) {
+      if (_origText && _origText.has(n)) n.nodeValue = _origText.get(n);
+    } else if (n.nodeType === 1) {
+      var m = _origAttr && _origAttr.get(n);
+      if (m) for (var a in m) {
+        if (a === '\u0000value') { try { n.value = m[a]; } catch (e) {} }
+        else n.setAttribute(a, m[a]);
+      }
+    }
+  }
+  /* إرجاعُ النصوصِ المكنوسةِ إلى العربيّةِ عندَ التحوّلِ en→ar. */
+  function restore(root) {
+    if (!root || (!_origText && !_origAttr)) return;
+    busy = true;
+    try {
+      if (root.nodeType === 3) { _restoreNode(root); return; }
+      if (root.nodeType !== 1 && root.nodeType !== 9 && root.nodeType !== 11) return;
+      if (root.nodeType === 1) _restoreNode(root);
+      var w = document.createTreeWalker(root, 1 | 4, null);
+      var n; while ((n = w.nextNode())) _restoreNode(n);
+    } finally { busy = false; }
   }
 
   function sweep(root) {
@@ -289,6 +328,9 @@
       try { localStorage.setItem(KEY, l); } catch (e) {}
       lang = l; applyDir();
       if (lang === 'en') { observe(); sweep(document.documentElement); }
+      /* العكسُ المباشر: التحوّلُ إلى العربيّةِ يُرجِعُ كلَّ ما كُنِسَ إلى أصلِه
+         فورًا (بلاغُ جوجو ٤) — لا كنسَ أحاديَّ الاتجاهِ بعدَ اليوم. */
+      else { restore(document.documentElement); }
       /* الكنس يطال ما في الـDOM فقط. أما النصوص التي بناها الجافاسكربت
          بلغته قبل الاختيار — تحدّيات اليوم مثلًا تُكتب بـLP وقت التوليد —
          فلا مفتاح لها في القاموس ولا تتبدّل بالكنس. لذلك نعلن الحدث،

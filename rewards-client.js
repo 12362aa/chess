@@ -227,6 +227,36 @@
   ICON_ART.streak = ICON_ART.flame;
   ICON_ART.engine = ICON_ART.cpu;
 
+  /* أيقوناتُ ألسنةِ شاشةِ الجوائز (مهامّ/إنجازات/مخزون) — SVG مرسومٌ ملوّنٌ
+     يعبّرُ عن كلِّ لسانٍ (نفسُ نسقِ أيقوناتِ الرئيسيّة). أُعيدَ تعريفُه هنا بعدَ
+     أن سقطَ سهوًا في إعادةِ بناءِ الأيقونات (بلاغُ جوجو: الشاشةُ فرغتْ لأنّ
+     ‎tabIcon‎ كان مُستدعًى بلا تعريفٍ فانهارَ ‎_renderHead‎). */
+  function tabIcon(k) {
+    var p = {
+      missions:
+        '<defs><linearGradient id="tiM" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0e9f6e"/></linearGradient></defs>'
+        + '<rect x="5" y="4" width="14" height="18" rx="2.6" fill="url(#tiM)" stroke="#0b7a54" stroke-width="1"/>'
+        + '<rect x="8.6" y="2.3" width="6.8" height="3.6" rx="1.3" fill="#a7f3d0" stroke="#0b7a54" stroke-width=".7"/>'
+        + '<path d="M7.8 12.4 L10.4 15 L15.6 9.4" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<path d="M8 18.2 H15" stroke="#d1fae5" stroke-width="1.7" stroke-linecap="round"/>',
+      achievements:
+        '<defs><linearGradient id="tiAr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a3a"/><stop offset="1" stop-color="#e11d48"/></linearGradient>'
+        + '<radialGradient id="tiAd" cx=".4" cy=".34" r=".85"><stop offset="0" stop-color="#fff2c4"/><stop offset=".5" stop-color="#ffc65a"/><stop offset="1" stop-color="#dd8412"/></radialGradient></defs>'
+        + '<path d="M7.6 3 L11.4 3 L10 11 L5.6 8 Z" fill="url(#tiAr)"/>'
+        + '<path d="M16.4 3 L12.6 3 L14 11 L18.4 8 Z" fill="url(#tiAr)"/>'
+        + '<circle cx="12" cy="15" r="6.3" fill="url(#tiAd)" stroke="#a9670c" stroke-width="1"/>'
+        + '<path d="M12 11.1 L13.15 13.5 L15.8 13.85 L13.87 15.7 L14.35 18.3 L12 17.05 L9.65 18.3 L10.13 15.7 L8.2 13.85 L10.85 13.5 Z" fill="#fff7dc" stroke="#a9670c" stroke-width=".5"/>',
+      inventory:
+        '<defs><linearGradient id="tiIb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d28d9"/></linearGradient>'
+        + '<linearGradient id="tiIl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9b8ff"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>'
+        + '<path d="M4 11 C4 7.7 20 7.7 20 11 L20 12 L4 12 Z" fill="url(#tiIl)" stroke="#3f1d84" stroke-width="1"/>'
+        + '<rect x="4" y="11.5" width="16" height="8.4" rx="1.6" fill="url(#tiIb)" stroke="#3f1d84" stroke-width="1"/>'
+        + '<rect x="3.3" y="13.4" width="17.4" height="2.8" rx="1" fill="#f5c451" stroke="#9a6410" stroke-width=".7"/>'
+        + '<circle cx="12" cy="14.8" r="1.6" fill="#ffe79a" stroke="#9a6410" stroke-width=".7"/>',
+    };
+    return '<svg class="rw-tab__ic" viewBox="0 0 24 24" aria-hidden="true">' + (p[k] || p.missions) + '</svg>';
+  }
+
   function drawIcon(id) {
     var a = ICON_ART[id] || ICON_ART.medal;
     return _icon(a[0], a[1], a[2]);
