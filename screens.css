@@ -4014,14 +4014,12 @@ body[data-ui-theme="amkh"] .home-hero::before{
   border: 1px solid rgba(201,168,76,.16);
   pointer-events: none;
 }
+/* النجمةُ الإسلاميّةُ الذهبيّةُ في خلفيّةِ بطاقاتِ الرئيسيّةِ: أُزيلَتْ بطلبِ
+   جوجو (كانت تظهرُ أسفلَ يمينِ كلِّ بطاقةٍ — لاعبان/ضدّ المحرّك/بلوتوث/
+   أونلاين/الألغاز…). نُبقي البطاقةَ كما هي تمامًا بلا الزخرفة. */
 body[data-ui-theme="amkh"] .home-tile{
-  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='-48 -48 96 96'><g fill='none' stroke='%23C9A84C' stroke-width='1.4' opacity='.5'><path d='M0 -44 L44 0 L0 44 L-44 0 Z'/><path d='M-31 -31 H31 V31 H-31 Z'/><circle r='11'/></g></svg>");
-  background-repeat: no-repeat;
-  background-position: calc(100% + 26px) calc(100% + 24px);
-  background-size: 96px 96px;
+  background-image: none;
 }
-/* النجمةُ الإسلاميّةُ تتراكبُ فوقَ أيقونةِ الجوائزِ في الصفِّ العريض — نزيلُها هنا فقط */
-body[data-ui-theme="amkh"] .home-tile--rewards{ background-image: none; }
 body[data-ui-theme="amkh"] .home-hero__count,
 body[data-ui-theme="amkh"] .pb-timer{
   font-family: var(--font-family-display);
@@ -8376,22 +8374,15 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-scroll.is-scrolling .store-card__art,
 .store-scroll.is-scrolling .store-card--legendary::after,
 .store-scroll.is-scrolling .rw-inv__art{ animation-play-state:paused !important; }
-/* البند ٦ (الأداء، تشديدٌ بعد بلاغِ جوجو ٢): أثقلُ تكاليفِ الطلاءِ على
-   الأجهزةِ الضعيفةِ هي صفائحُ SVG المرسومةُ كخلفيّةٍ (--plate-*) والظلالُ
-   الكبيرةُ. نُسقِطُها أثناءَ التمريرِ النشطِ فقط عبرَ كلِّ البطاقاتِ (متجر +
-   جوائز + مخزون)، فيصيرُ التمريرُ خفيفًا ويختفي «السوادُ» الناتجُ عن تأخّرِ
-   الطلاءِ (content-visibility لم يَعُدْ يُجهِدُ المعالجَ فيلحقُ الرسمَ). تعودُ
-   كلُّها لحظةَ التوقّفِ — حينَ ينظرُ اللاعبُ فعلًا — فالشكلُ في السكونِ لا
-   يتغيّرُ إطلاقًا (شرطُ جوجو: لا تغييرَ في الشكل). */
-.store-scroll.is-scrolling .store-card__plate,
-.store-scroll.is-scrolling .rw-plate,
-.store-scroll.is-scrolling .rw-wc__plate{ background-image:none !important; }
-.store-scroll.is-scrolling .store-card,
-.store-scroll.is-scrolling .rw-ach,
-.store-scroll.is-scrolling .rw-mission,
-.store-scroll.is-scrolling .rw-wc,
-.store-scroll.is-scrolling .store-card__art,
-.store-scroll.is-scrolling .rw-inv{ box-shadow:none !important; }
+/* تجميدُ حركاتِ أيقوناتِ الجوائزِ أثناءَ التمريرِ (تحسينٌ غيرُ مرئيٍّ: اللاعبُ
+   لا يرى الحركةَ وهو يُمرِّرُ، فتتجمّدُ عندَ آخرِ إطارٍ وتعودُ فورَ السكون —
+   لا تغييرَ في الشكلِ إطلاقًا، بلاغُ جوجو). transform/opacity فقط. */
+.store-scroll.is-scrolling .rw-ic *{ animation-play-state:paused !important; }
+/* ملاحظةٌ مهمّةٌ (بلاغُ جوجو): مُنِعَ قطعيًّا إسقاطُ أيِّ خلفيّةٍ أو ظلٍّ أثناءَ
+   التمرير. جرَّبتُ ذلك فتبدَّلَ شكلُ بطاقةِ تحدّي نورَ أمامَ عينِ اللاعبِ وهو
+   يُمرِّر — وهذا مرفوضٌ تمامًا: الشكلُ لا يتغيّرُ لا في السكونِ ولا في الحركة.
+   التحسينُ مسموحٌ فقط إن كان غيرَ مرئيٍّ بالمطلق (إيقافُ حركةٍ، عزلُ طلاءٍ،
+   تقليلُ عملٍ حقيقيٍّ) لا بتبديلِ المظهر. */
 .store-wrap{ max-width:640px; margin:0 auto; padding:22px 16px 40px; position:relative; }
 .store-close{ position:absolute; top:14px; inset-inline-end:14px; width:40px; height:40px; border-radius:50%;
   border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; font-size:18px; cursor:pointer; z-index:5; }
@@ -8562,8 +8553,11 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .store-chip.is-on .store-chip__ic svg{ filter:drop-shadow(0 1px 2px rgba(80,50,0,.45)); }
 
 .store-card{ cursor:pointer; transition:transform .16s ease, box-shadow .2s ease;
-  /* أداء: تخطّي رسمِ البطاقاتِ خارجَ الرؤيةِ (يوقفُ SMIL/الرسومَ المتحرّكةَ فيها تلقائيًّا) */
-  content-visibility:auto; contain-intrinsic-size:auto 190px; }
+  /* أداء: عزلُ الطلاءِ/التخطيطِ فقط. أُزيلَ content-visibility: حركاتُ الـSVG
+     خارجَ الرؤيةِ مُزالةٌ أصلًا بمراقبِ التعارضِ (wipe في store-client)، فلم
+     يَبقَ له نفعٌ سوى تفريغِ الرسمِ — وهو سببُ «السوادِ» عندَ التمريرِ السريعِ
+     على الأجهزةِ الضعيفة (بلاغُ جوجو). */
+  contain:layout style paint; }
 .store-card:active{ transform:scale(.97); }
 @media (hover:hover){ .store-card:hover{ transform:translateY(-3px);
   box-shadow:0 14px 30px rgba(0,0,0,.5),inset 0 0 30px color-mix(in srgb,var(--rc) 22%,transparent); } }
@@ -8800,10 +8794,11 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .rw-mission{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:14px;
   background:linear-gradient(135deg,rgba(124,92,255,.13),rgba(255,255,255,.04));
   border:1px solid rgba(160,130,255,.2);
-  /* أداءٌ (بند جوجو ٦): البطاقاتُ خارجَ الرؤيةِ لا تُرسَمُ — توفيرُ طلاءٍ في
-     قوائمَ طويلةٍ دونَ أيِّ تغييرٍ في الشكل. حجمٌ ضمنيٌّ قريبٌ من الواقعِ
-     يمنعُ قفزَ التخطيطِ والوميضَ عندَ التمرير. */
-  content-visibility:auto; contain-intrinsic-size:auto 74px; }
+  /* أداءٌ بلا تغييرِ مظهرٍ وبلا تفريغِ محتوى: `contain` يعزلُ الطلاءَ والتخطيطَ
+     فإعادةُ رسمِ بطاقةٍ لا تُبطِلُ أخواتِها. تُرِكَ content-visibility عمدًا:
+     على الأجهزةِ الضعيفةِ يُسقِطُ رسمَ ما خارجَ الرؤيةِ فيظهرُ فراغٌ/سوادٌ
+     لحظةَ التمريرِ السريعِ (بلاغُ جوجو «سوادٌ غريب»). */
+  contain:layout style paint; }
 .rw-mission.is-done{ border-color:color-mix(in srgb,var(--acc) 55%,transparent);
   background:color-mix(in srgb,var(--acc) 10%,rgba(124,92,255,.1)); }
 .rw-mission.is-claimed{ opacity:.6; }
@@ -8833,6 +8828,37 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   transition:transform .12s ease; }
 .rw-claim:active{ transform:scale(.94); }
 .rw-claimed{ font-size:12px; font-weight:800; color:#ffd873; }
+
+/* ══ أيقوناتُ الجوائزِ المرسومةُ (بلاغا جوجو ١ و٢) ══
+   كلُّ أيقونةٍ SVG بتدرّجاتٍ متعدّدةٍ وهالةٍ خلفيّةٍ وحركةٍ خفيفةٍ خاصّةٍ بنوعِها،
+   بنفسِ مستوى أيقوناتِ الرئيسيّة. الحركةُ كلُّها transform/opacity (خيطُ
+   التركيبِ) فلا تُكلِّفُ طلاءً، وتُعطَّلُ عندَ تفضيلِ تقليلِ الحركة. */
+.rw-ic{ width:100%; height:100%; display:block; overflow:visible; }
+.rw-ic__aura{ opacity:.5; }
+.rw-ic--twinkle > path:first-of-type{ transform-box:fill-box; transform-origin:50% 50%;
+  animation:rwIcTwinkle 3.4s ease-in-out infinite; }
+@keyframes rwIcTwinkle{ 0%,72%,100%{ transform:scale(1) rotate(0deg); } 84%{ transform:scale(1.14) rotate(9deg); } }
+.rw-ic--flicker > path:nth-of-type(2){ transform-box:fill-box; transform-origin:50% 100%;
+  animation:rwIcFlicker 1.5s ease-in-out infinite; }
+@keyframes rwIcFlicker{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.16) translateY(-.6px); } }
+.rw-ic--pulse .rw-ic__aura,
+.rw-ic--glow .rw-ic__aura,
+.rw-ic--gem .rw-ic__aura{ animation:rwIcAura 2.9s ease-in-out infinite; }
+.rw-ic--glow .rw-ic__aura{ animation-duration:3.4s; }
+.rw-ic--gem .rw-ic__aura{ animation-duration:4.2s; }
+@keyframes rwIcAura{ 0%,100%{ opacity:.32; transform:scale(.94); } 50%{ opacity:.66; transform:scale(1.06); } }
+/* لمعةٌ تمرُّ على المعدنِ (كأس/سيف/ميداليّة): نحرّكُ الهالةَ أفقيًّا فتُقرَأُ
+   كانعكاسٍ عابرٍ — transform/opacity فقط بلا طلاءٍ إضافيّ. */
+.rw-ic--shine .rw-ic__aura{ animation:rwIcShine 4.6s ease-in-out infinite; }
+@keyframes rwIcShine{ 0%,70%,100%{ opacity:.38; transform:translateX(-16%); } 85%{ opacity:.7; transform:translateX(16%); } }
+@media (prefers-reduced-motion: reduce){
+  .rw-ic--twinkle > path:first-of-type,
+  .rw-ic--flicker > path:nth-of-type(2),
+  .rw-ic--pulse .rw-ic__aura,
+  .rw-ic--glow .rw-ic__aura,
+  .rw-ic--gem .rw-ic__aura,
+  .rw-ic--shine .rw-ic__aura{ animation:none !important; }
+}
 
 /* ══ تحدّي نور الأسبوعيّ (بند جوجو ٢) ══
    بطاقةٌ مميّزةٌ أعلى المهامّ بلونِ نور البنفسجيِّ-الذهبيِّ وصفيحةٍ مرسومةٍ،
@@ -8872,8 +8898,8 @@ html.kb-open #amkh-chat-modal .ds-sheet{
 .rw-ach{ position:relative; display:flex; gap:12px; padding:14px; border-radius:16px; align-items:flex-start;
   --tc:#9fb0c0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
   opacity:.66; filter:grayscale(.45); transition:opacity .2s ease, filter .2s ease, box-shadow .2s ease;
-  /* أداءٌ (بند جوجو ٦): بطاقاتُ الإنجازاتِ خارجَ الرؤيةِ لا تُرسَمُ. لا تغييرَ شكليّ. */
-  content-visibility:auto; contain-intrinsic-size:auto 120px; }
+  /* عزلُ طلاءٍ بلا تفريغِ محتوى (راجِع .rw-mission) — لا سوادَ عندَ التمرير. */
+  contain:layout style paint; }
 .rw-ach--bronze{ --tc:#d08b4a; }
 .rw-ach--silver{ --tc:#cfd8e3; }
 .rw-ach--gold{ --tc:#ffc65a; }
@@ -8942,7 +8968,8 @@ html.kb-open #amkh-chat-modal .ds-sheet{
   align-items:center; gap:8px; --rc:#9fb0c0;
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 10%,rgba(16,8,30,.7)),rgba(10,5,20,.72));
   border:1px solid color-mix(in srgb,var(--rc) 34%,transparent);
-  content-visibility:auto; contain-intrinsic-size:180px 210px; }
+  /* عزلُ طلاءٍ بلا تفريغِ محتوى (راجِع .store-card) — لا سوادَ عندَ التمرير. */
+  contain:layout style paint; }
 .rw-inv--common{ --rc:#9fb0c0; }
 .rw-inv--rare{ --rc:#4aa3ff; }
 .rw-inv--epic{ --rc:#b46bff; }

@@ -18,94 +18,226 @@
   /* قرصُ العملةِ الموحّدُ (نفسُ عملةِ الرئيسيّةِ) عبرَ المُصيّرِ المشترك. */
   function coinIc() { try { return (window.amkhCos && amkhCos.coin) ? amkhCos.coin() : ''; } catch (e) { return ''; } }
 
-  /* ══ ألوانُ الأيقوناتِ المميّزة (بلاغُ جوجو ٣: «أيقوناتٌ ملوّنةٌ لا متشابهة») ══
-     كلُّ رمزٍ لونُه الخاصُّ النابضُ — لا تدرّجٌ رماديٌّ واحدٌ لكلِّ الأيقونات.
-     يُطبَّقُ على الـsvg عبرَ style="color:…" فيَغلبُ لونَ الحاوية (currentColor)
-     فتصيرُ كلُّ أيقونةٍ متمايزةً بصريًّا في المهامِّ والإنجازاتِ معًا. */
-  var ICON_COLOR = {
-    /* مقاييسُ المهامّ */
-    games: '#5aa0ff', wins: '#ffd24d', puzzles: '#3dd7a4', checkmate: '#ff6b5a',
-    streak: '#ff8a3d', nour: '#b98aff', draws: '#8fb3c8', engine: '#36d1dc', spend: '#ff7ec8',
-    /* رموزُ الإنجازات */
-    sword: '#ff6b5a', board: '#5aa0ff', shield: '#4db8ff', flame: '#ff8a3d', crown: '#ffcf4d',
-    level: '#9d7bff', bulb: '#ffe14d', brain: '#ff7ec8', gem: '#36d1dc', trophy: '#ffcf4d',
-    dragon: '#ff5577', star: '#ffd24d', path: '#3dd7a4', mountain: '#8fd3ff', star3: '#ffd24d',
-    cpu: '#36d1dc', robot: '#7ab8ff', target: '#ff6b5a', medal: '#ffcf4d',
+  /* ══════════════════════════════════════════════════════════════════
+     مجموعةُ أيقوناتِ الجوائزِ المرسومة (بلاغا جوجو ١ و٢)
+     ────────────────────────────────────────────────────────────────
+     كانتِ الأيقوناتُ خطوطًا رفيعةً بلونٍ واحدٍ فتبدو فقيرةً ومتشابهةً. أُعيدَ
+     بناؤها كلُّها: تدرّجاتٌ لونيّةٌ متعدّدةُ المحطّاتِ + هالةٌ خلفيّةٌ + لمعةٌ
+     علويّةٌ + تفاصيلُ داخليّةٌ + حركةٌ خفيفةٌ لبعضِها — بنفسِ مستوى أيقوناتِ
+     الرئيسيّةِ (home-ic). التدرّجاتُ تُعرَّفُ **مرّةً واحدةً** في مِلفٍّ خفيٍّ
+     (sprite) فلا تُكرَّرُ مع كلِّ بطاقةٍ: أوفرُ للذاكرةِ والطلاءِ معًا. */
+  var ICON_SPRITE_ID = 'rw-icon-defs';
+  function ensureIconDefs() {
+    if (document.getElementById(ICON_SPRITE_ID)) return;
+    var g = function (id, a, b, c) {
+      return '<linearGradient id="' + id + '" x1="0" y1="0" x2=".85" y2="1">'
+        + '<stop offset="0" stop-color="' + a + '"/><stop offset=".5" stop-color="' + b + '"/>'
+        + '<stop offset="1" stop-color="' + c + '"/></linearGradient>';
+    };
+    var r = function (id, a, b) {
+      return '<radialGradient id="' + id + '" cx="50%" cy="46%" r="54%">'
+        + '<stop offset="0" stop-color="' + a + '" stop-opacity=".55"/>'
+        + '<stop offset="1" stop-color="' + b + '" stop-opacity="0"/></radialGradient>';
+    };
+    var d = document.createElement('div');
+    d.id = ICON_SPRITE_ID;
+    d.setAttribute('aria-hidden', 'true');
+    d.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;pointer-events:none';
+    d.innerHTML = '<svg width="0" height="0"><defs>'
+      + g('icGold',   '#fff8dc', '#f5c451', '#a9710a')
+      + g('icBlue',   '#d8ecff', '#4aa3ff', '#0d4f9e')
+      + g('icEmber',  '#ffe2cf', '#ff6b4a', '#a01c0c')
+      + g('icGreen',  '#dcffee', '#34d399', '#07795a')
+      + g('icPurple', '#efe3ff', '#a97bff', '#4e21b0')
+      + g('icCyan',   '#ddfdff', '#22d3ee', '#0a6f85')
+      + g('icOrange', '#ffe8c2', '#ff9638', '#b43f05')
+      + g('icPink',   '#ffdcf2', '#ff79c6', '#a51d74')
+      + g('icSilver', '#ffffff', '#cfd8e3', '#73808f')
+      + g('icBronze', '#ffdcba', '#d08b4a', '#7d4414')
+      + g('icSteel',  '#aec6e0', '#415a74', '#111c28')
+      + g('icRose',   '#ffd6dc', '#ff5577', '#9c0b2c')
+      + r('icAuraGold',   '#ffd873', '#ffd873')
+      + r('icAuraBlue',   '#7cc0ff', '#7cc0ff')
+      + r('icAuraEmber',  '#ff8a6a', '#ff8a6a')
+      + r('icAuraGreen',  '#4ade80', '#4ade80')
+      + r('icAuraPurple', '#c4a0ff', '#c4a0ff')
+      + r('icAuraCyan',   '#5de4f5', '#5de4f5')
+      + r('icAuraOrange', '#ffab5e', '#ffab5e')
+      + r('icAuraPink',   '#ff9ad6', '#ff9ad6')
+      + r('icAuraSilver', '#e6eef7', '#e6eef7')
+      + r('icAuraRose',   '#ff7d96', '#ff7d96')
+      + '</defs></svg>';
+    (document.body || document.documentElement).appendChild(d);
+  }
+
+  /* غلافُ الأيقونة: هالةٌ ملوّنةٌ خلفَ الرسمِ ثمّ الرسمُ نفسُه. cls يُمرَّرُ
+     لتفعيلِ حركةٍ خاصّةٍ من screens.css (تُحترَمُ تفضيلاتُ تقليلِ الحركة). */
+  function _icon(body, aura, cls) {
+    ensureIconDefs();
+    return '<svg class="rw-ic' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">'
+      + (aura ? '<circle class="rw-ic__aura" cx="12" cy="11" r="11" fill="url(#icAura' + aura + ')"/>' : '')
+      + body + '</svg>';
+  }
+
+  /* قاموسُ الرسومِ — كلُّ رمزٍ بتدرّجِه وتفاصيلِه. */
+  var ICON_ART = {
+    /* ── سيفٌ ذهبيٌّ بنصلٍ فضّيٍّ ومقبضٍ ذهبيّ ── */
+    sword: ['<path d="M16.6 3.2 H20.8 V7.4 L12.3 15.9 L8.1 11.7 Z" fill="url(#icSilver)"/>'
+      + '<path d="M16.6 3.2 H20.8 V7.4 L12.3 15.9 L8.1 11.7 Z" fill="none" stroke="#8fa3b8" stroke-width=".7" opacity=".7"/>'
+      + '<path d="M18.9 4 L19.9 5" stroke="#ffffff" stroke-width="1" opacity=".9" stroke-linecap="round"/>'
+      + '<path d="M8.1 11.7 L4.6 15.2 L8.8 19.4 L12.3 15.9 Z" fill="url(#icGold)"/>'
+      + '<path d="M6.1 16.6 L2.6 20.1" stroke="url(#icGold)" stroke-width="2" stroke-linecap="round"/>', 'Silver', 'rw-ic--shine'],
+    /* ── رقعةٌ بمربّعاتٍ متباينةٍ فعليّة ── */
+    board: ['<rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.2" fill="url(#icSteel)"/>'
+      + '<g fill="url(#icSilver)" opacity=".92">'
+      + '<rect x="5.1" y="5.1" width="3.9" height="3.9"/><rect x="12.9" y="5.1" width="3.9" height="3.9"/>'
+      + '<rect x="9" y="9" width="3.9" height="3.9"/><rect x="16.8" y="9" width="3.8" height="3.9"/>'
+      + '<rect x="5.1" y="12.9" width="3.9" height="3.9"/><rect x="12.9" y="12.9" width="3.9" height="3.9"/>'
+      + '<rect x="9" y="16.8" width="3.9" height="3.8"/></g>'
+      + '<rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.2" fill="none" stroke="url(#icGold)" stroke-width="1.2"/>', 'Blue', ''],
+    /* ── كأسٌ ذهبيٌّ بلمعةٍ تجري ── */
+    trophy: ['<path d="M7.2 3.6 H16.8 V8.4 A4.8 4.8 0 0 1 7.2 8.4 Z" fill="url(#icGold)"/>'
+      + '<path d="M7.2 5.4 H4.5 A2.7 2.7 0 0 0 7.6 8.8" fill="none" stroke="url(#icGold)" stroke-width="1.5" stroke-linecap="round"/>'
+      + '<path d="M16.8 5.4 H19.5 A2.7 2.7 0 0 1 16.4 8.8" fill="none" stroke="url(#icGold)" stroke-width="1.5" stroke-linecap="round"/>'
+      + '<path d="M12 13 V15.8" stroke="url(#icGold)" stroke-width="1.8"/>'
+      + '<path d="M8.6 16.2 H15.4 L16.7 20.4 H7.3 Z" fill="url(#icGold)"/>'
+      + '<path d="M9.6 5 L10.4 7.4" stroke="#fffdf0" stroke-width="1" opacity=".8" stroke-linecap="round"/>', 'Gold', 'rw-ic--shine'],
+    /* ── تاجٌ بجواهرَ ملوّنة ── */
+    crown: ['<path d="M3.6 18 L5.7 7.4 L9.6 12.4 L12 5.4 L14.4 12.4 L18.3 7.4 L20.4 18 Z" fill="url(#icGold)"/>'
+      + '<path d="M3.6 18 H20.4 V20.2 H3.6 Z" fill="url(#icBronze)"/>'
+      + '<circle cx="12" cy="4.9" r="1.35" fill="url(#icRose)"/>'
+      + '<circle cx="5.7" cy="7" r="1.05" fill="url(#icCyan)"/>'
+      + '<circle cx="18.3" cy="7" r="1.05" fill="url(#icCyan)"/>'
+      + '<circle cx="9" cy="16" r=".85" fill="url(#icGreen)"/><circle cx="15" cy="16" r=".85" fill="url(#icBlue)"/>', 'Gold', 'rw-ic--gem'],
+    /* ── لمبةٌ متوهّجةٌ بخيطٍ ذهبيّ ── */
+    bulb: ['<path d="M8.4 14.6 A5.6 5.6 0 1 1 15.6 14.6 L14.6 17.6 H9.4 Z" fill="url(#icGold)"/>'
+      + '<path d="M8.4 14.6 A5.6 5.6 0 1 1 15.6 14.6" fill="none" stroke="#fffbe6" stroke-width=".8" opacity=".55"/>'
+      + '<path d="M10.2 13.6 Q12 10.6 13.8 13.6" fill="none" stroke="#b8730a" stroke-width=".9" stroke-linecap="round"/>'
+      + '<rect x="9.4" y="17.8" width="5.2" height="1.5" rx=".7" fill="url(#icSilver)"/>'
+      + '<rect x="10" y="19.9" width="4" height="1.3" rx=".65" fill="url(#icBronze)"/>', 'Gold', 'rw-ic--glow'],
+    /* ── نجمةٌ ذهبيّةٌ تتلألأُ ── */
+    star: ['<path d="M12 2.8 L14.5 9.1 L21.2 9.6 L16.1 14 L17.6 20.6 L12 17 L6.4 20.6 L7.9 14 L2.8 9.6 L9.5 9.1 Z" fill="url(#icGold)"/>'
+      + '<path d="M12 5.6 L13.6 10 L18.2 10.4" fill="none" stroke="#fffdf2" stroke-width=".9" opacity=".75" stroke-linecap="round"/>', 'Gold', 'rw-ic--twinkle'],
+    /* ── درعٌ أزرقُ بعلامةِ صحّ ── */
+    shield: ['<path d="M12 2.8 L20.2 5.9 V12 C20.2 16.3 16.6 19.5 12 21.2 C7.4 19.5 3.8 16.3 3.8 12 V5.9 Z" fill="url(#icBlue)"/>'
+      + '<path d="M12 4.6 L18.4 7 V12 C18.4 15.3 15.6 17.9 12 19.3 V4.6 Z" fill="#ffffff" opacity=".13"/>'
+      + '<path d="M8.6 12 L11 14.4 L15.6 9.6" fill="none" stroke="#f0fbff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>', 'Blue', ''],
+    /* ── شعلةٌ بقلبٍ ساطعٍ ترتجف ── */
+    flame: ['<path d="M12 2.6 C15.4 7 17.4 8.9 17.4 12.3 A5.4 5.4 0 0 1 6.6 12.3 C6.6 10.1 7.7 8.6 9.4 6.9 C9.8 8.7 10.7 9.4 11.6 9.8 C11 7.5 11.3 5.2 12 2.6 Z" fill="url(#icOrange)"/>'
+      + '<path d="M12 9.4 C13.5 11.6 14.4 12.6 14.4 14.1 A2.4 2.4 0 0 1 9.6 14.1 C9.6 12.9 10.5 11.8 12 9.4 Z" fill="url(#icGold)"/>', 'Orange', 'rw-ic--flicker'],
+    /* ── شرائطُ صعودٍ (مستوى) ── */
+    level: ['<rect x="3.4" y="14.6" width="4.4" height="6.2" rx="1.1" fill="url(#icPurple)"/>'
+      + '<rect x="9.8" y="10.2" width="4.4" height="10.6" rx="1.1" fill="url(#icPurple)"/>'
+      + '<rect x="16.2" y="5.4" width="4.4" height="15.4" rx="1.1" fill="url(#icGold)"/>'
+      + '<path d="M5.6 13.4 L12 8.4 L18.4 3.6" fill="none" stroke="#fff2c4" stroke-width="1.3" stroke-linecap="round" opacity=".8"/>', 'Purple', ''],
+    /* ── دماغٌ وردِيٌّ بنبضاتٍ ── */
+    brain: ['<path d="M11.4 5 A3 3 0 0 0 5.6 5.8 A2.7 2.7 0 0 0 4 10.7 A2.9 2.9 0 0 0 5.4 15.2 A2.8 2.8 0 0 0 9.9 18.5 A2.5 2.5 0 0 0 11.4 19.4 Z" fill="url(#icPink)"/>'
+      + '<path d="M12.6 5 A3 3 0 0 1 18.4 5.8 A2.7 2.7 0 0 1 20 10.7 A2.9 2.9 0 0 1 18.6 15.2 A2.8 2.8 0 0 1 14.1 18.5 A2.5 2.5 0 0 1 12.6 19.4 Z" fill="url(#icPurple)"/>'
+      + '<path d="M8.4 8.2 Q10.2 9.6 8.8 11.4 Q10.4 13 8.6 14.6" fill="none" stroke="#fff0fa" stroke-width=".85" opacity=".7" stroke-linecap="round"/>'
+      + '<path d="M15.6 8.2 Q13.8 9.6 15.2 11.4 Q13.6 13 15.4 14.6" fill="none" stroke="#f3eaff" stroke-width=".85" opacity=".7" stroke-linecap="round"/>', 'Pink', 'rw-ic--pulse'],
+    /* ── جوهرةٌ بأوجهٍ لامعة ── */
+    gem: ['<path d="M8 3.8 H16 L20.4 9 L12 20.6 L3.6 9 Z" fill="url(#icCyan)"/>'
+      + '<path d="M8 3.8 L9.8 9 L12 20.6 L3.6 9 Z" fill="#ffffff" opacity=".18"/>'
+      + '<path d="M3.6 9 H20.4" stroke="#eafeff" stroke-width=".8" opacity=".6"/>'
+      + '<path d="M9.8 9 L12 3.8 L14.2 9" fill="none" stroke="#eafeff" stroke-width=".8" opacity=".55"/>', 'Cyan', 'rw-ic--gem'],
+    /* ── تنّينٌ قرمزيّ ── */
+    dragon: ['<path d="M3.6 15 C3.6 11 6.8 7.8 10.8 7.8 H13.8 L17 4.6 L18.2 8.8 L21.4 10 L18.2 12.2 V15 C18.2 18.2 15 20.4 10.8 20.4 H6.6 Z" fill="url(#icRose)"/>'
+      + '<path d="M17 4.6 L18.2 8.8 L21.4 10 L18.2 12.2" fill="none" stroke="#ffd7de" stroke-width=".8" opacity=".65"/>'
+      + '<circle cx="14.2" cy="11.2" r="1.15" fill="#fff3f5"/><circle cx="14.2" cy="11.2" r=".5" fill="#7a0a1f"/>'
+      + '<path d="M8.4 20.4 L7.4 22.2 M12.8 20.4 L11.8 22.2" stroke="url(#icRose)" stroke-width="1.3" stroke-linecap="round"/>', 'Rose', 'rw-ic--pulse'],
+    /* ── دربٌ متعرّجٌ أخضرُ بعلَمٍ ── */
+    path: ['<path d="M5.4 20.4 C10.4 17.4 7.4 12.4 11.4 10.9 C15.4 9.4 13 5.4 17.4 4.6" fill="none" stroke="url(#icGreen)" stroke-width="2.3" stroke-linecap="round"/>'
+      + '<circle cx="5.4" cy="20.4" r="1.7" fill="url(#icGreen)"/>'
+      + '<path d="M17.4 3.4 V8.6" stroke="url(#icSilver)" stroke-width="1.2" stroke-linecap="round"/>'
+      + '<path d="M17.4 3.6 L21 4.8 L17.4 6 Z" fill="url(#icGold)"/>', 'Green', ''],
+    /* ── جبلٌ مثلّجُ القمّة ── */
+    mountain: ['<path d="M2.8 19.6 L9 8.4 L12.6 14.2 L15.6 9.2 L21.2 19.6 Z" fill="url(#icBlue)"/>'
+      + '<path d="M7.1 11.9 L9 8.4 L10.9 11.9 Q9 13 7.1 11.9 Z" fill="#ffffff" opacity=".85"/>'
+      + '<path d="M14.1 11.8 L15.6 9.2 L17.1 11.8 Q15.6 12.7 14.1 11.8 Z" fill="#ffffff" opacity=".7"/>'
+      + '<path d="M2.8 19.6 H21.2" stroke="url(#icSilver)" stroke-width=".9" opacity=".5"/>', 'Blue', ''],
+    /* ── ثلاثُ نجماتٍ (الكمال) ── */
+    star3: ['<path d="M12 3.4 L13.7 7.7 L18.2 8 L14.7 10.9 L15.9 15.3 L12 12.8 L8.1 15.3 L9.3 10.9 L5.8 8 L10.3 7.7 Z" fill="url(#icGold)"/>'
+      + '<path d="M5.2 16.4 L6.1 18.4 L8.2 18.6 L6.6 20 L7.1 22.1 L5.2 21 L3.3 22.1 L3.8 20 L2.2 18.6 L4.3 18.4 Z" fill="url(#icGold)" opacity=".92"/>'
+      + '<path d="M18.8 16.4 L19.7 18.4 L21.8 18.6 L20.2 20 L20.7 22.1 L18.8 21 L16.9 22.1 L17.4 20 L15.8 18.6 L17.9 18.4 Z" fill="url(#icGold)" opacity=".92"/>', 'Gold', 'rw-ic--twinkle'],
+    /* ── رقاقةُ معالجٍ سماويّة ── */
+    cpu: ['<rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.9" fill="url(#icSteel)"/>'
+      + '<rect x="9.4" y="9.4" width="5.2" height="5.2" rx=".8" fill="url(#icCyan)"/>'
+      + '<g stroke="url(#icGold)" stroke-width="1.35" stroke-linecap="round">'
+      + '<path d="M9.4 3.4 V6.4 M14.6 3.4 V6.4 M9.4 17.6 V20.6 M14.6 17.6 V20.6"/>'
+      + '<path d="M3.4 9.4 H6.4 M3.4 14.6 H6.4 M17.6 9.4 H20.6 M17.6 14.6 H20.6"/></g>'
+      + '<path d="M7.6 7.4 H16.4" stroke="#cfe6f5" stroke-width=".65" opacity=".4" stroke-linecap="round"/>', 'Cyan', 'rw-ic--pulse'],
+    /* ── آليٌّ لطيف ── */
+    robot: ['<rect x="5.2" y="7.6" width="13.6" height="10.8" rx="2.4" fill="url(#icBlue)"/>'
+      + '<path d="M12 4.2 V7.6" stroke="url(#icSilver)" stroke-width="1.2" stroke-linecap="round"/>'
+      + '<circle cx="12" cy="3.3" r="1.25" fill="url(#icCyan)"/>'
+      + '<circle cx="9.5" cy="12.2" r="1.3" fill="#eaf7ff"/><circle cx="14.5" cy="12.2" r="1.3" fill="#eaf7ff"/>'
+      + '<path d="M9.8 15.6 H14.2" stroke="#eaf7ff" stroke-width="1.2" stroke-linecap="round" opacity=".85"/>'
+      + '<rect x="3.2" y="10.6" width="1.8" height="4.4" rx=".9" fill="url(#icSilver)"/>'
+      + '<rect x="19" y="10.6" width="1.8" height="4.4" rx=".9" fill="url(#icSilver)"/>', 'Blue', 'rw-ic--pulse'],
+    /* ── هدفٌ بحلقاتٍ متباينةٍ وسهمٍ غائرٍ في المركز ── */
+    target: ['<circle cx="12" cy="12" r="8.6" fill="url(#icEmber)"/>'
+      + '<circle cx="12" cy="12" r="6.3" fill="#fff6f2" opacity=".92"/>'
+      + '<circle cx="12" cy="12" r="4.1" fill="url(#icEmber)"/>'
+      + '<circle cx="12" cy="12" r="2" fill="url(#icGold)"/>'
+      + '<path d="M18.6 5.4 L13.2 10.8" stroke="url(#icSilver)" stroke-width="1.5" stroke-linecap="round"/>'
+      + '<path d="M19.8 4.2 L17.5 5 L18.9 6.4 Z" fill="url(#icGreen)"/>', 'Ember', 'rw-ic--pulse'],
+    /* ── ميداليّةٌ بشريطٍ ── */
+    medal: ['<path d="M8.4 2.8 L11 8.6 H13 L15.6 2.8" fill="none" stroke="url(#icBlue)" stroke-width="2.1" stroke-linecap="round"/>'
+      + '<circle cx="12" cy="14.6" r="5.9" fill="url(#icGold)"/>'
+      + '<circle cx="12" cy="14.6" r="3.9" fill="#ffffff" opacity=".2"/>'
+      + '<path d="M12 11.8 L12.9 13.7 L15 14 L13.5 15.4 L13.9 17.5 L12 16.5 L10.1 17.5 L10.5 15.4 L9 14 L11.1 13.7 Z" fill="#fff8dc"/>', 'Gold', 'rw-ic--shine'],
+
+    /* ══ مقاييسُ المهامّ ══ */
+    games: null,     /* = board */
+    wins: null,      /* = trophy */
+    /* قطعةُ أُحجيةٍ خضراءُ (اللمبةُ لا تعبّرُ عن الألغاز — بلاغُ جوجو) */
+    puzzles: ['<path d="M4.6 4.6 H10.2 V6.9 A1.95 1.95 0 1 0 13.8 6.9 V4.6 H19.4 V10.2 H17.1 A1.95 1.95 0 1 0 17.1 13.8 H19.4 V19.4 H13.8 V17.1 A1.95 1.95 0 1 1 10.2 17.1 V19.4 H4.6 Z" fill="url(#icGreen)"/>'
+      + '<path d="M4.6 4.6 H10.2 V6.9 A1.95 1.95 0 1 0 13.8 6.9 V4.6 H19.4 V10.2 H17.1 A1.95 1.95 0 1 0 17.1 13.8 H19.4 V19.4 H13.8 V17.1 A1.95 1.95 0 1 1 10.2 17.1 V19.4 H4.6 Z" fill="none" stroke="#e8fff5" stroke-width=".75" opacity=".55"/>'
+      + '<path d="M6.4 6.4 H8.8" stroke="#ffffff" stroke-width=".9" opacity=".6" stroke-linecap="round"/>', 'Green', 'rw-ic--gem'],
+    /* كِش-مات: ملكٌ ساقطٌ بعلامةٍ حمراء */
+    checkmate: ['<path d="M12 2.6 V5.4 M10.5 4 H13.5" stroke="url(#icGold)" stroke-width="1.5" stroke-linecap="round"/>'
+      + '<path d="M7.6 20 L16.4 20 L17.4 11.6 L14.2 13.8 L12 8.2 L9.8 13.8 L6.6 11.6 Z" fill="url(#icGold)"/>'
+      + '<path d="M6.9 20.6 H17.1" stroke="url(#icBronze)" stroke-width="1.6" stroke-linecap="round"/>'
+      + '<path d="M3.6 20.8 L20.4 4.2" stroke="url(#icRose)" stroke-width="2.3" stroke-linecap="round"/>', 'Rose', ''],
+    streak: null,    /* = flame */
+    /* نور: شعاعُ نورٍ بنفسجيٌّ-ذهبيٌّ (لا آليٌّ — نورٌ فتًى لا روبوت) */
+    nour: ['<circle cx="12" cy="12" r="4.6" fill="url(#icGold)"/>'
+      + '<circle cx="12" cy="12" r="2.6" fill="#fffdf0" opacity=".85"/>'
+      + '<g stroke="url(#icPurple)" stroke-width="1.7" stroke-linecap="round">'
+      + '<path d="M12 1.8 V5 M12 19 V22.2 M1.8 12 H5 M19 12 H22.2"/></g>'
+      + '<g stroke="url(#icPurple)" stroke-width="1.35" stroke-linecap="round" opacity=".85">'
+      + '<path d="M4.8 4.8 L7 7 M17 17 L19.2 19.2 M19.2 4.8 L17 7 M7 17 L4.8 19.2"/></g>', 'Purple', 'rw-ic--glow'],
+    /* تعادل: ميزانٌ متوازن */
+    draws: ['<path d="M12 4 V19.6" stroke="url(#icSilver)" stroke-width="1.6" stroke-linecap="round"/>'
+      + '<circle cx="12" cy="3.4" r="1.4" fill="url(#icGold)"/>'
+      + '<path d="M5.2 7.6 H18.8" stroke="url(#icSilver)" stroke-width="1.6" stroke-linecap="round"/>'
+      + '<path d="M2.6 8 H7.8 L5.2 13.2 Z" fill="url(#icBlue)"/>'
+      + '<path d="M16.2 8 H21.4 L18.8 13.2 Z" fill="url(#icBlue)"/>'
+      + '<path d="M8.4 20.4 H15.6" stroke="url(#icBronze)" stroke-width="1.8" stroke-linecap="round"/>', 'Silver', ''],
+    engine: null,    /* = cpu */
+    /* إنفاق: كيسُ متجرٍ ورديٌّ بعملةٍ ذهبيّة */
+    spend: ['<path d="M5.4 8.4 H18.6 L17.6 20.4 H6.4 Z" fill="url(#icPink)"/>'
+      + '<path d="M8.8 8.4 V6.4 A3.2 3.2 0 0 1 15.2 6.4 V8.4" fill="none" stroke="url(#icSilver)" stroke-width="1.5" stroke-linecap="round"/>'
+      + '<circle cx="12" cy="14.6" r="3.1" fill="url(#icGold)"/>'
+      + '<path d="M12 12.6 V16.6 M10.6 13.6 H13.4" stroke="#8a5c05" stroke-width="1" stroke-linecap="round"/>', 'Pink', 'rw-ic--gem'],
   };
-  function _iconColor(id) { return ICON_COLOR[id] || '#cbb8ff'; }
+  /* مرادفاتٌ (نفسُ الرسمِ لمفتاحَين) */
+  ICON_ART.games = ICON_ART.board;
+  ICON_ART.wins = ICON_ART.trophy;
+  ICON_ART.streak = ICON_ART.flame;
+  ICON_ART.engine = ICON_ART.cpu;
 
-  /* أيقوناتُ الإنجازاتِ: SVG صغيرةٌ مرسومةٌ (بلا إيموجي). الأسماءُ مطابقةٌ
-     لحقلِ icon في ACHIEVEMENTS على الخادمِ — أيُّ نقصٍ كان يسقطُ للميداليّةِ
-     فتتشابهُ كلُّ الإنجازات (بلاغُ جوجو ٦). الآن لكلِّ رمزٍ شكلُه ولونُه. */
-  function achIcon(id) {
-    var p = {
-      medal: '<circle cx="12" cy="9" r="5.4"/><path d="M8 13.5 L6 21 L12 18 L18 21 L16 13.5"/>',
-      board: '<rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M4 9 H20 M4 14 H20 M9 4 V20 M14 4 V20"/>',
-      crown: '<path d="M4 18 L6 8 L10 13 L12 6 L14 13 L18 8 L20 18 Z"/><path d="M4 18 H20"/>',
-      bulb: '<path d="M9 15 A5 5 0 1 1 15 15 L14 18 H10 Z"/><path d="M10 20.5 H14"/>',
-      star: '<path d="M12 3 L14.6 9.2 L21 9.7 L16.2 14 L17.7 20.3 L12 16.8 L6.3 20.3 L7.8 14 L3 9.7 L9.4 9.2 Z"/>',
-      sword: '<path d="M17.5 3 H21 V6.5 L12.5 15 L9 11.5 Z"/><path d="M9 11.5 L5 15.5 L8.5 19 L12.5 15"/><path d="M6.5 17 L3 20.5"/>',
-      trophy: '<path d="M7 4 H17 V8 A5 5 0 0 1 7 8 Z"/><path d="M7 6 H4.4 A2.6 2.6 0 0 0 7.4 9.1"/><path d="M17 6 H19.6 A2.6 2.6 0 0 1 16.6 9.1"/><path d="M12 13 V16"/><path d="M9.6 16 H14.4 L15.6 20 H8.4 Z"/>',
-      shield: '<path d="M12 3 L20 6 V12 C20 16 16.6 19.2 12 21 C7.4 19.2 4 16 4 12 V6 Z"/><path d="M9 12 L11.2 14.2 L15.5 10"/>',
-      flame: '<path d="M12 3 C15 7 17 8.6 17 12 A5 5 0 0 1 7 12 C7 10 8 8.6 9.5 7 C9.9 8.6 10.7 9.3 11.5 9.6 C11 7.6 11.3 5.4 12 3 Z"/>',
-      level: '<path d="M6 13 L12 7 L18 13"/><path d="M6 18.5 L12 12.5 L18 18.5"/>',
-      brain: '<path d="M12 5.5 A3 3 0 0 0 6 6.1 A2.6 2.6 0 0 0 4.3 11 A2.8 2.8 0 0 0 5.6 15.4 A2.7 2.7 0 0 0 10 18.6 A2.4 2.4 0 0 0 12 19.6 Z"/><path d="M12 5.5 A3 3 0 0 1 18 6.1 A2.6 2.6 0 0 1 19.7 11 A2.8 2.8 0 0 1 18.4 15.4 A2.7 2.7 0 0 1 14 18.6 A2.4 2.4 0 0 1 12 19.6"/>',
-      gem: '<path d="M8 4 H16 L20 9 L12 20 L4 9 Z"/><path d="M4 9 H20 M9.6 9 L12 20 M14.4 9 L12 20 M8 4 L9.6 9 M16 4 L14.4 9"/>',
-      dragon: '<path d="M4 15 C4 11 7 8 11 8 H14 L17 5 L18 9 L21 10 L18 12 V15 C18 18 15 20 11 20 H7 Z"/><circle cx="14.2" cy="11" r=".95" fill="currentColor" stroke="none"/><path d="M8.5 20 L7.5 22 M13 20 L12 22"/>',
-      /* ── رموزٌ جديدةٌ لإنجازاتِ درب نور والمحرّكِ والمثابرة (بند جوجو ٣) ── */
-      path: '<path d="M6 20 C11 17 8 12 12 10.5 C16 9 13.5 5 18 4.2"/><circle cx="18" cy="4.2" r="1.5"/><circle cx="6" cy="20" r="1.2" fill="currentColor" stroke="none"/>',
-      mountain: '<path d="M3 19 L9 8 L12.5 13.5 L15.5 9 L21 19 Z"/><path d="M7.4 11.6 L9 8 L10.7 11.6"/>',
-      star3: '<path d="M12 4 L13.7 8.2 L18 8.5 L14.7 11.3 L15.8 15.6 L12 13.2 L8.2 15.6 L9.3 11.3 L6 8.5 L10.3 8.2 Z"/><path d="M4.6 17.5 L5.4 19.2 L7.2 19.4 L5.8 20.6 L6.3 22.4"/><path d="M19.4 17.5 L18.6 19.2 L16.8 19.4 L18.2 20.6 L17.7 22.4"/>',
-      cpu: '<rect x="7" y="7" width="10" height="10" rx="1.6"/><rect x="10" y="10" width="4" height="4"/><path d="M9.5 4 V7 M14.5 4 V7 M9.5 17 V20 M14.5 17 V20 M4 9.5 H7 M4 14.5 H7 M17 9.5 H20 M17 14.5 H20"/>',
-      robot: '<rect x="5.5" y="8" width="13" height="10.5" rx="2.2"/><path d="M12 4.6 V8"/><circle cx="12" cy="3.4" r="1.1"/><circle cx="9.6" cy="12.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="14.4" cy="12.4" r="1.05" fill="currentColor" stroke="none"/><path d="M9.8 15.6 H14.2"/>',
-      target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
-    };
-    return '<svg viewBox="0 0 24 24" style="color:' + _iconColor(id) + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[id] || p.medal) + '</svg>';
+  function drawIcon(id) {
+    var a = ICON_ART[id] || ICON_ART.medal;
+    return _icon(a[0], a[1], a[2]);
   }
 
-  /* أيقوناتُ ألسنةِ شاشةِ الجوائز (مهامّ/إنجازات/مخزون) — SVG مرسومٌ يعبّرُ عن
-     كلِّ اسمٍ مع الإبقاءِ على الأسماءِ الثلاثةِ (طلبُ جوجو). نفسُ نسقِ الرسمِ
-     في achIcon/misIcon (currentColor، بلا إيموجي). */
-  function tabIcon(k) {
-    var p = {
-      missions:
-        '<defs><linearGradient id="tiM" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0e9f6e"/></linearGradient></defs>'
-        + '<rect x="5" y="4" width="14" height="18" rx="2.6" fill="url(#tiM)" stroke="#0b7a54" stroke-width="1"/>'
-        + '<rect x="8.6" y="2.3" width="6.8" height="3.6" rx="1.3" fill="#a7f3d0" stroke="#0b7a54" stroke-width=".7"/>'
-        + '<path d="M7.8 12.4 L10.4 15 L15.6 9.4" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'
-        + '<path d="M8 18.2 H15" stroke="#d1fae5" stroke-width="1.7" stroke-linecap="round"/>',
-      achievements:
-        '<defs><linearGradient id="tiAr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a3a"/><stop offset="1" stop-color="#e11d48"/></linearGradient>'
-        + '<radialGradient id="tiAd" cx=".4" cy=".34" r=".85"><stop offset="0" stop-color="#fff2c4"/><stop offset=".5" stop-color="#ffc65a"/><stop offset="1" stop-color="#dd8412"/></radialGradient></defs>'
-        + '<path d="M7.6 3 L11.4 3 L10 11 L5.6 8 Z" fill="url(#tiAr)"/>'
-        + '<path d="M16.4 3 L12.6 3 L14 11 L18.4 8 Z" fill="url(#tiAr)"/>'
-        + '<circle cx="12" cy="15" r="6.3" fill="url(#tiAd)" stroke="#a9670c" stroke-width="1"/>'
-        + '<path d="M12 11.1 L13.15 13.5 L15.8 13.85 L13.87 15.7 L14.35 18.3 L12 17.05 L9.65 18.3 L10.13 15.7 L8.2 13.85 L10.85 13.5 Z" fill="#fff7dc" stroke="#a9670c" stroke-width=".5"/>',
-      inventory:
-        '<defs><linearGradient id="tiIb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d28d9"/></linearGradient>'
-        + '<linearGradient id="tiIl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9b8ff"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>'
-        + '<path d="M4 11 C4 7.7 20 7.7 20 11 L20 12 L4 12 Z" fill="url(#tiIl)" stroke="#3f1d84" stroke-width="1"/>'
-        + '<rect x="4" y="11.5" width="16" height="8.4" rx="1.6" fill="url(#tiIb)" stroke="#3f1d84" stroke-width="1"/>'
-        + '<rect x="3.3" y="13.4" width="17.4" height="2.8" rx="1" fill="#f5c451" stroke="#9a6410" stroke-width=".7"/>'
-        + '<circle cx="12" cy="14.8" r="1.6" fill="#ffe79a" stroke="#9a6410" stroke-width=".7"/>',
-    };
-    return '<svg class="rw-tab__ic" viewBox="0 0 24 24" aria-hidden="true">' + (p[k] || p.missions) + '</svg>';
-  }
+  /* أيقونةُ الإنجاز (الأسماءُ مطابقةٌ لحقلِ icon في ACHIEVEMENTS). */
+  function achIcon(id) { return drawIcon(id); }
 
-  /* أيقونةُ المهمّةِ حسبَ مقياسِها (metric يأتي في لقطةِ الخادم) — كلُّ مهمّةٍ
-     صار لها رمزٌ مرسومٌ بدلًا من الصفِّ النصّيِّ العاري (بلاغُ جوجو ٥). */
-  function misIcon(metric) {
-    var p = {
-      games: '<rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M4 9 H20 M4 14 H20 M9 4 V20 M14 4 V20"/>',
-      wins: '<path d="M7 4 H17 V8 A5 5 0 0 1 7 8 Z"/><path d="M7 6 H4.4 A2.6 2.6 0 0 0 7.4 9.1"/><path d="M17 6 H19.6 A2.6 2.6 0 0 1 16.6 9.1"/><path d="M12 13 V16"/><path d="M9.6 16 H14.4 L15.6 20 H8.4 Z"/>',
-      puzzles: '<path d="M5 5 H10.4 V7.1 A1.85 1.85 0 1 0 13.6 7.1 V5 H19 V10.4 H16.9 A1.85 1.85 0 1 0 16.9 13.6 H19 V19 H13.6 V16.9 A1.85 1.85 0 1 1 10.4 16.9 V19 H5 Z"/>',
-      checkmate: '<path d="M12 3 V6 M10.4 4.6 H13.6"/><path d="M7 20.5 H17 L18 12 L14.8 14 L12 8.6 L9.2 14 L6 12 Z"/><path d="M3.6 21 L20.4 3.6"/>',
-      streak: '<path d="M12 3 C15 7 17 8.6 17 12 A5 5 0 0 1 7 12 C7 10 8 8.6 9.5 7 C9.9 8.6 10.7 9.3 11.5 9.6 C11 7.6 11.3 5.4 12 3 Z"/>',
-      nour: '<rect x="5" y="7" width="14" height="11" rx="3.4"/><path d="M12 3.6 V7"/><circle cx="9.4" cy="12.3" r="1.05" fill="currentColor" stroke="none"/><circle cx="14.6" cy="12.3" r="1.05" fill="currentColor" stroke="none"/><path d="M9.8 15.3 H14.2"/>',
-      draws: '<circle cx="12" cy="12" r="8.4"/><path d="M8 10.2 H16 M8 13.8 H16"/>',
-    };
-    return '<svg viewBox="0 0 24 24" style="color:' + _iconColor(metric) + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">' + (p[metric] || p.games) + '</svg>';
-  }
+  /* أيقونةُ المهمّةِ حسبَ مقياسِها (metric من لقطةِ الخادم). */
+  function misIcon(metric) { return drawIcon(metric); }
+
 
   /* ══ RewardsWash: بوّابةُ "قاعةِ الشرف" — شروقٌ ذهبيٌّ كاملُ الشاشةِ بأشعّةٍ
      دوّارةٍ ونجومٍ صاعدةٍ وإكليلِ غارٍ ينفتحُ من المركز. مختلفةٌ كليًّا عن بوّابةِ
