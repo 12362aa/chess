@@ -1,24 +1,4 @@
-/* ══════════════════════════════════════════════════════════════════
-   PUZZLES — تصنيف الألغاز (Glicko-2)
-   ══════════════════════════════════════════════════════════════════
-   تصنيف الألغاز منفصل تمامًا عن تصنيف المباريات: لاعب يحلّ ألغازًا ممتازة
-   وهو ضعيف في إدارة المباراة، والعكس. خلطهما يعطي رقمًا لا يصف شيئًا.
-
-   نفس محرّك Glicko-2 المستعمل في الأونلاين (rating.js) — مش نسخة تانية
-   من الرياضة، عشان مايجيش يوم وتختلف النتيجتان. الفرق في الاستعمال:
-
-     ١) اللغز هو «الخصم»، وتصنيفه لا يتغيّر أبدًا. تصنيفات lichess
-        محسوبة على ملايين المحاولات، فنحن نستهلكها ولا نعدّلها.
-     ٢) اللغز خصم «مستقرّ» (games كبير) عشان معامل K مايتضخّمش: بدون ده
-        كان كل لغز هيتعامل كأنه لاعب جديد فيهزّ تصنيف اللاعب بلا داعٍ.
-     ٣) قاعدة الاحتساب — وهي قاعدة أحمد الثابتة: لا نقاط على لغز
-        استُعين فيه بالمساعد. والخطأ الواحد يكفي لاعتبار المحاولة خسارة
-        (زي lichess): اللغز له حلّ واحد صحيح، والتجريب ليس حلًّا.
-
-   البداية ١٢٠٠ لا ١٥٠٠: جمهورنا مبتدئ في أغلبه، والبدء من رقم أعلى من
-   المستوى الحقيقي معناه سلسلة هزائم في أول عشرة ألغاز. RD المرتفع
-   بيصحّح الرقم خلال محاولات قليلة في الاتجاهين.
-   ══════════════════════════════════════════════════════════════════ */
+/* Rated attempts follow Chess.com help (August 2026): first error or hint is a miss; practice and rush do not change rating. Exact proprietary rating constants are not public. */
 'use strict';
 
 const PZR = (() => {
@@ -61,7 +41,7 @@ const PZR = (() => {
       games: 0,      /* محاولات محتسَبة — أساس معامل K */
       solved: 0,     /* حُلّت بلا خطأ ولا مساعد */
       failed: 0,
-      assisted: 0,   /* حُلّت بمساعد — لا تُحتسب في التصنيف */
+      assisted: 0,   /* محاولات استخدمت تلميحًا */
       best: START_R, /* أعلى تصنيف بلغه */
       hardest: 0,    /* أصعب لغز حلّه نظيفًا */
     };
@@ -80,35 +60,13 @@ const PZR = (() => {
   /* ── نتيجة المحاولة ─────────────────────────────────────────────
      res من جلسة PZ: { solved, mistakes, hintsUsed, gaveUp } */
   function outcome(res) {
-    const hints = Number(res && res.hintsUsed) || 0;
-    const mistakes = Number(res && res.mistakes) || 0;
-    const solved = !!(res && res.solved) && !(res && res.gaveUp);
-
-    if (hints > 0) {
-      return {
-        rated: false, score: solved ? 1 : 0, clean: false,
-        reason: 'assisted',
-        text: L('استعنتَ بالمساعد، فلا تُحتسب هذه المحاولة في التصنيف.',
-                'You used a hint, so this attempt does not count toward your rating.'),
-      };
-    }
-    if (!solved) {
-      return {
-        rated: true, score: 0, clean: false, reason: 'failed',
-        text: L('لم يُحلّ.', 'Not solved.'),
-      };
-    }
-    if (mistakes > 0) {
-      return {
-        rated: true, score: 0, clean: false, reason: 'mistakes',
-        text: L('حُلّ بعد خطأ، واللغز له حلّ واحد — فالمحاولة خسارة.',
-                'Solved after a wrong move; a puzzle has one solution, so this counts as a loss.'),
-      };
-    }
-    return {
-      rated: true, score: 1, clean: true, reason: 'clean',
-      text: L('حُلّ من أوّل محاولة.', 'Solved first try.'),
-    };
+    const hints=Number(res&&res.hintsUsed)||0,mistakes=Number(res&&res.mistakes)||0;
+    const solved=!!res?.solved&&!res?.gaveUp;
+    if(hints>0||mistakes>0||!solved)return {rated:true,score:0,clean:false,
+      reason:hints?'assisted':mistakes?'mistakes':'failed',
+      text:L(hints?'التلميح ينهي المحاولة المصنفة. يمكنك متابعة التدريب دون خسارة إضافية.':mistakes?'النقلة الخطأ أنهت المحاولة المصنفة. إعادة الحل تدريب دون احتساب.':'لم تحل المحاولة المصنفة.',
+        hints?'A hint ends the rated attempt. Continue practicing without another rating loss.':mistakes?'The wrong move ended the rated attempt. Retry as unrated practice.':'The rated attempt was not solved.')};
+    return {rated:true,score:1,clean:true,reason:'clean',text:L('حل صحيح من أول محاولة.','Solved correctly on the first attempt.')};
   }
 
   return {
@@ -116,9 +74,10 @@ const PZR = (() => {
 
     /* حالة اللاعب بعد محاولة واحدة.
        بيرجّع { player, delta, rated, out } — player جديد لا يعدّل القديم. */
-    apply(player, puzzle, res) {
+    apply(player, puzzle, res, meta) {
       const p = norm(player);
       const out = outcome(res);
+      if(meta?.rated===false){out.rated=false;out.reason='practice';out.text=L('تدريب دون تغيير التصنيف.','Practice does not change your rating.');}
       const pr = Math.round(Number(puzzle && puzzle.rating) || 1500);
       const prd = Math.min(Math.max(Number(puzzle && puzzle.rd) || 75, 30), 120);
 
@@ -188,7 +147,10 @@ const PZR = (() => {
     window(r, mode, progress) {
       const v = num(r, START_R);
       let lo, hi;
-      if (mode === 'easy') { lo = v - 350; hi = v - 50; }
+      if(mode==='standard'){lo=v-350;hi=v-80;}
+      else if(mode==='rated-hard'){lo=v-150;hi=v+150;}
+      else if(mode==='extra-hard'){lo=v-50;hi=v+300;}
+      else if (mode === 'easy') { lo = v - 350; hi = v - 50; }
       else if (mode === 'hard') { lo = v + 150; hi = v + 500; }
       else if (mode === 'rush') {
         const t = Math.max(0, Math.min(1, Number(progress) || 0));

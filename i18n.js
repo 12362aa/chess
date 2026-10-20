@@ -252,6 +252,11 @@
     }
   }
   function enqueue(n) {
+    if(!n || (n.nodeType===1 && (n.matches('svg,svg *') || n.closest('svg'))))return;
+    if(queue.includes(n))return;
+    // Added trees subsume their children; translate each subtree once per frame.
+    if(queue.some(p=>p.contains&&p.contains(n)))return;
+    queue=queue.filter(p=>!(n.contains&&n.contains(p)));
     queue.push(n);
     if (!scheduled) { scheduled = true; (global.requestAnimationFrame || setTimeout)(flush, 0); }
   }

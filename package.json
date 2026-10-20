@@ -1,6 +1,6 @@
 {
   "name": "chess-amkh-server",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "WebSocket server for شطرنج Am-Kh",
   "main": "server.js",
   "scripts": {

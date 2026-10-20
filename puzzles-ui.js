@@ -30,12 +30,12 @@ const PZU = (() => {
   /* ── الأوضاع ─────────────────────────────────────────────────────
      كل وضع سطر واحد: كيف يختار اللغز، وكيف ينتهي. البقيّة مشتركة. */
   const MODES = {
-    rated:  { ar: 'مصنّف',      en: 'Rated',      dar: 'لغز تلو الآخر، وكل حلّ يحرّك تصنيفك.',
-              den: 'One puzzle after another; every solve moves your rating.', diff: 'rated' },
+    rated:  { ar: 'مصنّف',      en: 'Rated',      dar: 'المحاولة الأولى مصنفة؛ الخطأ أو التلميح ينهيها. أعد الحل كتدريب.',
+              den: 'The first attempt is rated. A miss or hint ends it; retry as practice.', diff: 'rated' },
     easy:   { ar: 'تدريب',      en: 'Practice',   dar: 'ألغاز أسهل من مستواك، بلا ضغط.',
               den: 'Puzzles below your level, no pressure.', diff: 'easy' },
-    hard:   { ar: 'تحدٍّ',       en: 'Challenge',  dar: 'أصعب ممّا تحلّه عادةً. هنا يزيد الفارق.',
-              den: 'Harder than you usually solve. This is where you gain.', diff: 'hard' },
+    hard:   { ar: 'تحدٍّ',       en: 'Challenge',  dar: 'ألغاز أصعب للتدريب دون تغيير التصنيف.',
+              den: 'Harder puzzles for practice, without changing your rating.', diff: 'hard' },
     rush:   { ar: 'انطلاق',     en: 'Rush',       dar: 'ثلاث دقائق. كم لغزًا تحلّ؟ ثلاثة أخطاء تنهي الجولة.',
               den: 'Three minutes. How many can you solve? Three misses end it.',
               diff: 'rush', secs: 180, strikes: 3, best: 'rush' },
@@ -332,7 +332,7 @@ const PZU = (() => {
     box.textContent = '';
 
     const left = el('div', 'pzg__st-left');
-    left.appendChild(el('span', 'pzg__st-mode', modeName(M.mode)));
+    left.appendChild(el('span', 'pzg__st-mode', M.practice?L('إعادة تدريب · بلا تصنيف','Practice retry · unrated'):modeName(M.mode)));
     if (M.puzzle) {
       left.appendChild(el('span', 'pzg__st-rating',
         L('صعوبة ', 'Difficulty ') + M.puzzle.rating));
@@ -406,7 +406,7 @@ const PZU = (() => {
     fwd.setAttribute('aria-label', L('تقديم نقلة', 'Forward'));
     fwd.disabled = atLive();
 
-    const hintLabel = M.sess && M.sess.hintsUsed
+    const hintLabel = M.mode==='rated'&&!M.practice ? L('تلميح · ينهي التصنيف','Hint · ends rated attempt') : M.sess && M.sess.hintsUsed
       ? L('تلميح أوضح', 'Clearer hint') : L('تلميح', 'Hint');
     const hb = btn('pz-btn pz-btn--main', hintLabel, () => doHint());
     /* في الأوضاع المؤقَّتة التلميح معطَّل: الجولة نتيجتها رقم يُقارَن،
@@ -503,6 +503,7 @@ const PZU = (() => {
     if (!res.ok) { view(); return; }
 
     /* نقلة صحيحة */
+    M.correctMoves=(M.correctMoves||0)+1;
     M.last = { from, to };
     view();
     B.slide(from, to);
@@ -558,7 +559,8 @@ const PZU = (() => {
     }
     /* المواجهة رش مثل الموقع المنافس: كل خطأ يُنهي اللغز ويقفز للتالي (لا
        إعادة محاولة على نفس اللغز)، ويُحتسب خطأً في كسر التعادل. */
-    if (M.mode === 'battle') { finish(false); return; }
+    if (M.mode === 'battle' || M.mode==='rush') { finish(false); return; }
+    if(M.mode==='rated'&&!M.practice){finish(false);return;}
     renderStatus();
   }
 
@@ -573,6 +575,7 @@ const PZU = (() => {
     if (coachOn()) pzEmote('think');      /* بهجةُ تلميح: ميلانُ تفكيرٍ + مصباح */
     if (M.hearts != null) persistDaily();
     renderBar();
+    if(M.mode==='rated'&&!M.practice){M.hintEnded=true;finish(false);}
   }
 
   function doGiveUp() {
@@ -621,7 +624,7 @@ const PZU = (() => {
     const s = M.sess;
     const res = {
       solved, mistakes: s.mistakes, hintsUsed: s.hintsUsed,
-      gaveUp: !!M.gaveUp, ms: Date.now() - M.t0,
+      gaveUp: !!M.gaveUp, ms: Date.now() - M.t0, correctMoves:M.correctMoves||0,
     };
     if (solved) { M.score = (M.score || 0) + 1; sfx(res.mistakes || res.hintsUsed ? 'pzSolved' : 'pzClean'); buzz(res.mistakes || res.hintsUsed ? 18 : [14, 30, 14]); }
     else { sfx('pzMiss'); buzz([50, 40, 50]); }
@@ -630,10 +633,11 @@ const PZU = (() => {
     if (coachOn()) pzEmote(solved ? 'win' : 'lose');   /* احتفالٌ أو انكسار */
 
     let out = null;
-    try { out = await PZS.record(M.puzzle, res, { mode: M.mode }); } catch (e) {}
+    try { if(M.practice){out={delta:0,rated:false,rating:await PZS.rating(),rank:PZR.rank((await PZS.rating()).r),out:{text:L('إعادة الحل تدريب؛ لا تغيير آخر للتصنيف.','Retry is practice; no further rating change.')}};}else out = await PZS.record(M.puzzle, res, { mode: M.mode }); } catch (e) {}
+    if(!M||M.sess!==s)return;
     /* اقتصاد: حلّ حقيقيّ (لا استسلام) يكسب عملات/XP — الخادم يطبّق السقف
        اليومي ويمنع تكرار نفس اللغز، فمِن الآمن الإبلاغ دائمًا. */
-    if (solved && !M.gaveUp) {
+    if (solved && !M.gaveUp && !M.practice) {
       try {
         var _pid = M.puzzle && (M.puzzle.id != null ? M.puzzle.id : (M.puzzle.puzzleId != null ? M.puzzle.puzzleId : (M.puzzle.PuzzleId || null)));
         var _themes = (M.puzzle && Array.isArray(M.puzzle.themes)) ? M.puzzle.themes : null;
@@ -669,6 +673,7 @@ const PZU = (() => {
       if (M.queue || solved) nextPuzzle();
       return;
     }
+    if(M.mode==='rated'&&!M.practice){showResult(res,out);return;}
     if (coachOn()) { await wait(readMs(_lastSay)); if (!alive()) return; }
     if (M.pendingReplay && M.pendingReplay.length) {
       const mv = M.pendingReplay;
@@ -702,8 +707,9 @@ const PZU = (() => {
     const head = el('div', 'pzr__head' + (solved ? ' is-win' : ''));
     head.appendChild(el('span', 'pzr__badge', solved
       ? (res.mistakes || res.hintsUsed ? L('حُلّ', 'Solved') : L('حُلّ من أوّل نظرة', 'Solved first look'))
-      : (res.gaveUp ? L('عرضتَ الحلّ', 'Solution shown') : L('لم يُحلّ', 'Not solved'))));
+      : (res.gaveUp ? L('عرضتَ الحلّ', 'Solution shown') : res.hintsUsed?L('استخدمت تلميحًا','Hint used'):L('لم يُحلّ', 'Not solved'))));
     body.appendChild(head);
+    if(out?.points>0)body.appendChild(el('p','pzr__practice-points','+'+out.points+' '+L('نقطة تقدم','progression points')));
 
     /* التصنيف: الرقم والفارق. غير المحتسَب يُقال صراحةً ولا يُخفى. */
     let rankUp = false;
@@ -774,6 +780,10 @@ const PZU = (() => {
       act.appendChild(btn('pz-btn pz-btn--main', L('تمام', 'Done'),
         () => { close('pz-result'); endRound(); }));
     } else {
+      if(M.mode==='rated'&&!M.practice&&!solved){act.appendChild(btn('pz-btn',L('أعد الحل كتدريب','Retry as practice'),()=>{
+        close('pz-result');M.practice=true;M.finished=false;M.gaveUp=false;M.correctMoves=0;M.pendingReplay=null;M.sess=PZ.session(M.puzzle);M.sel=null;M.legal=[];M.last=null;M.hist=[];M.view=-1;M.t0=Date.now();busy=false;view();snap();renderBar();renderStatus();
+        say(L('تدريب فقط؛ التصنيف محفوظ بنتيجة المحاولة الأولى.','Practice only; the first attempt rating is already recorded.'));
+      }));}
       act.appendChild(btn('pz-btn pz-btn--main', L('اللغز التالي', 'Next puzzle'),
         () => { close('pz-result'); nextPuzzle(); }));
       act.appendChild(btn('pz-btn', L('إنهاء', 'Finish'),
@@ -795,7 +805,7 @@ const PZU = (() => {
   async function nextPuzzle() {
     if (!M) return;
     M.finished = false; M.gaveUp = false; M.sel = null; M.legal = []; M.last = null;
-    M.hist = []; M.view = -1; M.pendingReplay = null;
+    M.hist = []; M.view = -1; M.pendingReplay = null; M.practice=false; M.correctMoves=0; M.hintEnded=false;
     say(L('نحضّر اللغز…', 'Loading the puzzle…'));
 
     let p = null;
@@ -810,7 +820,7 @@ const PZU = (() => {
           ? 1 - Math.max(0, M.deadline - Date.now()) / M.total : 0;
         p = await PZS.next({
           rating: base,
-          difficulty: MODES[M.mode].diff || 'rated',
+          difficulty: M.mode==='rated'?(localStorage.getItem('amkh_puzzle_difficulty')||'standard'):(MODES[M.mode].diff || 'rated'),
           theme: M.theme || null,
           progress: prog,
         });

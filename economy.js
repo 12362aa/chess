@@ -621,6 +621,8 @@ function awardGame(userId, outcome, roomRef, reason) {
   // تقدّم المهام: مرّةً واحدةً لكلِّ مباراة (مموّنٌ بنفس شرط عدم التكرار)
   if (fresh !== false) {
     bumpMissions(userId, 'games', 1);
+    bumpHomeChallenges(userId,'games');
+    if(outcome==='win')bumpHomeChallenges(userId,'wins');
     let streak = 0;
     try { const r = qStreak.get(userId); streak = r ? (Number(r.win_streak) || 0) : 0; } catch (e) {}
     if (outcome === 'win') {
@@ -743,6 +745,42 @@ function snapshot(userId) {
     },
   };
 }
+
+/* Small home-only quests, independent from daily/weekly missions. */
+db.exec(`CREATE TABLE IF NOT EXISTS home_challenges (
+ user_id INTEGER NOT NULL, day_key TEXT NOT NULL, quest_id TEXT NOT NULL,
+ progress INTEGER NOT NULL DEFAULT 0, claimed INTEGER NOT NULL DEFAULT 0,
+ PRIMARY KEY(user_id,day_key,quest_id), FOREIGN KEY(user_id) REFERENCES users(id)
+)`);
+const HOME_QUESTS=[{id:'play',metric:'games',target:1,coins:5,xp:8},{id:'win',metric:'wins',target:1,coins:8,xp:12},{id:'puzzles',metric:'puzzles',target:3,coins:6,xp:10}];
+function homeChallengesSnapshot(userId){
+ const day=new Date().toISOString().slice(0,10);
+ const insert=db.prepare('INSERT OR IGNORE INTO home_challenges(user_id,day_key,quest_id) VALUES(?,?,?)');
+ for(const q of HOME_QUESTS)insert.run(userId,day,q.id);
+ const rows=db.prepare('SELECT quest_id,progress,claimed FROM home_challenges WHERE user_id=? AND day_key=?').all(userId,day);
+ return {day,quests:HOME_QUESTS.map(q=>{const row=rows.find(r=>r.quest_id===q.id)||{};return {...q,progress:Math.min(q.target,row.progress||0),claimed:!!row.claimed};})};
+}
+function bumpHomeChallenges(userId,metric){
+ const snap=homeChallengesSnapshot(userId);
+ for(const q of HOME_QUESTS.filter(q=>q.metric===metric))db.prepare('UPDATE home_challenges SET progress=MIN(?,progress+1) WHERE user_id=? AND day_key=? AND quest_id=?').run(q.target,userId,snap.day,q.id);
+}
+function claimHomeChallenge(userId,questId){
+ return db.transaction(()=>{
+  const snap=homeChallengesSnapshot(userId),quest=snap.quests.find(q=>q.id===questId);
+  if(!quest||quest.progress<quest.target||quest.claimed)return {ok:false,reason:'not_ready',...snap};
+  const fresh=grant(userId,quest.coins,quest.xp,'home:'+questId,'home:'+snap.day+':'+questId);
+  db.prepare('UPDATE home_challenges SET claimed=1 WHERE user_id=? AND day_key=? AND quest_id=?').run(userId,snap.day,questId);
+  return {ok:true,awarded:fresh,...homeChallengesSnapshot(userId),...snapshot(userId)};
+ })();
+}
+router.get('/home-challenges',authenticateToken,(req,res)=>res.json(homeChallengesSnapshot(req.user.id)));
+router.post('/home-challenges/claim',authenticateToken,(req,res)=>res.json(claimHomeChallenge(req.user.id,String(req.body.questId||''))));
+router.post('/home-challenges/local',authenticateToken,(req,res)=>{
+ const b=req.body||{},id=String(b.eventId||'');
+ if(!['local','bluetooth'].includes(b.mode)||!/^[-a-zA-Z0-9]{8,80}$/.test(id))return res.status(400).json({error:'bad_event'});
+ db.transaction(()=>{if(grant(req.user.id,0,0,'home-event','home-event:'+id)){bumpHomeChallenges(req.user.id,'games');if(b.outcome==='win'&&b.mode!=='local')bumpHomeChallenges(req.user.id,'wins');}})();
+ res.json(homeChallengesSnapshot(req.user.id));
+});
 
 /* ══ التجهيز (المرحلة ٣): وضعُ عنصرٍ مملوك في خانته، أو إلغاؤه ══
    الخانات على جدول users (لا في blob العميل) عشان تظهر عند الآخرين. */
@@ -1243,6 +1281,7 @@ router.post('/puzzle-solved', authenticateToken, (req, res) => {
       : grant(userId, AWARD.puzzle.coins, AWARD.puzzle.xp, 'puzzle', ref);
     if (fresh) {
       bumpMissions(userId, 'puzzles', 1);
+      bumpHomeChallenges(userId,'puzzles');
       /* تحدّي نور الأسبوعيّ: لغزٌ محلولٌ — بمواضيعِه لو أرسلَها العميل (تحدّي
          الموضوعِ يطابقُ عضويّةً، وتحدّي العددِ العامِّ يقبلُ الكلّ). */
       try {
@@ -1300,6 +1339,12 @@ router.post('/local-result', authenticateToken, (req, res) => {
     const reason = String(b.reason || '').toLowerCase();
     const mode = b.mode === 'nour' ? 'nour' : b.mode === 'engine' ? 'engine' : '';
     if (!mode) return res.json({ awarded: false, reason: 'bad_mode', ...snapshot(userId) });
+    const eventId=String(b.eventId||'');
+    if(eventId){
+      if(!/^[-a-zA-Z0-9]{8,80}$/.test(eventId))return res.status(400).json({error:'bad_event'});
+      if(!grant(userId,0,0,'home-event','local-result:'+eventId))return res.json({awarded:false,duplicate:true,...snapshot(userId)});
+    }
+    bumpHomeChallenges(userId,'games');if(outcome==='win')bumpHomeChallenges(userId,'wins');
     /* سياقٌ اختياريٌّ لتحدّي نور الأسبوعيِّ (بند جوجو ٢): مستوى نورِ ونقلاتُ
        المباراة — يصلانِ من العميلِ ولا يؤثّرانِ في المهامِّ ولا التقييم. */
     const level = Math.max(0, Math.round(Number(b.level) || 0));
@@ -1411,6 +1456,7 @@ router.post('/equip', authenticateToken, (req, res) => {
 
 module.exports = {
   router,
+  homeChallengesSnapshot, bumpHomeChallenges, claimHomeChallenge,
   grant,
   awardGame,
   evaluateAchievements,

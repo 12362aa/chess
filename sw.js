@@ -3,13 +3,18 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '1.1-b8';
+const SW_VERSION = '1.2-b75';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
   './index.html',
   './design-system.css',
   './screens.css',
+  './mobile-performance.css?v=1.2-b75',
+  './ocean-world.css?v=1.2-b75',
+  './mobile-performance.js?v=1.2-b75',
+  './home-challenges-client.js?v=1.2-b75',
+  './engine-fallback-worker.js',
   './manifest.json',
   './icon_v2.png?v=3',
   './nour.png',
@@ -28,6 +33,19 @@ const STATIC_ASSETS = [
   './call-client.js',
   './economy-client.js',
   './store-client.js',
+  './rewards-client.js',
+  './rating.js',
+  './puzzles-client.js',
+  './puzzles-themes.js',
+  './puzzles-rating.js',
+  './puzzles-store.js',
+  './puzzles-coach.js',
+  './puzzles-ui.js',
+  './puzzles-hub.js',
+  './levels-ui.js',
+  './mic-client.js',
+  './ble-bundle.js',
+  './gauth-bundle.js',
   './store_open.mp3',
   './store_buy.mp3',
   // Sound files - critical for offline gameplay
@@ -82,6 +100,9 @@ self.addEventListener('activate', e => {
 /* ══ Fetch ══ */
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  // Wallets, quests and account responses must never come from a static cache.
+  // This also prevents cached data crossing accounts on a shared device.
+  if(e.request.method!=='GET'||url.pathname.startsWith('/api/'))return;
 
   /* ملفات التطبيق النصية لازم تتحدّث كوحدة واحدة. Cache First هنا كان
      يسمح بـ index حديث مع CSS/JS قديم، وهو ما كسر الواجهة والاتصال. */
@@ -95,7 +116,7 @@ self.addEventListener('fetch', e => {
           }
           return res;
         })
-        .catch(() => caches.match(e.request).then(c => c || new Response('', { status: 503 })))
+        .catch(() => caches.match(e.request).then(found=>found||caches.match(new Request(url.origin+url.pathname))).then(c => c || new Response('', { status: 503 })))
     );
     return;
   }
@@ -115,7 +136,7 @@ self.addEventListener('fetch', e => {
   /* ملفات الصوت — Cache First (ضرورية للعمل Offline) */
   if (url.pathname.match(/\.(mp3|wav|ogg|webm)$/i)) {
     e.respondWith(
-      caches.match(e.request).then(cached => {
+      caches.match(e.request).then(found=>found||caches.match(new Request(url.origin+url.pathname))).then(cached => {
         if (cached) {
           console.log('[SW] Serving audio from cache:', url.pathname);
           return cached;
@@ -141,7 +162,7 @@ self.addEventListener('fetch', e => {
   /* الفونتات من Google — Cache First */
   if (url.hostname.includes('fonts.g')) {
     e.respondWith(
-      caches.match(e.request).then(cached => {
+      caches.match(e.request).then(found=>found||caches.match(new Request(url.origin+url.pathname))).then(cached => {
         if (cached) return cached;
         return fetch(e.request).then(res => {
           if (res && res.status === 200) {
@@ -171,7 +192,7 @@ self.addEventListener('fetch', e => {
           }
           return res;
         })
-        .catch(() => caches.match(e.request).then(c => c || caches.match('./')))
+        .catch(() => caches.match(e.request).then(found=>found||caches.match(new Request(url.origin+url.pathname))).then(c => c || caches.match('./')))
     );
     return;
   }
@@ -191,14 +212,14 @@ self.addEventListener('fetch', e => {
           }
           return res;
         })
-        .catch(() => caches.match(e.request).then(c => c || new Response('', { status: 503 })))
+        .catch(() => caches.match(e.request).then(found=>found||caches.match(new Request(url.origin+url.pathname))).then(c => c || new Response('', { status: 503 })))
     );
     return;
   }
 
   /* باقي الأصول — Cache First */
   e.respondWith(
-    caches.match(e.request).then(cached => {
+    caches.match(e.request).then(found=>found||caches.match(new Request(url.origin+url.pathname))).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
         if (res && res.status === 200 && e.request.method === 'GET') {

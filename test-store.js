@@ -37,7 +37,7 @@ ok(cur.items.every(i => i.ar && i.en && i.price > 0), 'كل عنصر له اسم
 console.log('— الشراء —');
 econ.snapshot(u1);                       // منحة الإطلاق (200)
 econ.grant(u1, 5000, 0, 'grant', 'test-top-up');   // نشحن رصيدًا كافيًا
-const target = econ.storeCurrent(u1).items[0];
+const target = econ.storeCurrent(u1).items.find(i=>i.inWindow);
 const coinsBefore = econ.snapshot(u1).coins;
 let r = econ.purchase(u1, target.id);
 ok(r.ok === true, 'شراء عنصر ضمن النافذة ينجح: ' + target.id);
@@ -49,7 +49,7 @@ r = econ.purchase(u1, target.id);
 ok(r.ok === false && r.reason === 'owned', 'إعادة شراء نفس العنصر مرفوضة (owned)');
 
 // عنصر خارج النافذة الحاليّة
-const inWindow = new Set(econ.storeCurrent(u1).items.map(i => i.id));
+const inWindow = new Set(econ.storeCurrent(u1).items.filter(i=>i.inWindow).map(i => i.id));
 const outside = econ.STORE_CATALOG.find(i => !inWindow.has(i.id));
 r = econ.purchase(u1, outside.id);
 ok(r.ok === false && r.reason === 'not_in_window', 'شراء عنصر خارج النافذة مرفوض (not_in_window)');
@@ -58,7 +58,7 @@ ok(r.ok === false && r.reason === 'not_in_window', 'شراء عنصر خارج �
 db.prepare("INSERT INTO users (email, username, display_name) VALUES ('b2@t.co','b2','B2')").run();
 const u2 = db.prepare("SELECT id FROM users WHERE email='b2@t.co'").get().id;
 econ.snapshot(u2);   // 200 عملة فقط
-const pricey = econ.storeCurrent(u2).items.find(i => i.price > 200) || econ.storeCurrent(u2).items[0];
+const pricey = econ.storeCurrent(u2).items.find(i => i.inWindow && i.price > 200);
 r = econ.purchase(u2, pricey.id);
 ok(r.ok === false && r.reason === 'insufficient', 'شراء برصيد غير كافٍ مرفوض (insufficient)');
 

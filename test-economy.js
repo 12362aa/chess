@@ -49,8 +49,9 @@ ok(s2.achievements.includes('rating_1600'), 'rating_1600 بأثر رجعي (1650
 ok(s2.achievements.includes('puzzle_50'), 'puzzle_50 بأثر رجعي (55)');
 ok(!s2.achievements.includes('games_100'), 'games_100 لا يُمنَح (16 مباراة فقط)');
 ok(!s2.achievements.includes('beat_nour'), 'beat_nour لا يُحسَب رجعيًّا');
-// عملات الإنجازات = 30+80+120+90 = 320 فوق منحة 200 = 520
-ok(s2.coins === 520, 'مجموع منحة الإطلاق + عملات الإنجازات الرجعية = 520');
+// Match the current achievement catalog; rewards changed since this test was written.
+const retroCoins=econ.catalog().achievements.filter(a=>s2.achievements.includes(a.id)).reduce((n,a)=>n+a.coins,200);
+ok(s2.coins === retroCoins, 'منحة الإطلاق + عملات الإنجازات الرجعية تطابق الكتالوج الحالي');
 
 console.log('— منحنى المستوى —');
 ok(econ.levelForXp(0) === 1, 'XP=0 → مستوى 1');

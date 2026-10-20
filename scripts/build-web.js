@@ -9,11 +9,22 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const projectRoot = path.resolve(__dirname, '..');
+// Keep the worker's pure rules synchronized with the source engine.
+const engineHtml=fs.readFileSync(path.join(projectRoot,'index.html'),'utf8');
+const workerPath=path.join(projectRoot,'engine-fallback-worker.js');
+const workerSource=fs.readFileSync(workerPath,'utf8');
+const workerLogic=workerSource.slice(workerSource.indexOf('onmessage=function'));
+fs.writeFileSync(workerPath,"/* Generated local engine rules and bounded worker. */\n'use strict';\n"+engineHtml.slice(engineHtml.indexOf('const PV='),engineHtml.indexOf('function sqEq('))+"\n"+workerLogic);
 const webDir = path.join(projectRoot, 'www');
 const requiredFiles = new Set([
   'index.html',
   'design-system.css',
   'screens.css',
+  'mobile-performance.css',
+  'ocean-world.css',
+  'mobile-performance.js',
+  'engine-fallback-worker.js',
+  'home-challenges-client.js',
   'manifest.json',
   'sw.js',
   'url.json',
@@ -131,6 +142,14 @@ function copyAssetDirectory(name, extensions) {
 }
 
 fs.mkdirSync(webDir, { recursive: true });
+// Old bundles may contain clipboard screenshots copied as media. Remove only
+// generated hidden files inside www; their workspace originals are preserved.
+for(const entry of fs.readdirSync(webDir,{withFileTypes:true})){
+  if(!entry.isFile()||!entry.name.startsWith('.'))continue;
+  const target=path.resolve(webDir,entry.name);
+  if(path.dirname(target)!==path.resolve(webDir))throw new Error('Invalid generated asset path');
+  fs.unlinkSync(target);
+}
 
 const copied = [];
 for (const entry of fs.readdirSync(projectRoot, { withFileTypes: true })) {
@@ -140,7 +159,7 @@ for (const entry of fs.readdirSync(projectRoot, { withFileTypes: true })) {
      `_flick*.mp4`). ماننسخهاش للحزمة عشان ماتتسربش لملف الـAPK وتضخّمه
      بعشرات الميجابايت. مافيش أصل حقيقي في الجذر بيبدأ بـ«_» (الرقعة/الأصوات/
      الأيقونات كلها بأسماء عادية زي blue.png / move.mp3 / icon.png). */
-  if (entry.name.startsWith('_')) continue;
+  if (entry.name.startsWith('_') || entry.name.startsWith('.')) continue;
 
   const extension = path.extname(entry.name).toLowerCase();
   if (!requiredFiles.has(entry.name) && !assetExtensions.has(extension)) continue;

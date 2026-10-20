@@ -1,0 +1,18 @@
+/* Depth layers use vector silhouettes and a small number of composited swimmers. */
+#engine-ov{background:#051825!important}
+.eng-ocean{position:absolute;inset:0;pointer-events:none;overflow:hidden;background:linear-gradient(#137986d9 0%,#0a405df2 28%,#071d35 63%,#050d1c 100%)}
+.eng-ocean::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 12%,#9afaff10 14%,transparent 20%);opacity:.7}
+.eng-ocean__reef{position:absolute;bottom:0;width:100%;height:36%;min-height:220px;opacity:.9}
+.eng-ocean__reef svg{width:100%;height:100%;display:block}
+.eng-creature{position:absolute;left:-150px;color:#8ae0dd;width:80px;animation:oceanSwim 34s linear infinite;will-change:transform}
+.eng-creature svg{display:block;width:100%;height:auto}.eng-creature.one{top:21%;width:66px;color:#f6c47b;animation-delay:-9s}
+.eng-creature.two{top:53%;width:100px;color:#63bebbb3;animation-duration:43s;animation-delay:-20s}
+.eng-creature.three{top:76%;width:54px;color:#91c8ef99;animation-duration:37s;animation-delay:-28s}
+.eng-creature.turtle{top:39%;width:82px;color:#85b796;animation-duration:55s;animation-delay:-16s}
+.eng-ocean__shoal{position:absolute;top:13%;right:6%;width:130px;opacity:.45;color:#b7f5ef}
+.eng-ocean__shoal svg{width:100%;height:auto}.eng-fish.ef1,.eng-fish.ef2,.eng-fish.ef3{display:none}
+#engine-ov:not(.open) *{animation-play-state:paused!important}
+.eng-vs,.eng-readout{background:#081b2eeb!important}.eng-scroll{background:linear-gradient(#07132126,transparent 35%)}
+.eng-sub{color:#c4e0e6}.eng-kelp{opacity:.45}
+@keyframes oceanSwim{from{transform:translate3d(-10vw,0,0)}to{transform:translate3d(calc(100vw + 150px),-30px,0)}}
+@media(prefers-reduced-motion:reduce){.eng-creature{animation:none;left:7%}.eng-creature.two{left:76%}.eng-creature.three{left:44%}.eng-creature.turtle{left:66%}}

@@ -50,91 +50,8 @@
 
   /* ══ StoreWash: دوّامةُ كنزٍ ذهبيّةٌ كاملةُ الشاشة (تقنيةُ التغذيةِ الراجعةِ
      نفسُها في بوّابةِ المحرّكِ لكن بلوحةٍ ذهبيّةٍ/أرجوانيّةٍ تليقُ بالمتجر). */
-  var StoreWash = {
-    _raf: 0, _cv: null, _ctx: null,
-    _prep: function () {
-      var cv = document.getElementById('store-wash-cv'); if (!cv) return null;
-      var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-      var w = Math.max(1, Math.round((cv.clientWidth || window.innerWidth) * dpr));
-      var h = Math.max(1, Math.round((cv.clientHeight || window.innerHeight) * dpr));
-      if (cv.width !== w) cv.width = w; if (cv.height !== h) cv.height = h;
-      this._cv = cv; this._ctx = cv.getContext('2d'); return cv;
-    },
-    _bg: function (ctx, W, H, a) {
-      var g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, 'rgba(28,15,48,' + a + ')'); g.addColorStop(0.5, 'rgba(18,9,34,' + a + ')');
-      g.addColorStop(1, 'rgba(7,3,16,' + a + ')');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    },
-    _coin: function (ctx, x, y, r, rot, a) {
-      ctx.save(); ctx.translate(x, y);
-      var flat = Math.max(0.14, Math.abs(Math.cos(rot)));           /* دورانُ عملةٍ حول محورها */
-      ctx.rotate(Math.sin(rot) * 0.25); ctx.scale(flat, 1);
-      var g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
-      g.addColorStop(0, 'rgba(255,247,205,' + a + ')'); g.addColorStop(0.5, 'rgba(245,196,81,' + a + ')');
-      g.addColorStop(1, 'rgba(170,116,38,' + a + ')');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.2832); ctx.fill();
-      ctx.lineWidth = Math.max(1, r * 0.14); ctx.strokeStyle = 'rgba(120,78,20,' + (a * 0.7) + ')'; ctx.stroke();
-      ctx.restore();
-    },
-    _door: function (ctx, x, w, H, gapRight) {
-      if (w <= 0) return;
-      var g = ctx.createLinearGradient(x, 0, x + w, 0);
-      if (gapRight) { g.addColorStop(0, '#0c0620'); g.addColorStop(0.8, '#20132f'); g.addColorStop(1, '#301d46'); }
-      else { g.addColorStop(0, '#301d46'); g.addColorStop(0.2, '#20132f'); g.addColorStop(1, '#0c0620'); }
-      ctx.fillStyle = g; ctx.fillRect(x, 0, w, H);
-      var sx = gapRight ? x + w : x, lw = Math.max(4, w * 0.06);       /* لُحمةٌ ذهبيّةٌ متوهّجةٌ عندَ فتحةِ الخزنة */
-      var eg = ctx.createLinearGradient(sx - lw, 0, sx + lw, 0);
-      eg.addColorStop(0, 'rgba(245,196,81,0)'); eg.addColorStop(0.5, 'rgba(255,230,155,0.6)'); eg.addColorStop(1, 'rgba(245,196,81,0)');
-      ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = eg; ctx.fillRect(sx - lw, 0, lw * 2, H); ctx.restore();
-    },
-    play: function () {
-      if (!this._prep()) return;
-      var ctx = this._ctx, cv = this._cv, self = this;
-      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      cancelAnimationFrame(this._raf);
-      var W = cv.width, H = cv.height, cx = W / 2, cy = H * 0.46, R = Math.hypot(W, H);
-      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-      this._bg(ctx, W, H, 1);
-      var coins = []; for (var i = 0; i < (reduce ? 0 : 24); i++) {
-        coins.push({ a: -1.5708 + (Math.random() - 0.5) * 4.6, d: 0.42 + Math.random() * 0.5,
-          r: R * (0.012 + Math.random() * 0.02), rot: Math.random() * 6.28, vr: 8 + Math.random() * 22, t: Math.random() * 0.22 });
-      }
-      if (reduce) { var rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.5);
-        rg.addColorStop(0, 'rgba(255,220,120,0.55)'); rg.addColorStop(1, 'rgba(255,220,120,0)'); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); return; }
-      var DUR = 2400, t0 = performance.now(), ease = function (x) { return 1 - Math.pow(1 - x, 3); };
-      var step = function (now) {
-        var p = Math.min(1, (now - t0) / DUR);
-        self._bg(ctx, W, H, 1);
-        var open = ease(Math.min(1, Math.max(0, (p - 0.08) / 0.5))), gap = open * (W * 0.64);
-        var lg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (0.26 + 0.4 * open)), la = 0.14 + 0.86 * open;
-        lg.addColorStop(0, 'rgba(255,249,214,' + la + ')'); lg.addColorStop(0.35, 'rgba(255,209,110,' + (la * 0.85) + ')');
-        lg.addColorStop(0.7, 'rgba(214,146,48,' + (la * 0.4) + ')'); lg.addColorStop(1, 'rgba(110,64,18,0)');
-        ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
-        ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, cy); ctx.rotate((now - t0) * 0.00035);
-        for (var k = 0; k < 12; k++) { ctx.rotate(0.5236); ctx.beginPath(); ctx.moveTo(0, 0);
-          ctx.lineTo(R * 0.62, -R * 0.018); ctx.lineTo(R * 0.62, R * 0.018); ctx.closePath();
-          ctx.fillStyle = 'rgba(255,226,142,' + (0.06 * open) + ')'; ctx.fill(); }
-        ctx.restore();
-        var dw = (W - gap) / 2; self._door(ctx, 0, dw, H, true); self._door(ctx, W - dw, dw, H, false);
-        for (var c = 0; c < coins.length; c++) { var o = coins[c], tp = (p - 0.14 - o.t) / (0.86 - o.t);
-          if (tp <= 0) continue; tp = Math.min(1, tp);
-          var dist = R * o.d * ease(tp), x = cx + Math.cos(o.a) * dist, y = cy + Math.sin(o.a) * dist + R * 0.2 * tp * tp;
-          self._coin(ctx, x, y, o.r, o.rot + tp * o.vr, tp < 0.82 ? 1 : (1 - (tp - 0.82) / 0.18)); }
-        ctx.globalCompositeOperation = 'screen';
-        for (var s = 0; s < 10; s++) { var sa = Math.random() * 6.2832, sr = R * (0.04 + Math.random() * 0.42) * open;
-          ctx.fillStyle = 'rgba(255,246,205,' + (0.3 + Math.random() * 0.45) + ')';
-          ctx.beginPath(); ctx.arc(cx + Math.cos(sa) * sr, cy + Math.sin(sa) * sr * 0.95, R * (0.004 + Math.random() * 0.01), 0, 6.2832); ctx.fill(); }
-        ctx.globalCompositeOperation = 'source-over';
-        if (p < 1) self._raf = requestAnimationFrame(step);
-      };
-      this._raf = requestAnimationFrame(step);
-    },
-    stop: function () { cancelAnimationFrame(this._raf); this._raf = 0; }
-  };
+  var StoreWash={play:function(){if(window.AMKHPerf)AMKHPerf.portal(document.getElementById('store-wash'),'store');},stop:function(){const h=document.getElementById('store-wash');if(h){h.classList.remove('play');h.textContent='';}}};
 
-  /* معايناتٌ حيّةٌ مرسومةٌ (SVG متحرّكٌ بلا إيموجي) — لكلِّ عنصرٍ هُويّتُه الخاصّة،
-     ونفسُها ستُركَّبُ حولَ الأفاتارِ في المرحلةِ ٣. viewBox موحّد 0 0 80 80. */
   function art(it) {
     var I = esc(it.id);
     function A(inner) { return '<svg viewBox="0 0 80 80" class="st-svg">' + inner + '</svg>'; }
@@ -443,7 +360,7 @@
         if (h.getAttribute('data-on') === '1') return;
         var it = self._byId && self._byId[h.getAttribute('data-art')]; if (!it) return;
         var svg = art(it);
-        if (reduce) svg = svg.replace(/<animate[A-Za-z]*\b[^>]*\/>/g, '');
+        if (window.AMKHPerf) svg = AMKHPerf.preview(svg);
         h.innerHTML = svg; h.setAttribute('data-on', '1');
       };
       var wipe = function (h) {
@@ -454,7 +371,7 @@
       var ov = document.getElementById('store-ov');
       this._obs = new IntersectionObserver(function (ents) {
         for (var k = 0; k < ents.length; k++) { if (ents[k].isIntersecting) paint(ents[k].target); else wipe(ents[k].target); }
-      }, { root: (ov && ov.querySelector('.store-scroll')) || null, rootMargin: '200px 0px', threshold: 0 });
+      }, { root: (ov && ov.querySelector('.store-scroll')) || null, rootMargin: '50px 0px', threshold: 0 });
       for (var j = 0; j < hosts.length; j++) this._obs.observe(hosts[j]);
       this._wireScrollPause(grid);
     },

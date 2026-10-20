@@ -3179,6 +3179,10 @@ html.amkh-preboot #amkh-preboot{
    كـ.screen فلا تتأثّر). */
 html.amkh-preboot .screen{ visibility:hidden !important; }
 </style>
+<link rel="stylesheet" href="mobile-performance.css?v=1.2-b75">
+<link rel="stylesheet" href="ocean-world.css?v=1.2-b75">
+<script src="mobile-performance.js?v=1.2-b75"></script>
+<script defer src="home-challenges-client.js?v=1.2-b75"></script>
 </head>
 <body data-screen="s-menu">
 <script>
@@ -4701,6 +4705,7 @@ html.amkh-preboot .screen{ visibility:hidden !important; }
   <div class="eng-sea" aria-hidden="true">
     <div class="eng-rays"><span></span><span></span><span></span></div>
     <div class="eng-caustics"></div>
+    <div class="eng-ocean" aria-hidden="true"><div class="eng-ocean__reef"><svg viewBox="0 0 700 300" preserveAspectRatio="none"><path d="M0 202Q80 155 160 209T310 197T500 205T700 192V300H0Z" fill="#103245"/><path d="M0 245Q100 212 250 252T510 245T700 238V300H0Z" fill="#1b4650"/><g fill="none" stroke-linecap="round"><path d="M65 275V173m0 41-29-28m29 11 24-35m-24 77-38-8M598 275V163m0 45-29-37m29 68 35-41m-35-13 13-37" stroke="#bf727b" stroke-width="12"/><path d="M135 292q-32-65-9-123m18 123q30-70 9-164M516 292q-20-75 5-122m-5 121q30-51 30-108" stroke="#3d9683" stroke-width="9"/></g><g fill="#2d6470"><ellipse cx="256" cy="273" rx="42" ry="19"/><ellipse cx="449" cy="286" rx="54" ry="17"/></g><path d="m349 274 5-15 10 13 16-2-8 14 6 13-16-2-11 10-2-16-13-8Z" fill="#d29967"/></svg></div><div class="eng-creature one"><svg viewBox="0 0 100 50"><path d="M10 25C22 8 54 4 74 20L97 8 89 25 97 42 74 30C54 46 22 42 10 25Z" fill="currentColor"/><path d="m44 11 10-10 7 15m-17 24 12 9 5-12" fill="currentColor" opacity=".7"/><path d="M53 12q-9 13 0 26" stroke="#051a32" stroke-width="3" fill="none" opacity=".4"/><circle cx="24" cy="22" r="3" fill="#07172b"/><circle cx="23" cy="21" r="1" fill="#fff"/></svg></div><div class="eng-creature two"><svg viewBox="0 0 100 50"><path d="M10 25C22 8 54 4 74 20L97 8 89 25 97 42 74 30C54 46 22 42 10 25Z" fill="currentColor"/><path d="m44 11 10-10 7 15m-17 24 12 9 5-12" fill="currentColor" opacity=".7"/><path d="M53 12q-9 13 0 26" stroke="#051a32" stroke-width="3" fill="none" opacity=".4"/><circle cx="24" cy="22" r="3" fill="#07172b"/><circle cx="23" cy="21" r="1" fill="#fff"/></svg></div><div class="eng-creature three"><svg viewBox="0 0 100 50"><path d="M10 25C22 8 54 4 74 20L97 8 89 25 97 42 74 30C54 46 22 42 10 25Z" fill="currentColor"/><path d="m44 11 10-10 7 15m-17 24 12 9 5-12" fill="currentColor" opacity=".7"/><path d="M53 12q-9 13 0 26" stroke="#051a32" stroke-width="3" fill="none" opacity=".4"/><circle cx="24" cy="22" r="3" fill="#07172b"/><circle cx="23" cy="21" r="1" fill="#fff"/></svg></div><div class="eng-creature turtle"><svg viewBox="0 0 120 70"><ellipse cx="64" cy="36" rx="31" ry="22" fill="currentColor"/><path d="M38 26Q15 2 15 27l22 16M45 50 31 67 61 54M83 22 104 6 98 29M88 47l18 12-11-21" fill="currentColor"/><ellipse cx="22" cy="35" rx="16" ry="11" fill="currentColor"/><path d="m49 23 26-3 14 17-14 15-26-3-10-14Z" fill="none" stroke="#153c39" stroke-width="3"/><circle cx="14" cy="32" r="2" fill="#081b23"/></svg></div><div class="eng-ocean__shoal"><svg viewBox="0 0 100 50"><path d="M10 25C22 8 54 4 74 20L97 8 89 25 97 42 74 30C54 46 22 42 10 25Z" fill="currentColor"/><path d="m44 11 10-10 7 15m-17 24 12 9 5-12" fill="currentColor" opacity=".7"/><path d="M53 12q-9 13 0 26" stroke="#051a32" stroke-width="3" fill="none" opacity=".4"/><circle cx="24" cy="22" r="3" fill="#07172b"/><circle cx="23" cy="21" r="1" fill="#fff"/></svg></div></div>
     <div class="eng-snow" id="eng-snow"></div>
     <div class="eng-bubbles" id="eng-bubbles"></div>
     <div class="eng-fish ef1">
@@ -7867,6 +7872,10 @@ const Home={
      مجموعة اليوم بتتولّد من Challenges (محسومة برقم اليوم، أرقامها متكيّفة
      مع اللاعب)، والتقدّم بيتقاس على مباريات النهاردة من السجل المحلي. */
   async _daily(games){
+    if(window.HOME_CHALLENGES)return HOME_CHALLENGES.render(games);
+    return this._dailyLegacy(games);
+  },
+  async _dailyLegacy(games){
     const sec=document.getElementById('home-daily');
     if(!sec||typeof Rec==='undefined'||typeof Challenges==='undefined')return;
     const today=Rec._dayKey(Date.now());
@@ -8594,8 +8603,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '1.1';
-const APP_VERSION_CODE = 2;
+const APP_VERSION = '1.2';
+const APP_VERSION_CODE = 3;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -10345,7 +10354,7 @@ const SF=(()=>{
       const skill=_normalizeSkill(job.skillLevel);
       _worker.postMessage('ucinewgame');
       _worker.postMessage('setoption name MultiPV value 1');
-      _worker.postMessage('setoption name Hash value 64');
+      _worker.postMessage('setoption name Hash value '+(window.AMKHPerf?.mobile?16:64));
       if(job.limitStrength&&job.elo){
         /* كبح القوة للمستوى المطلوب — الطريقة الرسمية والعادلة */
         _worker.postMessage('setoption name UCI_LimitStrength value true');
@@ -10366,7 +10375,7 @@ const SF=(()=>{
       /* movetime بيدّي القوة المكبوحة إحساسها الطبيعي؛ من غيره
          الكبح مع go depth ثابت بيبان متذبذب. الأعلى (بلا كبح) بيبحث بعمق. */
       if(job.moveMs){
-        _worker.postMessage('go movetime '+job.moveMs);
+        _worker.postMessage('go depth '+job.depth+' movetime '+job.moveMs);
       }else{
         _worker.postMessage('go depth '+job.depth);
       }
@@ -10406,6 +10415,7 @@ const SF=(()=>{
         },timeoutMs);
       }
       w.onmessage=(e)=>{
+        if(_worker!==w)return;
         const msg=String(e.data||'');
         if(msg.trim()==='readyok'&&!settled){
           settled=true;
@@ -10415,6 +10425,7 @@ const SF=(()=>{
         _handleMessage(msg);
       };
       w.onerror=(e)=>{
+        if(_worker!==w)return;
         console.error('Stockfish worker error:',src,e);
         clearTO();
         const active=_active;
@@ -10488,30 +10499,30 @@ const SF=(()=>{
     });
   }
 
-  async function bestMove(bd,turn,cas,ep,depth=6,skillLevel=null,onInfo=null,opts=null){
-    try{
-      await init();
-    }catch(e){
-      return null;
-    }
+  function bestMove(bd,turn,cas,ep,depth=6,skillLevel=null,onInfo=null,opts=null){
     const o=opts||{};
+    // The deadline includes initialization and queue wait, not only UCI search.
+    const budget=Math.max(500,Number(o.deadlineMs)||Math.max(6500,depth*900,(o.moveMs||0)+3000));
     return new Promise(resolve=>{
-      _queue.push({
-        id:++_jobId,
-        kind:'bestmove',
-        fen:bdToFen(bd,turn,cas,ep),
-        turn,
-        depth:Math.max(1,parseInt(depth,10)||1),
-        skillLevel,
-        limitStrength:!!o.limitStrength,
-        elo:o.elo||null,
-        moveMs:o.moveMs||null,
-        onInfo,
-        fallback:null,
-        timeoutMs:Math.max(6500,(parseInt(depth,10)||1)*900,(o.moveMs||0)+3000),
-        resolve
-      });
-      _pumpQueue();
+      let settled=false,job=null;
+      const finish=value=>{if(settled)return;settled=true;clearTimeout(deadline);resolve(value);};
+      const deadline=setTimeout(()=>{
+        if(job){
+          _queue=_queue.filter(q=>q!==job);
+          if(_active===job){clearTimeout(job.timeoutId);_active=null;_resetWorker();}
+        }
+        finish(null);
+        if(_queue.length)init().catch(()=>{}).finally(()=>_pumpQueue());
+      },budget);
+      init().then(()=>{
+        if(settled)return;
+        job={id:++_jobId,kind:'bestmove',fen:bdToFen(bd,turn,cas,ep),turn,
+          depth:Math.max(1,parseInt(depth,10)||1),skillLevel,
+          limitStrength:!!o.limitStrength,elo:o.elo||null,moveMs:o.moveMs||null,
+          onInfo,fallback:null,timeoutMs:budget,resolve:finish};
+        if(o.priority)_queue.unshift(job);else _queue.push(job);
+        _pumpQueue();
+      }).catch(()=>finish(null));
     });
   }
 
@@ -10547,6 +10558,15 @@ const SF=(()=>{
     init,
     evaluate,
     bestMove,
+    cancelMoves(){
+      const cancelled=_queue.filter(j=>j.kind==='bestmove');
+      _queue=_queue.filter(j=>j.kind!=='bestmove');
+      cancelled.forEach(j=>j.resolve(null));
+      if(_active?.kind==='bestmove'){
+        const job=_active;_active=null;clearTimeout(job.timeoutId);_resetWorker();job.resolve(null);
+        if(_queue.length)init().catch(()=>{}).finally(()=>_pumpQueue());
+      }
+    },
     checkReady
   };
 })();
@@ -10608,7 +10628,10 @@ const E={
   },
   atk(bd,r,c,by){
     for(let tr=0;tr<8;tr++)for(let tc=0;tc<8;tc++)
-      if(this.col(bd[tr][tc])===by&&this.raw(bd,tr,tc,null,null).some(([mr,mc])=>mr===r&&mc===c))return true;
+      if(this.col(bd[tr][tc])===by){
+        if(this.tp(bd[tr][tc])==='P'){if(r===tr+(by==='w'?-1:1)&&Math.abs(c-tc)===1)return true;}
+        else if(this.raw(bd,tr,tc,null,null).some(([mr,mc])=>mr===r&&mc===c))return true;
+      }
     return false;
   },
   king(bd,cl){for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(bd[r][c]===cl+'K')return[r,c];return null;},
@@ -13942,6 +13965,22 @@ const GameIdentity={
   }
 };
 
+
+const LOCAL_ENGINE=(()=>{
+  let worker=null,id=0;const pending=new Map();
+  function reset(){try{worker?.terminate();}catch(_){}worker=null;for(const p of pending.values()){clearTimeout(p.timer);p.resolve(null);}pending.clear();}
+  return { bestMove(bd,turn,cas,ep,depth,budgetMs=250){
+    return new Promise(resolve=>{
+      try{
+        if(!worker){worker=new Worker('engine-fallback-worker.js');worker.onmessage=e=>{const p=pending.get(e.data.id);if(!p)return;pending.delete(e.data.id);clearTimeout(p.timer);p.resolve(e.data.move);};worker.onerror=reset;}
+        const job=++id;
+        const timer=setTimeout(reset,budgetMs+800);
+        pending.set(job,{resolve,timer});worker.postMessage({id:job,bd,turn,cas,ep,depth,budgetMs});
+      }catch(_){reset();resolve(null);}
+    });
+  },cancel:reset};
+})();
+
 const G={
   _posKey(bd,turn,cas,ep){
     const rows=bd.map(r=>r.map(p=>p||'--').join('')).join('/');
@@ -13960,6 +13999,8 @@ const G={
       S._engineTimer=null;
     }
     S._engineJob=(S._engineJob||0)+1;
+    LOCAL_ENGINE.cancel();
+    SF.cancelMoves();
     S.busy=false;
   },
   _clearQuickReviewTimers(){
@@ -14750,6 +14791,7 @@ const G={
       /* الاسم بس من غير شارة التقييم (لو موجودة) */
       opp=(bar?.querySelector('.pb-nm-text')?.textContent ?? bar?.textContent ?? '');
     }catch(e){}
+    try{window.HOME_CHALLENGES?.local(S.mode,res,S._gameEventId);}catch(_){}
     Rec.add({
       mode:S.mode,
       /* لوضع المحرّك نخزّن رقم مستوى Stockfish (مش S.levelId اللي بتخصّ درب
@@ -14768,6 +14810,7 @@ const G={
        المحلية (لاعبان/نور/بلوتوث) بلا توقيت فيفضل المؤقّت مخفيًا؛ الأونلاين
        المؤقّت بيرجع يظهر لما السيرفر يبعت رسالة clock. */
     try{ if(typeof OL!=='undefined'&&OL.resetClock) OL.resetClock(); }catch(e){}
+    S._gameEventId=window.crypto?.randomUUID?.()||('game-'+Date.now()+'-'+Math.random().toString(36).slice(2));
     S.mode=mode;S.diff=diff;S.myCol='both';S.levelId=-1;S.moveCount=0;
     S.bd=INIT_BD.map(r=>[...r]);S.turn='w';S.sel=null;S.legal=[];
     S.cas={w:{K:true,Q:true},b:{K:true,Q:true}};S.ep=null;
@@ -15142,7 +15185,8 @@ const G={
             bm={from:randomMove.from,to:randomMove.to};
           }else{
             const sfDepth=isLevelMode?depth+5:Math.max(depth,6);
-            const engineOpts=isLevelMode?null:{limitStrength:preset.limitStrength,elo:preset.elo,moveMs:preset.moveMs};
+            const moveMs=isLevelMode?Math.min(2600,180+depth*180):preset.moveMs;
+            const engineOpts={limitStrength:!!preset?.limitStrength,elo:preset?.elo,moveMs,deadlineMs:isLevelMode?moveMs+1100:Math.max(2500,moveMs+1800),priority:true};
             const sfMove=await SF.bestMove(bd,'b',cas,ep,sfDepth,skillLevel,null,engineOpts);
             if(engineJob!==S._engineJob)return;
             if(sfMove){
@@ -15158,10 +15202,12 @@ const G={
           }
         }catch(e){
           console.error('Stockfish bot error, using fallback:',e);
-          bm=E.botMove(bd,cas,ep,depth);
+          bm=await LOCAL_ENGINE.bestMove(bd,'b',cas,ep,depth,Math.min(700,120+depth*70));
         }
 
-        if(engineJob!==S._engineJob)return;
+        if(!bm)bm=await LOCAL_ENGINE.bestMove(bd,'b',cas,ep,depth,Math.min(700,120+depth*70));
+        if(engineJob!==S._engineJob||S.over)return;
+        if(bm&&!E.legal(bd,bm.from[0],bm.from[1],cas,ep).some(([r,c])=>r===bm.to[0]&&c===bm.to[1]))bm=null;
         S.busy=false;
         if(bm){
           S.sel=null;S.legal=[];
@@ -16609,9 +16655,7 @@ const DRAG=(()=>{
   }
 
   function _sqFromPoint(x,y){
-    if(ghost)ghost.style.display='none';
     let el=document.elementFromPoint(x,y);
-    if(ghost)ghost.style.display='';
     if(!el)return null;
     let sq=el.closest?.('.sq');
     // If not on a square, try finding the board and computing square from position
@@ -17043,7 +17087,7 @@ window.addEventListener('load',async ()=>{
     DRAG.init();
     if(normalizePieceTheme(Cfg.data.pieceStyle||'neo')==='neo') _loadChessPieces();
     // اختبار Stockfish حقيقي بعد 5 ثواني للسماح بتحميل السكريبت
-    setTimeout(()=>SF.checkReady(),5000);
+    setTimeout(()=>SF.checkReady(),1200);
     // طلب إذن الإشعارات
     requestNotificationPermission();
 },{ once:true });

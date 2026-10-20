@@ -102,7 +102,7 @@ const PZS = (() => {
       days: [],              /* أيام الحلّ — لسلسلة الأيام */
       daily: null,           /* {day, id, hearts, done, solved, hints} */
       best: { rush: 0, streak: 0, racer: 0, survival: 0 },
-      totals: { solved: 0, failed: 0, assisted: 0, ms: 0 },
+      totals: { solved: 0, failed: 0, assisted: 0, ms: 0, points:0 },
     };
   }
 
@@ -279,8 +279,13 @@ const PZS = (() => {
     async record(puzzle, res, meta) {
       const st = await load();
       const m = meta || {};
-      const out = PZR.apply(st.rating, puzzle, res);
+      const isRated=!m.mode||m.mode==='rated';
+      const out = PZR.apply(st.rating, puzzle, res, {rated:isRated});
       st.rating = out.player;
+      const clean=!!res?.solved&&!res?.gaveUp&&!res?.mistakes&&!res?.hintsUsed;
+      const basePoints=({standard:15,'rated-hard':20,'extra-hard':25}[localStorage.getItem('amkh_puzzle_difficulty')||'standard']||15);
+      const points=isRated?(clean?basePoints:res?.hintsUsed>0&&res?.correctMoves>0&&!res?.mistakes?Math.floor(basePoints/3):0):0;
+      st.totals.points=(Number(st.totals.points)||0)+points;
 
       const solved = !!(res && res.solved) && !(res && res.gaveUp);
       const assisted = (Number(res && res.hintsUsed) || 0) > 0;
@@ -303,7 +308,8 @@ const PZS = (() => {
         mi: Number(res && res.mistakes) || 0,
         hi: Number(res && res.hintsUsed) || 0,
         ms: Math.max(0, Number(res && res.ms) || 0),
-        mode: m.mode || 'rated',
+        mode: m.mode || 'rated', rated:out.rated,
+        pp:points,
       });
       if (st.attempts.length > MAX_ATTEMPTS) st.attempts.length = MAX_ATTEMPTS;
 
@@ -326,7 +332,7 @@ const PZS = (() => {
 
       await save();
       return {
-        delta: out.delta, rated: out.rated, out: out.out,
+        delta: out.delta, rated: out.rated, out: out.out, points,
         rating: st.rating, rank: PZR.rank(st.rating.r),
         streak: this.dayStreak(st.days),
       };
@@ -371,7 +377,7 @@ const PZS = (() => {
       const rated = a.filter(x => !x.hi);
       const ok = rated.filter(x => x.ok && !x.mi).length;
       return {
-        rating: st.rating.r,
+        rating: st.rating.r, points:Number(st.totals.points)||0,
         provisional: PZR.isProvisional(st.rating),
         rank: PZR.rank(st.rating.r),
         best: st.rating.best,

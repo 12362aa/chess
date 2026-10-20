@@ -33,6 +33,7 @@
   var amkhEconomy = {
     state: null,       // آخر لقطة من الخادم
     _inflight: false,
+    _requestGeneration: 0,
 
     // نداء موثّق مساعد
     _api: function () {
@@ -50,17 +51,19 @@
       if (!tok) { if (this.state) this.clear(); else this._renderHidden(); return Promise.resolve(null); }
       if (this._inflight) return Promise.resolve(this.state);
       this._inflight = true;
-      var self = this;
+      var self = this, requestUid=ownerUid(),generation=++this._requestGeneration;
       return fetch(this._api() + '/economy/me', {
         headers: { 'Authorization': 'Bearer ' + tok, 'ngrok-skip-browser-warning': 'true' }
       }).then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (snap) { self._inflight = false; if (snap) self.apply(snap); return snap; })
-        .catch(function () { self._inflight = false; return null; });
+        .then(function (snap) { if(generation===self._requestGeneration)self._inflight = false; if (snap && generation===self._requestGeneration && requestUid===ownerUid() && tok===self._token()) self.apply(snap); return snap; })
+        .catch(function () { if(generation===self._requestGeneration)self._inflight = false; return null; });
     },
 
     /* طبّق لقطة (من refresh أو من رسالة economy:update على السوكت). */
     apply: function (snap) {
       if (!snap || typeof snap !== 'object') return;
+      this._requestGeneration++;
+      this._inflight=false;
       this.state = snap;
       /* تُخزَّنُ موسومةً بصاحبِها — لا لقطةَ بلا صاحبٍ بعدَ اليوم. */
       try { localStorage.setItem(LS_KEY, JSON.stringify({ uid: ownerUid(), snap: snap })); } catch (e) {}
@@ -75,6 +78,7 @@
     clear: function () {
       this.state = null;
       this._inflight = false;
+      this._requestGeneration++;
       try { localStorage.removeItem(LS_KEY); } catch (e) {}
       this._renderHidden();
       try { window.dispatchEvent(new Event('amkh:cosmetics')); } catch (e) {}
@@ -88,7 +92,7 @@
        الأسبوعيِّ (يقبلُ أيضًا سلسلةً واحدةً للتوافق). */
     notifyPuzzleSolved: function (puzzleId, themes) {
       var tok = this._token(); if (!tok) return;
-      var self = this;
+      var self = this, requestUid=ownerUid();
       var body = { puzzleId: puzzleId != null ? String(puzzleId) : undefined };
       if (Array.isArray(themes)) body.themes = themes;
       else if (themes) body.theme = String(themes);
@@ -97,19 +101,19 @@
         headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify(body)
       }).then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (res) { if (res) self.apply(res); }).catch(function () {});
+        .then(function (res) { if (res && requestUid===ownerUid() && tok===self._token()) {self.apply(res);window.HOME_CHALLENGES?.refresh();} }).catch(function () {});
     },
 
     /* أبلغ الخادم بهزيمة نور (وضع اللعب ضدّه) — يُمنح مرّة واحدة. */
     notifyBeatNour: function () {
       var tok = this._token(); if (!tok) return;
-      var self = this;
+      var self = this, requestUid=ownerUid();
       fetch(this._api() + '/economy/beat-nour', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: '{}'
       }).then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (res) { if (res) self.apply(res); }).catch(function () {});
+        .then(function (res) { if (res && requestUid===ownerUid() && tok===self._token()) {self.apply(res);window.HOME_CHALLENGES?.refresh();} }).catch(function () {});
     },
 
     /* أبلغ الخادم بنتيجةِ مباراةٍ محليّة (نور/المحرّك) لتقديمِ المهامِّ فقط
@@ -119,8 +123,8 @@
     notifyLocalResult: function (mode, outcome, reason, extra) {
       var tok = this._token(); if (!tok) return;
       if (mode !== 'nour' && mode !== 'engine') return;
-      var self = this;
-      var body = { mode: mode, outcome: outcome || 'loss', reason: reason || '' };
+      var self = this, requestUid=ownerUid();
+      var body = { eventId: (typeof S!=='undefined' && S._gameEventId) || (window.crypto?.randomUUID?.() || ('local-'+Date.now())), mode: mode, outcome: outcome || 'loss', reason: reason || '' };
       if (extra && typeof extra === 'object') {
         if (extra.level != null) body.level = Number(extra.level) || 0;
         if (extra.moves != null) body.moves = Number(extra.moves) || 0;
@@ -130,7 +134,7 @@
         headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify(body)
       }).then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (res) { if (res) self.apply(res); }).catch(function () {});
+        .then(function (res) { if (res && requestUid===ownerUid() && tok===self._token()) {self.apply(res);window.HOME_CHALLENGES?.refresh();} }).catch(function () {});
     },
 
     /* ══ العرض ══ */

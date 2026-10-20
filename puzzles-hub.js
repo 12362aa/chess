@@ -1149,6 +1149,7 @@ const PZH = (() => {
 
     _scene = null;
     _wIdx = null;
+    mountWorld(stage,0,false);
     j.appendChild(stage);
 
     j.appendChild(el('p', 'pzx__jcap'));
@@ -1199,6 +1200,14 @@ const PZH = (() => {
       ms.appendChild(b);
       return b;
     };
+    const difficulty=el('label','pz-difficulty');
+    difficulty.appendChild(el('span','',L('صعوبة الألغاز المصنفة','Rated puzzle difficulty')));
+    const select=el('select','');
+    [['standard','عادي','Standard'],['rated-hard','صعب','Hard'],['extra-hard','صعب جدًا','Extra Hard']].forEach(([key,ar,en])=>{const option=el('option','',L(ar,en));option.value=key;select.appendChild(option);});
+    select.value=localStorage.getItem('amkh_puzzle_difficulty')||'standard';
+    select.onchange=()=>localStorage.setItem('amkh_puzzle_difficulty',select.value);
+    difficulty.appendChild(select);
+    host.appendChild(difficulty);
     tile('rated', true, () => go('rated'));
     tile('rush', false, () => go('rush'));
     tile('racer', false, () => go('racer'));
@@ -1222,7 +1231,7 @@ const PZH = (() => {
     const nm = el('section', 'pzx__card pzx__nums');
     const g = el('div', 'pzx__grid');
     [['solved', L('حُلّت', 'Solved')], ['acc', L('الدقّة', 'Accuracy')],
-     ['peak', L('أعلى تصنيف', 'Peak')], ['hard', L('أصعب لغز', 'Hardest')]].forEach(x => {
+     ['peak', L('أعلى تصنيف', 'Peak')], ['hard', L('أصعب لغز', 'Hardest')], ['points',L('نقاط التقدم','Progression points')]].forEach(x => {
       const c = el('div', 'pzx__cell');
       const b = el('b', 'pzx__cell-n', '—');
       b.dataset.k = x[0];
@@ -1601,6 +1610,7 @@ const PZH = (() => {
     setCell('acc', st.accuracy + '%');
     setCell('peak', st.best);
     setCell('hard', st.hardest || '—');
+    setCell('points', st.points||0);
 
     paintSkills(themes);
     paintNour();
@@ -1613,10 +1623,9 @@ const PZH = (() => {
     const host = document.getElementById('pzh');
     if (!host) return;
 
-    let st = null, daily = null, themes = null;
-    try { st = await PZS.stats(); } catch (e) {}
-    try { daily = await PZS.dailyState(); } catch (e) {}
-    try { themes = await PZS.themeStats(); } catch (e) {}
+    if (_host !== host || !host.querySelector('.pzx__stage')) build(host);
+    const results=await Promise.allSettled([PZS.stats(),PZS.dailyState(),PZS.themeStats()]);
+    const [st,daily,themes]=results.map(r=>r.status==='fulfilled'?r.value:null);
 
     if (!st) {
       host.textContent = '';
@@ -1631,6 +1640,8 @@ const PZH = (() => {
   }
 
   async function openHub() {
+    const host=document.getElementById('pzh');
+    if(host&&(_host!==host||!host.querySelector('.pzx__stage')))build(host);
     try { Nav.show('s-puzzles'); } catch (e) {}
     await render();
   }
@@ -1654,6 +1665,8 @@ const PZH = (() => {
     render();
   }
 
+  function prepare(){const host=document.getElementById('pzh');if(host&&!host.querySelector('.pzx__stage'))build(host);render();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepare,{once:true});else prepare();
   return { openHub, render, refreshPieces, relang, RANK_PIECE: TIER };
 })();
 

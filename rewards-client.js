@@ -273,101 +273,7 @@
      دوّارةٍ ونجومٍ صاعدةٍ وإكليلِ غارٍ ينفتحُ من المركز. مختلفةٌ كليًّا عن بوّابةِ
      المتجر (خزنةٌ + عملاتٌ منهمرة): هنا احتفاءٌ بالتتويجِ لا كنزٌ يُفتَح.
      كلُّه transform/canvas — يتوقّفُ ذاتيًّا، ويحترمُ prefers-reduced-motion. */
-  var RewardsWash = {
-    _raf: 0, _cv: null, _ctx: null,
-    _prep: function () {
-      var cv = document.getElementById('rw-wash-cv'); if (!cv) return null;
-      var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-      var w = Math.max(1, Math.round((cv.clientWidth || window.innerWidth) * dpr));
-      var h = Math.max(1, Math.round((cv.clientHeight || window.innerHeight) * dpr));
-      if (cv.width !== w) cv.width = w; if (cv.height !== h) cv.height = h;
-      this._cv = cv; this._ctx = cv.getContext('2d'); return cv;
-    },
-    _bg: function (ctx, W, H, a) {
-      /* اللوحةُ نفسُها التي للمتجر: أرجوانٌ عميقٌ (توحيدُ الألوانِ — بلاغُ ٤).
-         الشروقُ والإكليلُ والنجومُ تبقى ذهبيّةً فيبقى الطابعُ «قاعةَ شرفٍ». */
-      var g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, 'rgba(36,16,66,' + a + ')'); g.addColorStop(0.5, 'rgba(22,10,44,' + a + ')');
-      g.addColorStop(1, 'rgba(12,6,24,' + a + ')');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    },
-    _star: function (ctx, x, y, r, a) {
-      ctx.save(); ctx.translate(x, y); ctx.globalAlpha = a;
-      var g = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 3);
-      g.addColorStop(0, 'rgba(255,249,214,' + a + ')'); g.addColorStop(1, 'rgba(255,209,110,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r * 3, 0, 6.2832); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
-      ctx.beginPath();
-      for (var i = 0; i < 4; i++) { var ang = i * 1.5708; ctx.lineTo(Math.cos(ang) * r * 2.2, Math.sin(ang) * r * 2.2); ctx.lineTo(Math.cos(ang + 0.7854) * r * 0.6, Math.sin(ang + 0.7854) * r * 0.6); }
-      ctx.closePath(); ctx.fill(); ctx.restore();
-    },
-    _laurel: function (ctx, cx, cy, R, open, side) {
-      /* قوسُ إكليلِ غارٍ ينفتحُ للخارج: صفٌّ من الأوراقِ على قوسٍ جانبيّ */
-      ctx.save(); ctx.translate(cx, cy);
-      var base = side < 0 ? Math.PI : 0, spread = 2.4, off = (1 - open) * 0.9;
-      ctx.rotate(base);
-      ctx.fillStyle = 'rgba(245,196,81,' + (0.5 + 0.45 * open) + ')';
-      for (var i = 0; i < 9; i++) {
-        var t = i / 8, ang = (-spread / 2 + t * spread) - side * off;
-        var lr = R * (0.30 + 0.20 * open), x = Math.cos(ang) * lr, y = Math.sin(ang) * lr;
-        ctx.save(); ctx.translate(x, y); ctx.rotate(ang + 1.5708);
-        ctx.beginPath(); ctx.ellipse(0, 0, R * 0.055, R * 0.022, 0, 0, 6.2832); ctx.fill();
-        ctx.restore();
-      }
-      ctx.restore();
-    },
-    play: function () {
-      if (!this._prep()) return;
-      var ctx = this._ctx, cv = this._cv, self = this;
-      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      cancelAnimationFrame(this._raf);
-      var W = cv.width, H = cv.height, cx = W / 2, cy = H * 0.44, R = Math.hypot(W, H);
-      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-      this._bg(ctx, W, H, 1);
-      if (reduce) {
-        var rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.5);
-        rg.addColorStop(0, 'rgba(255,224,140,0.6)'); rg.addColorStop(1, 'rgba(255,224,140,0)');
-        ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); return;
-      }
-      var stars = []; for (var i = 0; i < 30; i++) {
-        stars.push({ x: cx + (Math.random() - 0.5) * W * 0.9, y0: H * (0.6 + Math.random() * 0.5),
-          r: R * (0.004 + Math.random() * 0.012), rise: R * (0.3 + Math.random() * 0.4), t: Math.random() * 0.3, ph: Math.random() * 6.28 });
-      }
-      var DUR = 2100, t0 = performance.now(), ease = function (x) { return 1 - Math.pow(1 - x, 3); };
-      var step = function (now) {
-        var p = Math.min(1, (now - t0) / DUR);
-        self._bg(ctx, W, H, 1);
-        var open = ease(Math.min(1, Math.max(0, (p - 0.05) / 0.55)));
-        /* شروقٌ مركزيٌّ متوهّج */
-        var la = 0.16 + 0.84 * open, lg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (0.24 + 0.42 * open));
-        lg.addColorStop(0, 'rgba(255,250,224,' + la + ')'); lg.addColorStop(0.32, 'rgba(255,214,120,' + (la * 0.85) + ')');
-        lg.addColorStop(0.68, 'rgba(206,140,40,' + (la * 0.38) + ')'); lg.addColorStop(1, 'rgba(90,54,14,0)');
-        ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
-        /* أشعّةٌ دوّارةٌ (شمسُ الشرف) */
-        ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, cy); ctx.rotate((now - t0) * 0.00028);
-        for (var k = 0; k < 16; k++) { ctx.rotate(0.3927); ctx.beginPath(); ctx.moveTo(0, 0);
-          ctx.lineTo(R * 0.66, -R * 0.014); ctx.lineTo(R * 0.66, R * 0.014); ctx.closePath();
-          ctx.fillStyle = 'rgba(255,228,150,' + (0.05 * open) + ')'; ctx.fill(); }
-        ctx.restore();
-        /* إكليلا الغارِ ينفتحان يمينًا ويسارًا */
-        ctx.save(); ctx.globalCompositeOperation = 'screen';
-        self._laurel(ctx, cx, cy, R, open, 1); self._laurel(ctx, cx, cy, R, open, -1);
-        ctx.restore();
-        /* نجومٌ صاعدةٌ تتلألأ */
-        ctx.globalCompositeOperation = 'screen';
-        for (var s = 0; s < stars.length; s++) { var o = stars[s], tp = (p - 0.10 - o.t) / (0.90 - o.t);
-          if (tp <= 0) continue; tp = Math.min(1, tp);
-          var y = o.y0 - o.rise * ease(tp), tw = 0.5 + 0.5 * Math.sin(o.ph + p * 22);
-          var av = (tp < 0.8 ? 1 : (1 - (tp - 0.8) / 0.2)) * (0.5 + 0.5 * tw);
-          self._star(ctx, o.x, y, o.r, av * open);
-        }
-        ctx.globalCompositeOperation = 'source-over';
-        if (p < 1) self._raf = requestAnimationFrame(step);
-      };
-      this._raf = requestAnimationFrame(step);
-    },
-    stop: function () { cancelAnimationFrame(this._raf); this._raf = 0; }
-  };
+  var RewardsWash={play:function(){if(window.AMKHPerf)AMKHPerf.portal(document.getElementById('rw-wash'),'rewards');},stop:function(){const h=document.getElementById('rw-wash');if(h){h.classList.remove('play');h.textContent='';}}};
 
   var REWARDS = {
     _cat: null, _tab: 'missions', _open: false, _bound: false, _invFilter: null,
@@ -492,7 +398,7 @@
         if (h.getAttribute('data-on') === '1') return;
         var m = meta[h.getAttribute('data-invart')]; if (!m) return;
         var svg = (window.STORE && STORE.art) ? STORE.art(m) : '';
-        if (reduce) svg = svg.replace(/<animate[A-Za-z]*[^>]*\/>/g, '');
+        if (window.AMKHPerf) svg = AMKHPerf.preview(svg);
         h.innerHTML = svg; h.setAttribute('data-on', '1');
       };
       var wipe = function (h) { if (h.getAttribute('data-on') !== '1') return; h.innerHTML = ''; h.removeAttribute('data-on'); };
@@ -501,7 +407,7 @@
       var root = (ov && ov.querySelector('.store-scroll')) || null;
       this._invObs = new IntersectionObserver(function (ents) {
         for (var k = 0; k < ents.length; k++) { if (ents[k].isIntersecting) paint(ents[k].target); else wipe(ents[k].target); }
-      }, { root: root, rootMargin: '200px 0px', threshold: 0 });
+      }, { root: root, rootMargin: '50px 0px', threshold: 0 });
       for (var j = 0; j < hosts.length; j++) this._invObs.observe(hosts[j]);
       this._wireInvScrollPause(body, root);
     },
