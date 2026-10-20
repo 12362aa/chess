@@ -494,6 +494,8 @@ const PZU = (() => {
     }
     const before = { bd: s.board, cas: s.cas, ep: s.ep, turn: s.turn };
     const res = s.tryMove(from, to, promo);
+    if(M.mode==='battle')battleSend({type:'puzzle:battle-step',battle_id:M.battleId,action:'move',uci:'abcdefgh'[from[1]]+(8-from[0])+'abcdefgh'[to[1]]+(8-to[0])+(promo?promo.toLowerCase():'')});
+    if(!M.practice)window.AMKHSecurity?.step(M.security,'move',from,to,promo);
     M.sel = null; M.legal = [];
 
     if (res.status === 'wrong') {
@@ -568,6 +570,7 @@ const PZU = (() => {
     if (!M || !M.sess || M.finished || M.timed) return;
     const h = M.sess.hint();
     if (!h) return;
+    if(!M.practice)window.AMKHSecurity?.step(M.security,'hint');
     sfx('hint');
     if (h.level >= 2 && h.from) { view({ glow: h.from }); }
     else view();
@@ -581,6 +584,8 @@ const PZU = (() => {
   function doGiveUp() {
     if (!M || !M.sess || M.finished) return;
     M.gaveUp = true;
+    if(M.mode==='battle')battleSend({type:'puzzle:battle-step',battle_id:M.battleId,action:'giveup'});
+    if(!M.practice)window.AMKHSecurity?.step(M.security,'giveup');
     if (M.strikes != null) M.roundOver = true;
     const rest = M.sess.giveUp();
     /* العرض ما يبدأش من هنا: finish() هي اللي بتنظّم الإيقاع — سطر نور
@@ -633,6 +638,12 @@ const PZU = (() => {
     if (coachOn()) pzEmote(solved ? 'win' : 'lose');   /* احتفالٌ أو انكسار */
 
     let out = null;
+    if(M.security&&!M.practice){
+      const secured=M.security;await secured.chain;if(!M||M.sess!==s)return;
+      res.serverRating=M.security.rating;
+      if(res.serverRating?.out)res.serverRating.out.text=PZR.apply(PZR.blank(),M.puzzle,res).out.text;
+    }
+    if(M.mode==='rated'&&window.amkhAuth?.token&&!res.serverRating)res.unverified=true;
     try { if(M.practice){out={delta:0,rated:false,rating:await PZS.rating(),rank:PZR.rank((await PZS.rating()).r),out:{text:L('إعادة الحل تدريب؛ لا تغيير آخر للتصنيف.','Retry is practice; no further rating change.')}};}else out = await PZS.record(M.puzzle, res, { mode: M.mode }); } catch (e) {}
     if(!M||M.sess!==s)return;
     /* اقتصاد: حلّ حقيقيّ (لا استسلام) يكسب عملات/XP — الخادم يطبّق السقف
@@ -641,7 +652,7 @@ const PZU = (() => {
       try {
         var _pid = M.puzzle && (M.puzzle.id != null ? M.puzzle.id : (M.puzzle.puzzleId != null ? M.puzzle.puzzleId : (M.puzzle.PuzzleId || null)));
         var _themes = (M.puzzle && Array.isArray(M.puzzle.themes)) ? M.puzzle.themes : null;
-        if (window.amkhEconomy) window.amkhEconomy.notifyPuzzleSolved(_pid, _themes);
+        if (window.amkhEconomy) window.amkhEconomy.notifyPuzzleSolved(_pid, _themes, M.security?.id);
       } catch (e) {}
     }
     if (M.mode === 'daily') {
@@ -834,6 +845,11 @@ const PZU = (() => {
       return;
     }
 
+    const round=M;
+    const secured=await window.AMKHSecurity?.puzzle(p,M.mode);
+    if(M!==round)return;
+    if(secured)p=secured.puzzle;
+    M.security=secured;
     M.puzzle = p;
     M.t0 = Date.now();
     M.sess = PZ.session(p);

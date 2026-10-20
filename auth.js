@@ -5,7 +5,8 @@ const db = require('./db');
 const mailer = require('./mailer');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'amkh_fallback_secret_key_123';
+const JWT_SECRET = require('./jwt-secret');
+const security = require('./security-core');
 
 // Middleware للتحقق من التوكن
 function authenticateToken(req, res, next) {
@@ -16,8 +17,9 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ error: 'Forbidden' });
+    if(!security.validToken(user))return res.status(403).json({error:'Forbidden'});
     req.user = user;
-    next();
+    security.httpGuard(req,res,next);
   });
 }
 
@@ -172,7 +174,7 @@ function createLocalAccount({ email, passwordHash, displayName }) {
 }
 
 function signToken(id, email) {
-  return jwt.sign({ id, email }, JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ id, email,v:db.prepare('SELECT token_version FROM users WHERE id=?').get(id)?.token_version||0 }, JWT_SECRET, { expiresIn: '30d' });
 }
 
 /* لغة الرسالة الجاية للمستخدم: اللي اختاره في التطبيق، لا لغة الخادم.
@@ -371,7 +373,7 @@ router.post('/login', async (req, res) => {
 
     db.prepare("UPDATE users SET last_login_at = datetime('now') WHERE id = ?").run(user.id);
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
+    const token = signToken(user.id,user.email);
     
     res.json({ token, user: { id: user.id, email: user.email, display_name: user.display_name, username: user.username, provider: user.provider, avatar_url: user.avatar_url, country: user.country } });
   } catch (error) {
@@ -430,9 +432,8 @@ async function verifyGoogleToken(idToken) {
   }
 
   if (iss.includes('securetoken.google.com')) {
-    const admin = require('firebase-admin');
-    if (!admin.apps.length) throw new Error('firebase not initialised on server');
-    const d = await admin.auth().verifyIdToken(idToken);
+    if (!require('firebase-admin/app').getApps().length) throw new Error('firebase not initialised on server');
+    const d = await require('firebase-admin/auth').getAuth().verifyIdToken(idToken);
     return {
       uid: d.uid, email: d.email, name: d.name,
       picture: d.picture, emailVerified: d.email_verified !== false,
@@ -518,7 +519,7 @@ router.post('/google', async (req, res) => {
       user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
+    const token = signToken(user.id,user.email);
     res.json({
       token,
       user: {
@@ -699,12 +700,12 @@ router.post('/reset-password', async (req, res) => {
   }
 
   const hash = await bcrypt.hash(password, 10);
-  db.prepare("UPDATE users SET password_hash = ?, last_login_at = datetime('now') WHERE id = ?").run(hash, user.id);
+  db.prepare("UPDATE users SET password_hash = ?, token_version=token_version+1, last_login_at = datetime('now') WHERE id = ?").run(hash, user.id);
   db.prepare('DELETE FROM password_resets WHERE email = ?').run(email);
 
   /* بندخّله فورًا: هو أثبت ملكية البريد وعرف كلمة المرور الجديدة، فطلب
      تسجيل دخول تاني بعد كل ده خطوة زايدة بلا فايدة أمنية. */
-  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
+  const token = signToken(user.id,user.email);
   res.json({ ok: true, token, user });
 });
 
@@ -823,8 +824,10 @@ router.get('/progress', authenticateToken, (req, res) => {
 // جلب سجلّ الألغاز (تصنيف/إجماليات/أرقام قياسية/مواضيع). فارغ = لا شيء بعد.
 router.get('/puzzles', authenticateToken, (req, res) => {
   const row = db.prepare('SELECT puzzles_json FROM user_settings WHERE user_id = ?').get(req.user.id);
-  if (!row || !row.puzzles_json) return res.json({});
-  try { return res.json(JSON.parse(row.puzzles_json)); }
+  const u=db.prepare('SELECT puzzle_rating,puzzle_rd,puzzle_games,puzzle_solved,puzzle_peak FROM users WHERE id=?').get(req.user.id);
+  const authoritative={r:u.puzzle_rating||1200,rd:u.puzzle_rd||350,games:u.puzzle_games||0,solved:u.puzzle_solved||0,best:u.puzzle_peak||1200};
+  if (!row || !row.puzzles_json) return res.json({rating:authoritative});
+  try { return res.json({...JSON.parse(row.puzzles_json),rating:authoritative}); }
   catch (e) { return res.json({}); }
 });
 
@@ -832,6 +835,7 @@ router.get('/puzzles', authenticateToken, (req, res) => {
 router.post('/progress', authenticateToken, (req, res) => {
   const { stage_number, completed, stars, moves } = req.body;
   if (!stage_number) return res.status(400).json({ error: 'stage_number is required' });
+  if(!Number.isInteger(Number(stage_number))||Number(stage_number)<1||Number(stage_number)>12||!Number.isInteger(Number(stars))||Number(stars)<0||Number(stars)>3)return res.status(400).json({error:'invalid_progress'});
 
   const mv = Number(moves);
   const best = Number.isFinite(mv) && mv > 0 ? Math.round(mv) : null;
@@ -890,7 +894,7 @@ router.post('/sync-local', authenticateToken, (req, res) => {
     db.transaction(() => {
       for (const p of progress) {
         const stage = Number(p && p.stage);
-        if (!Number.isInteger(stage) || stage <= 0) continue;
+        if (!Number.isInteger(stage) || stage <= 0 || stage>12 || !Number.isInteger(Number(p.stars)) || Number(p.stars)<0 || Number(p.stars)>3) continue;
         const mv = Number(p.moves);
         const best = Number.isFinite(mv) && mv > 0 ? Math.round(mv) : null;
         insertOrUpdateProgress.run(userId, stage, p.completed ? 1 : 0, Number(p.stars) || 0, best);
@@ -937,23 +941,8 @@ router.post('/sync-local', authenticateToken, (req, res) => {
           updated_at = datetime('now')`)
         .run(userId, JSON.stringify(req.body.puzzles));
 
-      /* نسخ تصنيف الألغاز إلى أعمدة users القابلة للترتيب (للصدارة).
-         لا نُنزِّل تصنيفًا موجودًا: نأخذ الأحدث عددًا للألعاب (الجهاز الذي
-         لعب أكثر أصدق) — نفس منطق importFromSync على الجهاز. */
-      const pz = req.body.puzzles;
-      const r = pz.rating || {};
-      const rr = Number(r.r), rg = Number(r.games);
-      if (Number.isFinite(rr) && Number.isFinite(rg)) {
-        const cur = db.prepare('SELECT puzzle_games FROM users WHERE id = ?').get(userId);
-        if (!cur || rg >= (Number(cur.puzzle_games) || 0)) {
-          db.prepare(`UPDATE users SET
-              puzzle_rating = ?, puzzle_rd = ?, puzzle_games = ?,
-              puzzle_solved = ?, puzzle_peak = ? WHERE id = ?`)
-            .run(rr, Number(r.rd) || 350, rg,
-                 Number(r.solved) || Number((pz.totals || {}).solved) || 0,
-                 Number(r.best) || rr, userId);
-        }
-      }
+      // Offline puzzle backups never write authoritative leaderboard statistics.
+
     } catch (e) {}
   }
 

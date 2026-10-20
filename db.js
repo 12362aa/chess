@@ -6,7 +6,8 @@ const path = require('path');
 const dbPath = process.env.AMKH_DB_PATH || path.join(__dirname, 'data.db');
 /* السيرفر بيسجّل كل SQL افتراضيًا زي الأصل؛ AMKH_DB_VERBOSE=0 بيطفّي
    السجل (مفيد للاختبار المعزول عشان مايغرقش الخرج). */
-const verbose = process.env.AMKH_DB_VERBOSE === '0' ? undefined : console.log;
+// SQL traces may contain private messages, emails and password hashes. Opt in only in isolated debugging.
+const verbose = process.env.AMKH_DB_VERBOSE === '1' ? console.log : undefined;
 const db = new Database(dbPath, verbose ? { verbose } : {});
 
 // Enable foreign keys

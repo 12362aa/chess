@@ -280,7 +280,7 @@ const PZS = (() => {
       const st = await load();
       const m = meta || {};
       const isRated=!m.mode||m.mode==='rated';
-      const out = PZR.apply(st.rating, puzzle, res, {rated:isRated});
+      const out = res.serverRating || PZR.apply(st.rating, puzzle, res, {rated:isRated&&!res.unverified});
       st.rating = out.player;
       const clean=!!res?.solved&&!res?.gaveUp&&!res?.mistakes&&!res?.hintsUsed;
       const basePoints=({standard:15,'rated-hard':20,'extra-hard':25}[localStorage.getItem('amkh_puzzle_difficulty')||'standard']||15);
@@ -446,7 +446,7 @@ const PZS = (() => {
          تاني كان سجلّه يُهمَل بالكامل. المقياس هنا كل ما جرى فعلًا. */
       const act = x => (Number(x && x.games) || 0) + (Number(x && x.assisted) || 0)
                      + (Number(x && x.solved) || 0) + (Number(x && x.failed) || 0);
-      if (act(r) > act(st.rating)) st.rating = Object.assign(PZR.blank(), r);
+      if ((typeof window!=='undefined'&&window.amkhAuth?.token) || act(r) > act(st.rating)) st.rating = Object.assign(PZR.blank(), r);
       /* القمّة وأصعب لغز لا ينزلان أبدًا مهما كان الفائز في المقارنة */
       st.rating.best = Math.max(Number(st.rating.best) || 0, Number(r.best) || 0);
       st.rating.hardest = Math.max(Number(st.rating.hardest) || 0, Number(r.hardest) || 0);

@@ -1,0 +1,13 @@
+'use strict';
+require('dotenv').config();
+const fs=require('node:fs'),path=require('node:path'),S=require('../security-core');
+const [username,...emails]=process.argv.slice(2);
+if(!username||!emails.length||emails.some(e=>!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)))throw Error('Usage: node scripts/configure-moderator.js username email [backup-email]');
+const rows=S.db.prepare('SELECT id,username FROM users WHERE username=? COLLATE NOCASE').all(username);
+if(rows.length!==1)throw Error('Exactly one existing username must match; no automatic account creation');
+S.db.transaction(()=>{S.db.prepare('INSERT OR IGNORE INTO moderation_roles VALUES(?,?)').run(rows[0].id,Date.now());S.audit(rows[0].id,'moderator-configured',rows[0].id,{local:true});})();
+const file=path.join(__dirname,'../.env'),source=fs.readFileSync(file,'utf8');
+const line='MODERATION_EMAILS='+emails.join(',');
+fs.writeFileSync(file,/^MODERATION_EMAILS=.*$/m.test(source)?source.replace(/^MODERATION_EMAILS=.*$/m,line):source+'\n'+line+'\n');
+console.log('Moderator configured:',rows[0].username,'id='+rows[0].id,'notification recipients='+emails.length);
+S.db.close();

@@ -58,7 +58,9 @@ function ok(cond, label) { if (cond) { pass++; console.log('  ✔', label); } el
   srv.stderr.on('data', d => process.stderr.write('[srv:err] ' + d));
 
   try {
-    await sleep(2500);
+    let booted=false;
+    for(let i=0;i<80;i++){try{await post(BASE+'/api/health',{});booted=true;break;}catch(_){await sleep(250);}}
+    if(!booted)throw Error('Test server did not start');
     const a = await post(BASE + '/api/register', { email: 'a@t.com', password: 'pw123456', display_name: 'Alice' });
     const b = await post(BASE + '/api/register', { email: 'b@t.com', password: 'pw123456', display_name: 'Bob' });
     const c = await post(BASE + '/api/register', { email: 'c@t.com', password: 'pw123456', display_name: 'Carl' });

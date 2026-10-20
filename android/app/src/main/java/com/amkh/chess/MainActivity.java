@@ -14,6 +14,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(NearbyPlugin.class);
+        registerPlugin(IntegrityPlugin.class);
         registerPlugin(AudioRoutePlugin.class);   // #158: توجيه صوت المكالمة (سبيكر/سماعة)
         registerPlugin(RingtonePlugin.class);      // #157: نغمة رنين النظام داخل التطبيق
         registerPlugin(CallIntentPlugin.class);    // #159: جسر نية «الرد» من الإشعار

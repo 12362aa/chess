@@ -24,7 +24,8 @@ const cors = require('cors');
 const { WebSocketServer, WebSocket } = require('ws');
 const fs = require('fs');
 const path = require('path');
-const admin = require('firebase-admin');
+const firebaseApp = require('firebase-admin/app');
+const admin = {initializeApp:firebaseApp.initializeApp,credential:{cert:firebaseApp.cert},messaging:()=>require('firebase-admin/messaging').getMessaging(),auth:()=>require('firebase-admin/auth').getAuth()};
 
 const PORT = process.env.PORT || 8081;
 
@@ -35,20 +36,24 @@ const ratingStore = require('./rating-store');
 // Maps for presence and invites
 const userSockets = new Map(); // userId -> Set of WebSockets
 const socketUser = new Map(); // WebSocket -> userId
-const JWT_SECRET = process.env.JWT_SECRET || 'amkh_fallback_secret_key_123';
+const JWT_SECRET = require('./jwt-secret');
+const security = require('./security-core');
+const {Chess} = require('chess.js');
+const proof = require('./reward-proof');
 // Express app for API
 const app = express();
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,ngrok-skip-browser-warning,x-requested-with');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,ngrok-skip-browser-warning,x-requested-with,x-amkh-integrity');
   res.setHeader('Access-Control-Max-Age', '86400');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
+app.disable('x-powered-by');
+app.use(express.json({limit:'256kb'}));
+app.use(express.urlencoded({ extended: false,limit:'64kb',parameterLimit:200 }));
+app.use(require('./public-assets'));
 
 const TOKENS_PATH = path.join(__dirname, 'tokens.json');
 
@@ -1023,6 +1028,8 @@ app.use((req, res, next) => {
 app.set('trust proxy', 1);
 
 const rateLimit = require('express-rate-limit');
+app.use('/api',rateLimit({windowMs:60000,limit:300,standardHeaders:true,legacyHeaders:false,message:{error:'request_limit'}}));
+app.use('/save-token',rateLimit({windowMs:60000,limit:15,standardHeaders:true,legacyHeaders:false,message:{error:'request_limit'}}));
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 40,
@@ -1060,6 +1067,9 @@ app.use('/api/privacy', privacyRouter);
 /* اقتصاد Am-Kh Coins (متجر/عملات/XP/إنجازات) — موثوق من الخادم بالكامل. */
 const economy = require('./economy');
 app.use('/api/economy', economy.router);
+app.use('/api/integrity',require('./play-integrity').router);
+const moderationRouter=require('./moderation');
+app.use('/api/safety',moderationRouter);
 
 /* التجميل المُجهَّز من صفٍّ يحمل أعمدة equipped_* (المرحلة ٣): يظهر عند
    الآخرين في الصدارة/الملف/الأصدقاء/الشات. يرجّع null لو لا شيء مُجهَّز. */
@@ -1114,7 +1124,7 @@ async function cfGenerateIceServers(keyId, apiToken, ttl) {
     .filter(s => !s.urls || s.urls.length);
   return servers;
 }
-app.get('/api/webrtc-config', async (req, res) => {
+app.get('/api/webrtc-config', authModule.authenticateToken, async (req, res) => {
   const stun = [
     { urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
   ];
@@ -1319,11 +1329,11 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    بينما بقي APP_VERSION_CODE وLATEST_CODE عند 37، لأن إشعار التحديث
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
-const LATEST_VERSION = '1.2';
-const LATEST_CODE = 3;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v1.2-b75/AmKh-Chess-1.2.apk';
-const NOTES_AR = 'أداء أخف على الموبايل، بوابة جوائز جديدة، محيط جديد للمحرك، حل تأخير نور، تحديات يومية بمكافآت، ومحاولات ألغاز مصنفة وتدريب منفصل.';
-const NOTES_EN = 'Smoother mobile rendering, new Rewards portal and ocean, bounded engine response, rewarded home quests, and separate rated puzzle attempts and practice.';
+const LATEST_VERSION = '1.3';
+const LATEST_CODE = 4;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v1.3-b76/AmKh-Chess-1.3.apk';
+const NOTES_AR = 'حماية المكافآت والنتائج، الإبلاغ والمراجعة والعقوبات والاعتراضات، نوافذ ألغاز بثيم اللعبة، عودة بوابة المتجر وتطوير بوابة الجوائز، ومكافآت AK وXP.';
+const NOTES_EN = 'Verified rewards and results, reports with review and penalties/appeals, themed puzzle windows, restored Store portal, refreshed Rewards portal and AK/XP quest graphics.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -1527,13 +1537,14 @@ async function groqComplete(messages, opts = {}) {
   return { content: null, raw: null, detail: lastDetail };
 }
 
-app.post('/api/groq/chat', async (req, res) => {
+app.post('/api/groq/chat', authModule.authenticateToken, rateLimit({windowMs:60000,limit:20,standardHeaders:true,legacyHeaders:false,message:{error:'request_limit'}}), async (req, res) => {
   try {
     if (!process.env.GROQ_API_KEY) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     const messages = Array.isArray(body.messages) ? body.messages : null;
     if (!messages || !messages.length) return res.status(400).json({ error: 'Missing messages[]' });
-    const r = await groqComplete(messages, { model: body.model, max_tokens: body.max_tokens, temperature: body.temperature });
+    if(messages.length>30||messages.some(m=>!m||typeof m.content!=='string'||m.content.length>8000||!['user','assistant','system'].includes(m.role)))return res.status(400).json({error:'invalid_messages'});
+    const r = await groqComplete(messages, { model: body.model, max_tokens: Math.min(800,Math.max(50,Number(body.max_tokens)||300)), temperature: body.temperature });
     if (r.content && r.raw) { res.setHeader('Content-Type', 'application/json'); return res.status(200).send(r.raw); }
     return res.status(502).json({ error: 'كل موديلات الذكاء الاصطناعي فشلت', detail: r.detail });
   } catch (e) {
@@ -1550,10 +1561,11 @@ app.post('/save-token', (req, res) => {
   try {
     const token = (req.body && req.body.token) ? String(req.body.token).trim() : '';
     if (!token) return res.status(400).json({ ok: false, error: 'Missing token' });
+    if(token.length>4096)return res.status(400).json({ok:false,error:'invalid_token'});
 
-    const deviceId = req.body && req.body.deviceId ? String(req.body.deviceId).trim() : '';
-    const platform = req.body && req.body.platform ? String(req.body.platform).trim() : '';
-    const userAgent = req.body && req.body.userAgent ? String(req.body.userAgent).trim() : '';
+    const deviceId = req.body && req.body.deviceId ? String(req.body.deviceId).trim().slice(0,100) : '';
+    const platform = req.body && req.body.platform ? String(req.body.platform).trim().slice(0,30) : '';
+    const userAgent = req.body && req.body.userAgent ? String(req.body.userAgent).trim().slice(0,300) : '';
     /* لغة صاحب الجهاز: الإشعار بيتصاغ على السيرفر فمافيش طريقة تانية
        يعرفها بها. مافيش قيمة تانية غير ar/en فبنقصر عليهم. */
     const lang = (req.body && String(req.body.lang || '').trim() === 'en') ? 'en' : 'ar';
@@ -1568,6 +1580,7 @@ app.post('/save-token', (req, res) => {
     } catch (e) { userId = null; }
 
     const tokens = safeReadTokens();
+    if(tokens.length>=10000&&!tokens.some(t=>t.token===token))return res.status(429).json({ok:false,error:'token_limit'});
     const now = new Date().toISOString();
 
     const idx = tokens.findIndex(t => (t && t.token) === token);
@@ -1583,7 +1596,7 @@ app.post('/save-token', (req, res) => {
   }
 });
 
-app.post('/send-notification', async (req, res) => {
+app.post('/send-notification', authModule.authenticateToken, (req,res,next)=>security.moderator(req.user.id)?next():res.status(403).json({error:'moderator_only'}), async (req, res) => {
   if (!_adminReady) return res.status(500).json({ ok: false, error: 'Firebase admin not configured' });
 
   const tokens = safeReadTokens();
@@ -1695,6 +1708,9 @@ function sendStart(room) {
   if (!room || !room.host || !room.guest) return;
   room.started = true;
   room.ended = false;
+  room.rules=new Chess();
+  room.serverResult=null;
+  if(room.hostId&&room.guestId)security.context(room.code,room.hostId,room.guestId,'game',{rated:!!room.rated});
   const ratingOf = (id) => {
     if (!id) return null;
     try { const row = ratingStore.getUserRating.get(id); return row ? ratingStore.publicRating(row) : null; }
@@ -3074,8 +3090,9 @@ function userIdFromToken(token) {
   if (!token || typeof token !== 'string') return null;
   try {
     const payload = jwt.verify(token, JWT_SECRET);
+    if(!security.validToken(payload))return null;
     const id = Number(payload && (payload.uid || payload.id || payload.sub));
-    return Number.isInteger(id) && id > 0 ? id : null;
+    return Number.isInteger(id) && id > 0 && !security.active(id,'account') && db.prepare('SELECT 1 FROM users WHERE id=?').get(id) ? id : null;
   } catch (e) { return null; }
 }
 
@@ -3086,6 +3103,20 @@ function handleGameResult(ws, msg) {
   const { room, side } = info;
   if (room.kind !== 'online') return;
   if (room.ratingDone && room.statsDone) return;
+  // A client's claim cannot end the clock or create a victory. Only the board,
+  // server clock, the player's own resignation, or an agreed draw can do that.
+  if(room.rules){
+    if(room.serverResult){finalizeGame(room,room.serverResult,'checkmate');return;}
+    if(room.rules.isDraw()){finalizeGame(room,'draw','draw');return;}
+    if(msg.result==='loss'&&msg.reason==='resign'){finalizeOnLeave(room,side,'resign');return;}
+    if(msg.result==='draw'&&['agreement','agreed','draw-agreement'].includes(msg.reason)){
+      room.drawOffers=room.drawOffers||{};room.drawOffers[side]=true;
+      if(room.drawOffers.host&&room.drawOffers.guest)finalizeGame(room,'draw','agreement');
+      return;
+    }
+    security.event(room[side+'Id'],'unverified_result',{room:room.code});
+    send(ws,{type:'game:rejected',reason:'unverified_result'});return;
+  }
 
   const winnerColor = reportToWinnerColor(room, side, msg.result);
   if (!winnerColor) return;
@@ -3123,7 +3154,7 @@ function finalizeOnLeave(room, side, reason) {
   stopClock(room);
   const other = side === 'host' ? 'guest' : 'host';
   // لو الطرف التاني أبلغ نتيجة قبل كده، نحترمها بدل ما نفترض خسارة
-  if (room.reports && room.reports[other]) {
+  if (!room.rules && room.reports && room.reports[other]) {
     finalizeGame(room, room.reports[other], reason || 'reported');
     return;
   }
@@ -3150,7 +3181,16 @@ const server = http.createServer(app);
 /* ══════════════════════════════════════
    WEBSOCKET SERVER
 ══════════════════════════════════════ */
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server,maxPayload:12*1024*1024 });
+moderationRouter.onSanction=(id)=>{
+ for(const ws of wss.clients){
+  const info=getRoomAndSide(ws);
+  const uid=socketUser.get(ws)||(info&&info.room[info.side+'Id']);
+  if(Number(uid)!==Number(id))continue;
+  send(ws,{type:'safety:restricted',sanction:security.active(id,'social')||security.active(id,'economy')});
+  ws.close(4003,'Account restricted');
+ }
+};
 
 wss.on('connection', (ws, req) => {
   console.log(`[+] client connected | total: ${wss.clients.size}`);
@@ -3166,8 +3206,21 @@ wss.on('connection', (ws, req) => {
   ws.on('message', (raw) => {
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
+    if(!msg||typeof msg!=='object'||Array.isArray(msg)||typeof msg.type!=='string')return;
+    const now=Date.now();if(!ws._rate||now-ws._rate.at>10000)ws._rate={at:now,n:0,bytes:0};
+    ws._rate.n++;ws._rate.bytes+=raw.length;
+    if(ws._rate.n>150||ws._rate.bytes>24*1024*1024){ws.close(4008,'Message limit');return;}
+    if(raw.length>128*1024&&!['chat:send','group:send','voice','pimg'].includes(msg.type)){ws.close(1009,'Payload too large');return;}
+    let tokenUid=null;if(typeof msg.token==='string'){try{const p=jwt.verify(msg.token,JWT_SECRET);tokenUid=Number(p.id)||null;if(tokenUid&&!security.validToken(p)){ws.close(4003,'Session expired');return;}if(security.validToken(p))ws._authVersion=Number(p.v)||0;}catch(_){}}
+    const ri=getRoomAndSide(ws),uid=socketUser.get(ws)||(ri&&ri.room[ri.side+'Id'])||tokenUid;
+    if(uid){
+      if((socketUser.has(ws)||ri)&&!security.validToken({id:uid,v:ws._authVersion})){ws.close(4003,'Session expired');return;}
+      const scope=/^(call:|chat:|group:|mic:|voice$|chat$)/.test(msg.type)?'social':'account';
+      const sanction=security.active(uid,scope);
+      if(sanction){send(ws,{type:'safety:restricted',sanction});ws.close(4003,'Account restricted');return;}
+    }
 
-    switch (msg.type) {
+    try{switch (msg.type) {
       /* ══ Presence & Friends ══ */
       case 'presence:hello': {
         const { token } = msg;
@@ -3177,7 +3230,10 @@ wss.on('connection', (ws, req) => {
              أبدًا ويفتكر نفسه موثّقًا، فكل رسالة بعدها ترجّع auth. */
           if (err) { try { send(ws, { type: 'presence:fail', reason: 'bad-token' }); } catch (e) {} return; }
           const userId = user.id;
-          socketUser.set(ws, userId);
+          if(!security.validToken(user)){send(ws,{type:'presence:fail',reason:'bad-token'});return;}
+          if(socketUser.has(ws)&&Number(socketUser.get(ws))!==Number(userId)){ws.close(4003,'Identity changed');return;}
+          if(!db.prepare('SELECT 1 FROM users WHERE id=?').get(userId)||security.active(userId,'account')){send(ws,{type:'presence:fail',reason:'account_restricted'});ws.close(4003,'Account restricted');return;}
+          socketUser.set(ws, userId);ws._authVersion=Number(user.v)||0;
           if (!userSockets.has(userId)) userSockets.set(userId, new Set());
           userSockets.get(userId).add(ws);
           /* إيصال التوثيق: من غيره العميل مش عارف إن السوكت ده يقدر يبعت
@@ -3674,12 +3730,14 @@ wss.on('connection', (ws, req) => {
         const id = String(msg.battle_id || '');
         const b = puzzleBattles.get(id);
         if (!me || !b || b.a !== me || b.status !== 'accepted') break;
-        const puzzles = Array.isArray(msg.puzzles) ? msg.puzzles.slice(0, 60) : [];
+        const ratings=db.prepare('SELECT puzzle_rating FROM users WHERE id IN (?,?)').all(b.a,b.b);
+        const puzzles = proof.battleRows(ratings.reduce((sum,u)=>sum+u.puzzle_rating,0)/ratings.length);
         if (!puzzles.length) { endPuzzleBattle(id, 'aborted'); break; }
         const duration = Math.min(600, Math.max(30, Number(msg.duration) || 180));
         b.status = 'live';
         b.startAt = Date.now() + 3000;
         b.duration = duration;
+        b.puzzles=puzzles;b.progress={[b.a]:{idx:0,move:1},[b.b]:{idx:0,move:1}};
         const begin = (role) => ({ type: 'puzzle:battle-begin', battle_id: id, role,
           puzzles, duration, start_at: b.startAt });
         bcastUser(b.a, begin('a'));
@@ -3695,10 +3753,15 @@ wss.on('connection', (ws, req) => {
         const id = String(msg.battle_id || '');
         const b = puzzleBattles.get(id);
         if (!me || !b || (b.a !== me && b.b !== me)) break;
-        b.scores[me] = Math.max(0, Number(msg.score) || 0);
-        if (msg.misses != null) b.misses[me] = Math.max(0, Number(msg.misses) || 0);
+        // Legacy score messages are display requests only; never accept totals.
         const other = b.a === me ? b.b : b.a;
-        bcastUser(other, { type: 'puzzle:battle-opp', battle_id: id, score: b.scores[me], misses: b.misses[me] || 0, idx: Number(msg.idx) || 0 });
+        bcastUser(other, { type: 'puzzle:battle-opp', battle_id: id, score: b.scores[me]||0, misses: b.misses[me] || 0, idx: b.progress?.[me]?.idx||0 });
+        break;
+      }
+      case 'puzzle:battle-step': {
+        const me=socketUser.get(ws),b=puzzleBattles.get(String(msg.battle_id||''));
+        if(!me||!b||(b.a!==me&&b.b!==me)||!proof.battleStep(b,me,msg.action,msg.uci))break;
+        bcastUser(b.a===me?b.b:b.a,{type:'puzzle:battle-opp',battle_id:b.id,score:b.scores[me]||0,misses:b.misses[me]||0,idx:b.progress[me].idx});
         break;
       }
 
@@ -3708,8 +3771,6 @@ wss.on('connection', (ws, req) => {
         const id = String(msg.battle_id || '');
         const b = puzzleBattles.get(id);
         if (!me || !b || (b.a !== me && b.b !== me)) break;
-        b.scores[me] = Math.max(0, Number(msg.score) || 0);
-        if (msg.misses != null) b.misses[me] = Math.max(0, Number(msg.misses) || 0);
         b.ended[me] = true;
         if (b.ended[b.a] && b.ended[b.b]) endPuzzleBattle(id, 'done');
         break;
@@ -3721,8 +3782,6 @@ wss.on('connection', (ws, req) => {
         const id = String(msg.battle_id || '');
         const b = puzzleBattles.get(id);
         if (!me || !b || (b.a !== me && b.b !== me)) break;
-        if (msg.score != null) b.scores[me] = Math.max(0, Number(msg.score) || 0);
-        if (msg.misses != null) b.misses[me] = Math.max(0, Number(msg.misses) || 0);
         if (b.status === 'live') {
           endPuzzleBattle(id, 'forfeit', { loser: me });
         } else {
@@ -3782,6 +3841,15 @@ wss.on('connection', (ws, req) => {
         if (!callPeerAllowed(me, to, groupId)) {
           send(ws, { type: 'call:error', reason: 'not-allowed', callId: msg.callId || null });
           break;
+        }
+        if(security.active(to,'social')){send(ws,{type:'call:error',reason:'not-allowed'});break;}
+        const callKey=String(msg.callId||'');
+        if(!/^[-a-zA-Z0-9_]{3,100}$/.test(callKey))break;
+        if(msg.type==='call:invite')security.context(callKey,me,to,'call',{group:groupId,kind:msg.callType==='video'?'video':'audio'});
+        else if(!db.prepare("SELECT 1 FROM safety_context WHERE id=? AND user_id=? AND peer_id=? AND kind='call' AND created_at>?").get(callKey,me,to,Date.now()-86400000)){
+          const joined=id=>db.prepare("SELECT detail FROM safety_context WHERE id=? AND user_id=? AND kind='call' AND created_at>?").all(callKey,id,Date.now()-86400000).some(r=>JSON.parse(r.detail).group===groupId);
+          if(groupId&&joined(me)&&joined(to))security.context(callKey,me,to,'call',{group:groupId,kind:'group'});
+          else{send(ws,{type:'call:error',reason:'not-allowed'});break;}
         }
         /* حد أقصى لحجم الحمولة (SDP بيبقى بضع كيلوبايت؛ ICE أصغر) */
         const sdp = typeof msg.sdp === 'string' ? msg.sdp.slice(0, 100000) : null;
@@ -4327,12 +4395,35 @@ wss.on('connection', (ws, req) => {
         const info = getRoomAndSide(ws);
         if (info) {
           const { room, side } = info;
+          if(msg.type==='chat'||msg.type==='voice'){
+            delete msg.safety;
+            const from=room[side+'Id'],to=room[(side==='host'?'guest':'host')+'Id'];
+            if(msg.type==='chat')msg.text=String(msg.text||'').slice(0,2000);
+            if(from&&to){
+              const evidenceId=require('node:crypto').randomBytes(24).toString('hex');
+              const n=db.prepare('SELECT COUNT(*) n FROM game_chat_evidence WHERE room=? AND created_at>?').get(room.code,Date.now()-10800000).n;
+              if(n>=200){send(ws,{type:'error',reason:'message_limit'});break;}
+              db.prepare('INSERT INTO game_chat_evidence VALUES(?,?,?,?,?,?,?)').run(evidenceId,from,to,room.code,msg.type,msg.type==='chat'?msg.text:'Voice message · duration '+Math.min(600,Number(msg.duration)||0),Date.now());
+              msg.safety={targetId:from,context:'game-message',contextId:evidenceId};
+            }
+          }
           if (msg.type === 'resign') {
             stopClock(room);
             finalizeOnLeave(room, side, 'resign');   // المنسحب يخسر
             toSpectators(room, { type: 'spectate:resign', side, color: room[side] && room[side].color });
           }
           if (msg.type === 'move') {
+            if(!room.rules)room.rules=new Chess();
+            const from=proof.rc(msg.fr),to=proof.rc(msg.to);
+            const color=room[side]&&room[side].color;
+            if(room.clock?.running&&room.clock.turn===color&&room.clock[color]-(Date.now()-room.clock.lastTs)<=0){onFlag(room,color);break;}
+            let legal=false;
+            if(room.started&&!room.ended&&room.rules.turn()===color&&from&&to){
+              try{legal=!!room.rules.move({from,to,promotion:String(msg.promo||'q').toLowerCase()});}catch(_){}
+            }
+            if(!legal){security.event(room[side+'Id'],'illegal_move',{room:room.code,from,to});send(ws,{type:'move:rejected',reason:'illegal_move'});break;}
+            if(room.rules.isCheckmate())room.serverResult=room.rules.turn()==='w'?'b':'w';
+            else if(room.rules.isDraw())room.serverResult='draw';
             /* بنسجّل النقلة بصيغتين: نصّية للأرشيف، وإحداثيات للمتفرّجين
                عشان يقدروا يعيدوا بناء اللوح من البداية. */
             recordMove(room, msg.move != null ? msg.move : (msg.san || msg.uci || null));
@@ -4357,7 +4448,9 @@ wss.on('connection', (ws, req) => {
           } else if (msg.type === 'cos') {
             /* إطار/خلفيّة/شارة اللاعب — كائنٌ صغيرٌ يُخزَّن كما هو ويُعاد
                بثّه للطرف الآخر وللمنضمّ متأخّرًا (بلاغ جوجو #64). */
-            if (room[side]) room[side].cos = (msg.cos && typeof msg.cos === 'object') ? msg.cos : null;
+            const userId=room[side+'Id'];
+            msg.cos=userId?cosOf(db.prepare('SELECT '+COS_COLS+' FROM users WHERE id=?').get(userId)):null;
+            if(room[side])room[side].cos=msg.cos;
           } else if (msg.deviceId) {
             const did = String(msg.deviceId).slice(0, 80);
             if (room[side]) room[side].deviceId = did;
@@ -4409,6 +4502,7 @@ wss.on('connection', (ws, req) => {
           }
         }
         relay(ws, msg);
+        if(msg.type==='move'&&info?.room?.serverResult)finalizeGame(info.room,info.room.serverResult,info.room.serverResult==='draw'?'draw':'checkmate');
         if (msg.type === 'resign' && info?.room?.kind === 'lan') {
           setTimeout(() => cleanupRoom(info.code), 1000);
         }
@@ -4453,7 +4547,7 @@ wss.on('connection', (ws, req) => {
 
       default:
         break;
-    }
+    }}catch(_){security.event(uid,'invalid_payload',{type:msg.type});send(ws,{type:'error',reason:'invalid_payload'});}
   });
 
   ws.on('close', () => {
@@ -4656,6 +4750,7 @@ if (process.env.AMKH_NO_LISTEN === '1') {
 } else {
   server.listen(PORT, () => {
     console.log(`♟ Chess server running on port ${PORT}`);
+    moderationRouter.startDelivery();
     try{
       if (_adminReady) startAdaptiveNotifications();
     }catch(e){}

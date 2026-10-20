@@ -232,7 +232,7 @@
       try {
         if (window.amkhEnsureServer) await window.amkhEnsureServer();
         const base = window.getApiBase ? window.getApiBase() : '/api';
-        const res = await fetch(base + '/webrtc-config', { headers: { 'ngrok-skip-browser-warning': '1' } });
+        const res = await fetch(base + '/webrtc-config', { headers: { 'ngrok-skip-browser-warning': '1',Authorization:'Bearer '+window.amkhAuth.token } });
         if (res.ok) {
           const j = await res.json();
           if (j && Array.isArray(j.iceServers) && j.iceServers.length) { this._ice = j.iceServers; this._iceAt = now; return this._ice; }

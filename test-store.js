@@ -43,7 +43,8 @@ let r = econ.purchase(u1, target.id);
 ok(r.ok === true, 'شراء عنصر ضمن النافذة ينجح: ' + target.id);
 let snap = econ.snapshot(u1);
 ok(snap.owned.includes(target.id), 'العنصر صار مملوكًا بعد الشراء');
-ok(snap.coins === coinsBefore - target.price, `الرصيد نقص بمقدار السعر (${target.price})`);
+const purchaseLedger=db.prepare("SELECT delta FROM coin_ledger WHERE user_id=? AND delta<0 ORDER BY id DESC LIMIT 1").get(u1);
+ok(purchaseLedger&&purchaseLedger.delta===-target.price, `الشراء خصم السعر الصحيح (${target.price})، مع فصل مكافأة إنجاز أول شراء`);
 
 r = econ.purchase(u1, target.id);
 ok(r.ok === false && r.reason === 'owned', 'إعادة شراء نفس العنصر مرفوضة (owned)');

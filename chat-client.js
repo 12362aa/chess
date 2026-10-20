@@ -1865,6 +1865,7 @@ const amkhChat = {
       + `<span class="msg-act__lb">${label}${hint ? `<small>${hint}</small>` : ''}</span></button>`;
 
     let rows = '';
+    if(!m.mine&&!isSys&&Number(m.from||m.sender_id))rows+=row('report',this.ICONS.shield,(window.I18N?.lang==='en'?'Report violation':'الإبلاغ عن مخالفة'));
     if (!gone && !isSys) rows += row('reply', this.ICONS.reply, 'رد');
     if (txt) rows += row('copy', this.ICONS.copy, 'نسخ النص');
     if (media) rows += row('save', this.ICONS.download, 'حفظ في الجهاز');
@@ -1916,6 +1917,7 @@ const amkhChat = {
       const act = b.dataset.do;
       try { overlay._dismiss(); } catch (e) {}
       if (act === 'reply') this._startReply(scope, m);
+      else if(act==='report')window.AMKHSafety?.report(Number(m.from||m.sender_id),scope==='group'?'group':'dm',String(m.id));
       else if (act === 'info') this._openMsgInfo(scope, m);
       else if (act === 'pin') this._openPinDuration(scope, m);
       else if (act === 'unpin') this._pinMsg(scope, m, false);

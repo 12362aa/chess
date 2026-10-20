@@ -13,6 +13,10 @@
     },
     portal(host, kind) {
       if (!host) return;
+      if(kind==='rewards'){
+        host.innerHTML='<div class="reward-vault" aria-hidden="true"><div class="reward-vault__sky"></div><div class="reward-vault__rays"></div><div class="reward-vault__ring outer"></div><div class="reward-vault__ring inner"></div><div class="reward-vault__crest"><svg viewBox="0 0 200 240"><defs><linearGradient id="rw-gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff2bb"/><stop offset=".45" stop-color="#edc164"/><stop offset="1" stop-color="#9e6427"/></linearGradient><linearGradient id="rw-purple" x2="0" y2="1"><stop stop-color="#a272cd"/><stop offset="1" stop-color="#291339"/></linearGradient></defs><path d="M100 16 180 48v77c0 47-48 79-80 98-32-19-80-51-80-98V48Z" fill="url(#rw-purple)" stroke="url(#rw-gold)" stroke-width="5"/><path d="M100 32 165 59v63c0 40-36 67-65 85-29-18-65-45-65-85V59Z" fill="none" stroke="#edc164" stroke-width="1.5" opacity=".6"/><path d="m67 76 12 16 21-28 21 28 12-16-5 32H72Z" fill="url(#rw-gold)"/><path d="M83 122c-4 10-3 22 2 30l-9 12v11h48v-11l-9-12c5-8 6-20 2-30Z" fill="url(#rw-gold)"/><path d="M75 185h50" stroke="#edc164" stroke-width="3" stroke-linecap="round"/><circle cx="100" cy="48" r="4" fill="#fff0be"/></svg></div>'+Array.from({length:12},(_,i)=>'<i class="reward-vault__star" style="--angle:'+i*30+'deg;--delay:'+i*20+'ms"></i>').join('')+'</div>';
+        host.classList.remove('play');void host.offsetWidth;host.classList.add('play');return;
+      }
       host.innerHTML = '<div class="amkh-portal amkh-portal--' + kind + '" aria-hidden="true">'
         + '<div class="amkh-portal__halo"></div><div class="amkh-portal__door left"></div><div class="amkh-portal__door right"></div>'
         + '<div class="amkh-portal__emblem">' + (kind === 'rewards'

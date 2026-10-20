@@ -224,6 +224,7 @@ const amkhFriends = {
      لو استهلكت الرسالة، عشان اللي بيناديها يعرف إنها مش محتاجة معالجة
      تانية. */
   handleSocketMessage(d) {
+    if(d&&d.type==='safety:restricted'){window.AMKHSafety?.open();return true;}
     if (!d || typeof d.type !== 'string') return false;
     if (!d.type.startsWith('friend:') && !d.type.startsWith('party:')) return false;
     switch (d.type) {

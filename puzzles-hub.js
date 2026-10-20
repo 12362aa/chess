@@ -1200,13 +1200,18 @@ const PZH = (() => {
       ms.appendChild(b);
       return b;
     };
-    const difficulty=el('label','pz-difficulty');
+    const difficulty=el('div','pz-difficulty');
     difficulty.appendChild(el('span','',L('صعوبة الألغاز المصنفة','Rated puzzle difficulty')));
-    const select=el('select','');
-    [['standard','عادي','Standard'],['rated-hard','صعب','Hard'],['extra-hard','صعب جدًا','Extra Hard']].forEach(([key,ar,en])=>{const option=el('option','',L(ar,en));option.value=key;select.appendChild(option);});
-    select.value=localStorage.getItem('amkh_puzzle_difficulty')||'standard';
-    select.onchange=()=>localStorage.setItem('amkh_puzzle_difficulty',select.value);
-    difficulty.appendChild(select);
+    const choices=[['standard','عادي','Standard','ألغاز أقرب لمستواك، مناسبة لجلسة متوازنة.','Approachable puzzles for a steady session.'],['rated-hard','صعب','Hard','تحدٍّ أعلى؛ مكسب التصنيف المحتمل أكبر.','A tougher challenge with more potential rating gain.'],['extra-hard','صعب جدًا','Extra Hard','أعلى تحدٍّ لعشاق الألغاز الصعبة.','The strongest challenge for puzzle enthusiasts.']];
+    const choose=el('button','');choose.type='button';choose.setAttribute('aria-haspopup','dialog');
+    const renderChoice=()=>{const current=choices.find(c=>c[0]===(localStorage.getItem('amkh_puzzle_difficulty')||'standard'))||choices[0];choose.textContent=L(current[1],current[2])+'  ◇';};renderChoice();
+    choose.onclick=()=>{
+      const U=window.amkhUI;if(!U)return;
+      const current=localStorage.getItem('amkh_puzzle_difficulty')||'standard';
+      const ov=U.mount('amkh-pz-difficulty',`<div class="ds-sheet difficulty-sheet safety-sheet" data-no-i18n="true"><div class="ds-sheet__handle"></div><div class="ds-sheet__header"><h3 class="ds-sheet__title">${L('صعوبة الألغاز المصنفة','Rated puzzle difficulty')}</h3><button class="ds-sheet__close" data-close aria-label="${L('إغلاق','Close')}">✕</button></div><div class="ds-sheet__body safety-body"><p class="safety-copy">${L('اختَر التحدي المناسب لك. الصعوبة تؤثر في الألغاز التي تظهر، والتصنيف يُحسب حسب قوة كل لغز.','Choose your challenge. Difficulty changes the puzzles you receive; rating changes depend on each puzzle’s strength.')}</p><div class="safety-choices">${choices.map(([key,ar,en,da,de])=>`<button class="safety-choice ${key===current?'is-selected':''}" data-level="${key}" aria-pressed="${key===current}"><span class="safety-choice__mark">${key===current?'✓':''}</span><span><b>${L(ar,en)}</b><small>${L(da,de)}</small></span></button>`).join('')}</div></div></div>`,{sheet:true,sfx:'privacyPick'});
+      ov.querySelectorAll('[data-level]').forEach(b=>b.onclick=()=>{localStorage.setItem('amkh_puzzle_difficulty',b.dataset.level);renderChoice();U.sfx();ov._dismiss();});
+    };
+    difficulty.appendChild(choose);
     host.appendChild(difficulty);
     tile('rated', true, () => go('rated'));
     tile('rush', false, () => go('rush'));

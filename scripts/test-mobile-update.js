@@ -47,7 +47,7 @@ async function accountResponses(){
  const source=fs.readFileSync('economy-client.js','utf8');vm.runInContext(source.slice(0,source.indexOf('})();')+5),ctx);
  const econ=ctx.window.amkhEconomy,old=econ.refresh();econ.clear();ctx.window.amkhAuth={user:{id:'B'},token:'fixtureB'};responses.shift()({ok:true,json:async()=>({coins:777})});await old;assert.equal(econ.state,null);
  const delayed=econ.refresh();econ.apply({coins:10});responses.shift()({ok:true,json:async()=>({coins:5})});await delayed;assert.equal(econ.state.coins,10);
- vm.runInContext("const S={_gameEventId:'fixture-game-123'};",ctx);econ.notifyLocalResult('engine','win');assert.equal(responses.length,1);responses.shift()({ok:false});
+ vm.runInContext("const S={_gameEventId:'fixture-game-123'};",ctx);await econ.notifyLocalResult('engine','win');assert.equal(responses.length,1);responses.shift()({ok:false});
  console.log('PASS account change and newer wallet response protection');
 }
 async function apiCache(){
@@ -68,7 +68,7 @@ function quests(){
  const missions=JSON.stringify(econ.snapshot(a).missions);econ.claimHomeChallenge(a,'puzzles');assert.equal(JSON.stringify(econ.snapshot(a).missions),missions);
  const RealDate=global.Date;global.Date=class extends RealDate{constructor(...args){super(...(args.length?args:[RealDate.now()+86400000]));}};
  assert(econ.homeChallengesSnapshot(a).quests.every(q=>!q.claimed&&q.progress===0));global.Date=RealDate;
- const owned=econ.homeChallengesSnapshot(a);db.close();for(const name of ['../db','../economy','../auth'])delete require.cache[require.resolve(name)];const db2=require('../db'),econ2=require('../economy');assert.deepEqual(econ2.homeChallengesSnapshot(a),owned);
+ const owned=econ.homeChallengesSnapshot(a);db.close();for(const name of ['../db','../economy','../auth','../security-core','../reward-proof'])delete require.cache[require.resolve(name)];const db2=require('../db'),econ2=require('../economy');assert.deepEqual(econ2.homeChallengesSnapshot(a),owned);
  db2.close();fs.unlinkSync(process.env.AMKH_DB_PATH);console.log('PASS home rewards: dedupe, caps, account isolation, independent missions, UTC reset, persistence');
 }
 (async()=>{await puzzles();await stockfish();fallback();await accountResponses();await apiCache();quests();console.log('Mobile update regressions passed');})().catch(e=>{console.error(e);process.exitCode=1;});

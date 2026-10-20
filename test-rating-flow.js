@@ -92,12 +92,21 @@ function waitBoot(ms){
     const startB = await next(wb, 'start');
     if (!startB.rated) throw new Error('start not marked rated: ' + JSON.stringify(startB));
     console.log('[t] rated room started, code', code);
+    const cosReply=next(wb,'cos');wa.send(JSON.stringify({type:'cos',cos:{frame:'forged-premium'}}));if((await cosReply).cos)throw Error('Forged cosmetics relayed');
+    const chatReply=next(wb,'chat');wa.send(JSON.stringify({type:'chat',text:'Fixture game message',safety:{targetId:999}}));const chat=await chatReply;if(chat.safety?.targetId!==a.json.user.id)throw Error('Game message evidence identity not authoritative');
 
-    // نتيجة متفق عليها: Alice (host, white) فازت
+    const rejected=next(wa,'game:rejected');
+    wa.send(JSON.stringify({type:'game:over',result:'win',reason:'checkmate'}));await rejected;
+    const illegal=next(wb,'move:rejected');
+    wb.send(JSON.stringify({type:'move',fr:[1,4],to:[3,4]}));await illegal;
+    // Play Scholar's mate; the server determines the result from the legal board.
+    for(const [i,uci] of ['e2e4','e7e5','f1c4','b8c6','d1h5','g8f6'].entries()){
+      const sender=i%2?wb:wa,receiver=i%2?wa:wb,relayed=next(receiver,'move');
+      sender.send(JSON.stringify({type:'move',fr:[8-Number(uci[1]),'abcdefgh'.indexOf(uci[0])],to:[8-Number(uci[3]),'abcdefgh'.indexOf(uci[2])]}));await relayed;
+    }
     const ruA = next(wa, 'rating:update');
     const ruB = next(wb, 'rating:update');
-    wa.send(JSON.stringify({ type: 'game:over', result: 'win', reason: 'checkmate', token: tokA }));
-    wb.send(JSON.stringify({ type: 'game:over', result: 'loss', reason: 'checkmate', token: tokB }));
+    wa.send(JSON.stringify({type:'move',fr:[3,7],to:[1,5]}));
     const rA = await ruA, rB = await ruB;
     console.log('[t] Alice update:', rA.outcome, rA.before, '→', rA.after, '(Δ' + rA.delta + ')');
     console.log('[t] Bob   update:', rB.outcome, rB.before, '→', rB.after, '(Δ' + rB.delta + ')');
@@ -130,6 +139,10 @@ function waitBoot(ms){
     await guard;
     if (doubled) throw new Error('double-rated the same room!');
     console.log('[t] guard OK: no double rating');
+    const checkDb=new (require('better-sqlite3'))(TMP);
+    checkDb.prepare('INSERT INTO account_sanctions(user_id,scope,reason,expires_at,moderator_id,created_at) VALUES(?,?,?,?,?,?)').run(a.json.user.id,'account','Fixture restriction',Date.now()+3600000,b.json.user.id,Date.now());
+    const restricted=next(wa,'safety:restricted');wa.send(JSON.stringify({type:'chat',text:'Blocked fixture'}));await restricted;
+    checkDb.close();console.log('[t] existing game socket restriction enforced');
 
     wa.close(); wb.close();
     console.log('\n✔ ALL RATING FLOW TESTS PASSED');

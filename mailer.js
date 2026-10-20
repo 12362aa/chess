@@ -381,5 +381,9 @@ function senderAddress() {
   return (m ? m[1] : from).trim();
 }
 
-module.exports = { ready, status, verify, senderAddress, sendResetCode, sendGoogleNotice, sendSignupCode };
+async function sendModerationNotice({to,reportId,context,reason,targetId}) {
+  // Only metadata goes into mail; message evidence stays inside the restricted inbox.
+  await deliver('بلاغ سلامة', {to,subject:`Am-Kh: بلاغ جديد / New report #${reportId}`,text:`بلاغ جديد محفوظ في لوحة السلامة داخل إعدادات اللعبة.\nA new report is saved in the Safety review inbox in app Settings.\n\nReport: #${reportId}\nPlayer ID: ${targetId}\nContext: ${context}\nReason: ${reason}\n\nSign in with your moderator account to review the evidence and decide.`,html:shell(txtRow(`بلاغ جديد / New report <b>#${esc(reportId)}</b><br>افتح إعدادات اللعبة ← السلامة والإبلاغ ← مراجعة البلاغات.<br>Open Settings → Safety & reports → Review inbox.`),true)});
+}
+module.exports = { ready, status, verify, senderAddress, sendResetCode, sendGoogleNotice, sendSignupCode, sendModerationNotice };
 

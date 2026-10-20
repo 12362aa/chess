@@ -3179,10 +3179,13 @@ html.amkh-preboot #amkh-preboot{
    كـ.screen فلا تتأثّر). */
 html.amkh-preboot .screen{ visibility:hidden !important; }
 </style>
-<link rel="stylesheet" href="mobile-performance.css?v=1.2-b75">
-<link rel="stylesheet" href="ocean-world.css?v=1.2-b75">
-<script src="mobile-performance.js?v=1.2-b75"></script>
-<script defer src="home-challenges-client.js?v=1.2-b75"></script>
+<link rel="stylesheet" href="mobile-performance.css?v=1.3-b76">
+<link rel="stylesheet" href="safety.css?v=1.3-b76">
+<script defer src="security-client.js?v=1.3-b76"></script>
+<script defer src="safety-client.js?v=1.3-b76"></script>
+<link rel="stylesheet" href="ocean-world.css?v=1.3-b76">
+<script src="mobile-performance.js?v=1.3-b76"></script>
+<script defer src="home-challenges-client.js?v=1.3-b76"></script>
 </head>
 <body data-screen="s-menu">
 <script>
@@ -6294,6 +6297,7 @@ const SettingsAccount = {
 
     box.appendChild(this._group('خصوصيتك', [
       this._privacyRow(),
+      this._line((window.I18N&&I18N.lang==='en')?'Safety & reports':'السلامة والإبلاغ',{onTap:()=>window.AMKHSafety?.open()}).item,
       this._blockedRow(),
     ], 'إعدادات الخصوصية مُنفَّذة في الخادم: المنع يحدث قبل وصول أي طلب إليك، لا في هذا الجهاز وحده. والحظر يتقدَّم على أي إعداد.'));
 
@@ -8603,8 +8607,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '1.2';
-const APP_VERSION_CODE = 3;
+const APP_VERSION = '1.3';
+const APP_VERSION_CODE = 4;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -9277,6 +9281,11 @@ const PlayerCard = {
 
   /* الأزرار بتتغيّر حسب مين بيتفرّج: نفسه، صديق، غريب، أو زائر مش مسجّل */
   _actions(ov, uid, seed, data){
+    if(uid!==Number(window.amkhAuth?.user?.id)){
+      const report=document.createElement('button');report.className='ds-btn ds-btn--ghost';report.textContent=(window.I18N?.lang==='en')?'Report violation':'الإبلاغ عن مخالفة';
+      report.onclick=()=>window.AMKHSafety?.report(uid);
+      ov.querySelector('.pc__hero')?.append(report);
+    }
     const box = ov.querySelector('#pc-acts');
     if(!box) return;
     const me = window.amkhAuth && window.amkhAuth.user;
@@ -10940,6 +10949,9 @@ const CHAT={
     }
 
     el.prepend(m);_snapToLatest();
+    if(type==='opp'&&this._incomingSafety){
+      const evidence={...this._incomingSafety},b=document.createElement('button');b.className='chat-safety-report';b.type='button';b.innerHTML=window.AMKHSafety?.shield||'⚑';b.title=window.I18N?.lang==='en'?'Report message':'الإبلاغ عن الرسالة';b.setAttribute('aria-label',b.title);b.onclick=()=>window.AMKHSafety?.report(evidence.targetId,evidence.context,evidence.contextId);m.append(b);
+    }
     if(type==='opp'||type==='sys'){
       const wrap=document.getElementById('chat-wrap');
       if(!wrap.classList.contains('show')){
@@ -11752,6 +11764,7 @@ async function groqChat({ messages, model, max_tokens, temperature }){
       const res = await fetch(url, {
         method: 'POST',
         headers: {
+          'Authorization':'Bearer '+(window.amkhAuth?.token||''),
           'Content-Type': 'application/json',
           // بدون الهيدر ده ngrok بيرجّع صفحة تحذير HTML للمتصفح/الويب-فيو
           // فـ res.json() بتفشل ونور يقع على الردود الاحتياطية الغبية. لازم يفضل موجود.
@@ -14811,6 +14824,7 @@ const G={
        المؤقّت بيرجع يظهر لما السيرفر يبعت رسالة clock. */
     try{ if(typeof OL!=='undefined'&&OL.resetClock) OL.resetClock(); }catch(e){}
     S._gameEventId=window.crypto?.randomUUID?.()||('game-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+    S._transcript=[];S._rewardSession=null;
     S.mode=mode;S.diff=diff;S.myCol='both';S.levelId=-1;S.moveCount=0;
     S.bd=INIT_BD.map(r=>[...r]);S.turn='w';S.sel=null;S.legal=[];
     S.cas={w:{K:true,Q:true},b:{K:true,Q:true}};S.ep=null;
@@ -14870,6 +14884,7 @@ const G={
   },
   async startLocalGame(){
     this._reset('local',0);
+    window.AMKHSecurity?.game(S);
     /* الوصفان يُترجَمان من المصدر لا بالكنس: شريط الحالة يقرأ الاسم من
        البار في نفس اللحظة ويبنيه جملةً واحدة، فلو انتظرنا الكنس طلعت
        «اللاعب الأبيض to move» في واجهة إنجليزية كاملة. */
@@ -14885,6 +14900,7 @@ const G={
     const lv=LEVELS_DEF[id];
     this._reset('bot',lv.depth);
     S.levelId=id;S.myCol='w';
+    window.AMKHSecurity?.game(S);
     const pn=Cfg.data.playerName||T('أنت');
     document.getElementById('nm-w').textContent=pn;
     /* اسم اللاعب صنفه pb-name وهو من محتوى المستخدم فلا يمرّ عليه الكنس —
@@ -14900,6 +14916,7 @@ const G={
     const preset=getEnginePreset(level??Cfg.data.engineLevel??4);
     this._reset('engine',preset.depth);
     S.engineLevel=preset.level;
+    window.AMKHSecurity?.game(S);
     S.myCol='w';
     Cfg.data.engineLevel=preset.level;
     Cfg.saveData();
@@ -15001,6 +15018,7 @@ const G={
     const res=E.apply(S.bd,fr,to,S.cas,S.ep,promo);
     if(res.cap)(S.turn==='w'?S.capW:S.capB).push(res.cap);
     S.hist.push(E.notation(S.bd,fr,to,promo));
+    (S._transcript||(S._transcript=[])).push({fr:[...fr],to:[...to],promo:promo||null});
     S.bd=res.bd;S.cas=res.cas;S.ep=res.ep;
     S.lastMove={from:fr,to};S.sel=null;S.legal=[];
     if(usingQueuedPreMove)clearPreMoveState();
@@ -15180,7 +15198,11 @@ const G={
             :(preset?.blunder||0);
           const legalMoves=E.allLegal(bd,'b',cas,ep);
 
-          if(legalMoves.length>0&&Math.random()<randomChance){
+          bm=await window.AMKHSecurity?.engine(S);
+          if(engineJob!==S._engineJob)return;
+          if(bm){
+            // Online rewards use the opponent move generated by the server.
+          }else if(legalMoves.length>0&&Math.random()<randomChance){
             const randomMove=legalMoves[Math.floor(Math.random()*legalMoves.length)];
             bm={from:randomMove.from,to:randomMove.to};
           }else{
@@ -15212,7 +15234,7 @@ const G={
         if(bm){
           S.sel=null;S.legal=[];
           const isPromo=S.bd[bm.from[0]]&&S.bd[bm.from[0]][bm.from[1]]&&E.tp(S.bd[bm.from[0]][bm.from[1]])==='P'&&(bm.to[0]===0||bm.to[0]===7);
-          this.applyMove(bm.from,bm.to,isPromo?'Q':null);
+          this.applyMove(bm.from,bm.to,isPromo?(bm.promo||'Q'):null);
         }else{
           console.warn('Stockfish returned no move, using random legal move');
           const legalMoves=E.allLegal(bd,'b',cas,ep);
@@ -15435,6 +15457,8 @@ const G={
     SFX.undo();  // Play undo sound
     S.bd=snap.bd;S.turn=snap.turn;S.cas=snap.cas;S.ep=snap.ep;
     S.capW=snap.capW;S.capB=snap.capB;S.hist=snap.hist;
+    S._transcript=(S._transcript||[]).slice(0,S.hist.length);
+    S._rewardSession=null;
     S.lastMove=snap.lastMove;S.moveCount=snap.moveCount;
     S.snapshots=snap.snapshots;
     S.repMap=snap.repMap||{};
@@ -16315,13 +16339,17 @@ const OL=(()=>{
         break;
 
       case 'chat':
+        CHAT._incomingSafety=d.safety||null;
         CHAT.recv(d.text);
+        CHAT._incomingSafety=null;
         break;
 
       case 'voice':
+        CHAT._incomingSafety=d.safety||null;
         if(d.audio){
           CHAT.recvVoice(d.audio,typeof d.duration==='number'?d.duration:parseInt(d.duration)||0,d.mime||'');
         }
+        CHAT._incomingSafety=null;
         break;
 
       case 'name':
@@ -16353,6 +16381,12 @@ const OL=(()=>{
 
       case 'rating:update':
         try{ showRatingUpdate(d); }catch(e){}
+        break;
+      case 'safety:restricted':
+        window.AMKHSafety?.open();
+        break;
+      case 'move:rejected':
+        Modal.show((window.I18N?.lang==='en')?'The server rejected this move. Reconnect to restore the game.':'الخادم رفض النقلة. أعد الاتصال لاستعادة المباراة.',(window.I18N?.lang==='en')?'Move rejected':'نقلة مرفوضة','✕');
         break;
 
       case 'clock':
@@ -17941,6 +17975,7 @@ const BLEManager = {
 
   async startGameUI() {
     G._reset('bluetooth', 0);
+    window.AMKHSecurity?.game(S);
     S.myCol = this.myColor;
     /* كل لاعب على جهازه، فالتخطيط يتبع لونه: أنا تحت والخصم فوق.
        كانت ناقصة فالشاشة كانت بتورث تخطيط اللعبة السابقة. */

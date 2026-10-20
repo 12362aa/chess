@@ -12,6 +12,24 @@ const db = require('./db.js');
 const { authenticateToken } = require('./auth.js');
 const express = require('express');
 const router = express.Router();
+const security=require('./security-core'),proof=require('./reward-proof');
+router.use(authenticateToken,(req,res,next)=>require('./play-integrity').guard(req,res,next));
+router.post('/puzzle-session',authenticateToken,(req,res)=>{
+ const b=req.body||{},p=proof.puzzleStart(req.user.id,b.puzzleId,b.mode,b.difficulty);
+ if(!p)return res.status(400).json({error:'unknown_puzzle'});res.json(p);
+});
+router.post('/puzzle-step',authenticateToken,(req,res)=>{
+ const b=req.body||{},p=proof.puzzleStep(req.user.id,b.sessionId,b.action,b.uci);
+ if(!p)return res.status(400).json({error:'invalid_session'});res.json(p);
+});
+router.post('/game-session',authenticateToken,(req,res)=>{
+ const b=req.body||{},key=proof.localStart(req.user.id,b.mode,b.level,b.eventId);
+ if(!key)return res.status(400).json({error:'invalid_session'});res.json({sessionId:key});
+});
+router.post('/engine-step',authenticateToken,async(req,res)=>{
+ const b=req.body||{};
+ try{const move=await proof.engineStep(req.user.id,b.sessionId,b.move);if(!move)return res.status(400).json({error:'invalid_game_step'});res.json(move);}catch(_){res.status(503).json({error:'engine_unavailable'});}
+});
 
 /* ══ أرقام الكسب (قابلة للضبط، متوازنة ضد الاستغلال) ══ */
 const AWARD = {
@@ -580,7 +598,7 @@ const updStreak = db.prepare('UPDATE users SET win_streak = ? WHERE id = ?');
    الموسّعةِ (بند جوجو ٣) فلا يمكنُ تلفيقُها على الجهاز. */
 const incEngineWins = db.prepare('UPDATE users SET engine_wins = COALESCE(engine_wins,0) + 1 WHERE id = ?');
 const qEngineWins   = db.prepare('SELECT COALESCE(engine_wins,0) AS n FROM users WHERE id = ?');
-const qNourAgg      = db.prepare('SELECT COUNT(*) AS done, COALESCE(SUM(stars),0) AS stars, COALESCE(SUM(CASE WHEN stars >= 3 THEN 1 ELSE 0 END),0) AS perfect FROM nour_progress WHERE user_id = ? AND completed = 1');
+const qNourAgg      = db.prepare('SELECT COUNT(*) AS done, COALESCE(SUM(stars),0) AS stars, COALESCE(SUM(CASE WHEN stars=3 THEN 1 ELSE 0 END),0) AS perfect FROM verified_nour WHERE user_id = ?');
 const qClaimedCount = db.prepare('SELECT COUNT(*) AS n FROM missions WHERE user_id = ? AND claimed = 1');
 
 function ensureWallet(userId) {
@@ -613,6 +631,9 @@ function grant(userId, coins, xp, reason, ref) {
    (fresh !== false) فلا تُحسَب نفسُ المباراة مرّتين. سلسلةُ الفوز تُتبَّع على
    users.win_streak (تُزاد بالفوز، تُصفَّر بالتعادل/الخسارة). */
 function awardGame(userId, outcome, roomRef, reason) {
+  if(security.active(userId,'economy'))return;
+  const today=db.prepare("SELECT COUNT(*) n FROM coin_ledger WHERE user_id=? AND reason IN ('game_win','game_draw','game_loss') AND created_at>=date('now')").get(userId).n;
+  if(today>=40)return;
   const key = outcome === 'win' ? 'game_win' : outcome === 'draw' ? 'game_draw' : 'game_loss';
   const a = AWARD[key];
   if (!a) return;
@@ -778,6 +799,7 @@ router.post('/home-challenges/claim',authenticateToken,(req,res)=>res.json(claim
 router.post('/home-challenges/local',authenticateToken,(req,res)=>{
  const b=req.body||{},id=String(b.eventId||'');
  if(!['local','bluetooth'].includes(b.mode)||!/^[-a-zA-Z0-9]{8,80}$/.test(id))return res.status(400).json({error:'bad_event'});
+ if(!proof.localClaim(req.user.id,b)){security.event(req.user.id,'unverified_reward',{kind:'home'});return res.status(400).json({error:'verified_game_required'});}
  db.transaction(()=>{if(grant(req.user.id,0,0,'home-event','home-event:'+id)){bumpHomeChallenges(req.user.id,'games');if(b.outcome==='win'&&b.mode!=='local')bumpHomeChallenges(req.user.id,'wins');}})();
  res.json(homeChallengesSnapshot(req.user.id));
 });
@@ -1267,6 +1289,8 @@ router.post('/claim-weekly', authenticateToken, (req, res) => {
 router.post('/puzzle-solved', authenticateToken, (req, res) => {
   const userId = req.user.id;
   const pid = (req.body && (req.body.puzzleId != null)) ? String(req.body.puzzleId).slice(0, 40) : '';
+  const verified=proof.puzzleClaim(userId,req.body?.sessionId,pid);
+  if(!verified){security.event(userId,'unverified_reward',{kind:'puzzle'});return res.status(400).json({error:'verified_solution_required'});}
   try {
     ensureWallet(userId);
     const today = qPuzzleToday.get(userId).n;
@@ -1285,7 +1309,7 @@ router.post('/puzzle-solved', authenticateToken, (req, res) => {
       /* تحدّي نور الأسبوعيّ: لغزٌ محلولٌ — بمواضيعِه لو أرسلَها العميل (تحدّي
          الموضوعِ يطابقُ عضويّةً، وتحدّي العددِ العامِّ يقبلُ الكلّ). */
       try {
-        var _th = req.body && req.body.themes;
+        var _th = verified.themes;
         var themes = Array.isArray(_th) ? _th.slice(0, 20).map(function (x) { return String(x).slice(0, 40); })
           : (req.body && req.body.theme ? [String(req.body.theme).slice(0, 40)] : null);
         bumpWeekly(userId, 'puzzle', { themes: themes });
@@ -1306,21 +1330,8 @@ router.post('/puzzle-solved', authenticateToken, (req, res) => {
 
 /* حدث «هزيمة نور» من العميل (وضع اللعب ضدّ نور) — يُمنح مرّة واحدة. */
 router.post('/beat-nour', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  try {
-    ensureWallet(userId);
-    const have = new Set(qAch.all(userId).map(r => r.ach_id));
-    let awarded = false;
-    if (!have.has('beat_nour')) {
-      insAch.run(userId, 'beat_nour');
-      grant(userId, AWARD.beat_nour.coins, AWARD.beat_nour.xp, 'ach:beat_nour', 'ach:beat_nour');
-      awarded = true;
-    }
-    // مهمّة «هزيمة نور» متكرّرة كلَّ دورة (مقصوصةٌ عند الهدف) بخلاف الإنجاز
-    // الذي يُمنح مرّةً واحدةً مدى الحياة.
-    bumpMissions(userId, 'nour', 1);
-    res.json({ awarded, ...snapshot(userId) });
-  } catch (e) { res.status(500).json({ error: 'economy_error' }); }
+  return res.status(410).json({error:'verified_game_required'});
+
 });
 
 /* نتيجةُ مباراةٍ محليّة (ضدّ نور أو المحرّك Stockfish) — تُقدّمُ المهامَّ فقط
@@ -1335,6 +1346,9 @@ router.post('/local-result', authenticateToken, (req, res) => {
   try {
     ensureWallet(userId);
     const b = req.body || {};
+    const verified=proof.localClaim(userId,b);
+    if(!verified){security.event(userId,'unverified_reward',{kind:'local'});return res.status(400).json({error:'verified_game_required'});}
+    Object.assign(b,verified);
     const outcome = b.outcome === 'win' ? 'win' : b.outcome === 'draw' ? 'draw' : 'loss';
     const reason = String(b.reason || '').toLowerCase();
     const mode = b.mode === 'nour' ? 'nour' : b.mode === 'engine' ? 'engine' : '';

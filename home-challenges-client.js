@@ -32,7 +32,11 @@
       const row=document.createElement('div');row.className='home-quest';
       const body=document.createElement('div');
       const name=document.createElement('div');name.className='home-quest__name';name.textContent=labels[q.id]?L(...labels[q.id]):q.id;
-      const reward=document.createElement('div');reward.className='home-quest__reward';reward.textContent='+'+q.coins+' '+L('عملة','coins')+' · +'+q.xp+' XP';
+      const reward=document.createElement('div');reward.className='home-quest__reward';
+      const ak=document.createElement('span');ak.className='home-quest__ak';ak.innerHTML=window.amkhCos?.coin?.()||'';ak.append(document.createTextNode('+'+q.coins+' AK'));
+      const xp=document.createElement('span');xp.className='home-quest__xp';
+      const existing=document.querySelector('#home-econ .home-econ__level svg');if(existing)xp.append(existing.cloneNode(true));
+      xp.append(document.createTextNode('+'+q.xp+' XP'));reward.append(ak,xp);
       const track=document.createElement('div');track.className='home-quest__track';
       const fill=document.createElement('div');fill.className='home-quest__fill';fill.style.width=Math.min(100,q.progress/q.target*100)+'%';track.appendChild(fill);
       body.append(name,reward,track);
@@ -53,7 +57,7 @@
   }
   window.HOME_CHALLENGES={
     async render(){const id=++renderId;if(owner!==uid()){state=null;owner=uid();}draw();await refresh();if(id===renderId)draw();},
-    async local(mode,outcome,eventId){if(!['local','bluetooth'].includes(mode))return;await request('/local',{mode,outcome,eventId});await refresh();draw();},
+    async local(mode,outcome,eventId){if(!['local','bluetooth'].includes(mode))return;const end=S.endState||{},proof=await window.AMKHSecurity?.proof(S);if(mode==='local')outcome=end.winner==='w'?'win':end.winner==='b'?'loss':'draw';await request('/local',{mode,outcome,eventId,reason:end.reason||'',...proof});await refresh();draw();},
     refresh,
   };
   window.addEventListener('amkh:cosmetics',()=>{if(document.getElementById('s-menu')?.classList.contains('active'))window.HOME_CHALLENGES.render();});

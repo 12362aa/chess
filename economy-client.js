@@ -90,10 +90,10 @@
     /* أبلغ الخادم بحلّ لغز — هو يطبّق السقف اليومي ويمنع التكرار. themes
        اختياريّ: مصفوفةُ مواضيعِ اللغز (mateIn2/fork/…) لمطابقةِ تحدّي نورَ
        الأسبوعيِّ (يقبلُ أيضًا سلسلةً واحدةً للتوافق). */
-    notifyPuzzleSolved: function (puzzleId, themes) {
+    notifyPuzzleSolved: function (puzzleId, themes, sessionId) {
       var tok = this._token(); if (!tok) return;
       var self = this, requestUid=ownerUid();
-      var body = { puzzleId: puzzleId != null ? String(puzzleId) : undefined };
+      var body = { puzzleId: puzzleId != null ? String(puzzleId) : undefined,sessionId };
       if (Array.isArray(themes)) body.themes = themes;
       else if (themes) body.theme = String(themes);
       fetch(this._api() + '/economy/puzzle-solved', {
@@ -120,7 +120,7 @@
        (بلاغ جوجو #9). mode:'nour'|'engine'، outcome:'win'|'draw'|'loss'،
        reason مثل 'checkmate'. extra اختياريّ {level,moves} لتحدّي نورَ
        الأسبوعيِّ (مستوى نورِ ونقلاتُ المباراة). لا عملةَ مباراةٍ هنا. */
-    notifyLocalResult: function (mode, outcome, reason, extra) {
+    notifyLocalResult: async function (mode, outcome, reason, extra) {
       var tok = this._token(); if (!tok) return;
       if (mode !== 'nour' && mode !== 'engine') return;
       var self = this, requestUid=ownerUid();
@@ -129,6 +129,8 @@
         if (extra.level != null) body.level = Number(extra.level) || 0;
         if (extra.moves != null) body.moves = Number(extra.moves) || 0;
       }
+      Object.assign(body,await window.AMKHSecurity?.proof(S));
+      if(requestUid!==ownerUid()||tok!==this._token())return;
       fetch(this._api() + '/economy/local-result', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
