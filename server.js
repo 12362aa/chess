@@ -3183,10 +3183,13 @@ const server = http.createServer(app);
 ══════════════════════════════════════ */
 const wss = new WebSocketServer({ server,maxPayload:12*1024*1024 });
 moderationRouter.onSanction=(id)=>{
+ const sanction=security.active(id,'social')||security.active(id,'economy');
+ if(sanction&&sanction.scope!=='economy')for(const c of db.prepare("SELECT id,peer_id FROM safety_context WHERE user_id=? AND kind='call' AND created_at>?").all(id,Date.now()-86400000))bcastUser(c.peer_id,{type:'call:hangup',from:id,callId:c.id});
  for(const ws of wss.clients){
   const info=getRoomAndSide(ws);
   const uid=socketUser.get(ws)||(info&&info.room[info.side+'Id']);
   if(Number(uid)!==Number(id))continue;
+  if(info&&sanction?.scope!=='economy')relay(ws,{type:'mic:end'});
   send(ws,{type:'safety:restricted',sanction:security.active(id,'social')||security.active(id,'economy')});
   ws.close(4003,'Account restricted');
  }

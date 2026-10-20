@@ -1352,6 +1352,10 @@ const amkhAuth = {
       let d = null;
       try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d || typeof d.type !== 'string') return;
+      if(d.type==='safety:restricted'){
+        try{window.amkhCall?._end('restricted');window.MIC?.stop?.();}catch(_){}
+        window.AMKHSafety?.open();return;
+      }
       /* إيصالات التوثيق والنبض أول حاجة: عليها بيتبنى كل الباقي */
       if (d.type.indexOf('presence:') === 0 && this._onPresenceFrame(d, ws)) return;
       if (d.type.indexOf('chat:') === 0) {

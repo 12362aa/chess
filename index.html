@@ -16383,6 +16383,7 @@ const OL=(()=>{
         try{ showRatingUpdate(d); }catch(e){}
         break;
       case 'safety:restricted':
+        try{window.amkhCall?._end('restricted');window.MIC?.stop?.();}catch(_){}
         window.AMKHSafety?.open();
         break;
       case 'move:rejected':
