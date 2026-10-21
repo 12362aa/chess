@@ -224,11 +224,12 @@ const amkhFriends = {
      لو استهلكت الرسالة، عشان اللي بيناديها يعرف إنها مش محتاجة معالجة
      تانية. */
   handleSocketMessage(d) {
-    if(d&&d.type==='safety:restricted'){window.AMKHSafety?.open();return true;}
+    if(d&&d.type==='safety:restricted'){window.AMKHSafety?.restricted(d.sanction);return true;}
     if (!d || typeof d.type !== 'string') return false;
     if (!d.type.startsWith('friend:') && !d.type.startsWith('party:')) return false;
     switch (d.type) {
       case 'friend:presence-update': {
+        if(d.safety_changed){this.loadFriends().then(()=>{if(this._sheet)this._render();});}
         const f = this._friends.find(x => x.id === d.friend_id);
         if (f) {
           f.status = d.status || (d.is_online ? 'online' : 'offline');
@@ -662,7 +663,7 @@ const amkhFriends = {
       img.alt = '';
       img.loading = 'lazy';
       img.onerror = () => { img.remove(); av.textContent = initial; };
-      img.src = user.avatar_url;
+      img.src = window.AMKHSafety?.publicAvatar(user)||user.avatar_url;
       av.appendChild(img);
     } else {
       av.textContent = initial;
@@ -717,6 +718,7 @@ const amkhFriends = {
   },
 
   _statusLabel(f) {
+    if(f.banned)return {text:window.I18N?.lang==='en'?'Banned':'محظور',cls:''};
     if (f.status === 'in-game') return { text: 'في مباراة', cls: 'is-ingame' };
     if (f.online) return { text: 'متصل', cls: 'is-online' };
     return { text: this._ago(f.last_seen_at), cls: '' };

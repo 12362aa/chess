@@ -43,6 +43,12 @@ public class FcmService extends MessagingService {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         Map<String, String> data = remoteMessage.getData();
         String kind = data != null ? data.get("kind") : null;
+        if ("moderation".equals(kind)) {
+            // Review requests must also reach the Android tray while the app is open.
+            try { showChatNotification(data); } catch (Exception e) {}
+            super.onMessageReceived(remoteMessage);
+            return;
+        }
         if ("call".equals(kind)) {
             try {
                 showCallNotification(data);
@@ -109,6 +115,7 @@ public class FcmService extends MessagingService {
         openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         String link = data.get("link");
         if (link != null && !link.isEmpty()) openIntent.putExtra("push_link", link);
+        if ("moderation".equals(kind)) openIntent.putExtra("open_moderation", true);
         if ("group".equals(kind)) {
             String gid = data.get("group_id");
             if (gid != null) openIntent.putExtra("open_group", gid);

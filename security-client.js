@@ -26,7 +26,11 @@
   if(token&&url.origin===base.origin&&url.pathname.startsWith(base.pathname.replace(/\/$/,'')+'/economy/')&&headers.get('Authorization')==='Bearer '+token){
    const pass=await attest(token,uid);if(pass)headers.set('x-amkh-integrity',pass);init={...init,headers};
   }
-  return nativeFetch(input,init);
+  const response=await nativeFetch(input,init);
+  if(response.status===403&&token&&url.origin===base.origin&&url.pathname.startsWith(base.pathname.replace(/\/$/,'')+'/')&&headers.get('Authorization')==='Bearer '+token){
+   response.clone().json().then(d=>{if(d.error==='account_restricted'&&uid===window.amkhAuth?.user?.id&&token===window.amkhAuth?.token)window.AMKHSafety?.restricted(d.sanction);}).catch(()=>{});
+  }
+  return response;
  };
  async function request(path,body){
   const token=window.amkhAuth?.token,uid=window.amkhAuth?.user?.id;if(!token)return null;

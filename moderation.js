@@ -1,9 +1,11 @@
 'use strict';
 const express=require('express'),S=require('./security-core'),{authenticateToken}=require('./auth');
 const router=express.Router(),db=S.db;
+// Existing open items become visible on the moderator's next sign-in too.
+for(const u of db.prepare('SELECT user_id FROM moderation_roles').all())for(const [kind,table] of [['report','moderation_reports'],['appeal','moderation_appeals']])db.prepare(`INSERT OR IGNORE INTO moderation_notifications(user_id,kind,subject_id,created_at) SELECT ?,?,id,created_at FROM ${table} WHERE status='open'`).run(u.user_id,kind);
 const REASONS=new Set(['harassment','hate','sexual','threat','spam','cheating','other']);
 router.use(authenticateToken);
-router.get('/status',(req,res)=>res.json({moderator:S.moderator(req.user.id),sanctions:db.prepare('SELECT id,scope,reason,expires_at,revoked_at,created_at FROM account_sanctions WHERE user_id=? ORDER BY id DESC LIMIT 20').all(req.user.id),appeals:db.prepare('SELECT id,sanction_id,status FROM moderation_appeals WHERE user_id=? ORDER BY id DESC LIMIT 20').all(req.user.id)}));
+router.get('/status',(req,res)=>{res.set('Cache-Control','no-store');res.json({moderator:S.moderator(req.user.id),active:{account:S.active(req.user.id,'account'),social:S.active(req.user.id,'social'),economy:S.active(req.user.id,'economy')},notifications:S.moderator(req.user.id)?S.notificationCounts(req.user.id):null,sanctions:db.prepare('SELECT id,scope,reason,reason_key,automatic,expires_at,revoked_at,created_at FROM account_sanctions WHERE user_id=? ORDER BY id DESC LIMIT 20').all(req.user.id),appeals:db.prepare('SELECT id,sanction_id,status FROM moderation_appeals WHERE user_id=? ORDER BY id DESC LIMIT 20').all(req.user.id)});});
 function trustedEvidence(me,target,kind,id) {
  if(kind==='game-message'){const m=db.prepare('SELECT * FROM game_chat_evidence WHERE id=?').get(id);return m&&m.sender_id===target&&m.recipient_id===me?m:null;}
  if(kind==='dm'){
@@ -42,7 +44,7 @@ router.post('/reports',(req,res)=>{
   for(const to of recipients())db.prepare('INSERT OR IGNORE INTO moderation_outbox(report_id,recipient,next_at) VALUES(?,?,?)').run(r.lastInsertRowid,to,Date.now());
   return Number(r.lastInsertRowid);
  })();
- res.status(201).json({ok:true,id:reportId});
+ S.notifyModerators('report',reportId);res.status(201).json({ok:true,id:reportId});
 });
 router.get('/reports',(req,res)=>res.json({reports:db.prepare('SELECT id,target_id,context,reason,status,decision,created_at FROM moderation_reports WHERE reporter_id=? ORDER BY id DESC LIMIT 50').all(req.user.id)}));
 router.post('/appeals',(req,res)=>{
@@ -52,9 +54,10 @@ router.post('/appeals',(req,res)=>{
  if(existing)return res.json({ok:true,id:existing.id});
  const n=db.prepare('SELECT COUNT(*) n FROM moderation_appeals WHERE user_id=? AND created_at>?').get(req.user.id,Date.now()-86400000).n;
  if(n>=3)return res.status(429).json({error:'appeal_limit'});
- const r=db.prepare('INSERT INTO moderation_appeals(user_id,sanction_id,note,created_at) VALUES(?,?,?,?)').run(req.user.id,id,note,Date.now());res.status(201).json({ok:true,id:Number(r.lastInsertRowid)});
+ const r=db.prepare('INSERT INTO moderation_appeals(user_id,sanction_id,note,created_at) VALUES(?,?,?,?)').run(req.user.id,id,note,Date.now());S.notifyModerators('appeal',Number(r.lastInsertRowid));res.status(201).json({ok:true,id:Number(r.lastInsertRowid)});
 });
 router.use('/admin',(req,res,next)=>S.moderator(req.user.id)?next():res.status(403).json({error:'moderator_only'}));
+router.post('/admin/seen',(req,res)=>{const cursor=Number(req.body.cursor);if(!Number.isSafeInteger(cursor)||cursor<0)return res.status(400).json({error:'invalid_cursor'});db.prepare('UPDATE moderation_notifications SET seen_at=? WHERE user_id=? AND id<=? AND seen_at IS NULL').run(Date.now(),req.user.id,cursor);res.json(S.notificationCounts(req.user.id));});
 router.post('/admin/event-review',(req,res)=>{
  const e=db.prepare('SELECT * FROM security_events WHERE id=?').get(Number(req.body.eventId));if(!e?.user_id||S.moderator(e.user_id))return res.status(400).json({error:'invalid_event'});
  const old=db.prepare("SELECT * FROM moderation_reports WHERE context='security' AND context_id=? AND status='open'").get(String(e.id));if(old)return res.json(old);
@@ -72,7 +75,7 @@ router.post('/admin/decision',(req,res)=>{
  if(!r||!['dismissed','actioned'].includes(b.status)||r.status!=='open')return res.status(400).json({error:'invalid_decision'});
  const note=String(b.note||'').trim();if(!note||note.length>1500)return res.status(400).json({error:'reason_required'});
  let sanctionId=null;
- const durations={hour:3600000,day:86400000,week:604800000,month:2592000000,permanent:null};
+ const durations={hour:3600000,day:86400000,threeDays:259200000,week:604800000,month:2592000000,permanent:null};
  if(b.status==='actioned'&&(!S.scopes.has(b.scope)||!Object.hasOwn(durations,b.duration)))return res.status(400).json({error:'invalid_sanction'});
  if(S.moderator(r.target_id)&&b.status==='actioned')return res.status(403).json({error:'protected_moderator'});
  db.transaction(()=>{
@@ -80,22 +83,43 @@ router.post('/admin/decision',(req,res)=>{
   if(b.status==='actioned')sanctionId=Number(db.prepare('INSERT INTO account_sanctions(user_id,scope,reason,expires_at,moderator_id,report_id,created_at) VALUES(?,?,?,?,?,?,?)').run(r.target_id,b.scope,note,durations[b.duration]===null?null:Date.now()+durations[b.duration],req.user.id,id,Date.now()).lastInsertRowid);
   S.audit(req.user.id,'decision',r.target_id,{reportId:id,status:b.status,sanctionId,note});
  })();
+ router.onNotice?.();
  if(sanctionId)router.onSanction?.(r.target_id);
  res.json({ok:true,sanctionId});
 });
 router.post('/admin/revoke',(req,res)=>{
  const id=Number(req.body.sanctionId),note=String(req.body.note||'').trim();if(!note||note.length>1500)return res.status(400).json({error:'reason_required'});
  const s=db.prepare('SELECT user_id FROM account_sanctions WHERE id=? AND revoked_at IS NULL').get(id);if(!s)return res.status(404).json({error:'not_found'});
- db.transaction(()=>{db.prepare('UPDATE account_sanctions SET revoked_at=? WHERE id=?').run(Date.now(),id);db.prepare("UPDATE moderation_appeals SET status='resolved' WHERE sanction_id=?").run(id);S.audit(req.user.id,'revoke',s.user_id,{sanctionId:id,note});})();res.json({ok:true});
+ db.transaction(()=>{db.prepare('UPDATE account_sanctions SET revoked_at=? WHERE id=?').run(Date.now(),id);db.prepare("UPDATE moderation_appeals SET status='resolved' WHERE sanction_id=?").run(id);S.audit(req.user.id,'revoke',s.user_id,{sanctionId:id,note});})();router.onSanction?.(s.user_id);router.onNotice?.();res.json({ok:true});
 });
 router.post('/admin/appeal-decision',(req,res)=>{
  const id=Number(req.body.appealId),note=String(req.body.note||'').trim(),status=req.body.status;
  if(!note||note.length>1500||!['accepted','rejected'].includes(status))return res.status(400).json({error:'invalid_decision'});
  const a=db.prepare("SELECT * FROM moderation_appeals WHERE id=? AND status='open'").get(id);if(!a)return res.status(404).json({error:'not_found'});
- db.transaction(()=>{db.prepare('UPDATE moderation_appeals SET status=? WHERE id=?').run(status,id);if(status==='accepted')db.prepare('UPDATE account_sanctions SET revoked_at=? WHERE id=?').run(Date.now(),a.sanction_id);S.audit(req.user.id,'appeal-'+status,a.user_id,{appealId:id,note});})();res.json({ok:true});
+ db.transaction(()=>{db.prepare('UPDATE moderation_appeals SET status=? WHERE id=?').run(status,id);if(status==='accepted')db.prepare('UPDATE account_sanctions SET revoked_at=? WHERE id=?').run(Date.now(),a.sanction_id);S.audit(req.user.id,'appeal-'+status,a.user_id,{appealId:id,note});})();router.onSanction?.(a.user_id);router.onNotice?.();res.json({ok:true});
 });
 function recipients(){return [...new Set(String(process.env.MODERATION_EMAILS||'').split(',').map(s=>s.trim()).filter(s=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)))].slice(0,3);}
 let sending=false;
+let pushing=false;
+async function deliverPush(){
+ if(pushing||!router.pushTokens||!router.sendPush)return;pushing=true;
+ try{for(const u of db.prepare('SELECT user_id FROM moderation_roles').all()){
+  for(const token of [...new Set(router.pushTokens(u.user_id))]){
+   const hash=require('node:crypto').createHash('sha256').update(token).digest('hex');
+   // Completed unread deliveries must not starve newer notifications behind them.
+   const pending=db.prepare('SELECT n.* FROM moderation_notifications n LEFT JOIN moderation_push_receipts p ON p.notification_id=n.id AND p.token_hash=? WHERE n.user_id=? AND n.seen_at IS NULL AND n.created_at>? AND p.delivered_at IS NULL AND COALESCE(p.next_at,0)<=? ORDER BY n.id LIMIT 20').all(hash,u.user_id,Date.now()-7*86400000,Date.now());
+   for(const n of pending){
+   db.prepare('INSERT OR IGNORE INTO moderation_push_receipts(notification_id,token_hash) VALUES(?,?)').run(n.id,hash);
+   const row=db.prepare('SELECT * FROM moderation_push_receipts WHERE notification_id=? AND token_hash=?').get(n.id,hash);if(row.delivered_at||row.next_at>Date.now())continue;
+   const title={ar:'مراجعة السلامة • Am-Kh',en:'Safety review • Am-Kh'};
+   const body=n.kind==='report'?{ar:'بلاغ جديد #'+n.subject_id+' ينتظر مراجعتك.',en:'New report #'+n.subject_id+' awaits your review.'}:n.kind==='appeal'?{ar:'اعتراض جديد #'+n.subject_id+' ينتظر مراجعتك.',en:'New appeal #'+n.subject_id+' awaits your review.'}:{ar:'تم تطبيق تقييد تلقائي موثق. راجع سجل السلامة.',en:'An evidenced automatic restriction was applied. Review the safety log.'};
+   let result;try{result=await router.sendPush([token],{title,body,dataOnly:true,tag:'safety-'+n.id,data:{kind:'moderation',notification_id:String(n.id),tag:'safety-'+n.id}});}catch(_){}
+   if(result?.successCount>0)db.prepare('UPDATE moderation_push_receipts SET delivered_at=? WHERE notification_id=? AND token_hash=?').run(Date.now(),n.id,hash);
+   else db.prepare('UPDATE moderation_push_receipts SET attempts=attempts+1,next_at=? WHERE notification_id=? AND token_hash=?').run(Date.now()+Math.min(3600000,30000*2**Math.min(row.attempts,7)),n.id,hash);
+   }
+  }
+ }}finally{pushing=false;}
+}
 async function deliverPending(){
  if(sending||!require('./mailer').ready())return;
  sending=true;
@@ -104,6 +128,7 @@ async function deliverPending(){
   catch(_){db.prepare('UPDATE moderation_outbox SET attempts=attempts+1,next_at=? WHERE id=?').run(Date.now()+Math.min(86400000,60000*Math.pow(2,Math.min(row.attempts,10))),row.id);}
  }}finally{sending=false;}
 }
-router.startDelivery=()=>{const t=setInterval(()=>{deliverPending().catch(()=>{});S.cleanup();},60000);t.unref();};
+router.startDelivery=()=>{const t=setInterval(()=>{deliverPending().catch(()=>{});deliverPush().catch(()=>{});S.cleanup();},30000);t.unref();};
 router.deliverPending=deliverPending;
+router.deliverPush=deliverPush;
 module.exports=router;

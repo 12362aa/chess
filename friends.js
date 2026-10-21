@@ -57,6 +57,8 @@ function cosOf(row) {
 /* الحالة النهائية بتجمع القاعدة مع السوكت: القاعدة بتقول آخر حالة
    محفوظة، والسوكت بيقول الحقيقة دلوقتي. السوكت أولى لأنه لحظي. */
 function decorateStatus(row, viewerId) {
+  const safety=require('./security-core');
+  if(safety.permanent(row.id))return safety.publicUser({id:row.id,username:row.username,display_name:row.display_name,avatar_url:null,cosmetics:null,status:'offline',online:false,last_seen_at:null,rating:0,provisional:false,rating_games:0});
   const live = realtime.statusOf(row.id);
   /* سيرفر واحد (fork mode)، فالسوكت هو الحقيقة الوحيدة للاتصال دلوقتي:
      لو مفيش سوكت مفتوح للمستخدم يبقى offline مهما قال عمود is_online

@@ -435,6 +435,7 @@ const amkhChat = {
   /* إرسال رسالة: عرض متفائل بمعرّف مؤقت، وبعدين chat:sent بيصلّح المعرّف.
      ولو مفيش سوكت، الرسالة تتأجّل في الطابور بدل ما تضيع (#8). */
   sendMessage(friendId, body) {
+    if(window.AMKHSafety&&!window.AMKHSafety.allow('social'))return;
     body = String(body || '').trim();
     if (!body) return;
     const clientId = 'c' + (++this._cid) + '_' + Date.now();
@@ -1105,7 +1106,7 @@ const amkhChat = {
       img.alt = ''; img.loading = 'lazy';
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
       img.onerror = () => { img.remove(); ava.textContent = initial; };
-      img.src = fm.avatar_url;
+      img.src = window.AMKHSafety?.publicAvatar(fm)||fm.avatar_url;
       ava.appendChild(img);
     } else ava.textContent = initial;
     meta.appendChild(ava);
@@ -1326,7 +1327,7 @@ const amkhChat = {
       const img = document.createElement('img');
       img.className = 'ch-conv__av-img'; img.alt = ''; img.loading = 'lazy';
       img.onerror = () => { img.remove(); av.textContent = initial; };
-      img.src = meta.avatar_url;
+      img.src = window.AMKHSafety?.publicAvatar(meta)||meta.avatar_url;
       av.appendChild(img);
     } else av.textContent = initial;
     try { if (window.amkhCos) window.amkhCos.paint(av, meta && meta.cosmetics); } catch (e) {}

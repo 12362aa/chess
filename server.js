@@ -216,7 +216,7 @@ function _sendPushGroup(tokens, payload, lang) {
     message = {
       tokens,
       data: Object.fromEntries(Object.entries({ ...withLang, link, title, body }).map(([k, v]) => [String(k), String(v)])),
-      android: { priority: 'high', ttl: 60000 },
+      android: { priority: 'high', ttl: data.kind==='moderation'?604800000:60000 },
     };
   } else {
     message = {
@@ -1329,11 +1329,11 @@ app.post('/api/delivered', express.json({ limit: '2kb' }), (req, res) => {
    بينما بقي APP_VERSION_CODE وLATEST_CODE عند 37، لأن إشعار التحديث
    الداخلي معطَّل (التطبيق على Google Play والمتجر يتولّى التحديث). تُرفَع
    الثلاثة معًا هنا كي يظلّ الرقم صادقًا لو أُعيد تفعيل الإشعار يومًا. */
-const LATEST_VERSION = '1.3';
-const LATEST_CODE = 4;
-const APK_URL = 'https://github.com/12362aa/chess/releases/download/v1.3-b76/AmKh-Chess-1.3.apk';
-const NOTES_AR = 'حماية المكافآت والنتائج، الإبلاغ والمراجعة والعقوبات والاعتراضات، نوافذ ألغاز بثيم اللعبة، عودة بوابة المتجر وتطوير بوابة الجوائز، ومكافآت AK وXP.';
-const NOTES_EN = 'Verified rewards and results, reports with review and penalties/appeals, themed puzzle windows, restored Store portal, refreshed Rewards portal and AK/XP quest graphics.';
+const LATEST_VERSION = '1.4';
+const LATEST_CODE = 5;
+const APK_URL = 'https://github.com/12362aa/chess/releases/download/v1.4-b77/AmKh-Chess-1.4.apk';
+const NOTES_AR = 'إشعارات البلاغات والاعتراضات للإدارة، شاشة حظر كاملة بالسبب والمدة والاعتراض، صورة الحساب المحظور وتصفير ظهوره العام، وتصعيد تلقائي موثق للتلاعب بجلسات المكافآت.';
+const NOTES_EN = 'Moderator report and appeal notifications, a complete ban screen with reason/expiry/appeal, banned public avatars and zeroed stats, and evidenced automatic escalation for foreign reward-session abuse.';
 app.get('/api/version', (req, res) => {
   res.json({
     version: LATEST_VERSION,
@@ -1391,7 +1391,7 @@ app.get('/api/leaderboard', (req, res) => {
                puzzle_rating, puzzle_rd, puzzle_games, puzzle_peak, puzzle_solved,
                ${COS_COLS}
         FROM users
-        WHERE puzzle_games >= 1
+        WHERE puzzle_games >= 1 AND ${security.PERMANENT_SQL}
         ORDER BY (puzzle_rating - 2 * puzzle_rd) DESC, puzzle_games DESC
         LIMIT ?`).all(limit);
       const out = rows.map((u, i) => {
@@ -1423,7 +1423,7 @@ app.get('/api/leaderboard', (req, res) => {
              rating, rating_rd, rating_games, rating_peak, wins, losses, draws,
              ${COS_COLS}
       FROM users
-      WHERE rating_games >= 1 OR (COALESCE(wins,0) + COALESCE(losses,0) + COALESCE(draws,0)) >= 1
+      WHERE (rating_games >= 1 OR (COALESCE(wins,0) + COALESCE(losses,0) + COALESCE(draws,0)) >= 1) AND ${security.PERMANENT_SQL}
       ORDER BY ${order}
       LIMIT ?`).all(limit);
     const out = rows.map((u, i) => {
@@ -1467,6 +1467,7 @@ app.get('/api/profile/:id', (req, res) => {
                                  ${COS_COLS}
                             FROM users WHERE id = ?`).get(uid);
     if (!u) return res.status(404).json({ error: 'لاعب غير موجود' });
+    if(security.permanent(uid)){res.set('Cache-Control','no-store');return res.json({player:security.publicUser({id:u.id,name:resolveOnlineName(u),avatar_url:null,cosmetics:null,country:null,joined_at:u.created_at,status:'offline'}),rating:{rating:0,peak:0,games:0,rd:0,provisional:false},rank:null,stats:{wins:0,losses:0,draws:0,rated:0,friendly:0,as_white:0,as_black:0,current_streak:0},games:[]});}
     const stats = ratingStore.statsOf(uid);
     const games = ratingStore.recentGames(uid, 12);
     /* الترتيب العالمي: عدد اللي أمامه بالتقييم المتحفّظ + 1 */
@@ -1476,7 +1477,7 @@ app.get('/api/profile/:id', (req, res) => {
       const me = (isFinite(u.rating) ? u.rating : 1500) - 2 * rd;
       const ahead = db.prepare(`SELECT COUNT(*) AS c FROM users
                                  WHERE (rating_games >= 1 OR (COALESCE(wins,0)+COALESCE(losses,0)+COALESCE(draws,0)) >= 1)
-                                   AND (rating - 2 * rating_rd) > ?`).get(me).c;
+                                   AND ${security.PERMANENT_SQL} AND (rating - 2 * rating_rd) > ?`).get(me).c;
       rank = ahead + 1;
     } catch (e) {}
     res.json({
@@ -2101,6 +2102,7 @@ function abortUserBattles(userId) {
 /* حالة المستخدم من السوكت مباشرة: أدق من العمود في القاعدة لأن القاعدة
    ممكن تكون فايتها آخر قطع اتصال. */
 function liveStatus(userId) {
+  if(security.active(userId,'account'))return 'offline';
   const socks = socketsOf(userId).filter(s => s.readyState === WebSocket.OPEN);
   if (!socks.length) return null;
   /* جوه مباراة = عنده سوكت مرتبط بغرفة شغّالة، أو أبلّغ إنه في مباراة
@@ -2122,6 +2124,7 @@ function liveStatus(userId) {
    • مكالمة حفلة (group موجود): لازم الطرفين أعضاء في نفس الحفلة.
    بترجّع true لو مسموح. ده بيمنع أي حد يبعت إشارة لأي مستخدم عشوائي. */
 function callPeerAllowed(meId, peerId, groupId) {
+  if(security.active(meId,'social')||security.active(peerId,'social'))return false;
   if (!meId || !peerId || meId === peerId) return false;
   try {
     if (groupId) {
@@ -2565,7 +2568,7 @@ function sendCallPushToUser(fromId, toId, group, callId, callType) {
 
 /* بثّ الحضور لأصدقاء مستخدم. بيبعت الحالة الغنية (online / in-game /
    offline) وكمان is_online عشان أي عميل قديم يفضل شغّال. */
-function broadcastPresence(userId, statusOverride) {
+function broadcastPresence(userId, statusOverride, safetyChanged=false) {
   try {
     const status = statusOverride || liveStatus(userId) || 'offline';
     const inGame = status === 'in-game';
@@ -2578,6 +2581,7 @@ function broadcastPresence(userId, statusOverride) {
       is_online: status === 'offline' ? 0 : 1,
       in_game: inGame ? 1 : 0,
       last_seen_at: new Date().toISOString(),
+      ...(safetyChanged?{safety_changed:true}:{}),
     };
     for (const f of db.prepare('SELECT friend_id FROM friendships WHERE user_id = ?').all(userId)) {
       for (const fws of socketsOf(f.friend_id)) send(fws, payload);
@@ -3189,11 +3193,16 @@ moderationRouter.onSanction=(id)=>{
   const info=getRoomAndSide(ws);
   const uid=socketUser.get(ws)||(info&&info.room[info.side+'Id']);
   if(Number(uid)!==Number(id))continue;
-  if(info&&sanction?.scope!=='economy')relay(ws,{type:'mic:end'});
+  if(info&&sanction&&sanction.scope!=='economy')relay(ws,{type:'mic:end'});
   send(ws,{type:'safety:restricted',sanction:security.active(id,'social')||security.active(id,'economy')});
-  ws.close(4003,'Account restricted');
+  if(sanction?.scope==='account')ws.close(4003,'Account restricted');
  }
+ broadcastPresence(id,undefined,true);
 };
+security.onSanction=moderationRouter.onSanction;
+security.onNotice=moderationRouter.onNotice=()=>{for(const u of db.prepare('SELECT user_id FROM moderation_roles').all())bcastUser(u.user_id,{type:'safety:notice',notifications:security.notificationCounts(u.user_id)});moderationRouter.deliverPush().catch(()=>{});};
+moderationRouter.pushTokens=getTokensForUser;
+moderationRouter.sendPush=sendPushToTokens;
 
 wss.on('connection', (ws, req) => {
   console.log(`[+] client connected | total: ${wss.clients.size}`);
@@ -3218,9 +3227,9 @@ wss.on('connection', (ws, req) => {
     const ri=getRoomAndSide(ws),uid=socketUser.get(ws)||(ri&&ri.room[ri.side+'Id'])||tokenUid;
     if(uid){
       if((socketUser.has(ws)||ri)&&!security.validToken({id:uid,v:ws._authVersion})){ws.close(4003,'Session expired');return;}
-      const scope=/^(call:|chat:|group:|mic:|voice$|chat$)/.test(msg.type)?'social':'account';
+      const scope=/^(call:|chat:|group:|mic:|friend:|party:|voice$|chat$|pimg$)/.test(msg.type)?'social':'account';
       const sanction=security.active(uid,scope);
-      if(sanction){send(ws,{type:'safety:restricted',sanction});ws.close(4003,'Account restricted');return;}
+      if(sanction){send(ws,{type:'safety:restricted',sanction});if(sanction.scope==='account')ws.close(4003,'Account restricted');return;}
     }
 
     try{switch (msg.type) {

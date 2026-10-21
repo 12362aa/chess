@@ -28,6 +28,23 @@ public class CallIntentPlugin extends Plugin {
     static volatile long pendingAt = 0L;
 
     static CallIntentPlugin instance;
+    static volatile boolean pendingModeration;
+
+    @PluginMethod
+    public void consumeModeration(PluginCall call) {
+        JSObject result = new JSObject();
+        synchronized (CallIntentPlugin.class) {
+            result.put("open", pendingModeration);
+            pendingModeration = false;
+        }
+        call.resolve(result);
+    }
+
+    static void deliverModeration() {
+        pendingModeration = true;
+        CallIntentPlugin plugin = instance;
+        if (plugin != null) plugin.notifyListeners("moderationOpen", new JSObject());
+    }
 
     @Override
     public void load() { instance = this; }

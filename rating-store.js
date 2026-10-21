@@ -203,7 +203,7 @@ function recentGames(userId, limit) {
         rated: !!g.rated,
         opp_id: iAmWhite ? g.black_id : g.white_id,
         opp_name: (iAmWhite ? g.black_name : g.white_name) || 'لاعب',
-        opp_avatar: (iAmWhite ? g.black_avatar : g.white_avatar) || null,
+        opp_avatar: require('./security-core').permanent(iAmWhite?g.black_id:g.white_id)?'/banned-avatar-ar.svg':(iAmWhite ? g.black_avatar : g.white_avatar) || null,
       };
     });
   } catch (e) { return []; }

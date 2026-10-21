@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>try{const u=JSON.parse(localStorage.getItem('amkh_user')||'null'),s=u?.safety?.account;if(localStorage.getItem('amkh_auth_token')&&(!u?.safety||s&&!s.revoked_at))document.documentElement.classList.add('safety-account-locked');}catch(_){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
 <meta name="screen-orientation" content="portrait">
 <meta name="theme-color" content="#0a0a14">
@@ -3179,13 +3180,13 @@ html.amkh-preboot #amkh-preboot{
    كـ.screen فلا تتأثّر). */
 html.amkh-preboot .screen{ visibility:hidden !important; }
 </style>
-<link rel="stylesheet" href="mobile-performance.css?v=1.3-b76">
-<link rel="stylesheet" href="safety.css?v=1.3-b76">
-<script defer src="security-client.js?v=1.3-b76"></script>
-<script defer src="safety-client.js?v=1.3-b76"></script>
-<link rel="stylesheet" href="ocean-world.css?v=1.3-b76">
-<script src="mobile-performance.js?v=1.3-b76"></script>
-<script defer src="home-challenges-client.js?v=1.3-b76"></script>
+<link rel="stylesheet" href="mobile-performance.css?v=1.4-b77">
+<link rel="stylesheet" href="safety.css?v=1.4-b77">
+<script defer src="security-client.js?v=1.4-b77"></script>
+<script defer src="safety-client.js?v=1.4-b77"></script>
+<link rel="stylesheet" href="ocean-world.css?v=1.4-b77">
+<script src="mobile-performance.js?v=1.4-b77"></script>
+<script defer src="home-challenges-client.js?v=1.4-b77"></script>
 </head>
 <body data-screen="s-menu">
 <script>
@@ -8607,8 +8608,8 @@ window.Modal = Modal;
    بتتوقّع بنفس مفتاح المتجر أصلًا).
    الكود متسيب كامل ومعاه مفتاح واحد: لو وزّعنا نسخة برّه المتجر يومًا،
    نرجّع UPDATE_NOTICE_ENABLED = true وخلاص. */
-const APP_VERSION = '1.3';
-const APP_VERSION_CODE = 4;
+const APP_VERSION = '1.4';
+const APP_VERSION_CODE = 5;
 const UPDATE_NOTICE_ENABLED = false;
 let _updateNoticeShown = false;   /* اتعرض إشعار التحديث في الجلسة دي؟ */
 let _updateChecking = false;      /* فحص شغّال دلوقتي؟ */
@@ -9196,13 +9197,13 @@ const PlayerCard = {
     const p = data.player || {};
     /* الهيرو بيتحدّث بالبيانات الحقيقية (الاسم/الصورة/العلم من السيرفر) */
     const av = ov.querySelector('.pc__av');
-    if(p.avatar_url){ av.setAttribute('style', `background-image:url('${String(p.avatar_url).replace(/'/g,'%27')}')`); av.textContent=''; }
+    if(p.avatar_url){ av.setAttribute('style', `background-image:url('${String(window.AMKHSafety?.publicAvatar(p)||p.avatar_url).replace(/'/g,'%27')}')`); av.textContent=''; }
     else av.textContent = this._initial(p.name);
     try{ if(window.amkhCos) window.amkhCos.paint(av, p.cosmetics); }catch(e){}
     const nameEl = ov.querySelector('.pc__name');
     nameEl.innerHTML = this._flag(p.country) + `<span>${this._esc(p.name||T('لاعب'))}</span>`;
     try{ if(window.amkhCos) window.amkhCos.paintName(nameEl, p.cosmetics); }catch(e){}
-    const bits = [this._statusText(p.status)];
+    const bits = [p.banned?(window.I18N?.lang==='en'?'Permanently banned':'محظور للأبد'):this._statusText(p.status)];
     const j = this._joined(p.joined_at); if(j) bits.push(j);
     sub.innerHTML = `<span class="pc__dot pc__dot--${this._esc(p.status||'offline')}"></span>` + this._esc(bits.join(' · '));
     body.innerHTML = this._renderBody(data);
@@ -9219,11 +9220,11 @@ const PlayerCard = {
     const stability = r.provisional ? 'تقييم مبدئي' : 'تقييم مستقرّ';
     let html = `
       <div class="pc__rating">
-        <div class="pc__rnum">${Math.round(r.rating||1500)}</div>
+        <div class="pc__rnum">${Math.round(r.rating??1500)}</div>
         <div class="pc__rmeta">
           <span class="pc__chip${r.provisional?' pc__chip--warn':''}">${stability}</span>
-          <span class="pc__rline">المركز ${this._esc(rank)} عالميًا · أعلى تقييم ${Math.round(r.peak||1500)}</span>
-          <span class="pc__rline">${r.games||0} مباراة مصنّفة · دقة التقييم ±${Math.round(r.rd||350)}</span>
+          <span class="pc__rline">المركز ${this._esc(rank)} عالميًا · أعلى تقييم ${Math.round(r.peak??1500)}</span>
+          <span class="pc__rline">${r.games||0} مباراة مصنّفة · دقة التقييم ±${Math.round(r.rd??350)}</span>
         </div>
       </div>
       <div class="pc__wl">
@@ -9245,7 +9246,7 @@ const PlayerCard = {
         ${this._cell('ودّية', st.friendly||0)}
         ${this._cell('بالأبيض', st.as_white||0)}
         ${this._cell('بالأسود', st.as_black||0)}
-        ${this._cell('السلسلة الحالية', this._streakText(st))}
+        ${this._cell('السلسلة الحالية', d.player?.banned?0:this._streakText(st))}
       </div>`;
     html += this._renderGames(d.games||[]);
     return html;
@@ -9266,7 +9267,7 @@ const PlayerCard = {
       const res = g.outcome==='win' ? ['ف','win','فوز'] : g.outcome==='loss' ? ['خ','loss','خسارة'] : ['ت','draw','تعادل'];
       const white = g.color==='w' || g.color==='white';
       const col = white ? 'أبيض' : 'أسود';
-      const av  = g.opp_avatar ? ` style="background-image:url('${String(g.opp_avatar).replace(/'/g,'%27')}')"` : '';
+      const av  = g.opp_avatar ? ` style="background-image:url('${String(window.AMKHSafety?.publicAvatar({avatar_url:g.opp_avatar})||g.opp_avatar).replace(/'/g,'%27')}')"` : '';
       return `<div class="pc__g">
           <span class="pc__gres pc__gres--${res[1]}" title="${res[2]}">${res[0]}</span>
           <span class="pc__gav"${av}>${g.opp_avatar?'':this._initial(g.opp_name)}</span>
@@ -9281,6 +9282,7 @@ const PlayerCard = {
 
   /* الأزرار بتتغيّر حسب مين بيتفرّج: نفسه، صديق، غريب، أو زائر مش مسجّل */
   _actions(ov, uid, seed, data){
+    if(data?.player?.banned){ov.querySelector('#pc-acts').textContent=window.I18N?.lang==='en'?'This account is permanently banned.':'هذا الحساب محظور للأبد.';return;}
     if(uid!==Number(window.amkhAuth?.user?.id)){
       const report=document.createElement('button');report.className='ds-btn ds-btn--ghost';report.textContent=(window.I18N?.lang==='en')?'Report violation':'الإبلاغ عن مخالفة';
       report.onclick=()=>window.AMKHSafety?.report(uid);
@@ -16383,8 +16385,7 @@ const OL=(()=>{
         try{ showRatingUpdate(d); }catch(e){}
         break;
       case 'safety:restricted':
-        try{window.amkhCall?._end('restricted');window.MIC?.stop?.();}catch(_){}
-        window.AMKHSafety?.open();
+        window.AMKHSafety?.restricted(d.sanction);
         break;
       case 'move:rejected':
         Modal.show((window.I18N?.lang==='en')?'The server rejected this move. Reconnect to restore the game.':'الخادم رفض النقلة. أعد الاتصال لاستعادة المباراة.',(window.I18N?.lang==='en')?'Move rejected':'نقلة مرفوضة','✕');
@@ -17170,6 +17171,7 @@ const Notifications={
         const room=d.room?String(d.room).trim():'';
         if(room){ this._autoJoinRoom(room); return; }
         const kind=String(d.kind||'');
+        if(kind==='moderation'){window.AMKHSafety?.inbox();return;}
         const CH=window.amkhChat, FR=window.amkhFriends;
         if(kind==='chat'&&d.from_id&&CH&&CH.openChat){
           const fid=Number(d.from_id);
@@ -17288,6 +17290,7 @@ const Notifications={
         try{ this._nativeToken=t&&t.value; if(this._nativeToken) this._saveToken(this._nativeToken,'android-native'); }catch(e){}
       });
       PN.addListener('registrationError',(e)=>{ console.log('[push] registrationError',e); });
+      PN.addListener('pushNotificationReceived',(n)=>{if(n?.data?.kind==='moderation')window.AMKHSafety?.refresh();});
       PN.addListener('pushNotificationActionPerformed',(a)=>{
         try{
           const data=(a&&a.notification&&a.notification.data)||{};

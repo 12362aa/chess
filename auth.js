@@ -789,6 +789,9 @@ router.get('/me', authenticateToken, (req, res) => {
   user.rating_rd = Math.round(rd);
   user.rating_peak = Math.round(isFinite(user.rating_peak) ? user.rating_peak : 1500);
   user.provisional = rd > 110;
+  const safety=require('./security-core');
+  user.safety={account:safety.active(user.id,'account'),social:safety.active(user.id,'social'),economy:safety.active(user.id,'economy')};
+  res.set('Cache-Control','no-store');
   res.json(user);
 });
 

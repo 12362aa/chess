@@ -66,6 +66,7 @@ function blockedBetween(a, b) {
 }
 
 function decorateStatus(row) {
+  const safety=require('./security-core');if(safety.permanent(row.id))return safety.publicUser({id:row.id,username:row.username,display_name:row.display_name,provider:row.provider,avatar_url:null,cosmetics:null,status:'offline',online:false,last_seen_at:null});
   const live = realtime.statusOf(row.id);
   const status = live || (row.is_online ? (row.in_game ? 'in-game' : 'online') : 'offline');
   /* التجميل المُجهَّز (إطار/شارة) عام تجميليّ بحت — يظهر في قائمة الرسائل

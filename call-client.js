@@ -365,6 +365,7 @@
 
     /* ── بدء مكالمة فردية (الداعي) ── */
     async startCall(peerId, name, avatar, opts) {
+      if(window.AMKHSafety&&!window.AMKHSafety.allow('social'))return;
       peerId = Number(peerId);
       const video = !!(opts && opts.video);
       if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '•'); return; }
@@ -390,6 +391,7 @@
 
     /* ── بدء مكالمة حفلة (جماعية) ── */
     async startGroupCall(groupId, name, memberIds, opts) {
+      if(window.AMKHSafety&&!window.AMKHSafety.allow('social'))return;
       groupId = Number(groupId);
       const video = !!(opts && opts.video);
       if (!this.me()) { this._notify('سجّل الدخول لتتمكّن من الاتصال', 'غير متصل', '•'); return; }

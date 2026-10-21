@@ -210,7 +210,7 @@ const amkhAuth = {
         try { this.user = JSON.parse(localStorage.getItem('amkh_user') || 'null'); } catch (e) {}
       }
       this.updateUI();
-
+      window.AMKHSafety?.session(this.user,true);
       const state = await this.fetchMe();
       if (state === 'ok') {
         console.log('Logged in as', this.user.display_name || this.user.email);
@@ -226,6 +226,7 @@ const amkhAuth = {
           }
         } catch (e) {}
         this.updateUI();
+        if(this.user?.safety?.account)return;
         this.connectPresence();
         this.startAutoSync();
         /* الجلسة استعادت — نعيد ربط توكِن الإشعارات بالحساب. لو داخل من غير
@@ -265,17 +266,20 @@ const amkhAuth = {
      عند بدء التطبيق لأن رابط السيرفر لسه بيتحمّل) كان بيمسح التوكن.
      النتيجة إن المستخدم يلاقي نفسه خارج كل مرة يرجع للتطبيق. */
   async fetchMe() {
+    const sessionToken=this.token;
     if (window.amkhEnsureServer && !await window.amkhEnsureServer()) {
       return 'offline';
     }
     try {
       const res = await fetch(`${window.getApiBase()}/me`, {
-        headers: { 'Authorization': `Bearer ${this.token}`, 'ngrok-skip-browser-warning': 'true' }
+        headers: { 'Authorization': `Bearer ${sessionToken}`, 'ngrok-skip-browser-warning': 'true' }
       });
+      if(this.token!==sessionToken)return 'offline';
       if (res.ok) {
-        this.user = await res.json();
+        const current=await res.json();if(this.token!==sessionToken)return 'offline';this.user=current;
         try { localStorage.setItem('amkh_user', JSON.stringify(this.user)); } catch (e) {}
         this._reconcileAvatar();
+        if(this.user.safety?.account)window.AMKHSafety?.restricted(this.user.safety.account);
         return 'ok';
       }
       /* 401/403 = التوكن نفسه باطل. أي كود تاني (500، 502 من النفق)
@@ -561,6 +565,7 @@ const amkhAuth = {
   setToken(token, user) {
     this.token = token;
     this.user = user;
+    window.AMKHSafety?.session(user,true);
     localStorage.setItem('amkh_auth_token', token);
     /* بيانات المستخدم بتتحفظ كمان: عند بدء التطبيق بنعرضها فورًا قبل
        ما الشبكة ترد، فالواجهة تفتح والمستخدم داخل بدل ما تبان كأنه خرج. */
@@ -721,6 +726,7 @@ const amkhAuth = {
     if (this._settingsTimer) { clearTimeout(this._settingsTimer); this._settingsTimer = null; }
     this.token = null;
     this.user = null;
+    window.AMKHSafety?.session(null);
     localStorage.removeItem('amkh_auth_token');
     localStorage.removeItem('amkh_user');
     this.disconnectPresence();
@@ -1182,6 +1188,7 @@ const amkhAuth = {
   isIdentified(ws) { return !!(ws && ws.readyState === 1 && ws.__amkhAuthed); },
 
   connectPresence() {
+    if(this.user?.safety?.account)return;
     if (!this.token) return;
     this._hookRevive();
     /* لو الأونلاين عنده سوكت مفتوح، نعرّفه كمان — سوكت واحد موثّق أحسن */
@@ -1353,9 +1360,9 @@ const amkhAuth = {
       try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d || typeof d.type !== 'string') return;
       if(d.type==='safety:restricted'){
-        try{window.amkhCall?._end('restricted');window.MIC?.stop?.();}catch(_){}
-        window.AMKHSafety?.open();return;
+        window.AMKHSafety?.restricted(d.sanction);return;
       }
+      if(d.type==='safety:notice'){window.AMKHSafety?.updateNotice(d.notifications);return;}
       /* إيصالات التوثيق والنبض أول حاجة: عليها بيتبنى كل الباقي */
       if (d.type.indexOf('presence:') === 0 && this._onPresenceFrame(d, ws)) return;
       if (d.type.indexOf('chat:') === 0) {

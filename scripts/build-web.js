@@ -28,6 +28,8 @@ const requiredFiles = new Set([
   'security-client.js',
   'safety-client.js',
   'safety.css',
+  'banned-avatar-ar.svg',
+  'banned-avatar-en.svg',
   'manifest.json',
   'sw.js',
   'url.json',

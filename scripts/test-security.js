@@ -84,6 +84,33 @@ const transcript=moves.map(u=>({fr:[8-+u[1],'abcdefgh'.indexOf(u[0])],to:[8-+u[3
  db.prepare('INSERT INTO account_sanctions(user_id,scope,reason,expires_at,moderator_id,created_at) VALUES(?,?,?,?,?,?)').run(bob,'social','Expired fixture',Date.now()-1,owner,Date.now());assert.equal(S.active(bob,'social'),null);
  assert(db.prepare('SELECT COUNT(*) n FROM moderation_audit').get().n>=3);
  console.log('PASS restriction enforcement, status/appeal access, accepted appeal, expiry and audit');
+ const router=require('../moderation');
+ let noticeCalls=0;S.onNotice=()=>noticeCalls++;
+ const nc=S.notificationCounts(owner);assert(nc.unread>=4);assert.equal((await req(alice,'/api/safety/admin/seen',{cursor:nc.cursor})).status,403);
+ assert.equal((await req(owner,'/api/safety/admin/seen',{cursor:nc.cursor})).d.unread,0);
+ S.notifyModerators('report',reportId);assert.equal(S.notificationCounts(owner).unread,0); // duplicate delivery does not reopen read items
+ const extra=await req(alice,'/api/safety/reports',{targetId:outsider,context:'player',contextId:'',reason:'other',note:'Notice fixture'});assert.equal(extra.status,201);assert.equal(S.notificationCounts(owner).unread,1);assert(noticeCalls>0);
+ let pushCalls=0,failPush=true;router.pushTokens=()=>['synthetic-token'];router.sendPush=async(t,p)=>{pushCalls++;assert.equal(p.data.kind,'moderation');assert(p.title.ar&&p.title.en&&p.body.ar&&p.body.en);return {successCount:failPush?0:1};};
+ await router.deliverPush();assert.equal(db.prepare('SELECT attempts FROM moderation_push_receipts ORDER BY notification_id DESC LIMIT 1').get().attempts,1);
+ db.prepare('UPDATE moderation_push_receipts SET next_at=0').run();failPush=false;await router.deliverPush();const sent=pushCalls;await router.deliverPush();assert.equal(pushCalls,sent);
+ router.pushTokens=()=>['synthetic-token','second-device-token'];await router.deliverPush();assert(pushCalls>sent);delete router.pushTokens;delete router.sendPush;
+ console.log('PASS durable unread cursor, live notice hook, bilingual push retries and per-device delivery dedupe');
+ const permanentId=Number(db.prepare('INSERT INTO account_sanctions(user_id,scope,reason,expires_at,moderator_id,created_at) VALUES(?,?,?,NULL,?,?)').run(bob,'account','Permanent fixture reason',owner,Date.now()).lastInsertRowid);
+ const masked=S.publicUser({id:bob,username:'bob',rating:1900,wins:32,avatar_url:'private-avatar',cosmetics:{frame:'old'},rating_games:40});assert.equal(masked.username,'bob');assert.equal(masked.rating,0);assert.equal(masked.wins,0);assert.equal(masked.cosmetics,null);assert(masked.banned);
+ const blocked=await req(bob,'/api/economy/me');assert.equal(blocked.status,403);assert.equal(blocked.d.sanction.expires_at,null);
+ assert.equal((await req(bob,'/api/me')).d.safety.account.reason,'Permanent fixture reason');assert.equal((await req(bob,'/api/safety/status')).d.active.account.id,permanentId);
+ const appeal=await req(bob,'/api/safety/appeals',{sanctionId:permanentId,note:'Permanent fixture appeal'});assert.equal(appeal.status,201);await req(owner,'/api/safety/admin/revoke',{sanctionId:permanentId,note:'Restore fixture'});assert.equal(S.publicUser({id:bob,rating:1900}).rating,1900);
+ for(const scope of ['social','economy']){const sid=Number(db.prepare('INSERT INTO account_sanctions(user_id,scope,reason,expires_at,moderator_id,created_at) VALUES(?,?,?,?,?,?)').run(bob,scope,'Scope fixture',Date.now()+259200000,owner,Date.now()).lastInsertRowid);assert.equal(S.active(bob,scope).id,sid);assert.equal((await req(bob,'/api/me')).status,200);assert.equal((await req(bob,'/api/economy/me')).status,scope==='economy'?403:200);await req(owner,'/api/safety/admin/revoke',{sanctionId:sid,note:'End scope fixture'});}
+ db.prepare("DELETE FROM security_events WHERE user_id=? AND kind='foreign_session'").run(bob);
+ const foreignKeys=Array.from({length:6},(_,i)=>S.session(alice,'abuse-fixture-'+i,{}));for(const key of foreignKeys.slice(0,4)){assert.equal(S.getSession(key,bob,'abuse-fixture-'+foreignKeys.indexOf(key)),null);}assert.equal(S.active(bob,'economy'),null);
+ for(let i=0;i<10;i++)S.getSession(foreignKeys[0],bob,'abuse-fixture-0');assert.equal(S.active(bob,'economy'),null);
+ S.getSession(foreignKeys[4],bob,'abuse-fixture-4');const auto=S.active(bob,'economy');assert.equal(auto.automatic,1);assert.equal(auto.reason_key,'foreign_session');assert(auto.expires_at-Date.now()<=3600000);assert.equal(S.active(bob,'account'),null);
+ assert.equal(db.prepare("SELECT action FROM moderation_audit WHERE subject_id=? ORDER BY id DESC LIMIT 1").get(bob).action,'automatic-sanction');
+ await req(owner,'/api/safety/admin/revoke',{sanctionId:auto.id,note:'Auto fixture appeal'});
+ S.getSession(foreignKeys[5],bob,'abuse-fixture-5');assert.equal(S.active(bob,'economy'),null); // review clears the previous escalation window
+ for(let i=0;i<6;i++)S.getSession(foreignKeys[i],owner,'abuse-fixture-'+i);assert.equal(S.active(owner,'economy'),null);
+ for(let i=0;i<8;i++)S.event(bob,'unverified_reward',{fixture:i});assert.equal(S.active(bob,'economy'),null);
+ console.log('PASS permanent masking and reversible data, authenticated ban reasons, scope isolation and conservative automatic sanctions');
  db.prepare('UPDATE users SET token_version=token_version+1 WHERE id=?').run(outsider);assert.equal((await req(outsider,'/api/economy/me')).status,403);
  tokens.set(outsider,jwt.sign({id:outsider,v:1},process.env.JWT_SECRET));assert.equal((await req(outsider,'/api/economy/me')).status,200);
  const mailer=require('../mailer'),savedReady=mailer.ready,savedSend=mailer.sendModerationNotice;let sends=0;

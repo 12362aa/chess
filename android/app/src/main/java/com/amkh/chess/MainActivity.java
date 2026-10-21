@@ -21,6 +21,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(MediaSavePlugin.class);     // #6: حفظ وسائط الدردشة في المعرض
         super.onCreate(savedInstanceState);
         handleCallIntent(getIntent());             // إقلاع بارد من زر «رد» في الإشعار
+        handleModerationIntent(getIntent());
         setupNavBarInset();                        // #140: احقن ارتفاع شريط التنقّل لـCSS
     }
 
@@ -124,10 +125,18 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         handleCallIntent(intent);                  // التطبيق مفتوح والضغط على «رد»
+        handleModerationIntent(intent);
     }
 
     /* «رد» في إشعار المكالمة بيفتح التطبيق بـextras فيها هوية المكالمة (#159).
        بنمرّرها لـCallIntent، وcall-client بيلقطها ويقبل المكالمة تلقائيًا. */
+    private void handleModerationIntent(Intent intent) {
+        if (intent != null && intent.getBooleanExtra("open_moderation", false)) {
+            intent.removeExtra("open_moderation");
+            CallIntentPlugin.deliverModeration();
+        }
+    }
+
     private void handleCallIntent(Intent intent) {
         if (intent == null) return;
         if (!"answer".equals(intent.getStringExtra("call_action"))) return;

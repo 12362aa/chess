@@ -123,6 +123,7 @@ function memberIds(groupId) {
 
 /* بيانات عضو عامة. */
 function memberInfo(row) {
+  const safety=require('./security-core');if(safety.permanent(row.id))return safety.publicUser({id:row.id,username:row.username,display_name:row.display_name,provider:row.provider,avatar_url:null,cosmetics:null,status:'offline',online:false});
   return {
     id: row.id,
     username: row.username,

@@ -3,20 +3,22 @@
    استراتيجية: Cache First للأصول الثابتة
    Network First للصفحة الرئيسية
 ══════════════════════════════════════ */
-const SW_VERSION = '1.3-b76';
+const SW_VERSION = '1.4-b77';
 const CACHE_NAME = `chess-amkh-v6-${SW_VERSION}`;
 const STATIC_ASSETS = [
   './',
   './index.html',
   './design-system.css',
   './screens.css',
-  './mobile-performance.css?v=1.3-b76',
-  './ocean-world.css?v=1.3-b76',
-  './mobile-performance.js?v=1.3-b76',
-  './home-challenges-client.js?v=1.3-b76',
-  './security-client.js?v=1.3-b76',
-  './safety-client.js?v=1.3-b76',
-  './safety.css?v=1.3-b76',
+  './mobile-performance.css?v=1.4-b77',
+  './ocean-world.css?v=1.4-b77',
+  './mobile-performance.js?v=1.4-b77',
+  './home-challenges-client.js?v=1.4-b77',
+  './security-client.js?v=1.4-b77',
+  './safety-client.js?v=1.4-b77',
+  './safety.css?v=1.4-b77',
+  './banned-avatar-ar.svg',
+  './banned-avatar-en.svg',
   './engine-fallback-worker.js',
   './manifest.json',
   './icon_v2.png?v=3',
